@@ -1,0 +1,28 @@
+package application.market.auction_mobile.business.globalData
+
+interface ActivityLauncher {
+    fun launchSearchActivity()
+    fun launchSubcategoryActivity(isNewLot: Boolean, categoryName: String)
+    fun launchLoginActivity(goToListing : Boolean = false, usId: Long = 1L)
+    fun launchAboutUsActivity()
+    fun launchHelpActivity()
+    fun launchSupportServiceActivity()
+    fun launchUserActivity(userId: Long)
+    fun launchOfferActivity(offerId: Long, categoryName: String? = null, isSnapshot: Boolean = false)
+    fun launchTop100Activity()
+    fun launchWebActivity(url: String?)
+    fun launchSettingsActivity()
+    fun launchMessengerActivity(dialogId: Long, putText: String? = null)
+    fun launchRegistrationActivity()
+    fun launchVerificationActivity(usId: Long = 1L, code: String?=null, type: String?=null)
+    fun launchDynamicSettingsActivity(usId: Long?, code: String?, typeSettings: String)
+    fun launchNotificationActivity()
+    fun launchNewOrderActivity(sellerId: Long, offerIds: LongArray, offerCounts: IntArray)
+    fun launchCreateSubscriptionActivity(isEditSub:Boolean=false, subscriptionId:Long=0)
+    fun launchMainActivity(needClass: String, isClearTop: Boolean = false)
+    fun launchOrderActivity(orderId: Long)
+    fun launchUserActivity(userId: Long, aboutMe: Boolean = false)
+    fun launchCreateOfferActivity(offerId: Long?=1L, type: String? = null, categoryID: Long = 1L, externalImages: ArrayList<String>? = null)
+    fun launchPictureViewActivity(pictures: ArrayList<String>, position: Int)
+    fun launchSearchMessageActivity()
+}
