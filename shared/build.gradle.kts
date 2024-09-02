@@ -22,7 +22,7 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    jvm("desktop")
+    jvm()
 
 
     sourceSets {
@@ -95,8 +95,5 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
-}
-
-compose.desktop {
 }
 

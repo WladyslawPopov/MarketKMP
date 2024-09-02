@@ -1,4 +1,4 @@
-package application.market.auction_mobile.root
+package market.engine.root
 
 import application.market.auction_mobile.ui.home.DefaultHomeComponent
 import application.market.auction_mobile.ui.search.DefaultSearchComponent
