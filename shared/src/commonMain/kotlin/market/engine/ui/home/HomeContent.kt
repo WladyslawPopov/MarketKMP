@@ -3,10 +3,13 @@ package market.engine.ui.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.ModalDrawer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
@@ -28,7 +31,8 @@ import org.jetbrains.compose.resources.painterResource
 fun HomeContent(
     component: HomeComponent,
     m: Modifier = Modifier,
-    themeResources: ThemeResources
+    themeResources: ThemeResources,
+    onMenuClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -42,12 +46,14 @@ fun HomeContent(
                     ) {
                         // Левый иконка меню
                         Icon(
-                            painter = painterResource(themeResources.drawables.search),
+                            painter = painterResource(themeResources.drawables.menuHamburger),
                             contentDescription = "Menu",
                             modifier = Modifier
                                 .padding(16.dp)
                                 .size(24.dp)
-                                .clickable { /* Действие при нажатии на меню */ },
+                                .clickable {
+                                    onMenuClick()
+                                },
                             tint = Color.White
                         )
 
@@ -93,4 +99,16 @@ fun HomeContent(
         },
         modifier = m
     )
+}
+
+
+@Composable
+fun DrawerContent() {
+    // Содержимое бокового меню
+    Column(modifier = Modifier.fillMaxHeight().padding(16.dp)) {
+        Text("Top 100", modifier = Modifier.clickable { /* Handle click */ })
+        Text("Help", modifier = Modifier.clickable { /* Handle click */ })
+        Text("Contact Us", modifier = Modifier.clickable { /* Handle click */ })
+        // Добавь другие элементы меню
+    }
 }
