@@ -1,28 +1,15 @@
 package market.engine.root
 
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BadgedBox
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ModalDrawer
-import androidx.compose.material3.Badge
-import androidx.compose.material.DrawerValue
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material.rememberDrawerState
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import market.engine.ui.home.HomeContent
 import application.market.auction_mobile.ui.search.SearchContent
@@ -30,11 +17,14 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.launch
+import market.engine.business.types.WindowSizeClass
+import market.engine.business.util.getWindowSizeClass
 import market.engine.theme.ThemeResources
-import market.engine.ui.home.DrawerContent
+import market.engine.widgets.DrawerContent
+import market.engine.widgets.appbars.HomeAppBar
+import market.engine.widgets.getBottomNavBar
+import market.engine.widgets.getRailNavBar
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 data class BottomNavigationItem(
@@ -69,90 +59,49 @@ fun RootContent(
             badgeCount = null
         )
     )
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var selectedItemIndex by rememberSaveable {
-        mutableStateOf(0)
+    val windowClass = getWindowSizeClass()
+    val showNavigationRail = windowClass == WindowSizeClass.Big
+
+    val currentScreen = when (childStack.active.instance) {
+        is RootComponent.Child.HomeChild -> "Home"
+        is RootComponent.Child.SearchChild -> "Search"
     }
-    ModalDrawer(
+    ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = { DrawerContent() },
         ){
         Scaffold(
-            bottomBar = {
-                NavigationBar(
-                    modifier = modifier
-                        .navigationBarsPadding()
-                        .clip(RoundedCornerShape(topStart = themeResources.dimens.smallPadding, topEnd = themeResources.dimens.smallPadding)),
-
-                    contentColor = themeResources.colors.errorLayoutBackground
-
-                ) {
-                    listItems.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            selected = selectedItemIndex == index,
-                            onClick = {
-                                selectedItemIndex = index
-                                when(index){
-                                    0 -> component.navigateTo(Config.Home)
-                                    1 -> component.navigateTo(Config.Search(itemId = 1))
-                                }
-                            },
-                            icon = {
-                                BadgedBox(
-                                    badge = {
-                                        if (item.badgeCount != null){
-                                            Badge {
-                                                Text(text = item.badgeCount.toString())
-                                            }
-                                        } else {
-                                            if (item.hasNews) {
-                                                Badge()
-                                            }
-                                        }
-                                    }
-                                ){
-                                    if (selectedItemIndex == index){
-                                        Icon(
-                                            painter = painterResource(item.selectedIcon),
-                                            contentDescription = item.title,
-                                            tint = themeResources.colors.inactiveBottomNavIconColor,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    } else {
-                                        Icon(
-                                            painter = painterResource(item.unselectedIcon),
-                                            contentDescription = null,
-                                            tint = themeResources.colors.black,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                            },
-                            label = {
-                                Text(text = item.title)
-                            }
-                        )
-                    }
+            topBar = {
+                when(currentScreen){
+                    "Home" -> HomeAppBar(modifier,showNavigationRail,scope,drawerState,themeResources)
+                    "Search" -> {}
                 }
             },
-            modifier = modifier
+            bottomBar = {
+                if (!showNavigationRail) {
+                    getBottomNavBar(component, modifier, listItems, themeResources)
+                } else {
+                   getRailNavBar(component, modifier, scope, drawerState, listItems, themeResources)
+                }
+            },
+            modifier = modifier.fillMaxSize()
         ) { innerPadding ->
             Children(
                 stack = childStack,
-                modifier = modifier.padding(innerPadding),
+                modifier = modifier.then(
+                        if (showNavigationRail) modifier.padding(start = 82.dp, top = 70.dp)
+                        else modifier.padding(innerPadding))
+                    .fillMaxSize(),
                 animation = stackAnimation(fade())
             ) { child ->
                 when (val screen = child.instance) {
                     is RootComponent.Child.HomeChild -> HomeContent(
                         screen.component,
                         modifier,
-                        themeResources,
-                        onMenuClick = {
-                            scope.launch {
-                                drawerState.open()
-                            }
-                        }
+                        themeResources
                     )
                     is RootComponent.Child.SearchChild -> SearchContent(screen.component)
                 }
@@ -160,3 +109,6 @@ fun RootContent(
         }
     }
 }
+
+
+

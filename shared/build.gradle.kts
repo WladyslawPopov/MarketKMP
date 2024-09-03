@@ -26,12 +26,14 @@ kotlin {
 
 
     sourceSets {
+
         commonMain.dependencies {
+            implementation(compose.ui)
+            implementation(compose.runtime)
             implementation(compose.material)
             implementation(compose.material3)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-
             api(libs.koin.core)
             implementation(libs.koin.compose)
 
