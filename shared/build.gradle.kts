@@ -34,8 +34,10 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+
             api(libs.koin.core)
             implementation(libs.koin.compose)
+            implementation(libs.koin.composeVM)
 
 
             implementation(libs.coil.compose)
@@ -45,7 +47,6 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.json)
-            implementation(libs.ktor.client.cio)
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -54,13 +55,13 @@ kotlin {
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
         }
-//        val desktopMain by getting
-//        desktopMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//            implementation(libs.kotlinx.coroutines.swing)
-//            implementation(libs.ktor.client.java)
-//            implementation(libs.androidx.runtime.desktop)
-//        }
+        val jvmMain by getting
+        jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.ktor.client.java)
+            implementation(libs.androidx.runtime.desktop)
+        }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.decompose)

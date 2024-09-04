@@ -1,9 +1,10 @@
 package market.engine.root
 
-import application.market.auction_mobile.ui.home.DefaultHomeComponent
+import androidx.compose.runtime.Composable
+import market.engine.ui.home.DefaultHomeComponent
 import application.market.auction_mobile.ui.search.DefaultSearchComponent
-import application.market.auction_mobile.ui.home.HomeComponent
-import application.market.auction_mobile.ui.home.HomeViewModel
+import market.engine.ui.home.HomeComponent
+import market.engine.ui.home.HomeViewModel
 import application.market.auction_mobile.ui.search.SearchComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -14,6 +15,8 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import org.koin.compose.koinInject
+import org.koin.mp.KoinPlatform.getKoin
 
 interface RootComponent {
 
@@ -60,12 +63,13 @@ class DefaultRootComponent(
             )
         }
 
-    private fun itemHome(componentContext: ComponentContext): HomeComponent =
-        DefaultHomeComponent(
+
+    private fun itemHome(componentContext: ComponentContext): HomeComponent {
+        return DefaultHomeComponent(
             componentContext = componentContext,
-            onItemSelected = { navigation.push(Config.Home) },
-            HomeViewModel()
+            onItemSelected = { navigation.push(Config.Home) }
         )
+    }
 
     private fun itemSearch(
         componentContext: ComponentContext,

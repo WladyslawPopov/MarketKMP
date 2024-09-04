@@ -1,6 +1,6 @@
 package market.engine.di
 
-import application.market.auction_mobile.business.core.KtorHttpClient.createKtorClient
+import market.engine.business.core.KtorHttpClient.createKtorClient
 import application.market.auction_mobile.business.core.network.functions.ConversationsOperations
 import application.market.auction_mobile.business.core.network.functions.FileUpload
 import application.market.auction_mobile.business.core.network.functions.OfferOperations
@@ -10,6 +10,7 @@ import application.market.auction_mobile.business.core.network.functions.Subscri
 import application.market.auction_mobile.business.core.network.functions.UserOperations
 import application.market.core.network.APIService
 import application.market.auction_mobile.business.core.network.functions.CategoryOperations
+import market.engine.ui.home.HomeViewModel
 import org.koin.dsl.module
 
 object InstanceModule {
@@ -32,6 +33,7 @@ object InstanceModule {
         single { PrivateMessagesOperation(get()) }
         single { SubscriptionOperations(get()) }
         single { UserOperations(get()) }
+        single { HomeViewModel(get()) }
 
 //        viewModel { OfferViewModel(get()) }
 //        viewModel { CreateOfferViewModel(get()) }

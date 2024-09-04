@@ -82,7 +82,7 @@ fun RootContent(
             },
             bottomBar = {
                 if (!showNavigationRail) {
-                    getBottomNavBar(component, modifier, listItems, themeResources)
+                   getBottomNavBar(component, modifier, listItems, themeResources)
                 } else {
                    getRailNavBar(component, modifier, scope, drawerState, listItems, themeResources)
                 }

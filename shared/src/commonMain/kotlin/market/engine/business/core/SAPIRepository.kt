@@ -1,6 +1,6 @@
 package application.market.auction_mobile.business.core
 
-import application.market.auction_mobile.business.constants.SAPI
+import market.engine.business.constants.SAPI
 
 class SAPIRepository {
 

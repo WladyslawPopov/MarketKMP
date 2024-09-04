@@ -1,14 +1,14 @@
-package application.market.auction_mobile.business.constants
+package market.engine.business.constants
 
 
 object SAPI {
-    var API_BASE: String = ""
+    var API_BASE: String = "https://api.auction.ru/"
 
-    var SERVER_BASE: String = ""
+    var SERVER_BASE: String = "https://auction.ru/"
 
-    var YA_API_KEY: String = ""
+    var YA_API_KEY: String = "d434ba90-bf1e-4a52-ab21-c838dfc7e1a9"
 
-    var REVIEW_URL: String = ""
+    var REVIEW_URL: String = "https://play.google.com/store/apps/details?id=application.market.auction_mobile"
 
     val headers = mutableMapOf<String, String>()
 
@@ -16,6 +16,6 @@ object SAPI {
 
     fun getApiKey(): String {
         val sole = "d434ba90-bf1e-4a"
-        return "BYP9qNRlA3Mpx1w8jS31kOnz"
+        return "CtCN5KhmBdWvNzJEfr3pwgwU"
     }
 }

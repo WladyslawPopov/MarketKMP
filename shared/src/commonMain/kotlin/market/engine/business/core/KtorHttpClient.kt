@@ -1,8 +1,8 @@
-package application.market.auction_mobile.business.core
+package market.engine.business.core
 
-import application.market.auction_mobile.business.constants.SAPI
+import application.market.auction_mobile.business.core.ServerErrorException
+import market.engine.business.constants.SAPI
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.HttpTimeout
@@ -18,7 +18,7 @@ import kotlinx.serialization.json.Json
 
 object KtorHttpClient {
     fun createKtorClient(): HttpClient {
-        return HttpClient(CIO) {
+        return HttpClient {
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true
@@ -58,8 +58,6 @@ object KtorHttpClient {
                 retryOnException(maxRetries = 5)
                 exponentialDelay()
             }
-
         }
     }
-
 }

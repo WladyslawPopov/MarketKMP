@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import market.engine.theme.ThemeResources
 
 @Composable
-fun CategoryRow(categories: List<String>, modifier: Modifier = Modifier, themeResources: ThemeResources) {
+fun CategoryRow(categories: List<String?>, modifier: Modifier = Modifier, themeResources: ThemeResources) {
     LazyRow(
         modifier = modifier.padding(top = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -28,7 +28,7 @@ fun CategoryRow(categories: List<String>, modifier: Modifier = Modifier, themeRe
                     .clickable { /* Handle category click */ }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text(text = category, color = themeResources.colors.black)
+                Text(text = category ?: "", color = themeResources.colors.black)
             }
         }
     }
