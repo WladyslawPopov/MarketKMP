@@ -21,8 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import market.engine.business.constants.ThemeResources.colors
+import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
-import market.engine.root.DrawerItem
+import market.engine.business.items.NavigationItem
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -36,24 +38,24 @@ fun DrawerContent(
     }
 
     val list = listOf(
-        DrawerItem(
+        NavigationItem(
             title = "Top 100",
-            selectedIcon = drawables.home,
-            unselectedIcon = drawables.home,
+            icon = drawables.home,
+            tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
-        DrawerItem(
+        NavigationItem(
             title = "Help",
-            selectedIcon = drawables.search,
-            unselectedIcon = drawables.search,
+            icon = drawables.search,
+            tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
-        DrawerItem(
+        NavigationItem(
             title = "Contact Us",
-            selectedIcon = drawables.search,
-            unselectedIcon = drawables.search,
+            icon = drawables.search,
+            tint = colors.black,
             hasNews = false,
             badgeCount = null
         )
@@ -76,9 +78,9 @@ fun DrawerContent(
                 },
                 icon = {
                     Icon(
-                        painter = painterResource(if (index == selectedIndex) item.selectedIcon else item.unselectedIcon),
+                        painter = painterResource(item.icon),
                         contentDescription = item.title,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(dimens.smallIconSize)
                     )
                 },
                 badge = {

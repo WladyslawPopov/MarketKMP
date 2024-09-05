@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import market.engine.business.constants.ThemeResources.dimens
-import market.engine.root.NavigationItem
+import market.engine.business.items.NavigationItem
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
