@@ -8,49 +8,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
-import org.jetbrains.compose.resources.DrawableResource
+import market.engine.business.items.NavigationItem
+import market.engine.widgets.getBadgedBox
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-
-data class AppBarItem(
-    val title: String,
-    val icon: DrawableResource,
-    val tint: Color,
-    val badgeCount: Int? = null,
-    val hasNews: Boolean,
-    val isVisible: Boolean = true
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeAppBar(
     modifier: Modifier = Modifier,
     showNavigationRail: Boolean,
-    scope: CoroutineScope,
-    drawerState: DrawerState
+    openMenu : () -> Unit,
 ) {
     val listItems = listOf(
-        AppBarItem(
+        NavigationItem(
             title = stringResource(strings.proposalTitle),
             icon = drawables.currencyIcon,
             tint = colors.notifyTextColor,
@@ -58,7 +40,7 @@ fun HomeAppBar(
             badgeCount = 4,
             isVisible = true
         ),
-        AppBarItem(
+        NavigationItem(
             title = stringResource(strings.mailTitle),
             icon = drawables.mail,
             tint = colors.brightBlue,
@@ -66,7 +48,7 @@ fun HomeAppBar(
             badgeCount = null,
             isVisible = true
         ),
-        AppBarItem(
+        NavigationItem(
             title = stringResource(strings.notificationTitle),
             icon = drawables.notification,
             tint = colors.titleTextColor,
@@ -96,9 +78,7 @@ fun HomeAppBar(
                         modifier = modifier
                             .size(dimens.smallIconSize)
                             .clickable {
-                                scope.launch {
-                                    drawerState.open()
-                                }
+                               openMenu()
                             },
                         tint = colors.black
                     )
@@ -114,27 +94,7 @@ fun HomeAppBar(
                 Row {
                     listItems.forEachIndexed{ index, item ->
                         if(item.isVisible){
-                            BadgedBox(
-                                badge = {
-                                    if (item.badgeCount != null){
-                                        Badge {
-                                            Text(text = item.badgeCount.toString())
-                                        }
-                                    } else {
-                                        if (item.hasNews) {
-                                            Badge()
-                                        }
-                                    }
-                                }
-                            ){
-                                Icon(
-                                    painter = painterResource(item.icon),
-                                    contentDescription = item.title,
-                                    modifier = modifier.size(dimens.smallIconSize)
-                                        .clickable { /* Действие при нажатии на иконку уведомлений */ },
-                                    tint = item.tint
-                                )
-                            }
+                            getBadgedBox(item)
 
                             if (index > 0) {
                                 Spacer(modifier = Modifier.width(dimens.smallPadding))

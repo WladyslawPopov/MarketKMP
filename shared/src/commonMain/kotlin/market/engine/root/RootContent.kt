@@ -2,14 +2,9 @@ package market.engine.root
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.Surface
-import androidx.compose.material3.DismissibleNavigationDrawer
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -23,33 +18,18 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.launch
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
+import market.engine.business.items.NavigationItem
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
 import market.engine.widgets.DrawerContent
 import market.engine.widgets.appbars.HomeAppBar
 import market.engine.widgets.getBottomNavBar
 import market.engine.widgets.getRailNavBar
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
-
-data class BottomNavigationItem(
-    val title : String,
-    val selectedIcon : DrawableResource,
-    val unselectedIcon : DrawableResource,
-    val hasNews : Boolean,
-    val badgeCount : Int? = null
-)
-
-data class DrawerItem(
-    val title : String,
-    val selectedIcon : DrawableResource,
-    val unselectedIcon : DrawableResource,
-    val hasNews : Boolean,
-    val badgeCount : Int? = null
-)
 
 @Composable
 fun RootContent(
@@ -68,21 +48,27 @@ fun RootContent(
     }
     
     val listItems = listOf(
-        BottomNavigationItem(
+        NavigationItem(
             title = stringResource(strings.homeTitle),
-            selectedIcon =  drawables.home,
-            unselectedIcon = drawables.home,
+            icon =  drawables.home,
+            tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
             badgeCount = null
         ),
-        BottomNavigationItem(
+        NavigationItem(
             title = stringResource(strings.searchTitle),
-            selectedIcon = drawables.search,
-            unselectedIcon = drawables.search,
+            icon = drawables.search,
+            tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
             badgeCount = null
         )
     )
+
+    fun openMenu(){
+        scope.launch {
+            drawerState.open()
+        }
+    }
     
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -96,7 +82,7 @@ fun RootContent(
             Scaffold(
                 topBar = {
                     when(currentScreen){
-                        "Home" -> HomeAppBar(modifier,showNavigationRail,scope,drawerState)
+                        "Home" -> HomeAppBar(modifier,showNavigationRail,{openMenu()})
                         "Search" -> {}
                     }
                 },
@@ -104,7 +90,7 @@ fun RootContent(
                     if (!showNavigationRail) {
                         getBottomNavBar(component, modifier,listItems)
                     } else {
-                        getRailNavBar(component, modifier, scope, drawerState, listItems)
+                        getRailNavBar(component, modifier,{openMenu()}, listItems)
                     }
                 },
                 modifier = modifier.fillMaxSize()
@@ -128,7 +114,6 @@ fun RootContent(
             }
         }
     }
-
 }
 
 fun navigateFromBottomBar(index: Int, component: RootComponent){

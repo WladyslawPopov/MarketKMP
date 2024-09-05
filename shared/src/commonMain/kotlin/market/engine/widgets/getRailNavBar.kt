@@ -23,22 +23,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import market.engine.business.constants.ThemeResources.colors
+import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
-import market.engine.root.BottomNavigationItem
+import market.engine.business.constants.ThemeResources.strings
+import market.engine.business.items.NavigationItem
 import market.engine.root.RootComponent
 import market.engine.root.navigateFromBottomBar
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getRailNavBar(
     component: RootComponent,
     modifier: Modifier = Modifier,
-    scope: CoroutineScope,
-    drawerState: DrawerState,
-    listItems: List<BottomNavigationItem>
+    openMenu : () -> Unit,
+    listItems: List<NavigationItem>
 ){
     var selectedItemIndex by rememberSaveable {
         mutableStateOf(0)
@@ -52,14 +52,12 @@ fun getRailNavBar(
         header = {
             Icon(
                 painter = painterResource(drawables.menuHamburger),
-                contentDescription = "Menu",
+                contentDescription = stringResource(strings.menuTitle),
                 modifier = Modifier
-                    .padding(16.dp)
-                    .size(24.dp)
+                    .padding(dimens.mediumPadding)
+                    .size(dimens.smallIconSize)
                     .clickable {
-                        scope.launch {
-                            drawerState.open()
-                        }
+                        openMenu()
                     },
                 tint = colors.white
             )
@@ -69,12 +67,11 @@ fun getRailNavBar(
                 containerColor = colors.white,
                 onClick = { },
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
-
-                ){
+            ){
                 Icon(
                     tint = colors.inactiveBottomNavIconColor,
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add"
+                    painter = painterResource(drawables.newLotIcon),
+                    contentDescription = stringResource(strings.newLotTitle)
                 )
             }
         }
@@ -87,7 +84,7 @@ fun getRailNavBar(
                     navigateFromBottomBar(index, component)
                 },
                 icon = {
-                    getBottomBadgedBox(selectedItemIndex, index, item)
+                    getBadgedBox(item)
                 },
                 label = {
                     Text(text = item.title)

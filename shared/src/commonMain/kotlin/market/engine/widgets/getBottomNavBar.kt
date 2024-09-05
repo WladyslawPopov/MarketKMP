@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
-import market.engine.root.BottomNavigationItem
+import market.engine.business.items.NavigationItem
 import market.engine.root.RootComponent
 import market.engine.root.navigateFromBottomBar
 
@@ -22,7 +22,7 @@ import market.engine.root.navigateFromBottomBar
 fun getBottomNavBar(
     component: RootComponent,
     modifier: Modifier = Modifier,
-    listItems : List<BottomNavigationItem>
+    listItems : List<NavigationItem>
 ){
     var selectedItemIndex by rememberSaveable {
         mutableStateOf(0)
@@ -43,7 +43,7 @@ fun getBottomNavBar(
                     navigateFromBottomBar(index, component)
                 },
                 icon = {
-                    getBottomBadgedBox(selectedItemIndex, index, item)
+                    getBadgedBox(item)
                 },
                 label = {
                     Text(text = item.title)
