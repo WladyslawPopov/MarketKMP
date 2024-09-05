@@ -1,9 +1,10 @@
-package application.market.auction_mobile.business.core
+package market.engine.business.core
 
 import application.market.auction_mobile.business.constants.UserData.login
 import application.market.auction_mobile.business.constants.UserData.picUri
 import application.market.auction_mobile.business.constants.UserData.token
 import application.market.auction_mobile.business.constants.UserData.userInfo
+import application.market.auction_mobile.business.core.SAPIRepository
 
 class UserRepository {
 

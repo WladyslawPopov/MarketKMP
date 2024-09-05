@@ -2,7 +2,7 @@ package application.market.auction_mobile.business.core.network.functions
 
 import application.market.auction_mobile.business.core.ServerErrorException
 import application.market.auction_mobile.business.core.ServerResponse
-import application.market.auction_mobile.business.core.UrlBuilder
+import market.engine.business.core.UrlBuilder
 import application.market.auction_mobile.business.networkObjects.Category
 import application.market.auction_mobile.business.networkObjects.Payload
 import application.market.auction_mobile.business.networkObjects.RegionOptions

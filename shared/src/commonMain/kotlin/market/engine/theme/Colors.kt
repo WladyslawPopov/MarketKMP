@@ -6,6 +6,7 @@ interface Colors {
     val primaryColor : Color
     val primaryVariantColor : Color
     val accentColor : Color
+    val backgroundColor : Color
     val titleTextColor: Color
     val inactiveBottomNavIconColor: Color
     val ratingBlue: Color

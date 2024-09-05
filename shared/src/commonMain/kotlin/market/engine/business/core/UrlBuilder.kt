@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.core
+package market.engine.business.core
 
 import application.market.auction_mobile.business.constants.UserData
 import application.market.auction_mobile.business.globalData.LD

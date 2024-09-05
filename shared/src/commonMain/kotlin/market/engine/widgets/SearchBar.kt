@@ -17,15 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import market.engine.theme.ThemeResources
+import market.engine.business.constants.ThemeResources.colors
 
 @Composable
-fun SearchBar(modifier: Modifier = Modifier, themeResources: ThemeResources, onSearchClick: () -> Unit) {
+fun SearchBar(modifier: Modifier = Modifier, onSearchClick: () -> Unit) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(themeResources.colors.lightGray, shape = RoundedCornerShape(24.dp))
+            .background(colors.lightGray, shape = RoundedCornerShape(24.dp))
             .clickable { onSearchClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
@@ -33,8 +33,8 @@ fun SearchBar(modifier: Modifier = Modifier, themeResources: ThemeResources, onS
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "Search", color = themeResources.colors.black, fontSize = 18.sp)
-            Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = themeResources.colors.black)
+            Text(text = "Search", color = colors.black, fontSize = 18.sp)
+            Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = colors.black)
         }
     }
 }

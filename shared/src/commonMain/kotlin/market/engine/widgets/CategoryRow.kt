@@ -12,10 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import market.engine.theme.ThemeResources
+import market.engine.business.constants.ThemeResources.colors
 
 @Composable
-fun CategoryRow(categories: List<String?>, modifier: Modifier = Modifier, themeResources: ThemeResources) {
+fun CategoryRow(categories: List<String?>, modifier: Modifier = Modifier) {
     LazyRow(
         modifier = modifier.padding(top = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -24,11 +24,11 @@ fun CategoryRow(categories: List<String?>, modifier: Modifier = Modifier, themeR
             Box(
                 modifier = modifier
                     .padding(8.dp)
-                    .background(themeResources.colors.lightGray, shape = RoundedCornerShape(16.dp))
+                    .background(colors.lightGray, shape = RoundedCornerShape(16.dp))
                     .clickable { /* Handle category click */ }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text(text = category ?: "", color = themeResources.colors.black)
+                Text(text = category ?: "", color = colors.black)
             }
         }
     }

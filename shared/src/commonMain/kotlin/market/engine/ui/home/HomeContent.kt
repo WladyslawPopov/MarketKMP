@@ -13,15 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.theme.ThemeResources
+import market.engine.business.constants.ThemeResources.colors
 import market.engine.widgets.CategoryRow
 import market.engine.widgets.SearchBar
 
 @Composable
 fun HomeContent(
     component: HomeComponent,
-    modifier: Modifier = Modifier,
-    themeResources: ThemeResources,
+    modifier: Modifier = Modifier
 ) {
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -34,7 +33,6 @@ fun HomeContent(
         // SearchBar — всегда отображаем наверху
         SearchBar(
             modifier = Modifier.align(Alignment.TopCenter),
-            themeResources,
             onSearchClick = {
                 // Логика поиска
             }
@@ -44,7 +42,7 @@ fun HomeContent(
         if (isLoading.value) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
-                color = themeResources.colors.primaryColor
+                color = colors.inactiveBottomNavIconColor
             )
         } else {
             // После загрузки данных отображаем категории
@@ -58,8 +56,7 @@ fun HomeContent(
                 model.categories.collectAsState().value.map { it.name }.let { categoryNames ->
                     CategoryRow(
                         categories = categoryNames, // Преобразуем в список имён
-                        modifier = modifier,
-                        themeResources = themeResources
+                        modifier = modifier
                     )
                 }
 

@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -27,10 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import market.engine.business.constants.ThemeResources.colors
+import market.engine.business.constants.ThemeResources.drawables
 import market.engine.root.BottomNavigationItem
-import market.engine.root.Config
 import market.engine.root.RootComponent
-import market.engine.theme.ThemeResources
+import market.engine.root.navigateFromBottomBar
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -39,8 +38,7 @@ fun getRailNavBar(
     modifier: Modifier = Modifier,
     scope: CoroutineScope,
     drawerState: DrawerState,
-    listItems: List<BottomNavigationItem>,
-    themeResources: ThemeResources
+    listItems: List<BottomNavigationItem>
 ){
     var selectedItemIndex by rememberSaveable {
         mutableStateOf(0)
@@ -53,7 +51,7 @@ fun getRailNavBar(
             ),
         header = {
             Icon(
-                painter = painterResource(themeResources.drawables.menuHamburger),
+                painter = painterResource(drawables.menuHamburger),
                 contentDescription = "Menu",
                 modifier = Modifier
                     .padding(16.dp)
@@ -63,18 +61,18 @@ fun getRailNavBar(
                             drawerState.open()
                         }
                     },
-                tint = themeResources.colors.white
+                tint = colors.white
             )
 
             FloatingActionButton(
-                contentColor = themeResources.colors.white,
-                containerColor = themeResources.colors.white,
+                contentColor = colors.white,
+                containerColor = colors.white,
                 onClick = { },
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
 
                 ){
                 Icon(
-                    tint = themeResources.colors.inactiveBottomNavIconColor,
+                    tint = colors.inactiveBottomNavIconColor,
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add"
                 )
@@ -86,41 +84,10 @@ fun getRailNavBar(
                 selected = selectedItemIndex == index,
                 onClick = {
                     selectedItemIndex = index
-                    when(index){
-                        0 -> component.navigateTo(Config.Home)
-                        1 -> component.navigateTo(Config.Search(itemId = 1))
-                    }
+                    navigateFromBottomBar(index, component)
                 },
                 icon = {
-                    BadgedBox(
-                        badge = {
-                            if (item.badgeCount != null){
-                                Badge {
-                                    Text(text = item.badgeCount.toString())
-                                }
-                            } else {
-                                if (item.hasNews) {
-                                    Badge()
-                                }
-                            }
-                        }
-                    ){
-                        if (selectedItemIndex == index){
-                            Icon(
-                                painter = painterResource(item.selectedIcon),
-                                contentDescription = item.title,
-                                tint = themeResources.colors.inactiveBottomNavIconColor,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        } else {
-                            Icon(
-                                painter = painterResource(item.unselectedIcon),
-                                contentDescription = null,
-                                tint = themeResources.colors.black,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    getBottomBadgedBox(selectedItemIndex, index, item)
                 },
                 label = {
                     Text(text = item.title)
