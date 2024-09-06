@@ -23,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
@@ -37,8 +38,8 @@ import org.jetbrains.compose.resources.stringResource
 fun getRailNavBar(
     component: RootComponent,
     modifier: Modifier = Modifier,
+    listItems: List<NavigationItem>,
     openMenu : () -> Unit,
-    listItems: List<NavigationItem>
 ){
     var selectedItemIndex by rememberSaveable {
         mutableStateOf(0)
@@ -59,11 +60,10 @@ fun getRailNavBar(
                     .clickable {
                         openMenu()
                     },
-                tint = colors.white
+                tint = colors.black
             )
 
             FloatingActionButton(
-                contentColor = colors.white,
                 containerColor = colors.white,
                 onClick = { },
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
@@ -84,10 +84,12 @@ fun getRailNavBar(
                     navigateFromBottomBar(index, component)
                 },
                 icon = {
-                    getBadgedBox(item)
+                    getBadgedBox(modifier = modifier, item,selectedItemIndex == index)
                 },
                 label = {
-                    Text(text = item.title)
+                    if(selectedItemIndex == index) {
+                        Text(text = item.title, fontSize = 10.sp)
+                    }
                 }
             )
         }

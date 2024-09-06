@@ -1,8 +1,12 @@
 package market.engine.theme
 
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 
 interface Dimens {
+    val zero: Dp
+
+    val extraSmallPadding: Dp
     val smallPadding: Dp
     val mediumPadding: Dp
     val largePadding: Dp
@@ -22,4 +26,14 @@ interface Dimens {
     val mediumElevation: Dp
     val largeElevation: Dp
     val extraLargeElevation: Dp
+
+    val smallSpacer : Dp
+    val mediumSpacer : Dp
+    val largeSpacer : Dp
+    val extraLargeSpacer : Dp
+
+    val smallText : TextUnit
+    val mediumText : TextUnit
+    val largeText : TextUnit
+    val extraLargeText : TextUnit
 }

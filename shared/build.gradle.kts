@@ -73,9 +73,9 @@ kotlin {
 
             implementation(libs.koin.android)
 
-            implementation(libs.ktor.client.android)
-
             implementation(libs.system.ui.controller)
+
+            implementation(libs.ktor.client.android)
 
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.datastore)

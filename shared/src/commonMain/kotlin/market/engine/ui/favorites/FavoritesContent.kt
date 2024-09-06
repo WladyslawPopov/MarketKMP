@@ -1,4 +1,4 @@
-package market.engine.ui.search
+package market.engine.ui.favorites
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,16 +7,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import application.market.auction_mobile.ui.search.SearchComponent
+import market.engine.root.Config
 
 @Composable
-fun SearchContent(
-    component: SearchComponent,
+fun FavoritesContent(
+    component: FavoritesComponent,
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        Text("This is the Search", style = MaterialTheme.typography.bodyLarge)
+        Text("This is the Favorites", style = MaterialTheme.typography.bodyLarge)
     }
 }

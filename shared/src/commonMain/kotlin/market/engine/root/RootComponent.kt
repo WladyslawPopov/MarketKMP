@@ -1,10 +1,8 @@
 package market.engine.root
 
-import androidx.compose.runtime.Composable
 import market.engine.ui.home.DefaultHomeComponent
 import application.market.auction_mobile.ui.search.DefaultSearchComponent
 import market.engine.ui.home.HomeComponent
-import market.engine.ui.home.HomeViewModel
 import application.market.auction_mobile.ui.search.SearchComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -15,8 +13,12 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
-import org.koin.compose.koinInject
-import org.koin.mp.KoinPlatform.getKoin
+import market.engine.ui.basket.BasketComponent
+import market.engine.ui.basket.DefaultBasketComponent
+import market.engine.ui.favorites.DefaultFavoritesComponent
+import market.engine.ui.favorites.FavoritesComponent
+import market.engine.ui.profile.DefaultProfileComponent
+import market.engine.ui.profile.ProfileComponent
 
 interface RootComponent {
 
@@ -25,6 +27,9 @@ interface RootComponent {
     sealed class Child {
         class HomeChild(val component: HomeComponent) : Child()
         class SearchChild(val component: SearchComponent) : Child()
+        class BasketChild(val component: BasketComponent) : Child()
+        class FavoritesChild(val component: FavoritesComponent) : Child()
+        class ProfileChild(val component: ProfileComponent) : Child()
     }
 
     fun navigateTo(config: Config)
@@ -61,6 +66,9 @@ class DefaultRootComponent(
                     config
                 )
             )
+            is Config.Basket -> RootComponent.Child.BasketChild(itemBasket(config, componentContext))
+            is Config.Favorites -> RootComponent.Child.FavoritesChild(itemFavorites(config, componentContext))
+            is Config.Profile -> RootComponent.Child.ProfileChild(itemProfile(config, componentContext))
         }
 
 
@@ -80,6 +88,32 @@ class DefaultRootComponent(
             itemId = config.itemId,
             onBackPressed = { navigation.pop() }
         )
+
+    private fun itemBasket(
+        config: Config.Basket,
+        componentContext: ComponentContext
+    ): BasketComponent =
+        DefaultBasketComponent(
+            componentContext = componentContext,
+            onBackPressed = { navigation.pop() }
+        )
+
+    private fun itemFavorites(
+        config: Config.Favorites,
+        componentContext: ComponentContext
+    ): FavoritesComponent =
+        DefaultFavoritesComponent(
+            componentContext = componentContext,
+            onBackPressed = { navigation.pop() }
+        )
+    private fun itemProfile(
+        config: Config.Profile,
+        componentContext: ComponentContext
+    ): ProfileComponent =
+        DefaultProfileComponent(
+            componentContext = componentContext,
+            onBackPressed = { navigation.pop() }
+        )
 }
 
 @Serializable // kotlinx-serialization plugin must be applied
@@ -89,5 +123,14 @@ sealed class Config {
 
     @Serializable
     data class Search(val itemId: Long) : Config()
+
+    @Serializable
+    data object Basket : Config()
+
+    @Serializable
+    data object Favorites : Config()
+
+    @Serializable
+    data object Profile : Config()
 }
 

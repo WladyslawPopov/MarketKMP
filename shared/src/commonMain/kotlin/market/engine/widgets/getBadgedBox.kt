@@ -7,19 +7,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.sp
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.items.NavigationItem
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun getBadgedBox(
-    item: NavigationItem
+    modifier: Modifier = Modifier,
+    item: NavigationItem,
+    selected: Boolean = false
 ) {
     BadgedBox(
+        modifier = modifier,
         badge = {
-            if (item.badgeCount != null){
+            if (item.badgeCount != null) {
                 Badge {
-                    Text(text = item.badgeCount.toString())
+                    val dynamicFontSize = (10 - (item.badgeCount / 10)).coerceAtLeast(7).sp
+                    Text(text = item.badgeCount.toString(), fontSize = dynamicFontSize)
                 }
             } else {
                 if (item.hasNews) {
@@ -27,11 +32,11 @@ fun getBadgedBox(
                 }
             }
         }
-    ){
+    ) {
         Icon(
             painter = painterResource(item.icon),
             contentDescription = item.title,
-            tint = item.tint,
+            tint = if (!selected) item.tint else item.tintSelected,
             modifier = Modifier.size(dimens.smallIconSize)
         )
     }

@@ -11,4 +11,15 @@ interface Drawables {
    val mail : DrawableResource
    val currencyIcon : DrawableResource
    val newLotIcon : DrawableResource
+   val favoritesIcon : DrawableResource
+   val profileIcon : DrawableResource
+   val basketIcon : DrawableResource
+   val top100Icon : DrawableResource
+   val helpIcon : DrawableResource
+   val contactUsIcon : DrawableResource
+   val starIcon : DrawableResource
+   val loginIcon : DrawableResource
+   val logoutIcon : DrawableResource
+   val settingsIcon : DrawableResource
+   val infoIcon : DrawableResource
 }

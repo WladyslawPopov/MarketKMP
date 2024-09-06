@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.sp
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.items.NavigationItem
@@ -32,8 +33,8 @@ fun getBottomNavBar(
         modifier = modifier
             .navigationBarsPadding()
             .clip(RoundedCornerShape(topStart = dimens.smallPadding, topEnd = dimens.smallPadding)),
-        
-        contentColor = colors.errorLayoutBackground
+
+        containerColor = colors.white
     ) {
         listItems.forEachIndexed { index, item ->
             NavigationBarItem(
@@ -43,10 +44,12 @@ fun getBottomNavBar(
                     navigateFromBottomBar(index, component)
                 },
                 icon = {
-                    getBadgedBox(item)
+                    getBadgedBox(modifier = modifier, item, selectedItemIndex == index)
                 },
                 label = {
-                    Text(text = item.title)
+                    if(selectedItemIndex == index) {
+                        Text(text = item.title, fontSize = 10.sp)
+                    }
                 }
             )
         }
