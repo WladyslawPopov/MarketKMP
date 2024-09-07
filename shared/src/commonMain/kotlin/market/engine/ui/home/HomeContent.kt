@@ -14,7 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.business.constants.ThemeResources.colors
-import market.engine.widgets.CategoryRow
+import market.engine.widgets.CategoryList
+import market.engine.widgets.GridPromoOffers
 import market.engine.widgets.SearchBar
 
 @Composable
@@ -22,51 +23,47 @@ fun HomeContent(
     component: HomeComponent,
     modifier: Modifier = Modifier
 ) {
+
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
 
-    // Подписываемся на isShowProgress для отображения индикатора загрузки
     val isLoading = model.isLoading.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize()) {
-
-        // SearchBar — всегда отображаем наверху
-        SearchBar(
-            modifier = Modifier.align(Alignment.TopCenter),
-            onSearchClick = {
-                // Логика поиска
-            }
-        )
-
-        // Если идёт загрузка, отображаем CircularProgressIndicator
+    Box(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         if (isLoading.value) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = colors.inactiveBottomNavIconColor
             )
         } else {
-            // После загрузки данных отображаем категории
+            SearchBar(
+                modifier = Modifier.align(Alignment.TopCenter),
+                onSearchClick = {
+                    component.onItemClicked(id = 1L)
+                }
+            )
+
             Column(
                 modifier = Modifier
-                    .padding(top = 72.dp) // Отступ для SearchBar
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .padding(top = 72.dp) // padding for SearchBar
             ) {
-                // Отображаем список категорий
-                model.categories.collectAsState().value.map { it.name }.let { categoryNames ->
-                    CategoryRow(
-                        categories = categoryNames, // Преобразуем в список имён
-                        modifier = modifier
+                model.categories.collectAsState().value.map { it }.let { categoryNames ->
+                    CategoryList(
+                        categories = categoryNames
                     )
+                    { component.onItemClicked(id = 1L) }
                 }
 
-                // Дополнительный контент, если есть данные по промо-оферам
-                if (model.promoOffer1.collectAsState().value.isNotEmpty()) {
-                    // Отображаем PromoOffersSection1
+                model.promoOffer1.collectAsState().value.map{ it }.let { offers ->
+                    GridPromoOffers(offers){
+
+                    }
                 }
 
-                if (model.promoOffer2.collectAsState().value.isNotEmpty()) {
-                    // Отображаем PromoOffersSection2
+                model.promoOffer2.collectAsState().value.map{ it }.let { offers ->
+                    GridPromoOffers(offers) {
+
+                    }
                 }
             }
         }

@@ -29,8 +29,8 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
 
     init {
         getCategory()
-       // getOffersPromotedOnMainPage1(0, 10)
-       // getOffersPromotedOnMainPage2(1, 10)
+        getOffersPromotedOnMainPage1(0, 12)
+        getOffersPromotedOnMainPage2(1, 12)
     }
 
     private fun getCategory(categoryId: Long = defaultCategoryId) {

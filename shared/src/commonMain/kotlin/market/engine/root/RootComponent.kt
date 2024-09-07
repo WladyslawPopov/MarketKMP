@@ -75,7 +75,7 @@ class DefaultRootComponent(
     private fun itemHome(componentContext: ComponentContext): HomeComponent {
         return DefaultHomeComponent(
             componentContext = componentContext,
-            onItemSelected = { navigation.push(Config.Home) }
+            onItemSelected = { navigateTo(Config.Search(itemId = it) ) }
         )
     }
 

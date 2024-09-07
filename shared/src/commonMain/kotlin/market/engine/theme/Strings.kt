@@ -32,4 +32,18 @@ interface Strings {
     val aboutUsTitle : StringResource
     val aboutUsSubtitle : StringResource
 
+    val categoryCollection : StringResource
+    val categoryVintage : StringResource
+    val categoryElectronic : StringResource
+    val categoryOther : StringResource
+    val categoryBeauty : StringResource
+    val categoryBook : StringResource
+    val categoryMusic : StringResource
+    val categoryPhone : StringResource
+    val categorySport : StringResource
+    val categoryMusicBooksFilms : StringResource
+    val categoryElectronic2 : StringResource
+    val categoryFashion : StringResource
+    val categoryRetro : StringResource
+    val categoryArt : StringResource
 }

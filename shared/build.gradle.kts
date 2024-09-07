@@ -41,7 +41,7 @@ kotlin {
 
 
             implementation(libs.coil.compose)
-
+            implementation(libs.coil)
             implementation(libs.coil3.network)
 
             implementation(libs.kotlinx.datetime)

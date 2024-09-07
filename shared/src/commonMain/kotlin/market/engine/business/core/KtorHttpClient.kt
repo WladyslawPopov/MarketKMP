@@ -29,7 +29,7 @@ object KtorHttpClient {
             })
         }
         install(Logging) {
-            level = LogLevel.ALL
+            level = LogLevel.BODY
             logger = object : Logger {
                 override fun log(message: String) {
                     println("AppDebug KtorHttpClient message: $message")

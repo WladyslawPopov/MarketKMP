@@ -12,6 +12,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.disk.DiskCache
+import coil3.memory.MemoryCache
+import coil3.request.CachePolicy
+import coil3.request.crossfade
+import coil3.util.DebugLogger
 import market.engine.ui.home.HomeContent
 import market.engine.ui.search.SearchContent
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -32,13 +41,16 @@ import market.engine.widgets.DrawerContent
 import market.engine.widgets.appbars.HomeAppBar
 import market.engine.widgets.getBottomNavBar
 import market.engine.widgets.getRailNavBar
+import okio.FileSystem
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun RootContent(
     component: RootComponent,
     modifier: Modifier = Modifier
 ) {
+
     val childStack by component.childStack.subscribeAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -73,20 +85,20 @@ fun RootContent(
             icon = drawables.basketIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = 6
         ),
         NavigationItem(
             title = stringResource(strings.favoritesTitle),
             icon = drawables.favoritesIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = 687
         ),
         NavigationItem(
             title = stringResource(strings.profileTitleBottom),
             icon = drawables.profileIcon,
             tint = colors.black,
-            hasNews = false,
+            hasNews = true,
             badgeCount = null
         )
     )
@@ -158,6 +170,25 @@ fun navigateFromBottomBar(index: Int, component: RootComponent){
         3 -> component.navigateTo(Config.Favorites)
         4 -> component.navigateTo(Config.Profile)
     }
+}
+
+fun getAsyncImageLoader(context: PlatformContext): ImageLoader {
+    return ImageLoader.Builder(context)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .memoryCache {
+            MemoryCache.Builder().maxSizePercent(context,0.3)
+                .strongReferencesEnabled(true)
+                .build()
+        }
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .diskCache {
+            newDiskCache()
+        }.crossfade(true).logger(DebugLogger()).build()
+}
+
+fun newDiskCache(): DiskCache {
+    return DiskCache.Builder().directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY)
+        .maxSizeBytes(1024L*1024*1024).build()
 }
 
 
