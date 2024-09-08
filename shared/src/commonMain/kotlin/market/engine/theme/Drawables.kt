@@ -33,4 +33,20 @@ interface Drawables {
    val phonePng : DrawableResource
    val sportPng : DrawableResource
    val artPng : DrawableResource
+
+   val coinPng : DrawableResource
+   val banknotePng : DrawableResource
+   val notebookPng : DrawableResource
+   val porcelainPng : DrawableResource
+   val markPng : DrawableResource
+   val medalPng : DrawableResource
+   val appliancesPng : DrawableResource
+   val booksPng : DrawableResource
+   val phonesPng : DrawableResource
+
+   val auctionFixIcon : DrawableResource
+   val manyOffersIcon : DrawableResource
+   val verifySellersIcon : DrawableResource
+   val discountBigIcon : DrawableResource
+   val freeBillingIcon : DrawableResource
 }

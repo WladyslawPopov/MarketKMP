@@ -51,6 +51,10 @@ fun RootContent(
     modifier: Modifier = Modifier
 ) {
 
+    setSingletonImageLoaderFactory { context ->
+        getAsyncImageLoader(context)
+    }
+
     val childStack by component.childStack.subscribeAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()

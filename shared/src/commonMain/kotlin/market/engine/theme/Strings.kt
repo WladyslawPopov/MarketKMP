@@ -10,8 +10,10 @@ interface Strings {
     val newLotTitle: StringResource
     val notificationTitle: StringResource
     val mailTitle: StringResource
+    val topOffersTitle: StringResource
     val proposalTitle: StringResource
     val profileTitle: StringResource
+    val allPromoOffersBtn : StringResource
     val logoutTitle: StringResource
     val loginTitle: StringResource
     val registerTitle: StringResource
@@ -46,4 +48,20 @@ interface Strings {
     val categoryFashion : StringResource
     val categoryRetro : StringResource
     val categoryArt : StringResource
+    val categoryCoin : StringResource
+    val categoryBanknotes : StringResource
+    val categoryMarks : StringResource
+    val categoryMedals : StringResource
+    val categoryPorcelain : StringResource
+    val categoryBooks : StringResource
+    val categoryNotebooks : StringResource
+    val categoryAppliances : StringResource
+    val categoryMain : StringResource
+    val homeFixAuction : StringResource
+    val homeManyOffers : StringResource
+    val verifySellers : StringResource
+    val everyDeyDiscount : StringResource
+    val freeBilling : StringResource
+    val currencySign : StringResource
+    val homeTopCategory : StringResource
 }

@@ -61,29 +61,34 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java)
             implementation(libs.androidx.runtime.desktop)
+            implementation(libs.coil.compose.core)
+            implementation(libs.coil3.network)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.ktor.ios)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
+            implementation(libs.coil.compose.core)
+            implementation(libs.coil3.network)
         }
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-
-            implementation(libs.koin.android)
-
             implementation(libs.system.ui.controller)
 
+            implementation(libs.koin.android)
             implementation(libs.ktor.client.android)
 
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.datastore)
             implementation(libs.accompanist.permissions)
+
             implementation(libs.coil3.svg)
             implementation(libs.coil3.gif)
             implementation(libs.coil3.video)
             implementation(libs.coil.compose.core)
+            implementation(libs.coil3.network)
         }
     }
 }
