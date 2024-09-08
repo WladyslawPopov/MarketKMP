@@ -35,14 +35,14 @@ fun HomeAppBar(
             tint = colors.notifyTextColor,
             hasNews = false,
             badgeCount = 4,
-            isVisible = false
+            isVisible = true
         ),
         NavigationItem(
             title = stringResource(strings.mailTitle),
             icon = drawables.mail,
             tint = colors.brightBlue,
             hasNews = false,
-            badgeCount = null
+            badgeCount = 34
         ),
         NavigationItem(
             title = stringResource(strings.notificationTitle),
@@ -57,7 +57,7 @@ fun HomeAppBar(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (showNavigationRail) modifier.padding(start = 72.dp)
+                if (showNavigationRail) modifier.padding(start = 74.dp)
                 else modifier
             ),
         title = {

@@ -39,8 +39,8 @@ import market.engine.ui.favorites.FavoritesContent
 import market.engine.ui.profile.ProfileContent
 import market.engine.widgets.DrawerContent
 import market.engine.widgets.appbars.HomeAppBar
-import market.engine.widgets.getBottomNavBar
-import market.engine.widgets.getRailNavBar
+import market.engine.widgets.bottombars.getBottomNavBar
+import market.engine.widgets.bottombars.getRailNavBar
 import okio.FileSystem
 import org.jetbrains.compose.resources.stringResource
 
@@ -121,7 +121,7 @@ fun RootContent(
             modifier = modifier,
             drawerState = drawerState,
             drawerContent = { DrawerContent(drawerState, scope) },
-            gesturesEnabled = drawerState.isOpen
+            gesturesEnabled = drawerState.isOpen,
         ){
             Scaffold(
                 topBar = {

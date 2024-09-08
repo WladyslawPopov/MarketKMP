@@ -1,5 +1,8 @@
 package market.engine.theme
 
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.ui.graphics.Color
 
 interface Colors {
@@ -44,4 +47,9 @@ interface Colors {
     val brightPurple: Color
     val brightYellow: Color
     val brightBlue: Color
+
+    val simpleButtonColors : ButtonColors
+    val actionButtonColors : ButtonColors
+    val navItemColors : NavigationBarItemColors
+    val navRailItemColors : NavigationRailItemColors
 }

@@ -1,15 +1,24 @@
 package market.engine.widgets
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
@@ -92,8 +101,12 @@ fun DrawerContent(
 
     ModalDrawerSheet(
         drawerContainerColor = colors.primaryColor,
+        drawerContentColor = colors.lightGray,
         modifier = Modifier
-            .widthIn(max = 300.dp)
+            .widthIn(max = 250.dp)
+            .heightIn(max = 600.dp)
+            .verticalScroll(state = rememberScrollState())
+            .wrapContentHeight()
     ) {
 
         Row(
@@ -105,7 +118,8 @@ fun DrawerContent(
             if (false) {
                 TextButton(
                     onClick = {},
-                    modifier = Modifier.padding(dimens.smallPadding)
+                    modifier = Modifier.padding(dimens.smallPadding),
+                    colors = colors.simpleButtonColors
                 ) {
                     Text(stringResource(strings.logoutTitle), color = colors.black)
                     Icon(
@@ -117,7 +131,8 @@ fun DrawerContent(
             } else {
                 TextButton(
                     onClick = {},
-                    modifier = Modifier.padding(dimens.smallPadding)
+                    modifier = Modifier.padding(dimens.smallPadding),
+                    colors = colors.simpleButtonColors
                 ) {
                     Text(stringResource(strings.loginTitle), color = colors.black)
                     Icon(
@@ -130,16 +145,31 @@ fun DrawerContent(
         }
 
         list.forEachIndexed { index, item ->
-
             Spacer(modifier = Modifier.height(dimens.mediumSpacer))
 
             NavigationDrawerItem(
                 label = {
-                    Column {
-                        Text(item.title, color = colors.black, fontSize = MaterialTheme.typography.titleSmall.fontSize)
-                        if (item.subtitle != null) {
-                            Text(item.subtitle, color = colors.textA0AE, fontSize = MaterialTheme.typography.labelSmall.fontSize)
+                    Box(
+                        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column{
+                            Text(
+                                item.title,
+                                color = colors.black,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                lineHeight = dimens.largeText
+                            )
+                            if (item.subtitle != null) {
+                                Text(
+                                    item.subtitle,
+                                    color = colors.textA0AE,
+                                    fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                                    lineHeight = dimens.largeText
+                                )
+                            }
                         }
+
                     }
                 },
                 onClick = {
@@ -164,7 +194,19 @@ fun DrawerContent(
                     }
                 },
                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                selected = false
+                colors = NavigationDrawerItemDefaults.colors(
+                    selectedContainerColor = colors.white,
+                    unselectedContainerColor = colors.white,
+                    selectedIconColor = colors.lightGray,
+                    unselectedIconColor = colors.lightGray,
+                    selectedTextColor = colors.lightGray,
+                    selectedBadgeColor = colors.lightGray,
+                    unselectedTextColor = colors.lightGray,
+                    unselectedBadgeColor = colors.lightGray
+
+                ),
+
+                selected = true
             )
         }
 
@@ -175,7 +217,7 @@ fun DrawerContent(
             contentAlignment = Alignment.BottomEnd
         ) {
             Text(
-                text = " Version 1.5.0",
+                text = " Version 1.8.0",
                 color = colors.textA0AE,
                 fontSize = MaterialTheme.typography.labelMedium.fontSize
             )

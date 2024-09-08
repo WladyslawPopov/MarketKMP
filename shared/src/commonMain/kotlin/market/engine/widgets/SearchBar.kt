@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -26,7 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SearchBar(modifier: Modifier = Modifier, onSearchClick: () -> Unit) {
     Box(
         modifier = modifier
-            .size(300.dp, 70.dp)
+            .sizeIn(300.dp, 70.dp, 500.dp, 80.dp)
             .padding(dimens.mediumPadding)
             .background(colors.white, shape = RoundedCornerShape(dimens.largeCornerRadius))
             .clip(RoundedCornerShape(dimens.largeCornerRadius))
@@ -44,7 +45,7 @@ fun SearchBar(modifier: Modifier = Modifier, onSearchClick: () -> Unit) {
                 color = colors.black
             )
             Icon(
-                modifier = Modifier.weight(0.2f),
+                modifier = Modifier.weight(0.1f),
                 imageVector = Icons.Default.Search,
                 contentDescription = stringResource(strings.searchTitle),
                 tint = colors.textA0AE,

@@ -1,9 +1,10 @@
-package market.engine.widgets
+package market.engine.widgets.bottombars
 
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.items.NavigationItem
 import market.engine.root.RootComponent
 import market.engine.root.navigateFromBottomBar
+import market.engine.widgets.getBadgedBox
 
 @Composable
 fun getBottomNavBar(
@@ -34,10 +36,12 @@ fun getBottomNavBar(
             .navigationBarsPadding()
             .clip(RoundedCornerShape(topStart = dimens.smallPadding, topEnd = dimens.smallPadding)),
 
-        containerColor = colors.white
+        containerColor = colors.white,
+        contentColor = colors.lightGray
     ) {
         listItems.forEachIndexed { index, item ->
             NavigationBarItem(
+                colors = colors.navItemColors,
                 selected = selectedItemIndex == index,
                 onClick = {
                     selectedItemIndex = index

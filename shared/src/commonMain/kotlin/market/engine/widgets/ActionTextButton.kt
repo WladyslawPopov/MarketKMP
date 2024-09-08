@@ -26,12 +26,7 @@ fun ActionTextButton(text : StringResource, onClick : () -> Unit) {
                 onClick()
             },
             modifier = Modifier.padding(horizontal = dimens.smallPadding),
-            colors = ButtonColors(
-                containerColor = colors.white,
-                contentColor = colors.actionTextColor,
-                disabledContainerColor = colors.lightGray,
-                disabledContentColor = colors.grayText
-            )
+            colors = colors.actionButtonColors
         ){
             Text(
                 text = stringResource(text),

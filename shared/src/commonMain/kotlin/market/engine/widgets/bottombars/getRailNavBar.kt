@@ -1,20 +1,17 @@
-package market.engine.widgets
+package market.engine.widgets.bottombars
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +28,7 @@ import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.NavigationItem
 import market.engine.root.RootComponent
 import market.engine.root.navigateFromBottomBar
+import market.engine.widgets.getBadgedBox
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -51,17 +49,19 @@ fun getRailNavBar(
                 x = (-1).dp
             ),
         header = {
-            Icon(
-                painter = painterResource(drawables.menuHamburger),
-                contentDescription = stringResource(strings.menuTitle),
-                modifier = Modifier
-                    .padding(dimens.mediumPadding)
-                    .size(dimens.smallIconSize)
-                    .clickable {
-                        openMenu()
-                    },
-                tint = colors.black
-            )
+            IconButton(
+                modifier = modifier,
+                onClick = {
+                    openMenu()
+                }
+            ){
+                Icon(
+                    painter = painterResource(drawables.menuHamburger),
+                    contentDescription = stringResource(strings.menuTitle),
+                    modifier = modifier.size(dimens.smallIconSize),
+                    tint = colors.black
+                )
+            }
 
             FloatingActionButton(
                 containerColor = colors.white,
@@ -74,10 +74,13 @@ fun getRailNavBar(
                     contentDescription = stringResource(strings.newLotTitle)
                 )
             }
-        }
+        },
+        containerColor = colors.white,
+        contentColor = colors.lightGray
     ){
         listItems.forEachIndexed { index, item ->
             NavigationRailItem(
+                colors = colors.navRailItemColors,
                 selected = selectedItemIndex == index,
                 onClick = {
                     selectedItemIndex = index
