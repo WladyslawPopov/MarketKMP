@@ -8,10 +8,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
@@ -39,17 +35,18 @@ fun getBottomNavBar(
     ) {
         Spacer(modifier = Modifier.width(dimens.smallSpacer))
         listItems.forEachIndexed { index, item ->
+            val isSelected = getActiveScreen(index, currentScreen)
             NavigationBarItem(
                 colors = colors.navItemColors,
-                selected = currentScreen == index,
+                selected = isSelected,
                 onClick = {
                     navigateFromBottomBar(index, component)
                 },
                 icon = {
-                    getBadgedBox(modifier, item, currentScreen == index)
+                    getBadgedBox(modifier, item, isSelected)
                 },
                 label = {
-                    if(currentScreen == index) {
+                    if(isSelected) {
                         Text(
                             text = item.title,
                             fontSize = 9.sp,
@@ -63,3 +60,16 @@ fun getBottomNavBar(
         Spacer(modifier = Modifier.width(dimens.smallSpacer))
     }
 }
+
+fun getActiveScreen(index: Int, currentScreen: Int) : Boolean{
+    return if (currentScreen == index){
+        true
+    }else{
+        when(currentScreen){
+            5 -> index == 1
+            else -> false
+        }
+    }
+}
+
+

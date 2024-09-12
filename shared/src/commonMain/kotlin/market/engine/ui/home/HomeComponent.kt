@@ -5,15 +5,14 @@ import application.market.auction_mobile.business.networkObjects.Offer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import org.koin.mp.KoinPlatform.getKoin
 interface HomeComponent {
     val model: Value<Model>
 
-    fun onItemClicked(id: Long)
+    fun onSearchClicked(id: Long)
+
+    fun goToListing(categoryId: Long)
 
     data class Model(
         val categories: StateFlow<List<Category>>,
@@ -27,7 +26,8 @@ interface HomeComponent {
 
 class DefaultHomeComponent(
     componentContext: ComponentContext,
-    private val onItemSelected: (id: Long) -> Unit
+    private val onSearchSelected: (id: Long) -> Unit,
+    private val goToListingSelected: (categoryId: Long) -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
@@ -53,8 +53,12 @@ class DefaultHomeComponent(
         homeViewModel.getOffersPromotedOnMainPage(1, 16)
     }
 
-    override fun onItemClicked(id: Long) {
-        onItemSelected(id)
+    override fun onSearchClicked(id: Long) {
+        onSearchSelected(id)
+    }
+
+    override fun goToListing(categoryId: Long) {
+        goToListingSelected(categoryId)
     }
 
     override fun onRefresh() {

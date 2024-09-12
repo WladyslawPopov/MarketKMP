@@ -17,6 +17,8 @@ import market.engine.ui.basket.BasketComponent
 import market.engine.ui.basket.DefaultBasketComponent
 import market.engine.ui.favorites.DefaultFavoritesComponent
 import market.engine.ui.favorites.FavoritesComponent
+import market.engine.ui.listing.DefaultListingComponent
+import market.engine.ui.listing.ListingComponent
 import market.engine.ui.profile.DefaultProfileComponent
 import market.engine.ui.profile.ProfileComponent
 
@@ -30,7 +32,10 @@ interface RootComponent {
         class BasketChild(val component: BasketComponent) : Child()
         class FavoritesChild(val component: FavoritesComponent) : Child()
         class ProfileChild(val component: ProfileComponent) : Child()
+        class ListingChild(val component: ListingComponent) : Child()
     }
+
+    fun navigateToBottomItem(config: Config)
 
     fun navigateTo(config: Config)
 }
@@ -50,8 +55,12 @@ class DefaultRootComponent(
             childFactory = ::createChild,
         )
 
-    override fun navigateTo(config: Config) {
+    override fun navigateToBottomItem(config: Config) {
         navigation.replaceCurrent(config)
+    }
+
+    override fun navigateTo(config: Config) {
+        navigation.push(config)
     }
 
     private fun createChild(
@@ -69,13 +78,20 @@ class DefaultRootComponent(
             is Config.Basket -> RootComponent.Child.BasketChild(itemBasket(config, componentContext))
             is Config.Favorites -> RootComponent.Child.FavoritesChild(itemFavorites(config, componentContext))
             is Config.Profile -> RootComponent.Child.ProfileChild(itemProfile(config, componentContext))
+            is Config.Listing -> RootComponent.Child.ListingChild(itemListing(componentContext))
         }
-
 
     private fun itemHome(componentContext: ComponentContext): HomeComponent {
         return DefaultHomeComponent(
             componentContext = componentContext,
-            onItemSelected = { navigateTo(Config.Search(itemId = it) ) }
+            onSearchSelected = { navigateToBottomItem(Config.Search(itemId = it) ) },
+            goToListingSelected = { navigateTo(Config.Listing) }
+        )
+    }
+
+    private fun itemListing(componentContext: ComponentContext): ListingComponent {
+        return DefaultListingComponent(
+            componentContext = componentContext,
         )
     }
 
@@ -132,5 +148,8 @@ sealed class Config {
 
     @Serializable
     data object Profile : Config()
+
+    @Serializable
+    data object Listing : Config()
 }
 

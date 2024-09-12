@@ -32,7 +32,6 @@ fun HomeContent(
     component: HomeComponent,
     modifier: Modifier = Modifier
 ) {
-
     val listTopCategory = listOf(
         TopCategory(
             id = 48393,
@@ -98,7 +97,6 @@ fun HomeContent(
             icon = drawables.appliancesPng
         )
     )
-
     val listFooterItem = listOf(
         TopCategory(
             id = 1,
@@ -137,7 +135,6 @@ fun HomeContent(
             component.onRefresh()
         }
     ) {
-
         val scrollState = rememberScrollState()
         Box(modifier = Modifier.fillMaxSize())
         {
@@ -152,17 +149,20 @@ fun HomeContent(
                 ) {
                     Column {
                         SearchBar(
-                            modifier = Modifier.align(Alignment.CenterHorizontally).wrapContentHeight().wrapContentWidth(),
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                .wrapContentHeight()
+                                .wrapContentWidth(),
                             onSearchClick = {
-                                component.onItemClicked(id = 1L)
+                                component.onSearchClicked(id = 1L)
                             }
                         )
 
-                        model.categories.collectAsState().value.let { categoryNames ->
+                        model.categories.collectAsState().value.let { categoryList ->
                             CategoryList(
-                                categories = categoryNames
-                            )
-                            { component.onItemClicked(id = 1L) }
+                                categories = categoryList
+                            ){ category ->
+                                component.goToListing(categoryId = category.id)
+                            }
                         }
 
                         model.promoOffer1.collectAsState().value.let { offers ->
@@ -172,7 +172,7 @@ fun HomeContent(
                         }
 
                         GridPopularCategory(listTopCategory) { topCategory ->
-                            component.onItemClicked(id = topCategory.id)
+                            component.onSearchClicked(id = topCategory.id)
                         }
 
                         model.promoOffer2.collectAsState().value.let { offers ->
@@ -187,7 +187,7 @@ fun HomeContent(
 
             ScrollBarsProvider().getVerticalScrollbar(
                 scrollState,
-                Modifier
+                modifier
                     .align(Alignment.CenterEnd)
                     .fillMaxHeight()
             )

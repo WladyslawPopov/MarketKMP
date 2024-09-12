@@ -31,6 +31,7 @@ import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
 import market.engine.ui.basket.BasketContent
 import market.engine.ui.favorites.FavoritesContent
+import market.engine.ui.listing.ListingContent
 import market.engine.ui.profile.ProfileContent
 import market.engine.widgets.DrawerContent
 import market.engine.widgets.appbars.HomeAppBar
@@ -55,6 +56,7 @@ fun RootContent(
         is RootComponent.Child.BasketChild -> 2
         is RootComponent.Child.FavoritesChild -> 3
         is RootComponent.Child.ProfileChild -> 4
+        is RootComponent.Child.ListingChild -> 5
     }
     
     val listItems = listOf(
@@ -155,6 +157,7 @@ fun RootContent(
                         is RootComponent.Child.BasketChild -> BasketContent(screen.component)
                         is RootComponent.Child.FavoritesChild -> FavoritesContent(screen.component)
                         is RootComponent.Child.ProfileChild -> ProfileContent(screen.component)
+                        is RootComponent.Child.ListingChild -> ListingContent(screen.component, modifier)
                     }
                 }
             }
@@ -164,11 +167,11 @@ fun RootContent(
 
 fun navigateFromBottomBar(index: Int, component: RootComponent){
     when(index){
-        0 -> component.navigateTo(Config.Home)
-        1 -> component.navigateTo(Config.Search(itemId = 1))
-        2 -> component.navigateTo(Config.Basket)
-        3 -> component.navigateTo(Config.Favorites)
-        4 -> component.navigateTo(Config.Profile)
+        0 -> component.navigateToBottomItem(Config.Home)
+        1 -> component.navigateToBottomItem(Config.Search(itemId = 1))
+        2 -> component.navigateToBottomItem(Config.Basket)
+        3 -> component.navigateToBottomItem(Config.Favorites)
+        4 -> component.navigateToBottomItem(Config.Profile)
     }
 }
 
