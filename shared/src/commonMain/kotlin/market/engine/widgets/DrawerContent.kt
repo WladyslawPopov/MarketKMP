@@ -8,11 +8,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
@@ -27,7 +26,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import market.engine.business.constants.ThemeResources.colors
@@ -41,7 +39,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DrawerContent(
     drawerState: DrawerState,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    mod: Modifier = Modifier,
 ) {
     val list = listOf(
         NavigationItem(
@@ -96,12 +95,8 @@ fun DrawerContent(
 
     ModalDrawerSheet(
         drawerContainerColor = colors.primaryColor,
-        drawerContentColor = colors.lightGray,
-        modifier = Modifier
-            .widthIn(max = 250.dp)
-            .heightIn(max = 600.dp)
-            .verticalScroll(state = rememberScrollState())
-            .wrapContentHeight()
+        drawerContentColor = colors.white,
+        modifier = mod
     ) {
 
         Row(
@@ -145,7 +140,7 @@ fun DrawerContent(
             NavigationDrawerItem(
                 label = {
                     Box(
-                        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                        modifier = Modifier.wrapContentWidth().wrapContentHeight(),
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Column{
@@ -158,7 +153,7 @@ fun DrawerContent(
                             if (item.subtitle != null) {
                                 Text(
                                     item.subtitle,
-                                    color = colors.textA0AE,
+                                    color = colors.steelBlue,
                                     fontSize = MaterialTheme.typography.labelSmall.fontSize,
                                     lineHeight = dimens.largeText
                                 )
@@ -188,7 +183,7 @@ fun DrawerContent(
                         Badge {  }
                     }
                 },
-                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding).wrapContentWidth(),
                 colors = NavigationDrawerItemDefaults.colors(
                     selectedContainerColor = colors.white,
                     unselectedContainerColor = colors.white,

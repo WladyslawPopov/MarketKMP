@@ -39,10 +39,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)
 
-
-            implementation(libs.coil.compose)
-            implementation(libs.coil)
-            implementation(libs.coil3.network)
+            implementation(libs.landscape.coil)
 
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)
@@ -61,16 +58,12 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java)
             implementation(libs.androidx.runtime.desktop)
-            implementation(libs.coil.compose.core)
-            implementation(libs.coil3.network)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.ktor.ios)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
-            implementation(libs.coil.compose.core)
-            implementation(libs.coil3.network)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -87,8 +80,8 @@ kotlin {
             implementation(libs.coil3.svg)
             implementation(libs.coil3.gif)
             implementation(libs.coil3.video)
-            implementation(libs.coil.compose.core)
-            implementation(libs.coil3.network)
+
+            implementation(libs.accompanist.swiperefresh)
         }
     }
 }

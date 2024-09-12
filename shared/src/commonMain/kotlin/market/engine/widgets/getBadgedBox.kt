@@ -1,5 +1,6 @@
 package market.engine.widgets
 
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -8,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
+import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.items.NavigationItem
 import org.jetbrains.compose.resources.painterResource
@@ -22,7 +24,10 @@ fun getBadgedBox(
         modifier = modifier,
         badge = {
             if (item.badgeCount != null) {
-                Badge {
+                Badge(
+                    containerColor = colors.badgeColor,
+                    contentColor = colors.accentColor
+                ) {
                     val dynamicFontSize = (10 - (item.badgeCount / 10)).coerceAtLeast(7).sp
                     Text(text = item.badgeCount.toString(), fontSize = dynamicFontSize)
                 }

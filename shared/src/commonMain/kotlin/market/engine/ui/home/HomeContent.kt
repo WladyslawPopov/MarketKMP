@@ -1,23 +1,26 @@
 package market.engine.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import auctionkmp.shared.generated.resources.Res
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.TopCategory
+import market.engine.common.ScrollBarsProvider
+import market.engine.common.SwipeRefreshContent
 import market.engine.widgets.CategoryList
 import market.engine.widgets.FooterRow
 import market.engine.widgets.GridPopularCategory
@@ -126,49 +129,68 @@ fun HomeContent(
 
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
-
     val isLoading = model.isLoading.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        if (isLoading.value) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = colors.inactiveBottomNavIconColor
-            )
-        } else {
-            Column{
-                SearchBar(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onSearchClick = {
-                        component.onItemClicked(id = 1L)
+    SwipeRefreshContent(
+        isRefreshing = isLoading.value,
+        onRefresh = {
+            component.onRefresh()
+        }
+    ) {
+
+        val scrollState = rememberScrollState()
+        Box(modifier = Modifier.fillMaxSize())
+        {
+            Box(modifier = modifier.fillMaxSize()
+                .verticalScroll(scrollState)) {
+
+                AnimatedVisibility(
+                    modifier = modifier.align(Alignment.Center),
+                    visible = !isLoading.value,
+                    enter = expandIn(),
+                    exit = fadeOut()
+                ) {
+                    Column {
+                        SearchBar(
+                            modifier = Modifier.align(Alignment.CenterHorizontally).wrapContentHeight().wrapContentWidth(),
+                            onSearchClick = {
+                                component.onItemClicked(id = 1L)
+                            }
+                        )
+
+                        model.categories.collectAsState().value.let { categoryNames ->
+                            CategoryList(
+                                categories = categoryNames
+                            )
+                            { component.onItemClicked(id = 1L) }
+                        }
+
+                        model.promoOffer1.collectAsState().value.let { offers ->
+                            GridPromoOffers(offers) {
+
+                            }
+                        }
+
+                        GridPopularCategory(listTopCategory) { topCategory ->
+                            component.onItemClicked(id = topCategory.id)
+                        }
+
+                        model.promoOffer2.collectAsState().value.let { offers ->
+                            GridPromoOffers(offers) {
+
+                            }
+                        }
+                        FooterRow(listFooterItem)
                     }
-                )
-
-                model.categories.collectAsState().value.map { it }.let { categoryNames ->
-                    CategoryList(
-                        categories = categoryNames
-                    )
-                    { component.onItemClicked(id = 1L) }
                 }
-
-                model.promoOffer1.collectAsState().value.map{ it }.let { offers ->
-                    GridPromoOffers(offers){
-
-                    }
-                }
-
-                GridPopularCategory(listTopCategory){ topCategory ->
-                    component.onItemClicked(id = topCategory.id)
-                }
-
-                model.promoOffer2.collectAsState().value.map{ it }.let { offers ->
-                    GridPromoOffers(offers) {
-
-                    }
-                }
-
-                FooterRow(listFooterItem)
             }
+
+            ScrollBarsProvider().getVerticalScrollbar(
+                scrollState,
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .fillMaxHeight()
+            )
         }
     }
 }

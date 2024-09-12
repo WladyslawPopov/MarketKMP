@@ -27,14 +27,8 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage2: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage2.asStateFlow()
 
-    init {
-        getCategory()
-        getOffersPromotedOnMainPage1(0, 12)
-        getOffersPromotedOnMainPage2(1, 12)
-    }
 
-    private fun getCategory(categoryId: Long = defaultCategoryId) {
-        setLoading(true)
+    fun getCategory(categoryId: Long = defaultCategoryId) {
         viewModelScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
@@ -50,7 +44,7 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
         }
     }
 
-    private fun getOffersPromotedOnMainPage1(page: Int, ipp: Int) {
+    fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
         setLoading(true)
         viewModelScope.launch {
             try {
@@ -58,24 +52,10 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
                     apiService.getOffersPromotedOnMainPage(page, ipp)
                 }
                 val payload: Payload<Offer> = deserializePayload(response.payload)
-                _responseOffersPromotedOnMainPage1.value = payload.objects
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", "An error occurred"))
-            }
-        }
-    }
-
-    private fun getOffersPromotedOnMainPage2(page: Int, ipp: Int) {
-        setLoading(true)
-        viewModelScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    apiService.getOffersPromotedOnMainPage(page, ipp)
+                when(page){
+                    0 -> _responseOffersPromotedOnMainPage1.value = payload.objects
+                    1 -> _responseOffersPromotedOnMainPage2.value = payload.objects
                 }
-                val payload: Payload<Offer> = deserializePayload(response.payload)
-                _responseOffersPromotedOnMainPage2.value = payload.objects
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {

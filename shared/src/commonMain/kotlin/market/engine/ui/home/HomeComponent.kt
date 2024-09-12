@@ -21,6 +21,8 @@ interface HomeComponent {
         val promoOffer2: StateFlow<List<Offer>>,
         val isLoading: StateFlow<Boolean>
     )
+
+    fun onRefresh()
 }
 
 class DefaultHomeComponent(
@@ -42,30 +44,21 @@ class DefaultHomeComponent(
     override val model: Value<HomeComponent.Model> = _model
 
     init {
-        CoroutineScope(Dispatchers.Default).launch {
-            launch {
-                homeViewModel.responseCategory.collect { updateModel(homeViewModel) }
-            }
-            launch {
-                homeViewModel.responseOffersPromotedOnMainPage1.collect { updateModel(homeViewModel) }
-            }
-            launch {
-                homeViewModel.responseOffersPromotedOnMainPage2.collect { updateModel(homeViewModel) }
-            }
-        }
+        updateModel()
     }
 
-    private fun updateModel(homeViewModel: HomeViewModel) {
-        _model.value = HomeComponent.Model(
-            categories = homeViewModel.responseCategory,
-            promoOffer1 = homeViewModel.responseOffersPromotedOnMainPage1,
-            promoOffer2 = homeViewModel.responseOffersPromotedOnMainPage2,
-            isLoading = homeViewModel.isShowProgress
-        )
+    private fun updateModel() {
+        homeViewModel.getCategory()
+        homeViewModel.getOffersPromotedOnMainPage(0, 16)
+        homeViewModel.getOffersPromotedOnMainPage(1, 16)
     }
 
     override fun onItemClicked(id: Long) {
         onItemSelected(id)
+    }
+
+    override fun onRefresh() {
+        updateModel()
     }
 }
 

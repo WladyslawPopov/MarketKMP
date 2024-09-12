@@ -21,13 +21,24 @@ import androidx.compose.ui.unit.dp
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.strings
+import market.engine.business.types.WindowSizeClass
+import market.engine.business.util.getWindowSizeClass
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchBar(modifier: Modifier = Modifier, onSearchClick: () -> Unit) {
+
+    val windowClass = getWindowSizeClass()
+    val isBigWindow = windowClass == WindowSizeClass.Big
+
     Box(
         modifier = modifier
-            .sizeIn(300.dp, 70.dp, 500.dp, 80.dp)
+            .sizeIn(
+                minWidth = if(isBigWindow) 350.dp else 200.dp,
+                minHeight = if(isBigWindow) 50.dp else 50.dp,
+                maxWidth = if(isBigWindow) 500.dp else 300.dp,
+                maxHeight = if(isBigWindow) 70.dp else 70.dp
+            )
             .padding(dimens.mediumPadding)
             .background(colors.white, shape = RoundedCornerShape(dimens.largeCornerRadius))
             .clip(RoundedCornerShape(dimens.largeCornerRadius))

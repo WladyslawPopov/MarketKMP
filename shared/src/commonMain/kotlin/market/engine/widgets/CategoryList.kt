@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,27 +30,40 @@ import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
+import market.engine.common.ScrollBarsProvider
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CategoryList(categories: List<Category>, onCategoryClick: (Category) -> Unit) {
-    LazyRow(
-        modifier = Modifier.padding(top = dimens.mediumPadding),
-        horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
-    ) {
-        items(categories) { category ->
-            if (category.id == categories.first().id) {
-                Spacer(modifier = Modifier.padding(start =dimens.smallPadding))
-            }
+    val lazyListState = rememberLazyListState()
+    Box(modifier = Modifier.fillMaxSize().padding(bottom = dimens.largePadding, top = dimens.mediumPadding) )
+    {
+        LazyRow(
+            state = lazyListState,
+            modifier = Modifier.fillMaxWidth().padding(bottom = dimens.mediumPadding).wrapContentHeight(),
+            horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
+        ) {
+            items(categories) { category ->
+                if (category.id == categories.first().id) {
+                    Spacer(modifier = Modifier.padding(start = dimens.smallPadding))
+                }
 
-            CategoryItem(category = category, onClick = onCategoryClick)
+                CategoryItem(category = category, onClick = onCategoryClick)
 
-            if (category.id == categories.last().id) {
-                Spacer(modifier = Modifier.padding(end = dimens.smallPadding))
+                if (category.id == categories.last().id) {
+                    Spacer(modifier = Modifier.padding(end = dimens.smallPadding))
+                }
             }
         }
+
+        ScrollBarsProvider().getHorizontalScrollbar(
+            lazyListState,
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        )
     }
 }
 

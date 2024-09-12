@@ -1,7 +1,9 @@
 package market.engine.widgets
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,28 +31,16 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (TopCategory) -> Unit) {
+fun FooterItem(modifier: Modifier, category: TopCategory, onClick: (TopCategory) -> Unit) {
     val windowClass = getWindowSizeClass()
-    val bs = windowClass == WindowSizeClass.Big
-
-    Card(
-        modifier = Modifier.sizeIn(
-            minHeight = 100.dp,
-            minWidth = 100.dp,
-            maxHeight = if (!bs) 200.dp else 200.dp,
-            maxWidth = if (!bs) 200.dp else 300.dp
-        ).fillMaxWidth().wrapContentHeight(),
-        colors = CardColors(
-            containerColor = colors.white,
-            contentColor = colors.black,
-            disabledContainerColor = colors.lightGray,
-            disabledContentColor = colors.grayText
-        ),
-        shape = RoundedCornerShape(dimens.smallCornerRadius),
-        onClick = { onClick(category) },
+    val showNavigationRail = windowClass == WindowSizeClass.Big
+    Box(
+        modifier = Modifier.sizeIn(minWidth = if (showNavigationRail) 300.dp else 100.dp).clickable {
+            onClick(category)
+        }
     ) {
         Column(
-            modifier = modifier.align(Alignment.CenterHorizontally),
+            modifier = modifier.align(Alignment.Center),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -58,7 +48,7 @@ fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (Top
             Image(
                 painterResource(category.icon),
                 contentDescription = null,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(70.dp)
             )
 
             Text(

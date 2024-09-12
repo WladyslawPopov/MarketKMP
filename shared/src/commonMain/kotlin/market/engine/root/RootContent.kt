@@ -1,7 +1,11 @@
 package market.engine.root
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.DrawerValue
@@ -12,15 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import coil3.ImageLoader
-import coil3.PlatformContext
-import coil3.annotation.ExperimentalCoilApi
-import coil3.compose.setSingletonImageLoaderFactory
-import coil3.disk.DiskCache
-import coil3.memory.MemoryCache
-import coil3.request.CachePolicy
-import coil3.request.crossfade
-import coil3.util.DebugLogger
 import market.engine.ui.home.HomeContent
 import market.engine.ui.search.SearchContent
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -41,20 +36,13 @@ import market.engine.widgets.DrawerContent
 import market.engine.widgets.appbars.HomeAppBar
 import market.engine.widgets.bottombars.getBottomNavBar
 import market.engine.widgets.bottombars.getRailNavBar
-import okio.FileSystem
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun RootContent(
     component: RootComponent,
     modifier: Modifier = Modifier
 ) {
-
-    setSingletonImageLoaderFactory { context ->
-        getAsyncImageLoader(context)
-    }
-
     val childStack by component.childStack.subscribeAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -62,11 +50,11 @@ fun RootContent(
     val showNavigationRail = windowClass == WindowSizeClass.Big
 
     val currentScreen = when (childStack.active.instance) {
-        is RootComponent.Child.HomeChild -> "Home"
-        is RootComponent.Child.SearchChild -> "Search"
-        is RootComponent.Child.BasketChild -> "Basket"
-        is RootComponent.Child.FavoritesChild -> "Favorites"
-        is RootComponent.Child.ProfileChild -> "Profile"
+        is RootComponent.Child.HomeChild -> 0
+        is RootComponent.Child.SearchChild -> 1
+        is RootComponent.Child.BasketChild -> 2
+        is RootComponent.Child.FavoritesChild -> 3
+        is RootComponent.Child.ProfileChild -> 4
     }
     
     val listItems = listOf(
@@ -117,25 +105,33 @@ fun RootContent(
         modifier = modifier.fillMaxSize(),
         color = colors.backgroundColor
     ){
+        val mod = if (!showNavigationRail){
+            Modifier.fillMaxWidth(0.8f).verticalScroll(state = rememberScrollState())
+                .wrapContentHeight()
+        }else {
+            Modifier.verticalScroll(state = rememberScrollState())
+                .wrapContentHeight()
+        }
+
         ModalNavigationDrawer(
             modifier = modifier,
             drawerState = drawerState,
-            drawerContent = { DrawerContent(drawerState, scope) },
+            drawerContent = { DrawerContent(drawerState, scope, mod) },
             gesturesEnabled = drawerState.isOpen,
         ){
             Scaffold(
                 topBar = {
                     when(currentScreen){
-                        "Home" -> HomeAppBar(modifier,showNavigationRail) { openMenu() }
-                        "Search" -> {}
-                        "Basket" -> {}
-                        "Favorites" -> {}
-                        "Profile" -> {}
+                        0 -> HomeAppBar(modifier,showNavigationRail) { openMenu() }
+                        1 -> {}
+                        2 -> {}
+                        3 -> {}
+                        4 -> {}
                     }
                 },
                 bottomBar = {
                     if (!showNavigationRail) {
-                        getBottomNavBar(component, modifier,listItems)
+                        getBottomNavBar(component, modifier,listItems, currentScreen)
                     } else {
                         getRailNavBar(component, modifier, listItems) { openMenu() }
                     }
@@ -176,24 +172,7 @@ fun navigateFromBottomBar(index: Int, component: RootComponent){
     }
 }
 
-fun getAsyncImageLoader(context: PlatformContext): ImageLoader {
-    return ImageLoader.Builder(context)
-        .memoryCachePolicy(CachePolicy.ENABLED)
-        .memoryCache {
-            MemoryCache.Builder().maxSizePercent(context,0.3)
-                .strongReferencesEnabled(true)
-                .build()
-        }
-        .diskCachePolicy(CachePolicy.ENABLED)
-        .diskCache {
-            newDiskCache()
-        }.crossfade(true).logger(DebugLogger()).build()
-}
 
-fun newDiskCache(): DiskCache {
-    return DiskCache.Builder().directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY)
-        .maxSizeBytes(1024L*1024*1024).build()
-}
 
 
 

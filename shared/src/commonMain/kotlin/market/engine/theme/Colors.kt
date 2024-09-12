@@ -1,6 +1,7 @@
 package market.engine.theme
 
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.ui.graphics.Color
@@ -22,6 +23,7 @@ interface Colors {
     val transparent: Color
     val notifyTextColor: Color
     val white: Color
+    val badgeColor: Color
     val waterBlue: Color
     val lightGray: Color
     val grayLayout: Color
@@ -52,4 +54,5 @@ interface Colors {
     val actionButtonColors : ButtonColors
     val navItemColors : NavigationBarItemColors
     val navRailItemColors : NavigationRailItemColors
+    val cardColors : CardColors
 }

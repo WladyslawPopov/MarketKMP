@@ -8,12 +8,16 @@ import kotlin.collections.HashMap
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.http.content.PartData
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 class APIService(private val client: HttpClient) {
+
+    suspend fun getImage(url: String): HttpResponse =
+        client.get(url).body()
 
     suspend fun getPageOffers(url: String): AppResponse =
         client.get(url).body()

@@ -1,10 +1,11 @@
 package market.engine.widgets.bottombars
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,12 +26,9 @@ import market.engine.widgets.getBadgedBox
 fun getBottomNavBar(
     component: RootComponent,
     modifier: Modifier = Modifier,
-    listItems : List<NavigationItem>
+    listItems: List<NavigationItem>,
+    currentScreen: Int
 ){
-    var selectedItemIndex by rememberSaveable {
-        mutableStateOf(0)
-    }
-    
     NavigationBar(
         modifier = modifier
             .navigationBarsPadding()
@@ -39,23 +37,29 @@ fun getBottomNavBar(
         containerColor = colors.white,
         contentColor = colors.lightGray
     ) {
+        Spacer(modifier = Modifier.width(dimens.smallSpacer))
         listItems.forEachIndexed { index, item ->
             NavigationBarItem(
                 colors = colors.navItemColors,
-                selected = selectedItemIndex == index,
+                selected = currentScreen == index,
                 onClick = {
-                    selectedItemIndex = index
                     navigateFromBottomBar(index, component)
                 },
                 icon = {
-                    getBadgedBox(modifier = modifier, item, selectedItemIndex == index)
+                    getBadgedBox(modifier, item, currentScreen == index)
                 },
                 label = {
-                    if(selectedItemIndex == index) {
-                        Text(text = item.title, fontSize = 10.sp)
+                    if(currentScreen == index) {
+                        Text(
+                            text = item.title,
+                            fontSize = 9.sp,
+                            maxLines = 1,
+                            lineHeight = 8.sp
+                        )
                     }
                 }
             )
         }
+        Spacer(modifier = Modifier.width(dimens.smallSpacer))
     }
 }

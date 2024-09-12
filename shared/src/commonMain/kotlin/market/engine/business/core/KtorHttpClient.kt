@@ -2,21 +2,16 @@ package market.engine.business.core
 
 import application.market.auction_mobile.business.core.ServerErrorException
 import market.engine.business.constants.SAPI
-import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import market.engine.common.getKtorClient
 
 object KtorHttpClient {
 
@@ -27,14 +22,6 @@ object KtorHttpClient {
                 isLenient = true
                 encodeDefaults = true
             })
-        }
-        install(Logging) {
-            level = LogLevel.ALL
-            logger = object : Logger {
-                override fun log(message: String) {
-                    println("AppDebug KtorHttpClient message: $message")
-                }
-            }
         }
         HttpResponseValidator {
             validateResponse { response ->

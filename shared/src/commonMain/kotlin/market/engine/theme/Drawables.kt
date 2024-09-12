@@ -49,4 +49,6 @@ interface Drawables {
    val verifySellersIcon : DrawableResource
    val discountBigIcon : DrawableResource
    val freeBillingIcon : DrawableResource
+
+   val noImageOffer : DrawableResource
 }
