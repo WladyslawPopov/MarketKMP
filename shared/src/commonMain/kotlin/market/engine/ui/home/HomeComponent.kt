@@ -12,7 +12,7 @@ interface HomeComponent {
 
     fun onSearchClicked(id: Long)
 
-    fun goToListing(categoryId: Long)
+    fun goToListing()
 
     data class Model(
         val categories: StateFlow<List<Category>>,
@@ -27,7 +27,7 @@ interface HomeComponent {
 class DefaultHomeComponent(
     componentContext: ComponentContext,
     private val onSearchSelected: (id: Long) -> Unit,
-    private val goToListingSelected: (categoryId: Long) -> Unit
+    private val goToListingSelected: () -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
@@ -57,8 +57,8 @@ class DefaultHomeComponent(
         onSearchSelected(id)
     }
 
-    override fun goToListing(categoryId: Long) {
-        goToListingSelected(categoryId)
+    override fun goToListing() {
+        goToListingSelected()
     }
 
     override fun onRefresh() {

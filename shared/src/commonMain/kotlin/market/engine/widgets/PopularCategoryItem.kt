@@ -62,7 +62,7 @@ fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (Top
             )
 
             Text(
-                text = stringResource(category.name),
+                text = category.name,
                 color = colors.black,
                 letterSpacing = 0.1.sp,
                 fontSize = MaterialTheme.typography.bodyMedium.fontSize,

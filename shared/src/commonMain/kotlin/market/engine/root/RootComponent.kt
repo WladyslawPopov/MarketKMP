@@ -38,6 +38,8 @@ interface RootComponent {
     fun navigateToBottomItem(config: Config)
 
     fun navigateTo(config: Config)
+
+    fun backPressed()
 }
 
 class DefaultRootComponent(
@@ -61,6 +63,10 @@ class DefaultRootComponent(
 
     override fun navigateTo(config: Config) {
         navigation.push(config)
+    }
+
+    override fun backPressed() {
+        navigation.pop()
     }
 
     private fun createChild(

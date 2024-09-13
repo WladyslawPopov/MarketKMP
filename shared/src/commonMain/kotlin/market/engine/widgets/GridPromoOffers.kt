@@ -16,6 +16,7 @@ import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GridPromoOffers(promoOffers : List<Offer>, onOfferClick: (Offer) -> Unit) {
@@ -25,7 +26,7 @@ fun GridPromoOffers(promoOffers : List<Offer>, onOfferClick: (Offer) -> Unit) {
 
     Spacer(modifier = Modifier.heightIn(dimens.mediumPadding))
 
-    TitleText(strings.topOffersTitle)
+    TitleText(stringResource(strings.topOffersTitle))
 
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(if (showNavigationRail) 4 else 2),

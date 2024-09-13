@@ -12,9 +12,9 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun TitleText(text : StringResource) {
+fun TitleText(text : String) {
     Text(
-        text = stringResource(text),
+        text = text,
         fontSize = MaterialTheme.typography.titleMedium.fontSize,
         color = colors.black,
         fontWeight = FontWeight.Bold,

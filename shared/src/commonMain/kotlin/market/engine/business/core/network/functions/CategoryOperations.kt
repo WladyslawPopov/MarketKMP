@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.core.network.functions
+package market.engine.business.core.network.functions
 
 import application.market.auction_mobile.business.core.ServerErrorException
 import application.market.auction_mobile.business.core.ServerResponse
@@ -8,7 +8,7 @@ import application.market.auction_mobile.business.networkObjects.Payload
 import application.market.auction_mobile.business.networkObjects.RegionOptions
 import application.market.auction_mobile.business.networkObjects.deserializePayload
 import application.market.core.network.APIService
-import application.market.data.globalObjects.SearchData
+import market.engine.business.globalObjects.searchData
 
 class CategoryOperations(private val apiService : APIService) {
 
@@ -32,7 +32,7 @@ class CategoryOperations(private val apiService : APIService) {
     }
 
     suspend fun getTotalCount(id: Long): ServerResponse<Int> {
-        val sd = SearchData.copy()
+        val sd = searchData.copy()
         sd.searchCategoryID = id
         val url = UrlBuilder()
             .addPathSegment("offers")

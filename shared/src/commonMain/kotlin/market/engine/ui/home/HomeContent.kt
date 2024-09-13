@@ -15,9 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import application.market.data.globalObjects.listingData
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
+import market.engine.business.globalObjects.searchData
 import market.engine.business.items.TopCategory
 import market.engine.common.ScrollBarsProvider
 import market.engine.common.SwipeRefreshContent
@@ -26,6 +28,7 @@ import market.engine.widgets.FooterRow
 import market.engine.widgets.GridPopularCategory
 import market.engine.widgets.GridPromoOffers
 import market.engine.widgets.SearchBar
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun HomeContent(
@@ -36,91 +39,91 @@ fun HomeContent(
         TopCategory(
             id = 48393,
             parentId = 48341,
-            name = strings.categoryCoin,
-            parentName = strings.categoryCollection,
+            name = stringResource(strings.categoryCoin),
+            parentName = stringResource(strings.categoryCollection),
             icon = drawables.coinPng
         ),
         TopCategory(
             id = 48522,
             parentId = 48341,
-            name = strings.categoryBanknotes,
-            parentName = strings.categoryCollection,
+            name = stringResource(strings.categoryBanknotes),
+            parentName = stringResource(strings.categoryCollection),
             icon = drawables.banknotePng
         ),
         TopCategory(
             id = 48343,
             parentId = 48341,
-            name = strings.categoryMarks,
-            parentName = strings.categoryCollection,
+            name = stringResource(strings.categoryMarks),
+            parentName = stringResource(strings.categoryCollection),
             icon = drawables.markPng
         ),
         TopCategory(
             id = 100247,
             parentId = 48341,
-            name = strings.categoryMedals,
-            parentName = strings.categoryCollection,
+            name = stringResource(strings.categoryMedals),
+            parentName = stringResource(strings.categoryCollection),
             icon = drawables.medalPng
         ),
         TopCategory(
             id = 100236,
             parentId = 48260,
-            name = strings.categoryPorcelain,
-            parentName = strings.categoryArt,
+            name = stringResource(strings.categoryPorcelain),
+            parentName = stringResource(strings.categoryArt),
             icon = drawables.porcelainPng
         ),
         TopCategory(
             id = 108682,
             parentId = 1,
-            name = strings.categoryBooks,
-            parentName = strings.categoryMain,
+            name = stringResource(strings.categoryBooks),
+            parentName = stringResource(strings.categoryMain),
             icon = drawables.booksPng
         ),
         TopCategory(
             id = 64823,
             parentId = 64821,
-            name = strings.categoryPhone,
-            parentName = strings.categoryPhone,
+            name = stringResource(strings.categoryPhone),
+            parentName = stringResource(strings.categoryPhone),
             icon = drawables.phonesPng
         ),
         TopCategory(
             id = 48302,
             parentId = 11,
-            name = strings.categoryNotebooks,
-            parentName = strings.categoryElectronic,
+            name = stringResource(strings.categoryNotebooks),
+            parentName = stringResource(strings.categoryElectronic),
             icon = drawables.notebookPng
         ),
         TopCategory(
             id = 124975,
             parentId = 11,
-            name = strings.categoryAppliances,
-            parentName = strings.categoryElectronic,
+            name = stringResource(strings.categoryAppliances),
+            parentName = stringResource(strings.categoryElectronic),
             icon = drawables.appliancesPng
         )
     )
     val listFooterItem = listOf(
         TopCategory(
             id = 1,
-            name = strings.homeFixAuction,
+            name = stringResource(strings.homeFixAuction),
             icon = drawables.auctionFixIcon
         ),
         TopCategory(
             id = 2,
-            name = strings.homeManyOffers,
+            name = stringResource(strings.homeManyOffers),
             icon = drawables.manyOffersIcon
         ),
         TopCategory(
             id = 3,
-            name = strings.verifySellers,
+            name = stringResource(strings.verifySellers),
             icon = drawables.verifySellersIcon
         ),
         TopCategory(
             id = 4,
-            name = strings.everyDeyDiscount,
+            name = stringResource(strings.everyDeyDiscount),
             icon = drawables.discountBigIcon
         ),
         TopCategory(
             id = 5,
-            name = strings.freeBilling,
+            name = stringResource(strings.freeBilling),
             icon = drawables.freeBillingIcon
         ),
     )
@@ -161,7 +164,12 @@ fun HomeContent(
                             CategoryList(
                                 categories = categoryList
                             ){ category ->
-                                component.goToListing(categoryId = category.id)
+                                listingData.methodServer = "get_public_listing"
+                                searchData.searchCategoryID = category.id
+                                searchData.searchParentID = category.parentId
+                                searchData.searchCategoryName = category.name
+
+                                component.goToListing()
                             }
                         }
 
@@ -172,7 +180,13 @@ fun HomeContent(
                         }
 
                         GridPopularCategory(listTopCategory) { topCategory ->
-                            component.onSearchClicked(id = topCategory.id)
+                            listingData.methodServer = "get_public_listing"
+                            searchData.searchCategoryID = topCategory.id
+                            searchData.searchParentID = topCategory.parentId
+                            searchData.searchCategoryName = topCategory.name
+                            searchData.searchParentName = topCategory.parentName
+
+                            component.goToListing()
                         }
 
                         model.promoOffer2.collectAsState().value.let { offers ->

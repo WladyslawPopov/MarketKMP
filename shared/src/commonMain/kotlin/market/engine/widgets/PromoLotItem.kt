@@ -25,12 +25,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import application.market.auction_mobile.business.networkObjects.Offer
 import business.util.printLogD
+import coil3.ImageLoader
+import coil3.compose.LocalPlatformContext
+import coil3.request.crossfade
+import coil3.util.DebugLogger
 import com.skydoves.landscapist.coil3.CoilImage
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
-import market.engine.business.util.ImageLoader
+import market.engine.business.util.getImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -50,10 +54,10 @@ fun PromoLotItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (imageLoadFailed.value){
-                ImageLoader(offer.images?.firstOrNull()?.urls?.big?.content ?: "")
+                getImage(offer.images?.firstOrNull()?.urls?.mid?.content ?: "")
             }else{
                 CoilImage(
-                    imageModel = { offer.images?.firstOrNull()?.urls?.big?.content },
+                    imageModel = { offer.images?.firstOrNull()?.urls?.mid?.content },
                     previewPlaceholder = painterResource(drawables.noImageOffer),
                     failure = { e->
 

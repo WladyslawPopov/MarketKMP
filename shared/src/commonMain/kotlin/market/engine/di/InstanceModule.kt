@@ -8,7 +8,8 @@ import application.market.auction_mobile.business.core.network.functions.Private
 import application.market.auction_mobile.business.core.network.functions.SubscriptionOperations
 import application.market.auction_mobile.business.core.network.functions.UserOperations
 import application.market.core.network.APIService
-import application.market.auction_mobile.business.core.network.functions.CategoryOperations
+import market.engine.business.core.network.functions.CategoryOperations
+import market.engine.business.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.getKtorClient
 import market.engine.ui.home.HomeViewModel
 import market.engine.ui.listing.ListingViewModel
@@ -18,6 +19,7 @@ object InstanceModule {
     val appModule = module {
         single { getKtorClient() }
         single { APIService(get()) }
+        single { OfferPagingRepository(get()) }
 
         single { CategoryOperations(get()) }
         single { ConversationsOperations(get()) }

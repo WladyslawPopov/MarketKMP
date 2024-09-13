@@ -16,6 +16,7 @@ import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.TopCategory
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopCategory) -> Unit) {
@@ -25,7 +26,7 @@ fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopC
 
     Spacer(modifier = Modifier.heightIn(dimens.mediumPadding))
 
-    TitleText(strings.homeTopCategory)
+    TitleText(stringResource( strings.homeTopCategory))
 
     LazyVerticalGrid(
         columns = GridCells.Fixed( if (showNavigationRail) 5 else 3),

@@ -17,7 +17,7 @@ import org.koin.compose.koinInject
 
 @OptIn(InternalAPI::class)
 @Composable
-fun ImageLoader(url : String) {
+fun getImage(url : String) {
     val getClient : APIService = koinInject()
     val imageState = remember { mutableStateOf<ImageBitmap?>(null) }
 

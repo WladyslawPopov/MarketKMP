@@ -52,7 +52,7 @@ fun FooterItem(modifier: Modifier, category: TopCategory, onClick: (TopCategory)
             )
 
             Text(
-                text = stringResource(category.name),
+                text = category.name,
                 color = colors.black,
                 letterSpacing = 0.1.sp,
                 fontSize = MaterialTheme.typography.bodyMedium.fontSize,

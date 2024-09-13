@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
+import market.engine.business.globalObjects.searchData
 import market.engine.business.items.NavigationItem
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
@@ -35,6 +36,7 @@ import market.engine.ui.listing.ListingContent
 import market.engine.ui.profile.ProfileContent
 import market.engine.widgets.DrawerContent
 import market.engine.widgets.appbars.HomeAppBar
+import market.engine.widgets.appbars.ListingAppBar
 import market.engine.widgets.bottombars.getBottomNavBar
 import market.engine.widgets.bottombars.getRailNavBar
 import org.jetbrains.compose.resources.stringResource
@@ -129,6 +131,9 @@ fun RootContent(
                         2 -> {}
                         3 -> {}
                         4 -> {}
+                        5 -> {
+                            ListingAppBar(searchData.searchCategoryName ?: "",modifier, showNavigationRail) { component.backPressed() }
+                        }
                     }
                 },
                 bottomBar = {

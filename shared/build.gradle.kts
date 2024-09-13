@@ -39,7 +39,13 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)
 
+            implementation(libs.paging.compose.common)
+
             implementation(libs.landscape.coil)
+
+            implementation(libs.coil3.network)
+            implementation(libs.coil.compose)
+            implementation(libs.coil)
 
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)
