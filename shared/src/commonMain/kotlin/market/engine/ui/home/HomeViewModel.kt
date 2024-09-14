@@ -1,11 +1,11 @@
 package market.engine.ui.home
 
-import application.market.auction_mobile.business.core.ServerErrorException
+import market.engine.business.core.ServerErrorException
 import application.market.auction_mobile.business.networkObjects.Category
 import application.market.auction_mobile.business.networkObjects.Offer
 import application.market.auction_mobile.business.networkObjects.Payload
 import application.market.auction_mobile.business.networkObjects.deserializePayload
-import application.market.core.network.APIService
+import market.engine.business.core.network.APIService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.business.core.network.viewModels.BaseViewModel
+import market.engine.root.BaseViewModel
 
 class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
     private val defaultCategoryId = 1L
@@ -29,6 +29,8 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
 
 
     fun getCategory(categoryId: Long = defaultCategoryId) {
+        onError(ServerErrorException())
+        setLoading(true)
         viewModelScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
@@ -45,7 +47,7 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
     }
 
     fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
-        setLoading(true)
+
         viewModelScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {

@@ -1,5 +1,6 @@
 package market.engine.ui.home
 
+import market.engine.business.core.ServerErrorException
 import application.market.auction_mobile.business.networkObjects.Category
 import application.market.auction_mobile.business.networkObjects.Offer
 import com.arkivanov.decompose.ComponentContext
@@ -18,7 +19,8 @@ interface HomeComponent {
         val categories: StateFlow<List<Category>>,
         val promoOffer1: StateFlow<List<Offer>>,
         val promoOffer2: StateFlow<List<Offer>>,
-        val isLoading: StateFlow<Boolean>
+        val isLoading: StateFlow<Boolean>,
+        val isError: StateFlow<ServerErrorException>
     )
 
     fun onRefresh()
@@ -37,7 +39,8 @@ class DefaultHomeComponent(
             categories = homeViewModel.responseCategory,
             promoOffer1 = homeViewModel.responseOffersPromotedOnMainPage1,
             promoOffer2 = homeViewModel.responseOffersPromotedOnMainPage2,
-            isLoading = homeViewModel.isShowProgress
+            isLoading = homeViewModel.isShowProgress,
+            isError = homeViewModel.errorMessage
         )
     )
 

@@ -1,9 +1,10 @@
 package market.engine.ui.listing
 
 import androidx.paging.PagingData
+import market.engine.business.core.ServerResponse
 import market.engine.business.items.ListingData
 import application.market.auction_mobile.business.networkObjects.Offer
-import application.market.data.globalObjects.listingData
+import market.engine.business.globalObjects.listingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -15,11 +16,11 @@ import org.koin.mp.KoinPlatform.getKoin
 interface ListingComponent {
     val model: Value<Model>
 
-    val lData: ListingData
+    var lData: ListingData
 
     data class Model(
         val offers: StateFlow<List<Offer>>,
-        val listing: Flow<PagingData<Offer>>,
+        val listing: ServerResponse<Flow<PagingData<Offer>>>,
         val isLoading: StateFlow<Boolean>,
     )
 
@@ -30,7 +31,7 @@ class DefaultListingComponent(
     componentContext: ComponentContext,
 ) : ListingComponent, ComponentContext by componentContext {
 
-    override val lData = ListingData(searchData.copy(), listingData.copy())
+    override var lData = ListingData(searchData.copy(), listingData.copy())
 
     private val listingViewModel: ListingViewModel = getKoin().get()
 
@@ -41,10 +42,12 @@ class DefaultListingComponent(
             isLoading = listingViewModel.isShowProgress
         )
     )
-    
+
     override val model: Value<ListingComponent.Model> = _model
 
     private fun updateModel() {
+        searchData.clear()
+        lData = ListingData(searchData.copy(), listingData.copy())
         val newListingFlow = listingViewModel.getPage(lData)
         _model.value = _model.value.copy(listing = newListingFlow)
     }

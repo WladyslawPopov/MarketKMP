@@ -1,8 +1,8 @@
 package application.market.auction_mobile.business.core.network.functions
 
-import application.market.auction_mobile.business.core.ServerErrorException
-import application.market.auction_mobile.business.core.ServerResponse
-import application.market.core.network.APIService
+import market.engine.business.core.ServerErrorException
+import market.engine.business.core.ServerResponse
+import market.engine.business.core.network.APIService
 
 class PrivateMessagesOperation(private val apiService : APIService) {
 

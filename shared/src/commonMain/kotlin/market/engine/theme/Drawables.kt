@@ -51,4 +51,7 @@ interface Drawables {
    val freeBillingIcon : DrawableResource
 
    val noImageOffer : DrawableResource
+   val noInternetIcon : DrawableResource
+   val oopsIcon : DrawableResource
+   val notFoundListingIcon : DrawableResource
 }

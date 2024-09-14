@@ -1,9 +1,8 @@
-package market.engine.widgets
+package market.engine.widgets.rows
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +18,7 @@ import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.items.TopCategory
 import market.engine.common.ScrollBarsProvider
+import market.engine.widgets.items.FooterItem
 
 @Composable
 fun FooterRow(items : List<TopCategory>) {

@@ -11,7 +11,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,7 +27,7 @@ import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.NavigationItem
 import market.engine.root.RootComponent
 import market.engine.root.navigateFromBottomBar
-import market.engine.widgets.getBadgedBox
+import market.engine.widgets.common.getBadgedBox
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

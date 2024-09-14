@@ -7,7 +7,7 @@ import application.market.auction_mobile.business.core.network.functions.OrderOp
 import application.market.auction_mobile.business.core.network.functions.PrivateMessagesOperation
 import application.market.auction_mobile.business.core.network.functions.SubscriptionOperations
 import application.market.auction_mobile.business.core.network.functions.UserOperations
-import application.market.core.network.APIService
+import market.engine.business.core.network.APIService
 import market.engine.business.core.network.functions.CategoryOperations
 import market.engine.business.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.getKtorClient

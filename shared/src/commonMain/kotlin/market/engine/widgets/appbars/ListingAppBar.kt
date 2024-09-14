@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,9 +19,8 @@ import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.NavigationItem
-import market.engine.widgets.TitleText
-import market.engine.widgets.getBadgedBox
-import org.jetbrains.compose.resources.painterResource
+import market.engine.widgets.common.TitleText
+import market.engine.widgets.common.getBadgedBox
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

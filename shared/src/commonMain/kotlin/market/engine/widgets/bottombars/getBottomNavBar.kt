@@ -16,7 +16,7 @@ import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.items.NavigationItem
 import market.engine.root.RootComponent
 import market.engine.root.navigateFromBottomBar
-import market.engine.widgets.getBadgedBox
+import market.engine.widgets.common.getBadgedBox
 
 @Composable
 fun getBottomNavBar(

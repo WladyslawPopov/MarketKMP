@@ -50,6 +50,7 @@ interface Colors {
     val brightYellow: Color
     val brightBlue: Color
 
+    val themeButtonColors : ButtonColors
     val simpleButtonColors : ButtonColors
     val actionButtonColors : ButtonColors
     val navItemColors : NavigationBarItemColors

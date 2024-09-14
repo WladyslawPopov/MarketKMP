@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.core
+package market.engine.business.core
 
 import kotlinx.serialization.Serializable
 

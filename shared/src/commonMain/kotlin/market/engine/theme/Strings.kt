@@ -64,4 +64,11 @@ interface Strings {
     val freeBilling : StringResource
     val currencySign : StringResource
     val homeTopCategory : StringResource
+
+    val noInternetTitle : StringResource
+    val noInternetSubtitle : StringResource
+    val refreshButton : StringResource
+
+    val oopsTitle : StringResource
+    val notFoundListingTitle : StringResource
 }

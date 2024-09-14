@@ -1,4 +1,4 @@
-package application.market.core.network
+package market.engine.business.core.network
 
 
 import application.market.auction_mobile.business.networkObjects.AppResponse

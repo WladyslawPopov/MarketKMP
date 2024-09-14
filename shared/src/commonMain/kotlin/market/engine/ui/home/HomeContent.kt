@@ -1,33 +1,25 @@
 package market.engine.ui.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import application.market.data.globalObjects.listingData
+import market.engine.business.globalObjects.listingData
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.globalObjects.searchData
 import market.engine.business.items.TopCategory
-import market.engine.common.ScrollBarsProvider
-import market.engine.common.SwipeRefreshContent
-import market.engine.widgets.CategoryList
-import market.engine.widgets.FooterRow
-import market.engine.widgets.GridPopularCategory
-import market.engine.widgets.GridPromoOffers
-import market.engine.widgets.SearchBar
+import market.engine.widgets.pages.BaseContent
+import market.engine.widgets.rows.CategoryList
+import market.engine.widgets.rows.FooterRow
+import market.engine.widgets.grids.GridPopularCategory
+import market.engine.widgets.grids.GridPromoOffers
+import market.engine.widgets.common.SearchBar
+import market.engine.widgets.exceptions.onError
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -127,87 +119,74 @@ fun HomeContent(
             icon = drawables.freeBillingIcon
         ),
     )
-
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val isLoading = model.isLoading.collectAsState()
+    val err = model.isError.collectAsState()
 
-    SwipeRefreshContent(
-        isRefreshing = isLoading.value,
-        onRefresh = {
-            component.onRefresh()
-        }
-    ) {
-        val scrollState = rememberScrollState()
-        Box(modifier = Modifier.fillMaxSize())
-        {
-            Box(modifier = modifier.fillMaxSize()
-                .verticalScroll(scrollState)) {
+    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+        { onError(model.isError.value) { component.onRefresh() } }
+    }else{
+        null
+    }
 
-                AnimatedVisibility(
-                    modifier = modifier.align(Alignment.Center),
-                    visible = !isLoading.value,
-                    enter = expandIn(),
-                    exit = fadeOut()
-                ) {
-                    Column {
-                        SearchBar(
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                                .wrapContentHeight()
-                                .wrapContentWidth(),
-                            onSearchClick = {
-                                component.onSearchClicked(id = 1L)
-                            }
-                        )
+    BaseContent(
+        modifier = modifier,
+        isLoading = isLoading,
+        onRefresh = { component.onRefresh() },
+        error = error
+    ){
+        Column {
+            SearchBar(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+                    .wrapContentHeight()
+                    .wrapContentWidth(),
+                onSearchClick = {
+                    component.onSearchClicked(id = 1L)
+                }
+            )
 
-                        model.categories.collectAsState().value.let { categoryList ->
-                            CategoryList(
-                                categories = categoryList
-                            ){ category ->
-                                listingData.methodServer = "get_public_listing"
-                                searchData.searchCategoryID = category.id
-                                searchData.searchParentID = category.parentId
-                                searchData.searchCategoryName = category.name
+            model.categories.collectAsState().value.let { categoryList ->
+                CategoryList(
+                    categories = categoryList
+                ){ category ->
+                    listingData.methodServer = "get_public_listing"
+                    searchData.searchCategoryID = category.id
+                    searchData.searchParentID = category.parentId
+                    searchData.searchCategoryName = category.name
+                    searchData.fromSearch = true
+                    searchData.searchString = "emfjenjfnjenj"
 
-                                component.goToListing()
-                            }
-                        }
-
-                        model.promoOffer1.collectAsState().value.let { offers ->
-                            GridPromoOffers(offers) {
-
-                            }
-                        }
-
-                        GridPopularCategory(listTopCategory) { topCategory ->
-                            listingData.methodServer = "get_public_listing"
-                            searchData.searchCategoryID = topCategory.id
-                            searchData.searchParentID = topCategory.parentId
-                            searchData.searchCategoryName = topCategory.name
-                            searchData.searchParentName = topCategory.parentName
-
-                            component.goToListing()
-                        }
-
-                        model.promoOffer2.collectAsState().value.let { offers ->
-                            GridPromoOffers(offers) {
-
-                            }
-                        }
-                        FooterRow(listFooterItem)
-                    }
+                    component.goToListing()
                 }
             }
 
-            ScrollBarsProvider().getVerticalScrollbar(
-                scrollState,
-                modifier
-                    .align(Alignment.CenterEnd)
-                    .fillMaxHeight()
-            )
+            model.promoOffer1.collectAsState().value.let { offers ->
+                GridPromoOffers(offers) {
+
+                }
+            }
+
+            GridPopularCategory(listTopCategory) { topCategory ->
+                listingData.methodServer = "get_public_listing"
+                searchData.searchCategoryID = topCategory.id
+                searchData.searchParentID = topCategory.parentId
+                searchData.searchCategoryName = topCategory.name
+                searchData.searchParentName = topCategory.parentName
+
+                component.goToListing()
+            }
+
+            model.promoOffer2.collectAsState().value.let { offers ->
+                GridPromoOffers(offers) {
+
+                }
+            }
+            FooterRow(listFooterItem)
         }
     }
 }
+
 
 
 

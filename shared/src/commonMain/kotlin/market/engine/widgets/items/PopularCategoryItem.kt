@@ -1,4 +1,4 @@
-package market.engine.widgets
+package market.engine.widgets.items
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +26,6 @@ import market.engine.business.items.TopCategory
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (TopCategory) -> Unit) {

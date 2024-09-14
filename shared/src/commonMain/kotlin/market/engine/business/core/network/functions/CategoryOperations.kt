@@ -1,13 +1,13 @@
 package market.engine.business.core.network.functions
 
-import application.market.auction_mobile.business.core.ServerErrorException
-import application.market.auction_mobile.business.core.ServerResponse
+import market.engine.business.core.ServerErrorException
+import market.engine.business.core.ServerResponse
 import market.engine.business.core.UrlBuilder
 import application.market.auction_mobile.business.networkObjects.Category
 import application.market.auction_mobile.business.networkObjects.Payload
 import application.market.auction_mobile.business.networkObjects.RegionOptions
 import application.market.auction_mobile.business.networkObjects.deserializePayload
-import application.market.core.network.APIService
+import market.engine.business.core.network.APIService
 import market.engine.business.globalObjects.searchData
 
 class CategoryOperations(private val apiService : APIService) {

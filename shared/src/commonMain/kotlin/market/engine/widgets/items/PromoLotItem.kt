@@ -1,18 +1,13 @@
-package market.engine.widgets
+package market.engine.widgets.items
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,10 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import application.market.auction_mobile.business.networkObjects.Offer
 import business.util.printLogD
-import coil3.ImageLoader
-import coil3.compose.LocalPlatformContext
-import coil3.request.crossfade
-import coil3.util.DebugLogger
 import com.skydoves.landscapist.coil3.CoilImage
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens

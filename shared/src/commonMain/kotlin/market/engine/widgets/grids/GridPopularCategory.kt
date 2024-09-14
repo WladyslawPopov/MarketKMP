@@ -1,4 +1,4 @@
-package market.engine.widgets
+package market.engine.widgets.grids
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +16,8 @@ import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.TopCategory
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
+import market.engine.widgets.items.PopularCategoryItem
+import market.engine.widgets.common.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

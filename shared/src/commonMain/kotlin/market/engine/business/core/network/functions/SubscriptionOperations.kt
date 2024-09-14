@@ -1,13 +1,13 @@
 package application.market.auction_mobile.business.core.network.functions
 
-import application.market.auction_mobile.business.core.ServerErrorException
-import application.market.auction_mobile.business.core.ServerResponse
+import market.engine.business.core.ServerErrorException
+import market.engine.business.core.ServerResponse
 import application.market.auction_mobile.business.networkObjects.AppResponse
 import application.market.auction_mobile.business.networkObjects.DynamicPayload
 import application.market.auction_mobile.business.networkObjects.OperationResult
 import application.market.auction_mobile.business.networkObjects.Operations
 import application.market.auction_mobile.business.networkObjects.deserializePayload
-import application.market.core.network.APIService
+import market.engine.business.core.network.APIService
 import kotlinx.serialization.json.JsonElement
 
 class SubscriptionOperations(private val apiService: APIService) {

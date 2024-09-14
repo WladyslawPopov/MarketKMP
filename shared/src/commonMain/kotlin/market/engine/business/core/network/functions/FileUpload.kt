@@ -1,6 +1,6 @@
 package application.market.auction_mobile.business.core.network.functions
 
-import application.market.core.network.APIService
+import market.engine.business.core.network.APIService
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.PartData

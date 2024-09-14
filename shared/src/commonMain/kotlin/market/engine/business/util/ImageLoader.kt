@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
-import application.market.core.network.APIService
+import market.engine.business.core.network.APIService
 import io.ktor.util.InternalAPI
 import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.CoroutineScope

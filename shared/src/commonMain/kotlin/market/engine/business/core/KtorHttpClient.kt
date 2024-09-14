@@ -1,6 +1,5 @@
 package market.engine.business.core
 
-import application.market.auction_mobile.business.core.ServerErrorException
 import market.engine.business.constants.SAPI
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.HttpRequestRetry
@@ -26,7 +25,7 @@ object KtorHttpClient {
         HttpResponseValidator {
             validateResponse { response ->
                 if (response.status.value >= 300) {
-                    throw ServerErrorException().isNotSuccessfulServerResponse(response.bodyAsText(), response.status.value)
+//                    throw ServerErrorException().isNotSuccessfulServerResponse(response.bodyAsText(), response.status.value)
                 }
             }
         }

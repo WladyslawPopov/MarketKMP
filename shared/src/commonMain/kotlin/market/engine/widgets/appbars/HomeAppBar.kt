@@ -17,7 +17,7 @@ import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.NavigationItem
-import market.engine.widgets.getBadgedBox
+import market.engine.widgets.common.getBadgedBox
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

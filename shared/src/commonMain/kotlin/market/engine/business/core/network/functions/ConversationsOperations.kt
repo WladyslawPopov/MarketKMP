@@ -1,10 +1,10 @@
 package application.market.auction_mobile.business.core.network.functions
 
 
-import application.market.auction_mobile.business.core.ServerErrorException
+import market.engine.business.core.ServerErrorException
 import application.market.auction_mobile.business.networkObjects.Conversations
 import application.market.auction_mobile.business.networkObjects.deserializePayload
-import application.market.core.network.APIService
+import market.engine.business.core.network.APIService
 import kotlinx.serialization.json.JsonObject
 
 class ConversationsOperations(private val apiService : APIService) {

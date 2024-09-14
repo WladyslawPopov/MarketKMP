@@ -1,4 +1,4 @@
-package business.core
+package market.engine.business.core
 
 /**
  * A generic class for hiding/showing some ui component.

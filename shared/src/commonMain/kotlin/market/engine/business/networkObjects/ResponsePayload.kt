@@ -1,6 +1,6 @@
 package application.market.auction_mobile.business.networkObjects
 
-import application.market.auction_mobile.business.core.ServerErrorException
+import market.engine.business.core.ServerErrorException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

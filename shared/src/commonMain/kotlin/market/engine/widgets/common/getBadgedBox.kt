@@ -1,6 +1,5 @@
-package market.engine.widgets
+package market.engine.widgets.common
 
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox

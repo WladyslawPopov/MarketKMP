@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.globalObjects
+package market.engine.business.globalObjects
 
 
 object EncryptionUtil {

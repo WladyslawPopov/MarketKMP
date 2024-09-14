@@ -34,7 +34,7 @@ import market.engine.ui.basket.BasketContent
 import market.engine.ui.favorites.FavoritesContent
 import market.engine.ui.listing.ListingContent
 import market.engine.ui.profile.ProfileContent
-import market.engine.widgets.DrawerContent
+import market.engine.widgets.pages.DrawerContent
 import market.engine.widgets.appbars.HomeAppBar
 import market.engine.widgets.appbars.ListingAppBar
 import market.engine.widgets.bottombars.getBottomNavBar
