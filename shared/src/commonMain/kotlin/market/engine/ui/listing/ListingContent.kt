@@ -56,6 +56,7 @@ fun ListingContent(
    BaseContent(
        modifier = modifier,
        isLoading = isLoading,
+       showVerticalScrollbar = false,
        onRefresh = { offers?.refresh() },
        error = error,
        noFound = noItem

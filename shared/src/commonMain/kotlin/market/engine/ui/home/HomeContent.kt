@@ -154,8 +154,6 @@ fun HomeContent(
                     searchData.searchCategoryID = category.id
                     searchData.searchParentID = category.parentId
                     searchData.searchCategoryName = category.name
-                    searchData.fromSearch = true
-                    searchData.searchString = "emfjenjfnjenj"
 
                     component.goToListing()
                 }

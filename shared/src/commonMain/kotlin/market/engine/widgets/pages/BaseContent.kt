@@ -20,6 +20,7 @@ fun BaseContent(
     modifier: Modifier = Modifier,
     onRefresh: () -> Unit,
     isLoading: State<Boolean>,
+    showVerticalScrollbar: Boolean = true,
     error: (@Composable () -> Unit)? = null,
     noFound : (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
@@ -30,12 +31,39 @@ fun BaseContent(
             onRefresh()
         }
     ) {
-        val scrollState = rememberScrollState()
+
         Box(modifier = Modifier.fillMaxSize())
         {
-            Box(modifier = modifier.fillMaxSize()
-                .verticalScroll(scrollState)) {
+            if (showVerticalScrollbar){
+                val scrollState = rememberScrollState()
+                Box(modifier = modifier.fillMaxSize()
+                    .verticalScroll(scrollState)
+                ) {
+                    AnimatedVisibility(
+                        modifier = modifier.align(Alignment.Center),
+                        visible = !isLoading.value,
+                        enter = expandIn(),
+                        exit = fadeOut()
+                    ) {
+                        if(noFound != null){
+                            noFound()
+                        }else{
+                            if (error == null) {
+                                content()
+                            }else{
+                                error()
+                            }
+                        }
+                    }
+                }
 
+                ScrollBarsProvider().getVerticalScrollbar(
+                    scrollState,
+                    modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                )
+            }else{
                 AnimatedVisibility(
                     modifier = modifier.align(Alignment.Center),
                     visible = !isLoading.value,
@@ -53,13 +81,8 @@ fun BaseContent(
                     }
                 }
             }
-
-            ScrollBarsProvider().getVerticalScrollbar(
-                scrollState,
-                modifier
-                    .align(Alignment.CenterEnd)
-                    .fillMaxHeight()
-            )
         }
     }
 }
+
+
