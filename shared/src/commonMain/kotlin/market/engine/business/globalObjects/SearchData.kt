@@ -1,6 +1,6 @@
 package market.engine.business.globalObjects
 
-import application.market.data.globalData.SD
+import market.engine.business.globalData.SD
 
 var searchData = SD()
 

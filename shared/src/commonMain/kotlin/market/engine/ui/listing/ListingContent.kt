@@ -10,12 +10,15 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.core.ServerErrorException
+import market.engine.business.globalObjects.searchData
 import market.engine.widgets.pages.BaseContent
 import market.engine.widgets.grids.PagingGrid
 import market.engine.widgets.items.PromoLotItem
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ListingContent(
@@ -57,6 +60,14 @@ fun ListingContent(
        modifier = modifier,
        isLoading = isLoading,
        showVerticalScrollbar = false,
+       topBar = {
+           ListingAppBar(
+               searchData.searchCategoryName ?: stringResource(strings.categoryMain),
+               modifier
+           ) {
+               component.onBackClicked()
+           }
+       },
        onRefresh = { offers?.refresh() },
        error = error,
        noFound = noItem

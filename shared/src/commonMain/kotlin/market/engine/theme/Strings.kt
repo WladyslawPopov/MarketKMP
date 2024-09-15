@@ -71,4 +71,6 @@ interface Strings {
 
     val oopsTitle : StringResource
     val notFoundListingTitle : StringResource
+
+    val categoryEnter : StringResource
 }

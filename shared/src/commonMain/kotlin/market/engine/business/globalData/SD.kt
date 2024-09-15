@@ -1,4 +1,4 @@
-package application.market.data.globalData
+package market.engine.business.globalData
 
 import kotlinx.serialization.Serializable
 

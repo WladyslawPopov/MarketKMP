@@ -1,8 +1,8 @@
 package market.engine.business.core
 
 import application.market.auction_mobile.business.constants.UserData
-import application.market.auction_mobile.business.globalData.LD
-import application.market.data.globalData.SD
+import market.engine.business.globalData.LD
+import market.engine.business.globalData.SD
 
 class UrlBuilder {
 

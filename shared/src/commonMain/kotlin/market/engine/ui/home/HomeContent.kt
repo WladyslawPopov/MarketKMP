@@ -25,7 +25,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeContent(
     component: HomeComponent,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    clickDrawer : () -> Unit
 ) {
     val listTopCategory = listOf(
         TopCategory(
@@ -133,6 +134,7 @@ fun HomeContent(
     BaseContent(
         modifier = modifier,
         isLoading = isLoading,
+        topBar = { HomeAppBar(modifier) { clickDrawer() } },
         onRefresh = { component.onRefresh() },
         error = error
     ){

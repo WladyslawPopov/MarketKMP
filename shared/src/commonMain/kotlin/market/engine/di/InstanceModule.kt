@@ -13,6 +13,7 @@ import market.engine.business.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.getKtorClient
 import market.engine.ui.home.HomeViewModel
 import market.engine.ui.listing.ListingViewModel
+import market.engine.ui.search.SearchViewModel
 import org.koin.dsl.module
 
 object InstanceModule {
@@ -33,5 +34,6 @@ object InstanceModule {
 
         single { HomeViewModel(get()) }
         single { ListingViewModel(get()) }
+        single { SearchViewModel(get()) }
     }
 }

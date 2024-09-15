@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.globalData
+package market.engine.business.globalData
 
 import application.market.auction_mobile.business.baseFilters.Filter
 import application.market.auction_mobile.business.baseFilters.Sort

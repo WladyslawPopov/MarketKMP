@@ -1,4 +1,4 @@
-package market.engine.widgets.appbars
+package market.engine.ui.listing
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +19,8 @@ import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.items.NavigationItem
+import market.engine.business.types.WindowSizeClass
+import market.engine.business.util.getWindowSizeClass
 import market.engine.widgets.common.TitleText
 import market.engine.widgets.common.getBadgedBox
 import org.jetbrains.compose.resources.stringResource
@@ -28,9 +30,11 @@ import org.jetbrains.compose.resources.stringResource
 fun ListingAppBar(
     title : String,
     modifier: Modifier = Modifier,
-    showNavigationRail: Boolean,
     onBeakClick: () -> Unit,
 ) {
+    val windowClass = getWindowSizeClass()
+    val showNavigationRail = windowClass == WindowSizeClass.Big
+
     val listItems = listOf(
         NavigationItem(
             title = stringResource(strings.searchTitle),

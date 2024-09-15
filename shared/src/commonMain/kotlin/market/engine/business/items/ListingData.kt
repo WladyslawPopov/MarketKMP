@@ -1,7 +1,7 @@
 package market.engine.business.items
 
-import application.market.auction_mobile.business.globalData.LD
-import application.market.data.globalData.SD
+import market.engine.business.globalData.LD
+import market.engine.business.globalData.SD
 import kotlinx.serialization.Serializable
 
 @Serializable

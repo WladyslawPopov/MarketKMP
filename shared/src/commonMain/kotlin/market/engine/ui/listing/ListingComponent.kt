@@ -25,10 +25,13 @@ interface ListingComponent {
     )
 
     fun onRefresh()
+
+    fun onBackClicked()
 }
 
 class DefaultListingComponent(
     componentContext: ComponentContext,
+    private val onBackPressed: () -> Unit
 ) : ListingComponent, ComponentContext by componentContext {
 
     override var lData = ListingData(searchData.copy(), listingData.copy())
@@ -54,5 +57,9 @@ class DefaultListingComponent(
 
     override fun onRefresh() {
         updateModel()
+    }
+
+    override fun onBackClicked() {
+        onBackPressed()
     }
 }

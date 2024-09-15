@@ -22,6 +22,7 @@ import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
+import market.engine.widgets.common.getCategoryIcon
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -57,23 +58,4 @@ fun CategoryItem(category: Category, onClick: (Category) -> Unit) {
     }
 }
 
-@Composable
-fun getCategoryIcon(categoryName: String?): DrawableResource? {
-    return when (categoryName) {
-        stringResource(strings.categoryCollection) -> drawables.collectionPng
-        stringResource(strings.categoryVintage) -> drawables.vintagePng
-        stringResource(strings.categoryRetro) -> drawables.vintagePng
-        stringResource(strings.categoryElectronic) -> drawables.electronicPng
-        stringResource(strings.categoryElectronic2) -> drawables.electronicPng
-        stringResource(strings.categoryBeauty) -> drawables.beautyPng
-        stringResource(strings.categoryFashion) -> drawables.beautyPng
-        stringResource(strings.categoryMusic) -> drawables.musicPng
-        stringResource(strings.categoryMusicBooksFilms) -> drawables.musicPng
-        stringResource(strings.categoryPhone) -> drawables.phonePng
-        stringResource(strings.categorySport) -> drawables.sportPng
-        stringResource(strings.categoryBook) -> drawables.bookPng
-        stringResource(strings.categoryOther) -> drawables.otherPng
-        stringResource(strings.categoryArt) -> drawables.artPng
-        else -> null
-    }
-}
+

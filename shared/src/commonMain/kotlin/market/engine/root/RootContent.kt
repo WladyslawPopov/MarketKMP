@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.drawables
 import market.engine.business.constants.ThemeResources.strings
-import market.engine.business.globalObjects.searchData
 import market.engine.business.items.NavigationItem
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
@@ -35,8 +34,6 @@ import market.engine.ui.favorites.FavoritesContent
 import market.engine.ui.listing.ListingContent
 import market.engine.ui.profile.ProfileContent
 import market.engine.widgets.pages.DrawerContent
-import market.engine.widgets.appbars.HomeAppBar
-import market.engine.widgets.appbars.ListingAppBar
 import market.engine.widgets.bottombars.getBottomNavBar
 import market.engine.widgets.bottombars.getRailNavBar
 import org.jetbrains.compose.resources.stringResource
@@ -124,18 +121,6 @@ fun RootContent(
             gesturesEnabled = drawerState.isOpen,
         ){
             Scaffold(
-                topBar = {
-                    when(currentScreen){
-                        0 -> HomeAppBar(modifier,showNavigationRail) { openMenu() }
-                        1 -> {}
-                        2 -> {}
-                        3 -> {}
-                        4 -> {}
-                        5 -> {
-                            ListingAppBar(searchData.searchCategoryName ?: "",modifier, showNavigationRail) { component.backPressed() }
-                        }
-                    }
-                },
                 bottomBar = {
                     if (!showNavigationRail) {
                         getBottomNavBar(component, modifier,listItems, currentScreen)
@@ -157,8 +142,9 @@ fun RootContent(
                         is RootComponent.Child.HomeChild -> HomeContent(
                             screen.component,
                             modifier
-                        )
-                        is RootComponent.Child.SearchChild -> SearchContent(screen.component)
+                        ) { openMenu() }
+
+                        is RootComponent.Child.SearchChild -> SearchContent(screen.component, modifier)
                         is RootComponent.Child.BasketChild -> BasketContent(screen.component)
                         is RootComponent.Child.FavoritesChild -> FavoritesContent(screen.component)
                         is RootComponent.Child.ProfileChild -> ProfileContent(screen.component)
@@ -173,7 +159,7 @@ fun RootContent(
 fun navigateFromBottomBar(index: Int, component: RootComponent){
     when(index){
         0 -> component.navigateToBottomItem(Config.Home)
-        1 -> component.navigateToBottomItem(Config.Search(itemId = 1))
+        1 -> component.navigateToBottomItem(Config.Search)
         2 -> component.navigateToBottomItem(Config.Basket)
         3 -> component.navigateToBottomItem(Config.Favorites)
         4 -> component.navigateToBottomItem(Config.Profile)
