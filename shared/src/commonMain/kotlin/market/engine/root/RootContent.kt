@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
@@ -106,18 +107,10 @@ fun RootContent(
         modifier = modifier.fillMaxSize(),
         color = colors.backgroundColor
     ){
-        val mod = if (!showNavigationRail){
-            Modifier.fillMaxWidth(0.8f).verticalScroll(state = rememberScrollState())
-                .wrapContentHeight()
-        }else {
-            Modifier.verticalScroll(state = rememberScrollState())
-                .wrapContentHeight()
-        }
-
         ModalNavigationDrawer(
             modifier = modifier,
             drawerState = drawerState,
-            drawerContent = { DrawerContent(drawerState, scope, mod) },
+            drawerContent = { DrawerContent(drawerState, scope, modifier) },
             gesturesEnabled = drawerState.isOpen,
         ){
             Scaffold(
@@ -133,7 +126,7 @@ fun RootContent(
                 Children(
                     stack = childStack,
                     modifier = modifier.then(
-                        if (showNavigationRail) modifier.padding(start = 82.dp, top = 70.dp)
+                        if (showNavigationRail) modifier.padding(start = 82.dp)
                         else modifier.padding(innerPadding))
                         .fillMaxSize(),
                     animation = stackAnimation(fade())

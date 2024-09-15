@@ -47,11 +47,7 @@ fun ListingAppBar(
 
     TopAppBar(
         modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (showNavigationRail) modifier.padding(start = 74.dp)
-                else modifier
-            ),
+            .fillMaxWidth(),
         title = {
            TitleText(title)
         },

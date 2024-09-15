@@ -64,6 +64,7 @@ fun getRailNavBar(
 
             FloatingActionButton(
                 containerColor = colors.white,
+                contentColor = colors.grayLayout,
                 onClick = { },
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
             ){
