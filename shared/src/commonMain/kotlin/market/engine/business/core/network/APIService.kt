@@ -1,8 +1,8 @@
 package market.engine.business.core.network
 
 
-import application.market.auction_mobile.business.networkObjects.AppResponse
-import application.market.auction_mobile.business.networkObjects.GoogleAuthResponse
+import application.market.agora.business.networkObjects.AppResponse
+import application.market.agora.business.networkObjects.GoogleAuthResponse
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import kotlin.collections.HashMap
 import io.ktor.client.*

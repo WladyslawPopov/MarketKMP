@@ -1,6 +1,6 @@
-package application.market.auction_mobile.business.filtersObjects
+package application.market.agora.business.filtersObjects
 
-import application.market.auction_mobile.business.baseFilters.Filter
+import application.market.agora.business.baseFilters.Filter
 
 object MsgFilters {
     var filters = arrayListOf(

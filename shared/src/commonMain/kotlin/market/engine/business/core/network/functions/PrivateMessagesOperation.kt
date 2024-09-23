@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.core.network.functions
+package application.market.agora.business.core.network.functions
 
 import market.engine.business.core.ServerErrorException
 import market.engine.business.core.ServerResponse

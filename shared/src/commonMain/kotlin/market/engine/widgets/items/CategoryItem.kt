@@ -17,15 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import application.market.auction_mobile.business.networkObjects.Category
+import application.market.agora.business.networkObjects.Category
 import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
-import market.engine.business.constants.ThemeResources.drawables
-import market.engine.business.constants.ThemeResources.strings
 import market.engine.widgets.common.getCategoryIcon
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CategoryItem(category: Category, onClick: (Category) -> Unit) {

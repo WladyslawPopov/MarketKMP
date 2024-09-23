@@ -1,8 +1,8 @@
 package market.engine.ui.home
 
 import market.engine.business.core.ServerErrorException
-import application.market.auction_mobile.business.networkObjects.Category
-import application.market.auction_mobile.business.networkObjects.Offer
+import application.market.agora.business.networkObjects.Category
+import application.market.agora.business.networkObjects.Offer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value

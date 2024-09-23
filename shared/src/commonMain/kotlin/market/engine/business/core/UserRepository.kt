@@ -1,10 +1,10 @@
 package market.engine.business.core
 
-import application.market.auction_mobile.business.constants.UserData.login
-import application.market.auction_mobile.business.constants.UserData.picUri
-import application.market.auction_mobile.business.constants.UserData.token
-import application.market.auction_mobile.business.constants.UserData.userInfo
-import application.market.auction_mobile.business.core.SAPIRepository
+import application.market.agora.business.constants.UserData.login
+import application.market.agora.business.constants.UserData.picUri
+import application.market.agora.business.constants.UserData.token
+import application.market.agora.business.constants.UserData.userInfo
+import application.market.agora.business.core.SAPIRepository
 
 class UserRepository {
 

@@ -1,6 +1,6 @@
 package market.engine.ui.category
 
-import application.market.auction_mobile.business.networkObjects.Category
+import application.market.agora.business.networkObjects.Category
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value

@@ -1,6 +1,6 @@
-package application.market.auction_mobile.business.items
+package application.market.agora.business.items
 
-import application.market.auction_mobile.business.networkObjects.Dialog
+import application.market.agora.business.networkObjects.Dialog
 
 
 data class SearchMesItem (

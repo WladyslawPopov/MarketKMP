@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.networkObjects
+package application.market.agora.business.networkObjects
 
 import market.engine.business.core.ServerErrorException
 import kotlinx.serialization.SerialName

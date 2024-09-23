@@ -3,7 +3,7 @@ package market.engine.ui.listing
 import androidx.paging.PagingData
 import market.engine.business.core.ServerResponse
 import market.engine.business.items.ListingData
-import application.market.auction_mobile.business.networkObjects.Offer
+import application.market.agora.business.networkObjects.Offer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import application.market.auction_mobile.business.networkObjects.Offer
+import application.market.agora.business.networkObjects.Offer
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.types.WindowSizeClass

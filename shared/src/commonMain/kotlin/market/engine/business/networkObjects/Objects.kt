@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.networkObjects
+package application.market.agora.business.networkObjects
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

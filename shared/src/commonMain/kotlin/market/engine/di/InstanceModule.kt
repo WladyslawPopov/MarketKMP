@@ -1,12 +1,12 @@
 package market.engine.di
 
-import application.market.auction_mobile.business.core.network.functions.ConversationsOperations
-import application.market.auction_mobile.business.core.network.functions.FileUpload
-import application.market.auction_mobile.business.core.network.functions.OfferOperations
-import application.market.auction_mobile.business.core.network.functions.OrderOperations
-import application.market.auction_mobile.business.core.network.functions.PrivateMessagesOperation
-import application.market.auction_mobile.business.core.network.functions.SubscriptionOperations
-import application.market.auction_mobile.business.core.network.functions.UserOperations
+import application.market.agora.business.core.network.functions.ConversationsOperations
+import application.market.agora.business.core.network.functions.FileUpload
+import application.market.agora.business.core.network.functions.OfferOperations
+import application.market.agora.business.core.network.functions.OrderOperations
+import application.market.agora.business.core.network.functions.PrivateMessagesOperation
+import application.market.agora.business.core.network.functions.SubscriptionOperations
+import application.market.agora.business.core.network.functions.UserOperations
 import market.engine.business.core.network.APIService
 import market.engine.business.core.network.functions.CategoryOperations
 import market.engine.business.core.network.paging.offer.OfferPagingRepository

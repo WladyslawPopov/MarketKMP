@@ -4,7 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import market.engine.business.items.ListingData
-import application.market.auction_mobile.business.networkObjects.Offer
+import application.market.agora.business.networkObjects.Offer
 import market.engine.business.core.network.APIService
 import kotlinx.coroutines.flow.Flow
 

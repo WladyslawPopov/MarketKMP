@@ -1,13 +1,13 @@
-package application.market.auction_mobile.business.core.network.functions
+package application.market.agora.business.core.network.functions
 
 import market.engine.business.core.ServerErrorException
 import market.engine.business.core.ServerResponse
-import application.market.auction_mobile.business.networkObjects.AdditionalData
-import application.market.auction_mobile.business.networkObjects.AppResponse
-import application.market.auction_mobile.business.networkObjects.Operations
-import application.market.auction_mobile.business.networkObjects.Order
-import application.market.auction_mobile.business.networkObjects.PayloadExistence
-import application.market.auction_mobile.business.networkObjects.deserializePayload
+import application.market.agora.business.networkObjects.AdditionalData
+import application.market.agora.business.networkObjects.AppResponse
+import application.market.agora.business.networkObjects.Operations
+import application.market.agora.business.networkObjects.Order
+import application.market.agora.business.networkObjects.PayloadExistence
+import application.market.agora.business.networkObjects.deserializePayload
 import market.engine.business.core.network.APIService
 
 class OrderOperations(private val apiService: APIService) {

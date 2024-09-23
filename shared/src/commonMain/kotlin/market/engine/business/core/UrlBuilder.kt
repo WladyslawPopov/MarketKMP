@@ -1,6 +1,6 @@
 package market.engine.business.core
 
-import application.market.auction_mobile.business.constants.UserData
+import application.market.agora.business.constants.UserData
 import market.engine.business.globalData.LD
 import market.engine.business.globalData.SD
 

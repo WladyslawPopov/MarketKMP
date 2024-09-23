@@ -3,7 +3,7 @@ package market.engine.ui.listing
 import androidx.paging.PagingData
 import market.engine.business.core.ServerResponse
 import market.engine.business.items.ListingData
-import application.market.auction_mobile.business.networkObjects.Offer
+import application.market.agora.business.networkObjects.Offer
 import market.engine.business.globalObjects.listingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue

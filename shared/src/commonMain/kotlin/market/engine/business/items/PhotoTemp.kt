@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.items
+package application.market.agora.business.items
 
 import coil3.Uri
 

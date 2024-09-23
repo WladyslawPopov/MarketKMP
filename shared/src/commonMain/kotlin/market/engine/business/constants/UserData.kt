@@ -1,6 +1,6 @@
-package application.market.auction_mobile.business.constants
+package application.market.agora.business.constants
 
-import application.market.auction_mobile.business.networkObjects.User
+import application.market.agora.business.networkObjects.User
 import coil3.Uri
 
 object UserData {

@@ -1,16 +1,11 @@
 package market.engine.ui.search
 
-import application.market.auction_mobile.business.networkObjects.Category
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.core.ServerErrorException
 import market.engine.business.core.network.functions.CategoryOperations
-import market.engine.business.globalObjects.searchData
-import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 

@@ -1,6 +1,6 @@
-package application.market.auction_mobile.business.items
+package application.market.agora.business.items
 
-import application.market.auction_mobile.business.networkObjects.MesImage
+import application.market.agora.business.networkObjects.MesImage
 import application.market.data.types.MessageType
 
 

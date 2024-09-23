@@ -1,12 +1,12 @@
-package application.market.auction_mobile.business.core.network.functions
+package application.market.agora.business.core.network.functions
 
 import market.engine.business.core.ServerErrorException
 import market.engine.business.core.ServerResponse
-import application.market.auction_mobile.business.networkObjects.AppResponse
-import application.market.auction_mobile.business.networkObjects.DynamicPayload
-import application.market.auction_mobile.business.networkObjects.OperationResult
-import application.market.auction_mobile.business.networkObjects.Operations
-import application.market.auction_mobile.business.networkObjects.deserializePayload
+import application.market.agora.business.networkObjects.AppResponse
+import application.market.agora.business.networkObjects.DynamicPayload
+import application.market.agora.business.networkObjects.OperationResult
+import application.market.agora.business.networkObjects.Operations
+import application.market.agora.business.networkObjects.deserializePayload
 import market.engine.business.core.network.APIService
 import kotlinx.serialization.json.JsonElement
 

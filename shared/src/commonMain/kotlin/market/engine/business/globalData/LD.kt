@@ -1,7 +1,7 @@
 package market.engine.business.globalData
 
-import application.market.auction_mobile.business.baseFilters.Filter
-import application.market.auction_mobile.business.baseFilters.Sort
+import application.market.agora.business.baseFilters.Filter
+import application.market.agora.business.baseFilters.Sort
 import kotlinx.serialization.Serializable
 
 @Serializable

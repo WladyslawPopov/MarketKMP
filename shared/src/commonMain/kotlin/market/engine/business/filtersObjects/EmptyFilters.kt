@@ -1,6 +1,6 @@
 package application.market.data.filtersObjects
 
-import application.market.auction_mobile.business.baseFilters.Filter
+import application.market.agora.business.baseFilters.Filter
 
 
 object EmptyFilters {

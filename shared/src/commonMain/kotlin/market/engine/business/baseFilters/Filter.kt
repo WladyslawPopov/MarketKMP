@@ -1,4 +1,4 @@
-package application.market.auction_mobile.business.baseFilters
+package application.market.agora.business.baseFilters
 
 import kotlinx.serialization.Serializable
 

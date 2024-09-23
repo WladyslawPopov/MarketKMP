@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import application.market.auction_mobile.business.networkObjects.Offer
+import application.market.agora.business.networkObjects.Offer
 import business.util.printLogD
 import com.skydoves.landscapist.coil3.CoilImage
 import market.engine.business.constants.ThemeResources.colors

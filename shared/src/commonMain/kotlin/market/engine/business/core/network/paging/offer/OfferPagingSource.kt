@@ -3,9 +3,9 @@ package market.engine.business.core.network.paging.offer
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import market.engine.business.core.ServerErrorException
-import application.market.auction_mobile.business.networkObjects.Offer
-import application.market.auction_mobile.business.networkObjects.Payload
-import application.market.auction_mobile.business.networkObjects.deserializePayload
+import application.market.agora.business.networkObjects.Offer
+import application.market.agora.business.networkObjects.Payload
+import application.market.agora.business.networkObjects.deserializePayload
 import market.engine.business.core.UrlBuilder
 import market.engine.business.core.network.APIService
 import market.engine.business.items.ListingData

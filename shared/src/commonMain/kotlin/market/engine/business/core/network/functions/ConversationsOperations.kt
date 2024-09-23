@@ -1,9 +1,9 @@
-package application.market.auction_mobile.business.core.network.functions
+package application.market.agora.business.core.network.functions
 
 
 import market.engine.business.core.ServerErrorException
-import application.market.auction_mobile.business.networkObjects.Conversations
-import application.market.auction_mobile.business.networkObjects.deserializePayload
+import application.market.agora.business.networkObjects.Conversations
+import application.market.agora.business.networkObjects.deserializePayload
 import market.engine.business.core.network.APIService
 import kotlinx.serialization.json.JsonObject
 

@@ -3,10 +3,10 @@ package market.engine.business.core.network.functions
 import market.engine.business.core.ServerErrorException
 import market.engine.business.core.ServerResponse
 import market.engine.business.core.UrlBuilder
-import application.market.auction_mobile.business.networkObjects.Category
-import application.market.auction_mobile.business.networkObjects.Payload
-import application.market.auction_mobile.business.networkObjects.RegionOptions
-import application.market.auction_mobile.business.networkObjects.deserializePayload
+import application.market.agora.business.networkObjects.Category
+import application.market.agora.business.networkObjects.Payload
+import application.market.agora.business.networkObjects.RegionOptions
+import application.market.agora.business.networkObjects.deserializePayload
 import market.engine.business.core.network.APIService
 import market.engine.business.globalObjects.searchData
 
