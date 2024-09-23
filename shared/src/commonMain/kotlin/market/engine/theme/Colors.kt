@@ -5,13 +5,11 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationDrawerItemColors
 import androidx.compose.material3.NavigationRailItemColors
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.ui.graphics.Color
 
 interface Colors {
     val primaryColor : Color
-    val primaryVariantColor : Color
-    val accentColor : Color
-    val backgroundColor : Color
     val titleTextColor: Color
     val inactiveBottomNavIconColor: Color
     val ratingBlue: Color

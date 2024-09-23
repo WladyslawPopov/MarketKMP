@@ -12,6 +12,7 @@ interface Dimens {
     val largePadding: Dp
     val extraLargePadding: Dp
 
+    val extraSmallIconSize: Dp
     val smallIconSize: Dp
     val mediumIconSize: Dp
     val largeIconSize: Dp

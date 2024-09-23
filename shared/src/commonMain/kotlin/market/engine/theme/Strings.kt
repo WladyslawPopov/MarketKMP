@@ -13,6 +13,7 @@ interface Strings {
     val topOffersTitle: StringResource
     val proposalTitle: StringResource
     val profileTitle: StringResource
+    val actionClose: StringResource
     val allPromoOffersBtn : StringResource
     val logoutTitle: StringResource
     val loginTitle: StringResource
@@ -33,6 +34,7 @@ interface Strings {
     val settingsSubtitleApp : StringResource
     val aboutUsTitle : StringResource
     val aboutUsSubtitle : StringResource
+    val selectSearchTitle : StringResource
 
     val categoryCollection : StringResource
     val categoryVintage : StringResource

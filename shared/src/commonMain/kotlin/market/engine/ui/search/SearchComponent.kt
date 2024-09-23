@@ -19,12 +19,10 @@ interface SearchComponent {
     val model : Value<Model>
 
     data class Model(
-        val categories: StateFlow<List<Category>>,
+        val history: StateFlow<List<String>>?,
         val isLoading: StateFlow<Boolean>,
         val isError: StateFlow<ServerErrorException>
     )
-
-    fun onRefresh(categoryId: Long)
 
     fun onCloseClicked()
 
@@ -42,36 +40,14 @@ class DefaultSearchComponent(
 
     private val _model = MutableValue(
         SearchComponent.Model(
-            categories = searchViewModel.responseCategory,
             isLoading = searchViewModel.isShowProgress,
-            isError = searchViewModel.errorMessage
+            isError = searchViewModel.errorMessage,
+            history = searchViewModel.getHistory()
         )
     )
 
-    init {
-        searchViewModel.viewModelScope.launch {
-            searchData.searchCategoryName = getString(strings.categoryMain)
-            searchData.searchCategoryID = 1L
-
-            searchViewModel.getCategory(searchData.searchCategoryID ?: 1L)
-        }
-
-    }
-
     override val model: Value<SearchComponent.Model> = _model
 
-    override fun onRefresh(categoryId: Long) {
-        searchViewModel.viewModelScope.launch {
-            val catInfo = categoryOperations.getCategoryInfo(categoryId)
-            if(catInfo.success != null) {
-                searchData.searchCategoryName = catInfo.success?.name
-                searchData.searchCategoryID = catInfo.success?.id
-                searchData.searchParentID = catInfo.success?.parentId
-                searchData.searchIsLeaf = catInfo.success?.isLeaf == true
-                searchViewModel.getCategory(categoryId)
-            }
-        }
-    }
 
     override fun onCloseClicked() {
         onBackPressed()

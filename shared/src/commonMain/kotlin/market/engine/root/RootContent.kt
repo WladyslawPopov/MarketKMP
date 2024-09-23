@@ -1,12 +1,7 @@
 package market.engine.root
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.DrawerValue
@@ -18,7 +13,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.ui.home.HomeContent
-import market.engine.ui.search.SearchContent
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
@@ -31,9 +25,11 @@ import market.engine.business.items.NavigationItem
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
 import market.engine.ui.basket.BasketContent
+import market.engine.ui.category.CategoryContent
 import market.engine.ui.favorites.FavoritesContent
 import market.engine.ui.listing.ListingContent
 import market.engine.ui.profile.ProfileContent
+import market.engine.ui.search.SearchContent
 import market.engine.widgets.pages.DrawerContent
 import market.engine.widgets.bottombars.getBottomNavBar
 import market.engine.widgets.bottombars.getRailNavBar
@@ -52,11 +48,12 @@ fun RootContent(
 
     val currentScreen = when (childStack.active.instance) {
         is RootComponent.Child.HomeChild -> 0
-        is RootComponent.Child.SearchChild -> 1
+        is RootComponent.Child.CategoryChild -> 1
         is RootComponent.Child.BasketChild -> 2
         is RootComponent.Child.FavoritesChild -> 3
         is RootComponent.Child.ProfileChild -> 4
         is RootComponent.Child.ListingChild -> 5
+        is RootComponent.Child.SearchChild -> 6
     }
     
     val listItems = listOf(
@@ -105,7 +102,6 @@ fun RootContent(
     
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = colors.backgroundColor
     ){
         ModalNavigationDrawer(
             modifier = modifier,
@@ -137,11 +133,12 @@ fun RootContent(
                             modifier
                         ) { openMenu() }
 
-                        is RootComponent.Child.SearchChild -> SearchContent(screen.component, modifier)
+                        is RootComponent.Child.CategoryChild -> CategoryContent(screen.component, modifier)
                         is RootComponent.Child.BasketChild -> BasketContent(screen.component)
                         is RootComponent.Child.FavoritesChild -> FavoritesContent(screen.component)
                         is RootComponent.Child.ProfileChild -> ProfileContent(screen.component)
                         is RootComponent.Child.ListingChild -> ListingContent(screen.component, modifier)
+                        is RootComponent.Child.SearchChild -> SearchContent(screen.component, modifier)
                     }
                 }
             }
@@ -152,7 +149,7 @@ fun RootContent(
 fun navigateFromBottomBar(index: Int, component: RootComponent){
     when(index){
         0 -> component.navigateToBottomItem(Config.Home)
-        1 -> component.navigateToBottomItem(Config.Search)
+        1 -> component.navigateToBottomItem(Config.Category)
         2 -> component.navigateToBottomItem(Config.Basket)
         3 -> component.navigateToBottomItem(Config.Favorites)
         4 -> component.navigateToBottomItem(Config.Profile)

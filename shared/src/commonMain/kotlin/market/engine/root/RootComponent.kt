@@ -1,13 +1,10 @@
 package market.engine.root
 
 import market.engine.ui.home.DefaultHomeComponent
-import market.engine.ui.search.DefaultSearchComponent
 import market.engine.ui.home.HomeComponent
-import market.engine.ui.search.SearchComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.items
 import com.arkivanov.decompose.router.stack.pop
@@ -17,12 +14,16 @@ import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import market.engine.ui.basket.BasketComponent
 import market.engine.ui.basket.DefaultBasketComponent
+import market.engine.ui.category.CategoryComponent
+import market.engine.ui.category.DefaultCategoryComponent
 import market.engine.ui.favorites.DefaultFavoritesComponent
 import market.engine.ui.favorites.FavoritesComponent
 import market.engine.ui.listing.DefaultListingComponent
 import market.engine.ui.listing.ListingComponent
 import market.engine.ui.profile.DefaultProfileComponent
 import market.engine.ui.profile.ProfileComponent
+import market.engine.ui.search.DefaultSearchComponent
+import market.engine.ui.search.SearchComponent
 
 interface RootComponent {
 
@@ -30,11 +31,12 @@ interface RootComponent {
 
     sealed class Child {
         class HomeChild(val component: HomeComponent) : Child()
-        class SearchChild(val component: SearchComponent) : Child()
+        class CategoryChild(val component: CategoryComponent) : Child()
         class BasketChild(val component: BasketComponent) : Child()
         class FavoritesChild(val component: FavoritesComponent) : Child()
         class ProfileChild(val component: ProfileComponent) : Child()
         class ListingChild(val component: ListingComponent) : Child()
+        class SearchChild(val component: SearchComponent) : Child()
     }
 
     fun navigateToBottomItem(config: Config)
@@ -72,11 +74,12 @@ class DefaultRootComponent(
             val child = childStack.items[childStack.items.lastIndex - 1].instance
             when (child) {
                 is RootComponent.Child.HomeChild -> navigateToBottomItem(Config.Home)
-                is RootComponent.Child.SearchChild -> navigateToBottomItem(Config.Search)
+                is RootComponent.Child.CategoryChild -> navigateToBottomItem(Config.Category)
                 is RootComponent.Child.BasketChild -> navigateToBottomItem(Config.Basket)
                 is RootComponent.Child.FavoritesChild -> navigateToBottomItem(Config.Favorites)
                 is RootComponent.Child.ProfileChild -> navigateToBottomItem(Config.Profile)
                 is RootComponent.Child.ListingChild -> navigation.pop()
+                is RootComponent.Child.SearchChild -> navigation.pop()
             }
         }else{
             navigation.replaceCurrent(Config.Home)
@@ -89,8 +92,8 @@ class DefaultRootComponent(
     ): RootComponent.Child =
         when (config) {
             is Config.Home -> RootComponent.Child.HomeChild(itemHome(componentContext))
-            is Config.Search -> RootComponent.Child.SearchChild(
-                itemSearch(
+            is Config.Category -> RootComponent.Child.CategoryChild(
+                itemCategory(
                     componentContext,
                     config
                 )
@@ -99,12 +102,13 @@ class DefaultRootComponent(
             is Config.Favorites -> RootComponent.Child.FavoritesChild(itemFavorites(config, componentContext))
             is Config.Profile -> RootComponent.Child.ProfileChild(itemProfile(config, componentContext))
             is Config.Listing -> RootComponent.Child.ListingChild(itemListing(componentContext))
+            is Config.Search -> RootComponent.Child.SearchChild(itemSearch(componentContext))
         }
 
     private fun itemHome(componentContext: ComponentContext): HomeComponent {
         return DefaultHomeComponent(
             componentContext = componentContext,
-            onSearchSelected = { navigateToBottomItem(Config.Search) },
+            onSearchSelected = { navigateToBottomItem(Config.Category) },
             goToListingSelected = { navigateTo(Config.Listing) }
         )
     }
@@ -116,14 +120,23 @@ class DefaultRootComponent(
         )
     }
 
-    private fun itemSearch(
+    private fun itemSearch(componentContext: ComponentContext): SearchComponent {
+        return DefaultSearchComponent(
+            componentContext = componentContext,
+            onBackPressed = { navigation.pop() },
+            goToListingSelected = { navigateTo(Config.Listing) }
+        )
+    }
+
+    private fun itemCategory(
         componentContext: ComponentContext,
-        config: Config.Search
-    ): SearchComponent =
-        DefaultSearchComponent(
+        config: Config.Category
+    ): CategoryComponent =
+        DefaultCategoryComponent(
             componentContext = componentContext,
             onBackPressed = { backPressed() },
-            goToListingSelected = { navigateTo(Config.Listing) }
+            goToListingSelected = { navigateTo(Config.Listing) },
+            goToSearchSelected = { navigateTo(Config.Search) }
         )
 
     private fun itemBasket(
@@ -159,7 +172,7 @@ sealed class Config {
     data object Home : Config()
 
     @Serializable
-    data object Search : Config()
+    data object Category : Config()
 
     @Serializable
     data object Basket : Config()
@@ -172,5 +185,8 @@ sealed class Config {
 
     @Serializable
     data object Listing : Config()
+
+    @Serializable
+    data object Search : Config()
 }
 

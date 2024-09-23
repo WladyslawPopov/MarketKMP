@@ -1,4 +1,4 @@
-package market.engine.ui.listing
+package market.engine.ui.category
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,14 +27,14 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListingAppBar(
+fun CategoryAppBar(
     title : String,
     modifier: Modifier = Modifier,
+    onSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
 ) {
     val windowClass = getWindowSizeClass()
     val showNavigationRail = windowClass == WindowSizeClass.Big
-
     val listItems = listOf(
         NavigationItem(
             title = stringResource(strings.searchTitle),
@@ -42,6 +42,14 @@ fun ListingAppBar(
             tint = colors.steelBlue,
             hasNews = false,
             badgeCount = null
+        ),
+        NavigationItem(
+            title = stringResource(strings.searchTitle),
+            icon = drawables.cancelIcon,
+            tint = colors.steelBlue,
+            hasNews = false,
+            badgeCount = null,
+            isVisible = false
         ),
     )
 
@@ -73,7 +81,7 @@ fun ListingAppBar(
                 modifier = modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                listItems.forEachIndexed{ index, item ->
+                listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){
                         var modIB = modifier
                         if(item.badgeCount != null){
@@ -82,7 +90,9 @@ fun ListingAppBar(
                         }
                         IconButton(
                             modifier = modIB,
-                            onClick = {  }
+                            onClick = {
+                                onSearchClick()
+                            }
                         ) {
                             getBadgedBox(modifier = modifier, item)
                         }

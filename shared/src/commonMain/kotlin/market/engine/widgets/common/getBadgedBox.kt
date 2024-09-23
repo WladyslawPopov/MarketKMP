@@ -23,10 +23,7 @@ fun getBadgedBox(
         modifier = modifier,
         badge = {
             if (item.badgeCount != null) {
-                Badge(
-                    containerColor = colors.badgeColor,
-                    contentColor = colors.accentColor
-                ) {
+                Badge{
                     val dynamicFontSize = (10 - (item.badgeCount / 10)).coerceAtLeast(7).sp
                     Text(text = item.badgeCount.toString(), fontSize = dynamicFontSize)
                 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Badge
@@ -94,7 +95,7 @@ fun DrawerContent(
     ModalDrawerSheet(
         drawerContainerColor = colors.primaryColor,
         drawerContentColor = colors.white,
-        modifier = mod
+        modifier = mod.fillMaxWidth(0.8f)
     ) {
 
         Row(

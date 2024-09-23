@@ -22,6 +22,8 @@ interface Drawables {
    val logoutIcon : DrawableResource
    val settingsIcon : DrawableResource
    val infoIcon : DrawableResource
+   val searchIcon : DrawableResource
+   val cancelIcon : DrawableResource
 
    val collectionPng : DrawableResource
    val vintagePng : DrawableResource

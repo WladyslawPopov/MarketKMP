@@ -1,25 +1,14 @@
 package market.engine.ui.search
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Badge
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -47,14 +36,14 @@ fun SearchContent(
 
     val isLoading = model.isLoading.collectAsState()
     val isError = model.isError.collectAsState()
-
-    val categories = model.categories.collectAsState()
+    val history = model.history?.collectAsState()
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(model.isError.value) { component.onRefresh(searchData.searchCategoryID ?: 1L) } }
+        { onError(model.isError.value) { } }
     }else{
         null
     }
+
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -64,19 +53,12 @@ fun SearchContent(
             error = error,
             topBar = {
                 SearchAppBar(
-                    if(!isLoading.value) searchData.searchCategoryName ?: stringResource(strings.categoryMain) else "",
                     modifier
                 ) {
-                    if (searchData.searchCategoryID != 1L) {
-                        searchData.searchCategoryID = searchData.searchParentID ?: 1L
-                        searchData.searchCategoryName = searchData.searchParentName ?: ""
-                        component.onRefresh(searchData.searchParentID ?: 1L)
-                    }else{
-                        component.onCloseClicked()
-                    }
+                    component.onCloseClicked()
                 }
             },
-            onRefresh = { component.onRefresh(searchData.searchCategoryID ?: 1L) },
+            onRefresh = { }
         ){
             LazyColumn(
                 modifier = Modifier
@@ -85,94 +67,13 @@ fun SearchContent(
 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                items(categories.value){ category ->
-                    NavigationDrawerItem(
-                        label = {
-                            Box(
-                                modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                Text(
-                                    category.name ?: "",
-                                    color = colors.black,
-                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                    lineHeight = dimens.largeText
-                                )
-                            }
-                        },
-                        onClick = {
-                            listingData.methodServer = "get_public_listing"
-                            searchData.searchCategoryID = category.id
-                            searchData.searchCategoryName = category.name
-                            searchData.searchParentID = category.parentId
-                            searchData.searchIsLeaf = category.isLeaf
+                if(history != null) {
+                    items(history.value) { history ->
 
-                            if (!category.isLeaf) {
-                                component.onRefresh(searchData.searchCategoryID ?: 1L)
-                            }else{
-                                component.goToListing()
-                            }
-                        },
-                        icon = {
-                            getCategoryIcon(category.name)?.let {
-                                Image(
-                                    painterResource(it),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(dimens.smallIconSize)
-                                )
-                            }
-                        },
-                        badge = {
-                            Badge(
-                                containerColor = colors.badgeColor,
-                                contentColor = colors.accentColor,
-                            ) {
-                                Text(
-                                    text = category.estimatedActiveOffersCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(dimens.extraSmallPadding)
-                                )
-                            }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                            .background(colors.white),
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.grayLayout,
-                            unselectedContainerColor = colors.white,
-                            selectedIconColor = colors.grayLayout,
-                            unselectedIconColor = colors.white,
-                            selectedTextColor = colors.grayLayout,
-                            selectedBadgeColor = colors.grayLayout,
-                            unselectedTextColor = colors.white,
-                            unselectedBadgeColor = colors.white
-                        ),
-                        shape = MaterialTheme.shapes.extraSmall,
-                        selected = true
-                    )
-
-                    Spacer(modifier = Modifier.height(dimens.smallPadding))
+                        Spacer(modifier = Modifier.height(dimens.smallPadding))
+                    }
                 }
             }
-        }
-
-        TextButton(
-            onClick = {
-                component.goToListing()
-            },
-            colors = colors.themeButtonColors,
-            modifier = Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .align(Alignment.BottomCenter)
-                .padding(dimens.smallPadding),
-            shape = MaterialTheme.shapes.small
-
-        ){
-            Text(
-                text = stringResource(strings.categoryEnter),
-                color = colors.alwaysWhite,
-                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                lineHeight = dimens.largeText
-            )
         }
     }
 }
