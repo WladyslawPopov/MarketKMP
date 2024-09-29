@@ -49,7 +49,7 @@ fun BaseContent(
                         .verticalScroll(scrollState)
                     ) {
                         AnimatedVisibility(
-                            modifier = modifier.align(Alignment.Center),
+                            modifier = modifier.align(Alignment.TopStart),
                             visible = !isLoading.value,
                             enter = expandIn(),
                             exit = fadeOut()
@@ -74,7 +74,7 @@ fun BaseContent(
                     )
                 }else{
                     AnimatedVisibility(
-                        modifier = modifier.align(Alignment.Center),
+                        modifier = modifier.align(Alignment.TopStart),
                         visible = !isLoading.value,
                         enter = expandIn(),
                         exit = fadeOut()

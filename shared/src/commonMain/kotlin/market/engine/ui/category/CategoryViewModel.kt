@@ -35,17 +35,17 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
                     apiService.getPublicCategories(categoryId)
                 }
                 val payload: Payload<Category> = deserializePayload(response.payload)
-
-                val categoriesWithLotCounts = payload.objects.map { category ->
-                    val lotCount = withContext(Dispatchers.IO) {
-                        categoryOperations.getTotalCount(category.id)
-                    }
-                    category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
-                }
-
-                val categories = categoriesWithLotCounts.filter { it.estimatedActiveOffersCount > 0 }
-
-                _responseCategory.value = categories
+                _responseCategory.value = payload.objects
+//                val categoriesWithLotCounts = payload.objects.map { category ->
+//                    val lotCount = withContext(Dispatchers.IO) {
+//                        categoryOperations.getTotalCount(category.id)
+//                    }
+//                    category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
+//                }
+//
+//                val categories = categoriesWithLotCounts.filter { it.estimatedActiveOffersCount > 0 }
+//
+//                _responseCategory.value = categories
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {

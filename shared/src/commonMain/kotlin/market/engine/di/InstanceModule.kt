@@ -7,9 +7,11 @@ import application.market.agora.business.core.network.functions.OrderOperations
 import application.market.agora.business.core.network.functions.PrivateMessagesOperation
 import application.market.agora.business.core.network.functions.SubscriptionOperations
 import application.market.agora.business.core.network.functions.UserOperations
+import com.example.shared.MarketDB
 import market.engine.business.core.network.APIService
 import market.engine.business.core.network.functions.CategoryOperations
 import market.engine.business.core.network.paging.offer.OfferPagingRepository
+import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
 import market.engine.ui.home.HomeViewModel
 import market.engine.ui.listing.ListingViewModel
@@ -21,6 +23,10 @@ object InstanceModule {
     val appModule = module {
         single { getKtorClient() }
         single { APIService(get()) }
+        single { createSqlDriver() }
+        single { MarketDB(get()) } // Register MarketDB
+
+
         single { OfferPagingRepository(get()) }
 
         single { CategoryOperations(get()) }
@@ -32,10 +38,10 @@ object InstanceModule {
         single { SubscriptionOperations(get()) }
         single { UserOperations(get()) }
 
-
         single { HomeViewModel(get()) }
         single { ListingViewModel(get()) }
         single { CategoryViewModel(get()) }
         single { SearchViewModel(get()) }
+
     }
 }

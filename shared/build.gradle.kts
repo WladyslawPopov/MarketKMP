@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -8,6 +7,15 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sqlDelight)
+}
+
+sqldelight {
+    databases {
+        create("MarketDB") {
+            packageName.set("com.example.shared")
+        }
+    }
 }
 
 kotlin {
@@ -53,25 +61,26 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.realm.sync)
-            implementation(libs.realm.base)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
         }
         val jvmMain by getting
         jvmMain.dependencies {
+            implementation(libs.sqlite.driver)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java)
             implementation(libs.androidx.runtime.desktop)
         }
         iosMain.dependencies {
+            implementation(libs.native.driver)
             implementation(libs.ktor.client.darwin)
             implementation(libs.ktor.ios)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
         }
         androidMain.dependencies {
+            implementation(libs.android.driver)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.system.ui.controller)

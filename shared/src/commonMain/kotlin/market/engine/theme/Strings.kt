@@ -15,7 +15,9 @@ interface Strings {
     val profileTitle: StringResource
     val actionClose: StringResource
     val allPromoOffersBtn : StringResource
+    val clear: StringResource
     val logoutTitle: StringResource
+    val searchHistory: StringResource
     val loginTitle: StringResource
     val registerTitle: StringResource
     val favoritesTitle: StringResource
@@ -35,8 +37,10 @@ interface Strings {
     val aboutUsTitle : StringResource
     val aboutUsSubtitle : StringResource
     val selectSearchTitle : StringResource
-
+    val searchUserStringChoice : StringResource
+    val searchUserFinishedStringChoice : StringResource
     val categoryCollection : StringResource
+    val parameters : StringResource
     val categoryVintage : StringResource
     val categoryElectronic : StringResource
     val categoryOther : StringResource
@@ -49,6 +53,7 @@ interface Strings {
     val categoryElectronic2 : StringResource
     val categoryFashion : StringResource
     val categoryRetro : StringResource
+    val resetLabel : StringResource
     val categoryArt : StringResource
     val categoryCoin : StringResource
     val categoryBanknotes : StringResource

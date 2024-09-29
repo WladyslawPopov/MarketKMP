@@ -2,7 +2,9 @@ package market.engine.ui.category
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +24,8 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,6 +35,7 @@ import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.constants.ThemeResources.strings
 import market.engine.business.globalObjects.listingData
 import market.engine.business.globalObjects.searchData
+import market.engine.widgets.common.TitleText
 import market.engine.widgets.common.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.pages.BaseContent
@@ -50,6 +55,8 @@ fun CategoryContent(
 
     val categories = model.categories.collectAsState()
 
+    val isShowNav = remember { mutableStateOf(false) }
+
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
         { onError(model.isError.value) { component.onRefresh(searchData.searchCategoryID ?: 1L) } }
     }else{
@@ -64,19 +71,22 @@ fun CategoryContent(
             error = error,
             topBar = {
                 CategoryAppBar(
-                    if(!isLoading.value) searchData.searchCategoryName ?: stringResource(strings.categoryMain) else "",
+                    if(!isLoading.value) searchData.searchString ?: stringResource(strings.selectSearchTitle) else "",
+                    isShowNav,
                     modifier,
                     onSearchClick = {
                         component.goToSearch()
                     }
                 ) {
                     if (searchData.searchCategoryID != 1L) {
+                        isShowNav.value = true
                         searchData.searchCategoryID = searchData.searchParentID ?: 1L
                         searchData.searchCategoryName = searchData.searchParentName ?: ""
                         component.onRefresh(searchData.searchParentID ?: 1L)
-                    }else{
-                        component.onCloseClicked()
+                    } else {
+                        isShowNav.value = false
                     }
+
                 }
             },
             onRefresh = { component.onRefresh(searchData.searchCategoryID ?: 1L) },
@@ -88,6 +98,31 @@ fun CategoryContent(
 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight().padding(dimens.smallPadding)
+                    ) {
+
+                        TitleText(
+                            searchData.searchCategoryName?: stringResource(strings.categoryMain),
+                            modifier.align(Alignment.CenterStart)
+                        )
+
+                        TextButton(
+                            modifier = modifier.align(Alignment.CenterEnd),
+                            onClick = {}
+                        ){
+                            Text(
+                                text =  stringResource(strings.resetLabel),
+                                color = colors.solidGreen,
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
+
+                    }
+                }
                 items(categories.value){ category ->
                     NavigationDrawerItem(
                         label = {
@@ -104,13 +139,13 @@ fun CategoryContent(
                             }
                         },
                         onClick = {
-                            listingData.methodServer = "get_public_listing"
                             searchData.searchCategoryID = category.id
                             searchData.searchCategoryName = category.name
                             searchData.searchParentID = category.parentId
                             searchData.searchIsLeaf = category.isLeaf
 
                             if (!category.isLeaf) {
+                                isShowNav.value = true
                                 component.onRefresh(searchData.searchCategoryID ?: 1L)
                             }else{
                                 component.goToListing()

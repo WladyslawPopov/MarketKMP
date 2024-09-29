@@ -11,7 +11,7 @@ import org.koin.mp.KoinPlatform.getKoin
 interface HomeComponent {
     val model: Value<Model>
 
-    fun onSearchClicked(id: Long)
+    fun onSearchClicked()
 
     fun goToListing()
 
@@ -28,7 +28,7 @@ interface HomeComponent {
 
 class DefaultHomeComponent(
     componentContext: ComponentContext,
-    private val onSearchSelected: (id: Long) -> Unit,
+    private val onSearchSelected: () -> Unit,
     private val goToListingSelected: () -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
 
@@ -56,8 +56,8 @@ class DefaultHomeComponent(
         homeViewModel.getOffersPromotedOnMainPage(1, 16)
     }
 
-    override fun onSearchClicked(id: Long) {
-        onSearchSelected(id)
+    override fun onSearchClicked() {
+        onSearchSelected()
     }
 
     override fun goToListing() {

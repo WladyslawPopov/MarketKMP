@@ -114,7 +114,7 @@ fun RootContent(
                     if (!showNavigationRail) {
                         getBottomNavBar(component, modifier,listItems, currentScreen)
                     } else {
-                        getRailNavBar(component, modifier, listItems) { openMenu() }
+                        getRailNavBar(component, modifier, currentScreen, listItems) { openMenu() }
                     }
                 },
                 modifier = modifier.fillMaxSize()
@@ -153,6 +153,18 @@ fun navigateFromBottomBar(index: Int, component: RootComponent){
         2 -> component.navigateToBottomItem(Config.Basket)
         3 -> component.navigateToBottomItem(Config.Favorites)
         4 -> component.navigateToBottomItem(Config.Profile)
+    }
+}
+
+fun getActiveScreen(index: Int, currentScreen: Int) : Boolean{
+    return if (currentScreen == index){
+        true
+    }else{
+        when(currentScreen){
+            5 -> index == 1
+            6 -> index == 1
+            else -> false
+        }
     }
 }
 

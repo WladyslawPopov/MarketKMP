@@ -1,10 +1,13 @@
 package market.engine.ui.search
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -18,12 +21,17 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import market.engine.business.constants.ThemeResources.colors
@@ -34,6 +42,7 @@ import market.engine.business.globalObjects.searchData
 import market.engine.business.items.NavigationItem
 import market.engine.business.types.WindowSizeClass
 import market.engine.business.util.getWindowSizeClass
+import market.engine.widgets.SmallCancelBtn
 import market.engine.widgets.common.TitleText
 import market.engine.widgets.common.getBadgedBox
 import org.jetbrains.compose.resources.painterResource
@@ -43,23 +52,21 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SearchAppBar(
     modifier: Modifier = Modifier,
+    searchString: State<String> = rememberUpdatedState(""),
+    onSearchClick: () -> Unit,
+    onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit,
 ) {
     val windowClass = getWindowSizeClass()
     val showNavigationRail = windowClass == WindowSizeClass.Big
-    val listItems = listOf(
-        NavigationItem(
+    val focusRequester = remember { FocusRequester() }
+    val searchItem = NavigationItem(
             title = stringResource(strings.searchTitle),
             icon = drawables.searchIcon,
             tint = colors.steelBlue,
             hasNews = false,
             badgeCount = null
-        ),
-    )
-
-    val searchString = remember {
-        mutableStateOf(searchData.searchString ?: "")
-    }
+        )
 
     TopAppBar(
         modifier = modifier
@@ -68,17 +75,21 @@ fun SearchAppBar(
             TextField(
                 value = searchString.value,
                 onValueChange = {
-                    searchString.value = it
+                    onUpdateHistory(it)
                 },
                 placeholder = {
                     Text(
                         text = stringResource(strings.selectSearchTitle),
-                        style = MaterialTheme.typography.labelSmall)
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                 },
-                modifier = modifier.clip(MaterialTheme.shapes.small).height(48.dp),
+                modifier = modifier.clip(MaterialTheme.shapes.small)
+                    .wrapContentSize()
+                    .focusRequester(focusRequester),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Search
                 ),
+                singleLine = true,
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         onBeakClick()
@@ -86,38 +97,29 @@ fun SearchAppBar(
                 ),
                 trailingIcon = {
                     if (searchString.value != "") {
-                        IconButton(
-                            modifier = modifier.padding(dimens.smallPadding),
-                            onClick = {
-                                searchString.value = ""
-                            }
-                        ) {
-                            Icon(
-                                painterResource(drawables.cancelIcon),
-                                contentDescription = stringResource(strings.actionClose),
-                                modifier = modifier.size(dimens.extraSmallIconSize),
-                                tint = colors.steelBlue
-                            )
+                        SmallCancelBtn {
+                            onUpdateHistory(it)
                         }
                     }
                 },
-                textStyle = MaterialTheme.typography.bodySmall,
+                textStyle = MaterialTheme.typography.bodyMedium,
                 colors =  TextFieldDefaults.colors(
                     focusedTextColor = colors.black,
                     unfocusedTextColor = colors.black,
 
-                    focusedContainerColor = colors.lightGray,
-                    unfocusedContainerColor = colors.lightGray,
+                    focusedContainerColor = colors.white,
+                    unfocusedContainerColor = colors.white,
 
                     focusedIndicatorColor = colors.transparent,
                     unfocusedIndicatorColor = colors.transparent,
                     disabledIndicatorColor = colors.transparent,
                     errorIndicatorColor = colors.transparent,
 
-                    focusedPlaceholderColor = colors.transparent,
+                    focusedPlaceholderColor = colors.steelBlue,
                     unfocusedPlaceholderColor = colors.steelBlue,
-                    disabledPlaceholderColor = colors.steelBlue
-                )
+                    disabledPlaceholderColor = colors.transparent
+                ),
+
             )
         },
         navigationIcon = {
@@ -142,24 +144,29 @@ fun SearchAppBar(
                 modifier = modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                listItems.forEachIndexed{ _, item ->
-                    if(item.isVisible){
-                        var modIB = modifier
-                        if(item.badgeCount != null){
-                            val dynamicFontSize = (30 + (item.badgeCount / 10)).coerceAtMost(35).dp
-                            modIB = modifier.size(dimens.smallIconSize + dynamicFontSize)
-                        }
-                        IconButton(
-                            modifier = modIB,
-                            onClick = {
+                if(searchItem.isVisible){
+                    var modIB = modifier
+                    if(searchItem.badgeCount != null){
+                        val dynamicFontSize = (30 + (searchItem.badgeCount / 10)).coerceAtMost(35).dp
+                        modIB = modifier.size(dimens.smallIconSize + dynamicFontSize)
+                    }
+                    IconButton(
+                        modifier = modIB,
+                        onClick = {
+                            searchData.searchString = searchString.value
+                            searchData.fromSearch = true
 
-                            }
-                        ) {
-                            getBadgedBox(modifier = modifier, item)
+                            onSearchClick()
                         }
+                    ) {
+                        getBadgedBox(modifier = modifier, searchItem)
                     }
                 }
             }
         }
     )
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 }

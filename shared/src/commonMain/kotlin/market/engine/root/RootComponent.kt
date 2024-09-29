@@ -12,6 +12,7 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import market.engine.business.globalObjects.listingData
 import market.engine.ui.basket.BasketComponent
 import market.engine.ui.basket.DefaultBasketComponent
 import market.engine.ui.category.CategoryComponent
@@ -70,20 +71,21 @@ class DefaultRootComponent(
     }
 
     override fun backPressed() {
-        if (childStack.items.size > 1) {
+//        if (childStack.items.size > 1) {
             val child = childStack.items[childStack.items.lastIndex - 1].instance
+
             when (child) {
-                is RootComponent.Child.HomeChild -> navigateToBottomItem(Config.Home)
-                is RootComponent.Child.CategoryChild -> navigateToBottomItem(Config.Category)
+                is RootComponent.Child.HomeChild -> {}
+                is RootComponent.Child.CategoryChild -> navigateToBottomItem(Config.Home)
                 is RootComponent.Child.BasketChild -> navigateToBottomItem(Config.Basket)
                 is RootComponent.Child.FavoritesChild -> navigateToBottomItem(Config.Favorites)
                 is RootComponent.Child.ProfileChild -> navigateToBottomItem(Config.Profile)
-                is RootComponent.Child.ListingChild -> navigation.pop()
-                is RootComponent.Child.SearchChild -> navigation.pop()
+                is RootComponent.Child.ListingChild -> navigateToBottomItem(Config.Category)
+                is RootComponent.Child.SearchChild -> navigateToBottomItem(Config.Category)
             }
-        }else{
-            navigation.replaceCurrent(Config.Home)
-        }
+//        }else{
+//            navigation.replaceCurrent(Config.Home)
+//        }
     }
 
     private fun createChild(
@@ -92,12 +94,7 @@ class DefaultRootComponent(
     ): RootComponent.Child =
         when (config) {
             is Config.Home -> RootComponent.Child.HomeChild(itemHome(componentContext))
-            is Config.Category -> RootComponent.Child.CategoryChild(
-                itemCategory(
-                    componentContext,
-                    config
-                )
-            )
+            is Config.Category -> RootComponent.Child.CategoryChild(itemCategory(componentContext, config))
             is Config.Basket -> RootComponent.Child.BasketChild(itemBasket(config, componentContext))
             is Config.Favorites -> RootComponent.Child.FavoritesChild(itemFavorites(config, componentContext))
             is Config.Profile -> RootComponent.Child.ProfileChild(itemProfile(config, componentContext))
@@ -108,23 +105,27 @@ class DefaultRootComponent(
     private fun itemHome(componentContext: ComponentContext): HomeComponent {
         return DefaultHomeComponent(
             componentContext = componentContext,
-            onSearchSelected = { navigateToBottomItem(Config.Category) },
-            goToListingSelected = { navigateTo(Config.Listing) }
+            onSearchSelected = { navigateToBottomItem(Config.Search) },
+            goToListingSelected = { navigateToBottomItem(Config.Listing) }
         )
     }
 
     private fun itemListing(componentContext: ComponentContext): ListingComponent {
+        listingData.methodServer = "get_public_listing"
         return DefaultListingComponent(
             componentContext = componentContext,
-            onBackPressed = { navigation.pop() }
+            onBackPressed = { backPressed() }
         )
     }
 
     private fun itemSearch(componentContext: ComponentContext): SearchComponent {
         return DefaultSearchComponent(
             componentContext = componentContext,
-            onBackPressed = { navigation.pop() },
-            goToListingSelected = { navigateTo(Config.Listing) }
+            onBackPressed = { backPressed() },
+            goToListingSelected = { navigateToBottomItem(Config.Listing) },
+            goToCategorySelected = {
+                navigateToBottomItem(Config.Category)
+            }
         )
     }
 
@@ -135,8 +136,10 @@ class DefaultRootComponent(
         DefaultCategoryComponent(
             componentContext = componentContext,
             onBackPressed = { backPressed() },
-            goToListingSelected = { navigateTo(Config.Listing) },
-            goToSearchSelected = { navigateTo(Config.Search) }
+            goToListingSelected = { navigateToBottomItem(Config.Listing) },
+            goToSearchSelected = {
+                navigateToBottomItem(Config.Search)
+            }
         )
 
     private fun itemBasket(

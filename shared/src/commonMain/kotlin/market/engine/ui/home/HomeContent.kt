@@ -144,7 +144,7 @@ fun HomeContent(
                     .wrapContentHeight()
                     .wrapContentWidth(),
                 onSearchClick = {
-                    component.onSearchClicked(id = 1L)
+                    component.onSearchClicked()
                 }
             )
 
@@ -152,7 +152,7 @@ fun HomeContent(
                 CategoryList(
                     categories = categoryList
                 ){ category ->
-                    listingData.methodServer = "get_public_listing"
+                    
                     searchData.searchCategoryID = category.id
                     searchData.searchParentID = category.parentId
                     searchData.searchCategoryName = category.name
@@ -168,7 +168,7 @@ fun HomeContent(
             }
 
             GridPopularCategory(listTopCategory) { topCategory ->
-                listingData.methodServer = "get_public_listing"
+                
                 searchData.searchCategoryID = topCategory.id
                 searchData.searchParentID = topCategory.parentId
                 searchData.searchCategoryName = topCategory.name

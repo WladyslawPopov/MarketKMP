@@ -15,6 +15,7 @@ import market.engine.business.constants.ThemeResources.colors
 import market.engine.business.constants.ThemeResources.dimens
 import market.engine.business.items.NavigationItem
 import market.engine.root.RootComponent
+import market.engine.root.getActiveScreen
 import market.engine.root.navigateFromBottomBar
 import market.engine.widgets.common.getBadgedBox
 
@@ -58,17 +59,6 @@ fun getBottomNavBar(
             )
         }
         Spacer(modifier = Modifier.width(dimens.smallSpacer))
-    }
-}
-
-fun getActiveScreen(index: Int, currentScreen: Int) : Boolean{
-    return if (currentScreen == index){
-        true
-    }else{
-        when(currentScreen){
-            5 -> index == 1
-            else -> false
-        }
     }
 }
 

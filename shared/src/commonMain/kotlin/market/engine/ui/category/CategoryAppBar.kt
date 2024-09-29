@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -29,12 +30,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CategoryAppBar(
     title : String,
+    isShowNav : MutableState<Boolean>,
     modifier: Modifier = Modifier,
     onSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
 ) {
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
     val listItems = listOf(
         NavigationItem(
             title = stringResource(strings.searchTitle),
@@ -57,10 +57,12 @@ fun CategoryAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-           TitleText(title)
+           TitleText(title){
+               onSearchClick()
+           }
         },
         navigationIcon = {
-            if (!showNavigationRail) {
+            if (isShowNav.value) {
                 IconButton(
                     modifier = modifier,
                     onClick = {

@@ -12,5 +12,5 @@ data class NavigationItem(
     val tintSelected : Color = colors.notifyTextColor,
     val hasNews : Boolean,
     val badgeCount : Int? = null,
-    val isVisible: Boolean = true
+    val isVisible: Boolean = true,
 )

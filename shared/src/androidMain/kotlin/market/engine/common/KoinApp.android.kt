@@ -3,12 +3,13 @@ package market.engine.common
 import android.content.Context
 import market.engine.di.InstanceModule.appModule
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 
 lateinit var appContext: Context
 
-fun startKoin(context: Context) {
+fun launchKoin(context: Context) {
     appContext = context
-    org.koin.core.context.startKoin {
+    startKoin {
         androidContext(appContext)
         modules(appModule)
     }

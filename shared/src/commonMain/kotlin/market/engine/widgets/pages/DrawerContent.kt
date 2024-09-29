@@ -95,7 +95,7 @@ fun DrawerContent(
     ModalDrawerSheet(
         drawerContainerColor = colors.primaryColor,
         drawerContentColor = colors.white,
-        modifier = mod.fillMaxWidth(0.8f)
+        modifier = mod
     ) {
 
         Row(
