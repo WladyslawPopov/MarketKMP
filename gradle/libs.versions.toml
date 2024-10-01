@@ -37,13 +37,14 @@ pagingCommonVersion = "3.3.0-alpha02-0.4.0"
 sqliteDriver = "2.0.2"
 
 
+
 [libraries]
 accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqliteDriver" }
 androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "data-store" }
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose-version" }
 decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose-version" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqliteDriver" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqliteDriver" }
 sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqliteDriver" }
 system-ui-controller = {module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist-version"}
