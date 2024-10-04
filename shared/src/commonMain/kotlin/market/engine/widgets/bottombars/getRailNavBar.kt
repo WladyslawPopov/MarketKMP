@@ -16,21 +16,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import market.engine.business.constants.ThemeResources.colors
-import market.engine.business.constants.ThemeResources.dimens
-import market.engine.business.constants.ThemeResources.drawables
-import market.engine.business.constants.ThemeResources.strings
-import market.engine.business.items.NavigationItem
-import market.engine.root.RootComponent
-import market.engine.root.getActiveScreen
-import market.engine.root.navigateFromBottomBar
+import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.constants.ThemeResources.drawables
+import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.items.NavigationItem
+import market.engine.presentation.main.MainComponent
+import market.engine.presentation.main.getActiveScreen
+import market.engine.presentation.main.navigateFromBottomBar
 import market.engine.widgets.common.getBadgedBox
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getRailNavBar(
-    component: RootComponent,
+    component: MainComponent,
     modifier: Modifier = Modifier,
     currentScreen: Int,
     listItems: List<NavigationItem>,

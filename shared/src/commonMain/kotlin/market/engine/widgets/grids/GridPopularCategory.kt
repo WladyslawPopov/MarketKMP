@@ -11,11 +11,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import market.engine.business.constants.ThemeResources.dimens
-import market.engine.business.constants.ThemeResources.strings
-import market.engine.business.items.TopCategory
-import market.engine.business.types.WindowSizeClass
-import market.engine.business.util.getWindowSizeClass
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.items.TopCategory
+import market.engine.core.types.WindowSizeClass
+import market.engine.core.util.getWindowSizeClass
 import market.engine.widgets.items.PopularCategoryItem
 import market.engine.widgets.common.TitleText
 import org.jetbrains.compose.resources.stringResource

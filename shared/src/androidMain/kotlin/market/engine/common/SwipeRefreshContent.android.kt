@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import market.engine.business.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.colors
 
 @Composable
 actual fun SwipeRefreshContent(

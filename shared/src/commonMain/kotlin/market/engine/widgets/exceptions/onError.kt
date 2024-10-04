@@ -1,7 +1,7 @@
 package market.engine.widgets.exceptions
 
 import androidx.compose.runtime.Composable
-import market.engine.business.core.ServerErrorException
+import market.engine.core.network.ServerErrorException
 
 @Composable
 fun onError(error : ServerErrorException, onRefresh: () -> Unit) {

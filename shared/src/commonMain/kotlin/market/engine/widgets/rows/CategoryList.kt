@@ -13,8 +13,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import application.market.agora.business.networkObjects.Category
-import market.engine.business.constants.ThemeResources.dimens
+import market.engine.core.networkObjects.Category
+import market.engine.core.constants.ThemeResources.dimens
 import market.engine.common.ScrollBarsProvider
 import market.engine.widgets.items.CategoryItem
 

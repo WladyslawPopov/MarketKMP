@@ -18,14 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import application.market.agora.business.networkObjects.Offer
-import business.util.printLogD
+import market.engine.core.networkObjects.Offer
+import market.engine.core.util.printLogD
 import com.skydoves.landscapist.coil3.CoilImage
-import market.engine.business.constants.ThemeResources.colors
-import market.engine.business.constants.ThemeResources.dimens
-import market.engine.business.constants.ThemeResources.drawables
-import market.engine.business.constants.ThemeResources.strings
-import market.engine.business.util.getImage
+import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.constants.ThemeResources.drawables
+import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.util.getImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

@@ -7,16 +7,16 @@ import application.market.agora.business.core.network.functions.OrderOperations
 import application.market.agora.business.core.network.functions.PrivateMessagesOperation
 import application.market.agora.business.core.network.functions.SubscriptionOperations
 import application.market.agora.business.core.network.functions.UserOperations
-import com.example.shared.MarketDB
-import market.engine.business.core.network.APIService
-import market.engine.business.core.network.functions.CategoryOperations
-import market.engine.business.core.network.paging.offer.OfferPagingRepository
+import market.engine.core.network.APIService
+import market.engine.core.network.functions.CategoryOperations
+import market.engine.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
-import market.engine.ui.home.HomeViewModel
-import market.engine.ui.listing.ListingViewModel
-import market.engine.ui.category.CategoryViewModel
-import market.engine.ui.search.SearchViewModel
+import market.engine.presentation.category.CategoryViewModel
+import market.engine.presentation.home.HomeViewModel
+import market.engine.presentation.listing.ListingViewModel
+import market.engine.presentation.search.SearchViewModel
+import market.engine.shared.MarketDB
 import org.koin.dsl.module
 
 object InstanceModule {

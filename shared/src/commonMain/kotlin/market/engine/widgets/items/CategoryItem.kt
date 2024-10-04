@@ -17,9 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import application.market.agora.business.networkObjects.Category
-import market.engine.business.constants.ThemeResources.colors
-import market.engine.business.constants.ThemeResources.dimens
+import market.engine.core.networkObjects.Category
+import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
 import market.engine.widgets.common.getCategoryIcon
 import org.jetbrains.compose.resources.painterResource
 

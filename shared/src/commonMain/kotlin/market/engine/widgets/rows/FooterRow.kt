@@ -14,9 +14,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.business.constants.ThemeResources.colors
-import market.engine.business.constants.ThemeResources.dimens
-import market.engine.business.items.TopCategory
+import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.items.TopCategory
 import market.engine.common.ScrollBarsProvider
 import market.engine.widgets.items.FooterItem
 

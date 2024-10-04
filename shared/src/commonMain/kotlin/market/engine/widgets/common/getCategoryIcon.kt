@@ -1,8 +1,8 @@
 package market.engine.widgets.common
 
 import androidx.compose.runtime.Composable
-import market.engine.business.constants.ThemeResources.drawables
-import market.engine.business.constants.ThemeResources.strings
+import market.engine.core.constants.ThemeResources.drawables
+import market.engine.core.constants.ThemeResources.strings
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 

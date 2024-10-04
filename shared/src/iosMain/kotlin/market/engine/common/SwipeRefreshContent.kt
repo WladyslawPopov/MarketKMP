@@ -9,8 +9,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.business.constants.ThemeResources.colors
-import platform.UIKit.UIViewController
+import market.engine.core.constants.ThemeResources.colors
 
 @Composable
 actual fun SwipeRefreshContent(

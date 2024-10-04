@@ -2,7 +2,7 @@ package market.engine.common
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import com.example.shared.MarketDB
+import market.engine.shared.MarketDB
 
 
 actual fun createSqlDriver(): SqlDriver {

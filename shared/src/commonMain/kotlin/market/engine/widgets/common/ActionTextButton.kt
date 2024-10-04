@@ -9,8 +9,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.business.constants.ThemeResources.colors
-import market.engine.business.constants.ThemeResources.dimens
+import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 

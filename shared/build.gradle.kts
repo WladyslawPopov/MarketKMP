@@ -14,7 +14,7 @@ plugins {
 sqldelight {
     databases {
         create("MarketDB") {
-            packageName.set("com.example.shared")
+            packageName.set("market.engine.shared")
         }
     }
 }
@@ -101,7 +101,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.example.shared"
+    namespace = "market.engine.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

@@ -11,17 +11,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
-import market.engine.business.constants.ThemeResources.colors
-import market.engine.business.constants.ThemeResources.dimens
-import market.engine.business.items.NavigationItem
-import market.engine.root.RootComponent
-import market.engine.root.getActiveScreen
-import market.engine.root.navigateFromBottomBar
+import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.items.NavigationItem
+import market.engine.presentation.main.MainComponent
+import market.engine.presentation.main.getActiveScreen
+import market.engine.presentation.main.navigateFromBottomBar
 import market.engine.widgets.common.getBadgedBox
 
 @Composable
 fun getBottomNavBar(
-    component: RootComponent,
+    component: MainComponent,
     modifier: Modifier = Modifier,
     listItems: List<NavigationItem>,
     currentScreen: Int

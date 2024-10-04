@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
-import market.engine.business.types.WindowSizeClass
-import market.engine.business.util.getWindowSizeClass
+import market.engine.core.types.WindowSizeClass
+import market.engine.core.util.getWindowSizeClass
 
 @Composable
 fun <T : Any> PagingGrid(

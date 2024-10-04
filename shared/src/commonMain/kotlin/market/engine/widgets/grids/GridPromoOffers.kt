@@ -11,11 +11,11 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import application.market.agora.business.networkObjects.Offer
-import market.engine.business.constants.ThemeResources.dimens
-import market.engine.business.constants.ThemeResources.strings
-import market.engine.business.types.WindowSizeClass
-import market.engine.business.util.getWindowSizeClass
+import market.engine.core.networkObjects.Offer
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.types.WindowSizeClass
+import market.engine.core.util.getWindowSizeClass
 import market.engine.widgets.common.ActionTextButton
 import market.engine.widgets.items.PromoLotItem
 import market.engine.widgets.common.TitleText
