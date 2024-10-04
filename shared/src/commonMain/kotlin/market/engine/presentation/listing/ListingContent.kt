@@ -13,7 +13,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
 import market.engine.core.globalObjects.searchData
-import market.engine.presentation.root.BaseContent
+import market.engine.presentation.base.BaseContent
 import market.engine.widgets.grids.PagingGrid
 import market.engine.widgets.items.PromoLotItem
 import market.engine.widgets.exceptions.onError

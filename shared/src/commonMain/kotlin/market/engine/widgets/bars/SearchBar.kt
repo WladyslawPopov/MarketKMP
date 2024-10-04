@@ -1,4 +1,4 @@
-package market.engine.widgets.common
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

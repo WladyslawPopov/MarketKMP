@@ -1,4 +1,4 @@
-package market.engine.presentation.root
+package market.engine.presentation.base
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn

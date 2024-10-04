@@ -1,4 +1,4 @@
-package market.engine.widgets.bottombars
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -15,9 +15,8 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.items.NavigationItem
 import market.engine.presentation.main.MainComponent
-import market.engine.presentation.main.getActiveScreen
 import market.engine.presentation.main.navigateFromBottomBar
-import market.engine.widgets.common.getBadgedBox
+import market.engine.widgets.badges.getBadgedBox
 
 @Composable
 fun getBottomNavBar(
@@ -36,7 +35,7 @@ fun getBottomNavBar(
     ) {
         Spacer(modifier = Modifier.width(dimens.smallSpacer))
         listItems.forEachIndexed { index, item ->
-            val isSelected = getActiveScreen(index, currentScreen)
+            val isSelected = currentScreen == index
             NavigationBarItem(
                 colors = colors.navItemColors,
                 selected = isSelected,

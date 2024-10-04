@@ -1,4 +1,4 @@
-package market.engine.widgets.common
+package market.engine.widgets.badges
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Badge

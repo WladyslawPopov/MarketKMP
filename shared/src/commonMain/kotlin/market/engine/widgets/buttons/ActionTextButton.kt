@@ -1,4 +1,4 @@
-package market.engine.widgets.common
+package market.engine.widgets.buttons
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth

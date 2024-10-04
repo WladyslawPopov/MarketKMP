@@ -1,4 +1,4 @@
-package market.engine.widgets.bottombars
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,9 +22,8 @@ import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.items.NavigationItem
 import market.engine.presentation.main.MainComponent
-import market.engine.presentation.main.getActiveScreen
 import market.engine.presentation.main.navigateFromBottomBar
-import market.engine.widgets.common.getBadgedBox
+import market.engine.widgets.badges.getBadgedBox
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -42,19 +41,42 @@ fun getRailNavBar(
                 x = (-1).dp
             ),
         header = {
-            IconButton(
-                modifier = modifier,
-                onClick = {
-                    openMenu()
+            when (currentScreen){
+                0 -> {
+                    IconButton(
+                    modifier = modifier,
+                    onClick = {
+                        openMenu()
+                    }
+                    ){
+                        Icon(
+                            painter = painterResource(drawables.menuHamburger),
+                            contentDescription = stringResource(strings.menuTitle),
+                            modifier = modifier.size(dimens.smallIconSize),
+                            tint = colors.black
+                        )
+                    }
                 }
-            ){
-                Icon(
-                    painter = painterResource(drawables.menuHamburger),
-                    contentDescription = stringResource(strings.menuTitle),
-                    modifier = modifier.size(dimens.smallIconSize),
-                    tint = colors.black
-                )
+                4 -> {
+                    IconButton(
+                        modifier = modifier,
+                        onClick = {
+                            openMenu()
+                        }
+                    ){
+                        Icon(
+                            painter = painterResource(drawables.menuHamburger),
+                            contentDescription = stringResource(strings.menuTitle),
+                            modifier = modifier.size(dimens.smallIconSize),
+                            tint = colors.black
+                        )
+                    }
+                }
+                else -> {
+
+                }
             }
+
 
             FloatingActionButton(
                 containerColor = colors.white,
@@ -73,7 +95,7 @@ fun getRailNavBar(
         contentColor = colors.lightGray
     ){
         listItems.forEachIndexed { index, item ->
-            val isSelected = getActiveScreen(index, currentScreen)
+            val isSelected = currentScreen == index
             NavigationRailItem(
                 colors = colors.navRailItemColors,
                 selected = isSelected,

@@ -58,8 +58,6 @@ interface MainComponent {
 
     sealed class ChildHome {
         class HomeChild(val component: HomeComponent) : ChildHome()
-        class ListingChild(val component: ListingComponent) : ChildHome()
-        class SearchChild(val component: SearchComponent) : ChildHome()
     }
 
     sealed class ChildCategory {
@@ -203,13 +201,6 @@ class DefaultMainComponent(
             HomeConfig.HomeScreen -> MainComponent.ChildHome.HomeChild(
                 itemHome(componentContext)
             )
-            HomeConfig.SearchScreen -> MainComponent.ChildHome.SearchChild(
-                itemSearch(componentContext, modelNavigation.value.homeNavigation)
-            )
-
-            HomeConfig.ListingScreen -> MainComponent.ChildHome.ListingChild(
-                itemListing(componentContext, modelNavigation.value.homeNavigation)
-            )
         }
 
     private fun createChild(
@@ -335,12 +326,6 @@ sealed class Config {
 sealed class HomeConfig {
     @Serializable
     data object HomeScreen : HomeConfig()
-
-    @Serializable
-    data object SearchScreen : HomeConfig()
-
-    @Serializable
-    data object ListingScreen : HomeConfig()
 }
 
 @Serializable

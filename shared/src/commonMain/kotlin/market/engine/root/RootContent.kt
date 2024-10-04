@@ -1,4 +1,4 @@
-package market.engine.presentation.root
+package market.engine.root
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface

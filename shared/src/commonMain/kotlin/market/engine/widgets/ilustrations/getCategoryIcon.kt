@@ -1,4 +1,4 @@
-package market.engine.widgets.common
+package market.engine.widgets.ilustrations
 
 import androidx.compose.runtime.Composable
 import market.engine.core.constants.ThemeResources.drawables

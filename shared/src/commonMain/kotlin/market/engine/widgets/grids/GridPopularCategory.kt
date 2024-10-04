@@ -17,7 +17,7 @@ import market.engine.core.items.TopCategory
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.widgets.items.PopularCategoryItem
-import market.engine.widgets.common.TitleText
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

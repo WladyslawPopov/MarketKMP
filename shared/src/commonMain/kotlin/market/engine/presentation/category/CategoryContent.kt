@@ -32,10 +32,10 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.globalObjects.searchData
-import market.engine.widgets.common.TitleText
-import market.engine.widgets.common.getCategoryIcon
+import market.engine.widgets.texts.TitleText
+import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
-import market.engine.presentation.root.BaseContent
+import market.engine.presentation.base.BaseContent
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

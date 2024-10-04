@@ -4,18 +4,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,10 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -37,8 +24,9 @@ import market.engine.core.globalObjects.searchData
 import market.engine.core.items.NavigationItem
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.widgets.SmallCancelBtn
-import market.engine.widgets.common.getBadgedBox
+import market.engine.widgets.buttons.NavigationArrowButton
+import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.textFields.SearchTextField
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,71 +53,13 @@ fun SearchAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            TextField(
-                value = searchString.value,
-                onValueChange = {
-                    onUpdateHistory(it)
-                },
-                placeholder = {
-                    Text(
-                        text = stringResource(strings.selectSearchTitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                },
-                modifier = modifier.clip(MaterialTheme.shapes.small)
-                    .wrapContentSize()
-                    .focusRequester(focusRequester),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Search
-                ),
-                singleLine = true,
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        onBeakClick()
-                    }
-                ),
-                trailingIcon = {
-                    if (searchString.value != "") {
-                        SmallCancelBtn {
-                            onUpdateHistory(it)
-                        }
-                    }
-                },
-                textStyle = MaterialTheme.typography.bodyMedium,
-                colors =  TextFieldDefaults.colors(
-                    focusedTextColor = colors.black,
-                    unfocusedTextColor = colors.black,
-
-                    focusedContainerColor = colors.white,
-                    unfocusedContainerColor = colors.white,
-
-                    focusedIndicatorColor = colors.transparent,
-                    unfocusedIndicatorColor = colors.transparent,
-                    disabledIndicatorColor = colors.transparent,
-                    errorIndicatorColor = colors.transparent,
-
-                    focusedPlaceholderColor = colors.steelBlue,
-                    unfocusedPlaceholderColor = colors.steelBlue,
-                    disabledPlaceholderColor = colors.transparent
-                ),
-
-            )
+           SearchTextField(
+               modifier,searchString,focusRequester,onUpdateHistory,onBeakClick
+           )
         },
         navigationIcon = {
-            if (!showNavigationRail) {
-                IconButton(
-                    modifier = modifier,
-                    onClick = {
-                        onBeakClick()
-                    }
-                ){
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(strings.menuTitle),
-                        modifier = modifier.size(dimens.smallIconSize),
-                        tint = colors.black
-                    )
-                }
+            NavigationArrowButton {
+                onBeakClick()
             }
         },
         actions = {

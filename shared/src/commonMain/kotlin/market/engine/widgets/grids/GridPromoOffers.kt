@@ -16,9 +16,9 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.widgets.common.ActionTextButton
+import market.engine.widgets.buttons.ActionTextButton
 import market.engine.widgets.items.PromoLotItem
-import market.engine.widgets.common.TitleText
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

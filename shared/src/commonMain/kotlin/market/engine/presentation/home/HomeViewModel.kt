@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.presentation.root.BaseViewModel
+import market.engine.presentation.base.BaseViewModel
 
 class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
 

@@ -12,12 +12,12 @@ import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.globalObjects.searchData
 import market.engine.core.items.TopCategory
-import market.engine.presentation.root.BaseContent
+import market.engine.presentation.base.BaseContent
 import market.engine.widgets.rows.CategoryList
 import market.engine.widgets.rows.FooterRow
 import market.engine.widgets.grids.GridPopularCategory
 import market.engine.widgets.grids.GridPromoOffers
-import market.engine.widgets.common.SearchBar
+import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.exceptions.onError
 import org.jetbrains.compose.resources.stringResource
 

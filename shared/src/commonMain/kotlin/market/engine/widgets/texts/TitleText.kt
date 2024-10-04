@@ -1,4 +1,4 @@
-package market.engine.widgets.common
+package market.engine.widgets.texts
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding

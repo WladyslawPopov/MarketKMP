@@ -1,4 +1,4 @@
-package market.engine.presentation.root
+package market.engine.root
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import market.engine.core.network.ServerErrorException
 import market.engine.core.globalObjects.searchData
-import market.engine.presentation.root.BaseViewModel
+import market.engine.presentation.base.BaseViewModel
 import market.engine.shared.MarketDB
 import market.engine.shared.SearchHistory
 

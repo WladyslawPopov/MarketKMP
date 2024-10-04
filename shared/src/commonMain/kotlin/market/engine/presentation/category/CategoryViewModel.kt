@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.globalObjects.searchData
-import market.engine.presentation.root.BaseViewModel
+import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
 class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {

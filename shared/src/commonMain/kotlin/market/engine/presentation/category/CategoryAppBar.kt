@@ -4,10 +4,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -21,8 +18,9 @@ import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.globalObjects.searchData
 import market.engine.core.items.NavigationItem
-import market.engine.widgets.common.TitleText
-import market.engine.widgets.common.getBadgedBox
+import market.engine.widgets.buttons.NavigationArrowButton
+import market.engine.widgets.texts.TitleText
+import market.engine.widgets.badges.getBadgedBox
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,18 +62,8 @@ fun CategoryAppBar(
             isShowNav.value = searchData.searchCategoryID != 1L
 
             if (isShowNav.value) {
-                IconButton(
-                    modifier = modifier,
-                    onClick = {
-                        onBeakClick()
-                    }
-                ){
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(strings.menuTitle),
-                        modifier = modifier.size(dimens.smallIconSize),
-                        tint = colors.black
-                    )
+                NavigationArrowButton {
+                    onBeakClick()
                 }
             }
         },

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.paging.offer.OfferPagingRepository
-import market.engine.presentation.root.BaseViewModel
+import market.engine.presentation.base.BaseViewModel
 
 class ListingViewModel(private val offerPagingRepository: OfferPagingRepository) : BaseViewModel() {
 

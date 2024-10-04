@@ -46,9 +46,9 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.globalObjects.searchData
-import market.engine.widgets.SmallCancelBtn
+import market.engine.widgets.buttons.SmallCancelBtn
 import market.engine.widgets.exceptions.onError
-import market.engine.presentation.root.BaseContent
+import market.engine.presentation.base.BaseContent
 import market.engine.shared.SearchHistory
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

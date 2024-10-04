@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import market.engine.core.networkObjects.Category
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
-import market.engine.widgets.common.getCategoryIcon
+import market.engine.widgets.ilustrations.getCategoryIcon
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

@@ -29,8 +29,8 @@ import market.engine.presentation.favorites.FavoritesNavigation
 import market.engine.presentation.home.DrawerContent
 import market.engine.presentation.home.HomeNavigation
 import market.engine.presentation.profile.ProfileNavigation
-import market.engine.widgets.bottombars.getBottomNavBar
-import market.engine.widgets.bottombars.getRailNavBar
+import market.engine.widgets.bars.getBottomNavBar
+import market.engine.widgets.bars.getRailNavBar
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -148,18 +148,6 @@ fun navigateFromBottomBar(index: Int, component: MainComponent){
         2 -> component.navigateToBottomItem(Config.Basket)
         3 -> component.navigateToBottomItem(Config.Favorites)
         4 -> component.navigateToBottomItem(Config.Profile)
-    }
-}
-
-fun getActiveScreen(index: Int, currentScreen: Int) : Boolean{
-    return if (currentScreen == index){
-        true
-    }else{
-        when(currentScreen){
-            5 -> index == 1
-            6 -> index == 1
-            else -> false
-        }
     }
 }
 
