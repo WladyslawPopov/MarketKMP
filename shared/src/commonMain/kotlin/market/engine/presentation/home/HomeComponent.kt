@@ -8,8 +8,10 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
-import market.engine.core.globalObjects.searchData
+import market.engine.core.globalData.SD
+
 import market.engine.presentation.main.HomeConfig
+import market.engine.presentation.main.MainComponent
 import org.koin.mp.KoinPlatform.getKoin
 
 interface HomeComponent {
@@ -26,6 +28,8 @@ interface HomeComponent {
         val isError: StateFlow<ServerErrorException>
     )
 
+    val searchData: StateFlow<SD>
+
     fun onRefresh()
 }
 
@@ -37,6 +41,7 @@ class DefaultHomeComponent(
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
+    override val searchData: StateFlow<SD> = getKoin().get()
 
     private val _model = MutableValue(
         HomeComponent.Model(
@@ -61,13 +66,14 @@ class DefaultHomeComponent(
     }
 
     override fun navigateToSearch() {
-        searchData.fromSearch = true
         navigateToSearchSelected()
     }
 
     override fun navigateToListing() {
         navigateToListingSelected()
     }
+
+
 
     override fun onRefresh() {
         updateModel()

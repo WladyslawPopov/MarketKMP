@@ -32,10 +32,12 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.globalObjects.searchData
+import market.engine.core.types.CategoryScreenType
 import market.engine.widgets.texts.TitleText
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
+import market.engine.widgets.buttons.StringButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -44,181 +46,192 @@ fun CategoryContent(
     component: CategoryComponent,
     modifier: Modifier = Modifier
 ) {
-    val modelState = component.model.subscribeAsState()
-    val model = modelState.value
+    val searchData = component.searchData.collectAsState()
+    val categoryType = searchData.value.categoryType
 
-    val isLoading = model.isLoading.collectAsState()
-    val isError = model.isError.collectAsState()
+    when(categoryType){
+        CategoryScreenType.LISTING -> {
+            component.goToListing()
+        }
+        CategoryScreenType.SEARCH -> {
+            component.goToSearch()
+        }
+        CategoryScreenType.CATEGORY -> {
+            val modelState = component.model.subscribeAsState()
+            val model = modelState.value
 
-    val categories = model.categories.collectAsState()
+            val isLoading = model.isLoading.collectAsState()
+            val isError = model.isError.collectAsState()
+            val categories = model.categories.collectAsState()
 
-    val isShowNav = remember { mutableStateOf(false) }
+            val isShowNav = remember { mutableStateOf(false) }
 
-    val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(model.isError.value) { component.onRefresh(searchData.searchCategoryID ?: 1L) } }
-    }else{
-        null
-    }
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        BaseContent(
-            modifier = modifier,
-            isLoading = isLoading,
-            error = error,
-            topBar = {
-                val title = if ( searchData.fromSearch) {
-                    if (searchData.searchString != "") {
-                        searchData.searchString ?: stringResource(strings.selectSearchTitle)
-                    }else{
-                        stringResource(strings.selectSearchTitle)
-                    }
-                }else stringResource(strings.selectSearchTitle)
+            if (searchData.value.searchCategoryID != null){
+                component.updateCategoryList(searchData.value.searchCategoryID!!)
+            }
 
-                CategoryAppBar(
-                    if(!isLoading.value) title else "",
-                    isShowNav,
-                    modifier,
-                    onSearchClick = {
-                        component.goToSearch()
-                    }
-                ) {
-                    if (searchData.searchCategoryID != 1L) {
-                        isShowNav.value = true
-                        searchData.searchCategoryID = searchData.searchParentID ?: 1L
-                        searchData.searchCategoryName = searchData.searchParentName ?: ""
-                        component.onRefresh(searchData.searchParentID ?: 1L)
-                    } else {
-                        isShowNav.value = false
-                    }
+            val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
+                { onError(model.isError.value) { component.onRefresh() } }
+            }else{
+                null
+            }
 
-                }
-            },
-            onRefresh = { component.onRefresh(searchData.searchCategoryID ?: 1L) },
-        ){
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(400.dp,2000.dp)
-                    .padding(top = dimens.mediumPadding, bottom = 60.dp),
-
-                horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                modifier = modifier.fillMaxSize(),
             ) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight().padding(dimens.smallPadding)
-                    ) {
+                BaseContent(
+                    modifier = modifier,
+                    isLoading = isLoading,
+                    error = error,
+                    topBar = {
+                        val title = if ( searchData.value.fromSearch) {
+                            if (searchData.value.searchString != "") {
+                                searchData.value.searchString ?: stringResource(strings.selectSearchTitle)
+                            }else{
+                                stringResource(strings.selectSearchTitle)
+                            }
+                        }else stringResource(strings.selectSearchTitle)
 
-                        TitleText(
-                            searchData.searchCategoryName?: stringResource(strings.categoryMain),
-                            modifier.align(Alignment.CenterStart)
-                        )
-                        if (searchData.searchCategoryID != 1L) {
-                            TextButton(
-                                modifier = modifier.align(Alignment.CenterEnd),
-                                onClick = { component.onRefresh(1L) }
+                        CategoryAppBar(
+                            if(!isLoading.value) title else "",
+                            isShowNav,
+                            modifier,
+                            searchData = searchData,
+                            onSearchClick = {
+                                component.goToSearch()
+                            }
+                        ) {
+                            if (searchData.value.searchCategoryID != 1L) {
+                                isShowNav.value = true
+                                searchData.value.searchCategoryID = searchData.value.searchParentID ?: 1L
+                                searchData.value.searchCategoryName = searchData.value.searchParentName ?: ""
+                                component.onRefresh()
+                            } else {
+                                isShowNav.value = false
+                            }
+
+                        }
+                    },
+                    onRefresh = { component.onRefresh() },
+                ){
+                    LazyColumn(
+                        modifier = Modifier
+                            .heightIn(400.dp,2000.dp)
+                            .padding(top = dimens.mediumPadding, bottom = 60.dp),
+
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight().padding(dimens.smallPadding)
                             ) {
-                                Text(
-                                    text = stringResource(strings.resetLabel),
-                                    color = colors.solidGreen,
-                                    style = MaterialTheme.typography.titleSmall
+                                TitleText(
+                                    searchData.value.searchCategoryName?: stringResource(strings.categoryMain),
+                                    modifier.align(Alignment.CenterStart)
                                 )
+
+                                if (searchData.value.searchCategoryID != 1L) {
+                                    StringButton(
+                                        stringResource(strings.resetLabel),
+                                        colors.solidGreen,
+                                        modifier = Modifier.align(Alignment.CenterEnd),
+                                        onClick = {
+                                            searchData.value.searchCategoryID = 1L
+                                            component.onRefresh()
+                                        }
+                                    )
+                                }
                             }
                         }
+                        items(categories.value){ category ->
+                            NavigationDrawerItem(
+                                label = {
+                                    Box(
+                                        modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        Text(
+                                            category.name ?: "",
+                                            color = colors.black,
+                                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                            lineHeight = dimens.largeText
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    searchData.value.searchCategoryID = category.id
+                                    searchData.value.searchCategoryName = category.name
+                                    searchData.value.searchParentID = category.parentId
+                                    searchData.value.searchIsLeaf = category.isLeaf
 
+                                    if (!category.isLeaf) {
+                                        isShowNav.value = true
+                                        component.onRefresh()
+                                    }else{
+                                        component.goToListing()
+                                    }
+                                },
+                                icon = {
+                                    getCategoryIcon(category.name)?.let {
+                                        Image(
+                                            painterResource(it),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(dimens.smallIconSize)
+                                        )
+                                    }
+                                },
+                                badge = {
+                                    Badge {
+                                        Text(
+                                            text = category.estimatedActiveOffersCount.toString(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(dimens.extraSmallPadding)
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                                    .background(colors.white),
+                                colors = NavigationDrawerItemDefaults.colors(
+                                    selectedContainerColor = colors.grayLayout,
+                                    unselectedContainerColor = colors.white,
+                                    selectedIconColor = colors.grayLayout,
+                                    unselectedIconColor = colors.white,
+                                    selectedTextColor = colors.grayLayout,
+                                    selectedBadgeColor = colors.grayLayout,
+                                    unselectedTextColor = colors.white,
+                                    unselectedBadgeColor = colors.white
+                                ),
+                                shape = MaterialTheme.shapes.extraSmall,
+                                selected = true
+                            )
+
+                            Spacer(modifier = Modifier.height(dimens.smallPadding))
+                        }
                     }
                 }
-                items(categories.value){ category ->
-                    NavigationDrawerItem(
-                        label = {
-                            Box(
-                                modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                Text(
-                                    category.name ?: "",
-                                    color = colors.black,
-                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                    lineHeight = dimens.largeText
-                                )
-                            }
-                        },
-                        onClick = {
-                            searchData.searchCategoryID = category.id
-                            searchData.searchCategoryName = category.name
-                            searchData.searchParentID = category.parentId
-                            searchData.searchIsLeaf = category.isLeaf
 
-                            if (!category.isLeaf) {
-                                isShowNav.value = true
-                                component.onRefresh(searchData.searchCategoryID ?: 1L)
-                            }else{
-                                component.goToListing()
-                            }
-                        },
-                        icon = {
-                            getCategoryIcon(category.name)?.let {
-                                Image(
-                                    painterResource(it),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(dimens.smallIconSize)
-                                )
-                            }
-                        },
-                        badge = {
-                            Badge {
-                                Text(
-                                    text = category.estimatedActiveOffersCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(dimens.extraSmallPadding)
-                                )
-                            }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                            .background(colors.white),
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.grayLayout,
-                            unselectedContainerColor = colors.white,
-                            selectedIconColor = colors.grayLayout,
-                            unselectedIconColor = colors.white,
-                            selectedTextColor = colors.grayLayout,
-                            selectedBadgeColor = colors.grayLayout,
-                            unselectedTextColor = colors.white,
-                            unselectedBadgeColor = colors.white
-                        ),
-                        shape = MaterialTheme.shapes.extraSmall,
-                        selected = true
+                TextButton(
+                    onClick = {
+                        component.goToListing()
+                    },
+                    colors = colors.themeButtonColors,
+                    modifier = Modifier.fillMaxWidth()
+                        .wrapContentHeight()
+                        .align(Alignment.BottomCenter)
+                        .padding(dimens.smallPadding),
+                    shape = MaterialTheme.shapes.small
+
+                ){
+                    Text(
+                        text = stringResource(strings.categoryEnter),
+                        color = colors.alwaysWhite,
+                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                        lineHeight = dimens.largeText
                     )
-
-                    Spacer(modifier = Modifier.height(dimens.smallPadding))
                 }
             }
         }
-
-        TextButton(
-            onClick = {
-                component.goToListing()
-            },
-            colors = colors.themeButtonColors,
-            modifier = Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .align(Alignment.BottomCenter)
-                .padding(dimens.smallPadding),
-            shape = MaterialTheme.shapes.small
-
-        ){
-            Text(
-                text = stringResource(strings.categoryEnter),
-                color = colors.alwaysWhite,
-                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                lineHeight = dimens.largeText
-            )
-        }
-    }
-
-    if (searchData.fromSearch){
-        component.goToSearch()
-        searchData.fromSearch = false
     }
 }

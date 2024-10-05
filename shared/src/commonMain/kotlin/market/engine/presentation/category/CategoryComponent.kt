@@ -9,12 +9,11 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.SD
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
-import market.engine.core.globalObjects.searchData
+import market.engine.core.types.CategoryScreenType
 import market.engine.presentation.main.CategoryConfig
-import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -28,22 +27,28 @@ interface CategoryComponent {
         val isError: StateFlow<ServerErrorException>
     )
 
-    fun onRefresh(categoryId: Long)
+    val searchData : StateFlow<SD>
+
+    fun onRefresh()
 
     fun onCloseClicked()
 
     fun goToListing()
 
     fun goToSearch()
+
+    fun updateCategoryList(id : Long)
 }
 
 class DefaultCategoryComponent(
     componentContext: ComponentContext,
-    private val navigation: StackNavigation<CategoryConfig>
+    private val navigation: StackNavigation<CategoryConfig>,
 ) : CategoryComponent, ComponentContext by componentContext {
 
     private val categoryViewModel: CategoryViewModel = getKoin().get()
     private val categoryOperations : CategoryOperations = getKoin().get()
+
+    override val searchData : StateFlow<SD> = getKoin().get<StateFlow<SD>>()
 
     private val _model = MutableValue(
         CategoryComponent.Model(
@@ -54,26 +59,24 @@ class DefaultCategoryComponent(
     )
 
     init {
-        categoryViewModel.viewModelScope.launch {
-            if (searchData.searchCategoryID == 1L) {
-                searchData.searchCategoryName = getString(strings.categoryMain)
-            }
-
-            categoryViewModel.getCategory(searchData.searchCategoryID ?: 1L)
-        }
+        onRefresh()
     }
 
     override val model: Value<CategoryComponent.Model> = _model
 
-    override fun onRefresh(categoryId: Long) {
+    override fun onRefresh() {
         categoryViewModel.viewModelScope.launch {
-            val catInfo = categoryOperations.getCategoryInfo(categoryId)
-            if(catInfo.success != null) {
-                searchData.searchCategoryName = catInfo.success?.name
-                searchData.searchCategoryID = catInfo.success?.id
-                searchData.searchParentID = catInfo.success?.parentId
-                searchData.searchIsLeaf = catInfo.success?.isLeaf == true
-                categoryViewModel.getCategory(categoryId)
+            if (searchData.value.searchCategoryID == searchData.value.searchParentID) {
+                val catInfo = categoryOperations.getCategoryInfo(searchData.value.searchCategoryID)
+                if (catInfo.success != null) {
+                    searchData.value.searchCategoryName = catInfo.success?.name
+                    searchData.value.searchCategoryID = catInfo.success?.id
+                    searchData.value.searchParentID = catInfo.success?.parentId
+                    searchData.value.searchIsLeaf = catInfo.success?.isLeaf == true
+                    categoryViewModel.getCategory(searchData.value.searchCategoryID ?: 1L)
+                }
+            }else{
+                categoryViewModel.getCategory(searchData.value.searchCategoryID ?: 1L)
             }
         }
     }
@@ -83,10 +86,16 @@ class DefaultCategoryComponent(
     }
 
     override fun goToListing() {
-       navigation.push(CategoryConfig.ListingScreen)
+        searchData.value.categoryType = CategoryScreenType.LISTING
+        navigation.push(CategoryConfig.ListingScreen)
     }
 
     override fun goToSearch() {
-       navigation.push(CategoryConfig.SearchScreen)
+        searchData.value.categoryType = CategoryScreenType.SEARCH
+        navigation.push(CategoryConfig.SearchScreen)
+    }
+
+    override fun updateCategoryList(id: Long) {
+        categoryViewModel.updateCategory(id)
     }
 }

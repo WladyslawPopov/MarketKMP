@@ -1,6 +1,5 @@
 package market.engine.widgets.buttons
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,21 +13,21 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun SmallCancelBtn(
+fun MenuHamburgerButton(
     modifier: Modifier = Modifier,
-    onCancelClick: (String) -> Unit
+    openMenu : () -> Unit
 ) {
     IconButton(
-        modifier = modifier.padding(dimens.smallPadding),
+        modifier = modifier,
         onClick = {
-            onCancelClick("")
+            openMenu()
         }
-    ) {
+    ){
         Icon(
-            painterResource(drawables.cancelIcon),
-            contentDescription = stringResource(strings.actionClose),
-            modifier = modifier.size(dimens.extraSmallIconSize),
-            tint = colors.steelBlue
+            painter = painterResource(drawables.menuHamburger),
+            contentDescription = stringResource(strings.menuTitle),
+            modifier = modifier.size(dimens.smallIconSize),
+            tint = colors.black
         )
     }
 }

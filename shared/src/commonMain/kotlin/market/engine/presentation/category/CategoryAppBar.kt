@@ -9,6 +9,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,7 +17,8 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalObjects.searchData
+import market.engine.core.globalData.SD
+
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TitleText
@@ -29,6 +31,7 @@ fun CategoryAppBar(
     title : String,
     isShowNav : MutableState<Boolean>,
     modifier: Modifier = Modifier,
+    searchData: State<SD>,
     onSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
 ) {
@@ -59,7 +62,7 @@ fun CategoryAppBar(
            }
         },
         navigationIcon = {
-            isShowNav.value = searchData.searchCategoryID != 1L
+            isShowNav.value = searchData.value.searchCategoryID != 1L
 
             if (isShowNav.value) {
                 NavigationArrowButton {

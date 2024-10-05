@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalObjects.searchData
 import market.engine.core.items.TopCategory
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.rows.CategoryList
@@ -124,6 +123,8 @@ fun HomeContent(
     val isLoading = model.isLoading.collectAsState()
     val err = model.isError.collectAsState()
 
+    val searchData = component.searchData.collectAsState()
+
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(model.isError.value) { component.onRefresh() } }
     } else {
@@ -152,9 +153,9 @@ fun HomeContent(
                     categories = categoryList
                 ) { category ->
 
-                    searchData.searchCategoryID = category.id
-                    searchData.searchParentID = category.parentId
-                    searchData.searchCategoryName = category.name
+                    searchData.value.searchCategoryID = category.id
+                    searchData.value.searchParentID = category.parentId
+                    searchData.value.searchCategoryName = category.name
 
                     component.navigateToListing()
                 }
@@ -168,10 +169,10 @@ fun HomeContent(
 
             GridPopularCategory(listTopCategory) { topCategory ->
 
-                searchData.searchCategoryID = topCategory.id
-                searchData.searchParentID = topCategory.parentId
-                searchData.searchCategoryName = topCategory.name
-                searchData.searchParentName = topCategory.parentName
+                searchData.value.searchCategoryID = topCategory.id
+                searchData.value.searchParentID = topCategory.parentId
+                searchData.value.searchCategoryName = topCategory.name
+                searchData.value.searchParentName = topCategory.parentName
 
                 component.navigateToListing()
             }

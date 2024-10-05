@@ -16,11 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.StateFlow
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalObjects.searchData
+import market.engine.core.globalData.SD
+
 import market.engine.core.items.NavigationItem
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
@@ -33,7 +35,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SearchAppBar(
     modifier: Modifier = Modifier,
-    searchString: State<String> = rememberUpdatedState(""),
+    searchData: State<SD>,
     onSearchClick: () -> Unit,
     onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit,
@@ -54,7 +56,7 @@ fun SearchAppBar(
             .fillMaxWidth(),
         title = {
            SearchTextField(
-               modifier,searchString,focusRequester,onUpdateHistory,onBeakClick
+               modifier,searchData,focusRequester,onUpdateHistory,onBeakClick
            )
         },
         navigationIcon = {
@@ -76,9 +78,7 @@ fun SearchAppBar(
                     IconButton(
                         modifier = modIB,
                         onClick = {
-                            searchData.searchString = searchString.value
-                            searchData.fromSearch = true
-
+                            searchData.value.fromSearch = true
                             onSearchClick()
                         }
                     ) {

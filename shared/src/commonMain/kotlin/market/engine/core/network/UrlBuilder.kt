@@ -26,7 +26,7 @@ class UrlBuilder {
         var counter = 1
 
         if (searchData != null) {
-            if (searchData.fromSearch || searchData.searchChoice != null) {
+            if (searchData.fromSearch) {
                 when (searchData.searchChoice) {
                     "user_search" -> {
                         if (searchData.userID != 1L) {

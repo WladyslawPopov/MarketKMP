@@ -9,27 +9,28 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.widgets.buttons.SmallCancelBtn
+import market.engine.core.globalData.SD
+import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
-    searchString: State<String> = rememberUpdatedState(""),
+    sd: State<SD>,
     focusRequester: FocusRequester,
     onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit,
 ){
     TextField(
-        value = searchString.value,
+        value = sd.value.searchString ?: "",
         onValueChange = {
             onUpdateHistory(it)
         },
@@ -52,9 +53,15 @@ fun SearchTextField(
             }
         ),
         trailingIcon = {
-            if (searchString.value != "") {
-                SmallCancelBtn {
-                    onUpdateHistory(it)
+            if (sd.value.searchString != "" && sd.value.searchString != null) {
+
+                SmallIconButton(
+                    icon = drawables.cancelIcon,
+                    contentDescription = stringResource(strings.actionClose),
+                    color = colors.steelBlue,
+                    modifier = modifier,
+                ){
+                    onUpdateHistory("")
                 }
             }
         },

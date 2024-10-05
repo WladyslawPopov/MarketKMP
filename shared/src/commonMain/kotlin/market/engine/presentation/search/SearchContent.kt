@@ -1,7 +1,6 @@
 package market.engine.presentation.search
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,21 +11,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -37,20 +30,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalObjects.searchData
-import market.engine.widgets.buttons.SmallCancelBtn
+import market.engine.core.globalData.SD
+import market.engine.core.types.CategoryScreenType
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
 import market.engine.shared.SearchHistory
-import org.jetbrains.compose.resources.painterResource
+import market.engine.widgets.buttons.ActiveStringButton
+import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.buttons.StringButton
+import market.engine.widgets.exceptions.dismissBackground
+import market.engine.widgets.items.historyItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -58,72 +53,85 @@ fun SearchContent(
     component: SearchComponent,
     modifier: Modifier = Modifier
 ) {
-    val modelState = component.model.subscribeAsState()
-    val model = modelState.value
+    val searchData = component.searchData.collectAsState()
+    val screenType = searchData.value.categoryType
 
-    val isLoading = model.isLoading.collectAsState()
-    val isError = model.isError.collectAsState()
-    val history = model.history.collectAsState()
-    val searchString = model.searchString.collectAsState()
+    when(screenType){
+        CategoryScreenType.CATEGORY -> {
+            component.onCloseClicked(CategoryScreenType.CATEGORY)
+        }
+        CategoryScreenType.LISTING -> {
+            component.onCloseClicked(CategoryScreenType.LISTING)
+        }
+        CategoryScreenType.SEARCH -> {
+            val modelState = component.model.subscribeAsState()
+            val model = modelState.value
 
-    val selectedUser = remember { mutableStateOf(false) }
-    val selectedUserFinished = remember { mutableStateOf(false) }
-    val selectedCategory = remember { mutableStateOf(searchData.searchCategoryName) }
+            val isLoading = model.isLoading.collectAsState()
+            val isError = model.isError.collectAsState()
+            val history = model.history.collectAsState()
 
-    val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(model.isError.value) { } }
-    }else{
-        null
-    }
+            val selectedUser = remember { mutableStateOf(false) }
+            val selectedUserFinished = remember { mutableStateOf(false) }
+            val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
-    BaseContent(
-        modifier = modifier,
-        isLoading = isLoading,
-        error = error,
-        topBar = {
-            SearchAppBar(
-                modifier,
-                searchString,
-                onSearchClick = {
-                    component.goToListing()
-                },
-                onUpdateHistory = {
-                    component.updateHistory(it)
-                }
-            ) {
-                component.onCloseClicked()
+            val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
+                { onError(model.isError.value) { } }
+            }else{
+                null
             }
-        },
-        onRefresh = { component.updateHistory("") }
-    ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
-        ) {
-            FiltersSearchBar(
-                modifier = modifier,
-                selectedUser = selectedUser,
-                selectedUserFinished = selectedUserFinished,
-                selectedCategory = selectedCategory,
-                searchString = searchString,
-                goToCategory = { component.goToCategory() }
-            )
 
-            HistoryLayout(
-                historyItems = history.value,
-                modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
-                onItemClick = { component.updateHistory(it) },
-                onClearHistory = { component.deleteHistory() },
-                onDeleteItem = { component.deleteItemHistory(it) },
-                goToListing = { component.goToListing() }
-            )
+            BaseContent(
+                modifier = modifier,
+                isLoading = isLoading,
+                error = error,
+                topBar = {
+                    SearchAppBar(
+                        modifier,
+                        searchData,
+                        onSearchClick = {
+                            component.goToListing()
+                        },
+                        onUpdateHistory = {
+                            component.updateHistory(it)
+                        }
+                    ) {
+                        component.onCloseClicked(CategoryScreenType.CATEGORY)
+                    }
+                },
+                onRefresh = { component.updateHistory("") }
+            ) {
+                Column(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    FiltersSearchBar(
+                        modifier = modifier,
+                        selectedUser = selectedUser,
+                        selectedUserFinished = selectedUserFinished,
+                        selectedCategory = selectedCategory,
+                        searchData = searchData,
+                        goToCategory = { component.onCloseClicked(CategoryScreenType.CATEGORY) }
+                    )
+
+                    HistoryLayout(
+                        historyItems = history.value,
+                        modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                        onItemClick = { component.updateHistory(it) },
+                        onClearHistory = { component.deleteHistory() },
+                        onDeleteItem = { component.deleteItemHistory(it) },
+                        goToListing = { component.goToListing() }
+                    )
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryLayout(
     historyItems: List<SearchHistory>,
@@ -154,17 +162,13 @@ fun HistoryLayout(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        TextButton(
-            onClick = {
-                onClearHistory()
-            },
-            modifier = Modifier.align(Alignment.CenterVertically)
+        StringButton(
+            stringResource(strings.clear),
+            colors.solidGreen,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
         ) {
-            Text(
-                text =  stringResource(strings.clear),
-                color = colors.solidGreen,
-                style = MaterialTheme.typography.titleSmall
-            )
+            onClearHistory()
         }
     }
 
@@ -180,102 +184,38 @@ fun HistoryLayout(
     ) {
         // List Items
         items(historyItems, key = { it.id }) { historyItem ->
-            HistoryItem(historyItem, onItemClick, onDeleteItem, goToListing)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HistoryItem(historyItem: SearchHistory, onUpdateSearch: (String) -> Unit, onDeleteItem: (Long) -> Unit, goToListing: () -> Unit) {
-
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                onDeleteItem(historyItem.id)
-                true
-            } else {
-                false
-            }
-        }
-    )
-
-    SwipeToDismissBox(
-       state = dismissState,
-        backgroundContent = {
-            val direction = dismissState.dismissDirection
-
-            val color = when (dismissState.targetValue) {
-                SwipeToDismissBoxValue.StartToEnd -> colors.transparent
-                SwipeToDismissBoxValue.Settled -> colors.transparent
-                SwipeToDismissBoxValue.EndToStart -> colors.errorLayoutBackground
-                else -> colors.transparent
-            }
-            if (direction == SwipeToDismissBoxValue.EndToStart) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color)
-                        .padding(start = dimens.largePadding),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Icon(
-                        painterResource(drawables.cancelIcon),
-                        contentDescription = null,
-                        tint = colors.inactiveBottomNavIconColor,
-                    )
+            val dismissState = rememberSwipeToDismissBoxState(
+                confirmValueChange = { dismissValue ->
+                    if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                        onDeleteItem(historyItem.id)
+                        true
+                    } else {
+                        false
+                    }
                 }
-            }
-        },
-    ){
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .background(color = colors.white)
-                .wrapContentHeight()
-                .clickable {
-                    onUpdateSearch(historyItem.query)
+            )
+
+            SwipeToDismissBox(
+                state = dismissState,
+                backgroundContent = {
+                    dismissBackground(dismissState)
                 },
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
             ){
-                Text(
-                    text = historyItem.query,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.black,
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = dimens.mediumPadding)
-                )
-
-                IconButton(
-                    onClick = {
-                        searchData.searchString = historyItem.query
-                        searchData.fromSearch = true
-                        goToListing()
-                    },
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ){
-                    Icon(
-                        painter = painterResource(drawables.searchIcon),
-                        contentDescription = stringResource(strings.searchTitle),
-                        modifier = Modifier.size(dimens.smallIconSize),
-                        tint = colors.black
-                    )
-                }
+                historyItem(historyItem, onItemClick, goToListing)
             }
         }
     }
-
 }
+
+
+
 
 @Composable
 fun FiltersSearchBar(
     modifier: Modifier = Modifier,
     selectedUser: MutableState<Boolean>,
     selectedUserFinished: MutableState<Boolean>,
-    searchString: State<String>,
+    searchData: State<SD>,
     selectedCategory: MutableState<String?>,
     goToCategory: () -> Unit,
 ) {
@@ -288,80 +228,50 @@ fun FiltersSearchBar(
     ) {
         Column {
             Row {
-                TextButton(
+                ActiveStringButton(
+                    text = selectedCategory.value ?: stringResource(strings.categoryMain),
+                    color =  colors.simpleButtonColors,
                     onClick = {
-                        searchData.fromSearch = true
-                        searchData.searchString = searchString.value
+                        searchData.value.fromSearch = true
                         goToCategory()
-                    },
-                    colors = colors.simpleButtonColors
-                ) {
-                    Text(
-                        text = selectedCategory.value ?: stringResource(strings.categoryMain),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontFamily = FontFamily.SansSerif,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .widthIn(max = 250.dp)
-                    )
-                }
-                // Filter button
-                IconButton(
-                    onClick = { goToCategory() },
-                    modifier = modifier
-                        .padding(end = dimens.smallPadding),
-                ) {
-                    Icon(
-                        painter = painterResource(drawables.filterIcon),
-                        contentDescription = stringResource(strings.parameters),
-                        modifier = Modifier.size(dimens.smallIconSize),
-                        tint = colors.inactiveBottomNavIconColor
-                    )
+                    }
+                )
+
+                SmallIconButton(
+                    icon = drawables.filterIcon,
+                    contentDescription = stringResource(strings.parameters),
+                    color = colors.inactiveBottomNavIconColor
+                ){
+                    goToCategory()
                 }
             }
-            Row{
-                TextButton(
-                    onClick = { selectedUser.value = !selectedUser.value },
-                    colors = if (!selectedUser.value) colors.simpleButtonColors else colors.themeButtonColors
-                ) {
-                    Row(
-                        modifier = Modifier.wrapContentWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(strings.searchUserStringChoice),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontFamily = FontFamily.SansSerif,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .widthIn(max = 150.dp)
-                                .padding(end = 2.dp)
-                        )
-                        if (searchData.searchUsersLots != null) {
-                            SmallCancelBtn {
+            Row {
+
+                ActiveStringButton(
+                    stringResource(strings.searchUserStringChoice),
+                    if (!selectedUser.value) colors.simpleButtonColors else colors.themeButtonColors,
+                    { selectedUser.value = !selectedUser.value },
+                    {
+                        if (searchData.value.searchUsersLots != null) {
+                            SmallIconButton(
+                                icon = drawables.cancelIcon,
+                                contentDescription = stringResource(strings.actionClose),
+                                color = colors.steelBlue,
+                                modifier = modifier,
+                            ){
 
                             }
                         }
                     }
-                }
+                )
+
                 Spacer(modifier = Modifier.width(dimens.smallSpacer))
-                TextButton(
-                    onClick = { selectedUserFinished.value = !selectedUserFinished.value },
-                    colors = if (!selectedUserFinished.value) colors.simpleButtonColors else colors.themeButtonColors
-                ) {
-                    Text(
-                        text = stringResource(strings.searchUserFinishedStringChoice),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontFamily = FontFamily.SansSerif,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+
+                ActiveStringButton(
+                    text = stringResource(strings.searchUserFinishedStringChoice),
+                    color = if (!selectedUser.value) colors.simpleButtonColors else colors.themeButtonColors,
+                    onClick = { selectedUserFinished.value = !selectedUserFinished.value  },
+                )
             }
         }
     }

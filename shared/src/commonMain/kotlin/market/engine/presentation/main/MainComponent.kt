@@ -1,16 +1,20 @@
 package market.engine.presentation.main
 
-
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.items
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
+import market.engine.core.globalData.SD
+import market.engine.core.types.CategoryScreenType
 import market.engine.presentation.category.CategoryComponent
 import market.engine.presentation.category.DefaultCategoryComponent
 import market.engine.presentation.favorites.DefaultFavoritesComponent
@@ -23,6 +27,7 @@ import market.engine.presentation.profile.DefaultProfileComponent
 import market.engine.presentation.profile.ProfileComponent
 import market.engine.presentation.search.DefaultSearchComponent
 import market.engine.presentation.search.SearchComponent
+import org.koin.mp.KoinPlatform.getKoin
 
 interface MainComponent {
 
@@ -30,15 +35,17 @@ interface MainComponent {
 
     val childStack: Value<ChildStack<*, Child>>
 
-    var childHomeStack: Value<ChildStack<*, ChildHome>>
+    val childHomeStack: Value<ChildStack<*, ChildHome>>
 
-    var childCategoryStack: Value<ChildStack<*, ChildCategory>>
+    val childCategoryStack: Value<ChildStack<*, ChildCategory>>
 
-    var childBasketStack: Value<ChildStack<*, ChildBasket>>
+    val childBasketStack: Value<ChildStack<*, ChildBasket>>
 
-    var childFavoritesStack: Value<ChildStack<*, ChildFavorites>>
+    val childFavoritesStack: Value<ChildStack<*, ChildFavorites>>
 
-    var childProfileStack: Value<ChildStack<*, ChildProfile>>
+    val childProfileStack: Value<ChildStack<*, ChildProfile>>
+
+    val searchData : StateFlow<SD>
 
     data class ModelNavigation(
         val homeNavigation : StackNavigation<HomeConfig>,
@@ -90,6 +97,8 @@ class DefaultMainComponent(
     val goToLoginSelected: () -> Unit
 ) : MainComponent, ComponentContext by componentContext {
 
+    override val searchData : StateFlow<SD> = getKoin().get()
+
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
             homeNavigation = StackNavigation(),
@@ -104,50 +113,60 @@ class DefaultMainComponent(
 
     private var currentNavigation = StackNavigation<Config>()
 
-    override var childHomeStack: Value<ChildStack<*, MainComponent.ChildHome>> = childStack(
-        source = modelNavigation.value.homeNavigation,
-        initialConfiguration = HomeConfig.HomeScreen,
-        serializer = HomeConfig.serializer(),
-        handleBackButton = true,
-        childFactory = ::createChild,
-        key = "HomeStack"
-    )
+    override val childHomeStack: Value<ChildStack<*, MainComponent.ChildHome>> by lazy {
+        childStack(
+            source = modelNavigation.value.homeNavigation,
+            initialConfiguration = HomeConfig.HomeScreen,
+            serializer = HomeConfig.serializer(),
+            handleBackButton = true,
+            childFactory = ::createChild,
+            key = "HomeStack"
+        )
+    }
 
-    override var childCategoryStack: Value<ChildStack<*, MainComponent.ChildCategory>> = childStack(
-        source = modelNavigation.value.categoryNavigation,
-        initialConfiguration = CategoryConfig.CategoryScreen,
-        serializer = CategoryConfig.serializer(),
-        handleBackButton = true,
-        childFactory = ::createChild,
-        key = "CategoryStack"
-    )
+    override val childCategoryStack: Value<ChildStack<*, MainComponent.ChildCategory>> by lazy {
+        childStack(
+            source = modelNavigation.value.categoryNavigation,
+            initialConfiguration = CategoryConfig.CategoryScreen,
+            serializer = CategoryConfig.serializer(),
+            handleBackButton = true,
+            childFactory = ::createChild,
+            key = "CategoryStack"
+        )
+    }
 
-    override var childBasketStack: Value<ChildStack<*, MainComponent.ChildBasket>> = childStack(
-        source = modelNavigation.value.basketNavigation,
-        initialConfiguration = BasketConfig.BasketScreen,
-        serializer = BasketConfig.serializer(),
-        handleBackButton = true,
-        childFactory = ::createChild,
-        key = "BasketStack"
-    )
+    override val childBasketStack: Value<ChildStack<*, MainComponent.ChildBasket>> by lazy {
+        childStack(
+            source = modelNavigation.value.basketNavigation,
+            initialConfiguration = BasketConfig.BasketScreen,
+            serializer = BasketConfig.serializer(),
+            handleBackButton = true,
+            childFactory = ::createChild,
+            key = "BasketStack"
+        )
+    }
 
-    override var childFavoritesStack: Value<ChildStack<*, MainComponent.ChildFavorites>> = childStack(
-        source = modelNavigation.value.favoritesNavigation,
-        initialConfiguration = FavoritesConfig.FavoritesScreen,
-        serializer = FavoritesConfig.serializer(),
-        handleBackButton = true,
-        childFactory = ::createChild,
-        key = "FavoritesStack"
-    )
+    override val childFavoritesStack: Value<ChildStack<*, MainComponent.ChildFavorites>> by lazy {
+        childStack(
+            source = modelNavigation.value.favoritesNavigation,
+            initialConfiguration = FavoritesConfig.FavoritesScreen,
+            serializer = FavoritesConfig.serializer(),
+            handleBackButton = true,
+            childFactory = ::createChild,
+            key = "FavoritesStack"
+        )
+    }
 
-    override var childProfileStack: Value<ChildStack<*, MainComponent.ChildProfile>> = childStack(
-        source = modelNavigation.value.profileNavigation,
-        initialConfiguration = ProfileConfig.ProfileScreen,
-        serializer = ProfileConfig.serializer(),
-        handleBackButton = true,
-        childFactory = ::createChild,
-        key = "ProfileStack"
-    )
+    override val childProfileStack: Value<ChildStack<*, MainComponent.ChildProfile>> by lazy {
+        childStack(
+            source = modelNavigation.value.profileNavigation,
+            initialConfiguration = ProfileConfig.ProfileScreen,
+            serializer = ProfileConfig.serializer(),
+            handleBackButton = true,
+            childFactory = ::createChild,
+            key = "ProfileStack"
+        )
+    }
 
     override val childStack: Value<ChildStack<*, MainComponent.Child>> =
         childStack(
@@ -283,23 +302,36 @@ class DefaultMainComponent(
             componentContext = componentContext,
             navigation = modelNavigation.value.homeNavigation,
             navigateToSearchSelected = {
+                searchData.value.categoryType = CategoryScreenType.SEARCH
                 navigateToBottomItem(Config.Category)
             },
-            navigateToListingSelected = { navigateToBottomItem(Config.Category) }
+            navigateToListingSelected = {
+                searchData.value.categoryType = CategoryScreenType.LISTING
+                navigateToBottomItem(Config.Category)
+            }
         )
     }
 
-    private fun itemSearch(componentContext: ComponentContext, navigation: StackNavigation<*>): SearchComponent {
+    private fun itemSearch(componentContext: ComponentContext, navigation: StackNavigation<CategoryConfig>): SearchComponent {
         return DefaultSearchComponent(
             componentContext = componentContext,
-            onBackPressed = { navigation.pop() }
+            onBackPressed = {
+                navigation.pop()
+            }
         )
     }
 
     private fun itemListing(componentContext: ComponentContext, navigation: StackNavigation<*>): ListingComponent {
         return DefaultListingComponent(
             componentContext = componentContext,
-            onBackPressed = { navigation.pop() }
+            searchSelected = {
+                searchData.value.categoryType = CategoryScreenType.SEARCH
+                modelNavigation.value.categoryNavigation.push(CategoryConfig.SearchScreen)
+            },
+            onBackPressed = {
+                searchData.value.categoryType = CategoryScreenType.CATEGORY
+                navigation.pop()
+            }
         )
     }
 }

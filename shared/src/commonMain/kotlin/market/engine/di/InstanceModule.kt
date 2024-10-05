@@ -7,11 +7,16 @@ import application.market.agora.business.core.network.functions.OrderOperations
 import application.market.agora.business.core.network.functions.PrivateMessagesOperation
 import application.market.agora.business.core.network.functions.SubscriptionOperations
 import application.market.agora.business.core.network.functions.UserOperations
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
+import market.engine.core.globalData.SD
+import market.engine.core.globalObjects.searchData
 import market.engine.presentation.category.CategoryViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
@@ -26,6 +31,7 @@ object InstanceModule {
         single { createSqlDriver() }
         single { MarketDB(get()) } // Register MarketDB
 
+        single { searchData.asStateFlow() }
 
         single { OfferPagingRepository(get()) }
 

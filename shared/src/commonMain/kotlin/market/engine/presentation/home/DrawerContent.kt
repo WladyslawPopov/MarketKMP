@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Badge
@@ -24,6 +25,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
@@ -184,7 +186,9 @@ fun DrawerContent(
                         Badge {  }
                     }
                 },
-                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding).wrapContentWidth(),
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    .wrapContentWidth()
+                    .widthIn(max = 300.dp),
                 colors = NavigationDrawerItemDefaults.colors(
                     selectedContainerColor = colors.white,
                     unselectedContainerColor = colors.white,

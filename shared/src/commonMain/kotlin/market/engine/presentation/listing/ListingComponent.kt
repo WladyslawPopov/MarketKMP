@@ -10,7 +10,9 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import market.engine.core.globalObjects.searchData
+import market.engine.core.globalData.SD
+import market.engine.core.types.CategoryScreenType
+
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ListingComponent {
@@ -24,13 +26,18 @@ interface ListingComponent {
         val isLoading: StateFlow<Boolean>,
     )
 
+    val searchData : StateFlow<SD>
+
     fun onRefresh()
 
     fun onBackClicked()
+
+    fun goToSearch()
 }
 
 class DefaultListingComponent(
     componentContext: ComponentContext,
+    private val searchSelected: () -> Unit,
     private val onBackPressed: () -> Unit
 ) : ListingComponent, ComponentContext by componentContext {
 
@@ -38,7 +45,9 @@ class DefaultListingComponent(
         listingData.methodServer = "get_public_listing"
     }
 
-    override var lData = ListingData(searchData.copy(), listingData.copy())
+    override val searchData : StateFlow<SD> = getKoin().get()
+
+    override var lData = ListingData(searchData.value.copy(), listingData.copy())
 
     private val listingViewModel: ListingViewModel = getKoin().get()
 
@@ -53,8 +62,7 @@ class DefaultListingComponent(
     override val model: Value<ListingComponent.Model> = _model
 
     private fun updateModel() {
-        searchData.clear()
-        lData = ListingData(searchData.copy(), listingData.copy())
+        lData = ListingData(searchData.value.copy(), listingData.copy())
         val newListingFlow = listingViewModel.getPage(lData)
         _model.value = _model.value.copy(listing = newListingFlow)
     }
@@ -64,6 +72,14 @@ class DefaultListingComponent(
     }
 
     override fun onBackClicked() {
+        if (searchData.value.searchIsLeaf){
+            searchData.value.searchCategoryID = searchData.value.searchParentID
+            searchData.value.searchCategoryName = searchData.value.searchParentName
+        }
         onBackPressed()
+    }
+
+    override fun goToSearch() {
+        searchSelected()
     }
 }

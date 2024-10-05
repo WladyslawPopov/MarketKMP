@@ -20,6 +20,7 @@ import market.engine.core.items.NavigationItem
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.buttons.MenuHamburgerButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -70,18 +71,8 @@ fun HomeAppBar(
         },
         navigationIcon = {
             if (!showNavigationRail) {
-                IconButton(
-                    modifier = modifier,
-                    onClick = {
-                        openMenu()
-                    }
-                ){
-                    Icon(
-                        painter = painterResource(drawables.menuHamburger),
-                        contentDescription = stringResource(strings.menuTitle),
-                        modifier = modifier.size(dimens.smallIconSize),
-                        tint = colors.black
-                    )
+                MenuHamburgerButton{
+                    openMenu()
                 }
             }
         },
