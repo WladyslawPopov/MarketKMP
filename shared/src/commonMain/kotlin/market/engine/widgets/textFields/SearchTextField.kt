@@ -31,7 +31,7 @@ fun SearchTextField(
     searchString : String,
     focusRequester: FocusRequester,
     onUpdateHistory: (String) -> Unit,
-    onBeakClick: () -> Unit,
+    goToListing: () -> Unit,
 ){
    var search = searchString
     TextField(
@@ -55,7 +55,7 @@ fun SearchTextField(
         singleLine = true,
         keyboardActions = KeyboardActions(
             onSearch = {
-                onBeakClick()
+                goToListing()
             }
         ),
         trailingIcon = {

@@ -85,8 +85,9 @@ fun SearchContent(
             SearchAppBar(
                 modifier,
                 searchString,
-                searchData,
                 onSearchClick = {
+                    searchData.value.fromSearch = true
+                    searchData.value.searchString = searchString
                     component.goToListing()
                 },
                 onUpdateHistory = {
@@ -128,6 +129,7 @@ fun SearchContent(
                 onClearHistory = { component.deleteHistory() },
                 onDeleteItem = { component.deleteItemHistory(it) },
                 goToListing = {
+                    searchData.value.fromSearch = true
                     searchData.value.searchString = it
                     component.goToListing()
                 }

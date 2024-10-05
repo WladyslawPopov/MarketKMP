@@ -40,7 +40,6 @@ import org.jetbrains.compose.resources.stringResource
 fun SearchAppBar(
     modifier: Modifier = Modifier,
     searchString: String,
-    searchData: State<SD>,
     onSearchClick: () -> Unit,
     onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit,
@@ -61,7 +60,7 @@ fun SearchAppBar(
             .fillMaxWidth(),
         title = {
            SearchTextField(
-               modifier,searchString,focusRequester,onUpdateHistory,onBeakClick
+               modifier,searchString,focusRequester,onUpdateHistory,onSearchClick
            )
         },
         navigationIcon = {
@@ -83,7 +82,6 @@ fun SearchAppBar(
                     IconButton(
                         modifier = modIB,
                         onClick = {
-                            searchData.value.fromSearch = true
                             onSearchClick()
                         }
                     ) {
