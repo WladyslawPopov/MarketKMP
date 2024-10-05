@@ -1,18 +1,20 @@
 package market.engine.presentation.home
 
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
@@ -96,126 +98,130 @@ fun DrawerContent(
 
     ModalDrawerSheet(
         drawerContainerColor = colors.primaryColor,
-        drawerContentColor = colors.white,
-        modifier = mod
+        drawerContentColor = colors.black,
+        drawerTonalElevation = 0.dp,
+        modifier = mod.wrapContentWidth()
     ) {
-
-        Row(
+        val scrollState = rememberScrollState()
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimens.mediumPadding),
-            horizontalArrangement = Arrangement.End
+                .verticalScroll(scrollState)
         ) {
-            if (false) {
-                TextButton(
-                    onClick = {},
-                    modifier = Modifier.padding(dimens.smallPadding),
-                    colors = colors.simpleButtonColors
-                ) {
-                    Text(stringResource(strings.logoutTitle), color = colors.black)
-                    Icon(
-                        painter = painterResource(drawables.logoutIcon),
-                        tint = colors.black,
-                        contentDescription = stringResource(strings.logoutTitle)
-                    )
-                }
-            } else {
-                TextButton(
-                    onClick = {
-                        goToLogin()
-                    },
-                    modifier = Modifier.padding(dimens.smallPadding),
-                    colors = colors.simpleButtonColors
-                ) {
-                    Text(stringResource(strings.loginTitle), color = colors.black)
-                    Icon(
-                        painter = painterResource(drawables.loginIcon),
-                        tint = colors.black,
-                        contentDescription = stringResource(strings.loginTitle)
-                    )
+            Row(
+                modifier = Modifier
+                    .padding(dimens.mediumPadding),
+                horizontalArrangement = Arrangement.End
+            ) {
+                if (false) {
+                    TextButton(
+                        onClick = {},
+                        modifier = Modifier.padding(dimens.smallPadding),
+                        colors = colors.simpleButtonColors
+                    ) {
+                        Text(stringResource(strings.logoutTitle), color = colors.black)
+                        Icon(
+                            painter = painterResource(drawables.logoutIcon),
+                            tint = colors.black,
+                            contentDescription = stringResource(strings.logoutTitle)
+                        )
+                    }
+                } else {
+                    TextButton(
+                        onClick = {
+                            goToLogin()
+                        },
+                        modifier = Modifier.padding(dimens.smallPadding),
+                        colors = colors.simpleButtonColors
+                    ) {
+                        Text(stringResource(strings.loginTitle), color = colors.black)
+                        Icon(
+                            painter = painterResource(drawables.loginIcon),
+                            tint = colors.black,
+                            contentDescription = stringResource(strings.loginTitle)
+                        )
+                    }
                 }
             }
-        }
 
-        list.forEachIndexed { index, item ->
-            Spacer(modifier = Modifier.height(dimens.mediumSpacer))
+            list.forEachIndexed { index, item ->
+                Spacer(modifier = Modifier.height(dimens.mediumSpacer))
 
-            NavigationDrawerItem(
-                label = {
-                    Box(
-                        modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Column{
-                            Text(
-                                item.title,
-                                color = colors.black,
-                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                lineHeight = dimens.largeText
-                            )
-                            if (item.subtitle != null) {
+                NavigationDrawerItem(
+                    label = {
+                        Box(
+                            modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Column{
                                 Text(
-                                    item.subtitle,
-                                    color = colors.steelBlue,
-                                    fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                                    item.title,
+                                    color = colors.black,
+                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                     lineHeight = dimens.largeText
                                 )
+                                if (item.subtitle != null) {
+                                    Text(
+                                        item.subtitle,
+                                        color = colors.steelBlue,
+                                        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                                        lineHeight = dimens.largeText
+                                    )
+                                }
                             }
+
+                        }
+                    },
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(item.icon),
+                            contentDescription = item.title,
+                            modifier = Modifier.size(dimens.smallIconSize)
+                        )
+                    },
+                    badge = {
+                        if (item.badgeCount != null) {
+                            Text(text = item.badgeCount.toString())
                         }
 
-                    }
-                },
-                onClick = {
-                    scope.launch {
-                        drawerState.close()
-                    }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(item.icon),
-                        contentDescription = item.title,
-                        modifier = Modifier.size(dimens.smallIconSize)
-                    )
-                },
-                badge = {
-                    if (item.badgeCount != null) {
-                        Text(text = item.badgeCount.toString())
-                    }
+                        if (item.hasNews) {
+                            Badge {  }
+                        }
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        .widthIn(max = 250.dp)
+                        .wrapContentWidth(),
+                    colors = NavigationDrawerItemDefaults.colors(
+                        selectedContainerColor = colors.white,
+                        unselectedContainerColor = colors.white,
+                        selectedIconColor = colors.lightGray,
+                        unselectedIconColor = colors.lightGray,
+                        selectedTextColor = colors.lightGray,
+                        selectedBadgeColor = colors.lightGray,
+                        unselectedTextColor = colors.lightGray,
+                        unselectedBadgeColor = colors.lightGray
 
-                    if (item.hasNews) {
-                        Badge {  }
-                    }
-                },
-                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    .wrapContentWidth()
-                    .widthIn(max = 300.dp),
-                colors = NavigationDrawerItemDefaults.colors(
-                    selectedContainerColor = colors.white,
-                    unselectedContainerColor = colors.white,
-                    selectedIconColor = colors.lightGray,
-                    unselectedIconColor = colors.lightGray,
-                    selectedTextColor = colors.lightGray,
-                    selectedBadgeColor = colors.lightGray,
-                    unselectedTextColor = colors.lightGray,
-                    unselectedBadgeColor = colors.lightGray
+                    ),
 
-                ),
+                    selected = true
+                )
+            }
 
-                selected = true
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimens.mediumPadding),
-            contentAlignment = Alignment.BottomEnd
-        ) {
-            Text(
-                text = " Version 1.8.0",
-                color = colors.textA0AE,
-                fontSize = MaterialTheme.typography.labelMedium.fontSize
-            )
+            Box(
+                modifier = Modifier
+                    .padding(dimens.mediumPadding),
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                Text(
+                    text = " Version 1.8.0",
+                    color = colors.textA0AE,
+                    fontSize = MaterialTheme.typography.labelMedium.fontSize
+                )
+            }
         }
     }
 }

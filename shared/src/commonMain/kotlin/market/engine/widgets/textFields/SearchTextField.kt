@@ -9,6 +9,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -24,15 +28,17 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
-    sd: State<SD>,
+    searchString : String,
     focusRequester: FocusRequester,
     onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit,
 ){
+   var search = searchString
     TextField(
-        value = sd.value.searchString ?: "",
+        value = search,
         onValueChange = {
-            onUpdateHistory(it)
+            search = it
+            onUpdateHistory(search)
         },
         placeholder = {
             Text(
@@ -53,7 +59,7 @@ fun SearchTextField(
             }
         ),
         trailingIcon = {
-            if (sd.value.searchString != "" && sd.value.searchString != null) {
+            if (searchString != "") {
 
                 SmallIconButton(
                     icon = drawables.cancelIcon,
@@ -61,7 +67,8 @@ fun SearchTextField(
                     color = colors.steelBlue,
                     modifier = modifier,
                 ){
-                    onUpdateHistory("")
+                    search = ""
+                    onUpdateHistory(search)
                 }
             }
         },

@@ -24,6 +24,7 @@ import market.engine.core.items.NavigationItem
 import market.engine.presentation.main.MainComponent
 import market.engine.presentation.main.navigateFromBottomBar
 import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.buttons.floatingCreateOfferButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -37,7 +38,7 @@ fun getRailNavBar(
 ){
     NavigationRail(
         modifier = Modifier
-            .fillMaxHeight().background(MaterialTheme.colorScheme.inverseOnSurface).offset(
+            .fillMaxHeight().background(color = colors.white).offset(
                 x = (-1).dp
             ),
         header = {
@@ -77,18 +78,8 @@ fun getRailNavBar(
                 }
             }
 
+            floatingCreateOfferButton{
 
-            FloatingActionButton(
-                containerColor = colors.white,
-                contentColor = colors.grayLayout,
-                onClick = { },
-                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
-            ){
-                Icon(
-                    tint = colors.inactiveBottomNavIconColor,
-                    painter = painterResource(drawables.newLotIcon),
-                    contentDescription = stringResource(strings.newLotTitle)
-                )
             }
         },
         containerColor = colors.white,

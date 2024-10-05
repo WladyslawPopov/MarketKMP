@@ -28,11 +28,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeAppBar(
     modifier: Modifier = Modifier,
+    isFullScreen: Boolean = false,
     openMenu : () -> Unit,
 ) {
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
-
     val listItems = listOf(
         NavigationItem(
             title = stringResource(strings.proposalTitle),
@@ -70,7 +68,7 @@ fun HomeAppBar(
             )
         },
         navigationIcon = {
-            if (!showNavigationRail) {
+            if (!isFullScreen) {
                 MenuHamburgerButton{
                     openMenu()
                 }

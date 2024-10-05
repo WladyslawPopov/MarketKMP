@@ -10,7 +10,6 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 import market.engine.core.globalData.SD
@@ -124,7 +123,7 @@ class DefaultMainComponent(
         )
     }
 
-    override val childCategoryStack: Value<ChildStack<*, MainComponent.ChildCategory>> by lazy {
+    override val childCategoryStack: Value<ChildStack<*, MainComponent.ChildCategory>> =
         childStack(
             source = modelNavigation.value.categoryNavigation,
             initialConfiguration = CategoryConfig.CategoryScreen,
@@ -133,7 +132,7 @@ class DefaultMainComponent(
             childFactory = ::createChild,
             key = "CategoryStack"
         )
-    }
+
 
     override val childBasketStack: Value<ChildStack<*, MainComponent.ChildBasket>> by lazy {
         childStack(
@@ -173,7 +172,7 @@ class DefaultMainComponent(
             source = currentNavigation,
             serializer = Config.serializer(),
             initialConfiguration = Config.Home,
-            handleBackButton = false,
+            handleBackButton = true,
             childFactory = {config, _ ->
                 createChild(config)
             },
@@ -231,11 +230,11 @@ class DefaultMainComponent(
                 itemCategory(componentContext)
             )
             CategoryConfig.SearchScreen -> MainComponent.ChildCategory.SearchChild(
-                itemSearch(componentContext, modelNavigation.value.categoryNavigation)
+                itemSearch(componentContext)
             )
 
             CategoryConfig.ListingScreen -> MainComponent.ChildCategory.ListingChild(
-                itemListing(componentContext, modelNavigation.value.categoryNavigation)
+                itemListing(componentContext)
             )
         }
 
@@ -293,7 +292,15 @@ class DefaultMainComponent(
     private fun itemCategory(componentContext: ComponentContext): CategoryComponent {
         return DefaultCategoryComponent(
             componentContext = componentContext,
-            navigation = modelNavigation.value.categoryNavigation
+            goToListingSelected = {
+                pushCatStack(CategoryScreenType.LISTING)
+            },
+            goToSearchSelected = {
+                pushCatStack(CategoryScreenType.SEARCH)
+            },
+            onBackPressed = {
+                pushCatStack(CategoryScreenType.CATEGORY)
+            }
         )
     }
 
@@ -302,37 +309,52 @@ class DefaultMainComponent(
             componentContext = componentContext,
             navigation = modelNavigation.value.homeNavigation,
             navigateToSearchSelected = {
-                searchData.value.categoryType = CategoryScreenType.SEARCH
+                pushCatStack(CategoryScreenType.SEARCH)
                 navigateToBottomItem(Config.Category)
             },
             navigateToListingSelected = {
-                searchData.value.categoryType = CategoryScreenType.LISTING
+                pushCatStack(CategoryScreenType.LISTING)
                 navigateToBottomItem(Config.Category)
             }
         )
     }
 
-    private fun itemSearch(componentContext: ComponentContext, navigation: StackNavigation<CategoryConfig>): SearchComponent {
+    private fun itemSearch(componentContext: ComponentContext): SearchComponent {
         return DefaultSearchComponent(
             componentContext = componentContext,
             onBackPressed = {
-                navigation.pop()
+                pushCatStack(CategoryScreenType.CATEGORY)
+            },
+            goToListingSelected = {
+                pushCatStack(CategoryScreenType.LISTING)
             }
         )
     }
 
-    private fun itemListing(componentContext: ComponentContext, navigation: StackNavigation<*>): ListingComponent {
+    private fun itemListing(componentContext: ComponentContext): ListingComponent {
         return DefaultListingComponent(
             componentContext = componentContext,
             searchSelected = {
-                searchData.value.categoryType = CategoryScreenType.SEARCH
-                modelNavigation.value.categoryNavigation.push(CategoryConfig.SearchScreen)
+                pushCatStack(CategoryScreenType.SEARCH)
             },
             onBackPressed = {
-                searchData.value.categoryType = CategoryScreenType.CATEGORY
-                navigation.pop()
+                pushCatStack(CategoryScreenType.CATEGORY)
             }
         )
+    }
+
+    private fun pushCatStack(screenType: CategoryScreenType){
+        when(screenType){
+            CategoryScreenType.LISTING -> {
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
+            }
+            CategoryScreenType.SEARCH -> {
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.SearchScreen)
+            }
+            CategoryScreenType.CATEGORY -> {
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.CategoryScreen)
+            }
+        }
     }
 }
 

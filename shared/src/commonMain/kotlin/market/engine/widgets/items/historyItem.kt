@@ -27,7 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 fun historyItem(
     history: SearchHistory,
     onItemClick: (String) -> Unit,
-    onSearchClick: () -> Unit,   
+    onSearchClick: (String) -> Unit,
 ){
     Row(
         modifier = Modifier.fillMaxWidth()
@@ -52,7 +52,7 @@ fun historyItem(
 
             IconButton(
                 onClick = {
-                    onSearchClick()
+                    onSearchClick(history.query)
                 },
                 modifier = Modifier.align(Alignment.CenterEnd)
             ){

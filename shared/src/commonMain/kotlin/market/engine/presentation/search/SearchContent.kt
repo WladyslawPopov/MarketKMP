@@ -25,8 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,79 +56,82 @@ fun SearchContent(
     modifier: Modifier = Modifier
 ) {
     val searchData = component.searchData.collectAsState()
-    val screenType = searchData.value.categoryType
+    val modelState = component.model.subscribeAsState()
+    val model = modelState.value
 
-    when(screenType){
-        CategoryScreenType.CATEGORY -> {
-            component.onCloseClicked(CategoryScreenType.CATEGORY)
-        }
-        CategoryScreenType.LISTING -> {
-            component.onCloseClicked(CategoryScreenType.LISTING)
-        }
-        CategoryScreenType.SEARCH -> {
-            val modelState = component.model.subscribeAsState()
-            val model = modelState.value
+    val isLoading = model.isLoading.collectAsState()
+    val isError = model.isError.collectAsState()
+    val history = model.history.collectAsState()
 
-            val isLoading = model.isLoading.collectAsState()
-            val isError = model.isError.collectAsState()
-            val history = model.history.collectAsState()
+    val selectedUser = remember { mutableStateOf(searchData.value.searchChoice == "user_search") }
+    val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
+    val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
-            val selectedUser = remember { mutableStateOf(false) }
-            val selectedUserFinished = remember { mutableStateOf(false) }
-            val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName) }
+    val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
+        { onError(model.isError.value) { } }
+    }else{
+        null
+    }
 
-            val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-                { onError(model.isError.value) { } }
-            }else{
-                null
-            }
+    var searchString by remember {
+        mutableStateOf(searchData.value.searchString ?: "")
+    }
 
-            BaseContent(
-                modifier = modifier,
-                isLoading = isLoading,
-                error = error,
-                topBar = {
-                    SearchAppBar(
-                        modifier,
-                        searchData,
-                        onSearchClick = {
-                            component.goToListing()
-                        },
-                        onUpdateHistory = {
-                            component.updateHistory(it)
-                        }
-                    ) {
-                        component.onCloseClicked(CategoryScreenType.CATEGORY)
-                    }
+    BaseContent(
+        modifier = modifier,
+        isLoading = isLoading,
+        error = error,
+        topBar = {
+            SearchAppBar(
+                modifier,
+                searchString,
+                searchData,
+                onSearchClick = {
+                    component.goToListing()
                 },
-                onRefresh = { component.updateHistory("") }
-            ) {
-                Column(
-                    modifier = modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    FiltersSearchBar(
-                        modifier = modifier,
-                        selectedUser = selectedUser,
-                        selectedUserFinished = selectedUserFinished,
-                        selectedCategory = selectedCategory,
-                        searchData = searchData,
-                        goToCategory = { component.onCloseClicked(CategoryScreenType.CATEGORY) }
-                    )
-
-                    HistoryLayout(
-                        historyItems = history.value,
-                        modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
-                        onItemClick = { component.updateHistory(it) },
-                        onClearHistory = { component.deleteHistory() },
-                        onDeleteItem = { component.deleteItemHistory(it) },
-                        goToListing = { component.goToListing() }
-                    )
+                onUpdateHistory = {
+                    searchString = it
+                    component.updateHistory(it)
                 }
+            ) {
+                component.onCloseClicked(CategoryScreenType.CATEGORY)
             }
+        },
+        onRefresh = {
+            searchString = ""
+            component.updateHistory("")
+        }
+    ) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+            FiltersSearchBar(
+                modifier = modifier,
+                selectedUser = selectedUser,
+                selectedUserFinished = selectedUserFinished,
+                selectedCategory = selectedCategory,
+                searchData = searchData,
+                goToCategory = { component.onCloseClicked(CategoryScreenType.CATEGORY) }
+            )
+
+            HistoryLayout(
+                historyItems = history.value,
+                modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                onItemClick = {
+                    searchString = it
+                    component.updateHistory(it)
+                },
+                onClearHistory = { component.deleteHistory() },
+                onDeleteItem = { component.deleteItemHistory(it) },
+                goToListing = {
+                    searchData.value.searchString = it
+                    component.goToListing()
+                }
+            )
         }
     }
 }
@@ -139,7 +144,7 @@ fun HistoryLayout(
     onItemClick: (String) -> Unit,
     onClearHistory: () -> Unit,
     onDeleteItem: (Long) -> Unit,
-    goToListing: () -> Unit
+    goToListing: (String) -> Unit
 ) {
     if (historyItems.isEmpty()) {
         return

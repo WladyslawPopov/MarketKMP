@@ -28,11 +28,17 @@ fun CategoryNavigation (
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is MainComponent.ChildCategory.SearchChild -> SearchContent(screen.component, modifier)
-            is MainComponent.ChildCategory.ListingChild -> ListingContent(screen.component, modifier)
-            is MainComponent.ChildCategory.CategoryChild ->
+            is MainComponent.ChildCategory.SearchChild ->{
+                SearchContent(screen.component, modifier)
+            }
+            is MainComponent.ChildCategory.ListingChild ->{
+                screen.component.onRefresh()
+                ListingContent(screen.component, modifier)
+            }
+            is MainComponent.ChildCategory.CategoryChild ->{
+                screen.component.onRefresh()
                 CategoryContent(screen.component, modifier)
-
+            }
         }
     }
 }

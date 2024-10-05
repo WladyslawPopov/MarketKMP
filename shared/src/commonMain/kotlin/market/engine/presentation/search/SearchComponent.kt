@@ -1,5 +1,7 @@
 package market.engine.presentation.search
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import market.engine.core.constants.UserData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -29,7 +31,7 @@ interface SearchComponent {
 
     fun goToListing()
 
-    fun updateHistory(searchString: String)
+    fun updateHistory(string : String)
 
     fun deleteHistory()
 
@@ -39,6 +41,7 @@ interface SearchComponent {
 class DefaultSearchComponent(
     componentContext: ComponentContext,
     private val onBackPressed: () -> Unit,
+    private val goToListingSelected: () -> Unit
 ) : SearchComponent, ComponentContext by componentContext {
 
     private val searchViewModel: SearchViewModel = getKoin().get()
@@ -63,25 +66,23 @@ class DefaultSearchComponent(
 
 
     override fun onCloseClicked(categoryType: CategoryScreenType) {
-        searchData.value.categoryType = categoryType
         onBackPressed()
     }
 
     override fun goToListing() {
-        searchData.value.categoryType = CategoryScreenType.LISTING
-        if (searchData.value.searchString != null && searchData.value.searchString != "") {
+        val searchString = searchData.value.searchString
+        if (searchString != "" && searchString != null) {
             val sh = searchViewModel.dataBase.searchHistoryQueries
-            if (sh.selectSearch(searchData.value.searchString!!, UserData.login).executeAsList().isEmpty()){
-                sh.insertEntry(searchData.value.searchString!!.trim(), UserData.login)
+            if (sh.selectSearch(searchString, UserData.login).executeAsList().isEmpty()){
+                sh.insertEntry(searchString, UserData.login)
             }
         }
-
-        onBackPressed()
+        goToListingSelected()
     }
 
-    override fun updateHistory(searchString: String) {
-        searchData.value.searchString = searchString
-        searchViewModel.getHistory(searchString)
+    override fun updateHistory(string : String) {
+        searchData.value.searchString = string
+        searchViewModel.getHistory()
     }
 
 

@@ -16,13 +16,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.common.ScrollBarsProvider
 import market.engine.common.SwipeRefreshContent
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.widgets.buttons.floatingCreateOfferButton
 
 @Composable
 fun BaseContent(
     modifier: Modifier = Modifier,
     onRefresh: () -> Unit,
     isLoading: State<Boolean>,
-    showVerticalScrollbar: Boolean = true,
+    showVerticalScrollbarState: Any? = null,
+    isShowFloatingButton: Boolean = false,
     topBar: (@Composable () -> Unit)? = null,
     error: (@Composable () -> Unit)? = null,
     noFound : (@Composable () -> Unit)? = null,
@@ -43,51 +46,38 @@ fun BaseContent(
         ) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding))
             {
-                if (showVerticalScrollbar){
-                    val scrollState = rememberScrollState()
-                    Box(modifier = modifier.fillMaxSize()
-                        .verticalScroll(scrollState)
-                    ) {
-                        AnimatedVisibility(
-                            modifier = modifier.align(Alignment.TopStart),
-                            visible = !isLoading.value,
-                            enter = expandIn(),
-                            exit = fadeOut()
-                        ) {
-                            if(noFound != null){
-                                noFound()
-                            }else{
-                                if (error == null) {
-                                    content()
-                                }else{
-                                    error()
-                                }
-                            }
+                AnimatedVisibility(
+                    modifier = modifier,
+                    visible = !isLoading.value,
+                    enter = expandIn(),
+                    exit = fadeOut()
+                ) {
+                    if(noFound != null){
+                        noFound()
+                    }else{
+                        if (error == null) {
+                            content()
+                        }else{
+                            error()
                         }
                     }
+                }
 
+                if (showVerticalScrollbarState != null) {
                     ScrollBarsProvider().getVerticalScrollbar(
-                        scrollState,
+                        showVerticalScrollbarState,
                         modifier
                             .align(Alignment.CenterEnd)
                             .fillMaxHeight()
                     )
-                }else{
-                    AnimatedVisibility(
-                        modifier = modifier.align(Alignment.TopStart),
-                        visible = !isLoading.value,
-                        enter = expandIn(),
-                        exit = fadeOut()
+                }
+
+                if (isShowFloatingButton) {
+                    floatingCreateOfferButton(
+                        modifier.align(Alignment.BottomEnd)
+                            .padding(bottom = dimens.largePadding, end = dimens.smallPadding)
                     ) {
-                        if(noFound != null){
-                            noFound()
-                        }else{
-                            if (error == null) {
-                                content()
-                            }else{
-                                error()
-                            }
-                        }
+
                     }
                 }
             }

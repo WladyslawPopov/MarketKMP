@@ -1,5 +1,10 @@
 package market.engine.core.globalData
 
+import androidx.compose.runtime.State
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import market.engine.core.types.CategoryScreenType
 
@@ -16,7 +21,7 @@ data class SD(
     var searchIsLeaf: Boolean = false,
     var searchUsersLots: String? = null,
     var searchFinished: Boolean = false,
-    var categoryType: CategoryScreenType = CategoryScreenType.CATEGORY,
+    var categoryStack: ArrayList<CategoryScreenType> = arrayListOf(CategoryScreenType.CATEGORY),
 )
 {
     fun clear(){

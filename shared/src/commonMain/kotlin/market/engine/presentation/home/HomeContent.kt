@@ -3,6 +3,8 @@ package market.engine.presentation.home
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -11,6 +13,8 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.items.TopCategory
+import market.engine.core.types.WindowSizeClass
+import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.rows.CategoryList
 import market.engine.widgets.rows.FooterRow
@@ -122,7 +126,7 @@ fun HomeContent(
     val model = modelState.value
     val isLoading = model.isLoading.collectAsState()
     val err = model.isError.collectAsState()
-
+    val scrollState = rememberScrollState()
     val searchData = component.searchData.collectAsState()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
@@ -131,14 +135,21 @@ fun HomeContent(
         null
     }
 
+    val windowClass = getWindowSizeClass()
+    val showNavigationRail = windowClass == WindowSizeClass.Big
+
     BaseContent(
         modifier = modifier,
         isLoading = isLoading,
-        topBar = { HomeAppBar(modifier) { clickDrawer() } },
+        isShowFloatingButton = true,
+        showVerticalScrollbarState = scrollState,
+        topBar = { HomeAppBar(modifier, showNavigationRail) { clickDrawer() } },
         onRefresh = { component.onRefresh() },
         error = error
     ) {
-        Column {
+        Column(
+            modifier = modifier.verticalScroll(scrollState)
+        ) {
             SearchBar(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
                     .wrapContentHeight()

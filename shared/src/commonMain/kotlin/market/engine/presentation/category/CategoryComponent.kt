@@ -42,7 +42,9 @@ interface CategoryComponent {
 
 class DefaultCategoryComponent(
     componentContext: ComponentContext,
-    private val navigation: StackNavigation<CategoryConfig>,
+    private val goToListingSelected: () -> Unit,
+    private val goToSearchSelected: () -> Unit,
+    private val onBackPressed: () -> Unit,
 ) : CategoryComponent, ComponentContext by componentContext {
 
     private val categoryViewModel: CategoryViewModel = getKoin().get()
@@ -82,17 +84,15 @@ class DefaultCategoryComponent(
     }
 
     override fun onCloseClicked() {
-        navigation.pop()
+        onBackPressed()
     }
 
     override fun goToListing() {
-        searchData.value.categoryType = CategoryScreenType.LISTING
-        navigation.push(CategoryConfig.ListingScreen)
+        goToListingSelected()
     }
 
     override fun goToSearch() {
-        searchData.value.categoryType = CategoryScreenType.SEARCH
-        navigation.push(CategoryConfig.SearchScreen)
+        goToSearchSelected()
     }
 
     override fun updateCategoryList(id: Long) {

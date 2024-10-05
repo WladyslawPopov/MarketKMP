@@ -13,4 +13,5 @@ data class NavigationItem(
     val hasNews : Boolean,
     val badgeCount : Int? = null,
     val isVisible: Boolean = true,
+    val onClick : () -> Unit = {}
 )

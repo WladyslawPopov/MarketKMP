@@ -10,8 +10,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -35,6 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SearchAppBar(
     modifier: Modifier = Modifier,
+    searchString: String,
     searchData: State<SD>,
     onSearchClick: () -> Unit,
     onUpdateHistory: (String) -> Unit,
@@ -56,7 +61,7 @@ fun SearchAppBar(
             .fillMaxWidth(),
         title = {
            SearchTextField(
-               modifier,searchData,focusRequester,onUpdateHistory,onBeakClick
+               modifier,searchString,focusRequester,onUpdateHistory,onBeakClick
            )
         },
         navigationIcon = {

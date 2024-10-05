@@ -28,28 +28,40 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryAppBar(
-    title : String,
     isShowNav : MutableState<Boolean>,
     modifier: Modifier = Modifier,
     searchData: State<SD>,
     onSearchClick: () -> Unit,
+    onClearSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
 ) {
+
+    val title = if ( searchData.value.fromSearch) {
+        if (searchData.value.searchString != "") {
+            searchData.value.searchString ?: stringResource(strings.selectSearchTitle)
+        }else{
+            stringResource(strings.selectSearchTitle)
+        }
+    }else stringResource(strings.selectSearchTitle)
+
+
     val listItems = listOf(
-        NavigationItem(
-            title = stringResource(strings.searchTitle),
-            icon = drawables.searchIcon,
-            tint = colors.steelBlue,
-            hasNews = false,
-            badgeCount = null
-        ),
         NavigationItem(
             title = stringResource(strings.searchTitle),
             icon = drawables.cancelIcon,
             tint = colors.steelBlue,
             hasNews = false,
             badgeCount = null,
-            isVisible = false
+            isVisible = (searchData.value.searchString != "" && searchData.value.searchString != null),
+            onClick = { onClearSearchClick() }
+        ),
+        NavigationItem(
+            title = stringResource(strings.searchTitle),
+            icon = drawables.searchIcon,
+            tint = colors.steelBlue,
+            hasNews = false,
+            badgeCount = null,
+            onClick = { onSearchClick() }
         ),
     )
 
@@ -85,7 +97,7 @@ fun CategoryAppBar(
                         IconButton(
                             modifier = modIB,
                             onClick = {
-                                onSearchClick()
+                                item.onClick()
                             }
                         ) {
                             getBadgedBox(modifier = modifier, item)
