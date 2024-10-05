@@ -2,15 +2,19 @@ package market.engine.widgets.grids
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import market.engine.core.networkObjects.Offer
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
@@ -49,7 +53,12 @@ fun GridPromoOffers(promoOffers : List<Offer>, onOfferClick: (Offer) -> Unit) {
 
     Spacer(modifier = Modifier.heightIn(dimens.smallSpacer))
 
-    ActionTextButton(strings.allPromoOffersBtn) {
+    ActionTextButton(
+        strings.allPromoOffersBtn,
+        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+        modifier = Modifier.padding(horizontal = dimens.smallPadding).fillMaxWidth(),
+        alignment = Alignment.BottomEnd
+    ) {
 
     }
 

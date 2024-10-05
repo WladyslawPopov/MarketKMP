@@ -9,27 +9,34 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.TextUnit
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun ActionTextButton(text : StringResource, onClick : () -> Unit) {
+fun ActionTextButton(
+    text: StringResource,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit,
+    alignment: Alignment,
+    onClick: () -> Unit
+) {
     Box(
-        modifier = Modifier.padding(horizontal = dimens.smallPadding).fillMaxWidth(),
-        contentAlignment = Alignment.BottomEnd
+        modifier = modifier,
+        contentAlignment = alignment
     ) {
         TextButton(
             onClick = {
                 onClick()
             },
-            modifier = Modifier.padding(horizontal = dimens.smallPadding),
+            modifier = modifier,
             colors = colors.actionButtonColors
         ){
             Text(
                 text = stringResource(text),
-                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                fontSize = fontSize,
                 color = colors.actionTextColor,
             )
         }

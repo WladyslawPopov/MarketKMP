@@ -25,7 +25,7 @@ fun StringButton(
         Text(
             text = string,
             color = color,
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.bodySmall
         )
     }
 }

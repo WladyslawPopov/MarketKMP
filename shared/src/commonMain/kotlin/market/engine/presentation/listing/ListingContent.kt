@@ -64,10 +64,14 @@ fun ListingContent(
         topBar = {
             ListingAppBar(
                 searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
-                modifier
-            ) {
-                component.onBackClicked()
-            }
+                modifier,
+                onSearchClick = {
+                    component.goToSearch()
+                },
+                onBeakClick = {
+                    component.onBackClicked()
+                }
+            )
         },
         onRefresh = { component.onRefresh() },
         error = error,

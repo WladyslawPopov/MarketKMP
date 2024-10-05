@@ -115,7 +115,7 @@ fun SearchContent(
                 selectedUserFinished = selectedUserFinished,
                 selectedCategory = selectedCategory,
                 searchData = searchData,
-                goToCategory = { component.onCloseClicked(CategoryScreenType.CATEGORY) }
+                goToCategory = { component.goToCategory() }
             )
 
             HistoryLayout(

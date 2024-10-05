@@ -323,10 +323,13 @@ class DefaultMainComponent(
         return DefaultSearchComponent(
             componentContext = componentContext,
             onBackPressed = {
-                pushCatStack(CategoryScreenType.CATEGORY)
+                pushCatStack(searchData.value.categoryStack[searchData.value.categoryStack.lastIndex - 1])
             },
             goToListingSelected = {
                 pushCatStack(CategoryScreenType.LISTING)
+            },
+            goToCategorySelected = {
+                pushCatStack(CategoryScreenType.CATEGORY)
             }
         )
     }
@@ -346,12 +349,18 @@ class DefaultMainComponent(
     private fun pushCatStack(screenType: CategoryScreenType){
         when(screenType){
             CategoryScreenType.LISTING -> {
+                searchData.value.categoryStack.remove(CategoryScreenType.LISTING)
+                searchData.value.categoryStack.add(CategoryScreenType.LISTING)
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
             }
             CategoryScreenType.SEARCH -> {
+                searchData.value.categoryStack.remove(CategoryScreenType.SEARCH)
+                searchData.value.categoryStack.add(CategoryScreenType.SEARCH)
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.SearchScreen)
             }
             CategoryScreenType.CATEGORY -> {
+                searchData.value.categoryStack.remove(CategoryScreenType.CATEGORY)
+                searchData.value.categoryStack.add(CategoryScreenType.CATEGORY)
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.CategoryScreen)
             }
         }

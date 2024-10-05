@@ -30,6 +30,7 @@ import org.jetbrains.compose.resources.stringResource
 fun ListingAppBar(
     title : String,
     modifier: Modifier = Modifier,
+    onSearchClick: () -> Unit = {},
     onBeakClick: () -> Unit,
 ) {
     val windowClass = getWindowSizeClass()
@@ -41,7 +42,8 @@ fun ListingAppBar(
             icon = drawables.searchIcon,
             tint = colors.steelBlue,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = { onSearchClick() }
         ),
     )
 
@@ -49,7 +51,9 @@ fun ListingAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-           TitleText(title)
+           TitleText(title){
+               onBeakClick()
+           }
         },
         navigationIcon = {
             if (!showNavigationRail) {
@@ -82,7 +86,7 @@ fun ListingAppBar(
                         }
                         IconButton(
                             modifier = modIB,
-                            onClick = {  }
+                            onClick = { item.onClick() }
                         ) {
                             getBadgedBox(modifier = modifier, item)
                         }

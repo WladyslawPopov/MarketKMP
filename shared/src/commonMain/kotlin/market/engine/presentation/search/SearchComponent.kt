@@ -36,12 +36,15 @@ interface SearchComponent {
     fun deleteHistory()
 
     fun deleteItemHistory(id : Long)
+
+    fun goToCategory()
 }
 
 class DefaultSearchComponent(
     componentContext: ComponentContext,
     private val onBackPressed: () -> Unit,
-    private val goToListingSelected: () -> Unit
+    private val goToListingSelected: () -> Unit,
+    private val goToCategorySelected: () -> Unit
 ) : SearchComponent, ComponentContext by componentContext {
 
     private val searchViewModel: SearchViewModel = getKoin().get()
@@ -96,5 +99,9 @@ class DefaultSearchComponent(
         val sh = searchViewModel.dataBase.searchHistoryQueries
         sh.deleteById(id)
         searchViewModel.getHistory()
+    }
+
+    override fun goToCategory() {
+        goToCategorySelected()
     }
 }

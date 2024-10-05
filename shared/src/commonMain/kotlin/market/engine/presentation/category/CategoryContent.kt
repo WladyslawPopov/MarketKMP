@@ -1,8 +1,9 @@
 package market.engine.presentation.category
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,12 +32,11 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.types.CategoryScreenType
 import market.engine.widgets.texts.TitleText
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
-import market.engine.widgets.buttons.StringButton
+import market.engine.widgets.buttons.ActionTextButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -58,6 +58,8 @@ fun CategoryContent(
     if (searchData.value.searchCategoryID != null){
         component.updateCategoryList(searchData.value.searchCategoryID!!)
     }
+
+    val defCat = stringResource(strings.categoryEnter)
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
         { onError(model.isError.value) { component.onRefresh() } }
@@ -112,21 +114,27 @@ fun CategoryContent(
                             .fillMaxWidth()
                             .wrapContentHeight().padding(dimens.smallPadding)
                     ) {
-                        TitleText(
-                            searchData.value.searchCategoryName?: stringResource(strings.categoryMain),
-                            modifier.align(Alignment.CenterStart)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ){
+                            TitleText(
+                                modifier = modifier.weight(1f),
+                                text = searchData.value.searchCategoryName?: stringResource(strings.categoryMain),
+                            )
 
-                        if (searchData.value.searchCategoryID != 1L) {
-                            StringButton(
-                                stringResource(strings.resetLabel),
-                                colors.greenColor,
-                                modifier = Modifier.align(Alignment.CenterEnd),
-                                onClick = {
+                            if (searchData.value.searchCategoryID != 1L) {
+                                ActionTextButton(
+                                    strings.resetLabel,
+                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                    modifier = modifier.weight(0.4f),
+                                    alignment = Alignment.BottomEnd
+                                ){
+                                    searchData.value.searchCategoryName = defCat
                                     searchData.value.searchCategoryID = 1L
                                     component.onRefresh()
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -168,7 +176,9 @@ fun CategoryContent(
                             }
                         },
                         badge = {
-                            Badge {
+                            Badge(
+                                containerColor = colors.textA0AE
+                            ) {
                                 Text(
                                     text = category.estimatedActiveOffersCount.toString(),
                                     style = MaterialTheme.typography.labelSmall,
