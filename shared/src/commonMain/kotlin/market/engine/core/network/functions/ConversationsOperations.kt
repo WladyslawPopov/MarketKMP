@@ -2,8 +2,8 @@ package application.market.agora.business.core.network.functions
 
 
 import market.engine.core.network.ServerErrorException
-import market.engine.core.networkObjects.Conversations
-import market.engine.core.networkObjects.deserializePayload
+import market.engine.core.network.networkObjects.Conversations
+import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonObject
 

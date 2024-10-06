@@ -3,7 +3,7 @@ package market.engine.presentation.listing
 import androidx.paging.PagingData
 import market.engine.core.network.ServerResponse
 import market.engine.core.items.ListingData
-import market.engine.core.networkObjects.Offer
+import market.engine.core.network.networkObjects.Offer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

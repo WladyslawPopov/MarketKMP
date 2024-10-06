@@ -8,6 +8,7 @@ interface Strings {
     val homeTitle: StringResource
     val searchTitle: StringResource
     val newLotTitle: StringResource
+    val searchUsersSearch: StringResource
     val notificationTitle: StringResource
     val mailTitle: StringResource
     val topOffersTitle: StringResource
@@ -80,4 +81,10 @@ interface Strings {
     val notFoundListingTitle : StringResource
 
     val categoryEnter : StringResource
+
+    val allOffers : StringResource
+    val filter : StringResource
+    val sort : StringResource
+    val ordinaryAuction : StringResource
+    val buyNow : StringResource
 }

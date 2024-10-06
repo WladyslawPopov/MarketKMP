@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.StateFlow
 import market.engine.core.constants.ThemeResources.colors
@@ -39,14 +40,14 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SearchAppBar(
     modifier: Modifier = Modifier,
-    searchString: String,
+    searchString: TextFieldValue,
+    focusRequester: FocusRequester,
     onSearchClick: () -> Unit,
     onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit,
 ) {
     val windowClass = getWindowSizeClass()
     val showNavigationRail = windowClass == WindowSizeClass.Big
-    val focusRequester = remember { FocusRequester() }
     val searchItem = NavigationItem(
             title = stringResource(strings.searchTitle),
             icon = drawables.searchIcon,
@@ -91,8 +92,4 @@ fun SearchAppBar(
             }
         }
     )
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
 }

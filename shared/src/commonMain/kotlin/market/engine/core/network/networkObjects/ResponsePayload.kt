@@ -1,4 +1,4 @@
-package market.engine.core.networkObjects
+package market.engine.core.network.networkObjects
 
 import market.engine.core.network.ServerErrorException
 import kotlinx.serialization.SerialName

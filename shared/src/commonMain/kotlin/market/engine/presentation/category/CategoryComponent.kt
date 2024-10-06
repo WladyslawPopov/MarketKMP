@@ -1,19 +1,14 @@
 package market.engine.presentation.category
 
-import market.engine.core.networkObjects.Category
+import market.engine.core.network.networkObjects.Category
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import market.engine.core.globalData.SD
+import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
-import market.engine.core.types.CategoryScreenType
-import market.engine.presentation.main.CategoryConfig
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -27,7 +22,7 @@ interface CategoryComponent {
         val isError: StateFlow<ServerErrorException>
     )
 
-    val searchData : StateFlow<SD>
+    val globalData : CategoryBaseFilters
 
     fun onRefresh()
 
@@ -50,7 +45,9 @@ class DefaultCategoryComponent(
     private val categoryViewModel: CategoryViewModel = getKoin().get()
     private val categoryOperations : CategoryOperations = getKoin().get()
 
-    override val searchData : StateFlow<SD> = getKoin().get<StateFlow<SD>>()
+    override val globalData: CategoryBaseFilters = getKoin().get()
+
+    val searchData = globalData.listingData.searchData
 
     private val _model = MutableValue(
         CategoryComponent.Model(

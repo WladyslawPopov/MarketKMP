@@ -3,8 +3,7 @@ package market.engine.presentation.favorites
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
-import market.engine.presentation.main.FavoritesConfig
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.configs.FavoritesConfig
 
 
 interface FavoritesComponent {

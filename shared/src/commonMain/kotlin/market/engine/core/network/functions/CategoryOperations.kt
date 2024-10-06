@@ -1,21 +1,17 @@
 package market.engine.core.network.functions
 
-import kotlinx.coroutines.flow.StateFlow
-import market.engine.core.globalData.SD
+import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.UrlBuilder
-import market.engine.core.networkObjects.Category
-import market.engine.core.networkObjects.Payload
-import market.engine.core.networkObjects.RegionOptions
-import market.engine.core.networkObjects.deserializePayload
+import market.engine.core.network.networkObjects.Category
+import market.engine.core.network.networkObjects.Payload
+import market.engine.core.network.networkObjects.RegionOptions
+import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 
-import org.koin.mp.KoinPlatform.getKoin
 
-class CategoryOperations(private val apiService : APIService) {
-
-    val searchData : StateFlow<SD> = getKoin().get()
+class CategoryOperations(private val apiService : APIService, private val globalData: CategoryBaseFilters) {
 
     suspend fun getCategoryInfo(id: Long?): ServerResponse<Category> {
         return try {
@@ -37,7 +33,8 @@ class CategoryOperations(private val apiService : APIService) {
     }
 
     suspend fun getTotalCount(id: Long): ServerResponse<Int> {
-        val sd = searchData.value.copy()
+        val sd = globalData.listingData.searchData.value.copy()
+
         sd.searchCategoryID = id
         val url = UrlBuilder()
             .addPathSegment("offers")

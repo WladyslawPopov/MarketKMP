@@ -2,11 +2,11 @@ package application.market.agora.business.core.network.functions
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
-import market.engine.core.networkObjects.AppResponse
-import market.engine.core.networkObjects.DynamicPayload
-import market.engine.core.networkObjects.OperationResult
-import market.engine.core.networkObjects.Operations
-import market.engine.core.networkObjects.deserializePayload
+import market.engine.core.network.networkObjects.AppResponse
+import market.engine.core.network.networkObjects.DynamicPayload
+import market.engine.core.network.networkObjects.OperationResult
+import market.engine.core.network.networkObjects.Operations
+import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonElement
 

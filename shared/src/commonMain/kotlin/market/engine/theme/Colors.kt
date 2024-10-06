@@ -9,6 +9,7 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.ui.graphics.Color
 
 interface Colors {
+    val selected : Color
     val primaryColor : Color
     val titleTextColor: Color
     val inactiveBottomNavIconColor: Color

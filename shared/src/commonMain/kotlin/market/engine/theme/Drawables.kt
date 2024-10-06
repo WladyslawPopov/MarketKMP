@@ -6,6 +6,7 @@ interface Drawables {
    val home : DrawableResource
    val search : DrawableResource
    val menuHamburger : DrawableResource
+   val historyIcon : DrawableResource
    val logo : DrawableResource
    val notification : DrawableResource
    val mail : DrawableResource
@@ -25,6 +26,7 @@ interface Drawables {
    val searchIcon : DrawableResource
    val cancelIcon : DrawableResource
    val filterIcon : DrawableResource
+   val sortIcon : DrawableResource
 
    val collectionPng : DrawableResource
    val vintagePng : DrawableResource

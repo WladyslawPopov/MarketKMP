@@ -1,5 +1,6 @@
 package market.engine.widgets.textFields
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,37 +9,47 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalData.SD
 import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
-    searchString : String,
+    search : TextFieldValue,
     focusRequester: FocusRequester,
     onUpdateHistory: (String) -> Unit,
     goToListing: () -> Unit,
 ){
-   var search = searchString
+    var textState by remember { mutableStateOf(search) }
+
+    val currentSearchState by rememberUpdatedState(newValue = search)
+
+    LaunchedEffect(currentSearchState) {
+        textState = currentSearchState.copy(selection = TextRange(currentSearchState.text.length))
+    }
+
     TextField(
-        value = search,
+        value = textState,
         onValueChange = {
-            search = it
-            onUpdateHistory(search)
+            textState = it.copy(selection = TextRange(it.text.length))
+            onUpdateHistory(it.text)
         },
         placeholder = {
             Text(
@@ -46,7 +57,8 @@ fun SearchTextField(
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
-        modifier = modifier.clip(MaterialTheme.shapes.small)
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
             .wrapContentSize()
             .focusRequester(focusRequester),
         keyboardOptions = KeyboardOptions.Default.copy(
@@ -59,21 +71,20 @@ fun SearchTextField(
             }
         ),
         trailingIcon = {
-            if (searchString != "") {
-
+            if (textState.text.isNotEmpty()) {
                 SmallIconButton(
                     icon = drawables.cancelIcon,
                     contentDescription = stringResource(strings.actionClose),
                     color = colors.steelBlue,
-                    modifier = modifier,
-                ){
-                    search = ""
-                    onUpdateHistory(search)
+                    modifierIconSize = modifier.size(dimens.extraSmallIconSize),
+                ) {
+                    textState = TextFieldValue("")  // Очищаем текст
+                    onUpdateHistory(textState.text)
                 }
             }
         },
         textStyle = MaterialTheme.typography.bodyMedium,
-        colors =  TextFieldDefaults.colors(
+        colors = TextFieldDefaults.colors(
             focusedTextColor = colors.black,
             unfocusedTextColor = colors.black,
 

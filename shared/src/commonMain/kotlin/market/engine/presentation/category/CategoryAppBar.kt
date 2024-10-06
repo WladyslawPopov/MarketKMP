@@ -18,6 +18,7 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.globalData.SD
+import market.engine.core.items.ListingData
 
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.buttons.NavigationArrowButton
@@ -35,7 +36,6 @@ fun CategoryAppBar(
     onClearSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
 ) {
-
     val title = if ( searchData.value.fromSearch) {
         if (searchData.value.searchString != "") {
             searchData.value.searchString ?: stringResource(strings.selectSearchTitle)

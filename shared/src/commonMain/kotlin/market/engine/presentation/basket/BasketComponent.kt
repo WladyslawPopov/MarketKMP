@@ -3,8 +3,7 @@ package market.engine.presentation.basket
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
-import market.engine.presentation.main.BasketConfig
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.configs.BasketConfig
 
 
 interface BasketComponent {
@@ -15,7 +14,7 @@ interface BasketComponent {
 class DefaultBasketComponent(
     componentContext: ComponentContext,
     private val navigation: StackNavigation<BasketConfig>
-) : market.engine.presentation.basket.BasketComponent, ComponentContext by componentContext {
+) : BasketComponent, ComponentContext by componentContext {
 
     override fun onCloseClicked() {
         navigation.pop()

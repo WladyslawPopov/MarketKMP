@@ -56,20 +56,18 @@ fun ListingAppBar(
            }
         },
         navigationIcon = {
-            if (!showNavigationRail) {
-                IconButton(
-                    modifier = modifier,
-                    onClick = {
-                        onBeakClick()
-                    }
-                ){
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(strings.menuTitle),
-                        modifier = modifier.size(dimens.smallIconSize),
-                        tint = colors.black
-                    )
+            IconButton(
+                modifier = modifier,
+                onClick = {
+                    onBeakClick()
                 }
+            ){
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(strings.menuTitle),
+                    modifier = modifier.size(dimens.smallIconSize),
+                    tint = colors.black
+                )
             }
         },
         actions = {

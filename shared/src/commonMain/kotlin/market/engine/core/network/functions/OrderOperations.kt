@@ -2,12 +2,12 @@ package application.market.agora.business.core.network.functions
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
-import market.engine.core.networkObjects.AdditionalData
-import market.engine.core.networkObjects.AppResponse
-import market.engine.core.networkObjects.Operations
-import market.engine.core.networkObjects.Order
-import market.engine.core.networkObjects.PayloadExistence
-import market.engine.core.networkObjects.deserializePayload
+import market.engine.core.network.networkObjects.AdditionalData
+import market.engine.core.network.networkObjects.AppResponse
+import market.engine.core.network.networkObjects.Operations
+import market.engine.core.network.networkObjects.Order
+import market.engine.core.network.networkObjects.PayloadExistence
+import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 
 class OrderOperations(private val apiService: APIService) {

@@ -1,17 +1,15 @@
 package market.engine.presentation.home
 
 import market.engine.core.network.ServerErrorException
-import market.engine.core.networkObjects.Category
-import market.engine.core.networkObjects.Offer
+import market.engine.core.network.networkObjects.Category
+import market.engine.core.network.networkObjects.Offer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
-import market.engine.core.globalData.SD
-
-import market.engine.presentation.main.HomeConfig
-import market.engine.presentation.main.MainComponent
+import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.navigation.configs.HomeConfig
 import org.koin.mp.KoinPlatform.getKoin
 
 interface HomeComponent {
@@ -28,7 +26,7 @@ interface HomeComponent {
         val isError: StateFlow<ServerErrorException>
     )
 
-    val searchData: StateFlow<SD>
+    val globalData : CategoryBaseFilters
 
     fun onRefresh()
 }
@@ -41,7 +39,7 @@ class DefaultHomeComponent(
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
-    override val searchData: StateFlow<SD> = getKoin().get()
+    override val globalData : CategoryBaseFilters = getKoin().get()
 
     private val _model = MutableValue(
         HomeComponent.Model(

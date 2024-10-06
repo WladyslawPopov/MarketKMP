@@ -7,16 +7,12 @@ import application.market.agora.business.core.network.functions.OrderOperations
 import application.market.agora.business.core.network.functions.PrivateMessagesOperation
 import application.market.agora.business.core.network.functions.SubscriptionOperations
 import application.market.agora.business.core.network.functions.UserOperations
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
-import market.engine.core.globalData.SD
-import market.engine.core.globalObjects.searchData
+import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.presentation.category.CategoryViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
@@ -25,29 +21,48 @@ import market.engine.shared.MarketDB
 import org.koin.dsl.module
 
 object InstanceModule {
-    val appModule = module {
-        single { getKtorClient() }
-        single { APIService(get()) }
-        single { createSqlDriver() }
-        single { MarketDB(get()) } // Register MarketDB
+    val appModule = listOf(
+        networkModule,
+        databaseModule,
+        operationsModule,
+        repositoryModule,
+        viewModelModule,
+        filtersModule
+    )
+}
 
-        single { searchData.asStateFlow() }
+val viewModelModule = module {
+    single { HomeViewModel(get()) }
+    single { ListingViewModel(get()) }
+    single { CategoryViewModel(get()) }
+    single { SearchViewModel(get()) }
+}
 
-        single { OfferPagingRepository(get()) }
+val networkModule = module {
+    single { getKtorClient() }
+    single { APIService(get()) }
+}
 
-        single { CategoryOperations(get()) }
-        single { ConversationsOperations(get()) }
-        single { FileUpload(get()) }
-        single { OfferOperations(get()) }
-        single { OrderOperations(get()) }
-        single { PrivateMessagesOperation(get()) }
-        single { SubscriptionOperations(get()) }
-        single { UserOperations(get()) }
+val databaseModule = module {
+    single { createSqlDriver() }
+    single { MarketDB(get()) }
+}
 
-        single { HomeViewModel(get()) }
-        single { ListingViewModel(get()) }
-        single { CategoryViewModel(get()) }
-        single { SearchViewModel(get()) }
+val operationsModule = module {
+    single { CategoryOperations(get(), get()) }
+    single { ConversationsOperations(get()) }
+    single { FileUpload(get()) }
+    single { OfferOperations(get()) }
+    single { OrderOperations(get()) }
+    single { PrivateMessagesOperation(get()) }
+    single { SubscriptionOperations(get()) }
+    single { UserOperations(get()) }
+}
 
-    }
+val repositoryModule = module {
+    single { OfferPagingRepository(get()) }
+}
+
+val filtersModule = module {
+    single { CategoryBaseFilters() }
 }

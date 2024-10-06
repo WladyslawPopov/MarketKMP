@@ -3,8 +3,7 @@ package market.engine.presentation.profile
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
-import market.engine.presentation.main.MainComponent
-import market.engine.presentation.main.ProfileConfig
+import market.engine.core.navigation.configs.ProfileConfig
 
 
 interface ProfileComponent {

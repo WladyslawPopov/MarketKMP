@@ -1,13 +1,11 @@
 package market.engine.presentation.search
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import market.engine.core.constants.UserData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
-import market.engine.core.globalData.SD
+import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.types.CategoryScreenType
@@ -25,7 +23,7 @@ interface SearchComponent {
         val isError: StateFlow<ServerErrorException>,
     )
 
-    val searchData : StateFlow<SD>
+    val globalData : CategoryBaseFilters
 
     fun onCloseClicked(categoryType: CategoryScreenType)
 
@@ -50,7 +48,9 @@ class DefaultSearchComponent(
     private val searchViewModel: SearchViewModel = getKoin().get()
     private val categoryOperations : CategoryOperations = getKoin().get()
 
-    override val searchData : StateFlow<SD> = getKoin().get<StateFlow<SD>>()
+    override val globalData: CategoryBaseFilters = getKoin().get()
+
+    private val searchData = globalData.listingData.searchData
 
     init {
 

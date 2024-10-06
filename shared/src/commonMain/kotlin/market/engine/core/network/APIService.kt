@@ -1,8 +1,8 @@
 package market.engine.core.network
 
 
-import market.engine.core.networkObjects.AppResponse
-import market.engine.core.networkObjects.GoogleAuthResponse
+import market.engine.core.network.networkObjects.AppResponse
+import market.engine.core.network.networkObjects.GoogleAuthResponse
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import kotlin.collections.HashMap
 import io.ktor.client.*

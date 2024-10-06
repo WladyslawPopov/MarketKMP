@@ -127,7 +127,7 @@ fun HomeContent(
     val isLoading = model.isLoading.collectAsState()
     val err = model.isError.collectAsState()
     val scrollState = rememberScrollState()
-    val searchData = component.searchData.collectAsState()
+    val searchData = component.globalData.listingData.searchData.subscribeAsState()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(model.isError.value) { component.onRefresh() } }

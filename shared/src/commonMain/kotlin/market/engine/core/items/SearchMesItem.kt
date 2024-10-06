@@ -1,6 +1,6 @@
 package market.engine.core.items
 
-import market.engine.core.networkObjects.Dialog
+import market.engine.core.network.networkObjects.Dialog
 
 
 data class SearchMesItem (

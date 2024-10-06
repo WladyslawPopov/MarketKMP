@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import market.engine.core.networkObjects.Offer
+import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.printLogD
 import com.skydoves.landscapist.coil3.CoilImage
 import market.engine.core.constants.ThemeResources.colors

@@ -1,4 +1,4 @@
-package market.engine.core.networkObjects
+package market.engine.core.network.networkObjects
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

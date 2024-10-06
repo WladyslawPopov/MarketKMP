@@ -36,6 +36,7 @@ import market.engine.widgets.texts.TitleText
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
+import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionTextButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -45,7 +46,7 @@ fun CategoryContent(
     component: CategoryComponent,
     modifier: Modifier = Modifier
 ) {
-    val searchData = component.searchData.collectAsState()
+    val searchData = component.globalData.listingData.searchData.subscribeAsState()
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
 
@@ -54,10 +55,6 @@ fun CategoryContent(
     val categories = model.categories.collectAsState()
 
     val isShowNav = remember { mutableStateOf(false) }
-
-    if (searchData.value.searchCategoryID != null){
-        component.updateCategoryList(searchData.value.searchCategoryID!!)
-    }
 
     val defCat = stringResource(strings.categoryEnter)
 
@@ -79,7 +76,7 @@ fun CategoryContent(
                 CategoryAppBar(
                     isShowNav,
                     modifier,
-                    searchData = searchData,
+                    searchData,
                     onSearchClick = {
                         component.goToSearch()
                     },
@@ -177,18 +174,19 @@ fun CategoryContent(
                         },
                         badge = {
                             Badge(
-                                containerColor = colors.textA0AE
+                                containerColor = colors.steelBlue
                             ) {
                                 Text(
                                     text = category.estimatedActiveOffersCount.toString(),
                                     style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(dimens.extraSmallPadding)
+                                    modifier = Modifier.padding(dimens.extraSmallPadding),
+                                    color = colors.white
                                 )
                             }
                         },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                         colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.outgoingBubble,
+                            selectedContainerColor = colors.selected,
                             unselectedContainerColor = colors.white,
                             selectedIconColor = colors.grayLayout,
                             unselectedIconColor = colors.white,
@@ -206,24 +204,14 @@ fun CategoryContent(
             }
         }
 
-        TextButton(
-            onClick = {
-                component.goToListing()
-            },
-            colors = colors.themeButtonColors,
-            modifier = Modifier.fillMaxWidth()
+        AcceptedPageButton(
+            strings.categoryEnter,
+            Modifier.fillMaxWidth()
                 .wrapContentHeight()
                 .align(Alignment.BottomCenter)
                 .padding(dimens.smallPadding),
-            shape = MaterialTheme.shapes.small
-
         ){
-            Text(
-                text = stringResource(strings.categoryEnter),
-                color = colors.alwaysWhite,
-                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                lineHeight = dimens.largeText
-            )
+            component.goToListing()
         }
     }
 }

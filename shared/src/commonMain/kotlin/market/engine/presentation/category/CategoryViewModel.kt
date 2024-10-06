@@ -1,9 +1,9 @@
 package market.engine.presentation.category
 
 import market.engine.core.network.ServerErrorException
-import market.engine.core.networkObjects.Category
-import market.engine.core.networkObjects.Payload
-import market.engine.core.networkObjects.deserializePayload
+import market.engine.core.network.networkObjects.Category
+import market.engine.core.network.networkObjects.Payload
+import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -21,7 +21,6 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
 
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
     val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
-
     private val categoryOperations : CategoryOperations = getKoin().get()
 
 
@@ -32,22 +31,28 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
         setLoading(true)
         viewModelScope.launch {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    apiService.getPublicCategories(categoryId)
-                }
-                val payload: Payload<Category> = deserializePayload(response.payload)
+                withContext(Dispatchers.IO) {
+                    val response =
+                        apiService.getPublicCategories(categoryId)
 
+                    withContext(Dispatchers.Main){
+                        val payload: Payload<Category> = deserializePayload(response.payload)
 
-                val categoriesWithLotCounts = payload.objects.map { category ->
-                    val lotCount = withContext(Dispatchers.IO) {
-                        categoryOperations.getTotalCount(category.id)
+                        withContext(Dispatchers.IO) {
+                            val categoriesWithLotCounts = payload.objects.map { category ->
+                                val lotCount = categoryOperations.getTotalCount(category.id)
+
+                                category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
+                            }
+                            withContext(Dispatchers.Main){
+                                val categories =
+                                    categoriesWithLotCounts.filter { it.estimatedActiveOffersCount > 0 }
+
+                                _responseCategory.value = categories
+                            }
+                        }
                     }
-                    category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
                 }
-
-                val categories = categoriesWithLotCounts.filter { it.estimatedActiveOffersCount > 0 }
-
-                _responseCategory.value = categories
 
             } catch (exception: ServerErrorException) {
                 onError(exception)

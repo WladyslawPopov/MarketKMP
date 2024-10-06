@@ -16,7 +16,7 @@ data class LD(
     var totalCount: Int = 0,
     var prevPage : Int? = null,
     var methodServer : String = ""
-){
+) {
     fun clear(){
         filters = null
         sort = null

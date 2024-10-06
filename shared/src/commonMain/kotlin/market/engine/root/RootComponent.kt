@@ -6,9 +6,8 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
-import kotlinx.serialization.Serializable
+import market.engine.core.navigation.configs.RootConfig
 import market.engine.presentation.login.DefaultLoginComponent
 import market.engine.presentation.login.LoginComponent
 import market.engine.presentation.main.DefaultMainComponent
@@ -30,13 +29,13 @@ class DefaultRootComponent(
     componentContext: ComponentContext
 ) : RootComponent, ComponentContext by componentContext {
 
-    private val navigation = StackNavigation<Config>()
+    private val navigation = StackNavigation<RootConfig>()
 
     override val childStack: Value<ChildStack<*, RootComponent.Child>> =
         childStack(
             source = navigation,
-            serializer = Config.serializer(),
-            initialConfiguration = Config.Main,
+            serializer = RootConfig.serializer(),
+            initialConfiguration = RootConfig.Main,
             handleBackButton = true,
             childFactory = ::createChild
         )
@@ -46,18 +45,18 @@ class DefaultRootComponent(
     }
 
     override fun navigateToLogin() {
-        navigation.push(Config.Login)
+        navigation.push(RootConfig.Login)
     }
 
-    private fun createChild(config: Config, componentContext: ComponentContext): RootComponent.Child =
-        when (config) {
-            Config.Main -> RootComponent.Child.MainChild(
+    private fun createChild(rootConfig: RootConfig, componentContext: ComponentContext): RootComponent.Child =
+        when (rootConfig) {
+            RootConfig.Main -> RootComponent.Child.MainChild(
                 DefaultMainComponent(
                     componentContext,
                     ::navigateToLogin
                 )
             )
-            Config.Login -> RootComponent.Child.LoginChild(
+            RootConfig.Login -> RootComponent.Child.LoginChild(
                 DefaultLoginComponent(
                     componentContext,
                     ::backToMain
@@ -66,11 +65,4 @@ class DefaultRootComponent(
         }
 }
 
-@Serializable
-sealed class Config {
-    @Serializable
-    data object Main : Config()
 
-    @Serializable
-    data object Login : Config()
-}

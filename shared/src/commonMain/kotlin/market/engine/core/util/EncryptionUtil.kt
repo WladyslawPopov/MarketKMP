@@ -1,4 +1,4 @@
-package market.engine.core.globalObjects
+package market.engine.core.util
 
 
 object EncryptionUtil {

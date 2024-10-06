@@ -21,6 +21,7 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.items.NavigationItem
+import market.engine.core.navigation.configs.MainConfig
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.basket.BasketNavigation
@@ -143,11 +144,11 @@ fun MainContent(
 
 fun navigateFromBottomBar(index: Int, component: MainComponent){
     when(index){
-        0 -> component.navigateToBottomItem(Config.Home)
-        1 -> component.navigateToBottomItem(Config.Category)
-        2 -> component.navigateToBottomItem(Config.Basket)
-        3 -> component.navigateToBottomItem(Config.Favorites)
-        4 -> component.navigateToBottomItem(Config.Profile)
+        0 -> component.navigateToBottomItem(MainConfig.Home)
+        1 -> component.navigateToBottomItem(MainConfig.Category)
+        2 -> component.navigateToBottomItem(MainConfig.Basket)
+        3 -> component.navigateToBottomItem(MainConfig.Favorites)
+        4 -> component.navigateToBottomItem(MainConfig.Profile)
     }
 }
 

@@ -1,6 +1,6 @@
 package market.engine.core.items
 
-import market.engine.core.networkObjects.MesImage
+import market.engine.core.network.networkObjects.MesImage
 import market.engine.core.types.MessageType
 
 

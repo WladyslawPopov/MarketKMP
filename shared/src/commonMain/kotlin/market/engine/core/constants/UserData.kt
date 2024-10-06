@@ -1,6 +1,6 @@
 package market.engine.core.constants
 
-import market.engine.core.networkObjects.User
+import market.engine.core.network.networkObjects.User
 import coil3.Uri
 
 object UserData {

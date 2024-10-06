@@ -32,11 +32,9 @@ fun CategoryNavigation (
                 SearchContent(screen.component, modifier)
             }
             is MainComponent.ChildCategory.ListingChild ->{
-                screen.component.onRefresh()
                 ListingContent(screen.component, modifier)
             }
             is MainComponent.ChildCategory.CategoryChild ->{
-                screen.component.onRefresh()
                 CategoryContent(screen.component, modifier)
             }
         }
