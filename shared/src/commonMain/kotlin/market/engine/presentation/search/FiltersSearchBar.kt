@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.ui.Alignment
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -40,7 +41,9 @@ fun FiltersSearchBar(
             .wrapContentHeight()
     ) {
         Column {
-            Row {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ){
                 ActiveStringButton(
                     text = selectedCategory.value ?: stringResource(strings.categoryMain),
                     color =  colors.simpleButtonColors,
@@ -83,7 +86,7 @@ fun FiltersSearchBar(
 
                 ActiveStringButton(
                     text = stringResource(strings.searchUserFinishedStringChoice),
-                    color = if (!selectedUser.value) colors.simpleButtonColors else colors.themeButtonColors,
+                    color = if (!selectedUserFinished.value) colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = { selectedUserFinished.value = !selectedUserFinished.value  },
                 )
             }
