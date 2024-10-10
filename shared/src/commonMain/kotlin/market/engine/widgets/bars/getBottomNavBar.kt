@@ -28,9 +28,7 @@ fun getBottomNavBar(
 ){
     NavigationBar(
         modifier = Modifier
-            .navigationBarsPadding()
-            .clip(RoundedCornerShape(topStart = dimens.smallPadding, topEnd = dimens.smallPadding)),
-        tonalElevation = 0.dp
+            .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier.background(colors.white)

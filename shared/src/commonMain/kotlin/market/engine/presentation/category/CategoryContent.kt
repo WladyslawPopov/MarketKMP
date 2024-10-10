@@ -1,14 +1,11 @@
 package market.engine.presentation.category
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -31,20 +28,20 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.widgets.texts.TitleText
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
+import market.engine.widgets.bars.ListingFiltersBar
 import market.engine.widgets.buttons.AcceptedPageButton
-import market.engine.widgets.buttons.ActionTextButton
+import market.engine.widgets.exceptions.showNoItemLayout
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CategoryContent(
     component: CategoryComponent,
     modifier: Modifier = Modifier
 ) {
+    val listingData = component.globalData.listingData.data.subscribeAsState()
     val searchData = component.globalData.listingData.searchData.subscribeAsState()
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -55,10 +52,20 @@ fun CategoryContent(
 
     val isShowNav = remember { mutableStateOf(false) }
 
-    val defCat = stringResource(strings.categoryEnter)
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
         { onError(model.isError.value) { component.onRefresh() } }
+    }else{
+        null
+    }
+
+    val noItem : (@Composable () -> Unit)? = if (categories.value.isEmpty()){
+        {
+            showNoItemLayout{
+                searchData.value.clear()
+                component.onRefresh()
+            }
+        }
     }else{
         null
     }
@@ -70,6 +77,7 @@ fun CategoryContent(
             modifier = modifier,
             isLoading = isLoading,
             error = error,
+            noFound = noItem,
             topBar = {
 
                 CategoryAppBar(
@@ -80,7 +88,7 @@ fun CategoryContent(
                         component.goToSearch()
                     },
                     onClearSearchClick = {
-                        searchData.value.searchString = null
+                        searchData.value.clearCategory()
                         component.onRefresh()
                     }
                 ) {
@@ -99,42 +107,23 @@ fun CategoryContent(
         ){
             LazyColumn(
                 modifier = Modifier
-                    .heightIn(400.dp,2000.dp)
                     .padding(top = dimens.mediumPadding, bottom = 60.dp),
 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight().padding(dimens.smallPadding)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ){
-                            TitleText(
-                                modifier = modifier.weight(1f),
-                                text = searchData.value.searchCategoryName?: stringResource(strings.categoryMain),
-                            )
-
-                            if (searchData.value.searchCategoryID != 1L) {
-                                ActionTextButton(
-                                    strings.resetLabel,
-                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                    modifier = modifier.weight(0.4f),
-                                    alignment = Alignment.BottomEnd
-                                ){
-                                    searchData.value.searchCategoryName = defCat
-                                    searchData.value.searchCategoryID = 1L
-                                    component.onRefresh()
-                                }
-                            }
-                        }
+                item{
+                    ListingFiltersBar(
+                        listingData,
+                        searchData,
+                        isShowFilters = false,
+                    ){
+                        component.onRefresh()
                     }
                 }
+
                 items(categories.value){ category ->
+                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
                     NavigationDrawerItem(
                         label = {
                             Box(
@@ -197,8 +186,6 @@ fun CategoryContent(
                         shape = MaterialTheme.shapes.small,
                         selected = category.isLeaf
                     )
-
-                    Spacer(modifier = Modifier.height(dimens.smallPadding))
                 }
             }
         }

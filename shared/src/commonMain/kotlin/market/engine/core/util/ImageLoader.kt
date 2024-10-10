@@ -1,10 +1,14 @@
 package market.engine.core.util
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import market.engine.core.network.APIService
 import io.ktor.util.InternalAPI
 import io.ktor.utils.io.core.readBytes
@@ -17,7 +21,7 @@ import org.koin.compose.koinInject
 
 @OptIn(InternalAPI::class)
 @Composable
-fun getImage(url : String) {
+fun getImage(url : String, size: Dp = 300.dp) {
     val getClient : APIService = koinInject()
     val imageState = remember { mutableStateOf<ImageBitmap?>(null) }
 
@@ -28,15 +32,16 @@ fun getImage(url : String) {
         imageState.value = imageBitmap
     }
 
-    loadImage(imageState.value)
+    loadImage(imageState.value, size)
 }
 
 @Composable
-fun loadImage(image: ImageBitmap?){
+fun loadImage(image: ImageBitmap?, size : Dp){
     if (image != null) {
         Image(
             bitmap = image,
-            contentDescription = null
+            contentDescription = null,
+            modifier = Modifier.size(size)
         )
     }
 }

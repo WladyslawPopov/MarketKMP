@@ -25,7 +25,7 @@ interface SearchComponent {
 
     val globalData : CategoryBaseFilters
 
-    fun onCloseClicked(categoryType: CategoryScreenType)
+    fun onCloseClicked()
 
     fun goToListing()
 
@@ -68,7 +68,7 @@ class DefaultSearchComponent(
     override val model: Value<SearchComponent.Model> = _model
 
 
-    override fun onCloseClicked(categoryType: CategoryScreenType) {
+    override fun onCloseClicked() {
         onBackPressed()
     }
 
@@ -84,7 +84,6 @@ class DefaultSearchComponent(
     }
 
     override fun updateHistory(string : String) {
-        searchData.value.searchString = string
         searchViewModel.getHistory()
     }
 

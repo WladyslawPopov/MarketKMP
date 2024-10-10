@@ -36,23 +36,14 @@ fun CategoryAppBar(
     onClearSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
 ) {
-    val title = if ( searchData.value.fromSearch) {
-        if (searchData.value.searchString != "") {
-            searchData.value.searchString ?: stringResource(strings.selectSearchTitle)
-        }else{
-            stringResource(strings.selectSearchTitle)
-        }
-    }else stringResource(strings.selectSearchTitle)
-
-
     val listItems = listOf(
         NavigationItem(
-            title = stringResource(strings.searchTitle),
+            title = stringResource(strings.resetLabel),
             icon = drawables.cancelIcon,
             tint = colors.steelBlue,
             hasNews = false,
             badgeCount = null,
-            isVisible = (searchData.value.searchString != "" && searchData.value.searchString != null),
+            isVisible = searchData.value.searchCategoryID != 1L,
             onClick = { onClearSearchClick() }
         ),
         NavigationItem(
@@ -69,7 +60,7 @@ fun CategoryAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-           TitleText(title){
+           TitleText(searchData.value.searchCategoryName ?: stringResource(strings.categoryMain)){
                onSearchClick()
            }
         },

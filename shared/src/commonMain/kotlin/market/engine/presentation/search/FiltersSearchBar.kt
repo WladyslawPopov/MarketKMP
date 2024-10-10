@@ -1,6 +1,7 @@
 package market.engine.presentation.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +34,7 @@ fun FiltersSearchBar(
     selectedCategory: MutableState<String?>,
     goToCategory: () -> Unit,
 ) {
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -42,41 +44,65 @@ fun FiltersSearchBar(
     ) {
         Column {
             Row(
-                verticalAlignment = Alignment.CenterVertically
-            ){
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            )
+            {
                 ActiveStringButton(
-                    text = selectedCategory.value ?: stringResource(strings.categoryMain),
-                    color =  colors.simpleButtonColors,
-                    onClick = {
-                        searchData.value.fromSearch = true
-                        goToCategory()
-                    }
-                )
-
-                SmallIconButton(
-                    icon = drawables.filterIcon,
-                    contentDescription = stringResource(strings.parameters),
-                    color = colors.inactiveBottomNavIconColor,
-                    modifierIconSize = modifier.size(dimens.smallIconSize),
-                ){
-                    goToCategory()
-                }
-            }
-            Row {
-
-                ActiveStringButton(
-                    stringResource(strings.searchUserStringChoice),
-                    if (!selectedUser.value) colors.simpleButtonColors else colors.themeButtonColors,
-                    { selectedUser.value = !selectedUser.value },
+                    selectedCategory.value ?: stringResource(strings.categoryMain),
+                    if (searchData.value.searchCategoryID == 1L)
+                        colors.simpleButtonColors
+                    else
+                        colors.themeButtonColors,
                     {
-                        if (searchData.value.searchUsersLots != null) {
+                        goToCategory()
+                    },
+                    {
+                        if (searchData.value.searchCategoryID != 1L) {
+                            val category = stringResource(strings.categoryMain)
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),
                                 color = colors.steelBlue,
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
-                            ){
+                            ) {
+                                selectedCategory.value = category
+                                searchData.value.clearCategory()
+                            }
+                        }
+                    }
+                )
+            }
 
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            )
+            {
+                ActiveStringButton(
+                    if (!selectedUser.value)
+                        stringResource(strings.searchUserStringChoice)
+                    else
+                        searchData.value.userLogin ?: stringResource(strings.searchUsersSearch),
+                    if (!selectedUser.value)
+                        colors.simpleButtonColors
+                    else
+                        colors.themeButtonColors,
+                    {
+                        selectedUser.value = !selectedUser.value
+                        searchData.value.userSearch = !searchData.value.userSearch
+                    },
+                    {
+                        if (searchData.value.userLogin != "" && searchData.value.userLogin != null && searchData.value.userSearch) {
+                            SmallIconButton(
+                                icon = drawables.cancelIcon,
+                                contentDescription = stringResource(strings.actionClose),
+                                color = colors.steelBlue,
+                                modifierIconSize = modifier.size(dimens.extraSmallIconSize),
+                            ) {
+                                selectedUser.value = false
+                                searchData.value.userSearch = false
+                                searchData.value.userLogin = ""
                             }
                         }
                     }
@@ -87,9 +113,13 @@ fun FiltersSearchBar(
                 ActiveStringButton(
                     text = stringResource(strings.searchUserFinishedStringChoice),
                     color = if (!selectedUserFinished.value) colors.simpleButtonColors else colors.themeButtonColors,
-                    onClick = { selectedUserFinished.value = !selectedUserFinished.value  },
+                    onClick = {
+                        selectedUserFinished.value = !selectedUserFinished.value
+                        searchData.value.searchFinished = !searchData.value.searchFinished
+                    },
                 )
             }
+
         }
     }
 }

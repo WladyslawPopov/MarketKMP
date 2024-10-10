@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +24,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.globalData.SD
 import market.engine.core.types.CategoryScreenType
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
@@ -40,7 +42,7 @@ fun SearchContent(
     val isError = model.isError.collectAsState()
     val history = model.history.collectAsState()
 
-    val selectedUser = remember { mutableStateOf(searchData.value.searchChoice == "user_search") }
+    val selectedUser = remember { mutableStateOf(searchData.value.userSearch) }
     val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
     val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
@@ -69,8 +71,8 @@ fun SearchContent(
                 searchString,
                 focusRequester,
                 onSearchClick = {
-                    searchData.value.fromSearch = true
-                    searchData.value.searchString = searchString.text
+
+                    getSearchFilters(searchData, searchString.text)
                     component.goToListing()
                 },
                 onUpdateHistory = {
@@ -78,7 +80,8 @@ fun SearchContent(
                     component.updateHistory(it)
                 }
             ) {
-                component.onCloseClicked(CategoryScreenType.CATEGORY)
+                getSearchFilters(searchData, searchString.text)
+                component.onCloseClicked()
             }
         },
         onRefresh = {
@@ -104,27 +107,47 @@ fun SearchContent(
                 selectedUserFinished = selectedUserFinished,
                 selectedCategory = selectedCategory,
                 searchData = searchData,
-                goToCategory = { component.goToCategory() }
+                goToCategory = {
+                    getSearchFilters(searchData, searchString.text)
+                    component.goToCategory()
+                },
             )
 
             HistoryLayout(
                 historyItems = history.value,
                 modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
                 onItemClick = {
+                    getSearchFilters(searchData, it)
                     searchString = searchString.copy(it)
                     component.updateHistory(it)
                 },
                 onClearHistory = { component.deleteHistory() },
                 onDeleteItem = { component.deleteItemHistory(it) },
                 goToListing = {
-                    searchData.value.fromSearch = true
-                    searchData.value.searchString = it
+                    getSearchFilters(searchData, it)
                     component.goToListing()
                 }
             )
         }
     }
 }
+
+fun getSearchFilters(searchData: State<SD>, it: String) {
+    if (searchData.value.userSearch && searchData.value.userLogin == null){
+        if (it != "") {
+            searchData.value.searchString = null
+            searchData.value.userLogin = it
+        }else{
+            searchData.value.searchString = null
+            searchData.value.userSearch = false
+            searchData.value.searchFinished = false
+        }
+    }else{
+        searchData.value.searchString = it
+    }
+}
+
+
 
 
 

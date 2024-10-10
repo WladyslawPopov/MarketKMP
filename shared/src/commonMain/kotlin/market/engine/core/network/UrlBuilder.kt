@@ -26,27 +26,30 @@ class UrlBuilder {
         var counter = 1
 
         if (searchData != null) {
-            if (searchData.fromSearch) {
-                when (searchData.searchChoice) {
-                    "user_search" -> {
-                        if (searchData.userID != 1L) {
-                            queryParams["filter_${counter}_key"] = "seller_id"
-                            queryParams["filter_${counter}_value"] = searchData.userID.toString()
-                        } else {
-                            val s = searchData.searchUsersLots
-                            if (s != null && s != "") {
-                                queryParams["filter_${counter}_key"] = "seller_login"
-                                queryParams["filter_${counter}_value"] = s
-                            }
+            if (searchData.userSearch) {
+                if (searchData.userID != 1L) {
+                    queryParams["filter_${counter}_key"] = "seller_id"
+                    queryParams["filter_${counter}_value"] = searchData.userID.toString()
+
+                    if (searchData.searchString != null) {
+                        val search = replaceSpecialCharacters(searchData.searchString.toString())
+                        if (search != "") {
+                            queryParams["filter_${counter}_key"] = "search"
+                            queryParams["filter_${counter}_value"] = search
+                            counter++
                         }
-                        counter++
+                    }
+                } else {
+                    if (searchData.userLogin != null) {
+                        val s = replaceSpecialCharacters(searchData.userLogin.toString())
+                        if (s != "") {
+                            queryParams["filter_${counter}_key"] = "seller_login"
+                            queryParams["filter_${counter}_value"] = s
+                        }
                     }
                 }
-                if (searchData.searchFinished) {
-                    queryParams["filter_${counter}_key"] = "state"
-                    queryParams["filter_${counter}_value"] = "1"
-                    counter++
-                }
+                counter++
+            }else {
                 if (searchData.searchString != null) {
                     val search = replaceSpecialCharacters(searchData.searchString.toString())
                     if (search != "") {
@@ -55,14 +58,16 @@ class UrlBuilder {
                         counter++
                     }
                 }
-                queryParams["filter_${counter}_key"] = "category"
-                queryParams["filter_${counter}_value"] = searchData.searchCategoryID.toString()
-                counter++
-            } else {
-                queryParams["filter_${counter}_key"] = "category"
-                queryParams["filter_${counter}_value"] = searchData.searchCategoryID.toString()
+            }
+            if (searchData.searchFinished) {
+                queryParams["filter_${counter}_key"] = "state"
+                queryParams["filter_${counter}_value"] = "1"
                 counter++
             }
+
+            queryParams["filter_${counter}_key"] = "category"
+            queryParams["filter_${counter}_value"] = searchData.searchCategoryID.toString()
+            counter++
         }
 
         if (listingData != null) {

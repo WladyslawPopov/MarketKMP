@@ -5,27 +5,24 @@ import market.engine.core.types.CategoryScreenType
 
 @Serializable
 data class SD(
-    var userID: Long = 1L,
-    var fromSearch: Boolean = false,
-    var searchChoice: String? = null,
     var searchCategoryName: String? = null,
     var searchCategoryID: Long? = 1L,
     var searchString: String? = null,
     var searchParentID:Long? = 1L,
     var searchParentName: String? = null,
     var searchIsLeaf: Boolean = false,
-    var searchUsersLots: String? = null,
     var searchFinished: Boolean = false,
+    var userSearch: Boolean = false,
+    var userLogin: String? = null,
+    var userID: Long = 1L,
 )
 {
     fun clear(){
         searchString = null
-
-        fromSearch = false
         userID = 1L
-
-        searchUsersLots = null
         searchFinished = false
+        userSearch = false
+        userLogin = null
     }
 
     fun clearCategory(){

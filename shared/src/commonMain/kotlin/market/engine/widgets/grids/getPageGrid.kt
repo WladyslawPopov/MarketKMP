@@ -2,6 +2,7 @@ package market.engine.widgets.grids
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -26,10 +27,10 @@ fun <T : Any> PagingGrid(
 
     LazyVerticalGrid(
         state = state,
-        columns = GridCells.Fixed(if (showNavigationRail) 4 else 2),
+        columns = GridCells.Fixed(if (showNavigationRail) 4 else 1),
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp),
-        modifier = Modifier.fillMaxWidth().animateContentSize()
+        modifier = Modifier.fillMaxSize().animateContentSize()
     ) {
         items(data.itemCount) { index ->
             val item = data[index]

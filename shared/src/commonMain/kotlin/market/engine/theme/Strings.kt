@@ -11,6 +11,7 @@ interface Strings {
     val searchUsersSearch: StringResource
     val notificationTitle: StringResource
     val mailTitle: StringResource
+    val subcategories: StringResource
     val topOffersTitle: StringResource
     val proposalTitle: StringResource
     val profileTitle: StringResource
