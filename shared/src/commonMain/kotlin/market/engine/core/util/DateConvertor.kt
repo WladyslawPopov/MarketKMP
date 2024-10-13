@@ -1,31 +1,44 @@
 package market.engine.core.util
 
-import kotlinx.datetime.Clock
+
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 
-fun String.convertDate() :String{
+fun String.convertDateWithMinutes(): String {
     try {
         // Validate that the input date string is not empty
         if (this.isEmpty()) {
             return ""
         }
 
-        // Parse the original date string
-        val originalInstant: Instant = Instant.parse(this)
+        val instant = Instant.fromEpochSeconds(this.toLong())
+        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
 
-        // Calculate the time difference
-        val currentInstant: Instant = Clock.System.now()
-        val duration = currentInstant - originalInstant
+        val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
+        val month = localDateTime.monthNumber.toString().padStart(2, '0')
+        val year = localDateTime.year
+        val hour = localDateTime.hour.toString().padStart(2, '0')
+        val minute = localDateTime.minute.toString().padStart(2, '0')
 
-        // Format the time difference in "X days ago" format
+        return "$day.$month.$year $hour:$minute"
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return ""
+    }
+}
 
-        return when (val daysAgo = duration.inWholeDays.toInt()) {
-            0 -> "Today"
-            1 -> "Yesterday"
-            in 2..Int.MAX_VALUE -> "$daysAgo days ago"
-            else -> "In the future"
+fun String.convertDateYear() :String{
+    try {
+        // Validate that the input date string is not empty
+        if (this.isEmpty()) {
+            return ""
         }
+
+        val instant = Instant.fromEpochSeconds(this.toLong())
+        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        return "${localDateTime.dayOfMonth}.${localDateTime.monthNumber}.${localDateTime.year}"
     } catch (e: Exception) {
         e.printStackTrace()
         return ""

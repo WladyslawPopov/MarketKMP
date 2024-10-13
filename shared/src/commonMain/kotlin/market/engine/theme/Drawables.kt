@@ -3,7 +3,9 @@ package market.engine.theme
 import org.jetbrains.compose.resources.DrawableResource
 
 interface Drawables {
+   val locationIcon: DrawableResource
    val home : DrawableResource
+   val iconClock : DrawableResource
    val search : DrawableResource
    val menuHamburger : DrawableResource
    val historyIcon : DrawableResource
@@ -13,6 +15,7 @@ interface Drawables {
    val currencyIcon : DrawableResource
    val newLotIcon : DrawableResource
    val favoritesIcon : DrawableResource
+   val favoritesIconSelected : DrawableResource
    val profileIcon : DrawableResource
    val basketIcon : DrawableResource
    val top100Icon : DrawableResource
@@ -27,6 +30,12 @@ interface Drawables {
    val cancelIcon : DrawableResource
    val filterIcon : DrawableResource
    val sortIcon : DrawableResource
+
+   val iconGroup : DrawableResource
+   val iconCountBoxes : DrawableResource
+
+   val iconYouTubeSmall : DrawableResource
+   val safeDealIcon : DrawableResource
 
    val collectionPng : DrawableResource
    val vintagePng : DrawableResource
@@ -52,6 +61,7 @@ interface Drawables {
    val auctionFixIcon : DrawableResource
    val manyOffersIcon : DrawableResource
    val verifySellersIcon : DrawableResource
+
    val discountBigIcon : DrawableResource
    val freeBillingIcon : DrawableResource
 
@@ -59,4 +69,10 @@ interface Drawables {
    val noInternetIcon : DrawableResource
    val oopsIcon : DrawableResource
    val notFoundListingIcon : DrawableResource
+
+   val iconArrowUp : DrawableResource
+   val iconArrowDown : DrawableResource
+
+   val iconSliderHorizontal : DrawableResource
+   val iconWidget : DrawableResource
 }

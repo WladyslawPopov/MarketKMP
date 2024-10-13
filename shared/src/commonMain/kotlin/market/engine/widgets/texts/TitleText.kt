@@ -13,7 +13,7 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 
 @Composable
-fun TitleText(text : String,modifier: Modifier = Modifier, onClick: (() -> Unit) = {}) {
+fun TitleText(text : String,modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     var title = text
     if (text.length > 30){
        title = text.substring(0,30) + "..."
@@ -26,8 +26,12 @@ fun TitleText(text : String,modifier: Modifier = Modifier, onClick: (() -> Unit)
         fontWeight = FontWeight.Bold,
         maxLines = 1,
         modifier = modifier.padding(horizontal = dimens.smallPadding)
-            .clickable {
-                onClick()
+            .clickable(
+                enabled = onClick != null
+            ) {
+                if (onClick != null) {
+                    onClick()
+                }
             },
         softWrap = false
     )

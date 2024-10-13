@@ -31,7 +31,7 @@ import market.engine.core.constants.ThemeResources.strings
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
-import market.engine.widgets.bars.ListingFiltersBar
+import market.engine.presentation.listing.ListingFiltersBar
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import org.jetbrains.compose.resources.painterResource

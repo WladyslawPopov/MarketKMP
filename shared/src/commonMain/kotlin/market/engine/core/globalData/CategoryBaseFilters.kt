@@ -9,7 +9,7 @@ interface CategoryControls {
     val categoryStack : ArrayList<CategoryScreenType>
 }
 
-class CategoryBaseFilters : CategoryControls {
+object CategoryBaseFilters : CategoryControls {
     override val listingData: ListingData = ListingData(
         searchData = MutableValue(SD()),
         data = MutableValue(LD())

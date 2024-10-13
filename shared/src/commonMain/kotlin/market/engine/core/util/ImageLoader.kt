@@ -17,16 +17,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import market.engine.common.toImageBitmap
+import market.engine.core.constants.ThemeResources.drawables
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 
 @OptIn(InternalAPI::class)
 @Composable
-fun getImage(url : String, size: Dp = 300.dp) {
+fun getImage(url : String?, size: Dp = 300.dp) {
     val getClient : APIService = koinInject()
     val imageState = remember { mutableStateOf<ImageBitmap?>(null) }
 
     CoroutineScope(Dispatchers.IO).launch {
-        val response = getClient.getImage(url)
+        val response = getClient.getImage(url ?: "")
         val imageBitmap = toImageBitmap(response.content.readRemaining().readBytes())
 
         imageState.value = imageBitmap
@@ -40,6 +42,12 @@ fun loadImage(image: ImageBitmap?, size : Dp){
     if (image != null) {
         Image(
             bitmap = image,
+            contentDescription = null,
+            modifier = Modifier.size(size)
+        )
+    }else{
+        Image(
+            painter = painterResource(drawables.noImageOffer),
             contentDescription = null,
             modifier = Modifier.size(size)
         )

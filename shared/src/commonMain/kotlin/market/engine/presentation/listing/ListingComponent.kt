@@ -1,26 +1,26 @@
 package market.engine.presentation.listing
 
-import androidx.paging.PagingData
-import market.engine.core.network.ServerResponse
-import market.engine.core.network.networkObjects.Offer
+import application.market.agora.business.core.network.functions.OfferOperations
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.get
+import com.russhwolf.settings.set
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.network.networkObjects.Offer
 
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ListingComponent {
-    val model: Value<Model>
-
+    val model : Value<Model>
     data class Model(
-        val offers: StateFlow<List<Offer>>,
-        val listing: ServerResponse<Flow<PagingData<Offer>>>,
-        val isLoading: StateFlow<Boolean>,
+        val listingViewModel: ListingViewModel
     )
-
     val globalData : CategoryBaseFilters
 
     fun onRefresh()
@@ -28,6 +28,8 @@ interface ListingComponent {
     fun onBackClicked()
 
     fun goToSearch()
+
+    suspend fun addToFavorites(offer: Offer): Boolean
 }
 
 class DefaultListingComponent(
@@ -36,34 +38,24 @@ class DefaultListingComponent(
     private val onBackPressed: () -> Unit
 ) : ListingComponent, ComponentContext by componentContext {
 
-    override val globalData : CategoryBaseFilters = getKoin().get()
+    private val _model = MutableValue(ListingComponent.Model(
+        listingViewModel = getKoin().get()
+    ))
+    override val model: Value<ListingComponent.Model> = _model
+    override val globalData : CategoryBaseFilters = model.value.listingViewModel.globalData
 
-    var listingData = globalData.listingData
+    private val listingViewModel = model.value.listingViewModel
+    private val listingData = globalData.listingData
+    private val settings = listingViewModel.settings
+
+    private val offerOperations : OfferOperations = getKoin().get()
 
     init {
-        listingData.data.value.methodServer = "get_public_listing"
-    }
-
-
-    private val listingViewModel: ListingViewModel = getKoin().get()
-
-    private val _model = MutableValue(
-        ListingComponent.Model(
-            offers = listingViewModel.responseOffers,
-            listing = listingViewModel.getPage(listingData),
-            isLoading = listingViewModel.isShowProgress
-        )
-    )
-
-    override val model: Value<ListingComponent.Model> = _model
-
-    private fun updateModel() {
-        val newListingFlow = listingViewModel.getPage(listingData)
-        _model.value = _model.value.copy(listing = newListingFlow)
+        onRefresh()
     }
 
     override fun onRefresh() {
-        updateModel()
+        listingViewModel.updateCurrentListingData(listingData.copy())
     }
 
     override fun onBackClicked() {
@@ -76,5 +68,20 @@ class DefaultListingComponent(
 
     override fun goToSearch() {
         searchSelected()
+    }
+
+    override suspend fun addToFavorites(offer: Offer): Boolean {
+        return withContext(Dispatchers.IO) {
+//            val buf = offerOperations.postOfferOperationWatch(offer.id)
+//            val res = buf.success
+//            withContext(Dispatchers.Main) {
+//                if (res != null && res.success) {
+//                    offer.isWatchedByMe = !offer.isWatchedByMe
+//                }
+//                offer.isWatchedByMe
+//            }
+            offer.isWatchedByMe = !offer.isWatchedByMe
+            offer.isWatchedByMe
+        }
     }
 }

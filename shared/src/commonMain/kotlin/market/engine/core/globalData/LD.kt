@@ -15,7 +15,8 @@ data class LD(
     var totalPages: Int = 0,
     var totalCount: Int = 0,
     var prevPage : Int? = null,
-    var methodServer : String = ""
+    var methodServer : String = "",
+    var listingType : Int = 0
 ) {
     fun clear(){
         filters = null

@@ -1,4 +1,4 @@
-package market.engine.widgets.bars
+package market.engine.presentation.listing
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,11 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,7 +28,7 @@ import market.engine.core.globalData.LD
 import market.engine.core.globalData.SD
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.badges.getBadgedBox
-import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.bars.ActiveFilterListing
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -39,9 +36,35 @@ fun ListingFiltersBar(
     listingData: State<LD>,
     searchData: State<SD>,
     isShowFilters: Boolean = true,
+    onChangeTypeList: (Int) -> Unit = {},
     onRefresh: () -> Unit,
 ) {
     val isShowFiltersTittle = remember { mutableStateOf( "") }
+    val typeList = remember { mutableStateOf(listingData.value.listingType) }
+
+    val itemFilter = NavigationItem(
+        title = stringResource(strings.filter),
+        icon = drawables.filterIcon,
+        tint = colors.black,
+        hasNews = false,
+        badgeCount = 5
+    )
+
+    val itemSort = NavigationItem(
+        title = stringResource(strings.sort),
+        icon = drawables.sortIcon,
+        tint = colors.black,
+        hasNews = false,
+        badgeCount = null
+    )
+
+    val itemGallery = NavigationItem(
+        title = "",
+        icon = drawables.iconWidget,
+        tint = colors.black,
+        hasNews = false,
+        badgeCount = null
+    )
 
     Column {
         if (isShowFiltersTittle.value != "") {
@@ -57,7 +80,7 @@ fun ListingFiltersBar(
         }
         val filterString = stringResource(strings.filter)
         val searchString = stringResource(strings.searchTitle)
-        val  userDef = stringResource(strings.searchUsersSearch)
+        val userDef = stringResource(strings.searchUsersSearch)
 
         Row(
             modifier = Modifier
@@ -66,7 +89,7 @@ fun ListingFiltersBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             LazyRow(
-                modifier = Modifier.fillMaxWidth(if (isShowFilters) 0.7f else 1f).clip(shape = MaterialTheme.shapes.medium),
+                modifier = Modifier.fillMaxWidth(if (isShowFilters) 0.6f else 1f).clip(shape = MaterialTheme.shapes.medium),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val filters = listingData.value.filters
@@ -122,29 +145,15 @@ fun ListingFiltersBar(
                     }
                 }
             }
-            if (isShowFilters) {
-                val itemFilter = NavigationItem(
-                    title = stringResource(strings.filter),
-                    icon = drawables.filterIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = 5
-                )
 
-                val itemSort = NavigationItem(
-                    title = stringResource(strings.sort),
-                    icon = drawables.sortIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null
-                )
+            if (isShowFilters) {
                 Row(
                     modifier = Modifier,
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
                         onClick = {
-                            { }
+
                         }
                     ) {
                         getBadgedBox(item = itemFilter)
@@ -153,55 +162,32 @@ fun ListingFiltersBar(
                     IconButton(
                         modifier = Modifier.size(50.dp),
                         onClick = {
-                            { }
+
                         }
                     ) {
                         getBadgedBox(item = itemSort)
+                    }
+
+                    IconButton(
+                        modifier = Modifier.size(50.dp),
+                        onClick = {
+                            typeList.value = if (typeList.value == 0) 1 else 0
+                            listingData.value.listingType = typeList.value
+                            onChangeTypeList(typeList.value)
+                        }
+                    ) {
+                        when (typeList.value){
+                            0 ->{
+                                itemGallery.icon = drawables.iconWidget
+                            }
+                            1 ->{
+                                itemGallery.icon = drawables.iconSliderHorizontal
+                            }
+                        }
+                        getBadgedBox(item = itemGallery)
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-fun ActiveFilterListing(
-    text : String,
-    removeFilter : () -> Unit,
-){
-    FilterChip(
-        modifier = Modifier.padding(horizontal = dimens.extraSmallPadding),
-        selected = false,
-        onClick = { },
-        label = {
-            Row(
-                modifier = Modifier.wrapContentSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text,
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        },
-        trailingIcon = {
-            SmallIconButton(
-                drawables.cancelIcon,
-                color = colors.black,
-                modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
-                modifier = Modifier
-            ) {
-                removeFilter()
-            }
-        },
-        border = null,
-        shape = MaterialTheme.shapes.medium,
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = colors.white,
-            labelColor = colors.black,
-            selectedContainerColor = colors.selected,
-            selectedLabelColor = colors.black
-        )
-    )
 }

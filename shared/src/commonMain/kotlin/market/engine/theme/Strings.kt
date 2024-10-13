@@ -78,6 +78,9 @@ interface Strings {
     val noInternetSubtitle : StringResource
     val refreshButton : StringResource
 
+    val numberOfItems : StringResource
+    val numberOfBids : StringResource
+
     val oopsTitle : StringResource
     val notFoundListingTitle : StringResource
 

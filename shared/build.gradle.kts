@@ -42,6 +42,9 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.datastore)
+
             api(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)

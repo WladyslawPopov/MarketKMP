@@ -23,6 +23,7 @@ ktor = "2.3.12"
 coil = "3.0.0-alpha08"
 accompanist-version = "0.33.2-alpha"
 accompanist-permissions = "0.32.0"
+multiplatformSettings = "1.2.0"
 runtimeDesktop = "1.7.0"
 kotlinx-datetime = "0.6.0"
 decompose-version = "3.1.0"
@@ -47,6 +48,8 @@ decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqliteDriver" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
+multiplatform-settings-datastore = { module = "com.russhwolf:multiplatform-settings-datastore", version.ref = "multiplatformSettings" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqliteDriver" }
 sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqliteDriver" }
 

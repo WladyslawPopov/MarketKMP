@@ -94,7 +94,8 @@ fun HistoryLayout(
         horizontalAlignment = Alignment.Start
     ) {
         // List Items
-        items(historyItems, key = { it.id }) { historyItem ->
+
+        items(historyItems.reversed(), key = { it.id }) { historyItem ->
             val dismissState = rememberSwipeToDismissBoxState(
                 confirmValueChange = { dismissValue ->
                     if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
