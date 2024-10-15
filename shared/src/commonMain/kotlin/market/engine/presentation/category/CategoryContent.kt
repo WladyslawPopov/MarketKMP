@@ -18,6 +18,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,27 +42,35 @@ fun CategoryContent(
     component: CategoryComponent,
     modifier: Modifier = Modifier
 ) {
-    val listingData = component.globalData.listingData.data.subscribeAsState()
-    val searchData = component.globalData.listingData.searchData.subscribeAsState()
+
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
+    val categoryViewModel = model.categoryViewModel
 
-    val isLoading = model.isLoading.collectAsState()
-    val isError = model.isError.collectAsState()
-    val categories = model.categories.collectAsState()
+    val listingData = categoryViewModel.globalData.listingData.data.subscribeAsState()
+    val searchData = categoryViewModel.searchData.subscribeAsState()
+    val isLoading = categoryViewModel.isShowProgress.collectAsState()
+    val isError = categoryViewModel.errorMessage.collectAsState()
+    val categories = categoryViewModel.responseCategory.collectAsState()
 
     val isShowNav = remember { mutableStateOf(false) }
 
-
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(model.isError.value) { component.onRefresh() } }
+        { onError(isError.value) { component.onRefresh() } }
     }else{
         null
     }
 
-    val noItem : (@Composable () -> Unit)? = if (categories.value.isEmpty()){
+    LaunchedEffect(searchData){
+        if (searchData.value.isRefreshing){
+            component.onRefresh()
+            searchData.value.isRefreshing = false
+        }
+    }
+
+    val noItem : (@Composable () -> Unit)? = if (categories.value.isEmpty() && !isLoading.value){
         {
-            showNoItemLayout{
+            showNoItemLayout {
                 searchData.value.clear()
                 component.onRefresh()
             }

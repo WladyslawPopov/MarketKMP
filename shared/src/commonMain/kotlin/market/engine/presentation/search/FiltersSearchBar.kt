@@ -81,7 +81,7 @@ fun FiltersSearchBar(
             {
                 ActiveStringButton(
                     if (!selectedUser.value)
-                        stringResource(strings.searchUserStringChoice)
+                        searchData.value.userLogin ?: stringResource(strings.searchUsersSearch)
                     else
                         searchData.value.userLogin ?: stringResource(strings.searchUsersSearch),
                     if (!selectedUser.value)
@@ -93,7 +93,7 @@ fun FiltersSearchBar(
                         searchData.value.userSearch = !searchData.value.userSearch
                     },
                     {
-                        if (searchData.value.userLogin != "" && searchData.value.userLogin != null && searchData.value.userSearch) {
+                        if (searchData.value.userLogin != null && searchData.value.userSearch) {
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),
@@ -102,7 +102,7 @@ fun FiltersSearchBar(
                             ) {
                                 selectedUser.value = false
                                 searchData.value.userSearch = false
-                                searchData.value.userLogin = ""
+                                searchData.value.userLogin = null
                             }
                         }
                     }

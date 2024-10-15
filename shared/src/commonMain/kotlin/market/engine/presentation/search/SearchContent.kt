@@ -25,7 +25,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.globalData.SD
-import market.engine.core.types.CategoryScreenType
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
 
@@ -34,20 +33,21 @@ fun SearchContent(
     component: SearchComponent,
     modifier: Modifier = Modifier
 ) {
-    val searchData = component.globalData.listingData.searchData.subscribeAsState()
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
+    val searchViewModel = model.searchViewModel
 
-    val isLoading = model.isLoading.collectAsState()
-    val isError = model.isError.collectAsState()
-    val history = model.history.collectAsState()
+    val searchData = searchViewModel.searchData.subscribeAsState()
+    val isLoading = searchViewModel.isShowProgress.collectAsState()
+    val isError = searchViewModel.errorMessage.collectAsState()
+    val history = searchViewModel.responseHistory.collectAsState()
 
     val selectedUser = remember { mutableStateOf(searchData.value.userSearch) }
     val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
     val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(model.isError.value) { } }
+        { onError(isError.value) { } }
     }else{
         null
     }
@@ -71,7 +71,6 @@ fun SearchContent(
                 searchString,
                 focusRequester,
                 onSearchClick = {
-
                     getSearchFilters(searchData, searchString.text)
                     component.goToListing()
                 },
@@ -117,7 +116,6 @@ fun SearchContent(
                 historyItems = history.value,
                 modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
                 onItemClick = {
-                    getSearchFilters(searchData, it)
                     searchString = searchString.copy(it)
                     component.updateHistory(it)
                 },
@@ -137,7 +135,7 @@ fun getSearchFilters(searchData: State<SD>, it: String) {
         if (it != "") {
             searchData.value.searchString = null
             searchData.value.userLogin = it
-        }else{
+        } else {
             searchData.value.searchString = null
             searchData.value.userSearch = false
             searchData.value.searchFinished = false
@@ -146,9 +144,3 @@ fun getSearchFilters(searchData: State<SD>, it: String) {
         searchData.value.searchString = it
     }
 }
-
-
-
-
-
-

@@ -31,7 +31,6 @@ import market.engine.widgets.grids.PagingGrid
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.items.GridItemListing
-import market.engine.widgets.items.PromoLotItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -39,24 +38,31 @@ fun ListingContent(
     component: ListingComponent,
     modifier: Modifier = Modifier
 ) {
-    val searchData = component.globalData.listingData.searchData.subscribeAsState()
-    val listingData = component.globalData.listingData.data.subscribeAsState()
-
     val modelState = component.model.subscribeAsState()
     val listingViewModel = modelState.value.listingViewModel
-
+    val searchData = listingViewModel.listingData.searchData.subscribeAsState()
+    val listingData = listingViewModel.listingData.data.subscribeAsState()
     val data = listingViewModel.pagingDataFlow.collectAsLazyPagingItems()
+
     val scrollState = rememberLazyGridState(
         initialFirstVisibleItemIndex = listingViewModel.firstVisibleItemIndex,
         initialFirstVisibleItemScrollOffset = listingViewModel.firstVisibleItemScrollOffset
     )
 
     LaunchedEffect(scrollState) {
-        snapshotFlow { scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset }
-            .collect { (index, offset) ->
-                listingViewModel.firstVisibleItemIndex = index
-                listingViewModel.firstVisibleItemScrollOffset = offset
-            }
+        snapshotFlow {
+            scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
+        }.collect { (index, offset) ->
+            listingViewModel.firstVisibleItemIndex = index
+            listingViewModel.firstVisibleItemScrollOffset = offset
+        }
+    }
+
+    LaunchedEffect(searchData){
+        if (searchData.value.isRefreshing) {
+            searchData.value.isRefreshing = false
+            component.onRefresh()
+        }
     }
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
@@ -68,6 +74,7 @@ fun ListingContent(
             refresh is LoadStateNotLoading && data.itemCount < 1 -> {
                 noItem = {
                     showNoItemLayout {
+                        searchData.value.clear()
                         component.onRefresh()
                     }
                 }
@@ -79,7 +86,9 @@ fun ListingContent(
                         ServerErrorException(
                             (data.loadState.refresh as LoadStateError).error.message ?: "", ""
                         )
-                    ) { data.retry() }
+                    ) {
+                        data.retry()
+                    }
                 }
             }
         }
@@ -113,6 +122,8 @@ fun ListingContent(
                 listingData,
                 searchData,
                 onChangeTypeList = {
+                    component.model.value.listingViewModel.firstVisibleItemIndex = 0
+                    component.model.value.listingViewModel.firstVisibleItemScrollOffset = 0
                     component.model.value.listingViewModel.settings["listingType"] = it
                     component.onRefresh()
                 },

@@ -1,7 +1,6 @@
 package market.engine.core.globalData
 
 import kotlinx.serialization.Serializable
-import market.engine.core.types.CategoryScreenType
 
 @Serializable
 data class SD(
@@ -15,6 +14,7 @@ data class SD(
     var userSearch: Boolean = false,
     var userLogin: String? = null,
     var userID: Long = 1L,
+    var isRefreshing : Boolean = true
 )
 {
     fun clear(){
@@ -23,6 +23,7 @@ data class SD(
         searchFinished = false
         userSearch = false
         userLogin = null
+        isRefreshing = true
     }
 
     fun clearCategory(){

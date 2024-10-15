@@ -163,7 +163,8 @@ fun HomeContent(
                 CategoryList(
                     categories = categoryList
                 ) { category ->
-
+                    searchData.value.clear()
+                    searchData.value.clearCategory()
                     searchData.value.searchCategoryID = category.id
                     searchData.value.searchParentID = category.parentId
                     searchData.value.searchCategoryName = category.name
@@ -179,7 +180,8 @@ fun HomeContent(
             }
 
             GridPopularCategory(listTopCategory) { topCategory ->
-
+                searchData.value.clear()
+                searchData.value.clearCategory()
                 searchData.value.searchCategoryID = topCategory.id
                 searchData.value.searchParentID = topCategory.parentId
                 searchData.value.searchCategoryName = topCategory.name

@@ -12,21 +12,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
 class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
-    private var defaultCategoryId = 1L
 
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
     val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
+
     private val categoryOperations : CategoryOperations = getKoin().get()
 
+    val globalData: CategoryBaseFilters = getKoin().get()
+    val searchData = globalData.listingData.searchData
 
-    fun getCategory(categoryId: Long = defaultCategoryId) {
-        if (categoryId != defaultCategoryId)
-            defaultCategoryId = categoryId
+    fun getCategory(categoryId: Long = searchData.value.searchCategoryID ?: 1L) {
         onError(ServerErrorException())
         setLoading(true)
         viewModelScope.launch {
@@ -53,7 +54,6 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
                         }
                     }
                 }
-
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
@@ -61,12 +61,6 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
             } finally {
                 setLoading(false)
             }
-        }
-    }
-
-    fun updateCategory(categoryId: Long){
-        if (categoryId != defaultCategoryId){
-            getCategory(categoryId)
         }
     }
 }

@@ -18,12 +18,8 @@ interface SearchComponent {
     val model : Value<Model>
 
     data class Model(
-        val history: StateFlow<List<SearchHistory>>,
-        val isLoading: StateFlow<Boolean>,
-        val isError: StateFlow<ServerErrorException>,
+        val searchViewModel: SearchViewModel,
     )
-
-    val globalData : CategoryBaseFilters
 
     fun onCloseClicked()
 
@@ -45,34 +41,30 @@ class DefaultSearchComponent(
     private val goToCategorySelected: () -> Unit
 ) : SearchComponent, ComponentContext by componentContext {
 
-    private val searchViewModel: SearchViewModel = getKoin().get()
-    private val categoryOperations : CategoryOperations = getKoin().get()
-
-    override val globalData: CategoryBaseFilters = getKoin().get()
-
-    private val searchData = globalData.listingData.searchData
-
-    init {
-
-        searchViewModel.getHistory()
-    }
-
     private val _model = MutableValue(
         SearchComponent.Model(
-            isLoading = searchViewModel.isShowProgress,
-            isError = searchViewModel.errorMessage,
-            history = searchViewModel.responseHistory,
+            searchViewModel = getKoin().get()
         )
     )
 
     override val model: Value<SearchComponent.Model> = _model
 
+    private val searchViewModel: SearchViewModel = getKoin().get()
+    private val categoryOperations : CategoryOperations = getKoin().get()
+
+    private val searchData = model.value.searchViewModel.searchData
+
+    init {
+        searchViewModel.getHistory()
+    }
 
     override fun onCloseClicked() {
+        searchData.value.isRefreshing = true
         onBackPressed()
     }
 
     override fun goToListing() {
+        searchData.value.isRefreshing = true
         val searchString = searchData.value.searchString
         if (searchString != "" && searchString != null) {
             val sh = searchViewModel.dataBase.searchHistoryQueries
@@ -87,7 +79,6 @@ class DefaultSearchComponent(
         searchViewModel.getHistory()
     }
 
-
     override fun deleteHistory() {
         val sh = searchViewModel.dataBase.searchHistoryQueries
         sh.deleteAll()
@@ -101,6 +92,7 @@ class DefaultSearchComponent(
     }
 
     override fun goToCategory() {
+        searchData.value.isRefreshing = true
         goToCategorySelected()
     }
 }

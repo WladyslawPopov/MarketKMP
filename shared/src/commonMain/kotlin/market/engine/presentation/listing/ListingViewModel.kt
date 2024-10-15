@@ -71,7 +71,7 @@ class ListingViewModel(
         @OptIn(ExperimentalCoroutinesApi::class)
         pagingDataFlow = searches
             .flatMapLatest {
-                offerPagingRepository.getListing(listingData)
+                offerPagingRepository.getListing(it.listingData)
             }.cachedIn(viewModelScope)
 
         state = searches.map {
@@ -81,7 +81,7 @@ class ListingViewModel(
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
-            initialValue = UiState(listingData)
+            initialValue = UiState(listingData.copy())
         )
 
         if (settings.keys.find { it == "listingType" } != null){
@@ -92,7 +92,7 @@ class ListingViewModel(
         }
     }
 
-    fun updateCurrentListingData(listingData: ListingData) {
+    fun updateCurrentListingData() {
         viewModelScope.launch {
             accept(UiAction.UpdateCurrentListingData(listingData))
         }

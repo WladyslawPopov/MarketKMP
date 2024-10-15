@@ -34,7 +34,6 @@ class CategoryOperations(private val apiService : APIService, private val global
 
     suspend fun getTotalCount(id: Long): ServerResponse<Int> {
         val sd = globalData.listingData.searchData.value.copy()
-
         sd.searchCategoryID = id
         val url = UrlBuilder()
             .addPathSegment("offers")

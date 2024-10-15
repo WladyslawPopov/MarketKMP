@@ -21,7 +21,6 @@ interface ListingComponent {
     data class Model(
         val listingViewModel: ListingViewModel
     )
-    val globalData : CategoryBaseFilters
 
     fun onRefresh()
 
@@ -42,20 +41,13 @@ class DefaultListingComponent(
         listingViewModel = getKoin().get()
     ))
     override val model: Value<ListingComponent.Model> = _model
-    override val globalData : CategoryBaseFilters = model.value.listingViewModel.globalData
-
     private val listingViewModel = model.value.listingViewModel
-    private val listingData = globalData.listingData
-    private val settings = listingViewModel.settings
 
+    private val listingData = listingViewModel.listingData
     private val offerOperations : OfferOperations = getKoin().get()
 
-    init {
-        onRefresh()
-    }
-
     override fun onRefresh() {
-        listingViewModel.updateCurrentListingData(listingData.copy())
+        listingViewModel.updateCurrentListingData()
     }
 
     override fun onBackClicked() {
@@ -63,6 +55,7 @@ class DefaultListingComponent(
             listingData.searchData.value.searchCategoryID = listingData.searchData.value.searchParentID
             listingData.searchData.value.searchCategoryName = listingData.searchData.value.searchParentName
         }
+        listingData.searchData.value.isRefreshing = true
         onBackPressed()
     }
 
