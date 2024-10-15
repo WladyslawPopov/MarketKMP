@@ -36,7 +36,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SwipeTabsBar(
     listingData: State<LD>,
-    scrollState: LazyGridState
+    scrollState: LazyGridState,
+    onRefresh: () -> Unit
 ) {
     val itemsPerPage = listingData.value.pageCountItems
     val totalPages = listingData.value.totalPages
@@ -48,56 +49,94 @@ fun SwipeTabsBar(
             (scrollState.firstVisibleItemIndex / itemsPerPage) + 1
         }
     }
-    var selectedTab by remember { mutableStateOf(TabTypeListing.ALL) }
-    var isTabsVisible by remember { mutableStateOf(true) }
+    val curTab = when (listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value){
+        "auction" -> TabTypeListing.AUCTION
+        "buynow" -> TabTypeListing.BUY_NOW
+        else -> TabTypeListing.ALL
+    }
+    val selectedTab = remember { mutableStateOf(curTab) }
+    val isTabsVisible = remember { mutableStateOf(true) }
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
                 if (currentIndex < previousIndex) {
-                    isTabsVisible = true
+                    isTabsVisible.value = true
                 } else if (currentIndex > previousIndex) {
-                    isTabsVisible = false
+                    isTabsVisible.value = false
                 }
 
                 if (currentIndex == 0) {
-                    isTabsVisible = true
+                    isTabsVisible.value = true
                 }
 
                 if (currentPage == totalPages) {
-                    isTabsVisible = true
+                    isTabsVisible.value = true
                 }
 
                 previousIndex = currentIndex
             }
     }
 
+    val auctionString = stringResource(strings.ordinaryAuction)
+    val buyNowString = stringResource(strings.buyNow)
+    val allString = stringResource(strings.allOffers)
+
     val tabs = listOf(
         Tab(
             type = TabTypeListing.ALL,
-            title = stringResource(strings.allOffers),
+            title = allString,
             onClick = {
-                selectedTab = TabTypeListing.ALL
+                selectedTab.value = TabTypeListing.ALL
+                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value = ""
+                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = null
+
+                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
+                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
+                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
+
+                onRefresh()
             }
         ),
         Tab(
             type = TabTypeListing.AUCTION,
-            title = stringResource(strings.ordinaryAuction),
+            title = auctionString,
             onClick = {
-                selectedTab = TabTypeListing.AUCTION
+                selectedTab.value = TabTypeListing.AUCTION
+
+                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value = "auction"
+                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation =auctionString
+
+                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
+                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
+                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
+
+                onRefresh()
             }
         ),
         Tab(
             type = TabTypeListing.BUY_NOW,
-            title = stringResource(strings.buyNow),
+            title = buyNowString,
             onClick = {
-                selectedTab = TabTypeListing.BUY_NOW
+                selectedTab.value = TabTypeListing.BUY_NOW
+
+                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value = "buynow"
+                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = buyNowString
+
+                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
+                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
+                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
+
+                onRefresh()
             }
         ),
     )
 
     AnimatedVisibility(
-        visible = isTabsVisible,
+        visible = isTabsVisible.value,
         enter = fadeIn() ,
         exit = fadeOut() ,
         modifier = Modifier.animateContentSize()
@@ -110,7 +149,7 @@ fun SwipeTabsBar(
             items(tabs) { tab ->
                 FilterChip(
                     modifier = Modifier.padding(dimens.smallPadding),
-                    selected = tab.type == selectedTab,
+                    selected = tab.type == selectedTab.value,
                     onClick = {tab.onClick() },
                     label = {
                         Text(tab.title, style = MaterialTheme.typography.bodySmall)

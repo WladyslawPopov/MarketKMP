@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.items.TopCategory
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
@@ -128,6 +129,7 @@ fun HomeContent(
     val err = model.isError.collectAsState()
     val scrollState = rememberScrollState()
     val searchData = component.globalData.listingData.searchData.subscribeAsState()
+    val listingData = component.globalData.listingData.data.subscribeAsState()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(model.isError.value) { component.onRefresh() } }
@@ -172,11 +174,17 @@ fun HomeContent(
                     component.navigateToListing()
                 }
             }
-
+            val stringAllPromo = stringResource(strings.allPromoOffersBtn)
             model.promoOffer1.collectAsState().value.let { offers ->
-                GridPromoOffers(offers) {
-
-                }
+                GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
+                    listingData.value.filters = arrayListOf()
+                    listingData.value.filters = EmptyFilters.getEmpty()
+                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.interpritation = stringAllPromo
+                    searchData.value.clear()
+                    searchData.value.clearCategory()
+                    searchData.value.searchCategoryName = stringAllPromo
+                    component.navigateToListing()
+                } )
             }
 
             GridPopularCategory(listTopCategory) { topCategory ->
@@ -186,14 +194,19 @@ fun HomeContent(
                 searchData.value.searchParentID = topCategory.parentId
                 searchData.value.searchCategoryName = topCategory.name
                 searchData.value.searchParentName = topCategory.parentName
-
                 component.navigateToListing()
             }
 
             model.promoOffer2.collectAsState().value.let { offers ->
-                GridPromoOffers(offers) {
-
-                }
+                GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
+                    listingData.value.filters = arrayListOf()
+                    listingData.value.filters = EmptyFilters.getEmpty()
+                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.interpritation = stringAllPromo
+                    searchData.value.clear()
+                    searchData.value.clearCategory()
+                    searchData.value.searchCategoryName = stringAllPromo
+                    component.navigateToListing()
+                } )
             }
             FooterRow(listFooterItem)
         }

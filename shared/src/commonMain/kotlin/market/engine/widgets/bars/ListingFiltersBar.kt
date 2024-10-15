@@ -1,4 +1,4 @@
-package market.engine.presentation.listing
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +28,6 @@ import market.engine.core.globalData.LD
 import market.engine.core.globalData.SD
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.badges.getBadgedBox
-import market.engine.widgets.bars.ActiveFilterListing
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -81,6 +80,8 @@ fun ListingFiltersBar(
         val filterString = stringResource(strings.filter)
         val searchString = stringResource(strings.searchTitle)
         val userDef = stringResource(strings.searchUsersSearch)
+        val auction = stringResource(strings.ordinaryAuction)
+        val buyNow = stringResource(strings.buyNow)
 
         Row(
             modifier = Modifier
@@ -90,16 +91,32 @@ fun ListingFiltersBar(
         ) {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(if (isShowFilters) 0.6f else 1f).clip(shape = MaterialTheme.shapes.medium),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
-                val filters = listingData.value.filters
+                val filters = if(isShowFilters)
+                    listingData.value.filters?.filter { it.interpritation != null
+                            && it.interpritation != auction
+                            && it.interpritation != buyNow
+                    } else listingData.value.filters?.filter { it.interpritation != null }
+
                 if (filters != null) {
                     if (filters.isNotEmpty()){
                         isShowFiltersTittle.value = filterString
                     }
 
                     items(filters.toList()) { filter ->
-
+                        if (filter.interpritation != null &&
+                            filter.interpritation != stringResource(strings.ordinaryAuction) &&
+                            filter.interpritation != stringResource(strings.buyNow)
+                        ) {
+                            ActiveFilterListing(
+                                text = filter.interpritation!!,
+                                removeFilter = {
+                                    listingData.value.filters?.remove(filter)
+                                    onRefresh()
+                                }
+                            )
+                        }
                     }
                 }
                 if (searchData.value.userSearch) {

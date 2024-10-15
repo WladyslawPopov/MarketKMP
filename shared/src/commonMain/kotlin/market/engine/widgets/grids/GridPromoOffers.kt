@@ -26,7 +26,11 @@ import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun GridPromoOffers(promoOffers : List<Offer>, onOfferClick: (Offer) -> Unit) {
+fun GridPromoOffers(
+    promoOffers : List<Offer>,
+    onOfferClick: (Offer) -> Unit,
+    onAllClickButton: () -> Unit
+) {
 
     val windowClass = getWindowSizeClass()
     val showNavigationRail = windowClass == WindowSizeClass.Big
@@ -59,7 +63,7 @@ fun GridPromoOffers(promoOffers : List<Offer>, onOfferClick: (Offer) -> Unit) {
         modifier = Modifier.padding(horizontal = dimens.smallPadding).fillMaxWidth(),
         alignment = Alignment.BottomEnd
     ) {
-
+        onAllClickButton()
     }
 
     Spacer(modifier = Modifier.heightIn(dimens.smallSpacer))

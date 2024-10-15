@@ -4,16 +4,12 @@ import market.engine.widgets.items.ColumnItemListing
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.snapshotFlow
 import app.cash.paging.LoadStateError
@@ -24,8 +20,10 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.russhwolf.settings.set
 import kotlinx.coroutines.async
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.presentation.base.BaseContent
+import market.engine.widgets.bars.ListingFiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.grids.PagingGrid
 import market.engine.widgets.exceptions.onError
@@ -61,6 +59,7 @@ fun ListingContent(
     LaunchedEffect(searchData){
         if (searchData.value.isRefreshing) {
             searchData.value.isRefreshing = false
+            listingData.value.filters = EmptyFilters.getEmpty()
             component.onRefresh()
         }
     }
@@ -116,8 +115,14 @@ fun ListingContent(
         Column(modifier = Modifier.fillMaxSize()) {
             SwipeTabsBar(
                 listingData,
-                scrollState
+                scrollState,
+                onRefresh = {
+                    component.model.value.listingViewModel.firstVisibleItemIndex = 0
+                    component.model.value.listingViewModel.firstVisibleItemScrollOffset = 0
+                    component.onRefresh()
+                }
             )
+
             ListingFiltersBar(
                 listingData,
                 searchData,
@@ -188,16 +193,6 @@ fun ListingContent(
                         }
                     }
                 )
-            }
-        }
-
-        Box(
-            modifier.fillMaxWidth().fillMaxHeight()
-        ){
-            Card(
-                modifier.align(Alignment.BottomStart)
-            ){
-
             }
         }
     }
