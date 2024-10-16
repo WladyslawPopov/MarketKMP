@@ -28,6 +28,8 @@ interface ListingComponent {
 
     fun goToSearch()
 
+    fun goToFilters()
+
     suspend fun addToFavorites(offer: Offer): Boolean
 }
 
@@ -61,6 +63,10 @@ class DefaultListingComponent(
 
     override fun goToSearch() {
         searchSelected()
+    }
+
+    override fun goToFilters() {
+
     }
 
     override suspend fun addToFavorites(offer: Offer): Boolean {

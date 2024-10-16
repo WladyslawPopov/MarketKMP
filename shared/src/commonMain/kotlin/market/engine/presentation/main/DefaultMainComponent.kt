@@ -5,6 +5,8 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.items
+import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -59,7 +61,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.homeNavigation,
             initialConfiguration = HomeConfig.HomeScreen,
             serializer = HomeConfig.serializer(),
-            handleBackButton = true,
+            
             childFactory = ::createChild,
             key = "HomeStack"
         )
@@ -70,7 +72,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.categoryNavigation,
             initialConfiguration = CategoryConfig.CategoryScreen,
             serializer = CategoryConfig.serializer(),
-            handleBackButton = true,
+            
             childFactory = ::createChild,
             key = "CategoryStack"
         )
@@ -81,7 +83,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.basketNavigation,
             initialConfiguration = BasketConfig.BasketScreen,
             serializer = BasketConfig.serializer(),
-            handleBackButton = true,
+            
             childFactory = ::createChild,
             key = "BasketStack"
         )
@@ -92,7 +94,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.favoritesNavigation,
             initialConfiguration = FavoritesConfig.FavoritesScreen,
             serializer = FavoritesConfig.serializer(),
-            handleBackButton = true,
+            
             childFactory = ::createChild,
             key = "FavoritesStack"
         )
@@ -103,7 +105,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.profileNavigation,
             initialConfiguration = ProfileConfig.ProfileScreen,
             serializer = ProfileConfig.serializer(),
-            handleBackButton = true,
+            
             childFactory = ::createChild,
             key = "ProfileStack"
         )
@@ -115,7 +117,7 @@ class DefaultMainComponent(
             source = currentNavigation,
             serializer = MainConfig.serializer(),
             initialConfiguration = MainConfig.Home,
-            handleBackButton = true,
+            
             childFactory = {config, _ ->
                 createChild(config)
             },
@@ -264,6 +266,7 @@ class DefaultMainComponent(
             }
         )
     }
+
 
     private fun itemProfile(componentContext: ComponentContext): ProfileComponent {
         return DefaultProfileComponent(

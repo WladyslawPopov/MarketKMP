@@ -36,17 +36,20 @@ fun ListingFiltersBar(
     searchData: State<SD>,
     isShowFilters: Boolean = true,
     onChangeTypeList: (Int) -> Unit = {},
+    onFilterClick: () -> Unit = {},
     onRefresh: () -> Unit,
 ) {
     val isShowFiltersTittle = remember { mutableStateOf( "") }
     val typeList = remember { mutableStateOf(listingData.value.listingType) }
+
+    val countFilters = listingData.value.filters?.filter { it.interpritation != null }?.size
 
     val itemFilter = NavigationItem(
         title = stringResource(strings.filter),
         icon = drawables.filterIcon,
         tint = colors.black,
         hasNews = false,
-        badgeCount = 5
+        badgeCount = if (countFilters != null && countFilters > 0) countFilters else null,
     )
 
     val itemSort = NavigationItem(
@@ -170,7 +173,7 @@ fun ListingFiltersBar(
                     IconButton(
                         modifier = Modifier.size(50.dp),
                         onClick = {
-
+                            onFilterClick()
                         }
                     ) {
                         getBadgedBox(item = itemFilter)
