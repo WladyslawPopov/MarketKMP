@@ -72,6 +72,7 @@ interface Strings {
     val everyDeyDiscount : StringResource
     val freeBilling : StringResource
     val currencySign : StringResource
+    val currencyCode : StringResource
     val homeTopCategory : StringResource
 
     val noInternetTitle : StringResource
@@ -91,4 +92,8 @@ interface Strings {
     val sort : StringResource
     val ordinaryAuction : StringResource
     val buyNow : StringResource
+    val saleTypeParameterName : StringResource
+    val discountPrice : StringResource
+    val discountPriceParameterName : StringResource
+    val saleTypeNameFromOne : StringResource
 }

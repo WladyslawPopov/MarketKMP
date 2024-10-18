@@ -109,8 +109,8 @@ fun ListingFiltersBar(
 
                     items(filters.toList()) { filter ->
                         if (filter.interpritation != null &&
-                            filter.interpritation != stringResource(strings.ordinaryAuction) &&
-                            filter.interpritation != stringResource(strings.buyNow)
+                            filter.value != "buynow" &&
+                            filter.value != "auction"
                         ) {
                             ActiveFilterListing(
                                 text = filter.interpritation!!,

@@ -49,6 +49,8 @@ class DefaultListingComponent(
     private val offerOperations : OfferOperations = getKoin().get()
 
     override fun onRefresh() {
+        listingViewModel.firstVisibleItemScrollOffset = 0
+        listingViewModel.firstVisibleItemIndex = 0
         listingViewModel.updateCurrentListingData()
     }
 
