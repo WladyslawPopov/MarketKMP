@@ -54,13 +54,13 @@ fun BaseContent(
                 ) {
                     if(noFound != null){
                         noFound()
-                    }else{
-                        if (error == null) {
-                            content()
-                        }else{
-                            error()
-                        }
                     }
+
+                    if (error != null) {
+                        error()
+                    }
+
+                    content()
                 }
 
                 if (showVerticalScrollbarState != null) {

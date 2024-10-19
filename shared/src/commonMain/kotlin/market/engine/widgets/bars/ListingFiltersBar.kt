@@ -108,18 +108,15 @@ fun ListingFiltersBar(
                     }
 
                     items(filters.toList()) { filter ->
-                        if (filter.interpritation != null &&
-                            filter.value != "buynow" &&
-                            filter.value != "auction"
-                        ) {
-                            ActiveFilterListing(
-                                text = filter.interpritation!!,
-                                removeFilter = {
-                                    listingData.value.filters?.remove(filter)
-                                    onRefresh()
-                                }
-                            )
-                        }
+
+                        ActiveFilterListing(
+                            text = filter.interpritation!!,
+                            removeFilter = {
+                                listingData.value.filters?.find { it.key == filter.key }?.interpritation = null
+                                onRefresh()
+                            }
+                        )
+
                     }
                 }
                 if (searchData.value.userSearch) {

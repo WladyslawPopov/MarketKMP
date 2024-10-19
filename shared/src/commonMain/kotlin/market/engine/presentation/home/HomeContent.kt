@@ -177,12 +177,11 @@ fun HomeContent(
             val stringAllPromo = stringResource(strings.allPromoOffersBtn)
             model.promoOffer1.collectAsState().value.let { offers ->
                 GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                    listingData.value.filters = arrayListOf()
                     listingData.value.filters = EmptyFilters.getEmpty()
+                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.value = "promo_main_page"
                     listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.interpritation = stringAllPromo
                     searchData.value.clear()
                     searchData.value.clearCategory()
-                    searchData.value.searchCategoryName = stringAllPromo
                     component.navigateToListing()
                 } )
             }
@@ -199,12 +198,11 @@ fun HomeContent(
 
             model.promoOffer2.collectAsState().value.let { offers ->
                 GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                    listingData.value.filters = arrayListOf()
                     listingData.value.filters = EmptyFilters.getEmpty()
+                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.value = "promo_main_page"
                     listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.interpritation = stringAllPromo
                     searchData.value.clear()
                     searchData.value.clearCategory()
-                    searchData.value.searchCategoryName = stringAllPromo
                     component.navigateToListing()
                 } )
             }

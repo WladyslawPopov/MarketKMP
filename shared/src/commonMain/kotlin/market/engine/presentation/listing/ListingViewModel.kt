@@ -3,8 +3,6 @@ package market.engine.presentation.listing
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import com.russhwolf.settings.Settings
@@ -20,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -30,7 +27,9 @@ import kotlinx.coroutines.withContext
 import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.paging.offer.OfferPagingRepository
@@ -44,11 +43,15 @@ class ListingViewModel(
 
     val settings : Settings = getKoin().get()
 
+    private val categoryOperations : CategoryOperations = getKoin().get()
+
     var firstVisibleItemIndex by mutableStateOf(0)
     var firstVisibleItemScrollOffset by mutableStateOf(0)
 
     var globalData : CategoryBaseFilters = getKoin().get()
     var listingData = globalData.listingData
+
+    val regNames = mutableStateOf(arrayListOf<String>())
 
     // StateFlow for the UI state
     val state: StateFlow<UiState>
@@ -90,6 +93,8 @@ class ListingViewModel(
         }else{
             settings["listingType"] = listingData.data.value.listingType
         }
+
+        getRegions()
     }
 
     fun updateCurrentListingData() {
@@ -129,6 +134,25 @@ class ListingViewModel(
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            }
+        }
+    }
+
+    fun getRegions(){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val res = categoryOperations.getRegions()
+                withContext(Dispatchers.Main) {
+                    val choices = arrayListOf<Options>()
+                    if (res != null) {
+                        res.firstOrNull()?.options?.sortedBy { it.weight }
+                            ?.let { choices.addAll(it) }
+
+                        choices.forEach {
+                            regNames.value.add(it.name.toString())
+                        }
+                    }
+                }
             }
         }
     }

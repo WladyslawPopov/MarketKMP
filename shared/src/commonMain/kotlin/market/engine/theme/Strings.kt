@@ -96,4 +96,9 @@ interface Strings {
     val discountPrice : StringResource
     val discountPriceParameterName : StringResource
     val saleTypeNameFromOne : StringResource
+    val specialFilters : StringResource
+    val offerWithSafeDealParameterName : StringResource
+    val offerWithVideoParameterName : StringResource
+    val regionParameterName : StringResource
+    val chooseAction : StringResource
 }

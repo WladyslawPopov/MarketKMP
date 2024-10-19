@@ -12,7 +12,10 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.network.networkObjects.Options
+import market.engine.core.network.networkObjects.RegionOptions
 
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -47,6 +50,7 @@ class DefaultListingComponent(
 
     private val listingData = listingViewModel.listingData
     private val offerOperations : OfferOperations = getKoin().get()
+    private val categoryOperations : CategoryOperations = getKoin().get()
 
     override fun onRefresh() {
         listingViewModel.firstVisibleItemScrollOffset = 0
