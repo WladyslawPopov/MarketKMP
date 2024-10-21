@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.IconButton
@@ -37,6 +39,7 @@ fun ListingFiltersBar(
     isShowFilters: Boolean = true,
     onChangeTypeList: (Int) -> Unit = {},
     onFilterClick: () -> Unit = {},
+    onSortClick: () -> Unit = {},
     onRefresh: () -> Unit,
 ) {
     val isShowFiltersTittle = remember { mutableStateOf( "") }
@@ -93,7 +96,7 @@ fun ListingFiltersBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             LazyRow(
-                modifier = Modifier.fillMaxWidth(if (isShowFilters) 0.6f else 1f).clip(shape = MaterialTheme.shapes.medium),
+                modifier = Modifier.fillMaxWidth(if (isShowFilters) 0.67f else 1f).clip(shape = MaterialTheme.shapes.medium),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
                 val filters = if(isShowFilters)
@@ -112,13 +115,15 @@ fun ListingFiltersBar(
                         ActiveFilterListing(
                             text = filter.interpritation!!,
                             removeFilter = {
-                                listingData.value.filters?.find { it.key == filter.key }?.interpritation = null
+                                listingData.value.filters?.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
+                                listingData.value.filters?.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
                                 onRefresh()
                             }
                         )
 
                     }
                 }
+
                 if (searchData.value.userSearch) {
                     if (searchData.value.userLogin != null) {
                         isShowFiltersTittle.value = searchString
@@ -168,7 +173,7 @@ fun ListingFiltersBar(
                     modifier = Modifier,
                 ) {
                     IconButton(
-                        modifier = Modifier.size(50.dp),
+                        modifier = Modifier.width(50.dp),
                         onClick = {
                             onFilterClick()
                         }
@@ -177,16 +182,16 @@ fun ListingFiltersBar(
                     }
 
                     IconButton(
-                        modifier = Modifier.size(50.dp),
+                        modifier = Modifier.width(35.dp),
                         onClick = {
-
+                            onSortClick()
                         }
                     ) {
                         getBadgedBox(item = itemSort)
                     }
 
                     IconButton(
-                        modifier = Modifier.size(50.dp),
+                        modifier = Modifier.width(30.dp),
                         onClick = {
                             typeList.value = if (typeList.value == 0) 1 else 0
                             listingData.value.listingType = typeList.value

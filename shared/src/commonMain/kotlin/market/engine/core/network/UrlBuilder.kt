@@ -1,8 +1,13 @@
 package market.engine.core.network
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import market.engine.core.constants.UserData
 import market.engine.core.globalData.LD
 import market.engine.core.globalData.SD
+import market.engine.core.util.convertDateWithMinutes
 
 class UrlBuilder {
 
@@ -85,7 +90,9 @@ class UrlBuilder {
                 if (it.interpritation != null) {
                     when (it.key) {
                         "session_start" -> {
-//                            it.value = (Calendar.getInstance().timeInMillis / 1000).toString()
+                            val currentInstant: Instant = Clock.System.now()
+                            val currentTimeInSeconds = currentInstant.epochSeconds
+                            it.value = currentTimeInSeconds.toString()
                         }
                         "users_to_act_on_price_proposals" -> {
                             it.value = UserData.login.toString()

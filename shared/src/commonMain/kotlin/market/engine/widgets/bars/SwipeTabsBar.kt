@@ -106,7 +106,7 @@ fun SwipeTabsBar(
                 selectedTab.value = TabTypeListing.AUCTION
 
                 listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value = "auction"
-                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation =auctionString
+                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = auctionString
 
                 listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
                 listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null

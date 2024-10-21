@@ -101,4 +101,26 @@ interface Strings {
     val offerWithVideoParameterName : StringResource
     val regionParameterName : StringResource
     val chooseAction : StringResource
+    val actionAcceptFilters : StringResource
+    val priceParameterName : StringResource
+    val fromAboutParameterName : StringResource
+    val toAboutParameterName : StringResource
+    val timeParameterName : StringResource
+    val offersFor : StringResource
+    val newOffersWithoutRelistedFor : StringResource
+    val endingWith : StringResource
+
+    val oneHour : StringResource
+    val twoHour : StringResource
+    val threeHour : StringResource
+    val fourHour : StringResource
+    val fiveHour : StringResource
+    val twelveHour : StringResource
+    val _24Hour : StringResource
+    val _2Days : StringResource
+    val _3Days : StringResource
+    val _4Days : StringResource
+    val _5Days : StringResource
+    val _6Days : StringResource
+    val _7Days : StringResource
 }

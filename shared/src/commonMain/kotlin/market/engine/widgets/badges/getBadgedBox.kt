@@ -23,8 +23,7 @@ fun getBadgedBox(
         badge = {
             if (item.badgeCount != null) {
                 Badge{
-                    val dynamicFontSize = (10 - (item.badgeCount / 10)).coerceAtLeast(7).sp
-                    Text(text = item.badgeCount.toString(), fontSize = dynamicFontSize)
+                    Text(text = item.badgeCount.toString(), fontSize = 7.sp)
                 }
             } else {
                 if (item.hasNews) {

@@ -1,12 +1,14 @@
 package market.engine.widgets.buttons
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,41 +35,46 @@ fun ExpandableSection(
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f
     )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(color = colors.white)
-            .padding(dimens.smallPadding)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier.padding(dimens.smallPadding)
+    ){
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
                 .clip(MaterialTheme.shapes.medium)
-                .clickable {
-                    onExpandChange()
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-
+                .background(color = colors.white)
+                .animateContentSize()
         ) {
-            Text(text = title, modifier = Modifier.padding(dimens.mediumPadding).weight(1f))
-            SmallIconButton(
-                drawables.iconArrowDown,
-                colors.black,
-                onClick = { onExpandChange() },
-                modifier = Modifier
-                    .graphicsLayer {
-                        rotationZ = rotationAngle
-                    }
-            )
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .clip(MaterialTheme.shapes.medium)
+                    .clickable {
+                        onExpandChange()
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
 
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ){
-            content()
+                ) {
+                Text(text = title, modifier = Modifier.padding(dimens.mediumPadding).weight(1f))
+                SmallIconButton(
+                    drawables.iconArrowDown,
+                    colors.black,
+                    onClick = { onExpandChange() },
+                    modifier = Modifier
+                        .padding(horizontal = dimens.smallPadding)
+                        .graphicsLayer {
+                            rotationZ = rotationAngle
+                        }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ){
+                content()
+            }
         }
     }
 }

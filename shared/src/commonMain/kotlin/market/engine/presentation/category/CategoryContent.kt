@@ -29,6 +29,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
@@ -72,6 +73,7 @@ fun CategoryContent(
         {
             showNoItemLayout {
                 searchData.value.clear()
+                listingData.value.filters = EmptyFilters.getEmpty()
                 component.onRefresh()
             }
         }

@@ -51,7 +51,7 @@ class ListingViewModel(
     var globalData : CategoryBaseFilters = getKoin().get()
     var listingData = globalData.listingData
 
-    val regNames = mutableStateOf(arrayListOf<String>())
+    val regionOptions = mutableStateOf(arrayListOf<Options>())
 
     // StateFlow for the UI state
     val state: StateFlow<UiState>
@@ -138,19 +138,14 @@ class ListingViewModel(
         }
     }
 
-    fun getRegions(){
+    private fun getRegions(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val res = categoryOperations.getRegions()
                 withContext(Dispatchers.Main) {
-                    val choices = arrayListOf<Options>()
                     if (res != null) {
                         res.firstOrNull()?.options?.sortedBy { it.weight }
-                            ?.let { choices.addAll(it) }
-
-                        choices.forEach {
-                            regNames.value.add(it.name.toString())
-                        }
+                            ?.let { regionOptions.value.addAll(it) }
                     }
                 }
             }
