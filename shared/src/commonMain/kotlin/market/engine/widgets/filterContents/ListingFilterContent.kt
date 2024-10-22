@@ -1,7 +1,9 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.material3.BottomSheetScaffoldState
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -20,16 +23,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -37,15 +45,17 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.networkObjects.Options
 import market.engine.widgets.buttons.ExpandableSection
 import market.engine.widgets.items.PriceFilter
 import market.engine.widgets.lists.getDropdownMenu
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FilterContent(
     isRefreshing: MutableState<Boolean>,
@@ -65,13 +75,11 @@ fun FilterContent(
         "discount_price" to stringResource(strings.discountPriceParameterName),
         "price_proposal" to stringResource(strings.proposalTitle)
     )
-
     val specialFilters = listOf(
         "with_video" to stringResource(strings.offerWithVideoParameterName),
         "with_safe_deal" to stringResource(strings.offerWithSafeDealParameterName),
         "promo_main_page" to stringResource(strings.allPromoOffersBtn),
     )
-
     val timeFilterMap = listOf(
         "1h" to stringResource(strings.oneHour),
         "2h" to stringResource(strings.twoHour),
@@ -87,304 +95,400 @@ fun FilterContent(
         "6d" to stringResource(strings._6Days),
         "7d" to stringResource(strings._7Days)
     )
-
     val timeOptions = timeFilterMap.map { it.second }
 
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ){
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(dimens.smallPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            sheetState.bottomSheetState.collapse()
+                        }
+                    },
+                    content = {
+                        Icon(
+                            painterResource(drawables.closeBtn),
+                            tint = colors.black,
+                            contentDescription = stringResource(strings.actionClose)
+                        )
+                    },
+                )
 
-    var isExpanded1 by remember { mutableStateOf(checkActiveSaleType(saleTypeFilters, listingData) != null) }
-    var isExpanded2 by remember { mutableStateOf(checkActiveSaleType(specialFilters, listingData) != null) }
-    var isExpanded3 by remember { mutableStateOf(checkActiveTimeFilter(listingData) != null) }
+                Text(
+                    stringResource(strings.filter),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(dimens.smallPadding)
+                )
+            }
 
-    LazyColumn {
-        item {
-            if(listingData.value.filters?.any { it.interpritation != null } == true) {
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(dimens.smallPadding)
-                ) {
-                    Button(
-                        onClick = {
-                            listingData.value.filters = EmptyFilters.getEmpty()
-                            scope.launch {
-                                sheetState.bottomSheetState.partialExpand()
-                            }
-                        },
+            if(isRefreshing.value || listingData.value.filters?.find { it.interpritation != null } != null) {
+                Button(
+                    onClick = {
+                        isRefreshing.value = true
+                        listingData.value.filters = EmptyFilters.getEmpty()
+                        scope.launch {
+                            sheetState.bottomSheetState.collapse()
+                        }
+                    },
+                    content = {
+                        Text(
+                            stringResource(strings.clear),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.black
+                        )
+                    },
+                    colors = colors.simpleButtonColors
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = sheetState.bottomSheetState.isExpanded,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            var isExpanded1 by remember { mutableStateOf(checkActiveSaleType(saleTypeFilters, listingData) != null) }
+            var isExpanded2 by remember { mutableStateOf(checkActiveSaleType(specialFilters, listingData) != null) }
+            var isExpanded3 by remember { mutableStateOf(checkActiveTimeFilter(listingData) != null) }
+
+            LazyColumn(
+                modifier = Modifier.padding(bottom = 60.dp, top = 60.dp)
+            ) {
+                item {
+                    //SaleType Filters
+                    ExpandableSection(
+                        title = stringResource(strings.saleTypeParameterName),
+                        isExpanded = isExpanded1,
+                        onExpandChange = { isExpanded1 = !isExpanded1 },
                         content = {
-                            Text(
-                                stringResource(strings.clear),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.black
-                            )
-                        },
-                        colors = colors.simpleButtonColors,
-                        modifier = Modifier.align(Alignment.CenterEnd)
+                            val selectedFilterKey = remember {
+                                mutableStateOf(
+                                    checkActiveSaleType(
+                                        saleTypeFilters,
+                                        listingData
+                                    )
+                                )
+                            }
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 500.dp)
+                            ) {
+                                items(saleTypeFilters) { filter ->
+                                    val (filterKey, filterText) = filter
+                                    val isChecked = selectedFilterKey.value == filterKey
+                                    Row(
+                                        horizontalArrangement = Arrangement.Start,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .clickable {
+                                                if (isChecked) {
+                                                    selectedFilterKey.value = null
+                                                    applyFilterLogic(
+                                                        "clear_saleType",
+                                                        "",
+                                                        listingData
+                                                    )
+                                                } else {
+                                                    selectedFilterKey.value = filterKey
+                                                    applyFilterLogic(
+                                                        filterKey,
+                                                        filterText,
+                                                        listingData
+                                                    )
+                                                }
+
+                                                isRefreshing.value =
+                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                            }
+                                    ) {
+                                        RadioButton(
+                                            isChecked,
+                                            {
+                                                if (isChecked) {
+                                                    selectedFilterKey.value = null
+                                                    applyFilterLogic(
+                                                        "clear_saleType",
+                                                        "",
+                                                        listingData
+                                                    )
+                                                } else {
+                                                    selectedFilterKey.value = filterKey
+                                                    applyFilterLogic(
+                                                        filterKey,
+                                                        filterText,
+                                                        listingData
+                                                    )
+                                                }
+
+                                                isRefreshing.value =
+                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                            },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = colors.inactiveBottomNavIconColor,
+                                                unselectedColor = colors.black
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                        Text(filterText, style = MaterialTheme.typography.bodySmall)
+                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+                item {
+                    //Special Filters
+                    ExpandableSection(
+                        title = stringResource(strings.specialFilters),
+                        isExpanded = isExpanded2,
+                        onExpandChange = { isExpanded2 = !isExpanded2 },
+                        content = {
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 500.dp)
+                            ) {
+                                items(specialFilters) { filter ->
+                                    val (filterKey, filterText) = filter
+
+                                    val isChecked =
+                                        remember { mutableStateOf(listingData.value.filters?.find { it.key == filter.first }?.interpritation != null) }
+
+                                    Row(
+                                        horizontalArrangement = Arrangement.Start,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .clickable {
+                                                isChecked.value = !isChecked.value
+                                                applyFilterLogic(filterKey, filterText, listingData)
+
+                                                isRefreshing.value =
+                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                            }
+                                    ) {
+                                        RadioButton(
+                                            isChecked.value,
+                                            {
+                                                isChecked.value = !isChecked.value
+                                                applyFilterLogic(filterKey, filterText, listingData)
+
+                                                isRefreshing.value =
+                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                            },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = colors.inactiveBottomNavIconColor,
+                                                unselectedColor = colors.black
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                        Text(filterText, style = MaterialTheme.typography.bodySmall)
+                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+                item {
+                    // Region
+                    Column(
+                        modifier = Modifier.padding(dimens.mediumPadding).fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(strings.regionParameterName),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(dimens.smallPadding)
+                        )
+
+                        getDropdownMenu(listingData.value.filters?.find { it.key == "region" }?.interpritation,
+                            regionsOptions.map { it.name.toString() },
+                            onItemClick = { newRegion ->
+                                listingData.value.filters?.find { it.key == "region" }?.value =
+                                    regionsOptions.find { it.name == newRegion }?.code.toString()
+                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                    newRegion
+
+                                isRefreshing.value =
+                                    listingData.value.filters?.find { it.interpritation != null } != null
+                            },
+                            onClearItem = {
+                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                    null
+
+                                isRefreshing.value =
+                                    listingData.value.filters?.find { it.interpritation != null } != null
+                            }
+                        )
+                    }
+                }
+                item {
+                    // Price Filter
+                    PriceFilter(listingData) {
+
+                        isRefreshing.value =
+                            listingData.value.filters?.find { it.interpritation != null } != null
+                    }
+                }
+                item {
+                    //time filter
+                    ExpandableSection(
+                        title = stringResource(strings.timeParameterName),
+                        isExpanded = isExpanded3,
+                        onExpandChange = { isExpanded3 = !isExpanded3 },
+                        content = {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .heightIn(max = 500.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(colors.grayLayout)
+                            ) {
+                                item {
+                                    val title = stringResource(strings.offersFor)
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.padding(dimens.smallPadding)
+                                    )
+
+                                    getDropdownMenu(
+                                        timeFilterMap.find { time ->
+                                            time.first == listingData.value.filters?.find { it.key == "new" }?.value
+                                        }?.second,
+                                        timeOptions,
+                                        onItemClick = { time ->
+                                            listingData.value.filters?.find { it.key == "new" }?.value =
+                                                timeFilterMap.find { it.second == time }?.first
+                                                    ?: ""
+                                            listingData.value.filters?.find { it.key == "new" }?.interpritation =
+                                                "$title $time"
+
+                                            isRefreshing.value =
+                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                        },
+                                        onClearItem = {
+                                            listingData.value.filters?.find { it.key == "new" }?.value =
+                                                ""
+                                            listingData.value.filters?.find { it.key == "new" }?.interpritation =
+                                                null
+
+                                            isRefreshing.value =
+                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                        }
+                                    )
+                                }
+
+                                item {
+                                    val title = stringResource(strings.newOffersWithoutRelistedFor)
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.padding(dimens.smallPadding)
+                                    )
+
+                                    getDropdownMenu(
+                                        timeFilterMap.find { time ->
+                                            time.first == listingData.value.filters?.find { it.key == "new_without_relisted" }?.value
+                                        }?.second,
+                                        timeOptions,
+                                        onItemClick = { time ->
+                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.value =
+                                                timeFilterMap.find { it.second == time }?.first
+                                                    ?: ""
+                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation =
+                                                "$title $time"
+
+                                            isRefreshing.value =
+                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                        },
+                                        onClearItem = {
+                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.value =
+                                                ""
+                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation =
+                                                null
+
+                                            isRefreshing.value =
+                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                        }
+                                    )
+                                }
+
+                                item {
+                                    val title = stringResource(strings.endingWith)
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.padding(dimens.smallPadding)
+                                    )
+
+                                    getDropdownMenu(
+                                        timeFilterMap.find { time ->
+                                            time.first == listingData.value.filters?.find { it.key == "ending" }?.value
+                                        }?.second,
+                                        timeOptions,
+                                        onItemClick = { time ->
+                                            listingData.value.filters?.find { it.key == "ending" }?.value =
+                                                timeFilterMap.find { it.second == time }?.first
+                                                    ?: ""
+                                            listingData.value.filters?.find { it.key == "ending" }?.interpritation =
+                                                "$title $time"
+
+                                            isRefreshing.value =
+                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                        },
+                                        onClearItem = {
+                                            listingData.value.filters?.find { it.key == "ending" }?.value =
+                                                ""
+                                            listingData.value.filters?.find { it.key == "ending" }?.interpritation =
+                                                null
+
+                                            isRefreshing.value =
+                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
             }
         }
 
-        item {
-            //SaleType Filters
-            ExpandableSection(
-                title = stringResource(strings.saleTypeParameterName),
-                isExpanded = isExpanded1,
-                onExpandChange = { isExpanded1 = !isExpanded1 },
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding).align(Alignment.BottomCenter)
+        ) {
+            Button(
+                onClick = {
+                    scope.launch {
+                        sheetState.bottomSheetState.collapse()
+                    }
+                },
                 content = {
-                    val selectedFilterKey = remember { mutableStateOf(checkActiveSaleType(saleTypeFilters, listingData)) }
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 500.dp)
-                    ) {
-                        items(saleTypeFilters) { filter ->
-                            val (filterKey, filterText) = filter
-                            val isChecked = selectedFilterKey.value == filterKey
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .clickable {
-                                        if (isChecked) {
-                                            selectedFilterKey.value = null
-                                            applyFilterLogic("clear_saleType", "", listingData)
-                                        } else {
-                                            selectedFilterKey.value = filterKey
-                                            applyFilterLogic(filterKey, filterText, listingData)
-                                        }
-                                        isRefreshing.value = true
-                                    }
-                            ) {
-                                RadioButton(
-                                    isChecked,
-                                    {
-                                        if (isChecked) {
-                                            selectedFilterKey.value = null
-                                            applyFilterLogic("clear_saleType", "", listingData)
-                                        } else {
-                                            selectedFilterKey.value = filterKey
-                                            applyFilterLogic(filterKey, filterText, listingData)
-                                        }
-                                        isRefreshing.value = true
-                                    },
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                        unselectedColor = colors.black
-                                    )
-                                )
-                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                Text(filterText, style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                            }
-                        }
-                    }
-                }
+                    Text(
+                        stringResource(strings.actionAcceptFilters),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.alwaysWhite
+                    )
+                },
+                colors = colors.themeButtonColors,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.align(Alignment.Center)
             )
-        }
 
-        item {
-            //Special Filters
-            ExpandableSection(
-                title = stringResource(strings.specialFilters),
-                isExpanded = isExpanded2,
-                onExpandChange = { isExpanded2 = !isExpanded2 },
-                content = {
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 500.dp)
-                    ) {
-                        items(specialFilters) { filter ->
-                            val (filterKey, filterText) = filter
-
-                            val isChecked = remember { mutableStateOf(listingData.value.filters?.find { it.key == filter.first }?.interpritation != null) }
-
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .clickable {
-                                        isChecked.value = !isChecked.value
-                                        applyFilterLogic(filterKey, filterText, listingData)
-                                        isRefreshing.value = true
-                                    }
-                            ) {
-                                RadioButton(
-                                    isChecked.value,
-                                    {
-                                        isChecked.value = !isChecked.value
-                                        applyFilterLogic(filterKey, filterText, listingData)
-                                        isRefreshing.value = true
-                                    },
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                        unselectedColor = colors.black
-                                    )
-                                )
-                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                Text(filterText, style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                            }
-                        }
-                    }
-                }
-            )
-        }
-        item {
-            // Region
-            Column(
-                modifier = Modifier.padding(dimens.mediumPadding).fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(strings.regionParameterName),
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(dimens.smallPadding)
-                )
-
-                getDropdownMenu(listingData.value.filters?.find { it.key == "region" }?.interpritation, regionsOptions.map { it.name.toString() },
-                    onItemClick = { newRegion ->
-                        listingData.value.filters?.find { it.key == "region" }?.value = regionsOptions.find { it.name == newRegion }?.code.toString()
-                        listingData.value.filters?.find { it.key == "region" }?.interpritation = newRegion
-                        isRefreshing.value = true
-                    },
-                    onClearItem = {
-                        listingData.value.filters?.find { it.key == "region" }?.interpritation = null
-                        isRefreshing.value = true
-                    }
-                )
-            }
-        }
-
-        item {
-            // Price Filter
-            PriceFilter(listingData){
-                isRefreshing.value = true
-            }
-        }
-
-        item {
-            //time filter
-            ExpandableSection(
-                title = stringResource(strings.timeParameterName),
-                isExpanded = isExpanded3,
-                onExpandChange = { isExpanded3 = !isExpanded3 },
-                content = {
-                    LazyColumn(
-                        modifier = Modifier
-                        .wrapContentWidth()
-                        .heightIn(max = 500.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(colors.grayLayout)
-                    ) {
-                        item {
-                            val title = stringResource(strings.offersFor)
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(dimens.smallPadding)
-                            )
-
-                            getDropdownMenu(
-                                timeFilterMap.find { time ->
-                                    time.first == listingData.value.filters?.find { it.key == "new" }?.value
-                                }?.second,
-                                timeOptions,
-                                onItemClick = { time ->
-                                    listingData.value.filters?.find { it.key == "new" }?.value = timeFilterMap.find { it.second == time }?.first ?: ""
-                                    listingData.value.filters?.find { it.key == "new" }?.interpritation =
-                                        "$title $time"
-                                    isRefreshing.value = true
-                                },
-                                onClearItem = {
-                                    listingData.value.filters?.find { it.key == "new" }?.value = ""
-                                    listingData.value.filters?.find { it.key == "new" }?.interpritation = null
-                                    isRefreshing.value = true
-                                }
-                            )
-                        }
-
-                        item {
-                            val title = stringResource(strings.newOffersWithoutRelistedFor)
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(dimens.smallPadding)
-                            )
-
-                            getDropdownMenu(
-                                timeFilterMap.find { time ->
-                                    time.first == listingData.value.filters?.find { it.key == "new_without_relisted" }?.value
-                                }?.second,
-                                timeOptions,
-                                onItemClick = { time ->
-                                    listingData.value.filters?.find { it.key == "new_without_relisted" }?.value = timeFilterMap.find { it.second == time }?.first ?: ""
-                                    listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation =
-                                        "$title $time"
-                                    isRefreshing.value = true
-                                },
-                                onClearItem = {
-                                    listingData.value.filters?.find { it.key == "new_without_relisted" }?.value = ""
-                                    listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation = null
-                                    isRefreshing.value = true
-                                }
-                            )
-                        }
-
-                        item {
-                            val title = stringResource(strings.endingWith)
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(dimens.smallPadding)
-                            )
-
-                            getDropdownMenu(
-                                timeFilterMap.find { time ->
-                                    time.first == listingData.value.filters?.find { it.key == "ending" }?.value
-                                }?.second,
-                                timeOptions,
-                                onItemClick = { time ->
-                                    listingData.value.filters?.find { it.key == "ending" }?.value = timeFilterMap.find { it.second == time }?.first ?: ""
-                                    listingData.value.filters?.find { it.key == "ending" }?.interpritation =
-                                        "$title $time"
-                                    isRefreshing.value = true
-                                },
-                                onClearItem = {
-                                    listingData.value.filters?.find { it.key == "ending" }?.value = ""
-                                    listingData.value.filters?.find { it.key == "ending" }?.interpritation = null
-                                    isRefreshing.value = true
-                                }
-                            )
-                        }
-                    }
-                }
-            )
-        }
-
-        item {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding)
-            ) {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            sheetState.bottomSheetState.partialExpand()
-                        }
-                    },
-                    content = {
-                        Text(
-                            stringResource(strings.actionAcceptFilters),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.alwaysWhite
-                        )
-                    },
-                    colors = colors.themeButtonColors,
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-
-            }
         }
     }
+
 }
 
 fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<LD>) {
@@ -513,7 +617,7 @@ fun checkActiveSaleType(listFilters: List<Pair<String, String>>, listingData: St
                 }
             }else{
                 if(filters.find { it.key == "sale_type" }?.value == filter.first
-                        && filters.find { it.key == "sale_type" }?.interpritation == filter.second){
+                    && filters.find { it.key == "sale_type" }?.interpritation == filter.second){
                     res = filter.first
                 }
             }

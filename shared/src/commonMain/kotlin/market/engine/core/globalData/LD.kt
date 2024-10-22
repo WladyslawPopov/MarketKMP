@@ -1,7 +1,7 @@
 package market.engine.core.globalData
 
-import application.market.agora.business.baseFilters.Filter
-import application.market.agora.business.baseFilters.Sort
+import market.engine.core.baseFilters.Filter
+import market.engine.core.baseFilters.Sort
 import kotlinx.serialization.Serializable
 
 @Serializable

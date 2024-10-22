@@ -59,7 +59,7 @@ fun ListingFiltersBar(
         title = stringResource(strings.sort),
         icon = drawables.sortIcon,
         tint = colors.black,
-        hasNews = false,
+        hasNews = listingData.value.sort != null,
         badgeCount = null
     )
 
@@ -182,7 +182,7 @@ fun ListingFiltersBar(
                     }
 
                     IconButton(
-                        modifier = Modifier.width(35.dp),
+                        modifier = Modifier.width(50.dp),
                         onClick = {
                             onSortClick()
                         }

@@ -123,4 +123,14 @@ interface Strings {
     val _5Days : StringResource
     val _6Days : StringResource
     val _7Days : StringResource
+
+    val timeToEnd : StringResource
+    val sortModeIncreasing : StringResource
+    val sortModeDecreasing : StringResource
+    val titleParameterName : StringResource
+    val sortModeIncreasingAlphabetically : StringResource
+    val sortModeDecreasingAlphabetically : StringResource
+    val offersGroupStartTSTile : StringResource
+    val sortModeOldestFirst : StringResource
+    val sortModeNewestFirst : StringResource
 }

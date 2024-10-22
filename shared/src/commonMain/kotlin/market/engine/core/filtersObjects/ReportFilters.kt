@@ -1,6 +1,6 @@
 package market.engine.core.filtersObjects
 
-import application.market.agora.business.baseFilters.Filter
+import market.engine.core.baseFilters.Filter
 
 object ReportFilters {
     var filtersAll = arrayListOf(

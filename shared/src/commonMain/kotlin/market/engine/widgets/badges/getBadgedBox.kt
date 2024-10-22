@@ -23,7 +23,7 @@ fun getBadgedBox(
         badge = {
             if (item.badgeCount != null) {
                 Badge{
-                    Text(text = item.badgeCount.toString(), fontSize = 7.sp)
+                    Text(text = item.badgeCount.toString(), fontSize = 9.sp)
                 }
             } else {
                 if (item.hasNews) {

@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -40,11 +40,11 @@ import market.engine.widgets.grids.PagingGrid
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterContent
-import market.engine.widgets.filterContents.SortingContent
+import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.items.GridItemListing
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ListingContent(
     component: ListingComponent,
@@ -61,13 +61,11 @@ fun ListingContent(
         initialFirstVisibleItemIndex = listingViewModel.firstVisibleItemIndex,
         initialFirstVisibleItemScrollOffset = listingViewModel.firstVisibleItemScrollOffset
     )
-
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
-
     val activeFiltersType = remember { mutableStateOf("") }
-
     val isHideContent = remember { mutableStateOf(false) }
+    val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
@@ -86,14 +84,14 @@ fun ListingContent(
             component.onRefresh()
         }
     }
-    val isRefreshingByBottomFilters = remember { mutableStateOf(false) }
+
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
-                if (sheetValue == SheetValue.PartiallyExpanded) {
-                    if (isRefreshingByBottomFilters.value) {
+                if (sheetValue == BottomSheetValue.Collapsed) {
+                    if (isRefreshingFromFilters.value) {
                         component.onRefresh()
-                        isRefreshingByBottomFilters.value = false
+                        isRefreshingFromFilters.value = false
                     }
                 }
             }
@@ -131,52 +129,52 @@ fun ListingContent(
         }
     }
 
-    BaseContent(
-        modifier = modifier,
-        isLoading = isLoading,
-        topBar = {
-            ListingAppBar(
-                searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
-                modifier,
-                onSearchClick = {
-                    component.goToSearch()
-                },
-                onBeakClick = {
-                    component.onBackClicked()
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        modifier = Modifier.fillMaxSize(),
+        sheetBackgroundColor = colors.primaryColor,
+        sheetPeekHeight = 0.dp,
+        sheetGesturesEnabled = false,
+        sheetContent = {
+            when (activeFiltersType.value) {
+                "filters" -> {
+                    FilterContent(
+                        isRefreshingFromFilters,
+                        listingData,
+                        scaffoldState,
+                        scope,
+                        regions
+                    )
                 }
-            )
-        },
-        onRefresh = { component.onRefresh() },
-    ){
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            sheetContainerColor = colors.grayLayout,
-            modifier = Modifier.fillMaxSize(),
-            sheetPeekHeight = 0.dp,
-            sheetTonalElevation = 0.dp,
-            sheetContent = {
-                when (activeFiltersType.value) {
-                    "filters" -> {
-                        FilterContent(
-                            isRefreshingByBottomFilters,
-                            listingData,
-                            scaffoldState,
-                            scope,
-                            regions
-                        )
-                    }
 
-                    "sorting" -> {
-                        SortingContent(
-                            listingData,
-                            scaffoldState,
-                            scope,
-                            onRefresh = {
-                                data.refresh()
-                            }
-                        )
-                    }
+                "sorting" -> {
+                    SortingListingContent(
+                        isRefreshingFromFilters,
+                        listingData,
+                        scaffoldState,
+                        scope,
+                    )
                 }
+            }
+        },
+    ) {
+        BaseContent(
+            modifier = modifier,
+            isLoading = isLoading,
+            topBar = {
+                ListingAppBar(
+                    searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
+                    modifier,
+                    onSearchClick = {
+                        component.goToSearch()
+                    },
+                    onBeakClick = {
+                        component.onBackClicked()
+                    }
+                )
+            },
+            onRefresh = {
+                component.onRefresh()
             },
         ) {
             Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
@@ -201,12 +199,14 @@ fun ListingContent(
                         activeFiltersType.value = "filters"
                         scope.launch {
                             scaffoldState.bottomSheetState.expand()
+                            scaffoldState.bottomSheetState.expand()
                         }
 
                     },
                     onSortClick = {
                         activeFiltersType.value = "sorting"
                         scope.launch {
+                            scaffoldState.bottomSheetState.expand()
                             scaffoldState.bottomSheetState.expand()
                         }
                     },
@@ -218,7 +218,7 @@ fun ListingContent(
                 } else {
                     if (noItem != null) {
                         noItem!!()
-                    }else{
+                    } else {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
