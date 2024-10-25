@@ -7,6 +7,7 @@ import application.market.agora.business.core.network.functions.OrderOperations
 import application.market.agora.business.core.network.functions.PrivateMessagesOperation
 import application.market.agora.business.core.network.functions.SubscriptionOperations
 import application.market.agora.business.core.network.functions.UserOperations
+import market.engine.common.AnalyticsFactory
 import market.engine.common.createSettings
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
@@ -44,6 +45,7 @@ val viewModelModule = module {
 val networkModule = module {
     single { getKtorClient() }
     single { APIService(get()) }
+    single { AnalyticsFactory.createAnalyticsHelper() }
 }
 
 val databaseModule = module {

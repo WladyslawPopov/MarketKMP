@@ -8,8 +8,10 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.core.navigation.configs.HomeConfig
+import market.engine.core.util.getCurrentDate
 import org.koin.mp.KoinPlatform.getKoin
 
 interface HomeComponent {
@@ -41,6 +43,8 @@ class DefaultHomeComponent(
     private val homeViewModel: HomeViewModel = getKoin().get()
     override val globalData : CategoryBaseFilters = getKoin().get()
 
+    private val analyticsHelper : AnalyticsHelper = getKoin().get()
+
     private val _model = MutableValue(
         HomeComponent.Model(
             categories = homeViewModel.responseCategory,
@@ -55,6 +59,8 @@ class DefaultHomeComponent(
 
     init {
         updateModel()
+
+        analyticsHelper.reportEvent("view_main_page", "")
     }
 
     private fun updateModel() {
@@ -70,8 +76,6 @@ class DefaultHomeComponent(
     override fun navigateToListing() {
         navigateToListingSelected()
     }
-
-
 
     override fun onRefresh() {
         updateModel()

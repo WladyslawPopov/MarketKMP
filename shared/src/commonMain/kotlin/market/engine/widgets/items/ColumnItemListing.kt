@@ -222,11 +222,10 @@ fun ColumnItemListing(
                     }
 
                     if (offer.safeDeal){
-                        Icon(
+                        Image(
                             painter = painterResource(drawables.safeDealIcon),
                             contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize),
-                            tint = colors.brightBlue
+                            modifier = Modifier.size(dimens.smallIconSize)
                         )
                     }
                 }

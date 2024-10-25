@@ -1,9 +1,16 @@
 package market.engine.core.util
 
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+
+fun getCurrentDate(): String {
+    val currentInstant: Instant = Clock.System.now()
+    val currentTimeInSeconds = currentInstant.epochSeconds
+    return currentTimeInSeconds.toString()
+}
 
 
 fun String.convertDateWithMinutes(): String {
