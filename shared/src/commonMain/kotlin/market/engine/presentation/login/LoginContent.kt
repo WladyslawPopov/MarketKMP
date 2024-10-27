@@ -110,13 +110,15 @@ fun LoginContent(
         modifier = modifier,
         isLoading = isLoading,
         showVerticalScrollbarState = scrollState,
-        topBar = { LoginAppBar(
-            title = "",
-            modifier = modifier,
-            onBeakClick = {
-                component.onBack()
-            }
-        ) },
+        topBar = {
+            LoginAppBar(
+                title = "",
+                modifier = modifier,
+                onBeakClick = {
+                    component.onBack()
+                }
+            )
+        },
         toastItem = toastItem,
         onRefresh = {  },
         error = error
@@ -194,7 +196,7 @@ fun LoginContent(
                         textColor = colors.alwaysWhite,
                         backgroundColor = colors.inactiveBottomNavIconColor,
                     ) {
-                        if (emailTextValue.value.text == "" || passwordTextValue.value.text == ""){
+                        if (emailTextValue.value.text != "" && passwordTextValue.value.text != ""){
                             isCaptchaVisible.value = false
                             component.onLogin(
                                 emailTextValue.value.text,

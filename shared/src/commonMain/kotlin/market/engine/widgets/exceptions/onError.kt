@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
 import market.engine.widgets.buttons.SimpleTextButton
 
@@ -59,6 +60,7 @@ fun onError(error : ServerErrorException, onRefresh: () -> Unit) {
                             confirmButton = {
                                 SimpleTextButton(
                                     text = "OK",
+                                    backgroundColor = colors.grayLayout,
                                     onClick = {
                                         showDialog.value = false
                                         error.humanMessage = ""

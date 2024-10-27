@@ -53,7 +53,7 @@ fun ToastTypeMessage(
     ) {
         Row(
             modifier = Modifier
-                .background(colors.transparentGrayColor)
+                .background(colors.grayLayout)
                 .fillMaxWidth()
                 .padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically,

@@ -111,7 +111,7 @@ fun BaseContent(
                     ToastTypeMessage(
                         t.isVisible,
                         message = t.message,
-                        modifier = Modifier.align(Alignment.BottomEnd),
+                        modifier = Modifier.align(Alignment.TopCenter),
                         toastType = t.type
                     )
                 }
