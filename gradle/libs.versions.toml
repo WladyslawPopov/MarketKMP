@@ -4,7 +4,7 @@ agp = "8.2.2"
 android-compileSdk = "34"
 android-minSdk = "24"
 android-targetSdk = "34"
-androidx-activityCompose = "1.9.2"
+androidx-activityCompose = "1.9.3"
 androidx-appcompat = "1.7.0"
 androidx-constraintlayout = "2.1.4"
 androidx-core-ktx = "1.13.1"
@@ -36,12 +36,13 @@ sqlDelight = "2.0.2"
 
 pagingCommonVersion = "3.3.0-alpha02-0.4.0"
 sqliteDriver = "2.0.2"
+skiko_version = "0.8.4"
 
 
 
 [libraries]
 androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "data-store" }
-
+skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko_version" }
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose-version" }
 decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose-version" }
 

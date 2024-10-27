@@ -133,4 +133,12 @@ interface Strings {
     val offersGroupStartTSTile : StringResource
     val sortModeOldestFirst : StringResource
     val sortModeNewestFirst : StringResource
+
+    val enterCaptcha : StringResource
+    val promptEmail : StringResource
+    val promptPassword : StringResource
+    val forgotPassword : StringResource
+    val enterLogin : StringResource
+    val registration : StringResource
+    val errorLogin : StringResource
 }

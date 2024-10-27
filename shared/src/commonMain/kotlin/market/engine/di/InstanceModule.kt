@@ -19,6 +19,7 @@ import market.engine.presentation.base.BaseViewModel
 import market.engine.presentation.category.CategoryViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
+import market.engine.presentation.login.LoginViewModel
 import market.engine.presentation.search.SearchViewModel
 import market.engine.shared.MarketDB
 import org.koin.compose.viewmodel.dsl.viewModel
@@ -40,6 +41,7 @@ val viewModelModule = module {
     viewModel { ListingViewModel(get(), get()) }
     viewModel { CategoryViewModel(get()) }
     viewModel { SearchViewModel(get()) }
+    viewModel { LoginViewModel(get()) }
 }
 
 val networkModule = module {

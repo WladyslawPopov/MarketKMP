@@ -1,12 +1,21 @@
 package market.engine.widgets.exceptions
 
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import market.engine.core.network.ServerErrorException
+import market.engine.widgets.buttons.SimpleTextButton
 
 @Composable
 fun onError(error : ServerErrorException, onRefresh: () -> Unit) {
     val humanMessage = error.humanMessage
     val errorCode = error.errorCode
+
+    val showDialog = remember { mutableStateOf(false) }
 
     errorCode.let {
         when{
@@ -38,11 +47,26 @@ fun onError(error : ServerErrorException, onRefresh: () -> Unit) {
 //                (activity as BaseActivity).callResetPassword(exception.humanMessage)
             }
             else -> {
-//                fragmentBase.pbMain.visibility = View.VISIBLE
-
                 if(humanMessage != "" && (humanMessage != "null" && humanMessage != "Unknown error" && humanMessage != "")){
-//                    fragmentBase.pbMain.visibility = View.GONE
-//                    globalMethods.alert(requireContext(),exception.errorCode, exception.humanMessage)
+                    if (errorCode.isNotEmpty() && humanMessage.isNotEmpty()) {
+                        showDialog.value = true
+                    }
+                    if (showDialog.value) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog.value = false },
+                            title = { Text("") },
+                            text = { Text(humanMessage) },
+                            confirmButton = {
+                                SimpleTextButton(
+                                    text = "OK",
+                                    onClick = {
+                                        showDialog.value = false
+                                        error.humanMessage = ""
+                                    }
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

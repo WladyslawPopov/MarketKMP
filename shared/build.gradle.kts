@@ -65,6 +65,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
+
+            implementation(libs.skiko)
         }
         val jvmMain by getting
         jvmMain.dependencies {
@@ -82,6 +84,7 @@ kotlin {
             implementation(libs.decompose.extensions)
         }
         androidMain.dependencies {
+
             implementation(libs.android.driver)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)

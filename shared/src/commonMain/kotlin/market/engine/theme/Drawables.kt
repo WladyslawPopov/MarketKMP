@@ -76,4 +76,7 @@ interface Drawables {
    val iconSliderHorizontal : DrawableResource
    val iconWidget : DrawableResource
    val closeBtn : DrawableResource
+   val successIcon : DrawableResource
+   val warningIcon : DrawableResource
+   val errorIcon : DrawableResource
 }
