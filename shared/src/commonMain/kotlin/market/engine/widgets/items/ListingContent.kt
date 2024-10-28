@@ -135,14 +135,12 @@ fun content(
     val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = offer.title ?: "",
-            modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(0.8f)
         )
 
         IconButton(
@@ -151,7 +149,7 @@ fun content(
                     isFavorites.value = onFavouriteClick(offer)
                 }
             },
-            modifier = modifier
+            modifier = modifier.weight(0.2f).align(Alignment.Top)
         ) {
             Icon(
                 painter = painterResource(

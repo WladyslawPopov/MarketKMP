@@ -98,8 +98,10 @@ fun CategoryContent(
                         component.goToSearch()
                     },
                     onClearSearchClick = {
-                        searchData.value.clearCategory()
-                        component.onRefresh()
+                        if(!isLoading.value) {
+                            searchData.value.clearCategory()
+                            component.onRefresh()
+                        }
                     }
                 ) {
                     if(!isLoading.value) {
