@@ -33,6 +33,7 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
+import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
@@ -46,6 +47,8 @@ import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.items.ItemListing
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
+import org.koin.compose.koinInject
+import org.koin.mp.KoinPlatform
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -74,6 +77,8 @@ fun ListingContent(
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
+
+    val userRepository : UserRepository = koinInject()
 
 
     LaunchedEffect(scrollState) {
@@ -254,7 +259,9 @@ fun ListingContent(
                                                            currentOffer
                                                        )]
                                                    if (item != null) {
-                                                       component.clickOnFavorites(item)
+                                                       val res = component.clickOnFavorites(item)
+                                                       userRepository.updateUserInfo(scope)
+                                                       return@async res
                                                    } else {
                                                        return@async currentOffer.isWatchedByMe
                                                    }
@@ -277,7 +284,9 @@ fun ListingContent(
                                                             currentOffer
                                                         )]
                                                     if (item != null) {
-                                                        component.clickOnFavorites(item)
+                                                        val res = component.clickOnFavorites(item)
+                                                        userRepository.updateUserInfo(scope)
+                                                        return@async res
                                                     } else {
                                                         return@async currentOffer.isWatchedByMe
                                                     }

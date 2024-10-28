@@ -43,7 +43,7 @@ class DefaultListingComponent(
     private val listingData = listingViewModel.listingData
     private val offerOperations : OfferOperations = getKoin().get()
     private val categoryOperations : CategoryOperations = getKoin().get()
-    private val userRepository : UserRepository = getKoin().get()
+
 
     override fun onRefresh() {
         listingViewModel.firstVisibleItemScrollOffset = 0
