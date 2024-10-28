@@ -90,7 +90,6 @@ fun CategoryContent(
             error = error,
             noFound = noItem,
             topBar = {
-
                 CategoryAppBar(
                     isShowNav,
                     modifier,
@@ -103,15 +102,18 @@ fun CategoryContent(
                         component.onRefresh()
                     }
                 ) {
-                    if (searchData.value.searchCategoryID != 1L) {
-                        isShowNav.value = true
-                        searchData.value.searchCategoryID = searchData.value.searchParentID ?: 1L
-                        searchData.value.searchCategoryName = searchData.value.searchParentName ?: ""
-                        component.onRefresh()
-                    } else {
-                        isShowNav.value = false
+                    if(!isLoading.value) {
+                        if (searchData.value.searchCategoryID != 1L) {
+                            isShowNav.value = true
+                            searchData.value.searchCategoryID =
+                                searchData.value.searchParentID ?: 1L
+                            searchData.value.searchCategoryName =
+                                searchData.value.searchParentName ?: ""
+                            component.onRefresh()
+                        } else {
+                            isShowNav.value = false
+                        }
                     }
-
                 }
             },
             onRefresh = { component.onRefresh() },

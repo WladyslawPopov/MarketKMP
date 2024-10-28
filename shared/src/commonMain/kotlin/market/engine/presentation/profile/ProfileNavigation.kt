@@ -10,12 +10,12 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.children.ChildProfile
 
 @Composable
 fun ProfileNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, MainComponent.ChildProfile>>
+    childStack: Value<ChildStack<*, ChildProfile>>
 ) {
     val stack by childStack.subscribeAsState()
     Children(
@@ -25,7 +25,7 @@ fun ProfileNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is MainComponent.ChildProfile.ProfileChild -> ProfileContent(screen.component)
+            is ChildProfile.ProfileChild -> ProfileContent(screen.component)
         }
     }
 }

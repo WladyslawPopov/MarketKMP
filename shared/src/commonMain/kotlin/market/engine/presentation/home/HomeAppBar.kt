@@ -16,6 +16,7 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
@@ -31,21 +32,23 @@ fun HomeAppBar(
     isFullScreen: Boolean = false,
     openMenu : () -> Unit,
 ) {
+    val userInfo = UserData.userInfo
+
     val listItems = listOf(
         NavigationItem(
             title = stringResource(strings.proposalTitle),
             icon = drawables.currencyIcon,
             tint = colors.notifyTextColor,
             hasNews = false,
-            badgeCount = 4,
-            isVisible = true
+            badgeCount = userInfo?.countUnreadPriceProposals,
+            isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0
         ),
         NavigationItem(
             title = stringResource(strings.mailTitle),
             icon = drawables.mail,
             tint = colors.brightBlue,
             hasNews = false,
-            badgeCount = 34
+            badgeCount = if ((userInfo?.countUnreadMessages?:0) > 0) (userInfo?.countUnreadMessages?:0) else null,
         ),
         NavigationItem(
             title = stringResource(strings.notificationTitle),

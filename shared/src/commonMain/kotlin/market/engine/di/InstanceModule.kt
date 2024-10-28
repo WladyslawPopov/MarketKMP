@@ -14,12 +14,15 @@ import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
-import market.engine.core.globalData.CategoryBaseFilters
-import market.engine.presentation.base.BaseViewModel
+import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.repositories.SAPIRepository
+import market.engine.core.repositories.SettingsRepository
+import market.engine.core.repositories.UserRepository
 import market.engine.presentation.category.CategoryViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
 import market.engine.presentation.login.LoginViewModel
+import market.engine.presentation.main.MainViewModel
 import market.engine.presentation.search.SearchViewModel
 import market.engine.shared.MarketDB
 import org.koin.compose.viewmodel.dsl.viewModel
@@ -37,6 +40,7 @@ object InstanceModule {
 }
 
 val viewModelModule = module {
+    viewModel { MainViewModel(get()) }
     viewModel { HomeViewModel(get()) }
     viewModel { ListingViewModel(get(), get()) }
     viewModel { CategoryViewModel(get()) }
@@ -69,6 +73,9 @@ val operationsModule = module {
 
 val repositoryModule = module {
     single { OfferPagingRepository(get()) }
+    single { SAPIRepository() }
+    single { SettingsRepository(get()) }
+    single { UserRepository(get(), get(), get()) }
 }
 
 val filtersModule = module {

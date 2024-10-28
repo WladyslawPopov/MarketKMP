@@ -4,19 +4,24 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.items
-import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.globalData.UserData
+import market.engine.core.navigation.children.ChildBasket
+import market.engine.core.navigation.children.ChildCategory
+import market.engine.core.navigation.children.ChildFavorites
+import market.engine.core.navigation.children.ChildHome
+import market.engine.core.navigation.children.ChildMain
+import market.engine.core.navigation.children.ChildProfile
 import market.engine.core.navigation.configs.BasketConfig
 import market.engine.core.navigation.configs.CategoryConfig
 import market.engine.core.navigation.configs.FavoritesConfig
 import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.navigation.configs.MainConfig
 import market.engine.core.navigation.configs.ProfileConfig
+import market.engine.core.repositories.UserRepository
 import market.engine.core.types.CategoryScreenType
 import market.engine.presentation.category.CategoryComponent
 import market.engine.presentation.category.DefaultCategoryComponent
@@ -40,6 +45,7 @@ class DefaultMainComponent(
 
     override val categoryData: CategoryBaseFilters = getKoin().get()
 
+
     private val categoryStack = categoryData.categoryStack
 
     private val _modelNavigation = MutableValue(
@@ -56,7 +62,7 @@ class DefaultMainComponent(
 
     private var currentNavigation = StackNavigation<MainConfig>()
 
-    override val childHomeStack: Value<ChildStack<*, MainComponent.ChildHome>> by lazy {
+    override val childHomeStack: Value<ChildStack<*, ChildHome>> by lazy {
         childStack(
             source = modelNavigation.value.homeNavigation,
             initialConfiguration = HomeConfig.HomeScreen,
@@ -67,7 +73,7 @@ class DefaultMainComponent(
         )
     }
 
-    override val childCategoryStack: Value<ChildStack<*, MainComponent.ChildCategory>> =
+    override val childCategoryStack: Value<ChildStack<*, ChildCategory>> =
         childStack(
             source = modelNavigation.value.categoryNavigation,
             initialConfiguration = CategoryConfig.CategoryScreen,
@@ -78,7 +84,7 @@ class DefaultMainComponent(
         )
 
 
-    override val childBasketStack: Value<ChildStack<*, MainComponent.ChildBasket>> by lazy {
+    override val childBasketStack: Value<ChildStack<*, ChildBasket>> by lazy {
         childStack(
             source = modelNavigation.value.basketNavigation,
             initialConfiguration = BasketConfig.BasketScreen,
@@ -89,7 +95,7 @@ class DefaultMainComponent(
         )
     }
 
-    override val childFavoritesStack: Value<ChildStack<*, MainComponent.ChildFavorites>> by lazy {
+    override val childFavoritesStack: Value<ChildStack<*, ChildFavorites>> by lazy {
         childStack(
             source = modelNavigation.value.favoritesNavigation,
             initialConfiguration = FavoritesConfig.FavoritesScreen,
@@ -100,7 +106,7 @@ class DefaultMainComponent(
         )
     }
 
-    override val childProfileStack: Value<ChildStack<*, MainComponent.ChildProfile>> by lazy {
+    override val childProfileStack: Value<ChildStack<*, ChildProfile>> by lazy {
         childStack(
             source = modelNavigation.value.profileNavigation,
             initialConfiguration = ProfileConfig.ProfileScreen,
@@ -112,7 +118,7 @@ class DefaultMainComponent(
     }
 
 
-    override val childStack: Value<ChildStack<*, MainComponent.Child>> =
+    override val childMainStack: Value<ChildStack<*, ChildMain>> =
         childStack(
             source = currentNavigation,
             serializer = MainConfig.serializer(),
@@ -125,17 +131,34 @@ class DefaultMainComponent(
         )
 
     override fun navigateToBottomItem(config: MainConfig) {
-        currentNavigation.replaceCurrent(config)
-    }
-
-    override fun backPressedBottomItem() {
-        val child = childStack.items[childStack.items.lastIndex].instance
-        when (child) {
-            is MainComponent.Child.HomeChild -> navigateToBottomItem(MainConfig.Home)
-            is MainComponent.Child.CategoryChild -> navigateToBottomItem(MainConfig.Category)
-            is MainComponent.Child.BasketChild -> navigateToBottomItem(MainConfig.Basket)
-            is MainComponent.Child.FavoritesChild -> navigateToBottomItem(MainConfig.Favorites)
-            is MainComponent.Child.ProfileChild -> navigateToBottomItem(MainConfig.Profile)
+        when(config){
+            is MainConfig.Home -> {
+                currentNavigation.replaceCurrent(config)
+            }
+            is MainConfig.Category -> {
+                currentNavigation.replaceCurrent(config)
+            }
+            is MainConfig.Basket -> {
+                if (UserData.token == "") {
+                    goToLoginSelected()
+                }else{
+                    currentNavigation.replaceCurrent(config)
+                }
+            }
+            is MainConfig.Favorites -> {
+                if (UserData.token == "") {
+                    goToLoginSelected()
+                }else{
+                    currentNavigation.replaceCurrent(config)
+                }
+            }
+            is MainConfig.Profile -> {
+                if (UserData.token == "") {
+                    goToLoginSelected()
+                }else{
+                    currentNavigation.replaceCurrent(config)
+                }
+            }
         }
     }
 
@@ -145,21 +168,21 @@ class DefaultMainComponent(
 
     private fun createChild(
         config: MainConfig
-    ): MainComponent.Child =
+    ): ChildMain =
         when (config) {
-            is MainConfig.Home -> MainComponent.Child.HomeChild
-            is MainConfig.Category -> MainComponent.Child.CategoryChild
-            is MainConfig.Basket -> MainComponent.Child.BasketChild
-            is MainConfig.Favorites -> MainComponent.Child.FavoritesChild
-            is MainConfig.Profile -> MainComponent.Child.ProfileChild
+            is MainConfig.Home -> ChildMain.HomeChildMain
+            is MainConfig.Category -> ChildMain.CategoryChildMain
+            is MainConfig.Basket -> ChildMain.BasketChildMain
+            is MainConfig.Favorites -> ChildMain.FavoritesChildMain
+            is MainConfig.Profile -> ChildMain.ProfileChildMain
         }
 
     private fun createChild(
         config: HomeConfig,
         componentContext: ComponentContext
-    ): MainComponent.ChildHome =
+    ): ChildHome =
         when (config) {
-            HomeConfig.HomeScreen -> MainComponent.ChildHome.HomeChild(
+            HomeConfig.HomeScreen -> ChildHome.HomeChild(
                 itemHome(componentContext)
             )
         }
@@ -167,16 +190,16 @@ class DefaultMainComponent(
     private fun createChild(
         config: CategoryConfig,
         componentContext: ComponentContext
-    ): MainComponent.ChildCategory =
+    ): ChildCategory =
         when (config) {
-            CategoryConfig.CategoryScreen -> MainComponent.ChildCategory.CategoryChild(
+            CategoryConfig.CategoryScreen -> ChildCategory.CategoryChild(
                 itemCategory(componentContext)
             )
-            CategoryConfig.SearchScreen -> MainComponent.ChildCategory.SearchChild(
+            CategoryConfig.SearchScreen -> ChildCategory.SearchChild(
                 itemSearch(componentContext)
             )
 
-            CategoryConfig.ListingScreen -> MainComponent.ChildCategory.ListingChild(
+            CategoryConfig.ListingScreen -> ChildCategory.ListingChild(
                 itemListing(componentContext)
             )
         }
@@ -184,9 +207,9 @@ class DefaultMainComponent(
     private fun createChild(
         config: FavoritesConfig,
         componentContext: ComponentContext
-    ): MainComponent.ChildFavorites =
+    ): ChildFavorites =
         when (config) {
-            FavoritesConfig.FavoritesScreen -> MainComponent.ChildFavorites.FavoritesChild(
+            FavoritesConfig.FavoritesScreen -> ChildFavorites.FavoritesChild(
                 itemFavorites(componentContext)
             )
         }
@@ -194,9 +217,9 @@ class DefaultMainComponent(
     private fun createChild(
         config: BasketConfig,
         componentContext: ComponentContext
-    ): MainComponent.ChildBasket =
+    ): ChildBasket =
         when (config) {
-            BasketConfig.BasketScreen -> MainComponent.ChildBasket.BasketChild(
+            BasketConfig.BasketScreen -> ChildBasket.BasketChild(
                 itemBasket(componentContext)
             )
         }
@@ -204,9 +227,9 @@ class DefaultMainComponent(
     private fun createChild(
         config: ProfileConfig,
         componentContext: ComponentContext
-    ): MainComponent.ChildProfile =
+    ): ChildProfile =
         when (config) {
-            ProfileConfig.ProfileScreen -> MainComponent.ChildProfile.ProfileChild(
+            ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
                 itemProfile(componentContext)
             )
         }

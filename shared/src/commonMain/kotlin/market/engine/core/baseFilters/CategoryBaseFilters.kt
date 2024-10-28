@@ -1,4 +1,4 @@
-package market.engine.core.globalData
+package market.engine.core.baseFilters
 
 import com.arkivanov.decompose.value.MutableValue
 import market.engine.core.items.ListingData

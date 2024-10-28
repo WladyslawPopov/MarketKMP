@@ -8,7 +8,10 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,12 +19,16 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.decompose.value.MutableValue
 import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
+import market.engine.core.navigation.children.ChildMain
 import market.engine.core.navigation.configs.MainConfig
+import market.engine.core.network.networkObjects.User
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.basket.BasketNavigation
@@ -39,20 +46,22 @@ fun MainContent(
     component: MainComponent,
     modifier: Modifier = Modifier
 ) {
-    val childStack by component.childStack.subscribeAsState()
+    val childStack by component.childMainStack.subscribeAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val windowClass = getWindowSizeClass()
     val showNavigationRail = windowClass == WindowSizeClass.Big
 
     val currentScreen = when (childStack.active.instance) {
-        is MainComponent.Child.HomeChild -> 0
-        is MainComponent.Child.CategoryChild -> 1
-        is MainComponent.Child.BasketChild -> 2
-        is MainComponent.Child.FavoritesChild -> 3
-        is MainComponent.Child.ProfileChild -> 4
+        is ChildMain.HomeChildMain -> 0
+        is ChildMain.CategoryChildMain -> 1
+        is ChildMain.BasketChildMain -> 2
+        is ChildMain.FavoritesChildMain -> 3
+        is ChildMain.ProfileChildMain -> 4
     }
-    
+
+    val userInfo = UserData.userInfo
+
     val listItems = listOf(
         NavigationItem(
             title = stringResource(strings.homeTitle),
@@ -73,20 +82,24 @@ fun MainContent(
             icon = drawables.basketIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = 6
+            badgeCount = userInfo?.countOffersInCart
         ),
         NavigationItem(
             title = stringResource(strings.favoritesTitle),
             icon = drawables.favoritesIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = 687
+            badgeCount = userInfo?.countWatchedOffers
         ),
         NavigationItem(
             title = stringResource(strings.profileTitleBottom),
             icon = drawables.profileIcon,
+            image = userInfo?.avatar?.thumb?.content,
             tint = colors.black,
-            hasNews = true,
+            hasNews = (
+                        (userInfo?.countUnreadMessages ?: 0) > 0 ||
+                        (userInfo?.countUnreadPriceProposals ?:0) > 0
+                    ),
             badgeCount = null
         )
     )
@@ -108,10 +121,28 @@ fun MainContent(
         ){
             Scaffold(
                 bottomBar = {
-                    if (!showNavigationRail) {
-                        getBottomNavBar(component, modifier,listItems, currentScreen)
-                    } else {
-                        getRailNavBar(component, modifier, currentScreen, listItems) { openMenu() }
+                    if (userInfo != null) {
+                        if (!showNavigationRail) {
+                            getBottomNavBar(component, modifier, listItems, currentScreen)
+                        } else {
+                            getRailNavBar(
+                                component,
+                                modifier,
+                                currentScreen,
+                                listItems
+                            ) { openMenu() }
+                        }
+                    }else{
+                        if (!showNavigationRail) {
+                            getBottomNavBar(component, modifier, listItems, currentScreen)
+                        } else {
+                            getRailNavBar(
+                                component,
+                                modifier,
+                                currentScreen,
+                                listItems
+                            ) { openMenu() }
+                        }
                     }
                 },
                 modifier = modifier.fillMaxSize()
@@ -125,15 +156,15 @@ fun MainContent(
                     animation = stackAnimation(fade())
                 ) { child ->
                     when (child.instance) {
-                        is MainComponent.Child.HomeChild ->
+                        is ChildMain.HomeChildMain ->
                             HomeNavigation(modifier, component.childHomeStack) { openMenu() }
-                        is MainComponent.Child.CategoryChild ->
+                        is ChildMain.CategoryChildMain ->
                             CategoryNavigation(modifier, component.childCategoryStack)
-                        is MainComponent.Child.BasketChild ->
+                        is ChildMain.BasketChildMain ->
                             BasketNavigation(modifier, component.childBasketStack)
-                        is MainComponent.Child.FavoritesChild ->
+                        is ChildMain.FavoritesChildMain ->
                             FavoritesNavigation(modifier, component.childFavoritesStack)
-                        is MainComponent.Child.ProfileChild ->
+                        is ChildMain.ProfileChildMain ->
                             ProfileNavigation(modifier, component.childProfileStack)
                     }
                 }

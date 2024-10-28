@@ -10,7 +10,7 @@ import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import kotlinx.coroutines.CoroutineScope
-import market.engine.core.globalData.LD
+import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize

@@ -1,25 +1,25 @@
 package market.engine.presentation.login
 
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Category
-import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.network.networkObjects.UserPayload
+import market.engine.core.repositories.UserRepository
 import market.engine.presentation.base.BaseViewModel
+import org.koin.mp.KoinPlatform.getKoin
 
 class LoginViewModel(private val apiService: APIService) : BaseViewModel() {
 
 //    var postChangeGoogleAuth = MutableLiveData<GoogleAuthResponse?>()
+
+    val userRepository : UserRepository = getKoin().get()
 
     private val _responseAuth = MutableStateFlow<UserPayload?>(null)
     val responseAuth: StateFlow<UserPayload?> = _responseAuth.asStateFlow()

@@ -457,7 +457,7 @@ class APIService(private val client: HttpClient) {
 
     suspend fun getOffersRecommendedInListing(idCategory: Long): AppResponse =
         client.get("offers/get_offers_recommended_in_listing") {
-            parameter("id_category", idCategory)
+            parameter("category_id", idCategory)
         }.body()
 
     suspend fun getPublicCategories(idCategory: Long): AppResponse =

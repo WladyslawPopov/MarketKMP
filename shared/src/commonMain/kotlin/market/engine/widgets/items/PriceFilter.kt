@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalData.LD
+import market.engine.core.baseFilters.LD
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

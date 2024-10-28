@@ -4,18 +4,12 @@ import application.market.agora.business.core.network.functions.OfferOperations
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.russhwolf.settings.Settings
-import com.russhwolf.settings.get
-import com.russhwolf.settings.set
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.globalData.CategoryBaseFilters
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.networkObjects.Options
-import market.engine.core.network.networkObjects.RegionOptions
+import market.engine.core.repositories.UserRepository
 
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -31,9 +25,7 @@ interface ListingComponent {
 
     fun goToSearch()
 
-    fun goToFilters()
-
-    suspend fun addToFavorites(offer: Offer): Boolean
+    suspend fun clickOnFavorites(offer: Offer): Boolean
 }
 
 class DefaultListingComponent(
@@ -51,11 +43,13 @@ class DefaultListingComponent(
     private val listingData = listingViewModel.listingData
     private val offerOperations : OfferOperations = getKoin().get()
     private val categoryOperations : CategoryOperations = getKoin().get()
+    private val userRepository : UserRepository = getKoin().get()
 
     override fun onRefresh() {
         listingViewModel.firstVisibleItemScrollOffset = 0
         listingViewModel.firstVisibleItemIndex = 0
         listingViewModel.updateCurrentListingData()
+        listingViewModel.getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID ?: 1L)
     }
 
     override fun onBackClicked() {
@@ -71,22 +65,17 @@ class DefaultListingComponent(
         searchSelected()
     }
 
-    override fun goToFilters() {
-
-    }
-
-    override suspend fun addToFavorites(offer: Offer): Boolean {
+    override suspend fun clickOnFavorites(offer: Offer): Boolean {
         return withContext(Dispatchers.IO) {
-//            val buf = offerOperations.postOfferOperationWatch(offer.id)
-//            val res = buf.success
-//            withContext(Dispatchers.Main) {
-//                if (res != null && res.success) {
-//                    offer.isWatchedByMe = !offer.isWatchedByMe
-//                }
-//                offer.isWatchedByMe
-//            }
-            offer.isWatchedByMe = !offer.isWatchedByMe
-            offer.isWatchedByMe
+            val buf = if(!offer.isWatchedByMe) offerOperations.postOfferOperationWatch(offer.id) else
+                offerOperations.postOfferOperationUnwatch(offer.id)
+            val res = buf.success
+            withContext(Dispatchers.Main) {
+                if (res != null && res.success) {
+                    offer.isWatchedByMe = !offer.isWatchedByMe
+                }
+                offer.isWatchedByMe
+            }
         }
     }
 }

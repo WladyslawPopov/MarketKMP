@@ -10,12 +10,12 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.children.ChildFavorites
 
 @Composable
 fun FavoritesNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, MainComponent.ChildFavorites>>
+    childStack: Value<ChildStack<*, ChildFavorites>>
 ) {
     val stack by childStack.subscribeAsState()
     Children(
@@ -25,7 +25,7 @@ fun FavoritesNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is MainComponent.ChildFavorites.FavoritesChild -> FavoritesContent(screen.component)
+            is ChildFavorites.FavoritesChild -> FavoritesContent(screen.component)
         }
     }
 }

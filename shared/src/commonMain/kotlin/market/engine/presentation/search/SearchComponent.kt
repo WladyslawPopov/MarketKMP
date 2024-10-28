@@ -1,15 +1,10 @@
 package market.engine.presentation.search
 
-import market.engine.core.constants.UserData
+import market.engine.core.globalData.UserData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import kotlinx.coroutines.flow.StateFlow
-import market.engine.core.globalData.CategoryBaseFilters
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
-import market.engine.core.types.CategoryScreenType
-import market.engine.shared.SearchHistory
 import org.koin.mp.KoinPlatform.getKoin
 
 

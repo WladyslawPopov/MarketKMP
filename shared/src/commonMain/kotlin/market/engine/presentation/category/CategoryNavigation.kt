@@ -10,15 +10,15 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import market.engine.core.navigation.children.ChildCategory
 import market.engine.presentation.listing.ListingContent
-import market.engine.presentation.main.MainComponent
 import market.engine.presentation.search.SearchContent
 
 
 @Composable
 fun CategoryNavigation (
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, MainComponent.ChildCategory>>
+    childStack: Value<ChildStack<*, ChildCategory>>
 ) {
     val stack by childStack.subscribeAsState()
     Children(
@@ -28,13 +28,13 @@ fun CategoryNavigation (
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is MainComponent.ChildCategory.SearchChild ->{
+            is ChildCategory.SearchChild ->{
                 SearchContent(screen.component, modifier)
             }
-            is MainComponent.ChildCategory.ListingChild ->{
+            is ChildCategory.ListingChild ->{
                 ListingContent(screen.component, modifier)
             }
-            is MainComponent.ChildCategory.CategoryChild ->{
+            is ChildCategory.CategoryChild ->{
                 CategoryContent(screen.component, modifier)
             }
         }

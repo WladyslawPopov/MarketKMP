@@ -3,6 +3,8 @@ package market.engine.presentation.login
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.core.globalData.SAPI
+import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
 
 interface LoginComponent {
@@ -22,6 +24,8 @@ class DefaultLoginComponent(
     private val onBackSelected: () -> Unit
 ) : LoginComponent {
 
+    private val userRepository = getKoin().get<UserRepository>()
+
     private val _model = MutableValue(
         LoginComponent.Model(
             loginViewModel = getKoin().get()
@@ -34,10 +38,10 @@ class DefaultLoginComponent(
         val body = HashMap<String, String>()
         body["identity"] = email
         body["password"] = password
-        body["workstation_data"] = ""
+        body["workstation_data"] = SAPI.workstationData
         if (captcha != "") {
             captcha?.let {
-                body["captcha_key"] = model.value.loginViewModel.responseAuth.value?.captchaKey?:""
+                body["captcha_key"] = model.value.loginViewModel.responseAuth.value?.captchaKey ?: ""
                 body["captcha_response"] = it
             }
         }
@@ -45,6 +49,7 @@ class DefaultLoginComponent(
     }
 
     override fun onBack() {
+        userRepository.updateUserInfo(model.value.loginViewModel.viewModelScope)
         onBackSelected()
     }
 }

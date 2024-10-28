@@ -1,4 +1,4 @@
-package market.engine.core.globalData
+package market.engine.core.baseFilters
 
 import kotlinx.serialization.Serializable
 

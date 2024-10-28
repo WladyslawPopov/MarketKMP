@@ -9,9 +9,9 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.StateFlow
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.navigation.configs.HomeConfig
-import market.engine.core.util.getCurrentDate
+import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
 
 interface HomeComponent {
@@ -54,11 +54,14 @@ class DefaultHomeComponent(
             isError = homeViewModel.errorMessage
         )
     )
-
+    private val userRepository = getKoin().get<UserRepository>()
     override val model: Value<HomeComponent.Model> = _model
 
     init {
         updateModel()
+
+        userRepository.updateToken()
+        userRepository.updateUserInfo(homeViewModel.viewModelScope)
 
         analyticsHelper.reportEvent("view_main_page", "")
     }
@@ -78,6 +81,9 @@ class DefaultHomeComponent(
     }
 
     override fun onRefresh() {
+        userRepository.updateToken()
+        userRepository.updateUserInfo(homeViewModel.viewModelScope)
+
         updateModel()
     }
 }

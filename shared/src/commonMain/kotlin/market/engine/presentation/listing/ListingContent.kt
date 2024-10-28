@@ -1,12 +1,11 @@
 package market.engine.presentation.listing
 
-import market.engine.widgets.items.ColumnItemListing
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.BottomSheetScaffold
@@ -14,6 +13,7 @@ import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -26,13 +26,15 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.russhwolf.settings.set
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
+import market.engine.core.types.WindowSizeClass
+import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.bars.ListingFiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
@@ -41,8 +43,9 @@ import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterContent
 import market.engine.widgets.filterContents.SortingListingContent
-import market.engine.widgets.items.GridItemListing
+import market.engine.widgets.items.ItemListing
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.getKoin
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -55,9 +58,11 @@ fun ListingContent(
     val searchData = listingViewModel.listingData.searchData.subscribeAsState()
     val listingData = listingViewModel.listingData.data.subscribeAsState()
     val data = listingViewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val analyticsHelper : AnalyticsHelper = getKoin().get()
+    val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
     val regions = listingViewModel.regionOptions.value
 
-    val scrollState = rememberLazyGridState(
+    val scrollState = rememberLazyListState(
         initialFirstVisibleItemIndex = listingViewModel.firstVisibleItemIndex,
         initialFirstVisibleItemScrollOffset = listingViewModel.firstVisibleItemScrollOffset
     )
@@ -66,6 +71,10 @@ fun ListingContent(
     val activeFiltersType = remember { mutableStateOf("") }
     val isHideContent = remember { mutableStateOf(false) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
+
+    val windowClass = getWindowSizeClass()
+    val isBigScreen = windowClass == WindowSizeClass.Big
+
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
@@ -191,8 +200,7 @@ fun ListingContent(
                     listingData,
                     searchData,
                     onChangeTypeList = {
-                        component.model.value.listingViewModel.settings["listingType"] =
-                            it
+                        listingViewModel.settings.setSettingValue("listingType", it)
                         component.onRefresh()
                     },
                     onFilterClick = {
@@ -228,59 +236,57 @@ fun ListingContent(
                                 state = scrollState,
                                 data = data,
                                 listingData = listingData,
+                                searchData =  searchData,
+                                columns = if (listingData.value.listingType == 0) 1 else if (isBigScreen)4 else 2,
+                                analyticsHelper = analyticsHelper,
+                                promoList = promoList.value,
                                 content = { offer ->
                                     if (listingData.value.listingType == 0) {
-                                        ColumnItemListing(
-                                            offer,
-                                            onFavouriteClick = {
-                                                val currentOffer =
-                                                    data[data.itemSnapshotList.items.indexOf(
-                                                        it
-                                                    )]
-                                                if (currentOffer != null) {
-                                                    val result = scope.async {
-                                                        val item =
-                                                            data[data.itemSnapshotList.items.indexOf(
-                                                                currentOffer
-                                                            )]
-                                                        if (item != null) {
-                                                            component.addToFavorites(item)
-                                                        } else {
-                                                            return@async currentOffer.isWatchedByMe
-                                                        }
-                                                    }
-                                                    result.await()
-                                                } else {
-                                                    return@ColumnItemListing it.isWatchedByMe
-                                                }
-                                            }
-                                        )
+                                       ItemListing(offer, isGrid = false){
+                                           val currentOffer =
+                                               data[data.itemSnapshotList.items.indexOf(
+                                                   it
+                                               )]
+                                           if (currentOffer != null) {
+                                               val result = scope.async {
+                                                   val item =
+                                                       data[data.itemSnapshotList.items.indexOf(
+                                                           currentOffer
+                                                       )]
+                                                   if (item != null) {
+                                                       component.clickOnFavorites(item)
+                                                   } else {
+                                                       return@async currentOffer.isWatchedByMe
+                                                   }
+                                               }
+                                               result.await()
+                                           } else {
+                                               return@ItemListing it.isWatchedByMe
+                                           }
+                                       }
                                     } else {
-                                        GridItemListing(
-                                            offer,
-                                            onFavouriteClick = {
-                                                val currentOffer =
-                                                    data[data.itemSnapshotList.items.indexOf(
-                                                        it
-                                                    )]
-                                                if (currentOffer != null) {
-                                                    val result = scope.async {
-                                                        val item =
-                                                            data[data.itemSnapshotList.items.indexOf(
-                                                                currentOffer
-                                                            )]
-                                                        if (item != null) {
-                                                            component.addToFavorites(item)
-                                                        } else {
-                                                            return@async currentOffer.isWatchedByMe
-                                                        }
+                                        ItemListing(offer, isGrid = true){
+                                            val currentOffer =
+                                                data[data.itemSnapshotList.items.indexOf(
+                                                    it
+                                                )]
+                                            if (currentOffer != null) {
+                                                val result = scope.async {
+                                                    val item =
+                                                        data[data.itemSnapshotList.items.indexOf(
+                                                            currentOffer
+                                                        )]
+                                                    if (item != null) {
+                                                        component.clickOnFavorites(item)
+                                                    } else {
+                                                        return@async currentOffer.isWatchedByMe
                                                     }
-                                                    result.await()
-                                                } else {
-                                                    return@GridItemListing it.isWatchedByMe
                                                 }
+                                                result.await()
+                                            } else {
+                                                return@ItemListing it.isWatchedByMe
                                             }
-                                        )
+                                        }
                                     }
                                 }
                             )

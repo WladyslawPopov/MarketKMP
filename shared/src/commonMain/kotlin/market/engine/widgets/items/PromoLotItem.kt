@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -40,12 +42,12 @@ fun PromoLotItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
         onClick = { onOfferClick(offer) }
     ) {
         Column(
-            modifier = Modifier.padding(dimens.smallPadding),
+            modifier = Modifier.padding(dimens.smallPadding).widthIn(max = 300.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (imageLoadFailed.value){
-                getImage(offer.images?.firstOrNull()?.urls?.mid?.content ?: "")
+                getImage(offer.images?.firstOrNull()?.urls?.mid?.content ?: "",200.dp)
             }else{
                 CoilImage(
                     imageModel = { offer.images?.firstOrNull()?.urls?.mid?.content },
@@ -54,11 +56,12 @@ fun PromoLotItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
 
                         imageLoadFailed.value = true
                         printLogD("Coil", e.reason?.message)
-                    }
+                    },
+                    modifier = Modifier.height(200.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dimens.smallSpacer))
             Text(
                 text = offer.title ?: "",
                 color = colors.black,
@@ -66,11 +69,12 @@ fun PromoLotItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 letterSpacing = 0.1.sp,
                 fontSize = MaterialTheme.typography.bodyLarge.fontSize
             )
+            Spacer(modifier = Modifier.height(dimens.smallSpacer))
             Text(
                 text = offer.currentPricePerItem.toString() + stringResource(strings.currencySign),
                 color = colors.titleTextColor,
-                modifier = Modifier.align(Alignment.End).padding(dimens.smallPadding),
-                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                modifier = Modifier.align(Alignment.End),
+                fontSize = MaterialTheme.typography.titleLarge.fontSize,
                 letterSpacing = 0.1.sp,
                 fontWeight = FontWeight.Bold
             )

@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.globalData.SD
+import market.engine.core.baseFilters.SD
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
 

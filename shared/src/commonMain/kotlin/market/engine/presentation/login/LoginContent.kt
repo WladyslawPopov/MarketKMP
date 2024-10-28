@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.delay
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -71,6 +72,7 @@ fun LoginContent(
     val captchaTextValue = remember { mutableStateOf(TextFieldValue()) }
     val isCaptchaVisible = remember { mutableStateOf(false) }
 
+    val successLogin = stringResource(strings.operationSuccess)
     val errorLogin = stringResource(strings.errorLogin)
     val toastItem : MutableState<ToastItem> = remember {
         mutableStateOf(
@@ -85,16 +87,18 @@ fun LoginContent(
     LaunchedEffect(postAuth.value) {
         val res = postAuth.value?.result
         if (res != null) {
-            if ( res == "success") {
+            if ( res == "SUCCESS") {
+                model.userRepository.setToken(postAuth.value?.user ?: 1L, postAuth.value?.token ?: "")
+                toastItem.value = ToastItem(
+                    message = successLogin,
+                    type = ToastType.SUCCESS,
+                    isVisible = true
+                )
+                delay(4000)
                 component.onBack()
             } else {
                 if ( res == "needs_captcha") {
                     isCaptchaVisible.value = true
-                    toastItem.value = ToastItem(
-                        message = errorLogin,
-                        type = ToastType.ERROR,
-                        isVisible = true
-                    )
                 }else{
                     toastItem.value = ToastItem(
                         message = errorLogin,
@@ -170,9 +174,10 @@ fun LoginContent(
                     onValueChange = {
                         emailTextValue.value = it
                     },
-                    label = stringResource(strings.promptEmail),
+                    label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
                     keyboardType = KeyboardType.Email,
-                    focusRequester = focusRequester
+                    focusRequester = focusRequester,
+                    isEmail = true
                 )
 
                 TextInputField(

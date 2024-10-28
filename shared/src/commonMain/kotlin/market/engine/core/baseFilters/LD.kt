@@ -1,7 +1,5 @@
-package market.engine.core.globalData
+package market.engine.core.baseFilters
 
-import market.engine.core.baseFilters.Filter
-import market.engine.core.baseFilters.Sort
 import kotlinx.serialization.Serializable
 
 @Serializable

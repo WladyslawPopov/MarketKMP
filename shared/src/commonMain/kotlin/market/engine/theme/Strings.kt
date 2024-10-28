@@ -141,4 +141,11 @@ interface Strings {
     val enterLogin : StringResource
     val registration : StringResource
     val errorLogin : StringResource
+    val operationSuccess : StringResource
+    val operationFailed : StringResource
+    val checkForLogoutTitle : StringResource
+    val closeWindow : StringResource
+    val loginParameterName : StringResource
+    val offersLabel : StringResource
+    val promoEndLabel : StringResource
 }

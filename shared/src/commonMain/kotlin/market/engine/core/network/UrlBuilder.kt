@@ -1,8 +1,8 @@
 package market.engine.core.network
 
-import market.engine.core.constants.UserData
-import market.engine.core.globalData.LD
-import market.engine.core.globalData.SD
+import market.engine.core.globalData.UserData
+import market.engine.core.baseFilters.LD
+import market.engine.core.baseFilters.SD
 import market.engine.core.util.getCurrentDate
 
 class UrlBuilder {

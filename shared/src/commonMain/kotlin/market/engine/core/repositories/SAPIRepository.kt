@@ -1,6 +1,6 @@
-package market.engine.core.network
+package market.engine.core.repositories
 
-import market.engine.core.constants.SAPI
+import market.engine.core.globalData.SAPI
 
 class SAPIRepository {
 
@@ -10,6 +10,10 @@ class SAPIRepository {
         SAPI.YA_API_KEY = yaApiKey
         SAPI.REVIEW_URL = reviewUrl
         SAPI.secret = secret
+    }
+
+    fun setWorkStation(workStation: String) {
+        SAPI.workstationData = workStation
     }
 
     fun addHeader(key: String, value: String) {

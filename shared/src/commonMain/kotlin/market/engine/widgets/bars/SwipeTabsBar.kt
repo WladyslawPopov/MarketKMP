@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.items
@@ -28,7 +29,7 @@ import androidx.compose.ui.Modifier
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalData.LD
+import market.engine.core.baseFilters.LD
 import market.engine.core.items.Tab
 import market.engine.core.types.TabTypeListing
 import org.jetbrains.compose.resources.stringResource
@@ -36,7 +37,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SwipeTabsBar(
     listingData: State<LD>,
-    scrollState: LazyGridState,
+    scrollState: LazyListState,
     onRefresh: () -> Unit
 ) {
     val itemsPerPage = listingData.value.pageCountItems

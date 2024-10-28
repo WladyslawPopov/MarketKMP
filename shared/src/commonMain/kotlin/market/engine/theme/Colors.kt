@@ -56,4 +56,5 @@ interface Colors {
     val navItemColors : NavigationBarItemColors
     val navRailItemColors : NavigationRailItemColors
     val cardColors : CardColors
+    val cardColorsPromo : CardColors
 }

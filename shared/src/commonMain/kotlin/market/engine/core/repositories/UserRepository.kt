@@ -1,38 +1,58 @@
 package market.engine.core.repositories
 
-import market.engine.core.constants.UserData.login
-import market.engine.core.constants.UserData.picUri
-import market.engine.core.constants.UserData.token
-import market.engine.core.constants.UserData.userInfo
-import market.engine.core.network.SAPIRepository
+import application.market.agora.business.core.network.functions.UserOperations
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import market.engine.core.globalData.UserData
+import market.engine.core.globalData.UserData.login
+import market.engine.core.globalData.UserData.picUri
+import market.engine.core.globalData.UserData.token
 
-class UserRepository {
+class UserRepository(
+    private val sapiRepository: SAPIRepository,
+    private val settings : SettingsRepository,
+    private val userOperations: UserOperations
+) {
 
-    private val sapiRepository: SAPIRepository by lazy {
-        SAPIRepository()
+    fun setToken(l : Long, t : String) {
+        settings.setSettingValue("identity", l)
+        settings.setSettingValue("token", t)
+        login = l
+        token = t
+        sapiRepository.addHeader("Authorization", token)
     }
 
     fun updateToken() {
-//        val realmRepository = GenericRepository(LoginCache::class)
-//        val user = realmRepository.getAll().firstOrNull()
-
-//        if (user != null) {
-//            token = user.token
-//            login = user.idObject
-//            sapiRepository.addHeader("Authorization", user.token)
-//        }
+        login = settings.getSettingValue("identity", 1L) ?: 1L
+        token = settings.getSettingValue("token", "") ?: ""
+        sapiRepository.addHeader("Authorization", token)
     }
 
     fun delete() {
-//        val realmRepository = GenericRepository(LoginCache::class)
-//        realmRepository.deleteAll()
+        settings.setSettingValue("identity", 1L)
+        settings.setSettingValue("token", "")
         clear()
         sapiRepository.removeHeader("Authorization")
+    }
 
+    fun updateUserInfo(scope : CoroutineScope){
+        scope.launch {
+            withContext(Dispatchers.IO){
+                val res = userOperations.getUsers(login)
+
+                withContext(Dispatchers.Main){
+                    if (res.success != null){
+                        UserData.updateUserInfo(res.success?.firstOrNull())
+                    }
+                }
+            }
+        }
     }
 
     fun clear(){
-        userInfo = null
         picUri = null
         login  = 0
         token = ""

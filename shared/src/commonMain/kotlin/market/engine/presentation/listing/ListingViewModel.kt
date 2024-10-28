@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
@@ -33,6 +33,7 @@ import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.paging.offer.OfferPagingRepository
+import market.engine.core.repositories.SettingsRepository
 import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -41,7 +42,7 @@ class ListingViewModel(
     private val offerPagingRepository: OfferPagingRepository
 ) : BaseViewModel() {
 
-    val settings : Settings = getKoin().get()
+    val settings : SettingsRepository = getKoin().get()
 
     private val categoryOperations : CategoryOperations = getKoin().get()
 
@@ -87,12 +88,7 @@ class ListingViewModel(
             initialValue = UiState(listingData.copy())
         )
 
-        if (settings.keys.find { it == "listingType" } != null){
-            val listingType = settings["listingType", 0]
-            listingData.data.value.listingType = listingType
-        }else{
-            settings["listingType"] = listingData.data.value.listingType
-        }
+        listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0
 
         getRegions()
     }
@@ -111,11 +107,10 @@ class ListingViewModel(
         data class UpdateCurrentListingData(val listingData: ListingData) : UiAction()
     }
 
-    private val defaultCategoryId = 1L
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
-    fun getOffersRecommendedInListing(categoryID:Long=defaultCategoryId) {
+    fun getOffersRecommendedInListing(categoryID:Long) {
         viewModelScope.launch{
             try {
                 withContext(Dispatchers.IO){

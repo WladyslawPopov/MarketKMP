@@ -3,11 +3,18 @@ package market.engine.widgets.grids
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -24,22 +31,30 @@ import app.cash.paging.compose.LazyPagingItems
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.globalData.LD
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
+import market.engine.core.baseFilters.LD
+import market.engine.core.baseFilters.SD
+import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.bars.PagingCounterBar
 import market.engine.widgets.buttons.getFloatAnyButton
+import market.engine.widgets.items.PromoLotItem
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun <T : Any> PagingGrid(
     data: LazyPagingItems<T>,
-    state: LazyGridState = rememberLazyGridState(),
+    promoList: ArrayList<Offer>? = null,
+    state: LazyListState = rememberLazyListState(),
+    columns : Int = 1,
     listingData: State<LD>,
+    searchData: State<SD>? = null,
+    analyticsHelper: AnalyticsHelper? = null,
     content: @Composable (T) -> Unit
 ) {
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
     val itemsPerPage = listingData.value.pageCountItems
     val totalPages = listingData.value.totalPages
 
@@ -78,16 +93,91 @@ fun <T : Any> PagingGrid(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        LazyVerticalGrid(
+        LazyColumn(
             state = state,
-            columns = GridCells.Fixed(if (listingData.value.listingType != 0) if (showNavigationRail) 4 else 2 else 1),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier.fillMaxSize().animateContentSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .animateContentSize()
         ) {
+
+            if (!promoList.isNullOrEmpty()) {
+                item {
+                    LazyRow(
+                        modifier = Modifier.height(400.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        items(promoList) { offer ->
+                            PromoLotItem(
+                                offer
+                            ){
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ((data.itemSnapshotList.items.firstOrNull() as? Offer)?.promoOptions != null){
+                item {
+                    Text(
+                        text = stringResource(strings.topOffersTitle),
+                        color = colors.black,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .padding(dimens.smallPadding)
+                    )
+                }
+            }else{
+                item {
+                    Text(
+                        text = stringResource(strings.offersLabel),
+                        color = colors.black,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .padding(dimens.smallPadding)
+                    )
+                }
+            }
+
+            var isShowEndPromo = false
             items(data.itemCount) { index ->
-                val item = data[index]
-                item?.let { content(it) }
+                if (index > 0 && !isShowEndPromo) {
+                    val item = data[index] as? Offer
+                    if (item?.promoOptions == null) {
+                        val lastItem = data[index - 1] as? Offer
+                        if (lastItem != null) {
+                            val isLastItemPromo =
+                                lastItem.promoOptions?.any { it.id == "featured_in_listing" } == true
+
+                            if (isLastItemPromo) {
+                                isShowEndPromo = true
+                                Text(
+                                    text = stringResource(strings.promoEndLabel),
+                                    color = colors.titleTextColor,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier
+                                        .padding(dimens.smallPadding)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (index % columns == 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        for (columnIndex in 0 until columns) {
+                            val item = data[index + columnIndex]
+                            Box(modifier = Modifier.weight(1f)) {
+                                item?.let { content(it) }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -121,12 +211,12 @@ fun <T : Any> PagingGrid(
     }
 }
 
-private suspend fun scrollToPreviousPage(state: LazyGridState, itemsPerPage: Int) {
+private suspend fun scrollToPreviousPage(state: LazyListState, itemsPerPage: Int) {
     val previousPageFirstItemIndex = maxOf(state.firstVisibleItemIndex - itemsPerPage, 0)
     state.scrollToItem(previousPageFirstItemIndex)
 }
 
-private suspend fun scrollToNextPage(state: LazyGridState, itemsPerPage: Int) {
+private suspend fun scrollToNextPage(state: LazyListState, itemsPerPage: Int) {
     val nextPageFirstItemIndex = minOf(
         state.firstVisibleItemIndex + itemsPerPage,
         state.layoutInfo.totalItemsCount - 1

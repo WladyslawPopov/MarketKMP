@@ -10,12 +10,12 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.children.ChildBasket
 
 @Composable
 fun BasketNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, MainComponent.ChildBasket>>
+    childStack: Value<ChildStack<*, ChildBasket>>
 ) {
     val stack by childStack.subscribeAsState()
     Children(
@@ -25,7 +25,7 @@ fun BasketNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is MainComponent.ChildBasket.BasketChild -> BasketContent(screen.component)
+            is ChildBasket.BasketChild -> BasketContent(screen.component)
         }
     }
 }

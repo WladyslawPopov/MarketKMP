@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin

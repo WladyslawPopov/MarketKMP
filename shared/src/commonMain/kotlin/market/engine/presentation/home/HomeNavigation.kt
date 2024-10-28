@@ -10,12 +10,12 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.children.ChildHome
 
 @Composable
 fun HomeNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, MainComponent.ChildHome>>,
+    childStack: Value<ChildStack<*, ChildHome>>,
     clickDrawer : () -> Unit
 ) {
     val stack by childStack.subscribeAsState()
@@ -26,7 +26,7 @@ fun HomeNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is MainComponent.ChildHome.HomeChild -> HomeContent(screen.component, modifier, clickDrawer)
+            is ChildHome.HomeChild -> HomeContent(screen.component, modifier, clickDrawer)
         }
     }
 }

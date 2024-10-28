@@ -1,6 +1,6 @@
 package market.engine.core.network.functions
 
-import market.engine.core.globalData.CategoryBaseFilters
+import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.UrlBuilder
