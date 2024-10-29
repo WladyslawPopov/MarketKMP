@@ -1,4 +1,4 @@
-package market.engine.widgets.items
+package market.engine.presentation.listing
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +16,7 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Offer
 
 @Composable
-fun ItemListing(
+fun ListingItem(
     offer: Offer,
     isGrid : Boolean,
     onFavouriteClick: suspend (Offer) -> Boolean
@@ -45,7 +45,7 @@ fun ItemListing(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ListingContent(
+                ListingItemContent(
                     offer,
                     modifier = Modifier.align(Alignment.End),
                     isGrid = isGrid,
@@ -58,7 +58,7 @@ fun ItemListing(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {
-                ListingContent(
+                ListingItemContent(
                     offer,
                     modifier = Modifier.align(Alignment.Bottom),
                     isGrid = false,

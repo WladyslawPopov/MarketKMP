@@ -1,4 +1,4 @@
-package market.engine.widgets.items
+package market.engine.presentation.listing
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +41,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun ListingContent(
+fun ListingItemContent(
     offer: Offer,
     modifier: Modifier,
     isGrid : Boolean,

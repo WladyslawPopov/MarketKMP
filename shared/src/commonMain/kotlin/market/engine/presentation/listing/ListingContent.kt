@@ -25,14 +25,22 @@ import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
+import application.market.agora.business.core.network.functions.OfferOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.CategoryOperations
+import market.engine.core.network.networkObjects.Offer
+import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
@@ -44,7 +52,6 @@ import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterContent
 import market.engine.widgets.filterContents.SortingListingContent
-import market.engine.widgets.items.ItemListing
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
@@ -77,9 +84,7 @@ fun ListingContent(
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
-
-    val userRepository : UserRepository = koinInject()
-
+    val userRepository : UserRepository = KoinPlatform.getKoin().get()
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
@@ -247,53 +252,31 @@ fun ListingContent(
                                 promoList = promoList.value,
                                 content = { offer ->
                                     if (listingData.value.listingType == 0) {
-                                       ItemListing(offer, isGrid = false){
+                                       ListingItem(offer, isGrid = false){
                                            val currentOffer =
                                                data[data.itemSnapshotList.items.indexOf(
                                                    it
                                                )]
                                            if (currentOffer != null) {
-                                               val result = scope.async {
-                                                   val item =
-                                                       data[data.itemSnapshotList.items.indexOf(
-                                                           currentOffer
-                                                       )]
-                                                   if (item != null) {
-                                                       val res = component.clickOnFavorites(item)
-                                                       userRepository.updateUserInfo(scope)
-                                                       return@async res
-                                                   } else {
-                                                       return@async currentOffer.isWatchedByMe
-                                                   }
-                                               }
-                                               result.await()
-                                           } else {
-                                               return@ItemListing it.isWatchedByMe
+                                               val res = operationFavorites(currentOffer, scope)
+                                               userRepository.updateUserInfo(scope)
+                                               return@ListingItem res
+                                           }else{
+                                               return@ListingItem it.isWatchedByMe
                                            }
                                        }
                                     } else {
-                                        ItemListing(offer, isGrid = true){
+                                        ListingItem(offer, isGrid = true){
                                             val currentOffer =
                                                 data[data.itemSnapshotList.items.indexOf(
                                                     it
                                                 )]
                                             if (currentOffer != null) {
-                                                val result = scope.async {
-                                                    val item =
-                                                        data[data.itemSnapshotList.items.indexOf(
-                                                            currentOffer
-                                                        )]
-                                                    if (item != null) {
-                                                        val res = component.clickOnFavorites(item)
-                                                        userRepository.updateUserInfo(scope)
-                                                        return@async res
-                                                    } else {
-                                                        return@async currentOffer.isWatchedByMe
-                                                    }
-                                                }
-                                                result.await()
-                                            } else {
-                                                return@ItemListing it.isWatchedByMe
+                                                val res = operationFavorites(currentOffer, scope)
+                                                userRepository.updateUserInfo(scope)
+                                                return@ListingItem res
+                                            }else{
+                                                return@ListingItem it.isWatchedByMe
                                             }
                                         }
                                     }
@@ -306,6 +289,8 @@ fun ListingContent(
         }
     }
 }
+
+
 
 
 
