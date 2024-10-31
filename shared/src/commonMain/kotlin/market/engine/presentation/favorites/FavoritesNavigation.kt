@@ -25,7 +25,8 @@ fun FavoritesNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildFavorites.FavoritesChild -> FavoritesContent(screen.component)
+            is ChildFavorites.FavoritesChild -> FavoritesContent(modifier, screen.component)
+            is ChildFavorites.SubChild -> FavoritesContent(modifier, screen.component)
         }
     }
 }

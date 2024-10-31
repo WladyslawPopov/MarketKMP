@@ -6,4 +6,7 @@ import kotlinx.serialization.Serializable
 sealed class FavoritesConfig {
     @Serializable
     data object FavoritesScreen : FavoritesConfig()
+
+    @Serializable
+    data object SubscriptionsScreen : FavoritesConfig()
 }

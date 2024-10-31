@@ -50,6 +50,7 @@ fun <T : Any> PagingList(
     columns : Int = 1,
     listingData: State<LD>,
     searchData: State<SD>? = null,
+    fromListing: Boolean = false,
     promoContent: (@Composable (Offer) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
@@ -99,7 +100,7 @@ fun <T : Any> PagingList(
                 .animateContentSize()
         ) {
 
-            if (!promoList.isNullOrEmpty()) {
+            if (!promoList.isNullOrEmpty() && fromListing) {
                 item {
                     LazyRow(
                         modifier = Modifier.height(400.dp),
@@ -114,32 +115,33 @@ fun <T : Any> PagingList(
                     }
                 }
             }
-
-            if ((data.itemSnapshotList.items.firstOrNull() as? Offer)?.promoOptions != null){
-                item {
-                    Text(
-                        text = stringResource(strings.topOffersTitle),
-                        color = colors.black,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier
-                            .padding(dimens.smallPadding)
-                    )
-                }
-            }else{
-                item {
-                    Text(
-                        text = stringResource(strings.offersLabel),
-                        color = colors.black,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier
-                            .padding(dimens.smallPadding)
-                    )
+            if (fromListing) {
+                if ((data.itemSnapshotList.items.firstOrNull() as? Offer)?.promoOptions != null) {
+                    item {
+                        Text(
+                            text = stringResource(strings.topOffersTitle),
+                            color = colors.black,
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier
+                                .padding(dimens.smallPadding)
+                        )
+                    }
+                } else {
+                    item {
+                        Text(
+                            text = stringResource(strings.offersLabel),
+                            color = colors.black,
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier
+                                .padding(dimens.smallPadding)
+                        )
+                    }
                 }
             }
 
             var isShowEndPromo = false
             items(data.itemCount) { index ->
-                if (searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
+                if (fromListing && searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
                     if (index > 0 && !isShowEndPromo) {
                         val item = data[index] as? Offer
                         if (item?.promoOptions == null) {

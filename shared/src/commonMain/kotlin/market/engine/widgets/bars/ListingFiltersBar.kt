@@ -35,6 +35,7 @@ fun ListingFiltersBar(
     listingData: State<LD>,
     searchData: State<SD>,
     isShowFilters: Boolean = true,
+    isShowGrid: Boolean = false,
     onChangeTypeList: (Int) -> Unit = {},
     onFilterClick: () -> Unit = {},
     onSortClick: () -> Unit = {},
@@ -66,7 +67,8 @@ fun ListingFiltersBar(
         icon = drawables.iconWidget,
         tint = colors.black,
         hasNews = false,
-        badgeCount = null
+        badgeCount = null,
+        isVisible = isShowGrid
     )
 
     Column {
@@ -187,24 +189,26 @@ fun ListingFiltersBar(
                     ) {
                         getBadgedBox(item = itemSort)
                     }
+                    if (itemGallery.isVisible) {
+                        IconButton(
+                            modifier = Modifier.width(30.dp),
+                            onClick = {
+                                typeList.value = if (typeList.value == 0) 1 else 0
+                                listingData.value.listingType = typeList.value
+                                onChangeTypeList(typeList.value)
+                            }
+                        ) {
+                            when (typeList.value) {
+                                0 -> {
+                                    itemGallery.icon = drawables.iconWidget
+                                }
 
-                    IconButton(
-                        modifier = Modifier.width(30.dp),
-                        onClick = {
-                            typeList.value = if (typeList.value == 0) 1 else 0
-                            listingData.value.listingType = typeList.value
-                            onChangeTypeList(typeList.value)
-                        }
-                    ) {
-                        when (typeList.value){
-                            0 ->{
-                                itemGallery.icon = drawables.iconWidget
+                                1 -> {
+                                    itemGallery.icon = drawables.iconSliderHorizontal
+                                }
                             }
-                            1 ->{
-                                itemGallery.icon = drawables.iconSliderHorizontal
-                            }
+                            getBadgedBox(item = itemGallery)
                         }
-                        getBadgedBox(item = itemGallery)
                     }
                 }
             }

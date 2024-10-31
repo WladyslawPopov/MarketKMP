@@ -27,12 +27,10 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
-import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
@@ -43,12 +41,9 @@ import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.grids.PagingList
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
-import market.engine.widgets.filterContents.FilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.items.PromoLotItem
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.getKoin
-import org.koin.compose.koinInject
 import org.koin.mp.KoinPlatform
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -150,7 +145,7 @@ fun ListingContent(
         sheetContent = {
             when (activeFiltersType.value) {
                 "filters" -> {
-                    FilterContent(
+                    FilterListingContent(
                         isRefreshingFromFilters,
                         listingData,
                         scaffoldState,
@@ -202,6 +197,7 @@ fun ListingContent(
                 ListingFiltersBar(
                     listingData,
                     searchData,
+                    isShowGrid = true,
                     onChangeTypeList = {
                         listingViewModel.settings.setSettingValue("listingType", it)
                         component.onRefresh()
@@ -242,6 +238,7 @@ fun ListingContent(
                                 searchData =  searchData,
                                 columns = if (listingData.value.listingType == 0) 1 else if (isBigScreen)4 else 2,
                                 promoList = promoList.value,
+                                fromListing = true,
                                 promoContent = { offer->
                                     PromoLotItem(
                                         offer

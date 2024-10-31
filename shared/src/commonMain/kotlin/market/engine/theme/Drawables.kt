@@ -81,4 +81,7 @@ interface Drawables {
    val errorIcon : DrawableResource
    val eyeClose : DrawableResource
    val eyeOpen : DrawableResource
+   val menuIcon : DrawableResource
+   val bidsIcon : DrawableResource
+   val dealsIcon : DrawableResource
 }

@@ -1,4 +1,4 @@
-package market.engine.widgets.filterContents
+package market.engine.presentation.listing
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -55,7 +55,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FilterContent(
+fun FilterListingContent(
     isRefreshing: MutableState<Boolean>,
     listingData: State<LD>,
     sheetState: BottomSheetScaffoldState,
@@ -309,25 +309,27 @@ fun FilterContent(
                             modifier = Modifier.padding(dimens.smallPadding)
                         )
 
-                        getDropdownMenu(listingData.value.filters?.find { it.key == "region" }?.interpritation,
-                            regionsOptions.map { it.name.toString() },
-                            onItemClick = { newRegion ->
-                                listingData.value.filters?.find { it.key == "region" }?.value =
-                                    regionsOptions.find { it.name == newRegion }?.code.toString()
-                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
-                                    newRegion
+                        if (regionsOptions != null) {
+                            getDropdownMenu(listingData.value.filters?.find { it.key == "region" }?.interpritation,
+                                regionsOptions.map { it.name.toString() },
+                                onItemClick = { newRegion ->
+                                    listingData.value.filters?.find { it.key == "region" }?.value =
+                                        regionsOptions.find { it.name == newRegion }?.code.toString()
+                                    listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                        newRegion
 
-                                isRefreshing.value =
-                                    listingData.value.filters?.find { it.interpritation != null } != null
-                            },
-                            onClearItem = {
-                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
-                                    null
+                                    isRefreshing.value =
+                                        listingData.value.filters?.find { it.interpritation != null } != null
+                                },
+                                onClearItem = {
+                                    listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                        null
 
-                                isRefreshing.value =
-                                    listingData.value.filters?.find { it.interpritation != null } != null
-                            }
-                        )
+                                    isRefreshing.value =
+                                        listingData.value.filters?.find { it.interpritation != null } != null
+                                }
+                            )
+                        }
                     }
                 }
                 item {

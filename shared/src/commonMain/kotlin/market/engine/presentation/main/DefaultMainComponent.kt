@@ -241,6 +241,10 @@ class DefaultMainComponent(
             FavoritesConfig.FavoritesScreen -> ChildFavorites.FavoritesChild(
                 itemFavorites(componentContext)
             )
+
+            FavoritesConfig.SubscriptionsScreen -> ChildFavorites.SubChild(
+                itemSubscriptions(componentContext)
+            )
         }
 
     private fun createChild(
@@ -337,7 +341,12 @@ class DefaultMainComponent(
     private fun itemFavorites(componentContext: ComponentContext): FavoritesComponent {
         return DefaultFavoritesComponent(
             componentContext = componentContext,
-            navigation = modelNavigation.value.favoritesNavigation
+        )
+    }
+
+    private fun itemSubscriptions(componentContext: ComponentContext): FavoritesComponent {
+        return DefaultFavoritesComponent(
+            componentContext = componentContext,
         )
     }
 
