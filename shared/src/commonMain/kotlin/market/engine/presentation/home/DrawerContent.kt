@@ -31,10 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.SAPI
 import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.core.repositories.UserRepository
@@ -102,6 +104,7 @@ fun DrawerContent(
     )
 
     val userRepository : UserRepository = koinInject()
+    val analyticsHelper : AnalyticsHelper = koinInject()
 
     val isShowDialog = remember { mutableStateOf(false) }
 
@@ -132,6 +135,7 @@ fun DrawerContent(
                                     text = stringResource(strings.logoutTitle),
                                     backgroundColor = colors.grayLayout,
                                     onClick = {
+                                        analyticsHelper.reportEvent("logout_success", "")
                                         isShowDialog.value = false
                                         userRepository.delete()
                                         goToLogin()
@@ -182,7 +186,7 @@ fun DrawerContent(
                 }
             }
 
-            list.forEachIndexed { index, item ->
+            list.forEachIndexed { _, item ->
                 Spacer(modifier = Modifier.height(dimens.mediumSpacer))
 
                 NavigationDrawerItem(
@@ -256,7 +260,7 @@ fun DrawerContent(
                 contentAlignment = Alignment.BottomEnd
             ) {
                 Text(
-                    text = " Version 1.8.0",
+                    text = SAPI.version,
                     color = colors.textA0AE,
                     fontSize = MaterialTheme.typography.labelMedium.fontSize
                 )

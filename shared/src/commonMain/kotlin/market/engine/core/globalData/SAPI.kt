@@ -16,6 +16,8 @@ object SAPI {
 
     var workstationData = ""
 
+    var version = ""
+
     fun getApiKey(): String {
         //val sole = "d434ba90-bf1e-4a"
         return secret

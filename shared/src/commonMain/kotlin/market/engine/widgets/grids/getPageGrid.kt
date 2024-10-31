@@ -31,7 +31,6 @@ import app.cash.paging.compose.LazyPagingItems
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
@@ -41,18 +40,17 @@ import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.bars.PagingCounterBar
 import market.engine.widgets.buttons.getFloatAnyButton
-import market.engine.widgets.items.PromoLotItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun <T : Any> PagingGrid(
+fun <T : Any> PagingList(
     data: LazyPagingItems<T>,
     promoList: ArrayList<Offer>? = null,
     state: LazyListState = rememberLazyListState(),
     columns : Int = 1,
     listingData: State<LD>,
     searchData: State<SD>? = null,
-    analyticsHelper: AnalyticsHelper? = null,
+    promoContent: (@Composable (Offer) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
     val itemsPerPage = listingData.value.pageCountItems
@@ -109,10 +107,8 @@ fun <T : Any> PagingGrid(
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         items(promoList) { offer ->
-                            PromoLotItem(
-                                offer
-                            ){
-
+                            if (promoContent != null) {
+                                promoContent(offer)
                             }
                         }
                     }
@@ -143,23 +139,25 @@ fun <T : Any> PagingGrid(
 
             var isShowEndPromo = false
             items(data.itemCount) { index ->
-                if (index > 0 && !isShowEndPromo) {
-                    val item = data[index] as? Offer
-                    if (item?.promoOptions == null) {
-                        val lastItem = data[index - 1] as? Offer
-                        if (lastItem != null) {
-                            val isLastItemPromo =
-                                lastItem.promoOptions?.any { it.id == "featured_in_listing" } == true
+                if (searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
+                    if (index > 0 && !isShowEndPromo) {
+                        val item = data[index] as? Offer
+                        if (item?.promoOptions == null) {
+                            val lastItem = data[index - 1] as? Offer
+                            if (lastItem != null) {
+                                val isLastItemPromo =
+                                    lastItem.promoOptions?.any { it.id == "featured_in_listing" } == true
 
-                            if (isLastItemPromo) {
-                                isShowEndPromo = true
-                                Text(
-                                    text = stringResource(strings.promoEndLabel),
-                                    color = colors.titleTextColor,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier
-                                        .padding(dimens.smallPadding)
-                                )
+                                if (isLastItemPromo) {
+                                    isShowEndPromo = true
+                                    Text(
+                                        text = stringResource(strings.promoEndLabel),
+                                        color = colors.titleTextColor,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier
+                                            .padding(dimens.smallPadding)
+                                    )
+                                }
                             }
                         }
                     }

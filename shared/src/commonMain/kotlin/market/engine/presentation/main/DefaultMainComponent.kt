@@ -9,6 +9,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.globalData.UserData
+import market.engine.core.items.DeepLink
 import market.engine.core.navigation.children.ChildBasket
 import market.engine.core.navigation.children.ChildCategory
 import market.engine.core.navigation.children.ChildFavorites
@@ -21,7 +22,6 @@ import market.engine.core.navigation.configs.FavoritesConfig
 import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.navigation.configs.MainConfig
 import market.engine.core.navigation.configs.ProfileConfig
-import market.engine.core.repositories.UserRepository
 import market.engine.core.types.CategoryScreenType
 import market.engine.presentation.category.CategoryComponent
 import market.engine.presentation.category.DefaultCategoryComponent
@@ -39,12 +39,12 @@ import org.koin.mp.KoinPlatform.getKoin
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
+    deepLink: DeepLink?,
     val goToLoginSelected: () -> Unit
 ) : MainComponent, ComponentContext by componentContext 
 {
 
     override val categoryData: CategoryBaseFilters = getKoin().get()
-
 
     private val categoryStack = categoryData.categoryStack
 
@@ -129,6 +129,35 @@ class DefaultMainComponent(
             },
             key = "MainStack"
         )
+
+    init {
+        deepLink?.let { handleDeepLink(it) }
+    }
+
+    private fun handleDeepLink(deepLink: DeepLink) {
+        when (deepLink) {
+            is DeepLink.User -> {
+                navigateToBottomItem(MainConfig.Profile)
+            }
+            is DeepLink.Listing -> {
+                categoryData.listingData.searchData.value.clear()
+                categoryData.listingData.searchData.value.userSearch = true
+                categoryData.listingData.searchData.value.userID = deepLink.ownerId
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
+                navigateToBottomItem(MainConfig.Category)
+            }
+            is DeepLink.Offer -> {
+
+            }
+            is DeepLink.Auth -> {
+                goToLogin()
+            }
+            is DeepLink.Registration -> {
+                goToLogin()
+            }
+            is DeepLink.Unknown -> {}
+        }
+    }
 
     override fun navigateToBottomItem(config: MainConfig) {
         when(config){

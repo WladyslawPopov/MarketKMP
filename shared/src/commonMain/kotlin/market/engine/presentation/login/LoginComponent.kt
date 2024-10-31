@@ -3,6 +3,7 @@ package market.engine.presentation.login
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.globalData.SAPI
 import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
@@ -26,6 +27,9 @@ class DefaultLoginComponent(
 
     private val userRepository = getKoin().get<UserRepository>()
 
+    private val analyticsHelper = getKoin().get<AnalyticsHelper>()
+
+
     private val _model = MutableValue(
         LoginComponent.Model(
             loginViewModel = getKoin().get()
@@ -33,6 +37,10 @@ class DefaultLoginComponent(
     )
 
     override val model = _model
+
+    init {
+        analyticsHelper.reportEvent("view_login_screen", "")
+    }
 
     override fun onLogin(email : String, password : String, captcha : String?) {
         val body = HashMap<String, String>()

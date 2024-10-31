@@ -1,15 +1,6 @@
-package common
-
-import androidx.compose.runtime.Composable
+package market.engine.common
 
 interface PermissionHandler {
-    @Composable
-    fun AskPermission(permission: PermissionType)
 
-    @Composable
-    fun isPermissionGranted(permission: PermissionType): Boolean
-
-    @Composable
-    fun LaunchSettings()
-
+    fun AskPermissionNotification()
 }

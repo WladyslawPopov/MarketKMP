@@ -32,6 +32,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -45,6 +46,7 @@ import market.engine.widgets.exceptions.onError
 import market.engine.widgets.textFields.TextInputField
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 
 @Composable
@@ -60,6 +62,8 @@ fun LoginContent(
     val err = model.errorMessage.collectAsState()
     val scrollState = rememberScrollState()
     val postAuth = model.responseAuth.collectAsState()
+
+    val analyticsHelper : AnalyticsHelper = koinInject()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(err.value) {  } }
@@ -94,12 +98,24 @@ fun LoginContent(
                     type = ToastType.SUCCESS,
                     isVisible = true
                 )
-                delay(4000)
+                val events = mapOf(
+                    "login_type" to "email",
+                    "login_result" to "fail",
+                    "login_email" to emailTextValue.value.text
+                )
+                analyticsHelper.reportEvent("login_success",events)
+                delay(3000)
                 component.onBack()
             } else {
                 if ( res == "needs_captcha") {
                     isCaptchaVisible.value = true
                 }else{
+                    val events = mapOf(
+                        "login_type" to "email",
+                        "login_result" to "fail",
+                        "login_email" to emailTextValue.value.text
+                    )
+                    analyticsHelper.reportEvent("login_fail",events)
                     toastItem.value = ToastItem(
                         message = errorLogin,
                         type = ToastType.ERROR,

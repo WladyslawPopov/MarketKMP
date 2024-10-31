@@ -75,7 +75,7 @@ val repositoryModule = module {
     single { OfferPagingRepository(get()) }
     single { SAPIRepository() }
     single { SettingsRepository(get()) }
-    single { UserRepository(get(), get(), get()) }
+    single { UserRepository(get(), get(), get(), get()) }
 }
 
 val filtersModule = module {

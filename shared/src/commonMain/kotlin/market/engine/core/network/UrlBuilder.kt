@@ -1,14 +1,18 @@
 package market.engine.core.network
 
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.globalData.UserData
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
 import market.engine.core.util.getCurrentDate
+import org.koin.mp.KoinPlatform.getKoin
 
 class UrlBuilder {
 
     private val queryParams: MutableMap<String, String> = mutableMapOf()
     private val pathSegments: MutableList<String> = mutableListOf()
+
+    private val analyticsHelper : AnalyticsHelper = getKoin().get()
 
 
     fun addQueryParameter(name: String, value: String?): UrlBuilder {
@@ -58,6 +62,14 @@ class UrlBuilder {
                         }
                     }
                 }
+
+                val eventParameters = mapOf(
+                    "search_query" to searchData.searchString,
+                    "search_login" to searchData.userLogin,
+                    "search_user_id" to searchData.userID.toString(),
+                    "search_category" to searchData.searchCategoryName,
+                )
+                analyticsHelper.reportEvent("show_search_user_offers_results", eventParameters)
                 counter++
             }else {
                 if (searchData.searchString != null) {
@@ -68,6 +80,12 @@ class UrlBuilder {
                         counter++
                     }
                 }
+
+                val eventParameters = mapOf(
+                    "search_query" to searchData.searchString,
+                    "search_category" to searchData.searchCategoryName,
+                )
+                analyticsHelper.reportEvent("show_search_results", eventParameters)
             }
             if (searchData.searchFinished) {
                 queryParams["filter_${counter}_key"] = "state"
@@ -82,30 +100,44 @@ class UrlBuilder {
 
         if (listingData != null) {
             val filters = listingData.filters
-            filters?.forEach {
-                if (it.interpritation != null) {
-                    when (it.key) {
-                        "session_start" -> {
-                            it.value = getCurrentDate()
+            if (filters != null) {
+
+                val eventParameters = mapOf("catalog_filter_string" to searchData?.searchCategoryName)
+                analyticsHelper.reportEvent("activate_filter_catalog", eventParameters)
+
+                filters.forEach {
+                    if (it.interpritation != null) {
+                        when (it.key) {
+                            "session_start" -> {
+                                it.value = getCurrentDate()
+                            }
+
+                            "users_to_act_on_price_proposals" -> {
+                                it.value = UserData.login.toString()
+                            }
                         }
-                        "users_to_act_on_price_proposals" -> {
-                            it.value = UserData.login.toString()
+                        queryParams["filter_${counter}_key"] = it.key
+                        if (it.value != "") {
+                            queryParams["filter_${counter}_value"] = it.value
                         }
+                        val operation = it.operation
+                        if (operation != null) {
+                            queryParams["filter_${counter}_operation"] = operation
+                        }
+                        counter++
                     }
-                    queryParams["filter_${counter}_key"] = it.key
-                    if (it.value != "") {
-                        queryParams["filter_${counter}_value"] = it.value
-                    }
-                    val operation = it.operation
-                    if (operation != null) {
-                        queryParams["filter_${counter}_operation"] = operation
-                    }
-                    counter++
                 }
             }
 
             val sort = listingData.sort
             if (sort != null) {
+                val eventParameters = mapOf(
+                    "catalog_filter_string" to searchData?.searchCategoryName,
+                    "catalog_sort_type" to sort.key,
+                    "sort_type" to sort.value
+                )
+                analyticsHelper.reportEvent("activate_sort_catalog", eventParameters)
+
                 queryParams["sorter_1_key"] = sort.key
                 queryParams["sorter_1_value"] = sort.value
             }

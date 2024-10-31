@@ -25,20 +25,13 @@ import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
-import application.market.agora.business.core.network.functions.OfferOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
@@ -47,11 +40,12 @@ import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.bars.ListingFiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
-import market.engine.widgets.grids.PagingGrid
+import market.engine.widgets.grids.PagingList
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterContent
 import market.engine.widgets.filterContents.SortingListingContent
+import market.engine.widgets.items.PromoLotItem
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
@@ -68,7 +62,6 @@ fun ListingContent(
     val searchData = listingViewModel.listingData.searchData.subscribeAsState()
     val listingData = listingViewModel.listingData.data.subscribeAsState()
     val data = listingViewModel.pagingDataFlow.collectAsLazyPagingItems()
-    val analyticsHelper : AnalyticsHelper = getKoin().get()
     val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
     val regions = listingViewModel.regionOptions.value
 
@@ -242,42 +235,59 @@ fun ListingContent(
                                 .fillMaxSize()
                                 .animateContentSize()
                         ) {
-                            PagingGrid(
+                            PagingList(
                                 state = scrollState,
                                 data = data,
                                 listingData = listingData,
                                 searchData =  searchData,
                                 columns = if (listingData.value.listingType == 0) 1 else if (isBigScreen)4 else 2,
-                                analyticsHelper = analyticsHelper,
                                 promoList = promoList.value,
+                                promoContent = { offer->
+                                    PromoLotItem(
+                                        offer
+                                    ){
+                                        component.goToOffer(offer, true)
+                                    }
+                                },
                                 content = { offer ->
                                     if (listingData.value.listingType == 0) {
-                                       ListingItem(offer, isGrid = false){
-                                           val currentOffer =
-                                               data[data.itemSnapshotList.items.indexOf(
-                                                   it
-                                               )]
-                                           if (currentOffer != null) {
-                                               val res = operationFavorites(currentOffer, scope)
-                                               userRepository.updateUserInfo(scope)
-                                               return@ListingItem res
-                                           }else{
-                                               return@ListingItem it.isWatchedByMe
+                                       ListingItem(
+                                           offer,
+                                           isGrid = false,
+                                           onFavouriteClick = {
+                                               val currentOffer =
+                                                   data[data.itemSnapshotList.items.indexOf(
+                                                       it
+                                                   )]
+                                               if (currentOffer != null) {
+                                                   val res = operationFavorites(currentOffer, scope)
+                                                   userRepository.updateUserInfo(scope)
+                                                   return@ListingItem res
+                                               }else{
+                                                   return@ListingItem it.isWatchedByMe
+                                               }
                                            }
+                                       ){
+                                          component.goToOffer(offer)
                                        }
                                     } else {
-                                        ListingItem(offer, isGrid = true){
-                                            val currentOffer =
-                                                data[data.itemSnapshotList.items.indexOf(
-                                                    it
-                                                )]
-                                            if (currentOffer != null) {
-                                                val res = operationFavorites(currentOffer, scope)
-                                                userRepository.updateUserInfo(scope)
-                                                return@ListingItem res
-                                            }else{
-                                                return@ListingItem it.isWatchedByMe
+                                        ListingItem(offer,
+                                            isGrid = true,
+                                            onFavouriteClick = {
+                                                val currentOffer =
+                                                    data[data.itemSnapshotList.items.indexOf(
+                                                        it
+                                                    )]
+                                                if (currentOffer != null) {
+                                                    val res = operationFavorites(currentOffer, scope)
+                                                    userRepository.updateUserInfo(scope)
+                                                    return@ListingItem res
+                                                }else{
+                                                    return@ListingItem it.isWatchedByMe
+                                                }
                                             }
+                                        ){
+                                            component.goToOffer(offer)
                                         }
                                     }
                                 }

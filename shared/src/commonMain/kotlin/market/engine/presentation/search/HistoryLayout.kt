@@ -11,18 +11,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.rememberDismissState
+import androidx.compose.material.SwipeToDismiss
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -34,7 +35,7 @@ import market.engine.widgets.items.historyItem
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HistoryLayout(
     historyItems: List<SearchHistory>,
@@ -96,9 +97,9 @@ fun HistoryLayout(
         // List Items
 
         items(historyItems.reversed(), key = { it.id }) { historyItem ->
-            val dismissState = rememberSwipeToDismissBoxState(
-                confirmValueChange = { dismissValue ->
-                    if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+            val dismissState = rememberDismissState(
+                confirmStateChange = { dismissValue ->
+                    if (dismissValue == DismissValue.DismissedToStart) {
                         onDeleteItem(historyItem.id)
                         true
                     } else {
@@ -107,13 +108,15 @@ fun HistoryLayout(
                 }
             )
 
-            SwipeToDismissBox(
-                state = dismissState,
-                backgroundContent = {
-                    dismissBackground(dismissState)
-                },
-            ){
-                historyItem(historyItem, onItemClick, goToListing)
+            if(dismissState.currentValue != DismissValue.DismissedToStart) {
+                SwipeToDismiss(
+                    state = dismissState,
+                    directions = setOf(DismissDirection.EndToStart),
+                    background = { dismissBackground() },
+                    dismissContent = {
+                        historyItem(historyItem, onItemClick, goToListing)
+                    }
+                )
             }
         }
     }

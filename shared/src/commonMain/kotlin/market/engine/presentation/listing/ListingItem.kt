@@ -11,22 +11,34 @@ import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Offer
+import org.koin.compose.koinInject
 
 @Composable
 fun ListingItem(
     offer: Offer,
     isGrid : Boolean,
-    onFavouriteClick: suspend (Offer) -> Boolean
+    onFavouriteClick: suspend (Offer) -> Boolean,
+    onItemClick: () -> Unit = {}
 ) {
     var isPromo = false
+
+    val analyticsHelper : AnalyticsHelper = koinInject()
 
     if (offer.promoOptions != null) {
         val isBackLight = offer.promoOptions.find { it.id == "backlignt_in_listing" }
         if (isBackLight != null) {
             isPromo = true
+            val eventParameters = mapOf(
+                "catalog_category" to offer.catpath.lastOrNull(),
+                "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
+                "offer_id" to offer.id,
+            )
+
+            analyticsHelper.reportEvent("show_top_lots", eventParameters)
         }
     }
 
@@ -35,7 +47,16 @@ fun ListingItem(
         shape = RoundedCornerShape(dimens.smallCornerRadius),
         modifier = Modifier
             .clickable {
+                if (isPromo){
+                    val eventParameters = mapOf(
+                        "catalog_category" to offer.catpath.lastOrNull(),
+                        "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
+                        "offer_id" to offer.id,
+                    )
+                    analyticsHelper.reportEvent("click_top_lots", eventParameters)
+                }
 
+                onItemClick()
             }
     ) {
         if (isGrid){

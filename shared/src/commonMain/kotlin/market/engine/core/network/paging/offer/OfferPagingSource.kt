@@ -40,6 +40,10 @@ open class OfferPagingSource(private val apiService: APIService, private val lis
                         listingData.data.value.totalCount = value.totalCount
                         listingData.data.value.totalPages = totalPages
 
+                        if (listingData.searchData.value.userSearch && listingData.searchData.value.userID != 1L && listingData.searchData.value.userLogin.isNullOrEmpty()){
+                            listingData.searchData.value.userLogin = value.objects.firstOrNull()?.sellerData?.login
+                        }
+
                         LoadResult.Page(
                             data = (value.objects.toList()),
                             /* no previous pagination int as page */

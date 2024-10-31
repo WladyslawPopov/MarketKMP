@@ -6,6 +6,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.common.notificationIdentifier
+import market.engine.core.analytics.AnalyticsHelper
+import market.engine.core.globalData.SAPI
 import market.engine.core.globalData.UserData
 import market.engine.core.globalData.UserData.login
 import market.engine.core.globalData.UserData.picUri
@@ -14,7 +17,8 @@ import market.engine.core.globalData.UserData.token
 class UserRepository(
     private val sapiRepository: SAPIRepository,
     private val settings : SettingsRepository,
-    private val userOperations: UserOperations
+    private val userOperations: UserOperations,
+    private val analyticsHelper: AnalyticsHelper
 ) {
 
     fun setToken(l : Long, t : String) {
@@ -45,7 +49,25 @@ class UserRepository(
 
                 withContext(Dispatchers.Main){
                     if (res.success != null){
-                        UserData.updateUserInfo(res.success?.firstOrNull())
+                        val newInfo = res.success?.firstOrNull()
+                        if (newInfo != null){
+                            if (newInfo.markedAsDeleted){
+                                //delete screenshots
+                                delete()
+                            }else{
+                                val userProfileAttributes = mapOf(
+                                    "name" to newInfo.login,
+                                    "gender" to newInfo.gender,
+                                    "userRating" to newInfo.rating.toDouble(),
+                                    "userVerified" to newInfo.isVerified,
+                                )
+                                analyticsHelper.setUserProfileID(newInfo.id)
+                                analyticsHelper.updateUserProfile(userProfileAttributes)
+                                notificationIdentifier(newInfo.id)
+
+                                UserData.updateUserInfo(newInfo)
+                            }
+                        }
                     }
                 }
             }

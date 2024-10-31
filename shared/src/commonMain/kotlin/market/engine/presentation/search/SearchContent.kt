@@ -135,6 +135,7 @@ fun getSearchFilters(searchData: State<SD>, it: String) {
         if (it != "") {
             searchData.value.searchString = null
             searchData.value.userLogin = it
+            searchData.value.isRefreshing = true
         } else {
             searchData.value.searchString = null
             searchData.value.userSearch = false
@@ -142,5 +143,6 @@ fun getSearchFilters(searchData: State<SD>, it: String) {
         }
     }else{
         searchData.value.searchString = it
+        searchData.value.isRefreshing = true
     }
 }

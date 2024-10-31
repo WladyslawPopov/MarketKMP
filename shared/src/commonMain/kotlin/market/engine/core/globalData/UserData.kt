@@ -13,9 +13,8 @@ object UserData {
     var token : String = ""
 
     var userInfo by mutableStateOf<User?>(null)
-        private set // Закрываем setter, чтобы обновлять только через специальные методы
+        private set // Close setter
 
-    // Метод обновления userInfo
     fun updateUserInfo(newInfo: User?) {
         userInfo = newInfo
     }
