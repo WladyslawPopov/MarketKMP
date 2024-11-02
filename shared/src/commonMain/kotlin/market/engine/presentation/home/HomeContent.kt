@@ -5,11 +5,15 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
@@ -28,8 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeContent(
     component: HomeComponent,
-    modifier: Modifier = Modifier,
-    clickDrawer : () -> Unit
+    modifier: Modifier = Modifier
 ) {
     val listTopCategory = listOf(
         TopCategory(
@@ -140,13 +143,24 @@ fun HomeContent(
     val windowClass = getWindowSizeClass()
     val showNavigationRail = windowClass == WindowSizeClass.Big
 
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    fun openMenu(){
+        scope.launch {
+            drawerState.open()
+        }
+    }
+
     BaseContent(
         modifier = modifier,
         isLoading = isLoading,
         isShowFloatingButton = true,
         showVerticalScrollbarState = scrollState,
         drawerMethod = { component.goToLogin() },
-        topBar = { HomeAppBar(modifier, showNavigationRail) { clickDrawer() } },
+        drawerState = drawerState,
+        scope = scope,
+        topBar = { HomeAppBar(modifier, showNavigationRail) { openMenu() } },
         onRefresh = { component.onRefresh() },
         error = error
     ) {

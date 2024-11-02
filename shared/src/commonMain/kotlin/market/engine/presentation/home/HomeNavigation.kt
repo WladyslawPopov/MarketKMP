@@ -15,8 +15,7 @@ import market.engine.core.navigation.children.ChildHome
 @Composable
 fun HomeNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, ChildHome>>,
-    clickDrawer : () -> Unit
+    childStack: Value<ChildStack<*, ChildHome>>
 ) {
     val stack by childStack.subscribeAsState()
     Children(
@@ -26,7 +25,7 @@ fun HomeNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildHome.HomeChild -> HomeContent(screen.component, modifier, clickDrawer)
+            is ChildHome.HomeChild -> HomeContent(screen.component, modifier)
         }
     }
 }

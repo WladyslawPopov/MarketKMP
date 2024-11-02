@@ -139,7 +139,7 @@ fun MainContent(
     ) { child ->
         when (child.instance) {
             is ChildMain.HomeChildMain ->
-                HomeNavigation(modifier, component.childHomeStack) { openMenu() }
+                HomeNavigation(modifier, component.childHomeStack)
             is ChildMain.CategoryChildMain ->
                 CategoryNavigation(modifier, component.childCategoryStack)
             is ChildMain.BasketChildMain ->
