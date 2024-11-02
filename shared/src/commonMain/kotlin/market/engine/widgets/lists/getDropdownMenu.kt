@@ -41,7 +41,7 @@ fun getDropdownMenu(
     onClearItem: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selectDef = stringResource(strings.chooseAction)
+    val selectDef = selectedText ?: stringResource(strings.chooseAction)
 
     var selectedOption by remember { mutableStateOf(selectedText ?: selectDef) }
 

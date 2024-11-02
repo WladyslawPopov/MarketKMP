@@ -1,5 +1,6 @@
 package market.engine.presentation.favorites
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.coil3.CoilImage
@@ -42,6 +41,8 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.core.util.getImage
 import market.engine.core.util.printLogD
+import market.engine.widgets.badges.DiscountBadge
+import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -58,13 +59,17 @@ fun FavItem(
         shape = RoundedCornerShape(dimens.smallCornerRadius),
         modifier = Modifier
             .clickable {
-                onItemClick()
+                if (!isSelected) {
+                    onItemClick()
+                }else{
+                    onSelectionChange(false)
+                }
             }
     ) {
         Column(
             modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
         ) {
-            // State to handle image load failure
+            // State to handle image load by Coil failure
             var imageLoadFailed by remember { mutableStateOf(false) }
 
             // Determine the image URL
@@ -122,7 +127,6 @@ fun FavItem(
                             text = offer.title ?: "",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(0.8f)
                         )
                     }
 
@@ -153,7 +157,10 @@ fun FavItem(
                     }
 
                     if (!offer.isPrototype) {
-                        val sessionEnd = offer.session?.end?.convertDateWithMinutes() ?: ""
+                        var sessionEnd = stringResource(strings.inactiveOffer)
+                        if (offer.session != null) {
+                            sessionEnd = offer.session.end?.convertDateWithMinutes() ?: ""
+                        }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -171,51 +178,116 @@ fun FavItem(
                         }
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Top,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        if (offer.saleType == "buy_now") {
-                            Image(
-                                painter = painterResource(drawables.iconCountBoxes),
-                                contentDescription = stringResource(strings.numberOfItems),
-                                modifier = Modifier.size(dimens.smallIconSize),
-                            )
 
-                            Text(
-                                text = offer.currentQuantity.toString(),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
-                            )
+                        var typeString = ""
+                        var colorType = colors.titleTextColor
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            when (offer.saleType) {
+                                "buy_now" -> {
+                                    typeString = stringResource(strings.buyNow)
+                                    colorType = colors.buyNowColor
 
-                            Text(
-                                text = stringResource(strings.buyNow),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = colors.titleTextColor,
-                                modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
-                            )
+                                    Image(
+                                        painter = painterResource(drawables.iconCountBoxes),
+                                        contentDescription = stringResource(strings.numberOfItems),
+                                        modifier = Modifier.size(dimens.smallIconSize),
+                                    )
 
-                        } else {
-                            Image(
-                                painter = painterResource(drawables.iconGroup),
-                                contentDescription = stringResource(strings.numberOfBids),
-                                modifier = Modifier.size(dimens.smallIconSize),
-                            )
+                                    Text(
+                                        text = offer.currentQuantity.toString(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
+                                    )
 
-                            Text(
-                                text = offer.numParticipants.toString(),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(horizontal = dimens.smallPadding)
-                            )
+                                    if (offer.session != null && !offer.isPrototype) {
+                                        Text(
+                                            text = stringResource(strings.noBuyer),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = colors.grayText
+                                        )
+                                    }
+                                }
+
+                                "ordinary_auction" -> {
+                                    typeString = stringResource(strings.ordinaryAuction)
+
+                                    Image(
+                                        painter = painterResource(drawables.iconGroup),
+                                        contentDescription = stringResource(strings.numberOfBids),
+                                        modifier = Modifier.size(dimens.smallIconSize),
+                                    )
+
+                                    Text(
+                                        text = offer.numParticipants.toString(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(horizontal = dimens.smallPadding)
+                                    )
+
+                                    var bids = stringResource(strings.noBids)
+                                    if (offer.bids?.isNotEmpty() == true) {
+                                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                                    }
+                                    Text(
+                                        text = bids,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colors.grayText
+                                    )
+                                }
+
+                                "auction_with_buy_now" -> {
+                                    typeString = stringResource(strings.blitzAuction)
+                                    colorType = colors.brightPurple
+
+                                    Image(
+                                        painter = painterResource(drawables.iconGroup),
+                                        contentDescription = stringResource(strings.numberOfBids),
+                                        modifier = Modifier.size(dimens.smallIconSize),
+                                    )
+
+                                    Text(
+                                        text = offer.numParticipants.toString(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(horizontal = dimens.smallPadding)
+                                    )
+
+                                    var bids = stringResource(strings.noBids)
+                                    if (offer.bids?.isNotEmpty() == true) {
+                                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                                    }
+
+                                    Text(
+                                        text = bids,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colors.grayText
+                                    )
+                                }
+                            }
+
+                            if (offer.safeDeal) {
+                                Image(
+                                    painter = painterResource(drawables.safeDealIcon),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(dimens.smallIconSize).padding(dimens.smallPadding),
+                                )
+                            }
                         }
-                        if (offer.safeDeal) {
-                            Image(
-                                painter = painterResource(drawables.safeDealIcon),
-                                contentDescription = "",
-                                modifier = Modifier.size(dimens.smallIconSize)
-                            )
-                        }
+
+                        Text(
+                            text = typeString,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = colorType,
+                            modifier = Modifier.padding(vertical = dimens.extraSmallPadding)
+                        )
                     }
+
 
                     if (offer.discountPercentage > 0 && offer.buyNowPrice?.toDouble() != offer.currentPricePerItem?.toDouble()) {
                         Row(
@@ -223,35 +295,13 @@ fun FavItem(
                             horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = offer.buyNowPrice.toString() + " ${stringResource(strings.currencySign)}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = colors.brightGreen,
-                                textDecoration = TextDecoration.LineThrough
-                            )
+                            DiscountText(offer.buyNowPrice.toString())
 
                             Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
 
                             if (offer.discountPercentage > 0) {
                                 val pd = "-" + offer.discountPercentage.toString() + "%"
-
-                                Card(
-                                    colors = CardColors(
-                                        containerColor = colors.greenColor,
-                                        contentColor = colors.alwaysWhite,
-                                        disabledContainerColor = colors.greenColor,
-                                        disabledContentColor = colors.alwaysWhite
-                                    ),
-                                    modifier = Modifier
-                                        .padding(dimens.smallPadding)
-                                ) {
-                                    Text(
-                                        text = pd,
-                                        modifier = Modifier.padding(5.dp),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.alwaysWhite
-                                    )
-                                }
+                                DiscountBadge(pd)
                             }
                         }
                     }
@@ -311,10 +361,11 @@ fun HeaderSection(
         Checkbox(
             checked = isSelected,
             onCheckedChange = { onSelectionChange(it) },
-            modifier = Modifier,
+            modifier = Modifier.size(38.dp),
             colors = CheckboxDefaults.colors(
-                checkedColor = colors.greenColor,
-                uncheckedColor = colors.grayText
+                checkedColor = colors.inactiveBottomNavIconColor,
+                uncheckedColor = colors.textA0AE,
+                checkmarkColor = colors.alwaysWhite
             )
         )
 
@@ -353,14 +404,16 @@ fun HeaderSection(
 
             Spacer(modifier = Modifier.width(dimens.mediumPadding))
 
-            IconButton(
-                onClick = { onMenuClick() },
-            ) {
-                Icon(
-                    painter = painterResource(drawables.menuIcon),
-                    contentDescription = "",
-                    tint = colors.steelBlue
-                )
+            AnimatedVisibility (!isSelected) {
+                IconButton(
+                    onClick = { onMenuClick() },
+                ) {
+                    Icon(
+                        painter = painterResource(drawables.menuIcon),
+                        contentDescription = "",
+                        tint = colors.black
+                    )
+                }
             }
         }
     }

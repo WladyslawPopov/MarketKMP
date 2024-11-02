@@ -292,6 +292,9 @@ class DefaultMainComponent(
             navigateToListingSelected = {
                 pushCatStack(CategoryScreenType.LISTING)
                 navigateToBottomItem(MainConfig.Category)
+            },
+            navigateToLoginSelected = {
+                goToLogin()
             }
         )
     }

@@ -1,7 +1,11 @@
 package market.engine.presentation.favorites
 
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
@@ -49,6 +53,12 @@ class FavViewModel(
 
     var firstVisibleItemIndex by mutableStateOf(0)
     var firstVisibleItemScrollOffset by mutableStateOf(0)
+
+    var selectFav = mutableStateListOf<Long>()
+
+    var activeFiltersType = mutableStateOf("")
+    @OptIn(ExperimentalMaterialApi::class)
+    val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
 
     var globalData : FavBaseFilters = getKoin().get()
     var listingData = globalData.listingData

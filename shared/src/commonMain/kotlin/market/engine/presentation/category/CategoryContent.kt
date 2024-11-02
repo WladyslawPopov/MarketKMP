@@ -81,44 +81,44 @@ fun CategoryContent(
         null
     }
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        BaseContent(
-            modifier = modifier,
-            isLoading = isLoading,
-            error = error,
-            noFound = noItem,
-            topBar = {
-                CategoryAppBar(
-                    isShowNav,
-                    modifier,
-                    searchData,
-                    onSearchClick = {
-                        component.goToSearch()
-                    },
-                    onClearSearchClick = {
-                        if(!isLoading.value) {
-                            searchData.value.clearCategory()
-                            component.onRefresh()
-                        }
-                    }
-                ) {
+    BaseContent(
+        modifier = modifier,
+        isLoading = isLoading,
+        error = error,
+        noFound = noItem,
+        topBar = {
+            CategoryAppBar(
+                isShowNav,
+                modifier,
+                searchData,
+                onSearchClick = {
+                    component.goToSearch()
+                },
+                onClearSearchClick = {
                     if(!isLoading.value) {
-                        if (searchData.value.searchCategoryID != 1L) {
-                            isShowNav.value = true
-                            searchData.value.searchCategoryID =
-                                searchData.value.searchParentID ?: 1L
-                            searchData.value.searchCategoryName =
-                                searchData.value.searchParentName ?: ""
-                            component.onRefresh()
-                        } else {
-                            isShowNav.value = false
-                        }
+                        searchData.value.clearCategory()
+                        component.onRefresh()
                     }
                 }
-            },
-            onRefresh = { component.onRefresh() },
+            ) {
+                if(!isLoading.value) {
+                    if (searchData.value.searchCategoryID != 1L) {
+                        isShowNav.value = true
+                        searchData.value.searchCategoryID =
+                            searchData.value.searchParentID ?: 1L
+                        searchData.value.searchCategoryName =
+                            searchData.value.searchParentName ?: ""
+                        component.onRefresh()
+                    } else {
+                        isShowNav.value = false
+                    }
+                }
+            }
+        },
+        onRefresh = { component.onRefresh() },
+    ){
+        Box(
+            modifier = Modifier.fillMaxSize()
         ){
             LazyColumn(
                 modifier = Modifier
@@ -203,16 +203,16 @@ fun CategoryContent(
                     )
                 }
             }
-        }
 
-        AcceptedPageButton(
-            strings.categoryEnter,
-            Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .align(Alignment.BottomCenter)
-                .padding(dimens.smallPadding),
-        ){
-            component.goToListing()
+            AcceptedPageButton(
+                strings.categoryEnter,
+                Modifier.fillMaxWidth()
+                    .wrapContentHeight()
+                    .align(Alignment.BottomCenter)
+                    .padding(dimens.smallPadding),
+            ){
+                component.goToListing()
+            }
         }
     }
 }

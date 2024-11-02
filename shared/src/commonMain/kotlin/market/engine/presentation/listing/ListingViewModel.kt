@@ -1,5 +1,7 @@
 package market.engine.presentation.listing
 
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -51,6 +53,10 @@ class ListingViewModel(
 
     var globalData : CategoryBaseFilters = getKoin().get()
     var listingData = globalData.listingData
+
+    var activeFiltersType = mutableStateOf("")
+    @OptIn(ExperimentalMaterialApi::class)
+    val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
 
     val regionOptions = mutableStateOf(arrayListOf<Options>())
 

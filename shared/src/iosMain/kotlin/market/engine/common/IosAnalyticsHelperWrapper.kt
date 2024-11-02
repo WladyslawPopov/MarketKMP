@@ -66,12 +66,12 @@ object IosAnalyticsHelperWrapper : AnalyticsHelper {
 
     @OptIn(ExperimentalForeignApi::class)
     override fun setUserProfileID(userID: Long) {
-        val nsUserID = userID.toString() as NSString
+        val userIDString = userID.toString()
 
         // Call performSelector with userID
         swiftHelper?.performSelector(
             NSSelectorFromString("setUserProfileID:"),
-            withObject = nsUserID
+            withObject = userIDString
         )
     }
 

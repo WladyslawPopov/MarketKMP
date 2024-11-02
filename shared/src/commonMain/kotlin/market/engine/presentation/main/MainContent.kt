@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,9 @@ import market.engine.presentation.profile.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
 import market.engine.widgets.bars.getRailNavBar
 import org.jetbrains.compose.resources.stringResource
+
+
+var bottomBar : @Composable () -> Unit = {}
 
 @Composable
 fun MainContent(
@@ -109,68 +113,44 @@ fun MainContent(
             drawerState.open()
         }
     }
-    
-    Surface(
-        modifier = modifier.fillMaxSize(),
-    ){
-        ModalNavigationDrawer(
-            modifier = modifier,
-            drawerState = drawerState,
-            drawerContent = { DrawerContent(drawerState, scope, modifier, component::goToLogin) },
-            gesturesEnabled = drawerState.isOpen,
-        ){
-            Scaffold(
-                bottomBar = {
-                    if (userInfo != null) {
-                        if (!showNavigationRail) {
-                            getBottomNavBar(component, modifier, listItems, currentScreen)
-                        } else {
-                            getRailNavBar(
-                                component,
-                                modifier,
-                                currentScreen,
-                                listItems
-                            ) { openMenu() }
-                        }
-                    }else{
-                        if (!showNavigationRail) {
-                            getBottomNavBar(component, modifier, listItems, currentScreen)
-                        } else {
-                            getRailNavBar(
-                                component,
-                                modifier,
-                                currentScreen,
-                                listItems
-                            ) { openMenu() }
-                        }
-                    }
-                },
-                modifier = modifier.fillMaxSize()
-            ) { innerPadding ->
-                Children(
-                    stack = childStack,
-                    modifier = modifier.then(
-                        if (showNavigationRail) modifier.padding(start = 82.dp)
-                        else modifier.padding(innerPadding))
-                        .fillMaxSize(),
-                    animation = stackAnimation(fade())
-                ) { child ->
-                    when (child.instance) {
-                        is ChildMain.HomeChildMain ->
-                            HomeNavigation(modifier, component.childHomeStack) { openMenu() }
-                        is ChildMain.CategoryChildMain ->
-                            CategoryNavigation(modifier, component.childCategoryStack)
-                        is ChildMain.BasketChildMain ->
-                            BasketNavigation(modifier, component.childBasketStack)
-                        is ChildMain.FavoritesChildMain ->
-                            FavoritesNavigation(modifier, component.childFavoritesStack)
-                        is ChildMain.ProfileChildMain ->
-                            ProfileNavigation(modifier, component.childProfileStack)
-                    }
-                }
-            }
+
+    bottomBar = {
+        if (!showNavigationRail) {
+            getBottomNavBar(component, modifier, listItems, currentScreen)
+        } else {
+            getRailNavBar(
+                component,
+                modifier,
+                currentScreen,
+                listItems
+            ) { openMenu() }
         }
     }
+
+    Children(
+        stack = childStack,
+        modifier = modifier
+//                    .then(
+//                        if (showNavigationRail) modifier.padding(start = 82.dp)
+//                        else modifier.padding(innerPadding)
+//                    )
+            .fillMaxSize(),
+        animation = stackAnimation(fade())
+    ) { child ->
+        when (child.instance) {
+            is ChildMain.HomeChildMain ->
+                HomeNavigation(modifier, component.childHomeStack) { openMenu() }
+            is ChildMain.CategoryChildMain ->
+                CategoryNavigation(modifier, component.childCategoryStack)
+            is ChildMain.BasketChildMain ->
+                BasketNavigation(modifier, component.childBasketStack)
+            is ChildMain.FavoritesChildMain ->
+                FavoritesNavigation(modifier, component.childFavoritesStack)
+            is ChildMain.ProfileChildMain ->
+                ProfileNavigation(modifier, component.childProfileStack)
+        }
+    }
+
 }
 
 fun navigateFromBottomBar(index: Int, component: MainComponent){

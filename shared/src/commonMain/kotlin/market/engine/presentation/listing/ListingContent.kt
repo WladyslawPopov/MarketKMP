@@ -10,6 +10,7 @@ import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -64,11 +65,19 @@ fun ListingContent(
         initialFirstVisibleItemIndex = listingViewModel.firstVisibleItemIndex,
         initialFirstVisibleItemScrollOffset = listingViewModel.firstVisibleItemScrollOffset
     )
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberBottomSheetState(listingViewModel.bottomSheetState.value)
+    )
+    val activeFiltersType = remember { listingViewModel.activeFiltersType }
+
     val scope = rememberCoroutineScope()
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val activeFiltersType = remember { mutableStateOf("") }
+
     val isHideContent = remember { mutableStateOf(false) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
+
+    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+    var error : (@Composable () -> Unit)? = null
+    var noItem : (@Composable () -> Unit)? = null
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
@@ -92,9 +101,18 @@ fun ListingContent(
         }
     }
 
+    LaunchedEffect(activeFiltersType){
+        snapshotFlow {
+            activeFiltersType.value
+        }.collect {
+            listingViewModel.activeFiltersType.value = it
+        }
+    }
+
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
+                listingViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
                         component.onRefresh()
@@ -104,9 +122,6 @@ fun ListingContent(
             }
     }
 
-    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-    var error : (@Composable () -> Unit)? = null
-    var noItem : (@Composable () -> Unit)? = null
 
     data.loadState.apply {
         when {
@@ -136,52 +151,52 @@ fun ListingContent(
         }
     }
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        modifier = Modifier.fillMaxSize(),
-        sheetBackgroundColor = colors.primaryColor,
-        sheetPeekHeight = 0.dp,
-        sheetGesturesEnabled = false,
-        sheetContent = {
-            when (activeFiltersType.value) {
-                "filters" -> {
-                    FilterListingContent(
-                        isRefreshingFromFilters,
-                        listingData,
-                        scaffoldState,
-                        scope,
-                        regions
-                    )
+    BaseContent(
+        modifier = modifier,
+        isLoading = isLoading,
+        topBar = {
+            ListingAppBar(
+                searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
+                modifier,
+                onSearchClick = {
+                    component.goToSearch()
+                },
+                onBeakClick = {
+                    component.onBackClicked()
                 }
-
-                "sorting" -> {
-                    SortingListingContent(
-                        isRefreshingFromFilters,
-                        listingData,
-                        scaffoldState,
-                        scope,
-                    )
-                }
-            }
+            )
+        },
+        onRefresh = {
+            component.onRefresh()
         },
     ) {
-        BaseContent(
-            modifier = modifier,
-            isLoading = isLoading,
-            topBar = {
-                ListingAppBar(
-                    searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
-                    modifier,
-                    onSearchClick = {
-                        component.goToSearch()
-                    },
-                    onBeakClick = {
-                        component.onBackClicked()
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            modifier = Modifier.fillMaxSize(),
+            sheetBackgroundColor = colors.primaryColor,
+            sheetPeekHeight = 0.dp,
+            sheetGesturesEnabled = false,
+            sheetContent = {
+                when (activeFiltersType.value) {
+                    "filters" -> {
+                        FilterListingContent(
+                            isRefreshingFromFilters,
+                            listingData,
+                            scaffoldState,
+                            scope,
+                            regions
+                        )
                     }
-                )
-            },
-            onRefresh = {
-                component.onRefresh()
+
+                    "sorting" -> {
+                        SortingListingContent(
+                            isRefreshingFromFilters,
+                            listingData,
+                            scaffoldState,
+                            scope,
+                        )
+                    }
+                }
             },
         ) {
             Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {

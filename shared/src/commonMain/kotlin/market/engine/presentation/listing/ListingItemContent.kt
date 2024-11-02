@@ -37,6 +37,8 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.core.util.getImage
 import market.engine.core.util.printLogD
+import market.engine.widgets.badges.DiscountBadge
+import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -95,24 +97,7 @@ fun ListingItemContent(
         if (offer.discountPercentage > 0) {
             val pd = "-" + offer.discountPercentage.toString() + "%"
 
-            Card(
-                colors = CardColors(
-                    containerColor = colors.greenColor,
-                    contentColor = colors.alwaysWhite,
-                    disabledContainerColor = colors.greenColor,
-                    disabledContentColor = colors.alwaysWhite
-                ),
-                modifier = Modifier
-                    .padding(dimens.smallPadding)
-                    .align(Alignment.BottomEnd)
-            ) {
-                Text(
-                    text = pd,
-                    modifier = Modifier.padding(5.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.alwaysWhite
-                )
-            }
+            DiscountBadge(pd)
         }
     }
 
@@ -258,12 +243,7 @@ fun content(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = offer.buyNowPrice.toString() + " ${stringResource(strings.currencySign)}",
-                style = MaterialTheme.typography.titleMedium,
-                color = colors.brightGreen,
-                textDecoration = TextDecoration.LineThrough
-            )
+           DiscountText(offer.buyNowPrice.toString())
         }
     }
 

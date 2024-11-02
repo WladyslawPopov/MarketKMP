@@ -6,6 +6,7 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.analytics.AnalyticsHelper
+import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.navigation.configs.FavoritesConfig
 import market.engine.core.network.networkObjects.Offer
 import market.engine.presentation.listing.ListingComponent
@@ -39,6 +40,10 @@ class DefaultFavoritesComponent(
     private val listingData = listingViewModel.listingData
     private val searchData = listingData.searchData
     private val analyticsHelper = getKoin().get<AnalyticsHelper>()
+
+    init {
+        listingData.data.value.filters = OfferFilters.filtersFav
+    }
 
     override fun onRefresh() {
         listingViewModel.firstVisibleItemScrollOffset = 0

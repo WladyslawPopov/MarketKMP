@@ -84,4 +84,5 @@ interface Drawables {
    val menuIcon : DrawableResource
    val bidsIcon : DrawableResource
    val dealsIcon : DrawableResource
+   val deleteIcon : DrawableResource
 }

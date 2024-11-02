@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,7 +62,7 @@ fun HomeAppBar(
 
     TopAppBar(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth().wrapContentHeight(),
         title = {
             Icon(
                 painter = painterResource(drawables.logo),

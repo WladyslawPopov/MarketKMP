@@ -148,4 +148,16 @@ interface Strings {
     val loginParameterName : StringResource
     val offersLabel : StringResource
     val promoEndLabel : StringResource
+    val noBuyer : StringResource
+    val noBids : StringResource
+    val blitzAuction : StringResource
+    val inactiveOffer : StringResource
+    val deleteSelectOffers : StringResource
+    val activeFilterOffers : StringResource
+    val inactiveFilterOffers : StringResource
+    val withSalesFilterOffers : StringResource
+    val withoutSalesFilterOffers : StringResource
+    val noTradeTypeFilterOffers : StringResource
+    val auctionWithBuyNow : StringResource
+    val simpleAuction : StringResource
 }

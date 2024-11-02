@@ -16,13 +16,13 @@ fun SmallIconButton(
     icon : DrawableResource,
     color : Color,
     contentDescription : String = "",
-    modifierIconSize: Modifier = Modifier,
+    modifierIconSize: Modifier = Modifier.size(dimens.smallIconSize),
     modifier: Modifier = Modifier.padding(horizontal = dimens.smallPadding),
     onClick: () -> Unit,
 ) {
     IconButton(
         onClick = { onClick() },
-        modifier = modifier.size(dimens.smallIconSize),
+        modifier = modifier
     ) {
         Icon(
             painter = painterResource(icon),

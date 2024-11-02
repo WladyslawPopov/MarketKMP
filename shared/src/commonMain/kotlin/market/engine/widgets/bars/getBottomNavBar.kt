@@ -27,8 +27,7 @@ fun getBottomNavBar(
     currentScreen: Int
 ){
     NavigationBar(
-        modifier = Modifier
-            .navigationBarsPadding(),
+        modifier = Modifier,
     ) {
         Row(
             modifier = Modifier.background(colors.white)

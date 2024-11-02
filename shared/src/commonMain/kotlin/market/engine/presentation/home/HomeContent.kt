@@ -145,6 +145,7 @@ fun HomeContent(
         isLoading = isLoading,
         isShowFloatingButton = true,
         showVerticalScrollbarState = scrollState,
+        drawerMethod = { component.goToLogin() },
         topBar = { HomeAppBar(modifier, showNavigationRail) { clickDrawer() } },
         onRefresh = { component.onRefresh() },
         error = error

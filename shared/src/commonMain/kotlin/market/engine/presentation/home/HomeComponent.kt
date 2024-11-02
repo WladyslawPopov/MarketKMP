@@ -33,13 +33,16 @@ interface HomeComponent {
     val globalData : CategoryBaseFilters
 
     fun onRefresh()
+
+    fun goToLogin()
 }
 
 class DefaultHomeComponent(
     componentContext: ComponentContext,
     val navigation: StackNavigation<HomeConfig>,
     val navigateToSearchSelected: () -> Unit,
-    val navigateToListingSelected: () -> Unit
+    val navigateToListingSelected: () -> Unit,
+    val navigateToLoginSelected: () -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
@@ -99,6 +102,10 @@ class DefaultHomeComponent(
         userRepository.updateUserInfo(homeViewModel.viewModelScope)
 
         updateModel()
+    }
+
+    override fun goToLogin() {
+        navigateToLoginSelected()
     }
 }
 

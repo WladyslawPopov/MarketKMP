@@ -10,6 +10,7 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -30,17 +31,16 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
-import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
+import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
-import market.engine.presentation.listing.ListingItem
 import market.engine.widgets.bars.ListingFiltersBar
-import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
-import market.engine.presentation.listing.FilterListingContent
+import market.engine.widgets.bars.DeletePanel
+import market.engine.widgets.filterContents.OffersFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.grids.PagingList
 import org.jetbrains.compose.resources.stringResource
@@ -63,10 +63,18 @@ fun FavoritesContent(
         initialFirstVisibleItemScrollOffset = favViewModel.firstVisibleItemScrollOffset
     )
     val scope = rememberCoroutineScope()
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val activeFiltersType = remember { mutableStateOf("") }
-    val isHideContent = remember { mutableStateOf(false) }
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberBottomSheetState(favViewModel.bottomSheetState.value)
+    )
+    val selectFav = remember { favViewModel.selectFav }
+    val activeFiltersType = remember { favViewModel.activeFiltersType }
+
+    val isHideContent = remember {mutableStateOf(false) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
+
+    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+    var error : (@Composable () -> Unit)? = null
+    var noItem : (@Composable () -> Unit)? = null
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
@@ -78,6 +86,22 @@ fun FavoritesContent(
         }.collect { (index, offset) ->
             favViewModel.firstVisibleItemIndex = index
             favViewModel.firstVisibleItemScrollOffset = offset
+        }
+    }
+
+    LaunchedEffect(activeFiltersType){
+        snapshotFlow {
+            activeFiltersType.value
+        }.collect {
+            favViewModel.activeFiltersType.value = it
+        }
+    }
+
+    LaunchedEffect(selectFav){
+        snapshotFlow {
+            selectFav
+        }.collect {
+            favViewModel.selectFav = it
         }
     }
 
@@ -93,6 +117,7 @@ fun FavoritesContent(
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
+                favViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
                         component.onRefresh()
@@ -101,10 +126,6 @@ fun FavoritesContent(
                 }
             }
     }
-
-    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-    var error : (@Composable () -> Unit)? = null
-    var noItem : (@Composable () -> Unit)? = null
 
     data.loadState.apply {
         when {
@@ -134,44 +155,61 @@ fun FavoritesContent(
         }
     }
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        modifier = Modifier.fillMaxSize(),
-        sheetBackgroundColor = colors.primaryColor,
-        sheetPeekHeight = 0.dp,
-        sheetGesturesEnabled = false,
-        sheetContent = {
-            when (activeFiltersType.value) {
-                "filters" -> {
-
-                }
-
-                "sorting" -> {
-                    SortingListingContent(
-                        isRefreshingFromFilters,
-                        listingData,
-                        scaffoldState,
-                        scope,
-                    )
-                }
-            }
+    BaseContent(
+        modifier = modifier,
+        isLoading = isLoading,
+        topBar = {
+            FavoritesAppBar(
+                stringResource(strings.favoritesTitle),
+                modifier,
+            )
+        },
+        onRefresh = {
+            component.onRefresh()
         },
     ) {
-        BaseContent(
-            modifier = modifier,
-            isLoading = isLoading,
-            topBar = {
-                FavoritesAppBar(
-                    stringResource(strings.favoritesTitle),
-                    modifier,
-                )
-            },
-            onRefresh = {
-                component.onRefresh()
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            modifier = Modifier.fillMaxSize(),
+            sheetBackgroundColor = colors.primaryColor,
+            sheetPeekHeight = 0.dp,
+            sheetGesturesEnabled = false,
+            sheetContent = {
+                when (activeFiltersType.value) {
+                    "filters" -> {
+                        OffersFilterContent(
+                            isRefreshingFromFilters,
+                            listingData,
+                            scaffoldState,
+                            LotsType.FAVORITES,
+                            scope,
+                        )
+                    }
+                    "sorting" -> {
+                        SortingListingContent(
+                            isRefreshingFromFilters,
+                            listingData,
+                            scaffoldState,
+                            scope,
+                        )
+                    }
+                }
             },
         ) {
             Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
 
+                if (selectFav.isNotEmpty()){
+                    DeletePanel(
+                        selectFav.size,
+                        scrollState = scrollState,
+                        onCancel = {
+                            selectFav.clear()
+                        },
+                        onDelete = {
+                            selectFav.clear()
+                        }
+                    )
+                }
 
                 ListingFiltersBar(
                     listingData,
@@ -214,17 +252,21 @@ fun FavoritesContent(
                                 data = data,
                                 listingData = listingData,
                                 searchData =  searchData,
-                                columns = if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2,
+                                columns = if (isBigScreen) 2 else 1,
                                 content = { offer ->
                                     FavItem(
                                         offer,
-                                        {
+                                        onSelectionChange = { isSelect ->
+                                            if (isSelect){
+                                                selectFav.add(offer.id)
+                                            }else{
+                                                selectFav.remove(offer.id)
+                                            }
+                                        },
+                                        onMenuClick = {
 
                                         },
-                                        {
-
-                                        },
-                                        false,
+                                        isSelected = selectFav.contains(offer.id),
                                     ){
                                         component.goToOffer(offer)
                                     }
