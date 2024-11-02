@@ -1,6 +1,9 @@
 package market.engine.presentation.listing
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +40,7 @@ import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
-import market.engine.widgets.bars.ListingFiltersBar
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.grids.PagingList
 import market.engine.widgets.exceptions.onError
@@ -170,140 +173,152 @@ fun ListingContent(
             component.onRefresh()
         },
     ) {
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            modifier = Modifier.fillMaxSize(),
-            sheetBackgroundColor = colors.primaryColor,
-            sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = false,
-            sheetContent = {
-                when (activeFiltersType.value) {
-                    "filters" -> {
-                        FilterListingContent(
-                            isRefreshingFromFilters,
-                            listingData,
-                            scaffoldState,
-                            scope,
-                            regions
-                        )
-                    }
-
-                    "sorting" -> {
-                        SortingListingContent(
-                            isRefreshingFromFilters,
-                            listingData,
-                            scaffoldState,
-                            scope,
-                        )
-                    }
-                }
-            },
+        AnimatedVisibility(
+            modifier = modifier,
+            visible = !isLoading.value,
+            enter = expandIn(),
+            exit = fadeOut()
         ) {
-            Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
+            BottomSheetScaffold(
+                scaffoldState = scaffoldState,
+                modifier = Modifier.fillMaxSize(),
+                sheetBackgroundColor = colors.primaryColor,
+                sheetPeekHeight = 0.dp,
+                sheetGesturesEnabled = false,
+                sheetContent = {
+                    when (activeFiltersType.value) {
+                        "filters" -> {
+                            FilterListingContent(
+                                isRefreshingFromFilters,
+                                listingData,
+                                scaffoldState,
+                                scope,
+                                regions
+                            )
+                        }
 
-                SwipeTabsBar(
-                    listingData,
-                    scrollState,
-                    onRefresh = {
-                        component.onRefresh()
+                        "sorting" -> {
+                            SortingListingContent(
+                                isRefreshingFromFilters,
+                                listingData,
+                                scaffoldState,
+                                scope,
+                            )
+                        }
                     }
-                )
+                },
+            ) {
+                Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
 
-                ListingFiltersBar(
-                    listingData,
-                    searchData,
-                    isShowGrid = true,
-                    onChangeTypeList = {
-                        listingViewModel.settings.setSettingValue("listingType", it)
-                        component.onRefresh()
-                    },
-                    onFilterClick = {
-                        activeFiltersType.value = "filters"
-                        scope.launch {
-                            scaffoldState.bottomSheetState.expand()
-                            scaffoldState.bottomSheetState.expand()
+                    SwipeTabsBar(
+                        listingData,
+                        scrollState,
+                        onRefresh = {
+                            component.onRefresh()
                         }
+                    )
 
-                    },
-                    onSortClick = {
-                        activeFiltersType.value = "sorting"
-                        scope.launch {
-                            scaffoldState.bottomSheetState.expand()
-                            scaffoldState.bottomSheetState.expand()
-                        }
-                    },
-                    onRefresh = { component.onRefresh() }
-                )
+                    FiltersBar(
+                        listingData,
+                        searchData,
+                        isShowGrid = true,
+                        onChangeTypeList = {
+                            listingViewModel.settings.setSettingValue("listingType", it)
+                            component.onRefresh()
+                        },
+                        onFilterClick = {
+                            activeFiltersType.value = "filters"
+                            scope.launch {
+                                scaffoldState.bottomSheetState.expand()
+                                scaffoldState.bottomSheetState.expand()
+                            }
 
-                if (error != null) {
-                    error!!()
-                } else {
-                    if (noItem != null) {
-                        noItem!!()
+                        },
+                        onSearchClick = {
+                            component.goToSearch()
+                        },
+                        onSortClick = {
+                            activeFiltersType.value = "sorting"
+                            scope.launch {
+                                scaffoldState.bottomSheetState.expand()
+                                scaffoldState.bottomSheetState.expand()
+                            }
+                        },
+                        onRefresh = { component.onRefresh() }
+                    )
+
+                    if (error != null) {
+                        error!!()
                     } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .animateContentSize()
-                        ) {
-                            PagingList(
-                                state = scrollState,
-                                data = data,
-                                listingData = listingData,
-                                searchData =  searchData,
-                                columns = if (listingData.value.listingType == 0) 1 else if (isBigScreen)4 else 2,
-                                promoList = promoList.value,
-                                fromListing = true,
-                                promoContent = { offer->
-                                    PromoLotItem(
-                                        offer
-                                    ){
-                                        component.goToOffer(offer, true)
-                                    }
-                                },
-                                content = { offer ->
-                                    if (listingData.value.listingType == 0) {
-                                       ListingItem(
-                                           offer,
-                                           isGrid = false,
-                                           onFavouriteClick = {
-                                               val currentOffer =
-                                                   data[data.itemSnapshotList.items.indexOf(
-                                                       it
-                                                   )]
-                                               if (currentOffer != null) {
-                                                   val res = operationFavorites(currentOffer, scope)
-                                                   userRepository.updateUserInfo(scope)
-                                                   return@ListingItem res
-                                               }else{
-                                                   return@ListingItem it.isWatchedByMe
-                                               }
-                                           }
-                                       ){
-                                          component.goToOffer(offer)
-                                       }
-                                    } else {
-                                        ListingItem(offer,
-                                            isGrid = true,
-                                            onFavouriteClick = {
-                                                val currentOffer =
-                                                    data[data.itemSnapshotList.items.indexOf(
-                                                        it
-                                                    )]
-                                                if (currentOffer != null) {
-                                                    val res = operationFavorites(currentOffer, scope)
-                                                    userRepository.updateUserInfo(scope)
-                                                    return@ListingItem res
-                                                }else{
-                                                    return@ListingItem it.isWatchedByMe
+                        if (noItem != null) {
+                            noItem!!()
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .animateContentSize()
+                            ) {
+                                PagingList(
+                                    state = scrollState,
+                                    data = data,
+                                    listingData = listingData,
+                                    searchData = searchData,
+                                    columns = if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2,
+                                    promoList = promoList.value,
+                                    fromListing = true,
+                                    promoContent = { offer ->
+                                        PromoLotItem(
+                                            offer
+                                        ) {
+                                            component.goToOffer(offer, true)
+                                        }
+                                    },
+                                    content = { offer ->
+                                        if (listingData.value.listingType == 0) {
+                                            ListingItem(
+                                                offer,
+                                                isGrid = false,
+                                                onFavouriteClick = {
+                                                    val currentOffer =
+                                                        data[data.itemSnapshotList.items.indexOf(
+                                                            it
+                                                        )]
+                                                    if (currentOffer != null) {
+                                                        val res =
+                                                            operationFavorites(currentOffer, scope)
+                                                        userRepository.updateUserInfo(scope)
+                                                        return@ListingItem res
+                                                    } else {
+                                                        return@ListingItem it.isWatchedByMe
+                                                    }
                                                 }
+                                            ) {
+                                                component.goToOffer(offer)
                                             }
-                                        ){
-                                            component.goToOffer(offer)
+                                        } else {
+                                            ListingItem(offer,
+                                                isGrid = true,
+                                                onFavouriteClick = {
+                                                    val currentOffer =
+                                                        data[data.itemSnapshotList.items.indexOf(
+                                                            it
+                                                        )]
+                                                    if (currentOffer != null) {
+                                                        val res =
+                                                            operationFavorites(currentOffer, scope)
+                                                        userRepository.updateUserInfo(scope)
+                                                        return@ListingItem res
+                                                    } else {
+                                                        return@ListingItem it.isWatchedByMe
+                                                    }
+                                                }
+                                            ) {
+                                                component.goToOffer(offer)
+                                            }
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }

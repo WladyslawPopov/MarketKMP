@@ -1,5 +1,8 @@
 package market.engine.presentation.category
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -33,7 +36,7 @@ import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
-import market.engine.widgets.bars.ListingFiltersBar
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import org.jetbrains.compose.resources.painterResource
@@ -120,87 +123,97 @@ fun CategoryContent(
         Box(
             modifier = Modifier.fillMaxSize()
         ){
-            LazyColumn(
-                modifier = Modifier
-                    .padding(top = dimens.mediumPadding, bottom = 60.dp),
-
-                horizontalAlignment = Alignment.CenterHorizontally
+            AnimatedVisibility(
+                modifier = modifier,
+                visible = !isLoading.value,
+                enter = expandIn(),
+                exit = fadeOut()
             ) {
-                item{
-                    ListingFiltersBar(
-                        listingData,
-                        searchData,
-                        isShowFilters = false,
-                    ){
-                        component.onRefresh()
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(top = dimens.mediumPadding, bottom = 60.dp),
+
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        FiltersBar(
+                            listingData,
+                            searchData,
+                            isShowFilters = false,
+                            onSearchClick = {
+                                component.goToSearch()
+                            }
+                        ) {
+                            component.onRefresh()
+                        }
                     }
-                }
 
-                items(categories.value){ category ->
-                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
+                    items(categories.value) { category ->
+                        Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
-                    NavigationDrawerItem(
-                        label = {
-                            Box(
-                                modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                Text(
-                                    category.name ?: "",
-                                    color = colors.black,
-                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                    lineHeight = dimens.largeText
-                                )
-                            }
-                        },
-                        onClick = {
-                            searchData.value.searchCategoryID = category.id
-                            searchData.value.searchCategoryName = category.name
-                            searchData.value.searchParentID = category.parentId
-                            searchData.value.searchIsLeaf = category.isLeaf
+                        NavigationDrawerItem(
+                            label = {
+                                Box(
+                                    modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Text(
+                                        category.name ?: "",
+                                        color = colors.black,
+                                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                        lineHeight = dimens.largeText
+                                    )
+                                }
+                            },
+                            onClick = {
+                                searchData.value.searchCategoryID = category.id
+                                searchData.value.searchCategoryName = category.name
+                                searchData.value.searchParentID = category.parentId
+                                searchData.value.searchIsLeaf = category.isLeaf
 
-                            if (!category.isLeaf) {
-                                isShowNav.value = true
-                                component.onRefresh()
-                            }else{
-                                component.goToListing()
-                            }
-                        },
-                        icon = {
-                            getCategoryIcon(category.name)?.let {
-                                Image(
-                                    painterResource(it),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(dimens.smallIconSize)
-                                )
-                            }
-                        },
-                        badge = {
-                            Badge(
-                                containerColor = colors.steelBlue
-                            ) {
-                                Text(
-                                    text = category.estimatedActiveOffersCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(dimens.extraSmallPadding),
-                                    color = colors.white
-                                )
-                            }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.selected,
-                            unselectedContainerColor = colors.white,
-                            selectedIconColor = colors.grayLayout,
-                            unselectedIconColor = colors.white,
-                            selectedTextColor = colors.grayLayout,
-                            selectedBadgeColor = colors.grayLayout,
-                            unselectedTextColor = colors.white,
-                            unselectedBadgeColor = colors.white
-                        ),
-                        shape = MaterialTheme.shapes.small,
-                        selected = category.isLeaf
-                    )
+                                if (!category.isLeaf) {
+                                    isShowNav.value = true
+                                    component.onRefresh()
+                                } else {
+                                    component.goToListing()
+                                }
+                            },
+                            icon = {
+                                getCategoryIcon(category.name)?.let {
+                                    Image(
+                                        painterResource(it),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(dimens.smallIconSize)
+                                    )
+                                }
+                            },
+                            badge = {
+                                Badge(
+                                    containerColor = colors.steelBlue
+                                ) {
+                                    Text(
+                                        text = category.estimatedActiveOffersCount.toString(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        modifier = Modifier.padding(dimens.extraSmallPadding),
+                                        color = colors.white
+                                    )
+                                }
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                            colors = NavigationDrawerItemDefaults.colors(
+                                selectedContainerColor = colors.selected,
+                                unselectedContainerColor = colors.white,
+                                selectedIconColor = colors.grayLayout,
+                                unselectedIconColor = colors.white,
+                                selectedTextColor = colors.grayLayout,
+                                selectedBadgeColor = colors.grayLayout,
+                                unselectedTextColor = colors.white,
+                                unselectedBadgeColor = colors.white
+                            ),
+                            shape = MaterialTheme.shapes.small,
+                            selected = category.isLeaf
+                        )
+                    }
                 }
             }
 

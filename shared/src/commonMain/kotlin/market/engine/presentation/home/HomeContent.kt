@@ -1,5 +1,8 @@
 package market.engine.presentation.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -164,64 +167,75 @@ fun HomeContent(
         onRefresh = { component.onRefresh() },
         error = error
     ) {
-        Column(
-            modifier = modifier.verticalScroll(scrollState)
+        AnimatedVisibility(
+            modifier = modifier,
+            visible = !isLoading.value,
+            enter = expandIn(),
+            exit = fadeOut()
         ) {
-            SearchBar(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-                    .wrapContentHeight()
-                    .wrapContentWidth(),
-                onSearchClick = {
-                    component.navigateToSearch()
+            Column(
+                modifier = modifier.verticalScroll(scrollState)
+            ) {
+                SearchBar(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .wrapContentHeight()
+                        .wrapContentWidth(),
+                    onSearchClick = {
+                        component.navigateToSearch()
+                    }
+                )
+
+                model.categories.collectAsState().value.let { categoryList ->
+                    CategoryList(
+                        categories = categoryList
+                    ) { category ->
+                        searchData.value.clear()
+                        searchData.value.clearCategory()
+                        searchData.value.searchCategoryID = category.id
+                        searchData.value.searchParentID = category.parentId
+                        searchData.value.searchCategoryName = category.name
+
+                        component.navigateToListing()
+                    }
                 }
-            )
+                val stringAllPromo = stringResource(strings.allPromoOffersBtn)
+                model.promoOffer1.collectAsState().value.let { offers ->
+                    GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
+                        listingData.value.filters = EmptyFilters.getEmpty()
+                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                            "promo_main_page"
+                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                            stringAllPromo
+                        searchData.value.clear()
+                        searchData.value.clearCategory()
+                        component.navigateToListing()
+                    })
+                }
 
-            model.categories.collectAsState().value.let { categoryList ->
-                CategoryList(
-                    categories = categoryList
-                ) { category ->
+                GridPopularCategory(listTopCategory) { topCategory ->
                     searchData.value.clear()
                     searchData.value.clearCategory()
-                    searchData.value.searchCategoryID = category.id
-                    searchData.value.searchParentID = category.parentId
-                    searchData.value.searchCategoryName = category.name
-
+                    searchData.value.searchCategoryID = topCategory.id
+                    searchData.value.searchParentID = topCategory.parentId
+                    searchData.value.searchCategoryName = topCategory.name
+                    searchData.value.searchParentName = topCategory.parentName
                     component.navigateToListing()
                 }
-            }
-            val stringAllPromo = stringResource(strings.allPromoOffersBtn)
-            model.promoOffer1.collectAsState().value.let { offers ->
-                GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                    listingData.value.filters = EmptyFilters.getEmpty()
-                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.value = "promo_main_page"
-                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.interpritation = stringAllPromo
-                    searchData.value.clear()
-                    searchData.value.clearCategory()
-                    component.navigateToListing()
-                } )
-            }
 
-            GridPopularCategory(listTopCategory) { topCategory ->
-                searchData.value.clear()
-                searchData.value.clearCategory()
-                searchData.value.searchCategoryID = topCategory.id
-                searchData.value.searchParentID = topCategory.parentId
-                searchData.value.searchCategoryName = topCategory.name
-                searchData.value.searchParentName = topCategory.parentName
-                component.navigateToListing()
+                model.promoOffer2.collectAsState().value.let { offers ->
+                    GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
+                        listingData.value.filters = EmptyFilters.getEmpty()
+                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                            "promo_main_page"
+                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                            stringAllPromo
+                        searchData.value.clear()
+                        searchData.value.clearCategory()
+                        component.navigateToListing()
+                    })
+                }
+                FooterRow(listFooterItem)
             }
-
-            model.promoOffer2.collectAsState().value.let { offers ->
-                GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                    listingData.value.filters = EmptyFilters.getEmpty()
-                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.value = "promo_main_page"
-                    listingData.value.filters?.find { filter-> filter.key == "promo_main_page" }?.interpritation = stringAllPromo
-                    searchData.value.clear()
-                    searchData.value.clearCategory()
-                    component.navigateToListing()
-                } )
-            }
-            FooterRow(listFooterItem)
         }
     }
 }

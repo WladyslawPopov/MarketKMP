@@ -1,6 +1,9 @@
 package market.engine.presentation.favorites
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +39,7 @@ import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
-import market.engine.widgets.bars.ListingFiltersBar
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.bars.DeletePanel
@@ -168,110 +171,118 @@ fun FavoritesContent(
             component.onRefresh()
         },
     ) {
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            modifier = Modifier.fillMaxSize(),
-            sheetBackgroundColor = colors.primaryColor,
-            sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = false,
-            sheetContent = {
-                when (activeFiltersType.value) {
-                    "filters" -> {
-                        OffersFilterContent(
-                            isRefreshingFromFilters,
-                            listingData,
-                            scaffoldState,
-                            LotsType.FAVORITES,
-                            scope,
-                        )
-                    }
-                    "sorting" -> {
-                        SortingListingContent(
-                            isRefreshingFromFilters,
-                            listingData,
-                            scaffoldState,
-                            scope,
-                        )
-                    }
-                }
-            },
+        AnimatedVisibility(
+            modifier = modifier,
+            visible = !isLoading.value,
+            enter = expandIn(),
+            exit = fadeOut()
         ) {
-            Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
-
-                if (selectFav.isNotEmpty()){
-                    DeletePanel(
-                        selectFav.size,
-                        scrollState = scrollState,
-                        onCancel = {
-                            selectFav.clear()
-                        },
-                        onDelete = {
-                            selectFav.clear()
-                        }
-                    )
-                }
-
-                ListingFiltersBar(
-                    listingData,
-                    searchData,
-                    onChangeTypeList = {
-                        favViewModel.settings.setSettingValue("listingType", it)
-                        component.onRefresh()
-                    },
-                    onFilterClick = {
-                        activeFiltersType.value = "filters"
-                        scope.launch {
-                            scaffoldState.bottomSheetState.expand()
-                            scaffoldState.bottomSheetState.expand()
-                        }
-
-                    },
-                    onSortClick = {
-                        activeFiltersType.value = "sorting"
-                        scope.launch {
-                            scaffoldState.bottomSheetState.expand()
-                            scaffoldState.bottomSheetState.expand()
-                        }
-                    },
-                    onRefresh = { component.onRefresh() }
-                )
-
-                if (error != null) {
-                    error!!()
-                } else {
-                    if (noItem != null) {
-                        noItem!!()
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .animateContentSize()
-                        ) {
-                            PagingList(
-                                state = scrollState,
-                                data = data,
-                                listingData = listingData,
-                                searchData =  searchData,
-                                columns = if (isBigScreen) 2 else 1,
-                                content = { offer ->
-                                    FavItem(
-                                        offer,
-                                        onSelectionChange = { isSelect ->
-                                            if (isSelect){
-                                                selectFav.add(offer.id)
-                                            }else{
-                                                selectFav.remove(offer.id)
-                                            }
-                                        },
-                                        onMenuClick = {
-
-                                        },
-                                        isSelected = selectFav.contains(offer.id),
-                                    ){
-                                        component.goToOffer(offer)
-                                    }
-                                }
+            BottomSheetScaffold(
+                scaffoldState = scaffoldState,
+                modifier = Modifier.fillMaxSize(),
+                sheetBackgroundColor = colors.primaryColor,
+                sheetPeekHeight = 0.dp,
+                sheetGesturesEnabled = false,
+                sheetContent = {
+                    when (activeFiltersType.value) {
+                        "filters" -> {
+                            OffersFilterContent(
+                                isRefreshingFromFilters,
+                                listingData,
+                                scaffoldState,
+                                LotsType.FAVORITES,
+                                scope,
                             )
+                        }
+
+                        "sorting" -> {
+                            SortingListingContent(
+                                isRefreshingFromFilters,
+                                listingData,
+                                scaffoldState,
+                                scope,
+                            )
+                        }
+                    }
+                },
+            ) {
+                Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
+
+                    if (selectFav.isNotEmpty()) {
+                        DeletePanel(
+                            selectFav.size,
+                            scrollState = scrollState,
+                            onCancel = {
+                                selectFav.clear()
+                            },
+                            onDelete = {
+                                selectFav.clear()
+                            }
+                        )
+                    }
+
+                    FiltersBar(
+                        listingData,
+                        searchData,
+                        onChangeTypeList = {
+                            favViewModel.settings.setSettingValue("listingType", it)
+                            component.onRefresh()
+                        },
+                        onFilterClick = {
+                            activeFiltersType.value = "filters"
+                            scope.launch {
+                                scaffoldState.bottomSheetState.expand()
+                                scaffoldState.bottomSheetState.expand()
+                            }
+
+                        },
+                        onSortClick = {
+                            activeFiltersType.value = "sorting"
+                            scope.launch {
+                                scaffoldState.bottomSheetState.expand()
+                                scaffoldState.bottomSheetState.expand()
+                            }
+                        },
+                        onRefresh = { component.onRefresh() }
+                    )
+
+                    if (error != null) {
+                        error!!()
+                    } else {
+                        if (noItem != null) {
+                            noItem!!()
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .animateContentSize()
+                            ) {
+                                PagingList(
+                                    state = scrollState,
+                                    data = data,
+                                    listingData = listingData,
+                                    searchData = searchData,
+                                    columns = if (isBigScreen) 2 else 1,
+                                    content = { offer ->
+                                        FavItem(
+                                            offer,
+                                            onSelectionChange = { isSelect ->
+                                                if (isSelect) {
+                                                    selectFav.add(offer.id)
+                                                } else {
+                                                    selectFav.remove(offer.id)
+                                                }
+                                            },
+                                            onMenuClick = {
+
+                                            },
+                                            isSelected = selectFav.contains(offer.id),
+                                        ) {
+                                            component.goToOffer(offer)
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
                 }

@@ -1,8 +1,5 @@
 package market.engine.presentation.base
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,27 +20,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import market.engine.common.ScrollBarsProvider
 import market.engine.common.SwipeRefreshContent
-import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.globalData.UserData
-import market.engine.core.items.NavigationItem
 import market.engine.core.items.ToastItem
-import market.engine.core.navigation.children.ChildMain
 import market.engine.core.types.ToastType
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.home.DrawerContent
 import market.engine.presentation.main.bottomBar
 import market.engine.widgets.badges.ToastTypeMessage
-import market.engine.widgets.bars.getBottomNavBar
-import market.engine.widgets.bars.getRailNavBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BaseContent(
@@ -95,22 +80,17 @@ fun BaseContent(
             ) {
                 Box(modifier = Modifier.fillMaxSize().padding(innerPadding))
                 {
-                    AnimatedVisibility(
-                        modifier = modifier,
-                        visible = !isLoading.value,
-                        enter = expandIn(),
-                        exit = fadeOut()
-                    ) {
-                        if (noFound != null) {
-                            noFound()
-                        }
 
-                        if (error != null) {
-                            error()
-                        }
-
-                        content()
+                    if (noFound != null) {
+                        noFound()
                     }
+
+                    if (error != null) {
+                        error()
+                    }
+
+                    content()
+
 
                     if (showVerticalScrollbarState != null) {
                         ScrollBarsProvider().getVerticalScrollbar(
