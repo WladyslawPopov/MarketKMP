@@ -20,13 +20,14 @@ interface FavoritesComponent {
         val favViewModel: FavViewModel
     )
 
+    fun goToSubscribes()
     fun onRefresh()
-
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
 }
 
 class DefaultFavoritesComponent(
     componentContext: ComponentContext,
+    val selectedSubscribes : () -> Unit,
 ) : FavoritesComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -35,6 +36,10 @@ class DefaultFavoritesComponent(
         )
     )
     override val model: Value<FavoritesComponent.Model> = _model
+    override fun goToSubscribes() {
+        selectedSubscribes()
+    }
+
     private val listingViewModel = model.value.favViewModel
 
     private val listingData = listingViewModel.listingData

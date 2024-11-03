@@ -55,7 +55,7 @@ fun getDropdownMenu(
             .background(color = colors.white)
     ){
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(0.8f)
                 .background(color = colors.white)
                 .clickable {
                     expanded = !expanded

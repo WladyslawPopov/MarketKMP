@@ -8,6 +8,7 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.baseFilters.FavBaseFilters
 import market.engine.core.globalData.UserData
 import market.engine.core.items.DeepLink
 import market.engine.core.navigation.children.ChildBasket
@@ -23,6 +24,7 @@ import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.navigation.configs.MainConfig
 import market.engine.core.navigation.configs.ProfileConfig
 import market.engine.core.types.CategoryScreenType
+import market.engine.core.types.FavScreenType
 import market.engine.presentation.category.CategoryComponent
 import market.engine.presentation.category.DefaultCategoryComponent
 import market.engine.presentation.favorites.DefaultFavoritesComponent
@@ -47,6 +49,9 @@ class DefaultMainComponent(
     override val categoryData: CategoryBaseFilters = getKoin().get()
 
     private val categoryStack = categoryData.categoryStack
+    override val favoritesData: FavBaseFilters = getKoin().get()
+    private val favoritesStack = favoritesData.favStack
+
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
@@ -343,17 +348,34 @@ class DefaultMainComponent(
 
     private fun itemFavorites(componentContext: ComponentContext): FavoritesComponent {
         return DefaultFavoritesComponent(
-            componentContext = componentContext,
-        )
+            componentContext = componentContext
+        ) {
+            pushFavStack(FavScreenType.SUBSCRIBED)
+        }
     }
 
     private fun itemSubscriptions(componentContext: ComponentContext): FavoritesComponent {
         return DefaultFavoritesComponent(
             componentContext = componentContext,
-        )
+        ) {
+            pushFavStack(FavScreenType.FAVORITES)
+        }
     }
 
-
+    private fun pushFavStack(screenType: FavScreenType){
+        when(screenType){
+            FavScreenType.FAVORITES -> {
+                favoritesStack.remove(FavScreenType.SUBSCRIBED)
+                favoritesStack.add(FavScreenType.FAVORITES)
+                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.FavoritesScreen)
+            }
+            FavScreenType.SUBSCRIBED -> {
+                favoritesStack.remove(FavScreenType.FAVORITES)
+                favoritesStack.add(FavScreenType.SUBSCRIBED)
+                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.SubscriptionsScreen)
+            }
+        }
+    }
     private fun pushCatStack(screenType: CategoryScreenType){
         when(screenType){
             CategoryScreenType.LISTING -> {

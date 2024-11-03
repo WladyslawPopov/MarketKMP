@@ -160,4 +160,7 @@ interface Strings {
     val noTradeTypeFilterOffers : StringResource
     val auctionWithBuyNow : StringResource
     val simpleAuction : StringResource
+    val offersState : StringResource
+    val myFavoritesTitle : StringResource
+    val mySubscribedTitle : StringResource
 }

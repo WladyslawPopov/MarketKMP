@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import market.engine.core.baseFilters.Filter
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -157,7 +159,7 @@ fun OffersFilterContent(
                     item {
                         //Fav Filters
                         ExpandableSection(
-                            title = stringResource(strings.saleTypeParameterName),
+                            title = stringResource(strings.offersState),
                             isExpanded = isExpanded1,
                             onExpandChange = { isExpanded1 = !isExpanded1 },
                             content = {
@@ -220,7 +222,7 @@ fun OffersFilterContent(
                     item {
                         //MyOffers Filters
                         ExpandableSection(
-                            title = stringResource(strings.saleTypeParameterName),
+                            title = stringResource(strings.offersState),
                             isExpanded = isExpanded2,
                             onExpandChange = { isExpanded2 = !isExpanded2 },
                             content = {
@@ -270,6 +272,17 @@ fun OffersFilterContent(
                 }
 
                 item {
+                    OffersFilterContent(
+                        isRefreshing,
+                        listingData,
+                        checkFilterClear = {
+                            isRefreshing.value =
+                                listingData.value.filters?.find { it.interpritation != null } != null
+                        }
+                    )
+                }
+
+                item {
                     val title = stringResource(strings.endingWith)
                     Text(
                         text = title,
@@ -314,6 +327,81 @@ fun OffersFilterContent(
             )
         }
     }
+}
+
+@Composable
+fun OffersFilterContent(
+    isRefreshing: MutableState<Boolean>,
+    listingData: State<LD>,
+    checkFilterClear: () -> Unit
+) {
+    val idTextState = remember { mutableStateOf(listingData.value.filters?.find { it.key == "id"}?.value ?: "") }
+    val nameTextState = remember { mutableStateOf(listingData.value.filters?.find { it.key == "search"}?.value ?: "") }
+    val sellerLoginTextState = remember { mutableStateOf(listingData.value.filters?.find { it.key == "seller_login" }?.value ?: "") }
+
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        TextFieldWithState(
+            label = "Lot ID",
+            hint = "Enter Lot ID",
+            textState = idTextState,
+            onTextChange = { text ->
+                if (text.isNotBlank()) {
+                  idTextState.value = text
+                }
+                checkFilterClear()
+            }
+        )
+
+        TextFieldWithState(
+            label = "Lot Name",
+            hint = "Enter Lot Name",
+            textState = nameTextState,
+            onTextChange = { text ->
+                if (text.isNotBlank()) {
+
+                } else {
+                }
+                checkFilterClear()
+            }
+        )
+
+        TextFieldWithState(
+            label = "Seller Login",
+            hint = "Enter Seller Login",
+            textState = sellerLoginTextState,
+            onTextChange = { text ->
+                if (text.isNotBlank()) {
+
+                } else {
+
+                }
+                checkFilterClear()
+            }
+        )
+    }
+}
+
+@Composable
+fun TextFieldWithState(
+    label: String,
+    hint: String,
+    textState: MutableState<String>,
+    onTextChange: (String) -> Unit
+) {
+    TextField(
+        value = textState.value,
+        onValueChange = {
+            textState.value = it
+            onTextChange(it)
+        },
+        label = { Text(label) },
+        placeholder = { Text(hint) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    )
 }
 
 

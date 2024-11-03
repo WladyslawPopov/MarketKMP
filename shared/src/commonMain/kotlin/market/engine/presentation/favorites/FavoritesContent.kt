@@ -35,6 +35,7 @@ import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
+import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
@@ -163,9 +164,12 @@ fun FavoritesContent(
         isLoading = isLoading,
         topBar = {
             FavoritesAppBar(
-                stringResource(strings.favoritesTitle),
-                modifier,
-            )
+                modifier
+            ) { type ->
+                if (type == FavScreenType.SUBSCRIBED) {
+                    component.goToSubscribes()
+                }
+            }
         },
         onRefresh = {
             component.onRefresh()

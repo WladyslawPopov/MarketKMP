@@ -4,6 +4,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.Value
 import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.baseFilters.FavBaseFilters
 import market.engine.core.navigation.children.ChildBasket
 import market.engine.core.navigation.children.ChildCategory
 import market.engine.core.navigation.children.ChildFavorites
@@ -34,6 +35,8 @@ interface MainComponent {
     val childProfileStack: Value<ChildStack<*, ChildProfile>>
 
     val categoryData : CategoryBaseFilters
+
+    val favoritesData : FavBaseFilters
 
     data class ModelNavigation(
         val homeNavigation : StackNavigation<HomeConfig>,
