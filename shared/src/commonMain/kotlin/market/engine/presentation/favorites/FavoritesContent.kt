@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,8 +30,8 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
+import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.FavScreenType
@@ -44,10 +43,10 @@ import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.bars.DeletePanel
-import market.engine.widgets.filterContents.OffersFilterContent
+import market.engine.widgets.filterContents.InputsOfferFilterContent
+import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.grids.PagingList
-import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -73,7 +72,7 @@ fun FavoritesContent(
     val selectFav = remember { favViewModel.selectFav }
     val activeFiltersType = remember { favViewModel.activeFiltersType }
 
-    val isHideContent = remember {mutableStateOf(false) }
+    val isHideContent = remember {mutableStateOf(favViewModel.isHideContent.value) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
@@ -110,10 +109,14 @@ fun FavoritesContent(
     }
 
     LaunchedEffect(searchData){
-        if (searchData.value.isRefreshing) {
+        if (searchData.value.isRefreshing && scaffoldState.bottomSheetState.isCollapsed) {
             searchData.value.isRefreshing = false
-            if (listingData.value.filters == null)
-                listingData.value.filters = EmptyFilters.getEmpty()
+            if (listingData.value.filters == null) {
+                listingData.value.filters = arrayListOf()
+                OfferFilters.filtersFav.forEach {
+                    listingData.value.filters?.add(it.copy())
+                }
+            }
             component.onRefresh()
         }
     }
@@ -137,8 +140,10 @@ fun FavoritesContent(
                 isHideContent.value = true
                 noItem = {
                     showNoItemLayout {
-                        searchData.value.clear()
-                        listingData.value.filters = EmptyFilters.getEmpty()
+                        listingData.value.filters?.clear()
+                        OfferFilters.filtersFav.forEach {
+                            listingData.value.filters?.add(it.copy())
+                        }
                         component.onRefresh()
                     }
                 }
@@ -164,6 +169,7 @@ fun FavoritesContent(
         isLoading = isLoading,
         topBar = {
             FavoritesAppBar(
+                FavScreenType.FAVORITES,
                 modifier
             ) { type ->
                 if (type == FavScreenType.SUBSCRIBED) {
@@ -172,7 +178,8 @@ fun FavoritesContent(
             }
         },
         onRefresh = {
-            component.onRefresh()
+            if (scaffoldState.bottomSheetState.isCollapsed)
+                component.onRefresh()
         },
     ) {
         AnimatedVisibility(
@@ -184,13 +191,16 @@ fun FavoritesContent(
             BottomSheetScaffold(
                 scaffoldState = scaffoldState,
                 modifier = Modifier.fillMaxSize(),
+                sheetContentColor = colors.primaryColor,
                 sheetBackgroundColor = colors.primaryColor,
+                contentColor = colors.primaryColor,
+                backgroundColor = colors.primaryColor,
                 sheetPeekHeight = 0.dp,
                 sheetGesturesEnabled = false,
                 sheetContent = {
                     when (activeFiltersType.value) {
                         "filters" -> {
-                            OffersFilterContent(
+                            OfferFilterContent(
                                 isRefreshingFromFilters,
                                 listingData,
                                 scaffoldState,
@@ -210,7 +220,7 @@ fun FavoritesContent(
                     }
                 },
             ) {
-                Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize()) {
 
                     if (selectFav.isNotEmpty()) {
                         DeletePanel(

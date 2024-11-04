@@ -13,12 +13,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import market.engine.core.constants.ThemeResources.dimens
 
 @Composable
 fun ActiveStringButton(
     text: String,
     color: ButtonColors,
+    fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
     onClick: () -> Unit,
     onCancelClick: @Composable () -> Unit = @Composable {},
 ) {
@@ -27,13 +30,14 @@ fun ActiveStringButton(
         colors = color,
     ) {
         Row(
-            modifier = Modifier.wrapContentWidth(),
+            modifier = Modifier.wrapContentWidth().padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface,
+                fontSize = fontSize,
                 fontFamily = FontFamily.SansSerif,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

@@ -67,15 +67,16 @@ private fun constructActiveFiltersTitle(
 private fun filterListingFilters(
     filters: List<Filter>?,
     isShowFilters: Boolean,
-    auction: String,
-    buyNow: String
+    auction: String?,
+    buyNow: String?
 ): List<Filter>? {
     return filters?.filter { filter ->
         filter.interpritation != null &&
                 (!isShowFilters || (
                         filter.interpritation != auction &&
                                 filter.interpritation != buyNow &&
-                                filter.key !in listOf("state", "with_sales", "without_sales", "category")
+                                filter.interpritation != "" &&
+                                filter.key !in listOf("state", "with_sales", "without_sales")
                         ))
     }
 }
@@ -86,6 +87,8 @@ fun FiltersBar(
     searchData: State<SD>,
     isShowFilters: Boolean = true,
     isShowGrid: Boolean = false,
+    auction: String? = null,
+    buyNow: String? = null,
     onChangeTypeList: (Int) -> Unit = {},
     onFilterClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
@@ -96,8 +99,6 @@ fun FiltersBar(
     val sortTitle = stringResource(strings.sort)
     val searchTitle = stringResource(strings.searchTitle)
     val userDef = stringResource(strings.searchUsersSearch)
-    val auction = stringResource(strings.ordinaryAuction)
-    val buyNow = stringResource(strings.buyNow)
 
     // Derived filters based on isShowFilters
     val filters = remember(listingData.value.filters, isShowFilters) {
@@ -114,7 +115,7 @@ fun FiltersBar(
             title = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
-            hasNews = false,
+            hasNews = listingData.value.filters?.find { it.key !in listOf("state", "with_sales", "without_sales")} != null,
             badgeCount = if(!filters.isNullOrEmpty()) filters.size else null,
         )
     }

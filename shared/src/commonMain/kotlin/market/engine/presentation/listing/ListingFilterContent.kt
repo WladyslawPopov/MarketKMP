@@ -205,8 +205,7 @@ fun FilterListingContent(
                                                     )
                                                 }
 
-                                                isRefreshing.value =
-                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                                isRefreshing.value = true
                                             }
                                     ) {
                                         RadioButton(
@@ -228,8 +227,7 @@ fun FilterListingContent(
                                                     )
                                                 }
 
-                                                isRefreshing.value =
-                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                                isRefreshing.value = true
                                             },
                                             colors = RadioButtonDefaults.colors(
                                                 selectedColor = colors.inactiveBottomNavIconColor,
@@ -271,8 +269,7 @@ fun FilterListingContent(
                                                 isChecked.value = !isChecked.value
                                                 applyFilterLogic(filterKey, filterText, listingData)
 
-                                                isRefreshing.value =
-                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                                isRefreshing.value = true
                                             }
                                     ) {
                                         RadioButton(
@@ -281,8 +278,7 @@ fun FilterListingContent(
                                                 isChecked.value = !isChecked.value
                                                 applyFilterLogic(filterKey, filterText, listingData)
 
-                                                isRefreshing.value =
-                                                    listingData.value.filters?.find { it.interpritation != null } != null
+                                                isRefreshing.value = true
                                             },
                                             colors = RadioButtonDefaults.colors(
                                                 selectedColor = colors.inactiveBottomNavIconColor,
@@ -309,35 +305,31 @@ fun FilterListingContent(
                             modifier = Modifier.padding(dimens.smallPadding)
                         )
 
-                        if (regionsOptions != null) {
-                            getDropdownMenu(listingData.value.filters?.find { it.key == "region" }?.interpritation,
-                                regionsOptions.map { it.name.toString() },
-                                onItemClick = { newRegion ->
-                                    listingData.value.filters?.find { it.key == "region" }?.value =
-                                        regionsOptions.find { it.name == newRegion }?.code.toString()
-                                    listingData.value.filters?.find { it.key == "region" }?.interpritation =
-                                        newRegion
+                        getDropdownMenu(
+                            selectedText = listingData.value.filters?.find { it.key == "region" }?.interpritation,
+                            selects =  regionsOptions.map { it.name.toString() },
+                            onItemClick = { newRegion ->
+                                listingData.value.filters?.find { it.key == "region" }?.value =
+                                    regionsOptions.find { it.name == newRegion }?.code.toString()
+                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                    newRegion
 
-                                    isRefreshing.value =
-                                        listingData.value.filters?.find { it.interpritation != null } != null
-                                },
-                                onClearItem = {
-                                    listingData.value.filters?.find { it.key == "region" }?.interpritation =
-                                        null
+                                isRefreshing.value = true
+                            },
+                            onClearItem = {
+                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                    null
 
-                                    isRefreshing.value =
-                                        listingData.value.filters?.find { it.interpritation != null } != null
-                                }
-                            )
-                        }
+                                isRefreshing.value = true
+                            }
+                        )
                     }
                 }
                 item {
                     // Price Filter
                     PriceFilter(listingData) {
 
-                        isRefreshing.value =
-                            listingData.value.filters?.find { it.interpritation != null } != null
+                        isRefreshing.value = true
                     }
                 }
                 item {
@@ -363,10 +355,10 @@ fun FilterListingContent(
                                     )
 
                                     getDropdownMenu(
-                                        timeFilterMap.find { time ->
+                                        selectedText = timeFilterMap.find { time ->
                                             time.first == listingData.value.filters?.find { it.key == "new" }?.value
                                         }?.second,
-                                        timeOptions,
+                                        selects = timeOptions,
                                         onItemClick = { time ->
                                             listingData.value.filters?.find { it.key == "new" }?.value =
                                                 timeFilterMap.find { it.second == time }?.first
@@ -374,8 +366,7 @@ fun FilterListingContent(
                                             listingData.value.filters?.find { it.key == "new" }?.interpritation =
                                                 "$title $time"
 
-                                            isRefreshing.value =
-                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                            isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.value.filters?.find { it.key == "new" }?.value =
@@ -383,8 +374,7 @@ fun FilterListingContent(
                                             listingData.value.filters?.find { it.key == "new" }?.interpritation =
                                                 null
 
-                                            isRefreshing.value =
-                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                            isRefreshing.value = true
                                         }
                                     )
                                 }
@@ -398,10 +388,10 @@ fun FilterListingContent(
                                     )
 
                                     getDropdownMenu(
-                                        timeFilterMap.find { time ->
+                                        selectedText =timeFilterMap.find { time ->
                                             time.first == listingData.value.filters?.find { it.key == "new_without_relisted" }?.value
                                         }?.second,
-                                        timeOptions,
+                                        selects = timeOptions,
                                         onItemClick = { time ->
                                             listingData.value.filters?.find { it.key == "new_without_relisted" }?.value =
                                                 timeFilterMap.find { it.second == time }?.first
@@ -409,8 +399,7 @@ fun FilterListingContent(
                                             listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation =
                                                 "$title $time"
 
-                                            isRefreshing.value =
-                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                            isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.value.filters?.find { it.key == "new_without_relisted" }?.value =
@@ -418,8 +407,7 @@ fun FilterListingContent(
                                             listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation =
                                                 null
 
-                                            isRefreshing.value =
-                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                            isRefreshing.value = true
                                         }
                                     )
                                 }
@@ -433,10 +421,10 @@ fun FilterListingContent(
                                     )
 
                                     getDropdownMenu(
-                                        timeFilterMap.find { time ->
+                                        selectedText =timeFilterMap.find { time ->
                                             time.first == listingData.value.filters?.find { it.key == "ending" }?.value
                                         }?.second,
-                                        timeOptions,
+                                        selects = timeOptions,
                                         onItemClick = { time ->
                                             listingData.value.filters?.find { it.key == "ending" }?.value =
                                                 timeFilterMap.find { it.second == time }?.first
@@ -444,8 +432,7 @@ fun FilterListingContent(
                                             listingData.value.filters?.find { it.key == "ending" }?.interpritation =
                                                 "$title $time"
 
-                                            isRefreshing.value =
-                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                            isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.value.filters?.find { it.key == "ending" }?.value =
@@ -453,8 +440,7 @@ fun FilterListingContent(
                                             listingData.value.filters?.find { it.key == "ending" }?.interpritation =
                                                 null
 
-                                            isRefreshing.value =
-                                                listingData.value.filters?.find { it.interpritation != null } != null
+                                            isRefreshing.value = true
                                         }
                                     )
                                 }

@@ -11,6 +11,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import market.engine.core.navigation.children.ChildFavorites
+import market.engine.presentation.subscriptions.SubscribesContent
 
 @Composable
 fun FavoritesNavigation(
@@ -26,7 +27,7 @@ fun FavoritesNavigation(
     ) { child ->
         when (val screen = child.instance) {
             is ChildFavorites.FavoritesChild -> FavoritesContent(modifier, screen.component)
-            is ChildFavorites.SubChild -> FavoritesContent(modifier, screen.component)
+            is ChildFavorites.SubChild -> SubscribesContent(modifier, screen.component)
         }
     }
 }

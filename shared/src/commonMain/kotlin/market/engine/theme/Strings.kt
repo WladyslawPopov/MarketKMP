@@ -163,4 +163,8 @@ interface Strings {
     val offersState : StringResource
     val myFavoritesTitle : StringResource
     val mySubscribedTitle : StringResource
+    val offersCategoryParameterName : StringResource
+    val offerIdParameterName : StringResource
+    val offerNameParameterName : StringResource
+    val sellerLoginParameterName : StringResource
 }

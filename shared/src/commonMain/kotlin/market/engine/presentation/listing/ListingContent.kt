@@ -182,7 +182,10 @@ fun ListingContent(
             BottomSheetScaffold(
                 scaffoldState = scaffoldState,
                 modifier = Modifier.fillMaxSize(),
+                sheetContentColor = colors.primaryColor,
                 sheetBackgroundColor = colors.primaryColor,
+                contentColor = colors.primaryColor,
+                backgroundColor = colors.primaryColor,
                 sheetPeekHeight = 0.dp,
                 sheetGesturesEnabled = false,
                 sheetContent = {
@@ -208,7 +211,7 @@ fun ListingContent(
                     }
                 },
             ) {
-                Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize()) {
 
                     SwipeTabsBar(
                         listingData,
@@ -217,10 +220,13 @@ fun ListingContent(
                             component.onRefresh()
                         }
                     )
-
+                    val auctionStr = stringResource(strings.ordinaryAuction)
+                    val buyNowStr = stringResource(strings.buyNow)
                     FiltersBar(
                         listingData,
                         searchData,
+                        auction = auctionStr,
+                        buyNow = buyNowStr,
                         isShowGrid = true,
                         onChangeTypeList = {
                             listingViewModel.settings.setSettingValue("listingType", it)

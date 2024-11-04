@@ -1,9 +1,11 @@
-package market.engine.presentation.listing
+package market.engine.presentation.subscriptions
 
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
@@ -27,48 +29,39 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.baseFilters.FavBaseFilters
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
-import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.networkObjects.Options
-import market.engine.core.network.networkObjects.Payload
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.network.paging.offer.OfferPagingRepository
-import market.engine.core.repositories.SettingsRepository
 import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
-class ListingViewModel(
+class SubViewModel(
     private val apiService: APIService,
     private val offerPagingRepository: OfferPagingRepository
 ) : BaseViewModel() {
 
-    val settings : SettingsRepository = getKoin().get()
-
-    private val categoryOperations : CategoryOperations = getKoin().get()
-
     var firstVisibleItemIndex by mutableStateOf(0)
     var firstVisibleItemScrollOffset by mutableStateOf(0)
-
-    var globalData : CategoryBaseFilters = getKoin().get()
-    var listingData = globalData.listingData
 
     var activeFiltersType = mutableStateOf("")
     @OptIn(ExperimentalMaterialApi::class)
     val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
 
-    val regionOptions = mutableStateOf(arrayListOf<Options>())
+    var globalData : FavBaseFilters = getKoin().get()
+    var listingData = globalData.listingData
 
     // StateFlow for the UI state
     val state: StateFlow<UiState>
-    val pagingDataFlow : Flow<PagingData<Offer>>
+//    val pagingDataFlow : Flow<PagingData<Subscription>>
     // Function to accept UI actions
     private val accept: (UiAction) -> Unit
 
     init {
-        listingData.data.value.methodServer = "get_public_listing"
+        listingData.data.value.methodServer = ""
 
         val actionStateFlow = MutableSharedFlow<UiAction>(replay = 1)
 
@@ -80,10 +73,10 @@ class ListingViewModel(
             .filterIsInstance<UiAction.UpdateCurrentListingData>()
 
         @OptIn(ExperimentalCoroutinesApi::class)
-        pagingDataFlow = searches
-            .flatMapLatest {
-                offerPagingRepository.getListing(it.listingData)
-            }.cachedIn(viewModelScope)
+//        pagingDataFlow = searches
+//            .flatMapLatest {
+////                offerPagingRepository.getListing(it.listingData)
+//            }.cachedIn(viewModelScope)
 
         state = searches.map {
             UiState(
@@ -94,10 +87,6 @@ class ListingViewModel(
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
             initialValue = UiState(listingData.copy())
         )
-
-        listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0
-
-        getRegions()
     }
 
     fun updateCurrentListingData() {
@@ -112,45 +101,5 @@ class ListingViewModel(
 
     sealed class UiAction {
         data class UpdateCurrentListingData(val listingData: ListingData) : UiAction()
-    }
-
-    private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
-    val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
-
-    fun getOffersRecommendedInListing(categoryID:Long) {
-        viewModelScope.launch{
-            try {
-                withContext(Dispatchers.IO){
-                    val response = apiService.getOffersRecommendedInListing(categoryID)
-
-                    withContext(Dispatchers.Main) {
-                        try {
-                            val payload : Payload<Offer> = deserializePayload(response.payload)
-                            _responseOffersRecommendedInListing.value = payload.objects
-                        }catch (e : Exception){
-                            throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-                        }
-                    }
-                }
-            }  catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-            }
-        }
-    }
-
-    private fun getRegions(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val res = categoryOperations.getRegions()
-                withContext(Dispatchers.Main) {
-                    if (res != null) {
-                        res.firstOrNull()?.options?.sortedBy { it.weight }
-                            ?.let { regionOptions.value.addAll(it) }
-                    }
-                }
-            }
-        }
     }
 }

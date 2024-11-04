@@ -36,12 +36,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun getDropdownMenu(
     selectedText : String?=null,
+    selectedTextDef : String? = null,
     selects: List<String>,
     onItemClick: (String) -> Unit,
     onClearItem: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selectDef = selectedText ?: stringResource(strings.chooseAction)
+    val selectDef = selectedTextDef ?: stringResource(strings.chooseAction)
 
     var selectedOption by remember { mutableStateOf(selectedText ?: selectDef) }
 
@@ -52,11 +53,10 @@ fun getDropdownMenu(
     Column(
         modifier = Modifier
             .clip(MaterialTheme.shapes.medium)
-            .background(color = colors.white)
+            .background(color = colors.white),
     ){
         Row(
-            modifier = Modifier.fillMaxWidth(0.8f)
-                .background(color = colors.white)
+            modifier = Modifier.fillMaxWidth()
                 .clickable {
                     expanded = !expanded
                 },
@@ -99,9 +99,7 @@ fun getDropdownMenu(
         AnimatedVisibility(expanded) {
             LazyColumn(
                 modifier = Modifier
-                    .wrapContentWidth()
-                    .heightIn(max = 200.dp)
-                    .background(color = colors.white)
+                    .heightIn(max = 300.dp)
                     .clip(MaterialTheme.shapes.medium)
             ) {
                 items(selects){ option ->

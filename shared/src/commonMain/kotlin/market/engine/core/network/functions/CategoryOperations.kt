@@ -75,5 +75,24 @@ class CategoryOperations(private val apiService : APIService, private val global
             return null
         }
     }
+
+    suspend fun getCategories(id: Long=1L): ArrayList<Category>? {
+        try {
+            val response = apiService.getPublicCategories(id)
+            if(response.payload != null) {
+                try {
+                    val payload: Payload<Category> =
+                        deserializePayload(response.payload)
+                    return payload.objects
+                }catch (_ : Exception){
+                    return null
+                }
+            }else{
+                return null
+            }
+        } catch (_: Exception) {
+            return null
+        }
+    }
 }
 

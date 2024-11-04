@@ -50,20 +50,21 @@ fun FiltersSearchBar(
             {
                 ActiveStringButton(
                     selectedCategory.value ?: stringResource(strings.categoryMain),
-                    if (searchData.value.searchCategoryID == 1L)
+                    color =  if (searchData.value.searchCategoryID == 1L)
                         colors.simpleButtonColors
                     else
                         colors.themeButtonColors,
-                    {
+                    onClick = {
                         goToCategory()
                     },
-                    {
+                    onCancelClick = {
                         if (searchData.value.searchCategoryID != 1L) {
                             val category = stringResource(strings.categoryMain)
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),
                                 color = colors.steelBlue,
+                                modifier = modifier.size(dimens.smallIconSize),
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
                             ) {
                                 selectedCategory.value = category
@@ -84,20 +85,21 @@ fun FiltersSearchBar(
                         searchData.value.userLogin ?: stringResource(strings.searchUsersSearch)
                     else
                         searchData.value.userLogin ?: stringResource(strings.searchUsersSearch),
-                    if (!selectedUser.value)
+                    color = if (!selectedUser.value)
                         colors.simpleButtonColors
                     else
                         colors.themeButtonColors,
-                    {
+                    onClick = {
                         selectedUser.value = !selectedUser.value
                         searchData.value.userSearch = !searchData.value.userSearch
                     },
-                    {
+                    onCancelClick = {
                         if (searchData.value.userLogin != null && searchData.value.userSearch) {
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),
                                 color = colors.steelBlue,
+                                modifier = modifier.size(dimens.smallIconSize),
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
                             ) {
                                 selectedUser.value = false

@@ -37,6 +37,8 @@ import market.engine.presentation.profile.DefaultProfileComponent
 import market.engine.presentation.profile.ProfileComponent
 import market.engine.presentation.search.DefaultSearchComponent
 import market.engine.presentation.search.SearchComponent
+import market.engine.presentation.subscriptions.DefaultSubscribesComponent
+import market.engine.presentation.subscriptions.SubscribesComponent
 import org.koin.mp.KoinPlatform.getKoin
 
 class DefaultMainComponent(
@@ -354,8 +356,8 @@ class DefaultMainComponent(
         }
     }
 
-    private fun itemSubscriptions(componentContext: ComponentContext): FavoritesComponent {
-        return DefaultFavoritesComponent(
+    private fun itemSubscriptions(componentContext: ComponentContext): SubscribesComponent {
+        return DefaultSubscribesComponent(
             componentContext = componentContext,
         ) {
             pushFavStack(FavScreenType.FAVORITES)

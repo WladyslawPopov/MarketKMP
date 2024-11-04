@@ -33,6 +33,7 @@ import market.engine.core.baseFilters.FavBaseFilters
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
+import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
@@ -55,6 +56,8 @@ class FavViewModel(
     var firstVisibleItemScrollOffset by mutableStateOf(0)
 
     var selectFav = mutableStateListOf<Long>()
+    var isHideContent = mutableStateOf(false)
+
 
     var activeFiltersType = mutableStateOf("")
     @OptIn(ExperimentalMaterialApi::class)
@@ -113,4 +116,6 @@ class FavViewModel(
     sealed class UiAction {
         data class UpdateCurrentListingData(val listingData: ListingData) : UiAction()
     }
+
+
 }
