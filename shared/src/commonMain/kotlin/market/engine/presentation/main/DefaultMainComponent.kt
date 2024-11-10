@@ -1,14 +1,26 @@
 package market.engine.presentation.main
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.DelicateDecomposeApi
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.router.pages.ChildPages
+import com.arkivanov.decompose.router.pages.Pages
+import com.arkivanov.decompose.router.pages.PagesNavigation
+import com.arkivanov.decompose.router.pages.childPages
+import com.arkivanov.decompose.router.pages.select
+import com.arkivanov.decompose.router.pages.selectFirst
+import com.arkivanov.decompose.router.pages.selectNext
+import com.arkivanov.decompose.router.pages.selectPrev
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.baseFilters.FavBaseFilters
+import market.engine.core.baseFilters.ProfileBaseFilters
 import market.engine.core.globalData.UserData
 import market.engine.core.items.DeepLink
 import market.engine.core.navigation.children.ChildBasket
@@ -22,9 +34,11 @@ import market.engine.core.navigation.configs.CategoryConfig
 import market.engine.core.navigation.configs.FavoritesConfig
 import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.navigation.configs.MainConfig
+import market.engine.core.navigation.configs.MyOfferConfig
 import market.engine.core.navigation.configs.ProfileConfig
 import market.engine.core.types.CategoryScreenType
 import market.engine.core.types.FavScreenType
+import market.engine.core.types.LotsType
 import market.engine.presentation.category.CategoryComponent
 import market.engine.presentation.category.DefaultCategoryComponent
 import market.engine.presentation.favorites.DefaultFavoritesComponent
@@ -35,6 +49,8 @@ import market.engine.presentation.listing.DefaultListingComponent
 import market.engine.presentation.listing.ListingComponent
 import market.engine.presentation.profile.DefaultProfileComponent
 import market.engine.presentation.profile.ProfileComponent
+import market.engine.presentation.profileMyOffers.DefaultMyOffersComponent
+import market.engine.presentation.profileMyOffers.MyOffersComponent
 import market.engine.presentation.search.DefaultSearchComponent
 import market.engine.presentation.search.SearchComponent
 import market.engine.presentation.subscriptions.DefaultSubscribesComponent
@@ -44,16 +60,15 @@ import org.koin.mp.KoinPlatform.getKoin
 class DefaultMainComponent(
     componentContext: ComponentContext,
     deepLink: DeepLink?,
-    val goToLoginSelected: () -> Unit
+    val goToLoginSelected: () -> Unit,
+
 ) : MainComponent, ComponentContext by componentContext 
 {
-
     override val categoryData: CategoryBaseFilters = getKoin().get()
-
     private val categoryStack = categoryData.categoryStack
     override val favoritesData: FavBaseFilters = getKoin().get()
     private val favoritesStack = favoritesData.favStack
-
+    override val profileData: ProfileBaseFilters = getKoin().get()
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
@@ -90,13 +105,43 @@ class DefaultMainComponent(
             key = "CategoryStack"
         )
 
+    private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
+    override val myOffersPages: Value<ChildPages<*, MyOffersComponent>> by lazy {
+        childPages(
+            source = navigationMyOffers,
+            serializer = MyOfferConfig.serializer(),
+            initialPages = {
+                Pages(
+                    listOf(
+                        MyOfferConfig(type = LotsType.MYLOT_ACTIVE),
+                        MyOfferConfig(type = LotsType.MYLOT_UNACTIVE),
+                        MyOfferConfig(type = LotsType.MYLOT_FUTURE)
+                    ),
+                    selectedIndex = 0,
+                )
+            },
+            key = "ProfileMyOffersStack",
+            childFactory = ::itemMyOffers
+        )
+    }
+
+
+    private fun itemMyOffers(config: MyOfferConfig,componentContext: ComponentContext): MyOffersComponent {
+        return DefaultMyOffersComponent(
+            componentContext = componentContext,
+            type = config.type,
+            navigate = { type ->
+                selectMyOfferPage(type)
+            }
+        )
+    }
+
 
     override val childBasketStack: Value<ChildStack<*, ChildBasket>> by lazy {
         childStack(
             source = modelNavigation.value.basketNavigation,
             initialConfiguration = BasketConfig.BasketScreen,
             serializer = BasketConfig.serializer(),
-            
             childFactory = ::createChild,
             key = "BasketStack"
         )
@@ -113,17 +158,15 @@ class DefaultMainComponent(
         )
     }
 
-    override val childProfileStack: Value<ChildStack<*, ChildProfile>> by lazy {
+    override val childProfileStack: Value<ChildStack<*, ChildProfile>> =
         childStack(
             source = modelNavigation.value.profileNavigation,
             initialConfiguration = ProfileConfig.ProfileScreen,
             serializer = ProfileConfig.serializer(),
-            
+            handleBackButton = true,
             childFactory = ::createChild,
             key = "ProfileStack"
         )
-    }
-
 
     override val childMainStack: Value<ChildStack<*, ChildMain>> =
         childStack(
@@ -272,7 +315,31 @@ class DefaultMainComponent(
             ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
                 itemProfile(componentContext)
             )
+
+            ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
+                component = this
+            )
         }
+
+    override fun selectMyOfferPage(type: LotsType) {
+        when (type) {
+            LotsType.MYLOT_ACTIVE -> {
+                navigationMyOffers.select(0)
+            }
+
+            LotsType.MYLOT_UNACTIVE -> {
+                navigationMyOffers.select(1)
+            }
+
+            LotsType.MYLOT_FUTURE -> {
+                navigationMyOffers.select(2)
+            }
+            else -> {
+                navigationMyOffers.select(0)
+            }
+        }
+    }
+
     private fun itemCategory(componentContext: ComponentContext): CategoryComponent {
         return DefaultCategoryComponent(
             componentContext = componentContext,
@@ -333,11 +400,13 @@ class DefaultMainComponent(
         )
     }
 
-
+    @OptIn(DelicateDecomposeApi::class)
     private fun itemProfile(componentContext: ComponentContext): ProfileComponent {
         return DefaultProfileComponent(
             componentContext = componentContext,
-            navigation = modelNavigation.value.profileNavigation
+            selectMyOffers = {
+                modelNavigation.value.profileNavigation.push(ProfileConfig.MyOffersScreen)
+            }
         )
     }
 

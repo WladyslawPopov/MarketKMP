@@ -35,7 +35,7 @@ fun floatingCreateOfferButton(
         Icon(
             tint = colors.inactiveBottomNavIconColor,
             painter = painterResource(drawables.newLotIcon),
-            contentDescription = stringResource(strings.newLotTitle),
+            contentDescription = stringResource(strings.createNewOfferTitle),
         )
     }
 }

@@ -16,19 +16,23 @@ import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
 import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.baseFilters.FavBaseFilters
+import market.engine.core.baseFilters.ProfileBaseFilters
 import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
+import market.engine.core.types.LotsType
 import market.engine.presentation.category.CategoryViewModel
 import market.engine.presentation.favorites.FavViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
 import market.engine.presentation.login.LoginViewModel
 import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.profile.ProfileViewModel
 import market.engine.presentation.search.SearchViewModel
 import market.engine.presentation.subscriptions.SubViewModel
 import market.engine.shared.MarketDB
 import org.koin.compose.viewmodel.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 object InstanceModule {
@@ -42,6 +46,7 @@ object InstanceModule {
     )
 }
 
+@Suppress("DEPRECATION")
 val viewModelModule = module {
     viewModel { MainViewModel(get()) }
     viewModel { HomeViewModel(get()) }
@@ -51,6 +56,17 @@ val viewModelModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { FavViewModel(get(), get()) }
     viewModel { SubViewModel(get(), get()) }
+   // viewModel { ProfileViewModel(get(), get()) }
+
+    scope(named("MyOffersScope")) {
+        scoped { (type: LotsType) ->
+            ProfileViewModel(
+                type = type,
+                apiService = get(),
+                offerPagingRepository = get()
+            )
+        }
+    }
 }
 
 val networkModule = module {
@@ -86,4 +102,5 @@ val repositoryModule = module {
 val filtersModule = module {
     single { CategoryBaseFilters }
     single { FavBaseFilters }
+    single { ProfileBaseFilters }
 }

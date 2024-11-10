@@ -33,6 +33,7 @@ import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.presentation.favorites.FavoritesAppBar
+import market.engine.presentation.main.bottomBar
 import market.engine.widgets.bars.FiltersBar
 import org.koin.mp.KoinPlatform
 
@@ -44,8 +45,8 @@ fun SubscribesContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val subViewModel = modelState.value.subViewModel
-    val searchData = subViewModel.listingData.searchData.subscribeAsState()
-    val listingData = subViewModel.listingData.data.subscribeAsState()
+//    val searchData = subViewModel.listingData.searchData.subscribeAsState()
+//    val listingData = subViewModel.listingData.data.subscribeAsState()
 //    val data = subViewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val scrollState = rememberLazyListState(
@@ -130,6 +131,7 @@ fun SubscribesContent(
                 }
             }
         },
+        bottomBar = bottomBar,
         onRefresh = {
             component.onRefresh()
         },
@@ -171,17 +173,17 @@ fun SubscribesContent(
             ) {
                 Column(modifier = Modifier.background(colors.primaryColor).fillMaxSize()) {
 
-                    FiltersBar(
-                        listingData,
-                        searchData,
-                        onSortClick = {
-                            scope.launch {
-                                scaffoldState.bottomSheetState.expand()
-                                scaffoldState.bottomSheetState.expand()
-                            }
-                        },
-                        onRefresh = { component.onRefresh() }
-                    )
+//                    FiltersBar(
+//                        listingData,
+//                        searchData,
+//                        onSortClick = {
+//                            scope.launch {
+//                                scaffoldState.bottomSheetState.expand()
+//                                scaffoldState.bottomSheetState.expand()
+//                            }
+//                        },
+//                        onRefresh = { component.onRefresh() }
+//                    )
 
 //                    if (error != null) {
 //                        error!!()

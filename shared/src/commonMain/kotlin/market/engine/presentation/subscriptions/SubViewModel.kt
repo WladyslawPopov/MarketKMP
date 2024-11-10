@@ -51,8 +51,8 @@ class SubViewModel(
     @OptIn(ExperimentalMaterialApi::class)
     val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
 
-    var globalData : FavBaseFilters = getKoin().get()
-    var listingData = globalData.listingData
+//    var globalData : FavBaseFilters = getKoin().get()
+//    var listingData = globalData.listingData
 
     // StateFlow for the UI state
     val state: StateFlow<UiState>
@@ -61,7 +61,7 @@ class SubViewModel(
     private val accept: (UiAction) -> Unit
 
     init {
-        listingData.data.value.methodServer = ""
+//        listingData.data.value.methodServer = ""
 
         val actionStateFlow = MutableSharedFlow<UiAction>(replay = 1)
 
@@ -85,21 +85,21 @@ class SubViewModel(
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
-            initialValue = UiState(listingData.copy())
+            initialValue = UiState("")
         )
     }
 
     fun updateCurrentListingData() {
         viewModelScope.launch {
-            accept(UiAction.UpdateCurrentListingData(listingData))
+            accept(UiAction.UpdateCurrentListingData(""))
         }
     }
 
     data class UiState(
-        val listingData: ListingData
+        val listingData: String
     )
 
     sealed class UiAction {
-        data class UpdateCurrentListingData(val listingData: ListingData) : UiAction()
+        data class UpdateCurrentListingData(val listingData: String) : UiAction()
     }
 }

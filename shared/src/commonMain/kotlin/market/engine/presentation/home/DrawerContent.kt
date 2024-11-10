@@ -236,7 +236,6 @@ fun DrawerContent(
                         }
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                        .widthIn(max = 250.dp)
                         .wrapContentWidth(),
                     colors = NavigationDrawerItemDefaults.colors(
                         selectedContainerColor = colors.white,

@@ -14,11 +14,12 @@ import market.engine.core.constants.ThemeResources.colors
 @Composable
 actual fun SwipeRefreshContent(
     isRefreshing: Boolean,
+    modifier: Modifier,
     onRefresh: () -> Unit,
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier =  modifier,
     ) {
         AnimatedVisibility(
             modifier = Modifier.align(Alignment.Center),

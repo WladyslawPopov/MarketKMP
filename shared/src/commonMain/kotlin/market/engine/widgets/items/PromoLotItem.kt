@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,29 +12,21 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.util.printLogD
-import com.skydoves.landscapist.coil3.CoilImage
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.util.getImage
-import org.jetbrains.compose.resources.painterResource
+import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PromoLotItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
-
-    val imageLoadFailed = remember { mutableStateOf(false) }
-
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),
@@ -46,21 +37,10 @@ fun PromoLotItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (imageLoadFailed.value){
-                getImage(offer.images?.firstOrNull()?.urls?.mid?.content ?: "",200.dp)
-            }else{
-                CoilImage(
-                    imageModel = { offer.images?.firstOrNull()?.urls?.mid?.content },
-                    previewPlaceholder = painterResource(drawables.noImageOffer),
-                    failure = { e->
-
-                        imageLoadFailed.value = true
-                        printLogD("Coil", e.reason?.message)
-                    },
-                    modifier = Modifier.height(200.dp)
-                )
-            }
-
+            LoadImage(
+                url = offer.images?.firstOrNull()?.urls?.mid?.content ?: "",
+                size = 200.dp
+            )
             Spacer(modifier = Modifier.height(dimens.smallSpacer))
             Text(
                 text = offer.title ?: "",

@@ -8,6 +8,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -24,7 +25,7 @@ object KtorHttpClient {
         HttpResponseValidator {
             validateResponse { response ->
                 if (response.status.value >= 300) {
-//                    throw ServerErrorException().isNotSuccessfulServerResponse(response.bodyAsText(), response.status.value)
+                    throw ServerErrorException().isNotSuccessfulServerResponse(response.bodyAsText(), response.status.value)
                 }
             }
         }

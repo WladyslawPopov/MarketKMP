@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,9 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.skydoves.landscapist.coil3.CoilImage
 import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -35,9 +31,8 @@ import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
-import market.engine.core.util.getImage
-import market.engine.core.util.printLogD
 import market.engine.widgets.badges.DiscountBadge
+import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -49,9 +44,6 @@ fun ListingItemContent(
     isGrid : Boolean,
     onFavouriteClick: suspend (Offer) -> Boolean
 ) {
-    val imageLoadFailed = remember { mutableStateOf(false) }
-
-
     val imageUrl = when {
         offer.images?.isNotEmpty() == true -> offer.images.firstOrNull()?.urls?.small?.content
         offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
@@ -63,21 +55,10 @@ fun ListingItemContent(
             .padding(dimens.smallPadding).wrapContentSize(),
         contentAlignment = Alignment.TopStart
     ) {
-        if (imageLoadFailed.value) {
-            getImage(imageUrl, if(isGrid) 200.dp else 160.dp)
-        } else {
-            CoilImage(
-                modifier = Modifier.size(if(isGrid) 200.dp else 160.dp),
-                imageModel = {
-                    imageUrl
-                },
-                previewPlaceholder = painterResource(drawables.noImageOffer),
-                failure = { e ->
-                    imageLoadFailed.value = true
-                    printLogD("Coil", e.reason?.message)
-                }
-            )
-        }
+        LoadImage(
+            url = imageUrl ?: "",
+            size = if(isGrid) 200.dp else 160.dp
+        )
 
         if (offer.videoUrls?.isNotEmpty() == true) {
             IconButton(

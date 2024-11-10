@@ -1,27 +1,14 @@
 package market.engine.presentation.main
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Surface
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.arkivanov.decompose.value.MutableValue
-import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
@@ -29,17 +16,12 @@ import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.core.navigation.children.ChildMain
 import market.engine.core.navigation.configs.MainConfig
-import market.engine.core.network.networkObjects.User
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.basket.BasketNavigation
 import market.engine.presentation.category.CategoryNavigation
 import market.engine.presentation.favorites.FavoritesNavigation
-import market.engine.presentation.home.DrawerContent
 import market.engine.presentation.home.HomeNavigation
 import market.engine.presentation.profile.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
-import market.engine.widgets.bars.getRailNavBar
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -51,10 +33,6 @@ fun MainContent(
     modifier: Modifier = Modifier
 ) {
     val childStack by component.childMainStack.subscribeAsState()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
 
     val currentScreen = when (childStack.active.instance) {
         is ChildMain.HomeChildMain -> 0
@@ -108,32 +86,11 @@ fun MainContent(
         )
     )
 
-    fun openMenu(){
-        scope.launch {
-            drawerState.open()
-        }
-    }
-
-    bottomBar = {
-        if (!showNavigationRail) {
-            getBottomNavBar(component, modifier, listItems, currentScreen)
-        } else {
-            getRailNavBar(
-                component,
-                modifier,
-                currentScreen,
-                listItems
-            ) { openMenu() }
-        }
-    }
+    bottomBar = { getBottomNavBar(component, modifier, listItems, currentScreen) }
 
     Children(
         stack = childStack,
         modifier = modifier
-//                    .then(
-//                        if (showNavigationRail) modifier.padding(start = 82.dp)
-//                        else modifier.padding(innerPadding)
-//                    )
             .fillMaxSize(),
         animation = stackAnimation(fade())
     ) { child ->
@@ -150,7 +107,6 @@ fun MainContent(
                 ProfileNavigation(modifier, component.childProfileStack)
         }
     }
-
 }
 
 fun navigateFromBottomBar(index: Int, component: MainComponent){
@@ -162,8 +118,3 @@ fun navigateFromBottomBar(index: Int, component: MainComponent){
         4 -> component.navigateToBottomItem(MainConfig.Profile)
     }
 }
-
-
-
-
-

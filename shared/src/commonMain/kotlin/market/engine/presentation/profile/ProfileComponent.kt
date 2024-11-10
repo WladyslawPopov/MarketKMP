@@ -1,24 +1,20 @@
 package market.engine.presentation.profile
 
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.pop
-import market.engine.core.navigation.configs.ProfileConfig
-
 
 interface ProfileComponent {
 
-    fun onCloseClicked()
+    fun navigateToMyOffers()
 }
 
 class DefaultProfileComponent(
     componentContext: ComponentContext,
-    private val navigation: StackNavigation<ProfileConfig>
+    val selectMyOffers: () -> Unit
 ) : ProfileComponent, ComponentContext by componentContext {
 
-    // Omitted code
-
-    override fun onCloseClicked() {
-        navigation.pop()
+    override fun navigateToMyOffers() {
+        selectMyOffers()
     }
 }
+
+

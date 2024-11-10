@@ -14,6 +14,7 @@ import market.engine.core.constants.ThemeResources.colors
 @Composable
 actual fun SwipeRefreshContent(
     isRefreshing: Boolean,
+    modifier: Modifier,
     onRefresh:() -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -21,6 +22,7 @@ actual fun SwipeRefreshContent(
         state = rememberSwipeRefreshState(isRefreshing),
         onRefresh = { onRefresh() },
         content = content,
+        modifier = modifier,
         indicator = { state, trigger ->
             if (state.isRefreshing) {
                 Box(

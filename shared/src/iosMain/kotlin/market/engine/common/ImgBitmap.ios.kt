@@ -6,7 +6,13 @@ import org.jetbrains.skia.Image
 
 actual fun toImageBitmap(bitmap: ByteArray?): ImageBitmap? {
     return if (bitmap != null) {
-        Image.makeFromEncoded(bitmap).toComposeImageBitmap()
+        try {
+            Image.makeFromEncoded(bitmap).toComposeImageBitmap()
+        }catch (e : Exception){
+            println(e.message)
+            null
+        }
+
     } else {
         null
     }

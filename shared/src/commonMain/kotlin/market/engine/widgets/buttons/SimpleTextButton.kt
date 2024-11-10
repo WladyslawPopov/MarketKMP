@@ -32,7 +32,7 @@ fun SimpleTextButton(
             containerColor = backgroundColor
         ),
         shape = shape,
-        modifier = modifier.sizeIn(minWidth = 100.dp),
+        modifier = modifier,
         enabled = enabled
     ) {
         Text(

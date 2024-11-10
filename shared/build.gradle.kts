@@ -48,17 +48,14 @@ kotlin {
             implementation(libs.multiplatform.settings.datastore)
 
             api(libs.koin.core)
+            implementation(libs.koin.coroutines)
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)
 
             implementation(libs.paging.compose.common)
-
-            implementation(libs.landscape.coil)
-
-            implementation(libs.coil3.network)
+            implementation(libs.coil.svg)
             implementation(libs.coil.compose)
-            implementation(libs.coil)
-
+            implementation(libs.coil.network.ktor3)
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.json)
@@ -67,8 +64,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
-
             implementation(libs.skiko)
+
         }
         val jvmMain by getting
         jvmMain.dependencies {
@@ -81,12 +78,10 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.native.driver)
             implementation(libs.ktor.client.darwin)
-            implementation(libs.ktor.ios)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
         }
         androidMain.dependencies {
-
             implementation(libs.android.driver)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -96,13 +91,7 @@ kotlin {
             implementation(libs.ktor.client.android)
 
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.androidx.datastore)
             implementation(libs.accompanist.permissions)
-
-            implementation(libs.coil3.svg)
-            implementation(libs.coil3.gif)
-            implementation(libs.coil3.video)
-
             implementation(libs.accompanist.swiperefresh)
         }
     }

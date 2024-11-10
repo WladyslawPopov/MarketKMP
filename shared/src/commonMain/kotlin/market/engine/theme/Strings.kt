@@ -7,10 +7,10 @@ interface Strings {
     val menuTitle: StringResource
     val homeTitle: StringResource
     val searchTitle: StringResource
-    val newLotTitle: StringResource
+    val createNewOfferTitle: StringResource
     val searchUsersSearch: StringResource
     val notificationTitle: StringResource
-    val mailTitle: StringResource
+    val messageTitle: StringResource
     val subcategories: StringResource
     val topOffersTitle: StringResource
     val proposalTitle: StringResource
@@ -167,4 +167,26 @@ interface Strings {
     val offerIdParameterName : StringResource
     val offerNameParameterName : StringResource
     val sellerLoginParameterName : StringResource
+    val myBidsTitle : StringResource
+    val myBidsSubTitle : StringResource
+    val proposalPriceTitle : StringResource
+    val proposalPriceSubTitle : StringResource
+    val myPurchasesTitle : StringResource
+    val myPurchasesSubTitle : StringResource
+    val myOffersTitle : StringResource
+    val myOffersSubTitle : StringResource
+    val mySalesTitle : StringResource
+    val mySalesSubTitle : StringResource
+    val messageSubTitle : StringResource
+    val myProfileTitle : StringResource
+    val myProfileSubTitle : StringResource
+    val profileSettingsTitle : StringResource
+    val profileSettingsSubTitle : StringResource
+    val myBalanceTitle : StringResource
+    val myBalanceSubTitle : StringResource
+    val ratingParameterName : StringResource
+    val vacationLabel : StringResource
+    val activeTab : StringResource
+    val inactiveTab : StringResource
+    val futureTab : StringResource
 }

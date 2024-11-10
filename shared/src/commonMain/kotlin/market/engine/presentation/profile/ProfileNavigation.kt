@@ -25,7 +25,8 @@ fun ProfileNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildProfile.ProfileChild -> ProfileContent(screen.component)
+            is ChildProfile.ProfileChild -> ProfileContent(screen.component, modifier)
+            is ChildProfile.MyOffersChild -> ProfileMyOffersNavigation(screen.component, modifier)
         }
     }
 }

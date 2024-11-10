@@ -23,25 +23,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.skydoves.landscapist.coil3.CoilImage
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
-import market.engine.core.util.getImage
-import market.engine.core.util.printLogD
 import market.engine.widgets.badges.DiscountBadge
+import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -69,9 +62,6 @@ fun FavItem(
         Column(
             modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
         ) {
-            // State to handle image load by Coil failure
-            var imageLoadFailed by remember { mutableStateOf(false) }
-
             // Determine the image URL
             val imageUrl = when {
                 offer.images?.isNotEmpty() == true -> offer.images.firstOrNull()?.urls?.small?.content
@@ -96,21 +86,10 @@ fun FavItem(
                         .padding(dimens.smallPadding),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    if (imageLoadFailed) {
-                        getImage(imageUrl, 160.dp)
-                    } else {
-                        CoilImage(
-                            modifier = Modifier.size(160.dp),
-                            imageModel = {
-                                imageUrl
-                            },
-                            previewPlaceholder = painterResource(drawables.noImageOffer),
-                            failure = { e ->
-                                imageLoadFailed = true
-                                printLogD("Coil", e.reason?.message)
-                            }
-                        )
-                    }
+                    LoadImage(
+                        url = imageUrl ?: "",
+                        size = 160.dp
+                    )
                 }
 
                 Column(

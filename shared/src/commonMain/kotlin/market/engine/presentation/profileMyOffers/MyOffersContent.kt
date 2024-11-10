@@ -1,4 +1,4 @@
-package market.engine.presentation.favorites
+package market.engine.presentation.profileMyOffers
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -14,8 +14,10 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,102 +32,103 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
-import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
+import market.engine.presentation.favorites.FavItem
 import market.engine.presentation.main.bottomBar
+import market.engine.presentation.profile.ProfileViewModel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
-import market.engine.widgets.bars.DeletePanel
-import market.engine.widgets.filterContents.InputsOfferFilterContent
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.grids.PagingList
+import org.koin.compose.currentKoinScope
+import org.koin.compose.koinInject
+import org.koin.compose.scope.rememberKoinScope
+import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.parameter.parametersOf
 import org.koin.mp.KoinPlatform
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FavoritesContent(
+fun MyOffersContent(
+    component: MyOffersComponent,
     modifier: Modifier,
-    component: FavoritesComponent,
 ) {
-    val modelState = component.model.subscribeAsState()
-    val favViewModel = modelState.value.favViewModel
-    val searchData = favViewModel.listingData.searchData.subscribeAsState()
-    val listingData = favViewModel.listingData.data.subscribeAsState()
-    val data = favViewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val model by component.model.subscribeAsState()
+    val viewModel = model.viewModel
+
+    val searchData = viewModel.listingData.searchData.subscribeAsState()
+    val listingData = viewModel.listingData.data.subscribeAsState()
+    val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = favViewModel.firstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset = favViewModel.firstVisibleItemScrollOffset
+        initialFirstVisibleItemIndex = viewModel.firstVisibleItemIndex,
+        initialFirstVisibleItemScrollOffset = viewModel.firstVisibleItemScrollOffset
     )
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(favViewModel.bottomSheetState.value)
+        bottomSheetState = rememberBottomSheetState(viewModel.bottomSheetState.value)
     )
-    val selectFav = remember { favViewModel.selectFav }
-    val activeFiltersType = remember { favViewModel.activeFiltersType }
+    val activeFiltersType = remember { viewModel.activeFiltersType }
 
-    val isHideContent = remember {mutableStateOf(favViewModel.isHideContent.value) }
+    // Локальные состояния
+    val isHideContent = remember { mutableStateOf(viewModel.isHideContent.value) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
-    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-    var error : (@Composable () -> Unit)? = null
-    var noItem : (@Composable () -> Unit)? = null
+    val isLoading: State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+    var error: (@Composable () -> Unit)? = null
+    var noItem: (@Composable () -> Unit)? = null
 
+    // Размер экрана
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
-    val userRepository : UserRepository = KoinPlatform.getKoin().get()
 
+    // Репозиторий пользователя
+    val userRepository: UserRepository = koinInject()
+
+    //val isFirstSetup = remember { mutableStateOf(viewModel.isFirstSetUp.value) }
+
+    // Обработка изменений прокрутки
     LaunchedEffect(scrollState) {
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            favViewModel.firstVisibleItemIndex = index
-            favViewModel.firstVisibleItemScrollOffset = offset
+            viewModel.firstVisibleItemIndex = index
+            viewModel.firstVisibleItemScrollOffset = offset
         }
     }
 
-    LaunchedEffect(activeFiltersType){
-        snapshotFlow {
-            activeFiltersType.value
-        }.collect {
-            favViewModel.activeFiltersType.value = it
+    // Обработка изменений типа фильтров
+    LaunchedEffect(activeFiltersType) {
+        snapshotFlow { activeFiltersType.value }.collect {
+            viewModel.activeFiltersType.value = it
         }
     }
 
-    LaunchedEffect(selectFav){
-        snapshotFlow {
-            selectFav
-        }.collect {
-            favViewModel.selectFav = it
-        }
-    }
-
-    LaunchedEffect(searchData){
-        if (searchData.value.isRefreshing && scaffoldState.bottomSheetState.isCollapsed) {
-            searchData.value.isRefreshing = false
-            if (listingData.value.filters == null) {
-                listingData.value.filters = arrayListOf()
-                OfferFilters.filtersFav.forEach {
-                    listingData.value.filters?.add(it.copy())
-                }
+    // Инициализация и обновление данных
+    LaunchedEffect(searchData) {
+        if(data.itemCount > 0) {
+            if (searchData.value.isRefreshing && scaffoldState.bottomSheetState.isCollapsed) {
+                searchData.value.isRefreshing = false
+                component.onRefresh()
             }
+        }else{
             component.onRefresh()
         }
     }
 
+    // Обработка состояния нижнего листа
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
-                favViewModel.bottomSheetState.value = sheetValue
+                viewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
                         component.onRefresh()
@@ -149,7 +152,6 @@ fun FavoritesContent(
                     }
                 }
             }
-
             refresh is LoadStateError -> {
                 isHideContent.value = true
                 error = {
@@ -169,13 +171,10 @@ fun FavoritesContent(
         modifier = modifier,
         isLoading = isLoading,
         topBar = {
-            FavoritesAppBar(
-                FavScreenType.FAVORITES,
-                modifier
-            ) { type ->
-                if (type == FavScreenType.SUBSCRIBED) {
-                    component.goToSubscribes()
-                }
+            ProfileMyOffersAppBar(
+                model.type,
+            ) {
+                component.navigateTo(it)
             }
         },
         bottomBar = bottomBar,
@@ -207,55 +206,37 @@ fun FavoritesContent(
                                 listingData,
                                 scaffoldState,
                                 LotsType.FAVORITES,
-                                scope,
+                                coroutineScope,
                             )
                         }
-
                         "sorting" -> {
                             SortingListingContent(
                                 isRefreshingFromFilters,
                                 listingData,
                                 scaffoldState,
-                                scope,
+                                coroutineScope,
                             )
                         }
                     }
                 },
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-
-                    if (selectFav.isNotEmpty()) {
-                        DeletePanel(
-                            selectFav.size,
-                            scrollState = scrollState,
-                            onCancel = {
-                                selectFav.clear()
-                            },
-                            onDelete = {
-                                selectFav.clear()
-                            }
-                        )
-                    }
-
                     FiltersBar(
                         listingData,
                         searchData,
                         onChangeTypeList = {
-                            favViewModel.settings.setSettingValue("listingType", it)
+                            viewModel.settings.setSettingValue("listingType", it)
                             component.onRefresh()
                         },
                         onFilterClick = {
                             activeFiltersType.value = "filters"
-                            scope.launch {
-                                scaffoldState.bottomSheetState.expand()
+                            coroutineScope.launch {
                                 scaffoldState.bottomSheetState.expand()
                             }
-
                         },
                         onSortClick = {
                             activeFiltersType.value = "sorting"
-                            scope.launch {
-                                scaffoldState.bottomSheetState.expand()
+                            coroutineScope.launch {
                                 scaffoldState.bottomSheetState.expand()
                             }
                         },
@@ -283,16 +264,12 @@ fun FavoritesContent(
                                         FavItem(
                                             offer,
                                             onSelectionChange = { isSelect ->
-                                                if (isSelect) {
-                                                    selectFav.add(offer.id)
-                                                } else {
-                                                    selectFav.remove(offer.id)
-                                                }
+                                                // Обработка выбора
                                             },
                                             onMenuClick = {
-
+                                                // Обработка клика по меню
                                             },
-                                            isSelected = selectFav.contains(offer.id),
+                                            isSelected = false,
                                         ) {
                                             component.goToOffer(offer)
                                         }
