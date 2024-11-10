@@ -39,7 +39,6 @@ import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
-import market.engine.presentation.main.bottomBar
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -178,7 +177,6 @@ fun FavoritesContent(
                 }
             }
         },
-        bottomBar = bottomBar,
         onRefresh = {
             if (scaffoldState.bottomSheetState.isCollapsed)
                 component.onRefresh()

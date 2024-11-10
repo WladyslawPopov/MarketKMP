@@ -46,6 +46,8 @@ interface MainComponent {
 
     val profileData : ProfileBaseFilters
 
+    val mainViewModel: MainViewModel
+
     data class ModelNavigation(
         val homeNavigation : StackNavigation<HomeConfig>,
         val categoryNavigation : StackNavigation<CategoryConfig>,

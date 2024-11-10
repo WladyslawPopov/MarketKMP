@@ -3,7 +3,6 @@ package market.engine.presentation.profile
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import market.engine.core.types.LotsType
 import market.engine.presentation.main.MainComponent

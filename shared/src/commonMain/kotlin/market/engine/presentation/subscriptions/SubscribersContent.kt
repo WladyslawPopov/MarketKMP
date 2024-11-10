@@ -33,8 +33,6 @@ import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.presentation.favorites.FavoritesAppBar
-import market.engine.presentation.main.bottomBar
-import market.engine.widgets.bars.FiltersBar
 import org.koin.mp.KoinPlatform
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -131,7 +129,6 @@ fun SubscribesContent(
                 }
             }
         },
-        bottomBar = bottomBar,
         onRefresh = {
             component.onRefresh()
         },

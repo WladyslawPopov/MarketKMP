@@ -40,8 +40,6 @@ import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.presentation.favorites.FavItem
-import market.engine.presentation.main.bottomBar
-import market.engine.presentation.profile.ProfileViewModel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -177,7 +175,6 @@ fun MyOffersContent(
                 component.navigateTo(it)
             }
         },
-        bottomBar = bottomBar,
         onRefresh = {
             if (scaffoldState.bottomSheetState.isCollapsed)
                 component.onRefresh()

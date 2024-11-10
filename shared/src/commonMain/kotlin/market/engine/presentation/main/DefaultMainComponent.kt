@@ -62,13 +62,15 @@ class DefaultMainComponent(
     deepLink: DeepLink?,
     val goToLoginSelected: () -> Unit,
 
-) : MainComponent, ComponentContext by componentContext 
+    ) : MainComponent, ComponentContext by componentContext
 {
     override val categoryData: CategoryBaseFilters = getKoin().get()
     private val categoryStack = categoryData.categoryStack
     override val favoritesData: FavBaseFilters = getKoin().get()
     private val favoritesStack = favoritesData.favStack
     override val profileData: ProfileBaseFilters = getKoin().get()
+
+    override val mainViewModel: MainViewModel = getKoin().get()
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(

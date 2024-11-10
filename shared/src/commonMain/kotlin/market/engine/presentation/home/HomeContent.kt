@@ -24,7 +24,6 @@ import market.engine.core.items.TopCategory
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
-import market.engine.presentation.main.bottomBar
 import market.engine.widgets.rows.CategoryList
 import market.engine.widgets.rows.FooterRow
 import market.engine.widgets.grids.GridPopularCategory
@@ -168,7 +167,6 @@ fun HomeContent(
         },
         drawerState = drawerState,
         topBar = { HomeAppBar(modifier, showNavigationRail) { openMenu() } },
-        bottomBar = bottomBar,
         onRefresh = { component.onRefresh() },
         error = error
     ) {

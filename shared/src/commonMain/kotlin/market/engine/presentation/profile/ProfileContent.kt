@@ -42,7 +42,6 @@ import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.core.repositories.UserRepository
 import market.engine.presentation.base.BaseContent
-import market.engine.presentation.main.bottomBar
 import market.engine.presentation.profileMyOffers.MyOffersContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.exceptions.LoadImage
@@ -178,7 +177,6 @@ fun ProfileContent(
         modifier = modifier,
         isLoading = isLoading,
         showVerticalScrollbarState = scrollState,
-        bottomBar = bottomBar,
         onRefresh = {
             userRepository.updateToken()
             userRepository.updateUserInfo(scope)

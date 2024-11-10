@@ -36,7 +36,6 @@ import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
-import market.engine.presentation.main.bottomBar
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -119,7 +118,6 @@ fun CategoryContent(
                 }
             }
         },
-        bottomBar = bottomBar,
         onRefresh = { component.onRefresh() },
     ){
         Box(
