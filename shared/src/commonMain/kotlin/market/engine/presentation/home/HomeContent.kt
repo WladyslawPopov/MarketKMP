@@ -3,12 +3,16 @@ package market.engine.presentation.home
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,20 +21,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
+import market.engine.common.ScrollBarsProvider
+import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.items.TopCategory
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.presentation.base.BaseContent
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.rows.CategoryList
 import market.engine.widgets.rows.FooterRow
 import market.engine.widgets.grids.GridPopularCategory
 import market.engine.widgets.grids.GridPromoOffers
 import market.engine.widgets.bars.SearchBar
+import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.exceptions.onError
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HomeContent(
@@ -137,7 +146,9 @@ fun HomeContent(
     val searchData = component.globalData.listingData.searchData.subscribeAsState()
     val listingData = component.globalData.listingData.data.subscribeAsState()
 
-    val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+    val mainViewModel : MainViewModel = koinViewModel()
+
+    val errorContent: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(model.isError.value) { component.onRefresh() } }
     } else {
         null
@@ -149,96 +160,135 @@ fun HomeContent(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    fun openMenu(){
+    fun openMenu(state : DrawerValue) {
         scope.launch {
-            drawerState.open()
+            if (state == DrawerValue.Closed) {
+                drawerState.open()
+            }else{
+                drawerState.close()
+            }
         }
     }
 
-    BaseContent(
+    mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
+        HomeAppBar(
+            modifier,
+            showNavigationRail
+        ) { openMenu(drawerState.targetValue) }
+    })
+
+    mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {
+        floatingCreateOfferButton {
+
+        }
+    })
+
+    mainViewModel.sendEvent(UIMainEvent.UpdateError(
+        errorContent
+    ))
+
+    mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(null))
+
+    ModalNavigationDrawer(
         modifier = modifier,
-        isLoading = isLoading,
-        isShowFloatingButton = true,
-        showVerticalScrollbarState = scrollState,
-        drawerContent = {
-            DrawerContent(drawerState, scope, modifier){
-                component.goToLogin()
-            }
-        },
         drawerState = drawerState,
-        topBar = { HomeAppBar(modifier, showNavigationRail) { openMenu() } },
-        onRefresh = { component.onRefresh() },
-        error = error
+        drawerContent = { DrawerContent(drawerState, scope, modifier) {
+            component.goToLogin()
+        }
+    },
+        gesturesEnabled = drawerState.isOpen,
     ) {
-        AnimatedVisibility(
-            modifier = modifier,
-            visible = !isLoading.value,
-            enter = expandIn(),
-            exit = fadeOut()
+        SwipeRefreshContent(
+            isRefreshing = isLoading.value,
+            modifier = modifier.fillMaxSize(),
+            onRefresh = {
+                component.onRefresh()
+            },
         ) {
-            Column(
-                modifier = modifier.verticalScroll(scrollState)
+            AnimatedVisibility(
+                modifier = modifier,
+                visible = !isLoading.value,
+                enter = expandIn(),
+                exit = fadeOut()
             ) {
-                SearchBar(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                        .wrapContentHeight()
-                        .wrapContentWidth(),
-                    onSearchClick = {
-                        component.navigateToSearch()
+                Box(
+                    modifier.fillMaxSize()
+                ) {
+                    Column(
+                        modifier = modifier.verticalScroll(scrollState)
+                    ) {
+                        SearchBar(
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                .wrapContentHeight()
+                                .wrapContentWidth(),
+                            onSearchClick = {
+                                component.navigateToSearch()
+                            }
+                        )
+
+                        model.categories.collectAsState().value.let { categoryList ->
+                            CategoryList(
+                                categories = categoryList
+                            ) { category ->
+                                searchData.value.clear()
+                                searchData.value.clearCategory()
+                                searchData.value.searchCategoryID = category.id
+                                searchData.value.searchParentID = category.parentId
+                                searchData.value.searchCategoryName = category.name
+
+                                component.navigateToListing()
+                            }
+                        }
+                        val stringAllPromo = stringResource(strings.allPromoOffersBtn)
+                        model.promoOffer1.collectAsState().value.let { offers ->
+                            GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
+                                listingData.value.filters = EmptyFilters.getEmpty()
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                                    "promo_main_page"
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                                    stringAllPromo
+                                searchData.value.clear()
+                                searchData.value.clearCategory()
+                                component.navigateToListing()
+                            })
+                        }
+
+                        GridPopularCategory(listTopCategory) { topCategory ->
+                            searchData.value.clear()
+                            searchData.value.clearCategory()
+                            searchData.value.searchCategoryID = topCategory.id
+                            searchData.value.searchParentID = topCategory.parentId
+                            searchData.value.searchCategoryName = topCategory.name
+                            searchData.value.searchParentName = topCategory.parentName
+                            component.navigateToListing()
+                        }
+
+                        model.promoOffer2.collectAsState().value.let { offers ->
+                            GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
+                                listingData.value.filters = EmptyFilters.getEmpty()
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                                    "promo_main_page"
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                                    stringAllPromo
+                                searchData.value.clear()
+                                searchData.value.clearCategory()
+                                component.navigateToListing()
+                            })
+                        }
+                        FooterRow(listFooterItem)
                     }
-                )
 
-                model.categories.collectAsState().value.let { categoryList ->
-                    CategoryList(
-                        categories = categoryList
-                    ) { category ->
-                        searchData.value.clear()
-                        searchData.value.clearCategory()
-                        searchData.value.searchCategoryID = category.id
-                        searchData.value.searchParentID = category.parentId
-                        searchData.value.searchCategoryName = category.name
 
-                        component.navigateToListing()
-                    }
+                    ScrollBarsProvider().getVerticalScrollbar(
+                        scrollState,
+                        modifier
+                            .align(Alignment.CenterEnd)
+                            .fillMaxHeight()
+                    )
                 }
-                val stringAllPromo = stringResource(strings.allPromoOffersBtn)
-                model.promoOffer1.collectAsState().value.let { offers ->
-                    GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                        listingData.value.filters = EmptyFilters.getEmpty()
-                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
-                            "promo_main_page"
-                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                            stringAllPromo
-                        searchData.value.clear()
-                        searchData.value.clearCategory()
-                        component.navigateToListing()
-                    })
-                }
-
-                GridPopularCategory(listTopCategory) { topCategory ->
-                    searchData.value.clear()
-                    searchData.value.clearCategory()
-                    searchData.value.searchCategoryID = topCategory.id
-                    searchData.value.searchParentID = topCategory.parentId
-                    searchData.value.searchCategoryName = topCategory.name
-                    searchData.value.searchParentName = topCategory.parentName
-                    component.navigateToListing()
-                }
-
-                model.promoOffer2.collectAsState().value.let { offers ->
-                    GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                        listingData.value.filters = EmptyFilters.getEmpty()
-                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
-                            "promo_main_page"
-                        listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                            stringAllPromo
-                        searchData.value.clear()
-                        searchData.value.clearCategory()
-                        component.navigateToListing()
-                    })
-                }
-                FooterRow(listFooterItem)
             }
         }
     }
 }
+
+

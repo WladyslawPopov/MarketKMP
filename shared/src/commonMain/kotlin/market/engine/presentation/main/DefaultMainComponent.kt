@@ -64,13 +64,13 @@ class DefaultMainComponent(
 
     ) : MainComponent, ComponentContext by componentContext
 {
-    override val categoryData: CategoryBaseFilters = getKoin().get()
-    private val categoryStack = categoryData.categoryStack
-    override val favoritesData: FavBaseFilters = getKoin().get()
-    private val favoritesStack = favoritesData.favStack
-    override val profileData: ProfileBaseFilters = getKoin().get()
+    override val categoryData = MutableValue<CategoryBaseFilters>(getKoin().get())
+    private val categoryStack = categoryData.value.categoryStack
+    override val favoritesData = MutableValue<FavBaseFilters>(getKoin().get())
+    private val favoritesStack = favoritesData.value.favStack
+    override val profileData = MutableValue<ProfileBaseFilters>(getKoin().get())
 
-    override val mainViewModel: MainViewModel = getKoin().get()
+    override val mainViewModel = MutableValue<MainViewModel>(getKoin().get())
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
@@ -192,9 +192,9 @@ class DefaultMainComponent(
                 navigateToBottomItem(MainConfig.Profile)
             }
             is DeepLink.Listing -> {
-                categoryData.listingData.searchData.value.clear()
-                categoryData.listingData.searchData.value.userSearch = true
-                categoryData.listingData.searchData.value.userID = deepLink.ownerId
+                categoryData.value.listingData.searchData.value.clear()
+                categoryData.value.listingData.searchData.value.userSearch = true
+                categoryData.value.listingData.searchData.value.userID = deepLink.ownerId
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
                 navigateToBottomItem(MainConfig.Category)
             }

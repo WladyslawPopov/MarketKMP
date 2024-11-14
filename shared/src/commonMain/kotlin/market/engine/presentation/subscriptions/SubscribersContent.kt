@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
+import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.FavScreenType
@@ -33,9 +34,12 @@ import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.presentation.favorites.FavoritesAppBar
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
+import market.engine.presentation.profileMyOffers.ProfileMyOffersAppBar
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.mp.KoinPlatform
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SubscribesContent(
     modifier: Modifier,
@@ -59,8 +63,8 @@ fun SubscribesContent(
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
     val isLoading : State<Boolean> = rememberUpdatedState(false)
-//    var error : (@Composable () -> Unit)? = null
-//    var noItem : (@Composable () -> Unit)? = null
+    var error : (@Composable () -> Unit)? = null
+    var noItem : (@Composable () -> Unit)? = null
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
@@ -115,11 +119,10 @@ fun SubscribesContent(
 //            }
 //        }
 //    }
+    val mainViewModel : MainViewModel = koinViewModel()
 
-    BaseContent(
-        modifier = modifier,
-        isLoading = isLoading,
-        topBar = {
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
             FavoritesAppBar(
                 FavScreenType.SUBSCRIBED,
                 modifier
@@ -128,9 +131,26 @@ fun SubscribesContent(
                     component.goToFavorites()
                 }
             }
-        },
+        }
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateFloatingActionButton {}
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(error)
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateNotFound(noItem)
+    )
+    SwipeRefreshContent(
+        isRefreshing = isLoading.value,
+        modifier = modifier.fillMaxSize(),
         onRefresh = {
-            component.onRefresh()
+            if (scaffoldState.bottomSheetState.isCollapsed)
+                component.onRefresh()
         },
     ) {
         AnimatedVisibility(

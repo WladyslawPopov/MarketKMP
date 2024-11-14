@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun BasketContent(
-    component: market.engine.presentation.basket.BasketComponent,
+    component: BasketComponent,
 ) {
     Box(
         contentAlignment = Alignment.Center,

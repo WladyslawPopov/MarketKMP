@@ -100,7 +100,7 @@ fun LoginContent(
                 )
                 val events = mapOf(
                     "login_type" to "email",
-                    "login_result" to "fail",
+                    "login_result" to "success",
                     "login_email" to emailTextValue.value.text
                 )
                 analyticsHelper.reportEvent("login_success",events)
@@ -128,8 +128,6 @@ fun LoginContent(
 
     BaseContent(
         modifier = modifier,
-        isLoading = isLoading,
-        showVerticalScrollbarState = scrollState,
         topBar = {
             LoginAppBar(
                 title = "",
@@ -139,8 +137,7 @@ fun LoginContent(
                 }
             )
         },
-        toastItem = toastItem,
-        onRefresh = {  },
+        toastItem = toastItem.value,
         error = error
     ) {
         Box(

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
@@ -29,27 +28,27 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
+import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.network.ServerErrorException
-import market.engine.core.repositories.UserRepository
 import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.presentation.base.BaseContent
+import market.engine.presentation.home.HomeAppBar
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.bars.DeletePanel
-import market.engine.widgets.filterContents.InputsOfferFilterContent
+import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.grids.PagingList
-import org.koin.mp.KoinPlatform
+import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FavoritesContent(
     modifier: Modifier,
@@ -72,7 +71,7 @@ fun FavoritesContent(
     val selectFav = remember { favViewModel.selectFav }
     val activeFiltersType = remember { favViewModel.activeFiltersType }
 
-    val isHideContent = remember {mutableStateOf(favViewModel.isHideContent.value) }
+    val isHideContent = remember { mutableStateOf(favViewModel.isHideContent.value) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
@@ -81,7 +80,8 @@ fun FavoritesContent(
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
-    val userRepository : UserRepository = KoinPlatform.getKoin().get()
+
+    val mainViewModel : MainViewModel = koinViewModel()
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
@@ -164,19 +164,28 @@ fun FavoritesContent(
         }
     }
 
-    BaseContent(
-        modifier = modifier,
-        isLoading = isLoading,
-        topBar = {
-            FavoritesAppBar(
-                FavScreenType.FAVORITES,
-                modifier
-            ) { type ->
-                if (type == FavScreenType.SUBSCRIBED) {
-                    component.goToSubscribes()
-                }
+    mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
+        FavoritesAppBar(
+            FavScreenType.FAVORITES,
+            modifier
+        ) { type ->
+            if (type == FavScreenType.SUBSCRIBED) {
+                component.goToSubscribes()
             }
-        },
+        }
+    })
+
+    mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {})
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(error)
+    )
+
+    mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(noItem))
+
+    SwipeRefreshContent(
+        isRefreshing = isLoading.value,
+        modifier = modifier.fillMaxSize(),
         onRefresh = {
             if (scaffoldState.bottomSheetState.isCollapsed)
                 component.onRefresh()

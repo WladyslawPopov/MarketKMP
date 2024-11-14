@@ -3,7 +3,6 @@ package market.engine.presentation.profile
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,53 +24,51 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.arkivanov.decompose.extensions.compose.pages.ChildPages
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
-import market.engine.core.repositories.UserRepository
-import market.engine.presentation.base.BaseContent
-import market.engine.presentation.profileMyOffers.MyOffersContent
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.exceptions.onError
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ProfileContent(
     component: ProfileComponent,
     modifier: Modifier
 ) {
-//    val modelState = component.model.subscribeAsState()
-//    val model = modelState.value
-//    val profileViewModel = model.profileViewModel
-//    val isLoading = profileViewModel.isShowProgress.collectAsState()
-//    val err = profileViewModel.errorMessage.collectAsState()
     val scrollState = rememberScrollState()
     val userInfo = UserData.userInfo
-    val userRepository : UserRepository = koinInject()
-    val scope = rememberCoroutineScope()
-    val isLoading = remember { mutableStateOf(false) }
-//
-//    val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-//        { onError(err.value) {  } }
-//    } else {
-//        null
-//    }
+
+    val mainViewModel : MainViewModel = koinViewModel()
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
+            {}
+        }
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateFloatingActionButton {}
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(null)
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateNotFound(null)
+    )
 
     val list = listOf(
         NavigationItem(
@@ -173,181 +170,168 @@ fun ProfileContent(
         ),
     )
 
-    BaseContent(
+    AnimatedVisibility(
         modifier = modifier,
-        isLoading = isLoading,
-        showVerticalScrollbarState = scrollState,
-        onRefresh = {
-            userRepository.updateToken()
-            userRepository.updateUserInfo(scope)
-        },
-        error = null
+        visible = true,
+        enter = expandIn(),
+        exit = fadeOut()
     ) {
-        AnimatedVisibility(
-            modifier = modifier,
-            visible = true,
-            enter = expandIn(),
-            exit = fadeOut()
-        ) {
-            Column {
-                Row(
-                    modifier = modifier.fillMaxWidth().padding(dimens.smallPadding),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.CenterHorizontally),
-                ) {
-                    val image = userInfo?.avatar?.thumb?.content
+        Column {
+            Row(
+                modifier = modifier.fillMaxWidth().padding(dimens.smallPadding),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.CenterHorizontally),
+            ) {
+                val image = userInfo?.avatar?.thumb?.content
 
-                    Card(
-                        modifier = Modifier.padding(dimens.smallPadding),
-                        shape = MaterialTheme.shapes.extraLarge
-                    ){
-                        if (image != null) {
-                            LoadImage(
-                                url = image,
-                                size = 60.dp
-                            )
-                        } else {
-                            Icon(
-                                painter = painterResource(drawables.profileIcon),
-                                contentDescription = "",
-                                tint = colors.black,
-                                modifier = Modifier.size(dimens.mediumIconSize)
-                            )
-                        }
-                    }
-
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        Row {
-                            TitleText(
-                                text = userInfo?.login.toString()
-                            )
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            modifier = Modifier.padding(dimens.smallPadding)
-                        ) {
-                            Text(
-                                stringResource(strings.ratingParameterName)
-                            )
-
-                            TitleText(
-                                text = userInfo?.rating.toString(),
-                                color = colors.ratingBlue
-                            )
-
-                            if (userInfo?.isVerified == true) {
-                                Image(
-                                    painterResource(drawables.verifySellersIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.smallIconSize)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(dimens.smallPadding))
-
-                            val imageRating = UserData.userInfo?.ratingBadge?.imageUrl
-
-                            if (imageRating != null) {
-                                LoadImage(
-                                    url = imageRating,
-                                    size = 30.dp
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(dimens.smallPadding))
-
-                            SimpleTextButton(
-                                text = "id",
-                                shape = MaterialTheme.shapes.large
-                            ){
-
-                            }
-                        }
+                Card(
+                    modifier = Modifier.padding(dimens.smallPadding),
+                    shape = MaterialTheme.shapes.extraLarge
+                ){
+                    if (image != null) {
+                        LoadImage(
+                            url = image,
+                            size = 60.dp
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(drawables.profileIcon),
+                            contentDescription = "",
+                            tint = colors.black,
+                            modifier = Modifier.size(dimens.mediumIconSize)
+                        )
                     }
                 }
 
                 Column(
-                    modifier = Modifier.fillMaxWidth()
-                        .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    list.forEachIndexed { _, item ->
-                        Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
-                        NavigationDrawerItem(
-                            label = {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    Column(
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.Start
-                                    ){
-                                        Text(
-                                            item.title,
-                                            color = colors.black,
-                                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                            lineHeight = dimens.largeText,
-                                        )
-                                        if (item.subtitle != null) {
-                                            Text(
-                                                item.subtitle,
-                                                color = colors.steelBlue,
-                                                fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                                lineHeight = dimens.largeText
-                                            )
-                                        }
-                                    }
-
-                                }
-                            },
-                            onClick = item.onClick,
-                            icon = {
-                                Icon(
-                                    painter = painterResource(item.icon),
-                                    contentDescription = item.title,
-                                    modifier = Modifier.size(dimens.smallIconSize),
-                                    tint = item.tint
-                                )
-                            },
-                            badge = {
-                                if (item.badgeCount != null) {
-                                    Badge {
-                                        Text(text = item.badgeCount.toString())
-                                    }
-                                }
-
-                                if (item.hasNews) {
-                                    Badge {  }
-                                }
-                            },
-                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                            colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = colors.white,
-                                unselectedContainerColor = colors.white,
-                                selectedIconColor = colors.textA0AE,
-                                unselectedIconColor = colors.textA0AE,
-                                selectedTextColor = colors.black,
-                                selectedBadgeColor = colors.black,
-                                unselectedTextColor = colors.black,
-                                unselectedBadgeColor = colors.black
-                            ),
-                            shape = MaterialTheme.shapes.small,
-                            selected = true
+                    Row {
+                        TitleText(
+                            text = userInfo?.login.toString()
                         )
                     }
-                    Spacer(modifier = Modifier.height(dimens.mediumSpacer))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.padding(dimens.smallPadding)
+                    ) {
+                        Text(
+                            stringResource(strings.ratingParameterName)
+                        )
+
+                        TitleText(
+                            text = userInfo?.rating.toString(),
+                            color = colors.ratingBlue
+                        )
+
+                        if (userInfo?.isVerified == true) {
+                            Image(
+                                painterResource(drawables.verifySellersIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                        val imageRating = UserData.userInfo?.ratingBadge?.imageUrl
+
+                        if (imageRating != null) {
+                            LoadImage(
+                                url = imageRating,
+                                size = 30.dp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                        SimpleTextButton(
+                            text = "id",
+                            shape = MaterialTheme.shapes.large
+                        ){
+
+                        }
+                    }
                 }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                list.forEachIndexed { _, item ->
+                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+                    NavigationDrawerItem(
+                        label = {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.Start
+                                ){
+                                    Text(
+                                        item.title,
+                                        color = colors.black,
+                                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                        lineHeight = dimens.largeText,
+                                    )
+                                    if (item.subtitle != null) {
+                                        Text(
+                                            item.subtitle,
+                                            color = colors.steelBlue,
+                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                            lineHeight = dimens.largeText
+                                        )
+                                    }
+                                }
+
+                            }
+                        },
+                        onClick = item.onClick,
+                        icon = {
+                            Icon(
+                                painter = painterResource(item.icon),
+                                contentDescription = item.title,
+                                modifier = Modifier.size(dimens.smallIconSize),
+                                tint = item.tint
+                            )
+                        },
+                        badge = {
+                            if (item.badgeCount != null) {
+                                Badge {
+                                    Text(text = item.badgeCount.toString())
+                                }
+                            }
+
+                            if (item.hasNews) {
+                                Badge {  }
+                            }
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                        colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = colors.white,
+                            unselectedContainerColor = colors.white,
+                            selectedIconColor = colors.textA0AE,
+                            unselectedIconColor = colors.textA0AE,
+                            selectedTextColor = colors.black,
+                            selectedBadgeColor = colors.black,
+                            unselectedTextColor = colors.black,
+                            unselectedBadgeColor = colors.black
+                        ),
+                        shape = MaterialTheme.shapes.small,
+                        selected = true
+                    )
+                }
+                Spacer(modifier = Modifier.height(dimens.mediumSpacer))
             }
         }
     }
-
-
 }

@@ -10,11 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -31,29 +32,26 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
+import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.network.ServerErrorException
-import market.engine.core.repositories.UserRepository
 import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.presentation.base.BaseContent
 import market.engine.presentation.favorites.FavItem
+import market.engine.presentation.home.DrawerContent
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
+import market.engine.presentation.profile.ProfileDrawer
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.grids.PagingList
-import org.koin.compose.currentKoinScope
-import org.koin.compose.koinInject
-import org.koin.compose.scope.rememberKoinScope
-import org.koin.core.annotation.KoinExperimentalAPI
-import org.koin.core.parameter.parametersOf
-import org.koin.mp.KoinPlatform
+import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MyOffersContent(
     component: MyOffersComponent,
@@ -76,7 +74,6 @@ fun MyOffersContent(
     )
     val activeFiltersType = remember { viewModel.activeFiltersType }
 
-    // Локальные состояния
     val isHideContent = remember { mutableStateOf(viewModel.isHideContent.value) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
@@ -84,16 +81,23 @@ fun MyOffersContent(
     var error: (@Composable () -> Unit)? = null
     var noItem: (@Composable () -> Unit)? = null
 
-    // Размер экрана
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
+    val mainViewModel : MainViewModel = koinViewModel()
 
-    // Репозиторий пользователя
-    val userRepository: UserRepository = koinInject()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-    //val isFirstSetup = remember { mutableStateOf(viewModel.isFirstSetUp.value) }
+    fun openMenu(state : DrawerValue) {
+        scope.launch {
+            if (state == DrawerValue.Closed) {
+                drawerState.open()
+            }else{
+                drawerState.close()
+            }
+        }
+    }
 
-    // Обработка изменений прокрутки
     LaunchedEffect(scrollState) {
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
@@ -103,14 +107,37 @@ fun MyOffersContent(
         }
     }
 
-    // Обработка изменений типа фильтров
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
+            ProfileMyOffersAppBar(
+                model.type,
+                navigationClick = {
+                    component.navigateTo(it)
+                }
+            ) {
+                openMenu(drawerState.targetValue)
+            }
+        }
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateFloatingActionButton {}
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(error)
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateNotFound(noItem)
+    )
+
     LaunchedEffect(activeFiltersType) {
         snapshotFlow { activeFiltersType.value }.collect {
             viewModel.activeFiltersType.value = it
         }
     }
 
-    // Инициализация и обновление данных
     LaunchedEffect(searchData) {
         if(data.itemCount > 0) {
             if (searchData.value.isRefreshing && scaffoldState.bottomSheetState.isCollapsed) {
@@ -122,7 +149,6 @@ fun MyOffersContent(
         }
     }
 
-    // Обработка состояния нижнего листа
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
@@ -165,113 +191,118 @@ fun MyOffersContent(
         }
     }
 
-    BaseContent(
+    ModalNavigationDrawer(
         modifier = modifier,
-        isLoading = isLoading,
-        topBar = {
-            ProfileMyOffersAppBar(
-                model.type,
-            ) {
-                component.navigateTo(it)
+        drawerState = drawerState,
+        drawerContent = {
+            ProfileDrawer{
+
             }
         },
-        onRefresh = {
-            if (scaffoldState.bottomSheetState.isCollapsed)
-                component.onRefresh()
-        },
+        gesturesEnabled = drawerState.isOpen,
     ) {
-        AnimatedVisibility(
-            modifier = modifier,
-            visible = !isLoading.value,
-            enter = expandIn(),
-            exit = fadeOut()
+        SwipeRefreshContent(
+            isRefreshing = isLoading.value,
+            modifier = modifier.fillMaxSize(),
+            onRefresh = {
+                if (scaffoldState.bottomSheetState.isCollapsed)
+                    component.onRefresh()
+            },
         ) {
-            BottomSheetScaffold(
-                scaffoldState = scaffoldState,
-                modifier = Modifier.fillMaxSize(),
-                sheetContentColor = colors.primaryColor,
-                sheetBackgroundColor = colors.primaryColor,
-                contentColor = colors.primaryColor,
-                backgroundColor = colors.primaryColor,
-                sheetPeekHeight = 0.dp,
-                sheetGesturesEnabled = false,
-                sheetContent = {
-                    when (activeFiltersType.value) {
-                        "filters" -> {
-                            OfferFilterContent(
-                                isRefreshingFromFilters,
-                                listingData,
-                                scaffoldState,
-                                LotsType.FAVORITES,
-                                coroutineScope,
-                            )
-                        }
-                        "sorting" -> {
-                            SortingListingContent(
-                                isRefreshingFromFilters,
-                                listingData,
-                                scaffoldState,
-                                coroutineScope,
-                            )
-                        }
-                    }
-                },
+            AnimatedVisibility(
+                modifier = modifier,
+                visible = !isLoading.value,
+                enter = expandIn(),
+                exit = fadeOut()
             ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    FiltersBar(
-                        listingData,
-                        searchData,
-                        onChangeTypeList = {
-                            viewModel.settings.setSettingValue("listingType", it)
-                            component.onRefresh()
-                        },
-                        onFilterClick = {
-                            activeFiltersType.value = "filters"
-                            coroutineScope.launch {
-                                scaffoldState.bottomSheetState.expand()
-                            }
-                        },
-                        onSortClick = {
-                            activeFiltersType.value = "sorting"
-                            coroutineScope.launch {
-                                scaffoldState.bottomSheetState.expand()
-                            }
-                        },
-                        onRefresh = { component.onRefresh() }
-                    )
-
-                    if (error != null) {
-                        error!!()
-                    } else {
-                        if (noItem != null) {
-                            noItem!!()
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .animateContentSize()
-                            ) {
-                                PagingList(
-                                    state = scrollState,
-                                    data = data,
-                                    listingData = listingData,
-                                    searchData = searchData,
-                                    columns = if (isBigScreen) 2 else 1,
-                                    content = { offer ->
-                                        FavItem(
-                                            offer,
-                                            onSelectionChange = { isSelect ->
-                                                // Обработка выбора
-                                            },
-                                            onMenuClick = {
-                                                // Обработка клика по меню
-                                            },
-                                            isSelected = false,
-                                        ) {
-                                            component.goToOffer(offer)
-                                        }
-                                    }
+                BottomSheetScaffold(
+                    scaffoldState = scaffoldState,
+                    modifier = Modifier.fillMaxSize(),
+                    sheetContentColor = colors.primaryColor,
+                    sheetBackgroundColor = colors.primaryColor,
+                    contentColor = colors.primaryColor,
+                    backgroundColor = colors.primaryColor,
+                    sheetPeekHeight = 0.dp,
+                    sheetGesturesEnabled = false,
+                    sheetContent = {
+                        when (activeFiltersType.value) {
+                            "filters" -> {
+                                OfferFilterContent(
+                                    isRefreshingFromFilters,
+                                    listingData,
+                                    scaffoldState,
+                                    LotsType.FAVORITES,
+                                    coroutineScope,
                                 )
+                            }
+
+                            "sorting" -> {
+                                SortingListingContent(
+                                    isRefreshingFromFilters,
+                                    listingData,
+                                    scaffoldState,
+                                    coroutineScope,
+                                )
+                            }
+                        }
+                    },
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        FiltersBar(
+                            listingData,
+                            searchData,
+                            onChangeTypeList = {
+                                viewModel.settings.setSettingValue("listingType", it)
+                                component.onRefresh()
+                            },
+                            onFilterClick = {
+                                activeFiltersType.value = "filters"
+                                coroutineScope.launch {
+                                    scaffoldState.bottomSheetState.expand()
+                                }
+                            },
+                            onSortClick = {
+                                activeFiltersType.value = "sorting"
+                                coroutineScope.launch {
+                                    scaffoldState.bottomSheetState.expand()
+                                }
+                            },
+                            onRefresh = { component.onRefresh() }
+                        )
+
+                        if (error != null) {
+                            error!!()
+                        } else {
+                            if (noItem != null) {
+                                noItem!!()
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .animateContentSize()
+                                ) {
+                                    PagingList(
+                                        state = scrollState,
+                                        data = data,
+                                        listingData = listingData,
+                                        searchData = searchData,
+                                        columns = if (isBigScreen) 2 else 1,
+                                        content = { offer ->
+                                            FavItem(
+                                                offer,
+                                                onSelectionChange = { isSelect ->
+                                                    // Обработка выбора
+                                                },
+                                                onMenuClick = {
+                                                    // Обработка клика по меню
+                                                },
+                                                isSelected = false,
+                                            ) {
+                                                component.goToOffer(offer)
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

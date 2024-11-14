@@ -40,13 +40,13 @@ interface MainComponent {
 
     val myOffersPages: Value<ChildPages<*, MyOffersComponent>>
 
-    val categoryData : CategoryBaseFilters
+    val categoryData : Value<CategoryBaseFilters>
 
-    val favoritesData : FavBaseFilters
+    val favoritesData : Value<FavBaseFilters>
 
-    val profileData : ProfileBaseFilters
+    val profileData : Value<ProfileBaseFilters>
 
-    val mainViewModel: MainViewModel
+    val mainViewModel: Value<MainViewModel>
 
     data class ModelNavigation(
         val homeNavigation : StackNavigation<HomeConfig>,

@@ -1,14 +1,13 @@
 package market.engine.presentation.profile
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
+import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import market.engine.core.types.LotsType
 import market.engine.presentation.main.MainComponent
 import market.engine.presentation.profileMyOffers.MyOffersContent
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProfileMyOffersNavigation(
     component: MainComponent,
@@ -17,8 +16,8 @@ fun ProfileMyOffersNavigation(
 
     ChildPages(
         pages = component.myOffersPages,
+        scrollAnimation = PagesScrollAnimation.Default,
         onPageSelected = {
-
             when(it){
                 0 -> component.selectMyOfferPage(LotsType.MYLOT_ACTIVE)
                 1 -> component.selectMyOfferPage(LotsType.MYLOT_UNACTIVE)
@@ -28,10 +27,12 @@ fun ProfileMyOffersNavigation(
     ) { index, page ->
         when (index) {
             0 -> {
-                MyOffersContent(
-                    component = page,
-                    modifier = modifier
-                )
+                if (page.model.value.type == LotsType.MYLOT_ACTIVE) {
+                    MyOffersContent(
+                        component = page,
+                        modifier = modifier
+                    )
+                }
             }
 
             1 -> {
@@ -44,10 +45,12 @@ fun ProfileMyOffersNavigation(
             }
 
             2 -> {
-                MyOffersContent(
-                    component = page,
-                    modifier = modifier
-                )
+                if (page.model.value.type == LotsType.MYLOT_FUTURE) {
+                    MyOffersContent(
+                        component = page,
+                        modifier = modifier
+                    )
+                }
             }
         }
     }

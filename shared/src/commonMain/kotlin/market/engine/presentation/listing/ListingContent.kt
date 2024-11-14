@@ -4,13 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
@@ -31,6 +29,7 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
+import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
@@ -39,7 +38,9 @@ import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.presentation.base.BaseContent
+import market.engine.presentation.category.CategoryAppBar
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.grids.PagingList
@@ -48,9 +49,9 @@ import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.items.PromoLotItem
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.mp.KoinPlatform
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ListingContent(
     component: ListingComponent,
@@ -85,6 +86,8 @@ fun ListingContent(
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
     val userRepository : UserRepository = KoinPlatform.getKoin().get()
+
+    val mainViewModel : MainViewModel = koinViewModel()
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
@@ -154,10 +157,9 @@ fun ListingContent(
         }
     }
 
-    BaseContent(
-        modifier = modifier,
-        isLoading = isLoading,
-        topBar = {
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
             ListingAppBar(
                 searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
                 modifier,
@@ -168,9 +170,28 @@ fun ListingContent(
                     component.onBackClicked()
                 }
             )
-        },
+        }
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateFloatingActionButton {}
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(error)
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateNotFound(noItem)
+    )
+
+
+    SwipeRefreshContent(
+        isRefreshing = isLoading.value,
+        modifier = modifier.fillMaxSize(),
         onRefresh = {
-            component.onRefresh()
+            if (scaffoldState.bottomSheetState.isCollapsed)
+                component.onRefresh()
         },
     ) {
         AnimatedVisibility(

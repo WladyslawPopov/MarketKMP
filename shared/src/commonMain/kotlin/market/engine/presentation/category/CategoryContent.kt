@@ -29,17 +29,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
-import market.engine.presentation.base.BaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CategoryContent(
@@ -58,6 +61,8 @@ fun CategoryContent(
     val categories = categoryViewModel.responseCategory.collectAsState()
 
     val isShowNav = remember { mutableStateOf(false) }
+
+    val mainViewModel : MainViewModel = koinViewModel()
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
         { onError(isError.value) { component.onRefresh() } }
@@ -84,12 +89,8 @@ fun CategoryContent(
         null
     }
 
-    BaseContent(
-        modifier = modifier,
-        isLoading = isLoading,
-        error = error,
-        noFound = noItem,
-        topBar = {
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
             CategoryAppBar(
                 isShowNav,
                 modifier,
@@ -98,13 +99,13 @@ fun CategoryContent(
                     component.goToSearch()
                 },
                 onClearSearchClick = {
-                    if(!isLoading.value) {
+                    if (!isLoading.value) {
                         searchData.value.clearCategory()
                         component.onRefresh()
                     }
                 }
             ) {
-                if(!isLoading.value) {
+                if (!isLoading.value) {
                     if (searchData.value.searchCategoryID != 1L) {
                         isShowNav.value = true
                         searchData.value.searchCategoryID =
@@ -117,9 +118,28 @@ fun CategoryContent(
                     }
                 }
             }
+        }
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateFloatingActionButton {}
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(error)
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateNotFound(noItem)
+    )
+
+    SwipeRefreshContent(
+        isRefreshing = isLoading.value,
+        modifier = modifier.fillMaxSize(),
+        onRefresh = {
+            component.onRefresh()
         },
-        onRefresh = { component.onRefresh() },
-    ){
+    ) {
         Box(
             modifier = Modifier.fillMaxSize()
         ){

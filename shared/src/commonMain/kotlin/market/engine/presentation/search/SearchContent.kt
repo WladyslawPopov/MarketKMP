@@ -24,9 +24,16 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.common.SwipeRefreshContent
 import market.engine.core.baseFilters.SD
+import market.engine.core.constants.ThemeResources.strings
 import market.engine.widgets.exceptions.onError
 import market.engine.presentation.base.BaseContent
+import market.engine.presentation.listing.ListingAppBar
+import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.main.UIMainEvent
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchContent(
@@ -55,17 +62,12 @@ fun SearchContent(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
     var searchString by remember { mutableStateOf(TextFieldValue(searchData.value.searchString ?: "")) }
 
-    BaseContent(
-        modifier = modifier,
-        isLoading = isLoading,
-        error = error,
-        topBar = {
+    val mainViewModel : MainViewModel = koinViewModel()
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
             SearchAppBar(
                 modifier,
                 searchString,
@@ -82,11 +84,30 @@ fun SearchContent(
                 getSearchFilters(searchData, searchString.text)
                 component.onCloseClicked()
             }
-        },
+        }
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateFloatingActionButton {}
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(error)
+    )
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateNotFound(null)
+    )
+
+
+
+    SwipeRefreshContent(
+        isRefreshing = isLoading.value,
+        modifier = modifier.fillMaxSize(),
         onRefresh = {
             searchString = searchString.copy("")
             component.updateHistory("")
-        }
+        },
     ) {
         Column(
             modifier = modifier
