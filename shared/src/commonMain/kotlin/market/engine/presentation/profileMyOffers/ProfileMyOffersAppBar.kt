@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -53,6 +54,7 @@ fun ProfileMyOffersAppBar(
                 SimpleTextButton(
                     active,
                     backgroundColor = if (currentTab == LotsType.MYLOT_ACTIVE) colors.rippleColor else colors.white,
+                    fontSize = MaterialTheme.typography.bodySmall.fontSize
                 ){
                     navigationClick(LotsType.MYLOT_ACTIVE)
                 }
@@ -60,6 +62,7 @@ fun ProfileMyOffersAppBar(
                 SimpleTextButton(
                     inactive,
                     if (currentTab == LotsType.MYLOT_UNACTIVE) colors.rippleColor else colors.white,
+                    fontSize = MaterialTheme.typography.bodySmall.fontSize
                 ){
                     navigationClick(LotsType.MYLOT_UNACTIVE)
                 }
@@ -67,6 +70,7 @@ fun ProfileMyOffersAppBar(
                 SimpleTextButton(
                     future,
                     if (currentTab == LotsType.MYLOT_FUTURE) colors.rippleColor else colors.white,
+                    fontSize = MaterialTheme.typography.bodySmall.fontSize
                 ){
                     navigationClick(LotsType.MYLOT_FUTURE)
                 }

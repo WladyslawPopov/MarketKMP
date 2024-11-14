@@ -11,6 +11,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import market.engine.core.navigation.children.ChildProfile
+import market.engine.presentation.profileMyOffers.ProfileMyOffersNavigation
 
 @Composable
 fun ProfileNavigation(

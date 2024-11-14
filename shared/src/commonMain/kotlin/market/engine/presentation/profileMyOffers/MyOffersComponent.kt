@@ -7,6 +7,7 @@ import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.repositories.UserRepository
 import market.engine.core.types.LotsType
 import market.engine.presentation.profile.ProfileViewModel
 import org.koin.core.parameter.parametersOf
@@ -25,20 +26,19 @@ interface MyOffersComponent {
     fun onRefresh()
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
 
-    fun navigateTo(offerType: LotsType)
-
     fun onDestroy()
 }
 
 class DefaultMyOffersComponent(
     componentContext: ComponentContext,
     val type: LotsType = LotsType.MYLOT_ACTIVE,
-    val navigate : (LotsType) -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
     private val scopeId = "MyOffersScope_$type"
     // Create or get the Koin scope
     private val koinScope: Scope = getKoin().getScopeOrNull(scopeId)
         ?: getKoin().createScope(scopeId, named("MyOffersScope"))
+
+    private val userRepository = getKoin().get<UserRepository>()
 
     private val _model = MutableValue(
         MyOffersComponent.Model(
@@ -50,6 +50,9 @@ class DefaultMyOffersComponent(
     private val analyticsHelper = getKoin().get<AnalyticsHelper>()
 
     override fun onRefresh() {
+
+       userRepository.updateUserInfo(model.value.viewModel.viewModelScope)
+
         model.value.viewModel.updateCurrentListingData(type)
         analyticsHelper.reportEvent("open_my_offers", "")
     }
@@ -95,10 +98,6 @@ class DefaultMyOffersComponent(
                 eventParameters
             )
         }
-    }
-
-    override fun navigateTo(offerType: LotsType) {
-        navigate(offerType)
     }
 
     override fun onDestroy() {

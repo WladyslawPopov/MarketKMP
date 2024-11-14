@@ -131,10 +131,7 @@ class DefaultMainComponent(
     private fun itemMyOffers(config: MyOfferConfig,componentContext: ComponentContext): MyOffersComponent {
         return DefaultMyOffersComponent(
             componentContext = componentContext,
-            type = config.type,
-            navigate = { type ->
-                selectMyOfferPage(type)
-            }
+            type = config.type
         )
     }
 

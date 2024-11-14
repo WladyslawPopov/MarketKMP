@@ -24,6 +24,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -52,23 +53,25 @@ fun ProfileContent(
 
     val mainViewModel : MainViewModel = koinViewModel()
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateTopBar {
-            {}
-        }
-    )
+    LaunchedEffect(Unit) {
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateTopBar {
+                {}
+            }
+        )
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateFloatingActionButton {}
-    )
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateFloatingActionButton {}
+        )
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateError(null)
-    )
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateError(null)
+        )
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateNotFound(null)
-    )
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateNotFound(null)
+        )
+    }
 
     val list = listOf(
         NavigationItem(

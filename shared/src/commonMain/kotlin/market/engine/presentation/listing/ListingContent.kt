@@ -38,7 +38,6 @@ import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.presentation.category.CategoryAppBar
 import market.engine.presentation.main.MainViewModel
 import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.bars.FiltersBar
