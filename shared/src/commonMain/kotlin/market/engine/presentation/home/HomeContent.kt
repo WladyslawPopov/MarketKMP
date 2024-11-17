@@ -158,23 +158,13 @@ fun HomeContent(
     val showNavigationRail = windowClass == WindowSizeClass.Big
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    fun openMenu(state : DrawerValue) {
-        scope.launch {
-            if (state == DrawerValue.Closed) {
-                drawerState.open()
-            }else{
-                drawerState.close()
-            }
-        }
-    }
 
     mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
         HomeAppBar(
             modifier,
-            showNavigationRail
-        ) { openMenu(drawerState.targetValue) }
+            showNavigationRail,
+            drawerState
+        )
     })
 
     mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {
@@ -192,7 +182,7 @@ fun HomeContent(
     ModalNavigationDrawer(
         modifier = modifier,
         drawerState = drawerState,
-        drawerContent = { DrawerContent(drawerState, scope, modifier) {
+        drawerContent = { DrawerContent(drawerState, mainViewModel.viewModelScope, modifier) {
             component.goToLogin()
         }
     },

@@ -1,4 +1,4 @@
-package market.engine.presentation.favorites
+package market.engine.presentation.profileMyOffers
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,15 +32,14 @@ import market.engine.core.util.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.texts.DiscountText
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun FavItem(
+fun MyOffersItem(
     offer: Offer,
     onMenuClick: () -> Unit,
-    onSelectionChange: (Boolean) -> Unit,
-    isSelected: Boolean,
     onItemClick: () -> Unit
 ) {
     Card(
@@ -46,11 +47,7 @@ fun FavItem(
         shape = RoundedCornerShape(dimens.smallCornerRadius),
         modifier = Modifier
             .clickable {
-                if (!isSelected) {
-                    onItemClick()
-                }else{
-                    onSelectionChange(false)
-                }
+                onItemClick()
             }
     ) {
         Column(
@@ -63,11 +60,9 @@ fun FavItem(
                 else -> null
             }
 
-            HeaderFavItemSection(
+            HeaderMyOfferItem(
                 offer = offer,
                 onMenuClick = onMenuClick,
-                onSelectionChange = onSelectionChange,
-                isSelected = isSelected
             )
 
             Row(
@@ -156,18 +151,12 @@ fun FavItem(
                         verticalArrangement = Arrangement.Top,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-
-                        var typeString = ""
-                        var colorType = colors.titleTextColor
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             when (offer.saleType) {
                                 "buy_now" -> {
-                                    typeString = stringResource(strings.buyNow)
-                                    colorType = colors.buyNowColor
-
                                     Image(
                                         painter = painterResource(drawables.iconCountBoxes),
                                         contentDescription = stringResource(strings.numberOfItems),
@@ -179,19 +168,25 @@ fun FavItem(
                                         style = MaterialTheme.typography.bodySmall,
                                         modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
                                     )
-
+                                    var myLotWinner = stringResource(strings.noBuyer)
+                                    var color = colors.grayText
                                     if (offer.session != null && !offer.isPrototype) {
+                                        if (offer.currentQuantity < 2) {
+                                            if (offer.buyerData?.login != "" && offer.buyerData?.login != null) {
+                                                myLotWinner = offer.buyerData.login
+                                                color = colors.ratingBlue
+                                            }
+                                        }
+
                                         Text(
-                                            text = stringResource(strings.noBuyer),
+                                            text = myLotWinner,
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = colors.grayText
+                                            color = color
                                         )
                                     }
                                 }
 
-                                "ordinary_auction" -> {
-                                    typeString = stringResource(strings.ordinaryAuction)
-
+                                "auction_with_buy_now" , "ordinary_auction" -> {
                                     Image(
                                         painter = painterResource(drawables.iconGroup),
                                         contentDescription = stringResource(strings.numberOfBids),
@@ -205,41 +200,15 @@ fun FavItem(
                                     )
 
                                     var bids = stringResource(strings.noBids)
+                                    var color = colors.grayText
                                     if (offer.bids?.isNotEmpty() == true) {
                                         bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                                        color = colors.ratingBlue
                                     }
                                     Text(
                                         text = bids,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = colors.grayText
-                                    )
-                                }
-
-                                "auction_with_buy_now" -> {
-                                    typeString = stringResource(strings.blitzAuction)
-                                    colorType = colors.auctionWithBuyNow
-
-                                    Image(
-                                        painter = painterResource(drawables.iconGroup),
-                                        contentDescription = stringResource(strings.numberOfBids),
-                                        modifier = Modifier.size(dimens.smallIconSize),
-                                    )
-
-                                    Text(
-                                        text = offer.numParticipants.toString(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.padding(horizontal = dimens.smallPadding)
-                                    )
-
-                                    var bids = stringResource(strings.noBids)
-                                    if (offer.bids?.isNotEmpty() == true) {
-                                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
-                                    }
-
-                                    Text(
-                                        text = bids,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.grayText
+                                        color = color
                                     )
                                 }
                             }
@@ -248,17 +217,11 @@ fun FavItem(
                                 Image(
                                     painter = painterResource(drawables.safeDealIcon),
                                     contentDescription = "",
-                                    modifier = Modifier.size(dimens.smallIconSize).padding(dimens.smallPadding),
+                                    modifier = Modifier.size(dimens.smallIconSize).padding(
+                                        dimens.smallPadding),
                                 )
                             }
                         }
-
-                        Text(
-                            text = typeString,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = colorType,
-                            modifier = Modifier.padding(vertical = dimens.extraSmallPadding)
-                        )
                     }
 
 
@@ -285,19 +248,86 @@ fun FavItem(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (offer.sellerData?.isVerified == true) {
-                            Image(
-                                painter = painterResource(drawables.verifySellersIcon),
-                                contentDescription = "",
-                            )
-                        }
 
-                        Text(
-                            text = (offer.sellerData?.login + " (${offer.sellerData?.rating})"),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(dimens.smallPadding),
-                            color = colors.actionTextColor
-                        )
+//                        offer.promoOptions?.forEach { o ->
+//
+//                            when (o.id) {
+//                                "featured_in_listing" -> {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colors.brightPurple,
+                                            contentColor = colors.white
+                                        )
+                                    ) {
+                                        TitleText(text = "TOP", color = colors.alwaysWhite)
+                                    }
+                                    Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "featured_on_main_page" -> {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colors.brightPurple,
+                                            contentColor = colors.white
+                                        )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(drawables.homeIcon),
+                                            contentDescription = "",
+                                            tint = colors.alwaysWhite
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "recommended_in_listing" -> {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colors.brightPurple,
+                                            contentColor = colors.white
+                                        )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(drawables.megaphoneIcon),
+                                            contentDescription = "",
+                                            tint = colors.alwaysWhite
+                                        )
+                                    }
+                                     Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "backlignt_in_listing" -> {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colors.brightPurple,
+                                            contentColor = colors.white
+                                        )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(drawables.promoHighlightIcon),
+                                            contentDescription = "",
+                                            tint = colors.alwaysWhite
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "featured_in_offer" -> {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colors.brightPurple,
+                                            contentColor = colors.white
+                                        )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(drawables.adIcon),
+                                            contentDescription = "",
+                                            tint = colors.alwaysWhite
+                                        )
+                                    }
+//                                }
+//                            }
+//                        }
                     }
 
                     Row(
@@ -305,6 +335,7 @@ fun FavItem(
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
                     ) {
+
                         Text(
                             text = "${offer.currentPricePerItem} ${stringResource(strings.currencySign)}",
                             style = MaterialTheme.typography.titleMedium.copy(
@@ -315,9 +346,26 @@ fun FavItem(
                     }
                 }
             }
+
+            if (offer.relistingMode != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        painter = painterResource(drawables.recycleIcon),
+                        contentDescription = "",
+                        modifier = Modifier.size(dimens.smallIconSize),
+                        tint = colors.inactiveBottomNavIconColor
+                    )
+
+                    Text(
+                        offer.relistingMode.name ?: ""
+                        ,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
         }
     }
 }
-
-
-

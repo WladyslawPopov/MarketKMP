@@ -1,7 +1,6 @@
-package market.engine.presentation.profile
+package market.engine.presentation.profileMyOffers
 
 import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,7 +21,6 @@ import market.engine.core.baseFilters.ProfileBaseFilters
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.items.ListingData
 import market.engine.core.network.APIService
-import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.paging.offer.OfferPagingRepository
 import market.engine.core.repositories.SettingsRepository
@@ -30,24 +28,20 @@ import market.engine.core.types.LotsType
 import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
-class ProfileViewModel(
+class ProfileMyOffersViewModel(
     val type: LotsType,
     apiService: APIService,
     private val offerPagingRepository: OfferPagingRepository
 ) : BaseViewModel() {
     val settings : SettingsRepository = getKoin().get()
-
-    private val categoryOperations : CategoryOperations = getKoin().get()
     var firstVisibleItemIndex by mutableStateOf(0)
     var firstVisibleItemScrollOffset by mutableStateOf(0)
     var isHideContent = mutableStateOf(false)
-    var isFirstSetUp = mutableStateOf(true)
     var activeFiltersType = mutableStateOf("")
-    @OptIn(ExperimentalMaterialApi::class)
     val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
 
     private val globalData = ProfileBaseFilters
-    var listingData = globalData.listingData.copy()
+    var listingData = globalData.listingData.deepCopy()
 
     private val filtersMap: Map<LotsType, ArrayList<Filter>> = mapOf(
         LotsType.MYLOT_ACTIVE to OfferFilters.filtersMyLotsActive,
@@ -65,6 +59,11 @@ class ProfileViewModel(
     private val accept: (UiAction) -> Unit
 
     init {
+
+        listingData.data.value.filters = arrayListOf()
+        listingData.data.value.filters?.addAll(filtersMap[type] ?: arrayListOf())
+        listingData.data.value.methodServer = "get_cabinet_listing"
+
         val actionStateFlow = MutableSharedFlow<UiAction>(replay = 1)
 
         accept = { action ->
@@ -92,9 +91,6 @@ class ProfileViewModel(
     }
 
     fun updateCurrentListingData(type: LotsType = this.type) {
-        listingData.data.value.filters = arrayListOf()
-        listingData.data.value.filters?.addAll(filtersMap[type] ?: arrayListOf())
-        listingData.data.value.methodServer = "get_cabinet_listing"
         viewModelScope.launch {
             accept(UiAction.UpdateCurrentListingData(listingData))
         }

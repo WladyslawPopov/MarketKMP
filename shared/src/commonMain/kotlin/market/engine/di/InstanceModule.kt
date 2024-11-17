@@ -27,7 +27,7 @@ import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
 import market.engine.presentation.login.LoginViewModel
 import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.profile.ProfileViewModel
+import market.engine.presentation.profileMyOffers.ProfileMyOffersViewModel
 import market.engine.presentation.search.SearchViewModel
 import market.engine.presentation.subscriptions.SubViewModel
 import market.engine.shared.MarketDB
@@ -56,17 +56,7 @@ val viewModelModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { FavViewModel(get(), get()) }
     viewModel { SubViewModel(get(), get()) }
-   // viewModel { ProfileViewModel(get(), get()) }
-
-    scope(named("MyOffersScope")) {
-        scoped { (type: LotsType) ->
-            ProfileViewModel(
-                type = type,
-                apiService = get(),
-                offerPagingRepository = get()
-            )
-        }
-    }
+    viewModel { ProfileMyOffersViewModel(get(), get(), get()) }
 }
 
 val networkModule = module {

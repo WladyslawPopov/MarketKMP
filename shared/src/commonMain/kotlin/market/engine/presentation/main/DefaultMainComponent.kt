@@ -1,5 +1,6 @@
 package market.engine.presentation.main
 
+import androidx.compose.runtime.remember
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.ExperimentalDecomposeApi
@@ -14,6 +15,7 @@ import com.arkivanov.decompose.router.pages.selectPrev
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
@@ -208,18 +210,22 @@ class DefaultMainComponent(
         }
     }
 
+    private var activeCurrent = "Home"
     override fun navigateToBottomItem(config: MainConfig) {
         when(config){
             is MainConfig.Home -> {
+                activeCurrent = "Home"
                 currentNavigation.replaceCurrent(config)
             }
             is MainConfig.Category -> {
+                activeCurrent = "Category"
                 currentNavigation.replaceCurrent(config)
             }
             is MainConfig.Basket -> {
                 if (UserData.token == "") {
                     goToLoginSelected()
                 }else{
+                    activeCurrent = "Basket"
                     currentNavigation.replaceCurrent(config)
                 }
             }
@@ -227,6 +233,7 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLoginSelected()
                 }else{
+                    activeCurrent = "Favorites"
                     currentNavigation.replaceCurrent(config)
                 }
             }
@@ -234,6 +241,10 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLoginSelected()
                 }else{
+                    if(activeCurrent == "Profile"){
+                        modelNavigation.value.profileNavigation.pop()
+                    }
+                    activeCurrent = "Profile"
                     currentNavigation.replaceCurrent(config)
                 }
             }
@@ -404,6 +415,7 @@ class DefaultMainComponent(
         return DefaultProfileComponent(
             componentContext = componentContext,
             selectMyOffers = {
+                profileData.value.profStack.add(LotsType.MYLOT_ACTIVE)
                 modelNavigation.value.profileNavigation.push(ProfileConfig.MyOffersScreen)
             }
         )

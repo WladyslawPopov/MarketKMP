@@ -187,27 +187,27 @@ fun <T : Any> PagingList(
             modifier = Modifier.align(Alignment.BottomStart)
         )
 
-        if (showUpButton) {
-            getFloatAnyButton(
-                drawable = drawables.iconArrowUp,
-                modifier = Modifier.align(Alignment.BottomEnd)
-            ) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    scrollToPreviousPage(state, itemsPerPage)
-                }
-            }
-        }
-
-        if (showDownButton) {
-            getFloatAnyButton(
-                drawable = drawables.iconArrowDown,
-                modifier = Modifier.align(Alignment.BottomEnd)
-            ) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    scrollToNextPage(state, itemsPerPage)
-                }
-            }
-        }
+//        if (showUpButton) {
+//            getFloatAnyButton(
+//                drawable = drawables.iconArrowUp,
+//                modifier = Modifier.align(Alignment.BottomEnd)
+//            ) {
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    scrollToPreviousPage(state, itemsPerPage)
+//                }
+//            }
+//        }
+//
+//        if (showDownButton) {
+//            getFloatAnyButton(
+//                drawable = drawables.iconArrowDown,
+//                modifier = Modifier.align(Alignment.BottomEnd)
+//            ) {
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    scrollToNextPage(state, itemsPerPage)
+//                }
+//            }
+//        }
     }
 }
 

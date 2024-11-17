@@ -160,4 +160,33 @@ object OfferFilters {
             }
         }
     }
+
+    fun addByTypeFilter(type: LotsType) : ArrayList<Filter> {
+        return when(type){
+            LotsType.MYLOT_ACTIVE ->{
+                filtersMyLotsActive
+            }
+            LotsType.MYLOT_UNACTIVE ->{
+                filtersMyLotsUnactive
+            }
+            LotsType.MYLOT_FUTURE ->{
+                filtersMyLotsFuture
+            }
+            LotsType.MYBIDLOTS_ACTIVE ->{
+                filtersMyBidsActive
+            }
+            LotsType.MYBIDLOTS_UNACTIVE ->{
+                filtersMyBidsUnactive
+            }
+            LotsType.FAVORITES ->{
+                filtersFav
+            }
+            LotsType.ALL_PROPOSAL ->{
+                filtersProposeAll
+            }
+            LotsType.NEED_RESPOSE ->{
+                filtersProposeNeed
+            }
+        }
+    }
 }

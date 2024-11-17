@@ -91,4 +91,10 @@ interface Drawables {
    val purchasesIcon : DrawableResource
    val dialogIcon : DrawableResource
    val balanceIcon : DrawableResource
+
+   val recycleIcon : DrawableResource
+   val promoHighlightIcon : DrawableResource
+   val adIcon : DrawableResource
+   val megaphoneIcon : DrawableResource
+   val homeIcon : DrawableResource
 }

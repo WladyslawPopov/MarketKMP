@@ -4,11 +4,9 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
-import kotlinx.coroutines.launch
 import market.engine.core.types.LotsType
 import market.engine.presentation.main.MainComponent
 import market.engine.presentation.main.MainViewModel
@@ -22,18 +20,9 @@ fun ProfileMyOffersNavigation(
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+
     val mainViewModel : MainViewModel = koinViewModel()
 
-    fun openMenu(state : DrawerValue) {
-        scope.launch {
-            if (state == DrawerValue.Closed) {
-                drawerState.open()
-            }else{
-                drawerState.close()
-            }
-        }
-    }
 
     ModalNavigationDrawer(
         modifier = modifier,
@@ -49,7 +38,6 @@ fun ProfileMyOffersNavigation(
             pages = component.myOffersPages,
             scrollAnimation = PagesScrollAnimation.Default,
             onPageSelected = {
-
                 val select = when(it){
                     0 -> LotsType.MYLOT_ACTIVE
                     1 -> LotsType.MYLOT_UNACTIVE
@@ -63,12 +51,11 @@ fun ProfileMyOffersNavigation(
                     UIMainEvent.UpdateTopBar {
                         ProfileMyOffersAppBar(
                             select,
+                            drawerState = drawerState,
                             navigationClick = { newType->
                                 component.selectMyOfferPage(newType)
                             }
-                        ) {
-                            openMenu(drawerState.targetValue)
-                        }
+                        )
 
                         component.selectMyOfferPage(select)
                     }

@@ -12,9 +12,6 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -39,12 +36,10 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.presentation.favorites.FavItem
-import market.engine.presentation.home.DrawerContent
 import market.engine.presentation.main.MainViewModel
 import market.engine.presentation.main.UIMainEvent
-import market.engine.presentation.profile.ProfileDrawer
 import market.engine.widgets.bars.FiltersBar
+import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
@@ -85,8 +80,6 @@ fun MyOffersContent(
     val isBigScreen = windowClass == WindowSizeClass.Big
     val mainViewModel : MainViewModel = koinViewModel()
 
-
-
     LaunchedEffect(scrollState) {
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
@@ -98,7 +91,11 @@ fun MyOffersContent(
 
     LaunchedEffect(Unit) {
         mainViewModel.sendEvent(
-            UIMainEvent.UpdateFloatingActionButton {}
+            UIMainEvent.UpdateFloatingActionButton {
+                floatingCreateOfferButton {
+
+                }
+            }
         )
 
         mainViewModel.sendEvent(
@@ -169,51 +166,51 @@ fun MyOffersContent(
         }
     }
 
-    SwipeRefreshContent(
-        isRefreshing = isLoading.value,
-        modifier = modifier.fillMaxSize(),
-        onRefresh = {
-            if (scaffoldState.bottomSheetState.isCollapsed)
-                component.onRefresh()
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        modifier = Modifier.fillMaxSize(),
+        sheetContentColor = colors.primaryColor,
+        sheetBackgroundColor = colors.primaryColor,
+        contentColor = colors.primaryColor,
+        backgroundColor = colors.primaryColor,
+        sheetPeekHeight = 0.dp,
+        sheetGesturesEnabled = false,
+        sheetContent = {
+            when (activeFiltersType.value) {
+                "filters" -> {
+                    OfferFilterContent(
+                        isRefreshingFromFilters,
+                        listingData,
+                        scaffoldState,
+                        model.type,
+                        coroutineScope,
+                    )
+                }
+
+                "sorting" -> {
+                    SortingListingContent(
+                        isRefreshingFromFilters,
+                        listingData,
+                        scaffoldState,
+                        coroutineScope,
+                    )
+                }
+            }
         },
     ) {
-        AnimatedVisibility(
-            modifier = modifier,
-            visible = !isLoading.value,
-            enter = expandIn(),
-            exit = fadeOut()
+        SwipeRefreshContent(
+            isRefreshing = isLoading.value,
+            modifier = modifier.fillMaxSize(),
+            onRefresh = {
+                if (scaffoldState.bottomSheetState.isCollapsed)
+                    component.onRefresh()
+            },
         ) {
-            BottomSheetScaffold(
-                scaffoldState = scaffoldState,
-                modifier = Modifier.fillMaxSize(),
-                sheetContentColor = colors.primaryColor,
-                sheetBackgroundColor = colors.primaryColor,
-                contentColor = colors.primaryColor,
-                backgroundColor = colors.primaryColor,
-                sheetPeekHeight = 0.dp,
-                sheetGesturesEnabled = false,
-                sheetContent = {
-                    when (activeFiltersType.value) {
-                        "filters" -> {
-                            OfferFilterContent(
-                                isRefreshingFromFilters,
-                                listingData,
-                                scaffoldState,
-                                LotsType.FAVORITES,
-                                coroutineScope,
-                            )
-                        }
-
-                        "sorting" -> {
-                            SortingListingContent(
-                                isRefreshingFromFilters,
-                                listingData,
-                                scaffoldState,
-                                coroutineScope,
-                            )
-                        }
-                    }
-                },
+            AnimatedVisibility(
+                modifier = modifier,
+                visible = !isLoading.value,
+                enter = expandIn(),
+                exit = fadeOut()
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     FiltersBar(
@@ -227,11 +224,13 @@ fun MyOffersContent(
                             activeFiltersType.value = "filters"
                             coroutineScope.launch {
                                 scaffoldState.bottomSheetState.expand()
+                                scaffoldState.bottomSheetState.expand()
                             }
                         },
                         onSortClick = {
                             activeFiltersType.value = "sorting"
                             coroutineScope.launch {
+                                scaffoldState.bottomSheetState.expand()
                                 scaffoldState.bottomSheetState.expand()
                             }
                         },
@@ -256,18 +255,15 @@ fun MyOffersContent(
                                     searchData = searchData,
                                     columns = if (isBigScreen) 2 else 1,
                                     content = { offer ->
-                                        FavItem(
-                                            offer,
-                                            onSelectionChange = { isSelect ->
-                                                // Обработка выбора
-                                            },
+                                        MyOffersItem(
+                                            offer = offer,
                                             onMenuClick = {
-                                                // Обработка клика по меню
+
                                             },
-                                            isSelected = false,
-                                        ) {
-                                            component.goToOffer(offer)
-                                        }
+                                            onItemClick = {
+
+                                            }
+                                        )
                                     }
                                 )
                             }

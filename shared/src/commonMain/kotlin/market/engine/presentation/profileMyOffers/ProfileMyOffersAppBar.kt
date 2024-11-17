@@ -3,6 +3,7 @@ package market.engine.presentation.profileMyOffers
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
@@ -23,8 +24,8 @@ import org.jetbrains.compose.resources.stringResource
 fun ProfileMyOffersAppBar(
     currentTab : LotsType,
     modifier: Modifier = Modifier,
+    drawerState: DrawerState,
     navigationClick : (LotsType) -> Unit,
-    openMenu : () -> Unit
 ) {
     val active = stringResource(strings.activeTab)
     val inactive = stringResource(strings.inactiveTab)
@@ -38,9 +39,9 @@ fun ProfileMyOffersAppBar(
             actionIconContentColor = colors.black
         ) ,
         navigationIcon = {
-            MenuHamburgerButton{
-                openMenu()
-            }
+            MenuHamburgerButton(
+                drawerState
+            )
         },
         modifier = modifier
             .fillMaxWidth(),
