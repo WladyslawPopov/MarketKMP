@@ -3,6 +3,7 @@ package market.engine.presentation.favorites
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,8 +27,12 @@ import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
+import application.market.agora.business.core.network.functions.OfferOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.filtersObjects.OfferFilters
@@ -36,17 +41,16 @@ import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.presentation.home.HomeAppBar
 import market.engine.presentation.main.MainViewModel
 import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.bars.DeletePanel
-import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.grids.PagingList
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -82,6 +86,8 @@ fun FavoritesContent(
     val isBigScreen = windowClass == WindowSizeClass.Big
 
     val mainViewModel : MainViewModel = koinViewModel()
+
+    val offerOperations : OfferOperations = koinInject()
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
@@ -231,15 +237,28 @@ fun FavoritesContent(
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
 
-                    if (selectFav.isNotEmpty()) {
+                    AnimatedVisibility(
+                        visible = selectFav.isNotEmpty(),
+                        enter = fadeIn() ,
+                        exit = fadeOut() ,
+                        modifier = Modifier.animateContentSize()
+                    ) {
                         DeletePanel(
                             selectFav.size,
-                            scrollState = scrollState,
                             onCancel = {
                                 selectFav.clear()
                             },
                             onDelete = {
-                                selectFav.clear()
+                                scope.launch(Dispatchers.IO) {
+                                    selectFav.forEach { item ->
+                                        offerOperations.postOfferOperationUnwatch(item)
+                                    }
+
+                                    withContext(Dispatchers.Main) {
+                                        selectFav.clear()
+                                        data.refresh()
+                                    }
+                                }
                             }
                         )
                     }
@@ -296,12 +315,26 @@ fun FavoritesContent(
                                                     selectFav.remove(offer.id)
                                                 }
                                             },
-                                            onMenuClick = {
-
+                                            onUpdateOfferItem = {
+                                                data.refresh()
+                                            },
+                                            onError = {
+                                                if (it != null)
+                                                    error = {
+                                                        onError(
+                                                            it
+                                                        ) {
+                                                            data.retry()
+                                                        }
+                                                    }
                                             },
                                             isSelected = selectFav.contains(offer.id),
                                         ) {
-                                            component.goToOffer(offer)
+                                            if (selectFav.isNotEmpty()) {
+                                                selectFav.add(offer.id)
+                                            }else{
+                                                component.goToOffer(offer)
+                                            }
                                         }
                                     }
                                 )

@@ -189,4 +189,11 @@ interface Strings {
     val activeTab : StringResource
     val inactiveTab : StringResource
     val futureTab : StringResource
+    val buyerParameterName : StringResource
+    val winnerParameterName : StringResource
+    val copyOfferId : StringResource
+    val messageAboutError : StringResource
+    val deleteSelectedLot : StringResource
+    val acceptAction : StringResource
+    val idCopied : StringResource
 }

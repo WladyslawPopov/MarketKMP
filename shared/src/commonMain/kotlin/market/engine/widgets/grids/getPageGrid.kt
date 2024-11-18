@@ -1,5 +1,6 @@
 package market.engine.widgets.grids
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -172,8 +173,12 @@ fun <T : Any> PagingList(
                     ) {
                         for (columnIndex in 0 until columns) {
                             val item = data[index + columnIndex]
-                            Box(modifier = Modifier.weight(1f)) {
-                                item?.let { content(it) }
+                            AnimatedContent(
+                                item
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    item?.let { content(it) }
+                                }
                             }
                         }
                     }

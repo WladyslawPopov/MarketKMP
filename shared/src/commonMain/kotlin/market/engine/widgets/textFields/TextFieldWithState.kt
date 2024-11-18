@@ -10,6 +10,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -20,6 +21,7 @@ fun TextFieldWithState(
     textState: MutableState<String>,
     modifier: Modifier,
     isNumber: Boolean = false,
+    textStyle: TextStyle = MaterialTheme.typography.bodySmall,
     onTextChange: (String) -> Unit
 ) {
     TextField(
@@ -28,7 +30,7 @@ fun TextFieldWithState(
             textState.value = it
             onTextChange(it)
         },
-        label = { Text(label) },
+        label = { Text(label, style = textStyle) },
         modifier = modifier.wrapContentSize().padding(dimens.smallPadding),
         singleLine = true,
         maxLines = 1,
@@ -49,7 +51,7 @@ fun TextFieldWithState(
             unfocusedPlaceholderColor = colors.steelBlue,
             disabledPlaceholderColor = colors.transparent
         ),
-        textStyle = MaterialTheme.typography.bodySmall,
+        textStyle = textStyle,
         keyboardOptions = KeyboardOptions(
             keyboardType = if(isNumber) KeyboardType.Number else KeyboardType.Text
         )

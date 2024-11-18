@@ -1,5 +1,6 @@
 package market.engine.presentation.profileMyOffers
 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+
 
 @Composable
 fun HeaderMyOfferItem(
@@ -93,7 +95,9 @@ fun HeaderMyOfferItem(
             Spacer(modifier = Modifier.width(dimens.mediumPadding))
 
             IconButton(
-                onClick = { onMenuClick() },
+                onClick = {
+                    onMenuClick()
+                },
             ) {
                 Icon(
                     painter = painterResource(drawables.menuIcon),
@@ -101,7 +105,6 @@ fun HeaderMyOfferItem(
                     tint = colors.black
                 )
             }
-
         }
     }
 }

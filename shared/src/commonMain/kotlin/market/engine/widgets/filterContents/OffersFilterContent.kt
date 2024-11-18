@@ -71,6 +71,8 @@ fun OfferFilterContent(
 ) {
     val listingData by remember { mutableStateOf(filters.value.filters) }
 
+    val focusManager: FocusManager = LocalFocusManager.current
+
     val favExpandChoice = listOf(
         "0" to stringResource(strings.activeFilterOffers),
         "1" to stringResource(strings.inactiveFilterOffers)
@@ -95,9 +97,7 @@ fun OfferFilterContent(
 
     var isExpanded1 by remember { mutableStateOf(listingData?.find { it.key == "state" }?.value != "") }
     var isExpanded2 by remember {
-        mutableStateOf(
-            false
-        )
+        mutableStateOf(listingData?.find { it.key in (listOf("with_sales", "without_sales")) }?.value != "")
     }
     val cat = remember { mutableStateOf(listingData?.find { it.key == "category" })}
     val defCat = stringResource(strings.offersCategoryParameterName)
@@ -105,6 +105,7 @@ fun OfferFilterContent(
         mutableStateOf(if(cat.value?.interpritation != null && cat.value?.interpritation != "") cat.value?.interpritation ?: defCat else defCat)
     }
     val scaffoldState = rememberBottomSheetScaffoldState()
+
 
     LaunchedEffect(scaffoldState){
         snapshotFlow { scaffoldState.bottomSheetState.isCollapsed }.collect { state ->
@@ -131,8 +132,13 @@ fun OfferFilterContent(
         },
     ) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
         ) {
+            //Header Filters
             Row(
                 modifier = Modifier.fillMaxWidth()
                     .padding(dimens.smallPadding),
@@ -188,6 +194,7 @@ fun OfferFilterContent(
                 }
             }
 
+            //Expands
             AnimatedVisibility(
                 visible = sheetState.bottomSheetState.isExpanded,
                 enter = fadeIn(),
@@ -260,46 +267,123 @@ fun OfferFilterContent(
                                     isExpanded = isExpanded2,
                                     onExpandChange = { isExpanded2 = !isExpanded2 },
                                     content = {
-                                        LazyColumn(
+                                        Column(
                                             modifier = Modifier.heightIn(max = 500.dp)
                                         ) {
-                                            items(myOfferExpandChoice) { filter ->
-                                                val (filterKey, filterText) = filter
 
-                                                val isChecked =
-                                                    remember { mutableStateOf(listingData?.find { it.key == filterKey }?.interpritation != null) }
+                                            val filter = myOfferExpandChoice[0]
+                                            val (filterKey, filterText) = filter
 
-                                                Row(
-                                                    horizontalArrangement = Arrangement.Start,
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clip(MaterialTheme.shapes.medium)
-                                                        .clickable {
-                                                            isChecked.value = !isChecked.value
+                                            val filter1 = myOfferExpandChoice[1]
+                                            val (filterKey1, filterText1) = filter1
 
-                                                            isRefreshing.value = true
+                                            val isChecked = remember { mutableStateOf( listingData?.find { it.key == filterKey }?.interpritation != null) }
+                                            val isChecked1 = remember { mutableStateOf( listingData?.find { it.key == filterKey1 }?.interpritation != null) }
+
+                                            Row(
+                                                horizontalArrangement = Arrangement.Start,
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(MaterialTheme.shapes.medium)
+                                                    .clickable {
+                                                        isChecked.value = !isChecked.value
+                                                        if (isChecked.value) {
+                                                            isChecked1.value = false
+                                                            listingData?.find { it.key == filterKey1 }?.interpritation = null
+
+                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                                filterText
+                                                        }else {
+                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                                null
                                                         }
-                                                ) {
-                                                    RadioButton(
-                                                        isChecked.value,
-                                                        {
-                                                            isChecked.value = !isChecked.value
-                                                            isRefreshing.value = true
-                                                        },
-                                                        colors = RadioButtonDefaults.colors(
-                                                            selectedColor = colors.inactiveBottomNavIconColor,
-                                                            unselectedColor = colors.black
-                                                        )
+
+                                                        isRefreshing.value = true
+                                                    }
+                                            ) {
+                                                RadioButton(
+                                                    isChecked.value,
+                                                    {
+                                                        isChecked.value = !isChecked.value
+                                                        if (isChecked.value) {
+                                                            isChecked1.value = false
+                                                            listingData?.find { it.key == filterKey1 }?.interpritation = null
+
+                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                                filterText
+                                                        }else {
+                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                                null
+                                                        }
+
+                                                        isRefreshing.value = true
+                                                    },
+                                                    colors = RadioButtonDefaults.colors(
+                                                        selectedColor = colors.inactiveBottomNavIconColor,
+                                                        unselectedColor = colors.black
                                                     )
-                                                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                                    Text(
-                                                        filterText,
-                                                        style = MaterialTheme.typography.bodySmall
-                                                    )
-                                                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                                }
+                                                )
+                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                                Text(
+                                                    filterText,
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
                                             }
+
+
+                                            Row(
+                                                horizontalArrangement = Arrangement.Start,
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(MaterialTheme.shapes.medium)
+                                                    .clickable {
+                                                        isChecked1.value = !isChecked1.value
+                                                        if (isChecked1.value) {
+                                                            isChecked.value = false
+                                                            listingData?.find { it.key == filterKey }?.interpritation = null
+                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                                filterText1
+                                                        }else {
+                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                                null
+                                                        }
+
+                                                        isRefreshing.value = true
+                                                    }
+                                            ) {
+                                                RadioButton(
+                                                    isChecked1.value,
+                                                    {
+                                                        isChecked1.value = !isChecked1.value
+                                                        if (isChecked1.value) {
+                                                            isChecked.value = false
+                                                            listingData?.find { it.key == filterKey }?.interpritation = null
+                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                                filterText1
+                                                        }else {
+                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                                null
+                                                        }
+
+                                                        isRefreshing.value = true
+
+                                                    },
+                                                    colors = RadioButtonDefaults.colors(
+                                                        selectedColor = colors.inactiveBottomNavIconColor,
+                                                        unselectedColor = colors.black
+                                                    )
+                                                )
+                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                                Text(
+                                                    filterText1,
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                            }
+
                                         }
                                     }
                                 )
@@ -429,8 +513,6 @@ fun InputsOfferFilterContent(
     isRefreshing: MutableState<Boolean>,
     listingData: State<LD>
 ) {
-    val focusManager: FocusManager = LocalFocusManager.current
-
     val filters = listingData.value.filters
 
     val idTextState = remember { mutableStateOf(filters?.find { it.key == "id"}?.value ?: "") }
@@ -438,11 +520,7 @@ fun InputsOfferFilterContent(
     val sellerLoginTextState = remember { mutableStateOf(filters?.find { it.key == "seller_login" }?.value) }
 
     Column(
-        modifier = Modifier.padding(dimens.mediumPadding).pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                focusManager.clearFocus()
-            })
-        }
+        modifier = Modifier.padding(dimens.mediumPadding)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -455,8 +533,7 @@ fun InputsOfferFilterContent(
                 textState = idTextState,
                 onTextChange = { text ->
                     if (idTextState.value.isNotBlank()) {
-                        idTextState.value = text
-                        filters?.find { filter -> filter.key == "id"}?.apply {
+                        filters?.find { it.key == "id"}?.apply {
                             value = text
                             interpritation = "$offerId: $text"
                         }
@@ -466,23 +543,32 @@ fun InputsOfferFilterContent(
                             it?.interpritation = null
                         }
                     }
+
+                    idTextState.value = text
                     isRefreshing.value = true
                 },
                 modifier = Modifier.weight(1f),
                 isNumber = true
             )
+
             val offerName = stringResource(strings.offerNameParameterName)
             TextFieldWithState(
                 label = offerName,
                 textState = nameTextState,
                 onTextChange = { text ->
                     if (nameTextState.value.isNotBlank()) {
-                        nameTextState.value = text
+
                         filters?.find { filter -> filter.key == "search"}?.apply {
                             value = text
                             interpritation = "$offerName: $text"
                         }
+                    }else{
+                        filters?.find { it.key == "search" }.let {
+                            it?.value = ""
+                            it?.interpritation = null
+                        }
                     }
+                    nameTextState.value = text
                     isRefreshing.value = true
                 },
                 modifier = Modifier.weight(1f),
@@ -497,12 +583,17 @@ fun InputsOfferFilterContent(
                 textState = (sellerLoginTextState as MutableState<String>),
                 onTextChange = { text ->
                     if (sellerLoginTextState.value?.isNotBlank() == true) {
-                        sellerLoginTextState.value = text
                         filters?.find { filter -> filter.key == "seller_login" }?.apply {
                             value = text
                             interpritation = "$sellerLogin: $text"
                         }
+                    }else{
+                        filters?.find { it.key == "seller_login" }.let {
+                            it?.value = ""
+                            it?.interpritation = null
+                        }
                     }
+                    sellerLoginTextState.value = text
                     isRefreshing.value = true
                 },
                 modifier = Modifier.wrapContentWidth(),
@@ -511,16 +602,3 @@ fun InputsOfferFilterContent(
     }
 }
 
-
-fun checkMyOfferFilters(listFilters: List<Pair<String, String>>, listingData: State<LD>): String? {
-    val filters = listingData.value.filters
-    var res : String? = null
-    if (filters != null) {
-        listFilters.forEach { filter ->
-            if (filters.find { it.key == filter.first }?.interpritation != null){
-                res =  filter.first
-            }
-        }
-    }
-    return res
-}

@@ -14,7 +14,6 @@ import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,13 +26,13 @@ import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
+import application.market.agora.business.core.network.functions.OfferOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.network.ServerErrorException
-import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.main.MainViewModel
@@ -45,6 +44,7 @@ import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.grids.PagingList
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -72,7 +72,7 @@ fun MyOffersContent(
     val isHideContent = remember { mutableStateOf(viewModel.isHideContent.value) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
-    val isLoading: State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+    val isLoading = rememberUpdatedState(data.loadState.source.refresh is LoadStateLoading)
     var error: (@Composable () -> Unit)? = null
     var noItem: (@Composable () -> Unit)? = null
 
@@ -257,8 +257,18 @@ fun MyOffersContent(
                                     content = { offer ->
                                         MyOffersItem(
                                             offer = offer,
-                                            onMenuClick = {
-
+                                            onUpdateOfferItem = {
+                                                data.refresh()
+                                            },
+                                            onError = {
+                                                if (it != null)
+                                                    error = {
+                                                        onError(
+                                                           it
+                                                        ) {
+                                                            data.retry()
+                                                        }
+                                                    }
                                             },
                                             onItemClick = {
 

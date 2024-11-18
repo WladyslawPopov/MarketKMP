@@ -1,5 +1,6 @@
 package market.engine.presentation.favorites
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -25,10 +28,12 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.exceptions.getOfferOperations
 import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -36,11 +41,14 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FavItem(
     offer: Offer,
-    onMenuClick: () -> Unit,
+    onUpdateOfferItem : (offer: Offer) -> Unit,
+    onError: (error: ServerErrorException?) -> Unit,
     onSelectionChange: (Boolean) -> Unit,
     isSelected: Boolean,
     onItemClick: () -> Unit
 ) {
+    val isOpenPopup = remember { mutableStateOf(false) }
+
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),
@@ -65,10 +73,27 @@ fun FavItem(
 
             HeaderFavItemSection(
                 offer = offer,
-                onMenuClick = onMenuClick,
+                onMenuClick = {
+                    isOpenPopup.value = !isOpenPopup.value
+                },
                 onSelectionChange = onSelectionChange,
                 isSelected = isSelected
             )
+
+            AnimatedVisibility(isOpenPopup.value, modifier = Modifier.fillMaxWidth()){
+                getOfferOperations(
+                    offer,
+                    onUpdateMenuItem = { offer->
+                        onUpdateOfferItem(offer)
+                    },
+                    onError = { error->
+                        onError(error)
+                    },
+                    onClose = {
+                        isOpenPopup.value = false
+                    }
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

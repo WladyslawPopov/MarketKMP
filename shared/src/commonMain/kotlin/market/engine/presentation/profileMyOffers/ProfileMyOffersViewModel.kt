@@ -90,7 +90,7 @@ class ProfileMyOffersViewModel(
         )
     }
 
-    fun updateCurrentListingData(type: LotsType = this.type) {
+    fun updateCurrentListingData() {
         viewModelScope.launch {
             accept(UiAction.UpdateCurrentListingData(listingData))
         }

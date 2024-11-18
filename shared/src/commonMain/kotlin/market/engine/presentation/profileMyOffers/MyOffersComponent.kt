@@ -47,7 +47,7 @@ class DefaultMyOffersComponent(
 
        userRepository.updateUserInfo(model.value.viewModel.viewModelScope)
 
-        model.value.viewModel.updateCurrentListingData(type)
+        model.value.viewModel.updateCurrentListingData()
         analyticsHelper.reportEvent("open_my_offers", "")
     }
 

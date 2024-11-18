@@ -3,9 +3,12 @@ package market.engine.presentation.main
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.core.items.ToastItem
 import market.engine.core.network.APIService
 import market.engine.core.types.ToastType
@@ -57,6 +60,17 @@ class MainViewModel(private val apiService: APIService) : BaseViewModel() {
 
     private fun updateToast(toastItem: ToastItem) {
         this.toastItem.value = toastItem
+
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            delay(3000)
+            withContext(Dispatchers.Main) {
+                this@MainViewModel.toastItem.value =  ToastItem(
+                    message = "",
+                    type = ToastType.WARNING,
+                    isVisible = false
+                )
+            }
+        }
     }
 
     private fun updateActionFloatingButton(content: (@Composable () -> Unit)) {
