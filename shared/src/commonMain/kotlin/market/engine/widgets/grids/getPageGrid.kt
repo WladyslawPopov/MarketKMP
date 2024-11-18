@@ -1,10 +1,10 @@
 package market.engine.widgets.grids
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,10 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
 import market.engine.core.constants.ThemeResources.colors
@@ -40,7 +36,6 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.bars.PagingCounterBar
-import market.engine.widgets.buttons.getFloatAnyButton
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -141,7 +136,7 @@ fun <T : Any> PagingList(
             }
 
             var isShowEndPromo = false
-            items(data.itemCount) { index ->
+            items(data.itemCount){ index ->
                 if (fromListing && searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
                     if (index > 0 && !isShowEndPromo) {
                         val item = data[index] as? Offer
@@ -172,13 +167,14 @@ fun <T : Any> PagingList(
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         for (columnIndex in 0 until columns) {
-                            val item = data[index + columnIndex]
-                            AnimatedContent(
-                                item
-                            ) {
+                            val itemIndex = index + columnIndex
+                            if (itemIndex < data.itemCount) { // Проверка, что индекс существует
+                                val item = data[itemIndex]
                                 Box(modifier = Modifier.weight(1f)) {
                                     item?.let { content(it) }
                                 }
+                            } else {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }

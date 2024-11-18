@@ -250,6 +250,7 @@ fun ListingContent(
                         isShowGrid = true,
                         onChangeTypeList = {
                             listingViewModel.settings.setSettingValue("listingType", it)
+                            listingData.value.listingType = it
                             component.onRefresh()
                         },
                         onFilterClick = {

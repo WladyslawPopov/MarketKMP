@@ -98,7 +98,7 @@ object OfferFilters {
             LotsType.MYLOT_FUTURE ->{
 
                 filtersMyLotsFuture = arrayListOf(
-                    Filter("state", "1", "", null),
+                    Filter("state", "0", "", null),
                     Filter("category", "1", "", null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),

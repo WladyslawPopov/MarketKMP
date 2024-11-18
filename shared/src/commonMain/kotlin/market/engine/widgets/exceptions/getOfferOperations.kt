@@ -3,11 +3,14 @@ package market.engine.widgets.exceptions
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +25,7 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.TimePickerLayoutType
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -30,9 +34,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
 import application.market.agora.business.core.network.functions.OfferOperations
 import kotlinx.coroutines.Dispatchers
@@ -571,9 +577,12 @@ fun getOfferOperations(
             selectableDates = selectableDates
         )
 
-        val timePickerState  = rememberTimePickerState()
+        val timePickerState  = rememberTimePickerState(
+            is24Hour = true
+        )
 
         DatePickerDialog(
+            properties = DialogProperties(usePlatformDefaultWidth = true),
             onDismissRequest = {
                 showActivateOfferForFutureDialog.value = false
             },
@@ -659,18 +668,23 @@ fun getOfferOperations(
             if (selectedDate.value == null) {
                 DatePicker(
                     state = datePickerState,
-                    showModeToggle = true,
+                    showModeToggle = false,
+                    title = null,
                     colors = DatePickerDefaults.colors(
                         containerColor = colors.white,
                     ),
+                    modifier = Modifier.padding(dimens.smallPadding)
+                        .clip(MaterialTheme.shapes.medium)
                 )
             } else {
                 TimePicker(
                     state = timePickerState,
-                    modifier = Modifier.fillMaxWidth(),
                     colors = TimePickerDefaults.colors(
                         containerColor = colors.white,
-                    )
+                    ),
+                    modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
+                        .clip(MaterialTheme.shapes.medium),
+                    layoutType = TimePickerLayoutType.Vertical
                 )
             }
         }
