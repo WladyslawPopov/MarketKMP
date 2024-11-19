@@ -41,12 +41,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun <T : Any> PagingList(
     data: LazyPagingItems<T>,
-    promoList: ArrayList<Offer>? = null,
     state: LazyListState = rememberLazyListState(),
     columns : Int = 1,
     listingData: State<LD>,
     searchData: State<SD>? = null,
-    fromListing: Boolean = false,
+    promoList: ArrayList<Offer>? = null,
     promoContent: (@Composable (Offer) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
@@ -96,7 +95,7 @@ fun <T : Any> PagingList(
                 .animateContentSize()
         ) {
 
-            if (!promoList.isNullOrEmpty() && fromListing) {
+            if (!promoList.isNullOrEmpty() && promoContent != null) {
                 item {
                     LazyRow(
                         modifier = Modifier.height(400.dp),
@@ -104,14 +103,13 @@ fun <T : Any> PagingList(
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         items(promoList) { offer ->
-                            if (promoContent != null) {
-                                promoContent(offer)
-                            }
+                            promoContent(offer)
                         }
                     }
                 }
             }
-            if (fromListing) {
+
+            if (promoContent != null) {
                 if ((data.itemSnapshotList.items.firstOrNull() as? Offer)?.promoOptions != null) {
                     item {
                         Text(
@@ -136,8 +134,8 @@ fun <T : Any> PagingList(
             }
 
             var isShowEndPromo = false
-            items(data.itemCount){ index ->
-                if (fromListing && searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
+            items(data.itemCount) { index ->
+                if (promoContent != null && searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
                     if (index > 0 && !isShowEndPromo) {
                         val item = data[index] as? Offer
                         if (item?.promoOptions == null) {
@@ -168,7 +166,7 @@ fun <T : Any> PagingList(
                     ) {
                         for (columnIndex in 0 until columns) {
                             val itemIndex = index + columnIndex
-                            if (itemIndex < data.itemCount) { // Проверка, что индекс существует
+                            if (itemIndex < data.itemCount) {
                                 val item = data[itemIndex]
                                 Box(modifier = Modifier.weight(1f)) {
                                     item?.let { content(it) }
@@ -187,40 +185,5 @@ fun <T : Any> PagingList(
             totalPages = listingData.value.totalPages,
             modifier = Modifier.align(Alignment.BottomStart)
         )
-
-//        if (showUpButton) {
-//            getFloatAnyButton(
-//                drawable = drawables.iconArrowUp,
-//                modifier = Modifier.align(Alignment.BottomEnd)
-//            ) {
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    scrollToPreviousPage(state, itemsPerPage)
-//                }
-//            }
-//        }
-//
-//        if (showDownButton) {
-//            getFloatAnyButton(
-//                drawable = drawables.iconArrowDown,
-//                modifier = Modifier.align(Alignment.BottomEnd)
-//            ) {
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    scrollToNextPage(state, itemsPerPage)
-//                }
-//            }
-//        }
     }
-}
-
-private suspend fun scrollToPreviousPage(state: LazyListState, itemsPerPage: Int) {
-    val previousPageFirstItemIndex = maxOf(state.firstVisibleItemIndex - itemsPerPage, 0)
-    state.scrollToItem(previousPageFirstItemIndex)
-}
-
-private suspend fun scrollToNextPage(state: LazyListState, itemsPerPage: Int) {
-    val nextPageFirstItemIndex = minOf(
-        state.firstVisibleItemIndex + itemsPerPage,
-        state.layoutInfo.totalItemsCount - 1
-    )
-    state.scrollToItem(nextPageFirstItemIndex)
 }

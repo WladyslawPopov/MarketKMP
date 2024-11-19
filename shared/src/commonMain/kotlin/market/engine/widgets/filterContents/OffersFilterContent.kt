@@ -3,10 +3,8 @@ package market.engine.widgets.filterContents
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import kotlinx.coroutines.CoroutineScope
 import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -39,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -47,7 +44,6 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -65,9 +61,8 @@ import org.jetbrains.compose.resources.stringResource
 fun OfferFilterContent(
     isRefreshing: MutableState<Boolean>,
     filters: State<LD>,
-    sheetState: BottomSheetScaffoldState,
     typeFilters: LotsType,
-    scope: CoroutineScope,
+    onClose :  () -> Unit,
 ) {
     val listingData by remember { mutableStateOf(filters.value.filters) }
 
@@ -99,20 +94,26 @@ fun OfferFilterContent(
     var isExpanded2 by remember {
         mutableStateOf(listingData?.find { it.key in (listOf("with_sales", "without_sales")) }?.value != "")
     }
+
     val cat = remember { mutableStateOf(listingData?.find { it.key == "category" })}
     val defCat = stringResource(strings.offersCategoryParameterName)
     val activeCategory = remember {
         mutableStateOf(if(cat.value?.interpritation != null && cat.value?.interpritation != "") cat.value?.interpritation ?: defCat else defCat)
     }
+
+    LaunchedEffect(Unit){
+        cat.value = listingData?.find { it.key == "category" }
+        activeCategory.value = if(cat.value?.interpritation != null && cat.value?.interpritation != "") cat.value?.interpritation ?: defCat else defCat
+    }
+
     val scaffoldState = rememberBottomSheetScaffoldState()
+    val openBottomSheet = remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(scaffoldState){
-        snapshotFlow { scaffoldState.bottomSheetState.isCollapsed }.collect { state ->
-            if (state) {
-                cat.value = listingData?.find { it.key == "category" }
-                activeCategory.value = if(cat.value?.interpritation != null && cat.value?.interpritation != "") cat.value?.interpritation ?: defCat else defCat
-            }
+    LaunchedEffect(openBottomSheet.value){
+        if (openBottomSheet.value) {
+            scaffoldState.bottomSheetState.expand()
+        }else{
+            scaffoldState.bottomSheetState.collapse()
         }
     }
 
@@ -127,8 +128,10 @@ fun OfferFilterContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             CategoryFilter(
-                filters, scaffoldState, scope, isRefreshing
-            )
+                filters, scaffoldState, isRefreshing
+            ){
+                openBottomSheet.value = false
+            }
         },
     ) {
         Box(
@@ -150,9 +153,7 @@ fun OfferFilterContent(
                 ) {
                     IconButton(
                         onClick = {
-                            scope.launch {
-                                sheetState.bottomSheetState.collapse()
-                            }
+                            onClose()
                         },
                         content = {
                             Icon(
@@ -176,11 +177,8 @@ fun OfferFilterContent(
                             listingData?.clear()
                             OfferFilters.clearTypeFilter(typeFilters)
                             listingData?.addAll(OfferFilters.addByTypeFilter(typeFilters))
-
-                            scope.launch {
-                                sheetState.bottomSheetState.collapse()
-                            }
                             isRefreshing.value = true
+                            onClose()
                         },
                         content = {
                             Text(
@@ -196,7 +194,7 @@ fun OfferFilterContent(
 
             //Expands
             AnimatedVisibility(
-                visible = sheetState.bottomSheetState.isExpanded,
+                visible = true,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -446,10 +444,7 @@ fun OfferFilterContent(
                                 fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 color = if (defCat == activeCategory.value) colors.simpleButtonColors else colors.themeButtonColors,
                                 onClick = {
-                                    scope.launch {
-                                        scaffoldState.bottomSheetState.expand()
-                                        scaffoldState.bottomSheetState.expand()
-                                    }
+                                    openBottomSheet.value = true
                                 },
                                 onCancelClick = {
                                     val name = listingData?.find { it.key == "category" }?.interpritation
@@ -488,9 +483,7 @@ fun OfferFilterContent(
                     onClick = {
                         filters.value.filters = listingData
                         isRefreshing.value = true
-                        scope.launch {
-                            sheetState.bottomSheetState.collapse()
-                        }
+                        onClose()
                     },
                     content = {
                         Text(

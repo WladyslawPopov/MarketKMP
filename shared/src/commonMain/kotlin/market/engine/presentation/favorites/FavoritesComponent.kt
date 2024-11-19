@@ -4,7 +4,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.network.networkObjects.Offer
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -16,7 +15,6 @@ interface FavoritesComponent {
     )
 
     fun goToSubscribes()
-    fun onRefresh()
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
 }
 
@@ -32,21 +30,15 @@ class DefaultFavoritesComponent(
     )
     override val model: Value<FavoritesComponent.Model> = _model
     override fun goToSubscribes() {
-        searchData.value.isRefreshing = true
         selectedSubscribes()
     }
 
     private val favViewModel = model.value.favViewModel
-
     private val listingData = favViewModel.listingData
-    private val searchData = listingData.searchData
+    private val searchData = listingData.value.searchData
     private val analyticsHelper = getKoin().get<AnalyticsHelper>()
 
-    override fun onRefresh() {
-        favViewModel.firstVisibleItemScrollOffset = 0
-        favViewModel.firstVisibleItemIndex = 0
-        favViewModel.updateCurrentListingData()
-
+    init {
         analyticsHelper.reportEvent("open_favorites", "")
     }
 

@@ -20,7 +20,6 @@ interface MyOffersComponent {
         var type : LotsType
     )
 
-    fun onRefresh()
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
 }
 
@@ -35,7 +34,6 @@ class DefaultMyOffersComponent(
             viewModel = ProfileMyOffersViewModel(
                 type,
                 getKoin().get(),
-                getKoin().get()
             ),
             type = type
         )
@@ -43,11 +41,8 @@ class DefaultMyOffersComponent(
     override val model: Value<MyOffersComponent.Model> = _model
     private val analyticsHelper = getKoin().get<AnalyticsHelper>()
 
-    override fun onRefresh() {
-
-       userRepository.updateUserInfo(model.value.viewModel.viewModelScope)
-
-        model.value.viewModel.updateCurrentListingData()
+    init {
+        userRepository.updateUserInfo(model.value.viewModel.viewModelScope)
         analyticsHelper.reportEvent("open_my_offers", "")
     }
 
@@ -63,7 +58,7 @@ class DefaultMyOffersComponent(
                 eventParameters
             )
         }
-        if (model.value.viewModel.listingData.searchData.value.userSearch || model.value.viewModel.listingData.searchData.value.searchString != null){
+        if (model.value.viewModel.listingData.value.searchData.value.userSearch || model.value.viewModel.listingData.value.searchData.value.searchString != null){
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
                 "lot_name" to offer.title,

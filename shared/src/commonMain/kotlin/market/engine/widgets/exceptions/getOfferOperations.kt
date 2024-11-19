@@ -3,14 +3,11 @@ package market.engine.widgets.exceptions
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -56,7 +53,6 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.items.ToastItem
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
@@ -76,7 +72,6 @@ import org.koin.compose.viewmodel.koinViewModel
 fun getOfferOperations(
     offer: Offer,
     onUpdateMenuItem: (Offer) -> Unit,
-    onError: (ServerErrorException?) -> Unit,
     onClose: () -> Unit,
 ) {
     val mainViewModel : MainViewModel = koinViewModel()
@@ -197,8 +192,6 @@ fun getOfferOperations(
                                                             showDialog.value = true
                                                             onClose()
                                                         }
-                                                    } else {
-                                                        onError(buf.error)
                                                     }
                                                 }
                                             }
@@ -209,7 +202,6 @@ fun getOfferOperations(
                                                     offer.id
                                                 )
                                                 val response = buf.success
-                                                val err = buf.error
                                                 withContext(Dispatchers.Main) {
                                                     if (response != null) {
                                                         if (response.success) {
@@ -220,8 +212,6 @@ fun getOfferOperations(
                                                             showDialog.value = true
                                                             onClose()
                                                         }
-                                                    } else {
-                                                        onError(err)
                                                     }
                                                 }
                                             }
@@ -233,7 +223,6 @@ fun getOfferOperations(
                                                         offer.id
                                                     )
                                                 val r = buf.success
-                                                val e = buf.error
                                                 withContext(Dispatchers.Main) {
                                                     if (r != null) {
                                                         if (r.success) {
@@ -244,8 +233,6 @@ fun getOfferOperations(
                                                             showDialog.value = true
                                                             onClose()
                                                         }
-                                                    } else {
-                                                        onError(e)
                                                     }
                                                 }
                                             }
@@ -263,7 +250,6 @@ fun getOfferOperations(
                                                         offer.id
                                                     )
                                                 val r = buf.success
-                                                val e = buf.error
                                                 withContext(Dispatchers.Main) {
                                                     if (r != null) {
                                                         if (r.success) {
@@ -287,8 +273,6 @@ fun getOfferOperations(
                                                             showDialog.value = true
                                                             onClose()
                                                         }
-                                                    } else {
-                                                        onError(e)
                                                     }
                                                 }
                                             }
@@ -300,7 +284,6 @@ fun getOfferOperations(
                                                         offer.id
                                                     )
                                                 val r = buf.success
-                                                val e = buf.error
                                                 withContext(Dispatchers.Main) {
                                                     if (r != null) {
                                                         if (r.success) {
@@ -325,8 +308,6 @@ fun getOfferOperations(
                                                             showDialog.value = true
                                                             onClose()
                                                         }
-                                                    } else {
-                                                        onError(e)
                                                     }
                                                 }
                                             }
@@ -342,7 +323,6 @@ fun getOfferOperations(
                                                         offer.id
                                                     )
                                                 val r = buf.success
-                                                val e = buf.error
                                                 withContext(Dispatchers.Main) {
                                                     if (r != null) {
                                                         if (r.success) {
@@ -352,8 +332,6 @@ fun getOfferOperations(
                                                                 r.humanMessage.toString()
                                                             showDialog.value = true
                                                         }
-                                                    } else {
-                                                        onError(e)
                                                     }
                                                 }
                                             }
@@ -416,7 +394,6 @@ fun getOfferOperations(
                                         offer.id
                                     )
                                 val r = buf.success
-                                val e = buf.error
                                 withContext(Dispatchers.Main) {
                                     if (r != null) {
                                         if (r.success) {
@@ -438,8 +415,6 @@ fun getOfferOperations(
                                             errorMes.value = r.humanMessage.toString()
                                             showDialog.value = true
                                         }
-                                    } else {
-                                        onError(e)
                                     }
                                 }
                             }
@@ -516,7 +491,6 @@ fun getOfferOperations(
                                         body
                                     )
                                     val r = buf.success
-                                    val e = buf.error
                                     withContext(Dispatchers.Main) {
                                         if (r != null) {
                                             if (r.success) {
@@ -536,8 +510,6 @@ fun getOfferOperations(
                                                 errorMes.value = r.humanMessage.toString()
                                                 showDialog.value = true
                                             }
-                                        } else {
-                                            onError(e)
                                         }
                                     }
                                 }
@@ -621,7 +593,6 @@ fun getOfferOperations(
                                             body
                                         )
                                     val r = buf.success
-                                    val e = buf.error
                                     withContext(Dispatchers.Main) {
                                         if (r != null) {
                                             if (r.success) {
@@ -642,8 +613,6 @@ fun getOfferOperations(
                                                 errorMes.value = r.humanMessage.toString()
                                                 showDialog.value = true
                                             }
-                                        } else {
-                                            onError(e)
                                         }
                                     }
                                 }

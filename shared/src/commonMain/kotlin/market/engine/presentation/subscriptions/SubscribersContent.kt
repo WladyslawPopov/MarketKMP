@@ -120,23 +120,24 @@ fun SubscribesContent(
 //        }
 //    }
     val mainViewModel : MainViewModel = koinViewModel()
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateTopBar {
-            FavoritesAppBar(
-                FavScreenType.SUBSCRIBED,
-                modifier
-            ) { type ->
-                if (type == FavScreenType.FAVORITES) {
-                    component.goToFavorites()
+    LaunchedEffect(Unit) {
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateTopBar {
+                FavoritesAppBar(
+                    FavScreenType.SUBSCRIBED,
+                    modifier
+                ) { type ->
+                    if (type == FavScreenType.FAVORITES) {
+                        component.goToFavorites()
+                    }
                 }
             }
-        }
-    )
+        )
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateFloatingActionButton {}
-    )
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateFloatingActionButton {}
+        )
+    }
 
     mainViewModel.sendEvent(
         UIMainEvent.UpdateError(error)
@@ -145,6 +146,7 @@ fun SubscribesContent(
     mainViewModel.sendEvent(
         UIMainEvent.UpdateNotFound(noItem)
     )
+
     SwipeRefreshContent(
         isRefreshing = isLoading.value,
         modifier = modifier.fillMaxSize(),

@@ -15,12 +15,11 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.launch
 import market.engine.common.ScrollBarsProvider
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.drawables
@@ -140,16 +139,20 @@ fun HomeContent(
     )
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
-    val isLoading = model.isLoading.collectAsState()
-    val err = model.isError.collectAsState()
+    val homeViewModel = model.homeViewModel
+    val isLoading = homeViewModel.isShowProgress.collectAsState()
+    val err = homeViewModel.errorMessage.collectAsState()
     val scrollState = rememberScrollState()
-    val searchData = component.globalData.listingData.searchData.subscribeAsState()
-    val listingData = component.globalData.listingData.data.subscribeAsState()
+    val searchData = homeViewModel.listingData.value.searchData.subscribeAsState()
+    val listingData = homeViewModel.listingData.value.data.subscribeAsState()
+    val categories = homeViewModel.responseCategory.collectAsState()
+    val promoOffer1 = homeViewModel.responseOffersPromotedOnMainPage1.collectAsState()
+    val promoOffer2 = homeViewModel.responseOffersPromotedOnMainPage2.collectAsState()
 
     val mainViewModel : MainViewModel = koinViewModel()
 
     val errorContent: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(model.isError.value) { component.onRefresh() } }
+        { onError(err.value) { component.onRefresh() } }
     } else {
         null
     }
@@ -159,25 +162,31 @@ fun HomeContent(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
-        HomeAppBar(
-            modifier,
-            showNavigationRail,
-            drawerState
+    LaunchedEffect(Unit) {
+
+        mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
+            HomeAppBar(
+                modifier,
+                showNavigationRail,
+                drawerState
+            )
+        })
+
+        mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {
+            floatingCreateOfferButton {
+
+            }
+        })
+
+        mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(null))
+    }
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(
+            errorContent
         )
-    })
+    )
 
-    mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {
-        floatingCreateOfferButton {
-
-        }
-    })
-
-    mainViewModel.sendEvent(UIMainEvent.UpdateError(
-        errorContent
-    ))
-
-    mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(null))
 
     ModalNavigationDrawer(
         modifier = modifier,
@@ -216,55 +225,48 @@ fun HomeContent(
                             }
                         )
 
-                        model.categories.collectAsState().value.let { categoryList ->
-                            CategoryList(
-                                categories = categoryList
-                            ) { category ->
-                                searchData.value.clear()
-                                searchData.value.clearCategory()
-                                searchData.value.searchCategoryID = category.id
-                                searchData.value.searchParentID = category.parentId
-                                searchData.value.searchCategoryName = category.name
+                        CategoryList(
+                            categories = categories.value
+                        ) { category ->
+                            searchData.value.searchCategoryID = category.id
+                            searchData.value.searchParentID = category.parentId
+                            searchData.value.searchCategoryName = category.name
+                            searchData.value.isRefreshing = true
+                            component.navigateToListing()
+                        }
 
-                                component.navigateToListing()
-                            }
-                        }
                         val stringAllPromo = stringResource(strings.allPromoOffersBtn)
-                        model.promoOffer1.collectAsState().value.let { offers ->
-                            GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                                listingData.value.filters = EmptyFilters.getEmpty()
-                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
-                                    "promo_main_page"
-                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                                    stringAllPromo
-                                searchData.value.clear()
-                                searchData.value.clearCategory()
-                                component.navigateToListing()
-                            })
-                        }
+                        GridPromoOffers(promoOffer1.value, onOfferClick = {}, onAllClickButton = {
+                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                                "promo_main_page"
+                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                                stringAllPromo
+                            searchData.value.isRefreshing = true
+                            component.navigateToListing()
+                        })
 
                         GridPopularCategory(listTopCategory) { topCategory ->
-                            searchData.value.clear()
-                            searchData.value.clearCategory()
                             searchData.value.searchCategoryID = topCategory.id
                             searchData.value.searchParentID = topCategory.parentId
                             searchData.value.searchCategoryName = topCategory.name
                             searchData.value.searchParentName = topCategory.parentName
+                            searchData.value.isRefreshing = true
                             component.navigateToListing()
                         }
 
-                        model.promoOffer2.collectAsState().value.let { offers ->
-                            GridPromoOffers(offers, onOfferClick = {}, onAllClickButton = {
-                                listingData.value.filters = EmptyFilters.getEmpty()
-                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
-                                    "promo_main_page"
-                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                                    stringAllPromo
-                                searchData.value.clear()
-                                searchData.value.clearCategory()
-                                component.navigateToListing()
-                            })
-                        }
+                        GridPromoOffers(promoOffer2.value, onOfferClick = {}, onAllClickButton = {
+                            if (listingData.value.filters.isNullOrEmpty()){
+                                listingData.value.filters = arrayListOf()
+                                listingData.value.filters?.addAll(EmptyFilters.getEmpty())
+                            }
+                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                                "promo_main_page"
+                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                                stringAllPromo
+                            searchData.value.isRefreshing = true
+                            component.navigateToListing()
+                        })
+
                         FooterRow(listFooterItem)
                     }
 

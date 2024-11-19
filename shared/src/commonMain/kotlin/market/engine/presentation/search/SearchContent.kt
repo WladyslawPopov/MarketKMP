@@ -22,17 +22,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.baseFilters.SD
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.constants.ThemeResources.dimens
 import market.engine.widgets.exceptions.onError
-import market.engine.presentation.base.BaseContent
-import market.engine.presentation.listing.ListingAppBar
 import market.engine.presentation.main.MainViewModel
 import market.engine.presentation.main.UIMainEvent
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -53,12 +49,6 @@ fun SearchContent(
     val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
     val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
-    val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(isError.value) { } }
-    }else{
-        null
-    }
-
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
@@ -66,40 +56,46 @@ fun SearchContent(
 
     val mainViewModel : MainViewModel = koinViewModel()
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateTopBar {
-            SearchAppBar(
-                modifier,
-                searchString,
-                focusRequester,
-                onSearchClick = {
+    LaunchedEffect(Unit) {
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateTopBar {
+                SearchAppBar(
+                    modifier,
+                    searchString,
+                    focusRequester,
+                    onSearchClick = {
+                        getSearchFilters(searchData, searchString.text)
+                        component.goToListing()
+                    },
+                    onUpdateHistory = {
+                        searchString = searchString.copy(it)
+                        component.updateHistory(it)
+                    }
+                ) {
                     getSearchFilters(searchData, searchString.text)
-                    component.goToListing()
-                },
-                onUpdateHistory = {
-                    searchString = searchString.copy(it)
-                    component.updateHistory(it)
+                    component.onCloseClicked()
                 }
-            ) {
-                getSearchFilters(searchData, searchString.text)
-                component.onCloseClicked()
             }
-        }
-    )
+        )
+
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateFloatingActionButton {}
+        )
+
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateNotFound(null)
+        )
+    }
 
     mainViewModel.sendEvent(
-        UIMainEvent.UpdateFloatingActionButton {}
+        UIMainEvent.UpdateError(
+            if (isError.value.humanMessage != "") {
+                { onError(isError.value) { } }
+            }else{
+                null
+            }
+        )
     )
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateError(error)
-    )
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateNotFound(null)
-    )
-
-
 
     SwipeRefreshContent(
         isRefreshing = isLoading.value,
@@ -112,7 +108,7 @@ fun SearchContent(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = dimens.mediumPadding)
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = {
                         focusManager.clearFocus()

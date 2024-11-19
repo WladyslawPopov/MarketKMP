@@ -26,12 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
@@ -45,7 +43,6 @@ import org.jetbrains.compose.resources.stringResource
 fun MyOffersItem(
     offer: Offer,
     onUpdateOfferItem : (offer: Offer) -> Unit,
-    onError: (error: ServerErrorException?) -> Unit,
     onItemClick: () -> Unit
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
@@ -81,9 +78,6 @@ fun MyOffersItem(
                         offer,
                         onUpdateMenuItem = { offer->
                             onUpdateOfferItem(offer)
-                        },
-                        onError = { error->
-                            onError(error)
                         },
                         onClose = {
                             isOpenPopup.value = false

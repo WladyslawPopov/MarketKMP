@@ -42,7 +42,6 @@ import org.jetbrains.compose.resources.stringResource
 fun FavItem(
     offer: Offer,
     onUpdateOfferItem : (offer: Offer) -> Unit,
-    onError: (error: ServerErrorException?) -> Unit,
     onSelectionChange: (Boolean) -> Unit,
     isSelected: Boolean,
     onItemClick: () -> Unit
@@ -85,9 +84,6 @@ fun FavItem(
                     offer,
                     onUpdateMenuItem = { offer->
                         onUpdateOfferItem(offer)
-                    },
-                    onError = { error->
-                        onError(error)
                     },
                     onClose = {
                         isOpenPopup.value = false

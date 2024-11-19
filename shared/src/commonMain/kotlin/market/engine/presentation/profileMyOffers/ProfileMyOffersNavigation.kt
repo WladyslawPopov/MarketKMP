@@ -23,7 +23,6 @@ fun ProfileMyOffersNavigation(
 
     val mainViewModel : MainViewModel = koinViewModel()
 
-
     ModalNavigationDrawer(
         modifier = modifier,
         drawerState = drawerState,

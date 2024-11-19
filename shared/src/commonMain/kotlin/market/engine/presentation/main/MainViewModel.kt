@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.baseFilters.LD
+import market.engine.core.baseFilters.SD
+import market.engine.core.items.ListingData
 import market.engine.core.items.ToastItem
 import market.engine.core.network.APIService
 import market.engine.core.types.ToastType
@@ -76,7 +79,6 @@ class MainViewModel(private val apiService: APIService) : BaseViewModel() {
     private fun updateActionFloatingButton(content: (@Composable () -> Unit)) {
         actionFloatingButton.value = content
     }
-
 
     init {
         viewModelScope.launch {

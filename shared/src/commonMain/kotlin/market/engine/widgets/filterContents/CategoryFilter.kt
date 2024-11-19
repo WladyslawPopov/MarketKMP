@@ -35,6 +35,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,14 +58,14 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CategoryFilter(
     listingData: State<LD>,
     sheetState: BottomSheetScaffoldState,
-    scope: CoroutineScope,
     isRefreshing: MutableState<Boolean>,
+    onClosed: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val categoryOperations : CategoryOperations = koinInject()
     val isRefresh = remember { mutableStateOf(true) }
     val categories = remember { mutableStateListOf<Category>() }
@@ -171,9 +172,7 @@ fun CategoryFilter(
 
                 IconButton(
                     onClick = {
-                        scope.launch {
-                            sheetState.bottomSheetState.collapse()
-                        }
+                        onClosed()
                     },
                     content = {
                         Icon(
@@ -268,9 +267,7 @@ fun CategoryFilter(
                 Modifier.align(Alignment.Center),
             ) {
                 isRefreshing.value = true
-                scope.launch {
-                    sheetState.bottomSheetState.collapse()
-                }
+                onClosed()
             }
         }
     }

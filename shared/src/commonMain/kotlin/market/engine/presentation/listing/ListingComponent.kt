@@ -13,8 +13,6 @@ interface ListingComponent {
         val listingViewModel: ListingViewModel
     )
 
-    fun onRefresh()
-
     fun onBackClicked()
 
     fun goToSearch()
@@ -35,15 +33,10 @@ class DefaultListingComponent(
     private val listingViewModel = model.value.listingViewModel
 
     private val listingData = listingViewModel.listingData
-    private val searchData = listingData.searchData
+    private val searchData = listingData.value.searchData
     private val analyticsHelper = getKoin().get<AnalyticsHelper>()
 
-    override fun onRefresh() {
-        listingViewModel.firstVisibleItemScrollOffset = 0
-        listingViewModel.firstVisibleItemIndex = 0
-        listingViewModel.updateCurrentListingData()
-        listingViewModel.getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID ?: 1L)
-
+    init {
         val eventParameters = mapOf(
             "catalog_category" to searchData.value.searchCategoryName,
             "category_id" to searchData.value.searchCategoryID.toString()
@@ -52,11 +45,11 @@ class DefaultListingComponent(
     }
 
     override fun onBackClicked() {
-        if (listingData.searchData.value.searchIsLeaf){
-            listingData.searchData.value.searchCategoryID = listingData.searchData.value.searchParentID
-            listingData.searchData.value.searchCategoryName = listingData.searchData.value.searchParentName
+        if (searchData.value.searchIsLeaf){
+            searchData.value.searchCategoryID = searchData.value.searchParentID
+            searchData.value.searchCategoryName = searchData.value.searchParentName
         }
-        listingData.searchData.value.isRefreshing = true
+        searchData.value.isRefreshing = true
         onBackPressed()
     }
 

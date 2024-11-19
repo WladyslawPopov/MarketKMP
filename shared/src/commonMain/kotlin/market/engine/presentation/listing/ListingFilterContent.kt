@@ -3,10 +3,8 @@ package market.engine.presentation.listing
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import kotlinx.coroutines.CoroutineScope
 import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Button
@@ -40,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -53,15 +49,14 @@ import market.engine.widgets.lists.getDropdownMenu
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FilterListingContent(
     isRefreshing: MutableState<Boolean>,
     listingData: State<LD>,
-    sheetState: BottomSheetScaffoldState,
-    scope: CoroutineScope,
     regionsOptions: ArrayList<Options>,
+    onClosed: () -> Unit,
 ) {
+
     val saleTypeFilters = listOf(
         "buynow" to stringResource(strings.buyNow),
         "auction" to stringResource(strings.ordinaryAuction),
@@ -109,9 +104,7 @@ fun FilterListingContent(
             ) {
                 IconButton(
                     onClick = {
-                        scope.launch {
-                            sheetState.bottomSheetState.collapse()
-                        }
+                        onClosed()
                     },
                     content = {
                         Icon(
@@ -134,9 +127,7 @@ fun FilterListingContent(
                     onClick = {
                         isRefreshing.value = true
                         listingData.value.filters = EmptyFilters.getEmpty()
-                        scope.launch {
-                            sheetState.bottomSheetState.collapse()
-                        }
+                        onClosed()
                     },
                     content = {
                         Text(
@@ -150,7 +141,7 @@ fun FilterListingContent(
             }
         }
         AnimatedVisibility(
-            visible = sheetState.bottomSheetState.isExpanded,
+            visible = true,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -456,9 +447,7 @@ fun FilterListingContent(
         ) {
             Button(
                 onClick = {
-                    scope.launch {
-                        sheetState.bottomSheetState.collapse()
-                    }
+                    onClosed()
                 },
                 content = {
                     Text(
@@ -471,7 +460,6 @@ fun FilterListingContent(
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.align(Alignment.Center)
             )
-
         }
     }
 

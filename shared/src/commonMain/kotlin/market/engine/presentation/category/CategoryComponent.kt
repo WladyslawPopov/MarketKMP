@@ -1,9 +1,12 @@
 package market.engine.presentation.category
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.launch
+import market.engine.core.baseFilters.SD
 import market.engine.core.network.functions.CategoryOperations
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -16,7 +19,7 @@ interface CategoryComponent {
         val categoryViewModel: CategoryViewModel
     )
 
-    fun onRefresh()
+    fun onRefresh(searchData : SD)
 
     fun onCloseClicked()
 
@@ -42,21 +45,20 @@ class DefaultCategoryComponent(
 
     private val categoryOperations : CategoryOperations = getKoin().get()
 
-    val searchData = model.value.categoryViewModel.searchData
+    override fun onRefresh(searchData : SD) {
 
-    override fun onRefresh() {
         model.value.categoryViewModel.viewModelScope.launch {
-            if (searchData.value.searchCategoryID == searchData.value.searchParentID) {
-                val catInfo = categoryOperations.getCategoryInfo(searchData.value.searchCategoryID)
+            if (searchData.searchCategoryID == searchData.searchParentID) {
+                val catInfo = categoryOperations.getCategoryInfo(searchData.searchCategoryID)
                 if (catInfo.success != null) {
-                    searchData.value.searchCategoryName = catInfo.success?.name
-                    searchData.value.searchCategoryID = catInfo.success?.id
-                    searchData.value.searchParentID = catInfo.success?.parentId
-                    searchData.value.searchIsLeaf = catInfo.success?.isLeaf == true
-                    model.value.categoryViewModel.getCategory()
+                    searchData.searchCategoryName = catInfo.success?.name
+                    searchData.searchCategoryID = catInfo.success?.id
+                    searchData.searchParentID = catInfo.success?.parentId
+                    searchData.searchIsLeaf = catInfo.success?.isLeaf == true
+                    model.value.categoryViewModel.getCategory(searchData.searchCategoryID ?:1L)
                 }
             }else{
-                model.value.categoryViewModel.getCategory()
+                model.value.categoryViewModel.getCategory(searchData.searchCategoryID ?: 1L)
             }
         }
     }
@@ -66,7 +68,6 @@ class DefaultCategoryComponent(
     }
 
     override fun goToListing() {
-        searchData.value.isRefreshing = true
         goToListingSelected()
     }
 

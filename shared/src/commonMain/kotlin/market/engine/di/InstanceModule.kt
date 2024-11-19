@@ -14,26 +14,21 @@ import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.paging.offer.OfferPagingRepository
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
-import market.engine.core.baseFilters.CategoryBaseFilters
-import market.engine.core.baseFilters.FavBaseFilters
-import market.engine.core.baseFilters.ProfileBaseFilters
 import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
-import market.engine.core.types.LotsType
 import market.engine.presentation.category.CategoryViewModel
 import market.engine.presentation.favorites.FavViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
 import market.engine.presentation.login.LoginViewModel
 import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.profileMyOffers.ProfileMyOffersViewModel
 import market.engine.presentation.search.SearchViewModel
 import market.engine.presentation.subscriptions.SubViewModel
 import market.engine.shared.MarketDB
 import org.koin.compose.viewmodel.dsl.viewModel
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import org.koin.viewmodel.getViewModelKey
 
 object InstanceModule {
     val appModule = listOf(
@@ -42,11 +37,10 @@ object InstanceModule {
         operationsModule,
         repositoryModule,
         viewModelModule,
-        filtersModule
     )
 }
 
-@Suppress("DEPRECATION")
+
 val viewModelModule = module {
     viewModel { MainViewModel(get()) }
     viewModel { HomeViewModel(get()) }
@@ -54,7 +48,7 @@ val viewModelModule = module {
     viewModel { CategoryViewModel(get()) }
     viewModel { SearchViewModel(get()) }
     viewModel { LoginViewModel(get()) }
-    viewModel { FavViewModel(get(), get()) }
+    viewModel { FavViewModel(get()) }
     viewModel { SubViewModel(get(), get()) }
 }
 
@@ -71,7 +65,7 @@ val databaseModule = module {
 }
 
 val operationsModule = module {
-    single { CategoryOperations(get(), get()) }
+    single { CategoryOperations(get()) }
     single { ConversationsOperations(get()) }
     single { FileUpload(get()) }
     single { OfferOperations(get()) }
@@ -88,8 +82,3 @@ val repositoryModule = module {
     single { UserRepository(get(), get(), get(), get()) }
 }
 
-val filtersModule = module {
-    single { CategoryBaseFilters }
-    single { FavBaseFilters }
-    single { ProfileBaseFilters }
-}

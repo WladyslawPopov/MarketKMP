@@ -10,16 +10,14 @@ import market.engine.core.network.ServerErrorException
 import market.engine.presentation.base.BaseViewModel
 import market.engine.shared.MarketDB
 import market.engine.shared.SearchHistory
-import org.koin.mp.KoinPlatform.getKoin
 
 class SearchViewModel(val dataBase : MarketDB) : BaseViewModel() {
 
     private val _responseHistory = MutableStateFlow<List<SearchHistory>>(emptyList())
     val responseHistory: StateFlow<List<SearchHistory>> = _responseHistory.asStateFlow()
 
-    val globalData: CategoryBaseFilters = getKoin().get()
-
-    val searchData = globalData.listingData.searchData
+    val searchData = CategoryBaseFilters.filtersData.searchData
+    val listingData = CategoryBaseFilters.filtersData.data
 
     init {
         getHistory()

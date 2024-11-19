@@ -1,106 +1,46 @@
 package market.engine.presentation.profileMyOffers
 
-import androidx.compose.material.BottomSheetValue
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import market.engine.core.baseFilters.Filter
-import market.engine.core.baseFilters.ProfileBaseFilters
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.items.ListingData
-import market.engine.core.network.APIService
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.paging.offer.OfferPagingRepository
-import market.engine.core.repositories.SettingsRepository
 import market.engine.core.types.LotsType
 import market.engine.presentation.base.BaseViewModel
-import org.koin.mp.KoinPlatform.getKoin
 
 class ProfileMyOffersViewModel(
     val type: LotsType,
-    apiService: APIService,
-    private val offerPagingRepository: OfferPagingRepository
+    offerPagingRepository: OfferPagingRepository,
 ) : BaseViewModel() {
-    val settings : SettingsRepository = getKoin().get()
-    var firstVisibleItemIndex by mutableStateOf(0)
-    var firstVisibleItemScrollOffset by mutableStateOf(0)
-    var isHideContent = mutableStateOf(false)
-    var activeFiltersType = mutableStateOf("")
-    val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
-
-    private val globalData = ProfileBaseFilters
-    var listingData = globalData.listingData.deepCopy()
-
-    private val filtersMap: Map<LotsType, ArrayList<Filter>> = mapOf(
-        LotsType.MYLOT_ACTIVE to OfferFilters.filtersMyLotsActive,
-        LotsType.MYLOT_UNACTIVE to OfferFilters.filtersMyLotsUnactive,
-        LotsType.MYLOT_FUTURE to OfferFilters.filtersMyLotsFuture
-    )
-
-    init {
-        updateCurrentListingData()
-    }
-
-    val state: StateFlow<UiState>
+    var listingData = mutableStateOf(ListingData())
     val pagingDataFlow: Flow<PagingData<Offer>>
 
-    private val accept: (UiAction) -> Unit
-
     init {
 
-        listingData.data.value.filters = arrayListOf()
-        listingData.data.value.filters?.addAll(filtersMap[type] ?: arrayListOf())
-        listingData.data.value.methodServer = "get_cabinet_listing"
-
-        val actionStateFlow = MutableSharedFlow<UiAction>(replay = 1)
-
-        accept = { action ->
-            viewModelScope.launch { actionStateFlow.emit(action) }
+        when(type){
+            LotsType.MYLOT_ACTIVE -> {
+                listingData.value.data.value.filters = arrayListOf()
+                listingData.value.data.value.filters?.addAll( OfferFilters.filtersMyLotsActive)
+            }
+            LotsType.MYLOT_UNACTIVE -> {
+                listingData.value.data.value.filters = arrayListOf()
+                listingData.value.data.value.filters?.addAll(OfferFilters.filtersMyLotsUnactive)
+            }
+            LotsType.MYLOT_FUTURE -> {
+                listingData.value.data.value.filters = arrayListOf()
+                listingData.value.data.value.filters?.addAll(OfferFilters.filtersMyLotsFuture)
+            }
+            else -> {
+                listingData.value.data.value.filters = arrayListOf()
+                listingData.value.data.value.filters?.addAll(OfferFilters.filtersMyLotsActive)
+            }
         }
 
-        val searches = actionStateFlow
-            .filterIsInstance<UiAction.UpdateCurrentListingData>()
+        listingData.value.data.value.methodServer = "get_cabinet_listing"
 
-        @OptIn(ExperimentalCoroutinesApi::class)
-        pagingDataFlow = searches
-            .flatMapLatest {
-                offerPagingRepository.getListing(it.listingData)
-            }.cachedIn(viewModelScope)
-
-        state = searches.map {
-            UiState(
-                it.listingData
-            )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
-            initialValue = UiState(listingData.copy())
-        )
-    }
-
-    fun updateCurrentListingData() {
-        viewModelScope.launch {
-            accept(UiAction.UpdateCurrentListingData(listingData))
-        }
-    }
-
-    data class UiState(
-        val listingData: ListingData
-    )
-
-    sealed class UiAction {
-        data class UpdateCurrentListingData(val listingData: ListingData) : UiAction()
+        pagingDataFlow = offerPagingRepository.getListing(listingData.value).cachedIn(viewModelScope)
     }
 }

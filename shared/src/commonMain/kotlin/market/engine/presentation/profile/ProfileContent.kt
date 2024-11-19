@@ -56,7 +56,9 @@ fun ProfileContent(
     LaunchedEffect(Unit) {
         mainViewModel.sendEvent(
             UIMainEvent.UpdateTopBar {
-                {}
+                {
+
+                }
             }
         )
 

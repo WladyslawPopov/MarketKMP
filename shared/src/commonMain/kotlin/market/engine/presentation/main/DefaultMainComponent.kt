@@ -1,17 +1,12 @@
 package market.engine.presentation.main
 
-import androidx.compose.runtime.remember
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DelicateDecomposeApi
-import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
 import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
-import com.arkivanov.decompose.router.pages.selectFirst
-import com.arkivanov.decompose.router.pages.selectNext
-import com.arkivanov.decompose.router.pages.selectPrev
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
@@ -21,8 +16,6 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.baseFilters.CategoryBaseFilters
-import market.engine.core.baseFilters.FavBaseFilters
-import market.engine.core.baseFilters.ProfileBaseFilters
 import market.engine.core.globalData.UserData
 import market.engine.core.items.DeepLink
 import market.engine.core.navigation.children.ChildBasket
@@ -41,6 +34,7 @@ import market.engine.core.navigation.configs.ProfileConfig
 import market.engine.core.types.CategoryScreenType
 import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
+import market.engine.core.types.ProfileScreenType
 import market.engine.presentation.category.CategoryComponent
 import market.engine.presentation.category.DefaultCategoryComponent
 import market.engine.presentation.favorites.DefaultFavoritesComponent
@@ -66,13 +60,13 @@ class DefaultMainComponent(
 
     ) : MainComponent, ComponentContext by componentContext
 {
-    override val categoryData = MutableValue<CategoryBaseFilters>(getKoin().get())
-    private val categoryStack = categoryData.value.categoryStack
-    override val favoritesData = MutableValue<FavBaseFilters>(getKoin().get())
-    private val favoritesStack = favoritesData.value.favStack
-    override val profileData = MutableValue<ProfileBaseFilters>(getKoin().get())
+    override val categoryStack = MutableValue(mutableListOf(CategoryScreenType.CATEGORY))
+    override val favoritesStack = MutableValue(mutableListOf(FavScreenType.FAVORITES))
+    override val profileStack = MutableValue(mutableListOf(ProfileScreenType.MY_OFFERS))
 
     override val mainViewModel = MutableValue<MainViewModel>(getKoin().get())
+
+    private val categoryData = CategoryBaseFilters.filtersData
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
@@ -191,9 +185,9 @@ class DefaultMainComponent(
                 navigateToBottomItem(MainConfig.Profile)
             }
             is DeepLink.Listing -> {
-                categoryData.value.listingData.searchData.value.clear()
-                categoryData.value.listingData.searchData.value.userSearch = true
-                categoryData.value.listingData.searchData.value.userID = deepLink.ownerId
+                categoryData.searchData.value.clear()
+                categoryData.searchData.value.userSearch = true
+                categoryData.searchData.value.userID = deepLink.ownerId
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
                 navigateToBottomItem(MainConfig.Category)
             }
@@ -387,7 +381,7 @@ class DefaultMainComponent(
         return DefaultSearchComponent(
             componentContext = componentContext,
             onBackPressed = {
-                pushCatStack(categoryStack[categoryStack.lastIndex - 1])
+                pushCatStack(categoryStack.value[categoryStack.value.lastIndex - 1])
             },
             goToListingSelected = {
                 pushCatStack(CategoryScreenType.LISTING)
@@ -415,7 +409,7 @@ class DefaultMainComponent(
         return DefaultProfileComponent(
             componentContext = componentContext,
             selectMyOffers = {
-                profileData.value.profStack.add(LotsType.MYLOT_ACTIVE)
+                profileStack.value.add(ProfileScreenType.MY_OFFERS)
                 modelNavigation.value.profileNavigation.push(ProfileConfig.MyOffersScreen)
             }
         )
@@ -447,13 +441,13 @@ class DefaultMainComponent(
     private fun pushFavStack(screenType: FavScreenType){
         when(screenType){
             FavScreenType.FAVORITES -> {
-                favoritesStack.remove(FavScreenType.SUBSCRIBED)
-                favoritesStack.add(FavScreenType.FAVORITES)
+                favoritesStack.value.remove(FavScreenType.SUBSCRIBED)
+                favoritesStack.value.add(FavScreenType.FAVORITES)
                 modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.FavoritesScreen)
             }
             FavScreenType.SUBSCRIBED -> {
-                favoritesStack.remove(FavScreenType.FAVORITES)
-                favoritesStack.add(FavScreenType.SUBSCRIBED)
+                favoritesStack.value.remove(FavScreenType.FAVORITES)
+                favoritesStack.value.add(FavScreenType.SUBSCRIBED)
                 modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.SubscriptionsScreen)
             }
         }
@@ -461,18 +455,18 @@ class DefaultMainComponent(
     private fun pushCatStack(screenType: CategoryScreenType){
         when(screenType){
             CategoryScreenType.LISTING -> {
-                categoryStack.remove(CategoryScreenType.LISTING)
-                categoryStack.add(CategoryScreenType.LISTING)
+                categoryStack.value.remove(CategoryScreenType.LISTING)
+                categoryStack.value.add(CategoryScreenType.LISTING)
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
             }
             CategoryScreenType.SEARCH -> {
-                categoryStack.remove(CategoryScreenType.SEARCH)
-                categoryStack.add(CategoryScreenType.SEARCH)
+                categoryStack.value.remove(CategoryScreenType.SEARCH)
+                categoryStack.value.add(CategoryScreenType.SEARCH)
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.SearchScreen)
             }
             CategoryScreenType.CATEGORY -> {
-                categoryStack.remove(CategoryScreenType.CATEGORY)
-                categoryStack.add(CategoryScreenType.CATEGORY)
+                categoryStack.value.remove(CategoryScreenType.CATEGORY)
+                categoryStack.value.add(CategoryScreenType.CATEGORY)
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.CategoryScreen)
             }
         }

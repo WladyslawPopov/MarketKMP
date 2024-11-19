@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import kotlinx.coroutines.CoroutineScope
 import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -41,13 +39,11 @@ import market.engine.core.constants.ThemeResources.strings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SortingListingContent(
     isRefreshing: MutableState<Boolean>,
     listingData: State<LD>,
-    sheetState: BottomSheetScaffoldState,
-    scope: CoroutineScope
+    onClose: () -> Unit,
 ) {
     val sortSections = listOf(
         stringResource(strings.timeToEnd) to listOf(
@@ -86,9 +82,7 @@ fun SortingListingContent(
             ) {
                 IconButton(
                     onClick = {
-                        scope.launch {
-                            sheetState.bottomSheetState.collapse()
-                        }
+                        onClose()
                     },
                     content = {
                         Icon(
@@ -111,9 +105,7 @@ fun SortingListingContent(
                     onClick = {
                         isRefreshing.value = true
                         listingData.value.sort = null
-                        scope.launch {
-                            sheetState.bottomSheetState.collapse()
-                        }
+                        onClose()
                     },
                     content = {
                         Text(
@@ -128,7 +120,7 @@ fun SortingListingContent(
         }
 
         AnimatedVisibility(
-            sheetState.bottomSheetState.isExpanded,
+            true,
             enter = fadeIn(),
             exit = fadeOut()
         ){
@@ -157,9 +149,7 @@ fun SortingListingContent(
                                 .clickable {
                                     isRefreshing.value = true
                                     listingData.value.sort = sortOption
-                                    scope.launch {
-                                        sheetState.bottomSheetState.collapse()
-                                    }
+                                    onClose()
                                 }
                                 .background(colors.white)
                                 .clip(MaterialTheme.shapes.small)

@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -40,7 +39,7 @@ fun HeaderFavItemSection(
         Checkbox(
             checked = isSelected,
             onCheckedChange = { onSelectionChange(it) },
-            modifier = Modifier.size(38.dp),
+            modifier = Modifier.size(dimens.smallIconSize),
             colors = CheckboxDefaults.colors(
                 checkedColor = colors.inactiveBottomNavIconColor,
                 uncheckedColor = colors.textA0AE,
@@ -90,7 +89,8 @@ fun HeaderFavItemSection(
                     Icon(
                         painter = painterResource(drawables.menuIcon),
                         contentDescription = "",
-                        tint = colors.black
+                        tint = colors.black,
+                        modifier = Modifier.size(dimens.smallIconSize)
                     )
                 }
             }

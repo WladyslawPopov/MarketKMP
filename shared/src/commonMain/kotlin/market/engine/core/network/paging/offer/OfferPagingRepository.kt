@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import market.engine.core.items.ListingData
 
 class OfferPagingRepository(private val apiService: APIService) {
+    private var offerPagingSource : OfferPagingSource? = null
     fun getListing(listingData: ListingData): Flow<PagingData<Offer>> = Pager(
         config = PagingConfig(
             pageSize = listingData.data.value.pageCountItems,
@@ -17,7 +18,13 @@ class OfferPagingRepository(private val apiService: APIService) {
             prefetchDistance = listingData.data.value.pageCountItems*3
         ),
         pagingSourceFactory = {
-            OfferPagingSource(apiService, listingData)
+            OfferPagingSource(apiService, listingData).also {
+                offerPagingSource = it
+            }
         }
     ).flow
+
+    fun refresh(){
+        offerPagingSource?.invalidate()
+    }
 }

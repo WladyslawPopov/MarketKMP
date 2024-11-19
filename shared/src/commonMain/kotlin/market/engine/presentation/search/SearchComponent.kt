@@ -5,7 +5,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.network.functions.CategoryOperations
 import org.koin.mp.KoinPlatform.getKoin
 
 

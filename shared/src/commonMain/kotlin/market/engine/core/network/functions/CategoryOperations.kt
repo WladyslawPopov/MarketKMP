@@ -1,6 +1,6 @@
 package market.engine.core.network.functions
 
-import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.items.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.UrlBuilder
@@ -11,7 +11,7 @@ import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 
 
-class CategoryOperations(private val apiService : APIService, private val globalData: CategoryBaseFilters) {
+class CategoryOperations(private val apiService : APIService) {
 
     suspend fun getCategoryInfo(id: Long?): ServerResponse<Category> {
         return try {
@@ -32,10 +32,9 @@ class CategoryOperations(private val apiService : APIService, private val global
         }
     }
 
-    suspend fun getTotalCount(id: Long): ServerResponse<Int> {
-        val sd = globalData.listingData.searchData.value.copy()
-        val ld = globalData.listingData.data.value.copy()
-        sd.searchCategoryID = id
+    suspend fun getTotalCount(listingData: ListingData): ServerResponse<Int> {
+        val sd = listingData.searchData.value.copy()
+        val ld = listingData.data.value.copy()
         val url = UrlBuilder()
             .addPathSegment("offers")
             .addPathSegment("get_public_listing_counter")

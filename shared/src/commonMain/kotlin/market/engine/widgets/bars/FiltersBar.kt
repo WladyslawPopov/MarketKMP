@@ -67,28 +67,18 @@ private fun constructActiveFiltersTitle(
 private fun filterListingFilters(
     filters: List<Filter>?,
     isShowFilters: Boolean,
-    auction: String?,
-    buyNow: String?
 ): List<Filter>? {
     return filters?.filter { filter ->
-        filter.interpritation != null &&
-                (!isShowFilters || (
-                        filter.interpritation != auction &&
-                                filter.interpritation != buyNow &&
-                                filter.interpritation != "" &&
-                                filter.key !in listOf("state", "with_sales", "without_sales")
-                        ))
+        filter.interpritation != null && (!isShowFilters || (filter.interpritation != ""))
     }
 }
 
 @Composable
 fun FiltersBar(
-    listingData: State<LD>,
-    searchData: State<SD>,
+    listingData: LD,
+    searchData: SD,
     isShowFilters: Boolean = true,
     isShowGrid: Boolean = false,
-    auction: String? = null,
-    buyNow: String? = null,
     onChangeTypeList: (Int) -> Unit = {},
     onFilterClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
@@ -101,13 +91,13 @@ fun FiltersBar(
     val userDef = stringResource(strings.searchUsersSearch)
 
     // Derived filters based on isShowFilters
-    val filters = remember(listingData.value.filters, isShowFilters) {
-        filterListingFilters(listingData.value.filters, isShowFilters, auction, buyNow)
+    val filters = remember(listingData.filters, isShowFilters) {
+        filterListingFilters(listingData.filters, isShowFilters)
     }
 
     // Construct active filters title
-    val activeFiltersTitle = remember(filters, searchData, listingData.value.sort) {
-        constructActiveFiltersTitle(filters, searchData.value, listingData.value.sort, filterString, searchTitle, sortTitle)
+    val activeFiltersTitle = remember(filters, searchData, listingData.sort) {
+        constructActiveFiltersTitle(filters, searchData, listingData.sort, filterString, searchTitle, sortTitle)
     }
 
     val itemFilter = remember(filters) {
@@ -115,17 +105,17 @@ fun FiltersBar(
             title = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
-            hasNews = listingData.value.filters?.find { it.key !in listOf("state", "with_sales", "without_sales")} != null,
+            hasNews = listingData.filters?.find { it.key !in listOf("state", "with_sales", "without_sales")} != null,
             badgeCount = if(!filters.isNullOrEmpty()) filters.size else null,
         )
     }
 
-    val itemSort = remember(listingData.value.sort) {
+    val itemSort = remember(listingData.sort) {
         NavigationItem(
             title = sortTitle,
             icon = drawables.sortIcon,
             tint = colors.black,
-            hasNews = listingData.value.sort != null,
+            hasNews = listingData.sort != null,
             badgeCount = null
         )
     }
@@ -174,8 +164,8 @@ fun FiltersBar(
                             ActiveFilterListing(
                                 text = interpretation,
                                 removeFilter = {
-                                    listingData.value.filters?.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
-                                    listingData.value.filters?.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
+                                    listingData.filters?.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
+                                    listingData.filters?.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
                                     onRefresh()
                                 },
                             ){
@@ -185,14 +175,14 @@ fun FiltersBar(
                     }
                 }
 
-                if (searchData.value.userSearch && searchData.value.userLogin != null) {
+                if (searchData.userSearch && searchData.userLogin != null) {
                     item(key = "search_user") {
                         ActiveFilterListing(
-                            text = searchData.value.userLogin ?: userDef,
+                            text = searchData.userLogin ?: userDef,
                             removeFilter = {
-                                searchData.value.userLogin = null
-                                searchData.value.userSearch = false
-                                searchData.value.searchFinished = false
+                                searchData.userLogin = null
+                                searchData.userSearch = false
+                                searchData.searchFinished = false
                                 onRefresh()
                             },
                         ){
@@ -201,12 +191,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (!searchData.value.searchString.isNullOrEmpty()) {
+                if (!searchData.searchString.isNullOrEmpty()) {
                     item(key = "search_string") {
                         ActiveFilterListing(
-                            text = searchData.value.searchString ?: searchTitle,
+                            text = searchData.searchString ?: searchTitle,
                             removeFilter = {
-                                searchData.value.searchString = null
+                                searchData.searchString = null
                                 onRefresh()
                             },
                         ){
@@ -215,12 +205,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (searchData.value.searchFinished) {
+                if (searchData.searchFinished) {
                     item(key = "search_finished") {
                         ActiveFilterListing(
                             text = stringResource(strings.searchUserFinishedStringChoice),
                             removeFilter = {
-                                searchData.value.searchFinished = false
+                                searchData.searchFinished = false
                                 onRefresh()
                             },
                         ){
@@ -229,12 +219,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (listingData.value.sort != null && isShowFilters) {
+                if (listingData.sort != null && isShowFilters) {
                     item(key = "sort") {
                         ActiveFilterListing(
-                            text = listingData.value.sort?.interpritation ?: "",
+                            text = listingData.sort?.interpritation ?: "",
                             removeFilter = {
-                                listingData.value.sort = null
+                                listingData.sort = null
                                 onRefresh()
                             },
                         ){
@@ -254,7 +244,7 @@ fun FiltersBar(
                     onChangeTypeList = { newType ->
                         onChangeTypeList(newType)
                     },
-                    listingType = listingData.value.listingType
+                    listingType = listingData.listingType
                 )
             }
         }

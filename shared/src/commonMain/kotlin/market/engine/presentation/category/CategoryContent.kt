@@ -25,11 +25,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.SwipeRefreshContent
+import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
@@ -42,6 +45,7 @@ import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -54,72 +58,62 @@ fun CategoryContent(
     val model = modelState.value
     val categoryViewModel = model.categoryViewModel
 
-    val listingData = categoryViewModel.globalData.listingData.data.subscribeAsState()
-    val searchData = categoryViewModel.searchData.subscribeAsState()
+    val mainViewModel : MainViewModel = koinViewModel()
+    val listingData = CategoryBaseFilters.filtersData
+    val ld = listingData.data.value
+    val searchData = listingData.searchData
     val isLoading = categoryViewModel.isShowProgress.collectAsState()
     val isError = categoryViewModel.errorMessage.collectAsState()
     val categories = categoryViewModel.responseCategory.collectAsState()
 
     val isShowNav = remember { mutableStateOf(false) }
 
-    val mainViewModel : MainViewModel = koinViewModel()
-
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(isError.value) { component.onRefresh() } }
+        { onError(isError.value) { component.onRefresh(searchData.value) } }
     }else{
         null
     }
+    val title = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
-    LaunchedEffect(searchData){
+    LaunchedEffect(searchData.value){
         if (searchData.value.isRefreshing){
-            component.onRefresh()
+            component.onRefresh(searchData.value)
             searchData.value.isRefreshing = false
         }
     }
-
-    val noItem : (@Composable () -> Unit)? = if (categories.value.isEmpty() && !isLoading.value){
-        {
-            showNoItemLayout {
-                searchData.value.clear()
-                listingData.value.filters = EmptyFilters.getEmpty()
-                component.onRefresh()
-            }
-        }
-    }else{
-        null
-    }
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateTopBar {
-            CategoryAppBar(
-                isShowNav,
-                modifier,
-                searchData,
-                onSearchClick = {
-                    component.goToSearch()
-                },
-                onClearSearchClick = {
+    LaunchedEffect(Unit) {
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateTopBar {
+                CategoryAppBar(
+                    isShowNav,
+                    title = title.value ?: stringResource(strings.categoryMain),
+                    searchData = searchData.value,
+                    onSearchClick = {
+                        component.goToSearch()
+                    },
+                    onClearSearchClick = {
+                        if (!isLoading.value) {
+                            searchData.value.clearCategory()
+                            component.onRefresh(searchData.value)
+                        }
+                    }
+                ) {
                     if (!isLoading.value) {
-                        searchData.value.clearCategory()
-                        component.onRefresh()
-                    }
-                }
-            ) {
-                if (!isLoading.value) {
-                    if (searchData.value.searchCategoryID != 1L) {
-                        isShowNav.value = true
-                        searchData.value.searchCategoryID =
-                            searchData.value.searchParentID ?: 1L
-                        searchData.value.searchCategoryName =
-                            searchData.value.searchParentName ?: ""
-                        component.onRefresh()
-                    } else {
-                        isShowNav.value = false
+                        if (searchData.value.searchCategoryID != 1L) {
+                            isShowNav.value = true
+                            searchData.value.searchCategoryID =
+                                searchData.value.searchParentID ?: 1L
+                            searchData.value.searchCategoryName =
+                                searchData.value.searchParentName ?: ""
+                            component.onRefresh(searchData.value)
+                        } else {
+                            isShowNav.value = false
+                        }
                     }
                 }
             }
-        }
-    )
+        )
+    }
 
     mainViewModel.sendEvent(
         UIMainEvent.UpdateFloatingActionButton {}
@@ -129,15 +123,27 @@ fun CategoryContent(
         UIMainEvent.UpdateError(error)
     )
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateNotFound(noItem)
-    )
+    if (categories.value.isEmpty() && !isLoading.value){
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateNotFound {
+                showNoItemLayout {
+                    searchData.value.clear()
+                    component.onRefresh(searchData.value)
+                }
+            }
+        )
+
+    }else{
+        mainViewModel.sendEvent(
+            UIMainEvent.UpdateNotFound(null)
+        )
+    }
 
     SwipeRefreshContent(
         isRefreshing = isLoading.value,
         modifier = modifier.fillMaxSize(),
         onRefresh = {
-            component.onRefresh()
+            component.onRefresh(searchData.value)
         },
     ) {
         Box(
@@ -152,19 +158,18 @@ fun CategoryContent(
                 LazyColumn(
                     modifier = Modifier
                         .padding(top = dimens.mediumPadding, bottom = 60.dp),
-
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
                         FiltersBar(
-                            listingData,
-                            searchData,
+                            ld,
+                            searchData.value,
                             isShowFilters = false,
                             onSearchClick = {
                                 component.goToSearch()
                             }
                         ) {
-                            component.onRefresh()
+                            component.onRefresh(searchData.value)
                         }
                     }
 
@@ -193,10 +198,12 @@ fun CategoryContent(
 
                                 if (!category.isLeaf) {
                                     isShowNav.value = true
-                                    component.onRefresh()
+                                    component.onRefresh(searchData.value)
                                 } else {
                                     component.goToListing()
                                 }
+                                title.value = category.name
+
                             },
                             icon = {
                                 getCategoryIcon(category.name)?.let {

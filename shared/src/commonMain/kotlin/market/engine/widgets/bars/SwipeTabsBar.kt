@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -17,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,12 +34,12 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SwipeTabsBar(
-    listingData: State<LD>,
+    listingData : LD,
     scrollState: LazyListState,
     onRefresh: () -> Unit
 ) {
-    val itemsPerPage = listingData.value.pageCountItems
-    val totalPages = listingData.value.totalPages
+    val itemsPerPage = listingData.pageCountItems
+    val totalPages = listingData.totalPages
 
     var previousIndex by remember { mutableStateOf(0) }
 
@@ -50,13 +48,21 @@ fun SwipeTabsBar(
             (scrollState.firstVisibleItemIndex / itemsPerPage) + 1
         }
     }
-    val curTab = when (listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value){
+    var curTab = when (listingData.filters?.find { filter-> filter.key == "sale_type" }?.value){
         "auction" -> TabTypeListing.AUCTION
         "buynow" -> TabTypeListing.BUY_NOW
         else -> TabTypeListing.ALL
     }
     val selectedTab = remember { mutableStateOf(curTab) }
     val isTabsVisible = remember { mutableStateOf(true) }
+
+    LaunchedEffect(selectedTab.value){
+        curTab = when (listingData.filters?.find { filter-> filter.key == "sale_type" }?.value){
+            "auction" -> TabTypeListing.AUCTION
+            "buynow" -> TabTypeListing.BUY_NOW
+            else -> TabTypeListing.ALL
+        }
+    }
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.firstVisibleItemIndex }
@@ -89,13 +95,13 @@ fun SwipeTabsBar(
             title = allString,
             onClick = {
                 selectedTab.value = TabTypeListing.ALL
-                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value = ""
-                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = null
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = ""
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = null
 
-                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
-                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
-                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
-                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
+                listingData.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
+                listingData.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
+                listingData.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
 
                 onRefresh()
             }
@@ -106,13 +112,13 @@ fun SwipeTabsBar(
             onClick = {
                 selectedTab.value = TabTypeListing.AUCTION
 
-                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value = "auction"
-                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = auctionString
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = "auction"
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = auctionString
 
-                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
-                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
-                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
-                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
+                listingData.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
+                listingData.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
+                listingData.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
 
                 onRefresh()
             }
@@ -123,18 +129,19 @@ fun SwipeTabsBar(
             onClick = {
                 selectedTab.value = TabTypeListing.BUY_NOW
 
-                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.value = "buynow"
-                listingData.value.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = buyNowString
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = "buynow"
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = buyNowString
 
-                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
-                listingData.value.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
-                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
-                listingData.value.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
+                listingData.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
+                listingData.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.filters?.find { filter-> filter.key == "discount_price" }?.value = ""
+                listingData.filters?.find { filter-> filter.key == "discount_price" }?.interpritation = null
 
                 onRefresh()
             }
         ),
     )
+
 
     AnimatedVisibility(
         visible = isTabsVisible.value,

@@ -1,5 +1,6 @@
 package market.engine.presentation.home
 
+import androidx.compose.runtime.mutableStateOf
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.presentation.base.BaseViewModel
 
 class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
@@ -28,6 +30,8 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage2: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage2.asStateFlow()
 
+    val listingData = mutableStateOf( CategoryBaseFilters.filtersData)
+
 
     fun getCategory(categoryId: Long = defaultCategoryId) {
         onError(ServerErrorException())
@@ -39,11 +43,7 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
                 }
                 val payload: Payload<Category> = deserializePayload(response.payload)
                 _responseCategory.value = payload.objects
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", "An error occurred"))
-            }
+            } catch (_: Exception) {}
         }
     }
 

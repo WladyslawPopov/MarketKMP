@@ -4,9 +4,6 @@ import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.Value
-import market.engine.core.baseFilters.CategoryBaseFilters
-import market.engine.core.baseFilters.FavBaseFilters
-import market.engine.core.baseFilters.ProfileBaseFilters
 import market.engine.core.navigation.children.ChildBasket
 import market.engine.core.navigation.children.ChildCategory
 import market.engine.core.navigation.children.ChildFavorites
@@ -19,7 +16,10 @@ import market.engine.core.navigation.configs.FavoritesConfig
 import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.navigation.configs.MainConfig
 import market.engine.core.navigation.configs.ProfileConfig
+import market.engine.core.types.CategoryScreenType
+import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
+import market.engine.core.types.ProfileScreenType
 import market.engine.presentation.profileMyOffers.MyOffersComponent
 
 interface MainComponent {
@@ -40,11 +40,11 @@ interface MainComponent {
 
     val myOffersPages: Value<ChildPages<*, MyOffersComponent>>
 
-    val categoryData : Value<CategoryBaseFilters>
+    val categoryStack : Value<MutableList<CategoryScreenType>>
 
-    val favoritesData : Value<FavBaseFilters>
+    val favoritesStack : Value<MutableList<FavScreenType>>
 
-    val profileData : Value<ProfileBaseFilters>
+    val profileStack : Value<MutableList<ProfileScreenType>>
 
     val mainViewModel: Value<MainViewModel>
 

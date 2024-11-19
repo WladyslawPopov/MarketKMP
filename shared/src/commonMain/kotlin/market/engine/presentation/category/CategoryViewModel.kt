@@ -24,10 +24,7 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
 
     private val categoryOperations : CategoryOperations = getKoin().get()
 
-    val globalData: CategoryBaseFilters = getKoin().get()
-    val searchData = globalData.listingData.searchData
-
-    fun getCategory(categoryId: Long = searchData.value.searchCategoryID ?: 1L) {
+    fun getCategory(categoryId: Long = 1L) {
         onError(ServerErrorException())
         setLoading(true)
         viewModelScope.launch {
@@ -41,7 +38,9 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
 
                         withContext(Dispatchers.IO) {
                             val categoriesWithLotCounts = payload.objects.map { category ->
-                                val lotCount = categoryOperations.getTotalCount(category.id)
+                                val ld = CategoryBaseFilters.filtersData.deepCopy()
+                                ld.searchData.value.searchCategoryID = category.id
+                                val lotCount = categoryOperations.getTotalCount(ld)
 
                                 category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
                             }

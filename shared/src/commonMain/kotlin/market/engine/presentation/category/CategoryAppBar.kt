@@ -1,6 +1,7 @@
 package market.engine.presentation.category
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -9,10 +10,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
@@ -30,7 +29,8 @@ import org.jetbrains.compose.resources.stringResource
 fun CategoryAppBar(
     isShowNav : MutableState<Boolean>,
     modifier: Modifier = Modifier,
-    searchData: State<SD>,
+    title: String,
+    searchData: SD,
     onSearchClick: () -> Unit,
     onClearSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
@@ -42,7 +42,7 @@ fun CategoryAppBar(
             tint = colors.steelBlue,
             hasNews = false,
             badgeCount = null,
-            isVisible = searchData.value.searchCategoryID != 1L,
+            isVisible = searchData.searchCategoryID != 1L,
             onClick = { onClearSearchClick() }
         ),
         NavigationItem(
@@ -59,12 +59,12 @@ fun CategoryAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-           TitleText(searchData.value.searchCategoryName ?: stringResource(strings.categoryMain)){
+           TitleText(title){
                onSearchClick()
            }
         },
         navigationIcon = {
-            isShowNav.value = searchData.value.searchCategoryID != 1L
+            isShowNav.value = searchData.searchCategoryID != 1L
 
             if (isShowNav.value) {
                 NavigationArrowButton {
@@ -77,15 +77,10 @@ fun CategoryAppBar(
                 modifier = modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                listItems.forEachIndexed{ _, item ->
+                listItems.forEachIndexed{ i, item ->
                     if(item.isVisible){
-                        var modIB = modifier
-                        if(item.badgeCount != null){
-                            val dynamicFontSize = (30 + (item.badgeCount / 10)).coerceAtMost(35).dp
-                            modIB = modifier.size(dimens.smallIconSize + dynamicFontSize)
-                        }
                         IconButton(
-                            modifier = modIB,
+                            modifier = modifier.size(dimens.mediumIconSize),
                             onClick = {
                                 item.onClick()
                             }
@@ -93,6 +88,7 @@ fun CategoryAppBar(
                             getBadgedBox(modifier = modifier, item)
                         }
                     }
+                    Spacer(modifier = Modifier.padding(dimens.smallPadding))
                 }
             }
         }

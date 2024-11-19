@@ -18,10 +18,7 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-
 import market.engine.core.items.NavigationItem
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.textFields.SearchTextField
@@ -37,8 +34,6 @@ fun SearchAppBar(
     onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit,
 ) {
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
     val searchItem = NavigationItem(
             title = stringResource(strings.searchTitle),
             icon = drawables.searchIcon,

@@ -6,8 +6,8 @@ import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
 
 data class ListingData(
-    var searchData : Value<SD>,
-    var data: Value<LD>
+    var searchData : Value<SD> = MutableValue(SD()),
+    var data: Value<LD> = MutableValue(LD())
 ) {
     fun deepCopy(): ListingData {
         return ListingData(
