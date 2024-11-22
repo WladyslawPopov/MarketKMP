@@ -236,14 +236,20 @@ fun HomeContent(
                         }
 
                         val stringAllPromo = stringResource(strings.allPromoOffersBtn)
-                        GridPromoOffers(promoOffer1.value, onOfferClick = {}, onAllClickButton = {
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
-                                "promo_main_page"
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                                stringAllPromo
-                            searchData.value.isRefreshing = true
-                            component.navigateToListing()
-                        })
+                        GridPromoOffers(
+                            promoOffer1.value,
+                            onOfferClick = {
+                                component.goToOffer(it.id)
+                            },
+                            onAllClickButton = {
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                                    "promo_main_page"
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                                    stringAllPromo
+                                searchData.value.isRefreshing = true
+                                component.navigateToListing()
+                            }
+                        )
 
                         GridPopularCategory(listTopCategory) { topCategory ->
                             searchData.value.searchCategoryID = topCategory.id

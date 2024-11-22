@@ -196,4 +196,5 @@ interface Strings {
     val deleteSelectedLot : StringResource
     val acceptAction : StringResource
     val idCopied : StringResource
+    val defaultOfferTitle : StringResource
 }

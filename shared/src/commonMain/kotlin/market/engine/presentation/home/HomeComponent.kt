@@ -25,6 +25,7 @@ interface HomeComponent {
     fun onRefresh()
 
     fun goToLogin()
+    fun goToOffer(id: Long)
 }
 
 class DefaultHomeComponent(
@@ -32,7 +33,8 @@ class DefaultHomeComponent(
     val navigation: StackNavigation<HomeConfig>,
     val navigateToSearchSelected: () -> Unit,
     val navigateToListingSelected: () -> Unit,
-    val navigateToLoginSelected: () -> Unit
+    val navigateToLoginSelected: () -> Unit,
+    val navigateToOfferSelected: (id: Long) -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
@@ -91,6 +93,10 @@ class DefaultHomeComponent(
 
     override fun goToLogin() {
         navigateToLoginSelected()
+    }
+
+    override fun goToOffer(id: Long) {
+        navigateToOfferSelected(id)
     }
 }
 

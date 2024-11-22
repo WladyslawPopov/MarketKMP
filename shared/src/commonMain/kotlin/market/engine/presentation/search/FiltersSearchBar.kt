@@ -39,13 +39,13 @@ fun FiltersSearchBar(
         modifier = modifier
             .fillMaxWidth()
             .background(color = colors.primaryColor)
-            .padding(vertical = dimens.smallPadding, horizontal = dimens.smallPadding)
             .wrapContentHeight()
     ) {
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.padding(dimens.smallPadding)
             )
             {
                 ActiveStringButton(
@@ -64,7 +64,7 @@ fun FiltersSearchBar(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),
                                 color = colors.steelBlue,
-                                modifier = modifier.size(dimens.smallIconSize),
+                                modifier = modifier.size(dimens.extraSmallIconSize),
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
                             ) {
                                 selectedCategory.value = category
@@ -77,7 +77,8 @@ fun FiltersSearchBar(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.padding(dimens.smallPadding)
             )
             {
                 ActiveStringButton(
@@ -99,7 +100,7 @@ fun FiltersSearchBar(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),
                                 color = colors.steelBlue,
-                                modifier = modifier.size(dimens.smallIconSize),
+                                modifier = modifier.size(dimens.extraSmallIconSize),
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
                             ) {
                                 selectedUser.value = false

@@ -6,4 +6,7 @@ import kotlinx.serialization.Serializable
 sealed class HomeConfig {
     @Serializable
     data object HomeScreen : HomeConfig()
+
+    @Serializable
+    data class OfferScreen(val id: Long) : HomeConfig()
 }

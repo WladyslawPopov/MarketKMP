@@ -1,5 +1,7 @@
 package market.engine.presentation.main
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.pages.ChildPages
@@ -12,6 +14,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -43,6 +46,8 @@ import market.engine.presentation.home.DefaultHomeComponent
 import market.engine.presentation.home.HomeComponent
 import market.engine.presentation.listing.DefaultListingComponent
 import market.engine.presentation.listing.ListingComponent
+import market.engine.presentation.offer.DefaultOfferComponent
+import market.engine.presentation.offer.OfferComponent
 import market.engine.presentation.profile.DefaultProfileComponent
 import market.engine.presentation.profile.ProfileComponent
 import market.engine.presentation.profileMyOffers.DefaultMyOffersComponent
@@ -87,7 +92,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.homeNavigation,
             initialConfiguration = HomeConfig.HomeScreen,
             serializer = HomeConfig.serializer(),
-            
+            handleBackButton = true,
             childFactory = ::createChild,
             key = "HomeStack"
         )
@@ -268,6 +273,10 @@ class DefaultMainComponent(
             HomeConfig.HomeScreen -> ChildHome.HomeChild(
                 itemHome(componentContext)
             )
+
+            is HomeConfig.OfferScreen -> ChildHome.OfferChild(
+                itemOffer(componentContext, config.id)
+            )
         }
 
     private fun createChild(
@@ -285,6 +294,9 @@ class DefaultMainComponent(
             CategoryConfig.ListingScreen -> ChildCategory.ListingChild(
                 itemListing(componentContext)
             )
+            is CategoryConfig.OfferScreen -> ChildCategory.OfferChild(
+                itemOffer(componentContext, config.id)
+            )
         }
 
     private fun createChild(
@@ -298,6 +310,10 @@ class DefaultMainComponent(
 
             FavoritesConfig.SubscriptionsScreen -> ChildFavorites.SubChild(
                 itemSubscriptions(componentContext)
+            )
+
+            is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
+                itemOffer(componentContext, config.id)
             )
         }
 
@@ -322,6 +338,10 @@ class DefaultMainComponent(
 
             ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
                 component = this
+            )
+
+            is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
+                component = itemOffer(componentContext, config.id)
             )
         }
 
@@ -359,6 +379,8 @@ class DefaultMainComponent(
         )
     }
 
+    private var offerBackStack : MutableState<() -> Unit> = mutableStateOf({})
+
     private fun itemHome(componentContext: ComponentContext): HomeComponent {
         return DefaultHomeComponent(
             componentContext = componentContext,
@@ -373,6 +395,12 @@ class DefaultMainComponent(
             },
             navigateToLoginSelected = {
                 goToLogin()
+            },
+            navigateToOfferSelected = { id ->
+                pushHomeStack(HomeConfig.OfferScreen(id))
+                offerBackStack.value = {
+                    modelNavigation.value.homeNavigation.pop()
+                }
             }
         )
     }
@@ -400,6 +428,19 @@ class DefaultMainComponent(
             },
             onBackPressed = {
                 pushCatStack(CategoryScreenType.CATEGORY)
+            }
+        )
+    }
+
+    private fun itemOffer(componentContext: ComponentContext, id: Long): OfferComponent {
+        return DefaultOfferComponent(
+            id,
+            componentContext,
+            selectOffer = { id->
+
+            },
+            navigationBack = {
+                offerBackStack.value()
             }
         )
     }
@@ -452,7 +493,7 @@ class DefaultMainComponent(
             }
         }
     }
-    private fun pushCatStack(screenType: CategoryScreenType){
+    private fun pushCatStack(screenType: CategoryScreenType, id: Long = 1L){
         when(screenType){
             CategoryScreenType.LISTING -> {
                 categoryStack.value.remove(CategoryScreenType.LISTING)
@@ -469,6 +510,14 @@ class DefaultMainComponent(
                 categoryStack.value.add(CategoryScreenType.CATEGORY)
                 modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.CategoryScreen)
             }
+
+            CategoryScreenType.OFFER -> {
+                modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.OfferScreen(id))
+            }
         }
+    }
+
+    private fun pushHomeStack(homeConfig: HomeConfig){
+        modelNavigation.value.homeNavigation.pushNew(homeConfig)
     }
 }

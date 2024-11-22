@@ -51,7 +51,6 @@ kotlin {
             implementation(libs.koin.coroutines)
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)
-
             implementation(libs.paging.compose.common)
             implementation(libs.coil.svg)
             implementation(libs.coil.compose)
@@ -65,7 +64,6 @@ kotlin {
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
             implementation(libs.skiko)
-
         }
         val jvmMain by getting
         jvmMain.dependencies {

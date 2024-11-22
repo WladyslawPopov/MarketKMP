@@ -97,53 +97,44 @@ fun SearchContent(
         )
     )
 
-    SwipeRefreshContent(
-        isRefreshing = isLoading.value,
-        modifier = modifier.fillMaxSize(),
-        onRefresh = {
-            searchString = searchString.copy("")
-            component.updateHistory("")
-        },
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = dimens.mediumPadding)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start
     ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = dimens.mediumPadding)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                    })
-                },
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
-        ) {
-            FiltersSearchBar(
-                modifier = modifier,
-                selectedUser = selectedUser,
-                selectedUserFinished = selectedUserFinished,
-                selectedCategory = selectedCategory,
-                searchData = searchData,
-                goToCategory = {
-                    getSearchFilters(searchData, searchString.text)
-                    component.goToCategory()
-                },
-            )
+        FiltersSearchBar(
+            modifier = modifier,
+            selectedUser = selectedUser,
+            selectedUserFinished = selectedUserFinished,
+            selectedCategory = selectedCategory,
+            searchData = searchData,
+            goToCategory = {
+                getSearchFilters(searchData, searchString.text)
+                component.goToCategory()
+            },
+        )
 
-            HistoryLayout(
-                historyItems = history.value,
-                modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
-                onItemClick = {
-                    searchString = searchString.copy(it)
-                    component.updateHistory(it)
-                },
-                onClearHistory = { component.deleteHistory() },
-                onDeleteItem = { component.deleteItemHistory(it) },
-                goToListing = {
-                    getSearchFilters(searchData, it)
-                    component.goToListing()
-                }
-            )
-        }
+        HistoryLayout(
+            historyItems = history.value,
+            modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+            onItemClick = {
+                searchString = searchString.copy(it)
+                component.updateHistory(it)
+            },
+            onClearHistory = { component.deleteHistory() },
+            onDeleteItem = { component.deleteItemHistory(it) },
+            goToListing = {
+                getSearchFilters(searchData, it)
+                component.goToListing()
+            }
+        )
     }
 }
 

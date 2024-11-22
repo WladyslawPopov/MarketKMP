@@ -12,4 +12,7 @@ sealed class CategoryConfig {
 
     @Serializable
     data object ListingScreen : CategoryConfig()
+
+    @Serializable
+    data class OfferScreen(val id: Long) : CategoryConfig()
 }

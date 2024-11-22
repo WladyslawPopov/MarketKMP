@@ -23,6 +23,7 @@ import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
 import market.engine.presentation.login.LoginViewModel
 import market.engine.presentation.main.MainViewModel
+import market.engine.presentation.offer.OfferViewModel
 import market.engine.presentation.search.SearchViewModel
 import market.engine.presentation.subscriptions.SubViewModel
 import market.engine.shared.MarketDB
@@ -50,6 +51,7 @@ val viewModelModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { FavViewModel(get()) }
     viewModel { SubViewModel(get(), get()) }
+    viewModel { OfferViewModel(get()) }
 }
 
 val networkModule = module {

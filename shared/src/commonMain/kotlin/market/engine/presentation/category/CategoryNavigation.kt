@@ -12,6 +12,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import market.engine.core.navigation.children.ChildCategory
 import market.engine.presentation.listing.ListingContent
+import market.engine.presentation.offer.OfferContent
 import market.engine.presentation.search.SearchContent
 
 
@@ -36,6 +37,10 @@ fun CategoryNavigation (
             }
             is ChildCategory.CategoryChild ->{
                 CategoryContent(screen.component, modifier)
+            }
+
+            is ChildCategory.OfferChild -> {
+                OfferContent(screen.component, modifier)
             }
         }
     }

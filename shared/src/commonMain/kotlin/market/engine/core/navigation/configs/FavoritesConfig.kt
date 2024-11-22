@@ -9,4 +9,7 @@ sealed class FavoritesConfig {
 
     @Serializable
     data object SubscriptionsScreen : FavoritesConfig()
+
+    @Serializable
+    data class OfferScreen(val id: Long) : FavoritesConfig()
 }

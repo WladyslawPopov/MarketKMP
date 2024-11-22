@@ -1,4 +1,4 @@
-package market.engine.presentation.profile
+package market.engine.presentation.offer
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -10,14 +10,12 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import market.engine.core.navigation.children.ChildProfile
-import market.engine.presentation.offer.OfferContent
-import market.engine.presentation.profileMyOffers.ProfileMyOffersNavigation
+import market.engine.core.navigation.children.ChildOffer
 
 @Composable
-fun ProfileNavigation(
+fun OfferNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, ChildProfile>>
+    childStack: Value<ChildStack<*, ChildOffer>>
 ) {
     val stack by childStack.subscribeAsState()
     Children(
@@ -27,9 +25,7 @@ fun ProfileNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildProfile.ProfileChild -> ProfileContent(screen.component, modifier)
-            is ChildProfile.MyOffersChild -> ProfileMyOffersNavigation(screen.component, modifier)
-            is ChildProfile.OfferChild -> OfferContent(screen.component, modifier)
+            is ChildOffer.OfferChild -> OfferContent(screen.component, modifier)
         }
     }
 }

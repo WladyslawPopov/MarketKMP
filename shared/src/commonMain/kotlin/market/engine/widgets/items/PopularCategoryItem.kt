@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,11 +40,8 @@ fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (Top
             maxHeight = if (!bs) 200.dp else 200.dp,
             maxWidth = if (!bs) 200.dp else 300.dp
         ).fillMaxWidth().wrapContentHeight(),
-        colors = CardColors(
-            containerColor = colors.white,
-            contentColor = colors.black,
-            disabledContainerColor = colors.lightGray,
-            disabledContentColor = colors.grayText
+        colors = CardDefaults.cardColors(
+            containerColor = colors.transparent,
         ),
         shape = RoundedCornerShape(dimens.smallCornerRadius),
         onClick = { onClick(category) },

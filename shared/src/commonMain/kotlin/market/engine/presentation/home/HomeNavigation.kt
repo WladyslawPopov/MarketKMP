@@ -11,6 +11,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import market.engine.core.navigation.children.ChildHome
+import market.engine.presentation.offer.OfferContent
 
 @Composable
 fun HomeNavigation(
@@ -26,6 +27,7 @@ fun HomeNavigation(
     ) { child ->
         when (val screen = child.instance) {
             is ChildHome.HomeChild -> HomeContent(screen.component, modifier)
+            is ChildHome.OfferChild -> OfferContent(screen.component, modifier)
         }
     }
 }
