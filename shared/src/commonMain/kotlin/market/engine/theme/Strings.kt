@@ -197,4 +197,7 @@ interface Strings {
     val acceptAction : StringResource
     val idCopied : StringResource
     val defaultOfferTitle : StringResource
+    val lastViewedOffers : StringResource
+    val ourChoice : StringResource
+    val description : StringResource
 }

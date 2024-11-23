@@ -98,7 +98,7 @@ fun <T : Any> PagingList(
             if (!promoList.isNullOrEmpty() && promoContent != null) {
                 item {
                     LazyRow(
-                        modifier = Modifier.height(400.dp),
+                        modifier = Modifier.height(300.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {

@@ -71,7 +71,7 @@ fun MyOffersContent(
                     data.refresh()
                 },
                 onItemClick = {
-
+                    component.goToOffer(offer)
                 }
             )
         }

@@ -19,7 +19,7 @@ INSERT OR REPLACE INTO searchHistory(query, owner) VALUES (?, ?);
 
 -- Delete a specific entry by ID
 deleteById:
-DELETE FROM searchHistory WHERE id = ?;
+DELETE FROM searchHistory WHERE id = ? AND  owner = ?;
 
 deleteAll:
 DELETE FROM searchHistory;

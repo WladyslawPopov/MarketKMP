@@ -20,13 +20,12 @@ import androidx.compose.ui.unit.sp
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun PromoLotItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
+fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),

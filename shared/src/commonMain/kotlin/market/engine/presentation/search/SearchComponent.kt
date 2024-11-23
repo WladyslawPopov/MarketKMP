@@ -80,7 +80,7 @@ class DefaultSearchComponent(
 
     override fun deleteItemHistory(id: Long) {
         val sh = searchViewModel.dataBase.searchHistoryQueries
-        sh.deleteById(id)
+        sh.deleteById(id, UserData.login)
         searchViewModel.getHistory()
     }
 

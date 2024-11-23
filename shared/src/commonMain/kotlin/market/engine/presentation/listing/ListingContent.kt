@@ -16,7 +16,7 @@ import market.engine.presentation.main.MainViewModel
 import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.filterContents.SortingListingContent
-import market.engine.widgets.items.PromoLotItem
+import market.engine.widgets.items.PromoOfferRowItem
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.mp.KoinPlatform
@@ -122,7 +122,7 @@ fun ListingContent(
         },
         promoList = promoList.value,
         promoContent = { offer ->
-            PromoLotItem(
+            PromoOfferRowItem(
                 offer
             ) {
                 component.goToOffer(offer, true)

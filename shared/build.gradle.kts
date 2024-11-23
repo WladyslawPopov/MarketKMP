@@ -64,6 +64,8 @@ kotlin {
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
             implementation(libs.skiko)
+            implementation(libs.ksoup.html)
+            implementation(libs.ksoup.entities)
         }
         val jvmMain by getting
         jvmMain.dependencies {

@@ -2,7 +2,6 @@ package market.engine.widgets.grids
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -21,7 +20,7 @@ import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.widgets.buttons.ActionTextButton
-import market.engine.widgets.items.PromoLotItem
+import market.engine.widgets.items.PromoOfferGridItem
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
@@ -50,7 +49,7 @@ fun GridPromoOffers(
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         content = {
             items(promoOffers) { offer ->
-                PromoLotItem(offer, onOfferClick = onOfferClick)
+                PromoOfferGridItem(offer, onOfferClick = onOfferClick)
             }
         }
     )

@@ -1,0 +1,21 @@
+CREATE TABLE offerVisitedHistory(
+     id INTEGER NOT NULL PRIMARY KEY,
+     offerId INTEGER NOT NULL,
+     owner INTEGER NOT NULL,
+     UNIQUE (offerId, owner)
+);
+
+-- Select all search history entries
+selectAll:
+SELECT offerId FROM offerVisitedHistory WHERE owner = ?;
+
+-- Insert a new search entry
+insertEntry:
+INSERT OR REPLACE INTO offerVisitedHistory(offerId, owner) VALUES (?, ?);
+
+-- Delete a specific entry by ID
+deleteById:
+DELETE FROM offerVisitedHistory WHERE(offerId = ? AND owner = ?);
+
+deleteAll:
+DELETE FROM offerVisitedHistory;

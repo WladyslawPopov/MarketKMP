@@ -23,6 +23,7 @@ interface ListingComponent {
 class DefaultListingComponent(
     componentContext: ComponentContext,
     private val searchSelected: () -> Unit,
+    private val selectOffer: (Long) -> Unit,
     private val onBackPressed: () -> Unit
 ) : ListingComponent, ComponentContext by componentContext {
 
@@ -98,5 +99,6 @@ class DefaultListingComponent(
                 eventParameters
             )
         }
+        selectOffer(offer.id)
     }
 }

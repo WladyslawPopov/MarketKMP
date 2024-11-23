@@ -1,5 +1,5 @@
 package market.engine.core.types
 
 enum class FavScreenType {
-    FAVORITES, SUBSCRIBED
+    FAVORITES, SUBSCRIBED, OFFER
 }

@@ -1,9 +1,6 @@
 package market.engine.presentation.main
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -13,7 +10,6 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
@@ -68,8 +64,10 @@ class DefaultMainComponent(
     override val categoryStack = MutableValue(mutableListOf(CategoryScreenType.CATEGORY))
     override val favoritesStack = MutableValue(mutableListOf(FavScreenType.FAVORITES))
     override val profileStack = MutableValue(mutableListOf(ProfileScreenType.MY_OFFERS))
-
     override val mainViewModel = MutableValue<MainViewModel>(getKoin().get())
+
+    private var currentNavigation = StackNavigation<MainConfig>()
+    private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
 
     private val categoryData = CategoryBaseFilters.filtersData
 
@@ -85,14 +83,13 @@ class DefaultMainComponent(
 
     override val modelNavigation = _modelNavigation
 
-    private var currentNavigation = StackNavigation<MainConfig>()
 
+    // Stacks
     override val childHomeStack: Value<ChildStack<*, ChildHome>> by lazy {
         childStack(
             source = modelNavigation.value.homeNavigation,
             initialConfiguration = HomeConfig.HomeScreen,
             serializer = HomeConfig.serializer(),
-            handleBackButton = true,
             childFactory = ::createChild,
             key = "HomeStack"
         )
@@ -103,16 +100,16 @@ class DefaultMainComponent(
             source = modelNavigation.value.categoryNavigation,
             initialConfiguration = CategoryConfig.CategoryScreen,
             serializer = CategoryConfig.serializer(),
-            
             childFactory = ::createChild,
             key = "CategoryStack"
         )
 
-    private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
+
     override val myOffersPages: Value<ChildPages<*, MyOffersComponent>> by lazy {
         childPages(
             source = navigationMyOffers,
             serializer = MyOfferConfig.serializer(),
+            handleBackButton = true,
             initialPages = {
                 Pages(
                     listOf(
@@ -127,15 +124,6 @@ class DefaultMainComponent(
             childFactory = ::itemMyOffers
         )
     }
-
-
-    private fun itemMyOffers(config: MyOfferConfig,componentContext: ComponentContext): MyOffersComponent {
-        return DefaultMyOffersComponent(
-            componentContext = componentContext,
-            type = config.type
-        )
-    }
-
 
     override val childBasketStack: Value<ChildStack<*, ChildBasket>> by lazy {
         childStack(
@@ -152,7 +140,6 @@ class DefaultMainComponent(
             source = modelNavigation.value.favoritesNavigation,
             initialConfiguration = FavoritesConfig.FavoritesScreen,
             serializer = FavoritesConfig.serializer(),
-            
             childFactory = ::createChild,
             key = "FavoritesStack"
         )
@@ -163,7 +150,6 @@ class DefaultMainComponent(
             source = modelNavigation.value.profileNavigation,
             initialConfiguration = ProfileConfig.ProfileScreen,
             serializer = ProfileConfig.serializer(),
-            handleBackButton = true,
             childFactory = ::createChild,
             key = "ProfileStack"
         )
@@ -173,7 +159,6 @@ class DefaultMainComponent(
             source = currentNavigation,
             serializer = MainConfig.serializer(),
             initialConfiguration = MainConfig.Home,
-            
             childFactory = {config, _ ->
                 createChild(config)
             },
@@ -184,31 +169,326 @@ class DefaultMainComponent(
         deepLink?.let { handleDeepLink(it) }
     }
 
-    private fun handleDeepLink(deepLink: DeepLink) {
-        when (deepLink) {
-            is DeepLink.User -> {
-                navigateToBottomItem(MainConfig.Profile)
-            }
-            is DeepLink.Listing -> {
-                categoryData.searchData.value.clear()
-                categoryData.searchData.value.userSearch = true
-                categoryData.searchData.value.userID = deepLink.ownerId
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
-                navigateToBottomItem(MainConfig.Category)
-            }
-            is DeepLink.Offer -> {
+    // createChild
 
+    private fun createChild(
+        config: MainConfig
+    ): ChildMain =
+        when (config) {
+            is MainConfig.Home -> ChildMain.HomeChildMain
+            is MainConfig.Category -> ChildMain.CategoryChildMain
+            is MainConfig.Basket -> ChildMain.BasketChildMain
+            is MainConfig.Favorites -> ChildMain.FavoritesChildMain
+            is MainConfig.Profile -> ChildMain.ProfileChildMain
+        }
+
+    private fun createChild(
+        config: HomeConfig,
+        componentContext: ComponentContext
+    ): ChildHome =
+        when (config) {
+            HomeConfig.HomeScreen -> ChildHome.HomeChild(
+                itemHome(componentContext)
+            )
+
+            is HomeConfig.OfferScreen -> ChildHome.OfferChild(
+                component = itemOffer(
+                    componentContext,
+                    config.id,
+                    selectOffer = {
+                        modelNavigation.value.homeNavigation.pushNew(HomeConfig.OfferScreen(it))
+                    },
+                    onBack = {
+                        modelNavigation.value.homeNavigation.pop()
+                    }
+                )
+            )
+        }
+
+    private fun createChild(
+        config: CategoryConfig,
+        componentContext: ComponentContext
+    ): ChildCategory =
+        when (config) {
+            CategoryConfig.CategoryScreen -> ChildCategory.CategoryChild(
+                itemCategory(componentContext)
+            )
+            CategoryConfig.SearchScreen -> ChildCategory.SearchChild(
+                itemSearch(componentContext)
+            )
+
+            CategoryConfig.ListingScreen -> ChildCategory.ListingChild(
+                itemListing(componentContext)
+            )
+            is CategoryConfig.OfferScreen -> ChildCategory.OfferChild(
+                component = itemOffer(
+                    componentContext,
+                    config.id,
+                    selectOffer = {
+                        modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.OfferScreen(it))
+                    },
+                    onBack = {
+                        modelNavigation.value.categoryNavigation.pop()
+                    }
+                )
+            )
+        }
+
+    private fun createChild(
+        config: FavoritesConfig,
+        componentContext: ComponentContext
+    ): ChildFavorites =
+        when (config) {
+            FavoritesConfig.FavoritesScreen -> ChildFavorites.FavoritesChild(
+                itemFavorites(componentContext)
+            )
+
+            FavoritesConfig.SubscriptionsScreen -> ChildFavorites.SubChild(
+                itemSubscriptions(componentContext)
+            )
+
+            is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
+                component = itemOffer(
+                    componentContext,
+                    config.id,
+                    selectOffer = {
+                        modelNavigation.value.favoritesNavigation.pushNew(FavoritesConfig.OfferScreen(it))
+                    },
+                    onBack = {
+                        modelNavigation.value.favoritesNavigation.pop()
+                    }
+                )
+            )
+        }
+
+    private fun createChild(
+        config: BasketConfig,
+        componentContext: ComponentContext
+    ): ChildBasket =
+        when (config) {
+            BasketConfig.BasketScreen -> ChildBasket.BasketChild(
+                itemBasket(componentContext)
+            )
+        }
+
+    private fun createChild(
+        config: ProfileConfig,
+        componentContext: ComponentContext
+    ): ChildProfile =
+        when (config) {
+            ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
+                itemProfile(componentContext)
+            )
+
+            ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
+                component = this
+            )
+
+            is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
+                component = itemOffer(
+                    componentContext,
+                    config.id,
+                    selectOffer = {
+                        modelNavigation.value.profileNavigation.pushNew(ProfileConfig.OfferScreen(it))
+                    },
+                    onBack = {
+                        modelNavigation.value.profileNavigation.pop()
+                    }
+                )
+            )
+        }
+
+    // Items
+
+    private fun itemCategory(componentContext: ComponentContext): CategoryComponent {
+        return DefaultCategoryComponent(
+            componentContext = componentContext,
+            goToListingSelected = {
+                pushCatStack(CategoryScreenType.LISTING)
+            },
+            goToSearchSelected = {
+                pushCatStack(CategoryScreenType.SEARCH)
+            },
+            onBackPressed = {
+                pushCatStack(CategoryScreenType.CATEGORY)
             }
-            is DeepLink.Auth -> {
+        )
+    }
+
+    private fun itemHome(componentContext: ComponentContext): HomeComponent {
+        return DefaultHomeComponent(
+            componentContext = componentContext,
+            navigation = modelNavigation.value.homeNavigation,
+            navigateToSearchSelected = {
+                pushCatStack(CategoryScreenType.SEARCH)
+                navigateToBottomItem(MainConfig.Category)
+            },
+            navigateToListingSelected = {
+                pushCatStack(CategoryScreenType.LISTING)
+                navigateToBottomItem(MainConfig.Category)
+            },
+            navigateToLoginSelected = {
                 goToLogin()
+            },
+            navigateToOfferSelected = { id ->
+                pushHomeStack(HomeConfig.OfferScreen(id))
             }
-            is DeepLink.Registration -> {
-                goToLogin()
+        )
+    }
+
+    private fun itemSearch(componentContext: ComponentContext): SearchComponent {
+        return DefaultSearchComponent(
+            componentContext = componentContext,
+            onBackPressed = {
+                pushCatStack(categoryStack.value[categoryStack.value.lastIndex - 1])
+            },
+            goToListingSelected = {
+                pushCatStack(CategoryScreenType.LISTING)
+            },
+            goToCategorySelected = {
+                pushCatStack(CategoryScreenType.CATEGORY)
             }
-            is DeepLink.Unknown -> {}
+        )
+    }
+
+    private fun itemListing(componentContext: ComponentContext): ListingComponent {
+        return DefaultListingComponent(
+            componentContext = componentContext,
+            searchSelected = {
+                pushCatStack(CategoryScreenType.SEARCH)
+            },
+            selectOffer = { id ->
+                pushCatStack(CategoryScreenType.OFFER, id)
+            },
+            onBackPressed = {
+                pushCatStack(CategoryScreenType.CATEGORY)
+            }
+        )
+    }
+
+    private fun itemOffer(componentContext: ComponentContext, id: Long, selectOffer: (Long) -> Unit, onBack : () -> Unit): OfferComponent {
+        return DefaultOfferComponent(
+            id,
+            componentContext,
+            selectOffer = { newId->
+                selectOffer(newId)
+            },
+            navigationBack = {
+                onBack()
+            }
+        )
+    }
+
+    private fun itemProfile(componentContext: ComponentContext): ProfileComponent {
+        return DefaultProfileComponent(
+            componentContext = componentContext,
+            selectMyOffers = {
+                profileStack.value.add(ProfileScreenType.MY_OFFERS)
+                modelNavigation.value.profileNavigation.pushNew(ProfileConfig.MyOffersScreen)
+            }
+        )
+    }
+
+
+    private fun itemMyOffers(config: MyOfferConfig,componentContext: ComponentContext): MyOffersComponent {
+        return DefaultMyOffersComponent(
+            componentContext = componentContext,
+            type = config.type,
+            offerSelected = { id ->
+                modelNavigation.value.profileNavigation.pushNew(ProfileConfig.OfferScreen(id))
+            }
+        )
+    }
+
+    private fun itemBasket(componentContext: ComponentContext): market.engine.presentation.basket.BasketComponent {
+        return market.engine.presentation.basket.DefaultBasketComponent(
+            componentContext = componentContext,
+            navigation = modelNavigation.value.basketNavigation
+        )
+    }
+
+    private fun itemFavorites(componentContext: ComponentContext): FavoritesComponent {
+        return DefaultFavoritesComponent(
+            componentContext = componentContext,
+            goToOffer = { id ->
+                pushFavStack(FavScreenType.OFFER, id)
+            },
+            selectedSubscribes = {
+                pushFavStack(FavScreenType.SUBSCRIBED)
+            }
+        )
+    }
+
+    private fun itemSubscriptions(componentContext: ComponentContext): SubscribesComponent {
+        return DefaultSubscribesComponent(
+            componentContext = componentContext,
+        ) {
+            pushFavStack(FavScreenType.FAVORITES)
         }
     }
 
+    private fun pushFavStack(screenType: FavScreenType, id: Long = 1L){
+        when(screenType){
+            FavScreenType.FAVORITES -> {
+                favoritesStack.value.remove(FavScreenType.SUBSCRIBED)
+                favoritesStack.value.add(FavScreenType.FAVORITES)
+                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.FavoritesScreen)
+            }
+            FavScreenType.SUBSCRIBED -> {
+                favoritesStack.value.remove(FavScreenType.FAVORITES)
+                favoritesStack.value.add(FavScreenType.SUBSCRIBED)
+                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.SubscriptionsScreen)
+            }
+
+            FavScreenType.OFFER -> {
+                modelNavigation.value.favoritesNavigation.pushNew(FavoritesConfig.OfferScreen(id))
+            }
+        }
+    }
+    private fun pushCatStack(screenType: CategoryScreenType, id: Long = 1L){
+        when(screenType){
+            CategoryScreenType.LISTING -> {
+                categoryStack.value.remove(CategoryScreenType.LISTING)
+                categoryStack.value.add(CategoryScreenType.LISTING)
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
+            }
+            CategoryScreenType.SEARCH -> {
+                categoryStack.value.remove(CategoryScreenType.SEARCH)
+                categoryStack.value.add(CategoryScreenType.SEARCH)
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.SearchScreen)
+            }
+            CategoryScreenType.CATEGORY -> {
+                categoryStack.value.remove(CategoryScreenType.CATEGORY)
+                categoryStack.value.add(CategoryScreenType.CATEGORY)
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.CategoryScreen)
+            }
+
+            CategoryScreenType.OFFER -> {
+                modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.OfferScreen(id))
+            }
+        }
+    }
+    private fun pushHomeStack(homeConfig: HomeConfig){
+        modelNavigation.value.homeNavigation.pushNew(homeConfig)
+    }
+    override fun selectMyOfferPage(type: LotsType) {
+        when (type) {
+            LotsType.MYLOT_ACTIVE -> {
+                navigationMyOffers.select(0)
+            }
+
+            LotsType.MYLOT_UNACTIVE -> {
+                navigationMyOffers.select(1)
+            }
+
+            LotsType.MYLOT_FUTURE -> {
+                navigationMyOffers.select(2)
+            }
+            else -> {
+                navigationMyOffers.select(0)
+            }
+        }
+    }
     private var activeCurrent = "Home"
     override fun navigateToBottomItem(config: MainConfig) {
         when(config){
@@ -249,275 +529,31 @@ class DefaultMainComponent(
             }
         }
     }
+    private fun handleDeepLink(deepLink: DeepLink) {
+        when (deepLink) {
+            is DeepLink.User -> {
+                navigateToBottomItem(MainConfig.Profile)
+            }
+            is DeepLink.Listing -> {
+                categoryData.searchData.value.clear()
+                categoryData.searchData.value.userSearch = true
+                categoryData.searchData.value.userID = deepLink.ownerId
+                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
+                navigateToBottomItem(MainConfig.Category)
+            }
+            is DeepLink.Offer -> {
 
+            }
+            is DeepLink.Auth -> {
+                goToLogin()
+            }
+            is DeepLink.Registration -> {
+                goToLogin()
+            }
+            is DeepLink.Unknown -> {}
+        }
+    }
     override fun goToLogin() {
         goToLoginSelected()
-    }
-
-    private fun createChild(
-        config: MainConfig
-    ): ChildMain =
-        when (config) {
-            is MainConfig.Home -> ChildMain.HomeChildMain
-            is MainConfig.Category -> ChildMain.CategoryChildMain
-            is MainConfig.Basket -> ChildMain.BasketChildMain
-            is MainConfig.Favorites -> ChildMain.FavoritesChildMain
-            is MainConfig.Profile -> ChildMain.ProfileChildMain
-        }
-
-    private fun createChild(
-        config: HomeConfig,
-        componentContext: ComponentContext
-    ): ChildHome =
-        when (config) {
-            HomeConfig.HomeScreen -> ChildHome.HomeChild(
-                itemHome(componentContext)
-            )
-
-            is HomeConfig.OfferScreen -> ChildHome.OfferChild(
-                itemOffer(componentContext, config.id)
-            )
-        }
-
-    private fun createChild(
-        config: CategoryConfig,
-        componentContext: ComponentContext
-    ): ChildCategory =
-        when (config) {
-            CategoryConfig.CategoryScreen -> ChildCategory.CategoryChild(
-                itemCategory(componentContext)
-            )
-            CategoryConfig.SearchScreen -> ChildCategory.SearchChild(
-                itemSearch(componentContext)
-            )
-
-            CategoryConfig.ListingScreen -> ChildCategory.ListingChild(
-                itemListing(componentContext)
-            )
-            is CategoryConfig.OfferScreen -> ChildCategory.OfferChild(
-                itemOffer(componentContext, config.id)
-            )
-        }
-
-    private fun createChild(
-        config: FavoritesConfig,
-        componentContext: ComponentContext
-    ): ChildFavorites =
-        when (config) {
-            FavoritesConfig.FavoritesScreen -> ChildFavorites.FavoritesChild(
-                itemFavorites(componentContext)
-            )
-
-            FavoritesConfig.SubscriptionsScreen -> ChildFavorites.SubChild(
-                itemSubscriptions(componentContext)
-            )
-
-            is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
-                itemOffer(componentContext, config.id)
-            )
-        }
-
-    private fun createChild(
-        config: BasketConfig,
-        componentContext: ComponentContext
-    ): ChildBasket =
-        when (config) {
-            BasketConfig.BasketScreen -> ChildBasket.BasketChild(
-                itemBasket(componentContext)
-            )
-        }
-
-    private fun createChild(
-        config: ProfileConfig,
-        componentContext: ComponentContext
-    ): ChildProfile =
-        when (config) {
-            ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
-                itemProfile(componentContext)
-            )
-
-            ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
-                component = this
-            )
-
-            is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
-                component = itemOffer(componentContext, config.id)
-            )
-        }
-
-    override fun selectMyOfferPage(type: LotsType) {
-        when (type) {
-            LotsType.MYLOT_ACTIVE -> {
-                navigationMyOffers.select(0)
-            }
-
-            LotsType.MYLOT_UNACTIVE -> {
-                navigationMyOffers.select(1)
-            }
-
-            LotsType.MYLOT_FUTURE -> {
-                navigationMyOffers.select(2)
-            }
-            else -> {
-                navigationMyOffers.select(0)
-            }
-        }
-    }
-
-    private fun itemCategory(componentContext: ComponentContext): CategoryComponent {
-        return DefaultCategoryComponent(
-            componentContext = componentContext,
-            goToListingSelected = {
-                pushCatStack(CategoryScreenType.LISTING)
-            },
-            goToSearchSelected = {
-                pushCatStack(CategoryScreenType.SEARCH)
-            },
-            onBackPressed = {
-                pushCatStack(CategoryScreenType.CATEGORY)
-            }
-        )
-    }
-
-    private var offerBackStack : MutableState<() -> Unit> = mutableStateOf({})
-
-    private fun itemHome(componentContext: ComponentContext): HomeComponent {
-        return DefaultHomeComponent(
-            componentContext = componentContext,
-            navigation = modelNavigation.value.homeNavigation,
-            navigateToSearchSelected = {
-                pushCatStack(CategoryScreenType.SEARCH)
-                navigateToBottomItem(MainConfig.Category)
-            },
-            navigateToListingSelected = {
-                pushCatStack(CategoryScreenType.LISTING)
-                navigateToBottomItem(MainConfig.Category)
-            },
-            navigateToLoginSelected = {
-                goToLogin()
-            },
-            navigateToOfferSelected = { id ->
-                pushHomeStack(HomeConfig.OfferScreen(id))
-                offerBackStack.value = {
-                    modelNavigation.value.homeNavigation.pop()
-                }
-            }
-        )
-    }
-
-    private fun itemSearch(componentContext: ComponentContext): SearchComponent {
-        return DefaultSearchComponent(
-            componentContext = componentContext,
-            onBackPressed = {
-                pushCatStack(categoryStack.value[categoryStack.value.lastIndex - 1])
-            },
-            goToListingSelected = {
-                pushCatStack(CategoryScreenType.LISTING)
-            },
-            goToCategorySelected = {
-                pushCatStack(CategoryScreenType.CATEGORY)
-            }
-        )
-    }
-
-    private fun itemListing(componentContext: ComponentContext): ListingComponent {
-        return DefaultListingComponent(
-            componentContext = componentContext,
-            searchSelected = {
-                pushCatStack(CategoryScreenType.SEARCH)
-            },
-            onBackPressed = {
-                pushCatStack(CategoryScreenType.CATEGORY)
-            }
-        )
-    }
-
-    private fun itemOffer(componentContext: ComponentContext, id: Long): OfferComponent {
-        return DefaultOfferComponent(
-            id,
-            componentContext,
-            selectOffer = { id->
-
-            },
-            navigationBack = {
-                offerBackStack.value()
-            }
-        )
-    }
-
-    @OptIn(DelicateDecomposeApi::class)
-    private fun itemProfile(componentContext: ComponentContext): ProfileComponent {
-        return DefaultProfileComponent(
-            componentContext = componentContext,
-            selectMyOffers = {
-                profileStack.value.add(ProfileScreenType.MY_OFFERS)
-                modelNavigation.value.profileNavigation.push(ProfileConfig.MyOffersScreen)
-            }
-        )
-    }
-
-    private fun itemBasket(componentContext: ComponentContext): market.engine.presentation.basket.BasketComponent {
-        return market.engine.presentation.basket.DefaultBasketComponent(
-            componentContext = componentContext,
-            navigation = modelNavigation.value.basketNavigation
-        )
-    }
-
-    private fun itemFavorites(componentContext: ComponentContext): FavoritesComponent {
-        return DefaultFavoritesComponent(
-            componentContext = componentContext
-        ) {
-            pushFavStack(FavScreenType.SUBSCRIBED)
-        }
-    }
-
-    private fun itemSubscriptions(componentContext: ComponentContext): SubscribesComponent {
-        return DefaultSubscribesComponent(
-            componentContext = componentContext,
-        ) {
-            pushFavStack(FavScreenType.FAVORITES)
-        }
-    }
-
-    private fun pushFavStack(screenType: FavScreenType){
-        when(screenType){
-            FavScreenType.FAVORITES -> {
-                favoritesStack.value.remove(FavScreenType.SUBSCRIBED)
-                favoritesStack.value.add(FavScreenType.FAVORITES)
-                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.FavoritesScreen)
-            }
-            FavScreenType.SUBSCRIBED -> {
-                favoritesStack.value.remove(FavScreenType.FAVORITES)
-                favoritesStack.value.add(FavScreenType.SUBSCRIBED)
-                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.SubscriptionsScreen)
-            }
-        }
-    }
-    private fun pushCatStack(screenType: CategoryScreenType, id: Long = 1L){
-        when(screenType){
-            CategoryScreenType.LISTING -> {
-                categoryStack.value.remove(CategoryScreenType.LISTING)
-                categoryStack.value.add(CategoryScreenType.LISTING)
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
-            }
-            CategoryScreenType.SEARCH -> {
-                categoryStack.value.remove(CategoryScreenType.SEARCH)
-                categoryStack.value.add(CategoryScreenType.SEARCH)
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.SearchScreen)
-            }
-            CategoryScreenType.CATEGORY -> {
-                categoryStack.value.remove(CategoryScreenType.CATEGORY)
-                categoryStack.value.add(CategoryScreenType.CATEGORY)
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.CategoryScreen)
-            }
-
-            CategoryScreenType.OFFER -> {
-                modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.OfferScreen(id))
-            }
-        }
-    }
-
-    private fun pushHomeStack(homeConfig: HomeConfig){
-        modelNavigation.value.homeNavigation.pushNew(homeConfig)
     }
 }

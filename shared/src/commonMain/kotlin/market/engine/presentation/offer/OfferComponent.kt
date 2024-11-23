@@ -3,6 +3,7 @@ package market.engine.presentation.offer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.core.globalData.UserData
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.coroutines.coroutineContext
 

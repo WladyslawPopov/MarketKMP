@@ -21,6 +21,7 @@ interface FavoritesComponent {
 class DefaultFavoritesComponent(
     componentContext: ComponentContext,
     val selectedSubscribes : () -> Unit,
+    val goToOffer : (Long) -> Unit
 ) : FavoritesComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -83,5 +84,6 @@ class DefaultFavoritesComponent(
                 eventParameters
             )
         }
+        goToOffer(offer.id)
     }
 }

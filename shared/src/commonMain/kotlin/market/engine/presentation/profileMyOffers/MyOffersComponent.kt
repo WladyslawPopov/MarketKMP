@@ -26,6 +26,7 @@ interface MyOffersComponent {
 class DefaultMyOffersComponent(
     componentContext: ComponentContext,
     val type: LotsType = LotsType.MYLOT_ACTIVE,
+    val offerSelected: (Long) -> Unit,
 ) : MyOffersComponent, ComponentContext by componentContext {
     private val userRepository = getKoin().get<UserRepository>()
 
@@ -87,6 +88,7 @@ class DefaultMyOffersComponent(
                 eventParameters
             )
         }
+        offerSelected(offer.id)
     }
 
 }

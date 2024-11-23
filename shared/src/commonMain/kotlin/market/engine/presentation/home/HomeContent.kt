@@ -260,18 +260,24 @@ fun HomeContent(
                             component.navigateToListing()
                         }
 
-                        GridPromoOffers(promoOffer2.value, onOfferClick = {}, onAllClickButton = {
-                            if (listingData.value.filters.isNullOrEmpty()){
-                                listingData.value.filters = arrayListOf()
-                                listingData.value.filters?.addAll(EmptyFilters.getEmpty())
+                        GridPromoOffers(
+                            promoOffer2.value,
+                            onOfferClick = {
+                                component.goToOffer(it.id)
+                            },
+                            onAllClickButton = {
+                                if (listingData.value.filters.isNullOrEmpty()){
+                                    listingData.value.filters = arrayListOf()
+                                    listingData.value.filters?.addAll(EmptyFilters.getEmpty())
+                                }
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                                    "promo_main_page"
+                                listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                                    stringAllPromo
+                                searchData.value.isRefreshing = true
+                                component.navigateToListing()
                             }
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
-                                "promo_main_page"
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                                stringAllPromo
-                            searchData.value.isRefreshing = true
-                            component.navigateToListing()
-                        })
+                        )
 
                         FooterRow(listFooterItem)
                     }
