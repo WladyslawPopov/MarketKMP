@@ -19,7 +19,7 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
-import market.engine.widgets.buttons.ActionTextButton
+import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.items.PromoOfferGridItem
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
@@ -56,7 +56,7 @@ fun GridPromoOffers(
 
     Spacer(modifier = Modifier.heightIn(dimens.smallSpacer))
 
-    ActionTextButton(
+    ActionButton(
         strings.allPromoOffersBtn,
         fontSize = MaterialTheme.typography.titleMedium.fontSize,
         modifier = Modifier.padding(horizontal = dimens.smallPadding).fillMaxWidth(),

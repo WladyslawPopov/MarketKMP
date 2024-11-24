@@ -33,7 +33,6 @@ kotlin {
     jvm()
 
 
-
     sourceSets {
 
         commonMain.dependencies {
@@ -51,19 +50,26 @@ kotlin {
             implementation(libs.koin.coroutines)
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)
+
             implementation(libs.paging.compose.common)
+
             implementation(libs.coil.svg)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+
             implementation(libs.kotlinx.datetime)
+
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.json)
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
+
             implementation(libs.skiko)
+
             implementation(libs.ksoup.html)
             implementation(libs.ksoup.entities)
         }

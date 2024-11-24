@@ -369,6 +369,7 @@ class DefaultMainComponent(
     private fun itemOffer(componentContext: ComponentContext, id: Long, selectOffer: (Long) -> Unit, onBack : () -> Unit): OfferComponent {
         return DefaultOfferComponent(
             id,
+            false,
             componentContext,
             selectOffer = { newId->
                 selectOffer(newId)

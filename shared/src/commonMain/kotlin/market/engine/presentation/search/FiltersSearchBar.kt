@@ -21,7 +21,7 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.baseFilters.SD
-import market.engine.widgets.buttons.ActiveStringButton
+import market.engine.widgets.buttons.FilterButton
 import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -48,7 +48,7 @@ fun FiltersSearchBar(
                 modifier = Modifier.padding(dimens.smallPadding)
             )
             {
-                ActiveStringButton(
+                FilterButton(
                     selectedCategory.value ?: stringResource(strings.categoryMain),
                     color =  if (searchData.value.searchCategoryID == 1L)
                         colors.simpleButtonColors
@@ -81,7 +81,7 @@ fun FiltersSearchBar(
                 modifier = Modifier.padding(dimens.smallPadding)
             )
             {
-                ActiveStringButton(
+                FilterButton(
                     if (!selectedUser.value)
                         searchData.value.userLogin ?: stringResource(strings.searchUsersSearch)
                     else
@@ -113,7 +113,7 @@ fun FiltersSearchBar(
 
                 Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
-                ActiveStringButton(
+                FilterButton(
                     text = stringResource(strings.searchUserFinishedStringChoice),
                     color = if (!selectedUserFinished.value) colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = {

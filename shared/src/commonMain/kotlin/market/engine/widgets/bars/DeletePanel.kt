@@ -15,7 +15,7 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.widgets.buttons.ActionTextButton
+import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -48,7 +48,7 @@ fun DeletePanel(
                 colors.inactiveBottomNavIconColor,
                 onClick = onDelete
             )
-            ActionTextButton(
+            ActionButton(
                 strings.resetLabel,
                 fontSize = 8.sp,
                 alignment = Alignment.CenterEnd,

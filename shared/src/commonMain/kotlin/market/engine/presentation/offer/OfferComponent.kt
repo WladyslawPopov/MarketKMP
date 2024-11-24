@@ -3,9 +3,8 @@ package market.engine.presentation.offer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.globalData.UserData
+import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
-import kotlin.coroutines.coroutineContext
 
 interface OfferComponent {
 
@@ -13,6 +12,7 @@ interface OfferComponent {
 
     data class Model(
         val id: Long,
+        val isSnapshot: Boolean,
         val offerViewModel: OfferViewModel
     )
     fun updateOffer(id: Long)
@@ -22,6 +22,7 @@ interface OfferComponent {
 
 class DefaultOfferComponent(
     val id: Long,
+    isSnapshot: Boolean,
     componentContext: ComponentContext,
     val selectOffer: (id: Long) -> Unit,
     val navigationBack: () -> Unit
@@ -30,13 +31,17 @@ class DefaultOfferComponent(
     private val _model = MutableValue(
         OfferComponent.Model(
             id = id,
+            isSnapshot = isSnapshot,
             offerViewModel = getKoin().get()
         )
     )
     override val model: Value<OfferComponent.Model> = _model
     private val offerViewModel = model.value.offerViewModel
+    private val userRepository = getKoin().get<UserRepository>()
 
     init {
+        userRepository.updateToken()
+        userRepository.updateUserInfo(offerViewModel.viewModelScope)
         updateOffer(id)
     }
 

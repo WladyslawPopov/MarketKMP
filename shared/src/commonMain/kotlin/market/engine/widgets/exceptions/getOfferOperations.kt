@@ -71,6 +71,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun getOfferOperations(
     offer: Offer,
+    showCopyId : Boolean = true,
+    offset: IntOffset = IntOffset(0, 0),
     onUpdateMenuItem: (Offer) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -136,9 +138,9 @@ fun getOfferOperations(
     AnimatedVisibility(showMenu.value) {
         Popup(
             alignment = Alignment.TopEnd,
-            offset = IntOffset(0, -40),
+            offset = offset,
             onDismissRequest = {
-                onClose()
+                //onClose()
             }
         ) {
             Box(
@@ -151,23 +153,30 @@ fun getOfferOperations(
                     .padding(dimens.smallPadding)
             ) {
                 LazyColumn {
-                    item {
-                        val idString = stringResource(
-                            strings.idCopied)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    clipBoardEvent(offer.id.toString())
-                                    toast.value = ToastItem(isVisible = true, message = idString, type = ToastType.SUCCESS)
-                                    onClose()
-                                }
-                        ) {
-                            Text(
-                                stringResource(strings.copyOfferId),
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(dimens.smallPadding)
+                    if (showCopyId) {
+                        item {
+                            val idString = stringResource(
+                                strings.idCopied
                             )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        clipBoardEvent(offer.id.toString())
+                                        toast.value = ToastItem(
+                                            isVisible = true,
+                                            message = idString,
+                                            type = ToastType.SUCCESS
+                                        )
+                                        onClose()
+                                    }
+                            ) {
+                                Text(
+                                    stringResource(strings.copyOfferId),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(dimens.smallPadding)
+                                )
+                            }
                         }
                     }
                     items(listItemMenu) { operation ->

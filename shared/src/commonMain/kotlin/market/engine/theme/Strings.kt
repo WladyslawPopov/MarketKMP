@@ -200,4 +200,20 @@ interface Strings {
     val lastViewedOffers : StringResource
     val ourChoice : StringResource
     val description : StringResource
+    val tempPhotoLabel : StringResource
+    val shareOffer : StringResource
+    val addToCalendar : StringResource
+    val quantityParameterName : StringResource
+    val fromParameterName : StringResource
+    val boughtParameterName : StringResource
+    val viewsParams : StringResource
+    val actionsOffersParameterName : StringResource
+    val operationsParameterName : StringResource
+    val actionParameterName : StringResource
+    val promoActionsParameterName : StringResource
+    val activatePromoParameterName : StringResource
+    val currentPriceParameterName : StringResource
+    val yourMaxBidParameterName : StringResource
+    val actionAddBid : StringResource
+    val buyNowPriceParameterName : StringResource
 }

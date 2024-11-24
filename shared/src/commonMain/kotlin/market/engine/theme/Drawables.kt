@@ -97,4 +97,8 @@ interface Drawables {
    val adIcon : DrawableResource
    val megaphoneIcon : DrawableResource
    val homeIcon : DrawableResource
+   val shareIcon : DrawableResource
+   val calendarIcon : DrawableResource
+   val copyIcon : DrawableResource
+   val addToCartIcon : DrawableResource
 }

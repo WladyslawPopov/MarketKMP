@@ -50,7 +50,7 @@ import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.types.LotsType
-import market.engine.widgets.buttons.ActiveStringButton
+import market.engine.widgets.buttons.FilterButton
 import market.engine.widgets.buttons.ExpandableSection
 import market.engine.widgets.lists.getDropdownMenu
 import market.engine.widgets.textFields.TextFieldWithState
@@ -439,7 +439,7 @@ fun OfferFilterContent(
                                 .padding(dimens.smallPadding)
 
                         ) {
-                            ActiveStringButton(
+                            FilterButton(
                                 activeCategory.value,
                                 fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                 color = if (defCat == activeCategory.value) colors.simpleButtonColors else colors.themeButtonColors,

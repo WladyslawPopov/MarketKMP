@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.constants.ThemeResources.dimens
 
 @Composable
-fun ActiveStringButton(
+fun FilterButton(
     text: String,
     color: ButtonColors,
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,

@@ -7,6 +7,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.items.ToastItem
 import market.engine.widgets.badges.ToastTypeMessage
 
@@ -42,7 +43,8 @@ fun BaseContent(
                 ToastTypeMessage(
                     toastItem.isVisible,
                     message = toastItem.message,
-                    modifier = Modifier.align(Alignment.TopCenter),
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                        .padding(bottom = dimens.largePadding),
                     toastType = toastItem.type
                 )
             }

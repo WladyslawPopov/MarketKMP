@@ -29,7 +29,7 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.shared.SearchHistory
-import market.engine.widgets.buttons.ActionTextButton
+import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.exceptions.dismissBackground
 import market.engine.widgets.items.historyItem
 import org.jetbrains.compose.resources.painterResource
@@ -74,7 +74,7 @@ fun HistoryLayout(
             )
         }
 
-        ActionTextButton(
+        ActionButton(
             strings.clear,
             Modifier.wrapContentWidth(),
             MaterialTheme.typography.bodySmall.fontSize,

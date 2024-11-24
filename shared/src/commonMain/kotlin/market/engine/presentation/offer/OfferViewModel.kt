@@ -12,6 +12,8 @@ import kotlinx.coroutines.withContext
 import market.engine.core.globalData.UserData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.CategoryOperations
+import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
@@ -20,7 +22,8 @@ import market.engine.shared.MarketDB
 
 class OfferViewModel(
     val apiService: APIService,
-    private val dataBase : MarketDB
+    private val dataBase : MarketDB,
+    private val categoryOperations: CategoryOperations,
 ) : BaseViewModel() {
     private val _responseOffer = MutableStateFlow(Offer())
     val responseOffer: StateFlow<Offer> = _responseOffer.asStateFlow()
@@ -30,6 +33,9 @@ class OfferViewModel(
 
     private val _responseOurChoice = MutableStateFlow<List<Offer>>(emptyList())
     val responseOurChoice: StateFlow<List<Offer>> = _responseOurChoice.asStateFlow()
+
+    private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
+    val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
     fun getOffer(id: Long) {
         viewModelScope.launch {
@@ -43,6 +49,7 @@ class OfferViewModel(
                 }
 
                 val payload: ArrayList<Offer> = deserializePayload(response.payload)
+                getCategoriesHistory(payload[0].catpath)
                 _responseOffer.value = payload[0]
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -54,7 +61,7 @@ class OfferViewModel(
         }
     }
 
-    fun getOurChoice(id: Long) {
+    private fun getOurChoice(id: Long) {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
@@ -119,6 +126,35 @@ class OfferViewModel(
             }
         } catch (e: Exception) {
             onError(ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    private fun getCategoriesHistory(catpath: List<Long>) {
+        viewModelScope.launch {
+            val cats = arrayListOf<Long>()
+            cats.addAll(catpath)
+            cats.reverse()
+            try {
+                val deferredOffers = mutableListOf<Category>()
+                val deferredResults = cats.map { cat ->
+                    async {
+                        val res = categoryOperations.getCategoryInfo(cat)
+                        val buffer = res.success
+                        if (buffer != null) {
+                            deferredOffers.add(buffer)
+                        }
+                    }
+                }
+                deferredResults.awaitAll()
+
+                withContext(Dispatchers.Main) {
+                    if (deferredOffers.isNotEmpty()) {
+                        _responseCatHistory.value = deferredOffers
+                    }
+                }
+            }catch (e : Exception){
+                onError(ServerErrorException(e.message.toString(), ""))
+            }
         }
     }
 

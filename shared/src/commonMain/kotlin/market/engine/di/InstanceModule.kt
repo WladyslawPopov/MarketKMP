@@ -51,7 +51,7 @@ val viewModelModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { FavViewModel(get()) }
     viewModel { SubViewModel(get(), get()) }
-    viewModel { OfferViewModel(get(), get()) }
+    viewModel { OfferViewModel(get(), get(), get()) }
 }
 
 val networkModule = module {
