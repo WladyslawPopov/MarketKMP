@@ -690,7 +690,6 @@ fun BuyNowPriceLayout(
             // Current price display
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
@@ -701,7 +700,15 @@ fun BuyNowPriceLayout(
                     color = colors.titleTextColor,
                     fontWeight = FontWeight.Bold
                 )
+            }
 
+            Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
                 SimpleTextButton(
                     text = stringResource(strings.buyNow),
                     backgroundColor = colors.inactiveBottomNavIconColor,
