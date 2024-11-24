@@ -82,7 +82,7 @@ fun ListingItem(
                 ListingItemContent(
                     offer,
                     modifier = Modifier.align(Alignment.Bottom),
-                    isGrid = false,
+                    isGrid = isGrid,
                     onFavouriteClick
                 )
             }

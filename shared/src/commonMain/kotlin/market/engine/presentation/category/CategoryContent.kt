@@ -73,7 +73,6 @@ fun CategoryContent(
     }else{
         null
     }
-    val title = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
     LaunchedEffect(searchData.value){
         if (searchData.value.isRefreshing){
@@ -81,39 +80,7 @@ fun CategoryContent(
             searchData.value.isRefreshing = false
         }
     }
-    LaunchedEffect(Unit) {
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateTopBar {
-                CategoryAppBar(
-                    isShowNav,
-                    title = title.value ?: stringResource(strings.categoryMain),
-                    searchData = searchData.value,
-                    onSearchClick = {
-                        component.goToSearch()
-                    },
-                    onClearSearchClick = {
-                        if (!isLoading.value) {
-                            searchData.value.clearCategory()
-                            component.onRefresh(searchData.value)
-                        }
-                    }
-                ) {
-                    if (!isLoading.value) {
-                        if (searchData.value.searchCategoryID != 1L) {
-                            isShowNav.value = true
-                            searchData.value.searchCategoryID =
-                                searchData.value.searchParentID ?: 1L
-                            searchData.value.searchCategoryName =
-                                searchData.value.searchParentName ?: ""
-                            component.onRefresh(searchData.value)
-                        } else {
-                            isShowNav.value = false
-                        }
-                    }
-                }
-            }
-        )
-    }
+
 
     mainViewModel.sendEvent(
         UIMainEvent.UpdateFloatingActionButton {}
@@ -138,6 +105,38 @@ fun CategoryContent(
             UIMainEvent.UpdateNotFound(null)
         )
     }
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
+            CategoryAppBar(
+                isShowNav,
+                title = searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
+                searchData = searchData.value,
+                onSearchClick = {
+                    component.goToSearch()
+                },
+                onClearSearchClick = {
+                    if (!isLoading.value) {
+                        searchData.value.clearCategory()
+                        component.onRefresh(searchData.value)
+                    }
+                }
+            ) {
+                if (!isLoading.value) {
+                    if (searchData.value.searchCategoryID != 1L) {
+                        isShowNav.value = true
+                        searchData.value.searchCategoryID =
+                            searchData.value.searchParentID ?: 1L
+                        searchData.value.searchCategoryName =
+                            searchData.value.searchParentName ?: ""
+                        component.onRefresh(searchData.value)
+                    } else {
+                        isShowNav.value = false
+                    }
+                }
+            }
+        }
+    )
 
     SwipeRefreshContent(
         isRefreshing = isLoading.value,
@@ -202,7 +201,6 @@ fun CategoryContent(
                                 } else {
                                     component.goToListing()
                                 }
-                                title.value = category.name
 
                             },
                             icon = {

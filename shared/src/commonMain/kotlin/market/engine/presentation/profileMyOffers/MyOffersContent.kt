@@ -3,6 +3,8 @@ package market.engine.presentation.profileMyOffers
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -39,11 +41,12 @@ fun MyOffersContent(
             }
         )
     }
-
+    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
     ListingBaseContent(
-        columns = if (isBigScreen) 2 else 1,
+        columns = columns,
         modifier = modifier,
-        filtersData = viewModel.listingData,
+        listingData,
+        searchData = viewModel.listingData.value.searchData.subscribeAsState(),
         data = data,
         baseViewModel = viewModel,
         onRefresh = {

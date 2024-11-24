@@ -256,25 +256,24 @@ fun OfferContent(
                     item {
                         val countString = getCountString(offerState, offer.value, isMyOffer.value)
 
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
+                        FlowRow (
+                            horizontalArrangement = Arrangement.Start,
+                            verticalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             if (countString.isNotEmpty()) {
                                 Text(
                                     text = countString,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = colors.grayText,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = colors.steelBlue,
                                     modifier = Modifier.padding(dimens.smallPadding)
                                 )
                             }
 
                             Text(
                                 text = stringResource(strings.viewsParams) + ": " + offer.value.viewsCount,
-                                style = MaterialTheme.typography.bodyLarge.
-                                copy(fontWeight = FontWeight.Bold),
-                                color = colors.grayText,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = colors.steelBlue,
                                 modifier = Modifier.padding(dimens.smallPadding)
                             )
                         }

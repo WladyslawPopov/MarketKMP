@@ -29,6 +29,8 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.SwipeRefreshContent
+import market.engine.core.baseFilters.LD
+import market.engine.core.baseFilters.SD
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.items.ListingData
 import market.engine.core.network.ServerErrorException
@@ -43,9 +45,10 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun <T : Any>ListingBaseContent(
-    columns : Int = 1,
+    columns : MutableState<Int> = mutableStateOf(1),
     modifier: Modifier = Modifier,
-    filtersData: MutableState<ListingData>,
+    listingData : State<LD>,
+    searchData : State<SD>,
     data : LazyPagingItems<T>,
     baseViewModel: BaseViewModel,
     onRefresh : () -> Unit,
@@ -58,8 +61,6 @@ fun <T : Any>ListingBaseContent(
     isShowGrid : Boolean = false,
     onSearchClick : () -> Unit = {}
 ){
-    val searchData = filtersData.value.searchData.subscribeAsState()
-    val listingData = filtersData.value.data.subscribeAsState()
 
     val activeFiltersType = remember { baseViewModel.activeFiltersType }
 
@@ -95,7 +96,7 @@ fun <T : Any>ListingBaseContent(
                 isHideContent.value = true
                 noItem = {
                     showNoItemLayout {
-                        data.refresh()
+                        onRefresh()
                     }
                 }
             }
@@ -121,7 +122,7 @@ fun <T : Any>ListingBaseContent(
                 baseViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
-                        data.refresh()
+                        onRefresh()
                         isRefreshingFromFilters.value = false
                     }
                 }
@@ -152,13 +153,12 @@ fun <T : Any>ListingBaseContent(
         }
     }
 
-    LaunchedEffect(Unit) {
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateError(error)
-        )
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateError(error)
+    )
 
-        mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(noItem))
-    }
+    mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(noItem))
+
 
     SwipeRefreshContent(
         isRefreshing = isLoading.value,
@@ -209,7 +209,7 @@ fun <T : Any>ListingBaseContent(
                         onChangeTypeList = {
                             baseViewModel.settings.setSettingValue("listingType", it)
                             listingData.value.listingType = it
-                            data.refresh()
+                            onRefresh()
                         },
                         onFilterClick = {
                             activeFiltersType.value = "filters"
@@ -221,7 +221,7 @@ fun <T : Any>ListingBaseContent(
                         onSearchClick = {
                             onSearchClick()
                         },
-                        onRefresh = { data.refresh() }
+                        onRefresh = { onRefresh() }
                     )
 
                     if (error != null) {
@@ -240,7 +240,7 @@ fun <T : Any>ListingBaseContent(
                                     data = data,
                                     listingData = listingData,
                                     searchData = searchData,
-                                    columns = columns,
+                                    columns = columns.value,
                                     content = { 
                                         item(it)
                                     },

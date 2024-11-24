@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -72,11 +73,14 @@ fun FavoritesContent(
         }
     }
 
+    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
+
     ListingBaseContent(
-        columns = if (isBigScreen) 2 else 1,
+        columns = columns,
         modifier = modifier,
-        filtersData = listingData,
+        listingData = ld,
         data = data,
+        searchData = listingData.value.searchData.subscribeAsState(),
         baseViewModel = favViewModel,
         onRefresh = {
             data.refresh()
