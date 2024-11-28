@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class CategoryConfig {
     @Serializable
-    data object CategoryScreen : CategoryConfig()
+    data class CategoryScreen(val id: Long) : CategoryConfig()
 
     @Serializable
     data object SearchScreen : CategoryConfig()

@@ -10,7 +10,9 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -30,7 +32,6 @@ import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.navigation.configs.MainConfig
 import market.engine.core.navigation.configs.MyOfferConfig
 import market.engine.core.navigation.configs.ProfileConfig
-import market.engine.core.types.CategoryScreenType
 import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.ProfileScreenType
@@ -61,7 +62,7 @@ class DefaultMainComponent(
 
     ) : MainComponent, ComponentContext by componentContext
 {
-    override val categoryStack = MutableValue(mutableListOf(CategoryScreenType.CATEGORY))
+    override val categoryStack: Value<MutableList<CategoryConfig>> = MutableValue(mutableListOf(CategoryConfig.CategoryScreen(1L)))
     override val favoritesStack = MutableValue(mutableListOf(FavScreenType.FAVORITES))
     override val profileStack = MutableValue(mutableListOf(ProfileScreenType.MY_OFFERS))
     override val mainViewModel = MutableValue<MainViewModel>(getKoin().get())
@@ -98,11 +99,12 @@ class DefaultMainComponent(
     override val childCategoryStack: Value<ChildStack<*, ChildCategory>> =
         childStack(
             source = modelNavigation.value.categoryNavigation,
-            initialConfiguration = CategoryConfig.CategoryScreen,
+            initialConfiguration = CategoryConfig.CategoryScreen(1L),
             serializer = CategoryConfig.serializer(),
             childFactory = ::createChild,
             key = "CategoryStack"
         )
+
 
 
     override val myOffersPages: Value<ChildPages<*, MyOffersComponent>> by lazy {
@@ -210,8 +212,10 @@ class DefaultMainComponent(
         componentContext: ComponentContext
     ): ChildCategory =
         when (config) {
-            CategoryConfig.CategoryScreen -> ChildCategory.CategoryChild(
-                itemCategory(componentContext)
+            is CategoryConfig.CategoryScreen -> ChildCategory.CategoryChild(
+                itemCategory(
+                    componentContext
+                )
             )
             CategoryConfig.SearchScreen -> ChildCategory.SearchChild(
                 itemSearch(componentContext)
@@ -300,38 +304,44 @@ class DefaultMainComponent(
 
     // Items
 
-    private fun itemCategory(componentContext: ComponentContext): CategoryComponent {
-        return DefaultCategoryComponent(
-            componentContext = componentContext,
-            goToListingSelected = {
-                pushCatStack(CategoryScreenType.LISTING)
-            },
-            goToSearchSelected = {
-                pushCatStack(CategoryScreenType.SEARCH)
-            },
-            onBackPressed = {
-                pushCatStack(CategoryScreenType.CATEGORY)
-            }
-        )
-    }
-
     private fun itemHome(componentContext: ComponentContext): HomeComponent {
         return DefaultHomeComponent(
             componentContext = componentContext,
             navigation = modelNavigation.value.homeNavigation,
             navigateToSearchSelected = {
-                pushCatStack(CategoryScreenType.SEARCH)
                 navigateToBottomItem(MainConfig.Category)
+                navigateToOrPopUntil(CategoryConfig.SearchScreen)
             },
             navigateToListingSelected = {
-                pushCatStack(CategoryScreenType.LISTING)
                 navigateToBottomItem(MainConfig.Category)
+                navigateToOrPopUntil(CategoryConfig.ListingScreen)
             },
             navigateToLoginSelected = {
                 goToLogin()
             },
             navigateToOfferSelected = { id ->
-                pushHomeStack(HomeConfig.OfferScreen(id))
+                modelNavigation.value.homeNavigation.pushNew(HomeConfig.OfferScreen(id))
+            }
+        )
+    }
+
+    private fun itemCategory(componentContext: ComponentContext): CategoryComponent {
+        return DefaultCategoryComponent(
+            componentContext = componentContext,
+            goToListingSelected = {
+                navigateToOrPopUntil(CategoryConfig.ListingScreen)
+            },
+            goToSearchSelected = {
+                navigateToOrPopUntil(CategoryConfig.SearchScreen)
+            },
+            goToNewCategory = {
+                navigateToOrPopUntil(CategoryConfig.CategoryScreen(
+                    categoryData.searchData.value.searchCategoryID ?: 1L)
+                )
+            },
+            onBackClicked = {
+                categoryStack.value.removeLastOrNull()
+                modelNavigation.value.categoryNavigation.pop()
             }
         )
     }
@@ -340,13 +350,16 @@ class DefaultMainComponent(
         return DefaultSearchComponent(
             componentContext = componentContext,
             onBackPressed = {
-                pushCatStack(categoryStack.value[categoryStack.value.lastIndex - 1])
+                categoryStack.value.removeLast()
+                modelNavigation.value.categoryNavigation.pop()
             },
             goToListingSelected = {
-                pushCatStack(CategoryScreenType.LISTING)
+                navigateToOrPopUntil(CategoryConfig.ListingScreen)
             },
             goToCategorySelected = {
-                pushCatStack(CategoryScreenType.CATEGORY)
+                navigateToOrPopUntil(CategoryConfig.CategoryScreen(
+                    categoryData.searchData.value.searchCategoryID ?: 1L)
+                )
             }
         )
     }
@@ -355,13 +368,14 @@ class DefaultMainComponent(
         return DefaultListingComponent(
             componentContext = componentContext,
             searchSelected = {
-                pushCatStack(CategoryScreenType.SEARCH)
+                navigateToOrPopUntil(CategoryConfig.SearchScreen)
             },
             selectOffer = { id ->
-                pushCatStack(CategoryScreenType.OFFER, id)
+                navigateToOrPopUntil(CategoryConfig.OfferScreen(id))
             },
             onBackPressed = {
-                pushCatStack(CategoryScreenType.CATEGORY)
+                categoryStack.value.removeLast()
+                modelNavigation.value.categoryNavigation.pop()
             }
         )
     }
@@ -428,6 +442,21 @@ class DefaultMainComponent(
         }
     }
 
+    private fun navigateToOrPopUntil(screenConfig: CategoryConfig) {
+        val stack = categoryStack.value
+        if (stack.lastOrNull() != screenConfig) {
+            if (stack.contains(screenConfig)) {
+                while (stack.lastOrNull() != screenConfig) {
+                    modelNavigation.value.categoryNavigation.pop()
+                    stack.removeLast()
+                }
+            } else {
+                stack.add(screenConfig)
+                modelNavigation.value.categoryNavigation.pushNew(screenConfig)
+            }
+        }
+    }
+
     private fun pushFavStack(screenType: FavScreenType, id: Long = 1L){
         when(screenType){
             FavScreenType.FAVORITES -> {
@@ -446,32 +475,7 @@ class DefaultMainComponent(
             }
         }
     }
-    private fun pushCatStack(screenType: CategoryScreenType, id: Long = 1L){
-        when(screenType){
-            CategoryScreenType.LISTING -> {
-                categoryStack.value.remove(CategoryScreenType.LISTING)
-                categoryStack.value.add(CategoryScreenType.LISTING)
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
-            }
-            CategoryScreenType.SEARCH -> {
-                categoryStack.value.remove(CategoryScreenType.SEARCH)
-                categoryStack.value.add(CategoryScreenType.SEARCH)
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.SearchScreen)
-            }
-            CategoryScreenType.CATEGORY -> {
-                categoryStack.value.remove(CategoryScreenType.CATEGORY)
-                categoryStack.value.add(CategoryScreenType.CATEGORY)
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.CategoryScreen)
-            }
 
-            CategoryScreenType.OFFER -> {
-                modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.OfferScreen(id))
-            }
-        }
-    }
-    private fun pushHomeStack(homeConfig: HomeConfig){
-        modelNavigation.value.homeNavigation.pushNew(homeConfig)
-    }
     override fun selectMyOfferPage(type: LotsType) {
         when (type) {
             LotsType.MYLOT_ACTIVE -> {
@@ -494,10 +498,21 @@ class DefaultMainComponent(
     override fun navigateToBottomItem(config: MainConfig) {
         when(config){
             is MainConfig.Home -> {
+                if(activeCurrent == "Home"){
+                    modelNavigation.value.homeNavigation.popToFirst()
+                }
                 activeCurrent = "Home"
                 currentNavigation.replaceCurrent(config)
             }
             is MainConfig.Category -> {
+                if(activeCurrent == "Category"){
+                    categoryData.searchData.value.clear()
+                    categoryData.searchData.value.clearCategory()
+                    categoryData.data.value.clear()
+                    categoryStack.value.clear()
+                    categoryStack.value.add(CategoryConfig.CategoryScreen(1L))
+                    modelNavigation.value.categoryNavigation.replaceAll(categoryStack.value.last())
+                }
                 activeCurrent = "Category"
                 currentNavigation.replaceCurrent(config)
             }
@@ -513,6 +528,9 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLoginSelected()
                 }else{
+                    if(activeCurrent == "Favorites"){
+                        pushFavStack(FavScreenType.FAVORITES)
+                    }
                     activeCurrent = "Favorites"
                     currentNavigation.replaceCurrent(config)
                 }
@@ -522,7 +540,7 @@ class DefaultMainComponent(
                     goToLoginSelected()
                 }else{
                     if(activeCurrent == "Profile"){
-                        modelNavigation.value.profileNavigation.pop()
+                        modelNavigation.value.profileNavigation.popToFirst()
                     }
                     activeCurrent = "Profile"
                     currentNavigation.replaceCurrent(config)

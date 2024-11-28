@@ -16,6 +16,7 @@ import market.engine.presentation.offer.OfferContent
 import market.engine.presentation.search.SearchContent
 
 
+
 @Composable
 fun CategoryNavigation (
     modifier: Modifier = Modifier,
@@ -36,9 +37,9 @@ fun CategoryNavigation (
                 ListingContent(screen.component, modifier)
             }
             is ChildCategory.CategoryChild ->{
-                CategoryContent(screen.component, modifier)
-            }
 
+                CategoryContent(stack, screen.component, modifier)
+            }
             is ChildCategory.OfferChild -> {
                 OfferContent(screen.component, modifier)
             }

@@ -56,36 +56,36 @@ fun SearchContent(
 
     val mainViewModel : MainViewModel = koinViewModel()
 
-    LaunchedEffect(Unit) {
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateTopBar {
-                SearchAppBar(
-                    modifier,
-                    searchString,
-                    focusRequester,
-                    onSearchClick = {
-                        getSearchFilters(searchData, searchString.text)
-                        component.goToListing()
-                    },
-                    onUpdateHistory = {
-                        searchString = searchString.copy(it)
-                        component.updateHistory(it)
-                    }
-                ) {
+
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateTopBar {
+            SearchAppBar(
+                modifier,
+                searchString,
+                focusRequester,
+                onSearchClick = {
                     getSearchFilters(searchData, searchString.text)
-                    component.onCloseClicked()
+                    component.goToListing()
+                },
+                onUpdateHistory = {
+                    searchString = searchString.copy(it)
+                    component.updateHistory(it)
                 }
+            ) {
+                getSearchFilters(searchData, searchString.text)
+                component.onCloseClicked()
             }
-        )
+        }
+    )
 
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateFloatingActionButton {}
-        )
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateFloatingActionButton {}
+    )
 
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateNotFound(null)
-        )
-    }
+    mainViewModel.sendEvent(
+        UIMainEvent.UpdateNotFound(null)
+    )
+
 
     mainViewModel.sendEvent(
         UIMainEvent.UpdateError(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -158,11 +159,11 @@ fun FiltersBar(
                     .clip(MaterialTheme.shapes.medium),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
-                filters?.forEach { filter ->
-                    filter.interpritation?.let { interpretation ->
-                        item(key = filter.key) {
+                if (filters != null) {
+                    items(filters) { filter ->
+                        filter.interpritation?.let { text->
                             ActiveFilterListing(
-                                text = interpretation,
+                                text = text,
                                 removeFilter = {
                                     listingData.filters?.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
                                     listingData.filters?.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null

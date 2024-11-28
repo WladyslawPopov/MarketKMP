@@ -471,7 +471,7 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<L
         when (filterKey) {
             "buynow" -> {
                 filters.find { filter -> filter.key == "sale_type" }?.value = filterKey
-                filters.find { filter -> filter.key == "sale_type" }?.interpritation = filterName
+                filters.find { filter -> filter.key == "sale_type" }?.interpritation = ""
                 filters.find { filter -> filter.key == "starting_price" }?.value = ""
                 filters.find { filter -> filter.key == "starting_price" }?.interpritation = null
                 filters.find { filter -> filter.key == "discount_price" }?.value = ""
@@ -482,7 +482,7 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<L
 
             "auction" -> {
                 filters.find { filter -> filter.key == "sale_type" }?.value = filterKey
-                filters.find { filter -> filter.key == "sale_type" }?.interpritation = filterName
+                filters.find { filter -> filter.key == "sale_type" }?.interpritation = ""
                 filters.find { filter -> filter.key == "starting_price" }?.value = ""
                 filters.find { filter -> filter.key == "starting_price" }?.interpritation = null
                 filters.find { filter -> filter.key == "discount_price" }?.value = ""

@@ -9,7 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.constants.ThemeResources.colors
@@ -17,7 +16,6 @@ import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.baseFilters.SD
-
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TitleText
@@ -27,7 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryAppBar(
-    isShowNav : MutableState<Boolean>,
+    isShowNav : Boolean,
     modifier: Modifier = Modifier,
     title: String,
     searchData: SD,
@@ -59,14 +57,10 @@ fun CategoryAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-           TitleText(title){
-               onSearchClick()
-           }
+           TitleText(title)
         },
         navigationIcon = {
-            isShowNav.value = searchData.searchCategoryID != 1L
-
-            if (isShowNav.value) {
+            if(isShowNav) {
                 NavigationArrowButton {
                     onBeakClick()
                 }
@@ -77,7 +71,7 @@ fun CategoryAppBar(
                 modifier = modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                listItems.forEachIndexed{ i, item ->
+                listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){
                         IconButton(
                             modifier = modifier.size(dimens.mediumIconSize),

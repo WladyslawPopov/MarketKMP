@@ -52,7 +52,6 @@ class DefaultSearchComponent(
     }
 
     override fun onCloseClicked() {
-        searchAnalytic()
         onBackPressed()
     }
 

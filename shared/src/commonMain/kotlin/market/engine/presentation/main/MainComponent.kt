@@ -16,7 +16,6 @@ import market.engine.core.navigation.configs.FavoritesConfig
 import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.navigation.configs.MainConfig
 import market.engine.core.navigation.configs.ProfileConfig
-import market.engine.core.types.CategoryScreenType
 import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.ProfileScreenType
@@ -40,7 +39,7 @@ interface MainComponent {
 
     val myOffersPages: Value<ChildPages<*, MyOffersComponent>>
 
-    val categoryStack : Value<MutableList<CategoryScreenType>>
+    val categoryStack : Value<MutableList<CategoryConfig>>
 
     val favoritesStack : Value<MutableList<FavScreenType>>
 

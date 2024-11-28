@@ -87,6 +87,7 @@ fun <T : Any> PagingList(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+
         LazyColumn(
             state = state,
             verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -134,7 +135,12 @@ fun <T : Any> PagingList(
             }
 
             var isShowEndPromo = false
-            items(data.itemCount) { index ->
+            items(data.itemCount,
+                key = { index ->
+                    val item = data[index]
+                    (item?.hashCode()?.plus(index)) ?: index
+                }
+            ) { index ->
                 if (promoContent != null && searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
                     if (index > 0 && !isShowEndPromo) {
                         val item = data[index] as? Offer

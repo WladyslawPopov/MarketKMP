@@ -122,7 +122,7 @@ fun <T : Any>ListingBaseContent(
                 baseViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
-                        onRefresh()
+                        data.refresh()
                         isRefreshingFromFilters.value = false
                     }
                 }
@@ -221,7 +221,7 @@ fun <T : Any>ListingBaseContent(
                         onSearchClick = {
                             onSearchClick()
                         },
-                        onRefresh = { onRefresh() }
+                        onRefresh = { data.refresh() }
                     )
 
                     if (error != null) {

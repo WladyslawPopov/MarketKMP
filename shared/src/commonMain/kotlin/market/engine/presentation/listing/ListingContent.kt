@@ -1,14 +1,12 @@
 package market.engine.presentation.listing
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.launch
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository

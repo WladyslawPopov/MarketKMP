@@ -113,7 +113,7 @@ fun SwipeTabsBar(
                 selectedTab.value = TabTypeListing.AUCTION
 
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = "auction"
-                listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = auctionString
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = ""
 
                 listingData.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
                 listingData.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
@@ -130,7 +130,7 @@ fun SwipeTabsBar(
                 selectedTab.value = TabTypeListing.BUY_NOW
 
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = "buynow"
-                listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = buyNowString
+                listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = ""
 
                 listingData.filters?.find { filter-> filter.key == "starting_price" }?.value = ""
                 listingData.filters?.find { filter-> filter.key == "starting_price" }?.interpritation = null
