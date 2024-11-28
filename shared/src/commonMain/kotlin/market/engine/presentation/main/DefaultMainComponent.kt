@@ -310,11 +310,31 @@ class DefaultMainComponent(
             navigation = modelNavigation.value.homeNavigation,
             navigateToSearchSelected = {
                 navigateToBottomItem(MainConfig.Category)
-                navigateToOrPopUntil(CategoryConfig.SearchScreen)
+
+                if(categoryStack.value.lastOrNull() != CategoryConfig.SearchScreen) {
+                    categoryStack.value.add(CategoryConfig.SearchScreen)
+                    modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.SearchScreen)
+                }
             },
             navigateToListingSelected = {
                 navigateToBottomItem(MainConfig.Category)
-                navigateToOrPopUntil(CategoryConfig.ListingScreen)
+
+                if(!categoryStack.value.contains(CategoryConfig.ListingScreen)) {
+                    categoryStack.value.add(CategoryConfig.ListingScreen)
+                    modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.ListingScreen)
+                }else{
+                    if(categoryStack.value.lastOrNull() != CategoryConfig.ListingScreen) {
+                        val list = categoryStack.value.asReversed().toList()
+                        for (it in list) {
+                            if (it == CategoryConfig.ListingScreen) {
+                                break
+                            }else{
+                                modelNavigation.value.categoryNavigation.pop()
+                                categoryStack.value.removeLast()
+                            }
+                        }
+                    }
+                }
             },
             navigateToLoginSelected = {
                 goToLogin()
@@ -329,14 +349,23 @@ class DefaultMainComponent(
         return DefaultCategoryComponent(
             componentContext = componentContext,
             goToListingSelected = {
-                navigateToOrPopUntil(CategoryConfig.ListingScreen)
+                categoryStack.value.add(CategoryConfig.ListingScreen)
+                modelNavigation.value.categoryNavigation.pushNew(
+                    categoryStack.value.last()
+                )
             },
             goToSearchSelected = {
-                navigateToOrPopUntil(CategoryConfig.SearchScreen)
+                categoryStack.value.add(CategoryConfig.SearchScreen)
+                modelNavigation.value.categoryNavigation.pushNew(
+                    categoryStack.value.last()
+                )
             },
             goToNewCategory = {
-                navigateToOrPopUntil(CategoryConfig.CategoryScreen(
-                    categoryData.searchData.value.searchCategoryID ?: 1L)
+                categoryStack.value.add(
+                    CategoryConfig.CategoryScreen(categoryData.searchData.value.searchCategoryID ?: 1)
+                )
+                modelNavigation.value.categoryNavigation.pushNew(
+                    categoryStack.value.last()
                 )
             },
             onBackClicked = {
@@ -354,12 +383,32 @@ class DefaultMainComponent(
                 modelNavigation.value.categoryNavigation.pop()
             },
             goToListingSelected = {
-                navigateToOrPopUntil(CategoryConfig.ListingScreen)
+                if (categoryStack.value.contains(CategoryConfig.ListingScreen)){
+                    val list = categoryStack.value.asReversed().toList()
+                    for (it in list) {
+                        if (it == CategoryConfig.ListingScreen) {
+                            break
+                        }else{
+                            modelNavigation.value.categoryNavigation.pop()
+                            categoryStack.value.removeLast()
+                        }
+                    }
+                }else {
+                    categoryStack.value.removeLast()
+                    categoryStack.value.add(CategoryConfig.ListingScreen)
+                    modelNavigation.value.categoryNavigation.replaceCurrent(categoryStack.value.last())
+                }
             },
             goToCategorySelected = {
-                navigateToOrPopUntil(CategoryConfig.CategoryScreen(
-                    categoryData.searchData.value.searchCategoryID ?: 1L)
-                )
+                val list = categoryStack.value.asReversed().toList()
+                for (it in list) {
+                    if (it == CategoryConfig.CategoryScreen(categoryData.searchData.value.searchCategoryID ?: 1L)) {
+                        break
+                    }else{
+                        modelNavigation.value.categoryNavigation.pop()
+                        categoryStack.value.removeLast()
+                    }
+                }
             }
         )
     }
@@ -368,10 +417,12 @@ class DefaultMainComponent(
         return DefaultListingComponent(
             componentContext = componentContext,
             searchSelected = {
-                navigateToOrPopUntil(CategoryConfig.SearchScreen)
+                categoryStack.value.add(CategoryConfig.SearchScreen)
+                modelNavigation.value.categoryNavigation.pushNew(categoryStack.value.last())
             },
             selectOffer = { id ->
-                navigateToOrPopUntil(CategoryConfig.OfferScreen(id))
+                categoryStack.value.add(CategoryConfig.OfferScreen(id))
+                modelNavigation.value.categoryNavigation.pushNew(categoryStack.value.last())
             },
             onBackPressed = {
                 categoryStack.value.removeLast()
@@ -379,7 +430,6 @@ class DefaultMainComponent(
             }
         )
     }
-
     private fun itemOffer(componentContext: ComponentContext, id: Long, selectOffer: (Long) -> Unit, onBack : () -> Unit): OfferComponent {
         return DefaultOfferComponent(
             id,
@@ -442,20 +492,20 @@ class DefaultMainComponent(
         }
     }
 
-    private fun navigateToOrPopUntil(screenConfig: CategoryConfig) {
-        val stack = categoryStack.value
-        if (stack.lastOrNull() != screenConfig) {
-            if (stack.contains(screenConfig)) {
-                while (stack.lastOrNull() != screenConfig) {
-                    modelNavigation.value.categoryNavigation.pop()
-                    stack.removeLast()
-                }
-            } else {
-                stack.add(screenConfig)
-                modelNavigation.value.categoryNavigation.pushNew(screenConfig)
-            }
-        }
-    }
+//    private fun navigateToOrPopUntil(screenConfig: CategoryConfig) {
+//        val stack = categoryStack.value
+//        if (stack.lastOrNull() != screenConfig) {
+//            if (stack.contains(screenConfig)) {
+//                while (stack.lastOrNull() != screenConfig) {
+//                    modelNavigation.value.categoryNavigation.pop()
+//                    stack.removeLast()
+//                }
+//            } else {
+//                stack.add(screenConfig)
+//                modelNavigation.value.categoryNavigation.pushNew(screenConfig)
+//            }
+//        }
+//    }
 
     private fun pushFavStack(screenType: FavScreenType, id: Long = 1L){
         when(screenType){
