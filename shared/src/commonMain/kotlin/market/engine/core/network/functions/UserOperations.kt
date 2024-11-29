@@ -15,6 +15,7 @@ import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import market.engine.core.network.networkObjects.ListData
 
 class UserOperations(val apiService: APIService) {
 
@@ -71,6 +72,22 @@ class UserOperations(val apiService: APIService) {
                 ServerResponse(success = true)
             }else{
                 throw ServerErrorException(res.errorCode.toString(), res.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun getUsersOperationsGetUserList(id: Long = 1L, body: HashMap<String, String>): ServerResponse<BodyPayload<ListData>> {
+        return try {
+            val response = apiService.postUserList(id, body)
+            try {
+                val payload : BodyPayload<ListData> = deserializePayload(response.payload)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {
             ServerResponse(error = e)

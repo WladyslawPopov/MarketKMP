@@ -196,6 +196,8 @@ fun ProfileContent(
                     if (image != null) {
                         LoadImage(
                             url = image,
+                            isShowLoading = false,
+                            isShowEmpty = false,
                             size = 60.dp
                         )
                     } else {
@@ -247,6 +249,8 @@ fun ProfileContent(
                         if (imageRating != null) {
                             LoadImage(
                                 url = imageRating,
+                                isShowLoading = false,
+                                isShowEmpty = false,
                                 size = 30.dp
                             )
                         }

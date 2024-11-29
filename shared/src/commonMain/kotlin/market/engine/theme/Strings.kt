@@ -234,5 +234,13 @@ interface Strings {
     val secondsLabel : StringResource
     val offerSessionFutureLabel : StringResource
     val offerSessionCompletedLabel : StringResource
-
+    val beforeGraduationLabel : StringResource
+    val aboutMeLabel : StringResource
+    val publicVacationMyLabel : StringResource
+    val publicVacationHeaderLabel : StringResource
+    val publicVacationHeaderEndLabel : StringResource
+    val publicVacationCommentLabel : StringResource
+    val publicBlockUserLabel : StringResource
+    val blackListUserLabel : StringResource
+    val whiteListUserLabel : StringResource
 }

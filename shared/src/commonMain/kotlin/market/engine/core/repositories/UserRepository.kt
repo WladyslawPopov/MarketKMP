@@ -40,6 +40,8 @@ class UserRepository(
         settings.setSettingValue("token", "")
         clear()
         sapiRepository.removeHeader("Authorization")
+
+        //remove screenshots
     }
 
     fun updateUserInfo(scope : CoroutineScope){

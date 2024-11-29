@@ -43,6 +43,8 @@ fun getBadgedBox(
             ){
                 LoadImage(
                     url = item.image ?: "",
+                    isShowLoading = false,
+                    isShowEmpty = false,
                     size = dimens.mediumIconSize
                 )
             }

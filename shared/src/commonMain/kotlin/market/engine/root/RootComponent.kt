@@ -1,12 +1,11 @@
 package market.engine.root
 
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.Value
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.globalData.SAPI
@@ -54,9 +53,8 @@ class DefaultRootComponent(
         navigation.pop()
     }
 
-    @OptIn(DelicateDecomposeApi::class)
     override fun navigateToLogin() {
-        navigation.push(RootConfig.Login)
+        navigation.pushNew(RootConfig.Login)
     }
 
     init {

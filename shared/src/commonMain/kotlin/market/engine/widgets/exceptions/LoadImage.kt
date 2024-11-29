@@ -21,15 +21,17 @@ import market.engine.core.util.printLogD
 @Composable
 fun LoadImage(
     url: String,
+    isShowLoading: Boolean = true,
+    isShowEmpty: Boolean = true,
     size: Dp,
     modifier: Modifier = Modifier
 ) {
     val imageLoadFailed = remember { mutableStateOf(false) }
     val isLoading = remember { mutableStateOf(true) }
     if (imageLoadFailed.value){
-        getImage(url, size)
+        getImage(url, size, isShowEmpty)
     }else {
-        if (isLoading.value){
+        if (isLoading.value && isShowLoading){
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(size)

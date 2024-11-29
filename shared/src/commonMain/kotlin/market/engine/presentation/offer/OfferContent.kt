@@ -3,6 +3,7 @@ package market.engine.presentation.offer
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -27,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -58,11 +60,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import application.market.agora.business.core.network.functions.UserOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -83,6 +88,7 @@ import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.HorizontalImageViewer
+import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.exceptions.getOfferOperations
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
@@ -90,6 +96,7 @@ import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -221,6 +228,16 @@ fun OfferContent(
                                 .clickable { isImageViewerVisible.value = true },
                             contentAlignment = Alignment.Center
                         ) {
+                            if (offer.value.videoUrls?.isNotEmpty() == true) {
+                                SmallImageButton(
+                                    drawables.iconYouTubeSmall,
+                                    modifierIconSize = Modifier.size(dimens.largeIconSize),
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                ){
+                                    //open web view youtube
+                                }
+                            }
+
                             HorizontalImageViewer(
                                 images = images,
                                 pagerState = pagerState,
@@ -251,6 +268,7 @@ fun OfferContent(
                                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                                         color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
                                         modifier = Modifier.padding(dimens.smallPadding).clickable {
+                                            //go to Listing
                                             if (cat.isLeaf) {
                                                 //cat.parentId
                                             } else {
@@ -506,10 +524,33 @@ fun OfferContent(
                                     offerViewModel.viewModelScope,
                                     offerState,
                                 ){
+                                    component.updateOffer(offer.value.id)
+                                }
 
+                                LocationOffer(offer.value){
+                                    //go to Listing
                                 }
                             }
                         }
+                    }
+                    // seller panel
+                    item {
+                        SellerPanel(
+                            offer.value,
+                            goToSeller = {
+
+                            },
+                            goToAllLots = {
+
+                            },
+                            goToAboutMe = {
+
+                            },
+                            addToSubscriptions = {
+
+                            },
+                            checkBlackList = ::checkStatusSeller
+                        )
                     }
                     //descriptions offer
                     item {
@@ -1018,6 +1059,308 @@ fun BidsWinnerOrLastBid(
 }
 
 @Composable
+fun LocationOffer(
+    offer: Offer,
+    goToLocation: () -> Unit
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(dimens.smallPadding)
+            .clickable {
+
+            },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        SmallImageButton(
+            drawables.locationIcon,
+            onClick = goToLocation
+        )
+
+        Text(
+            text = buildAnnotatedString {
+                if (offer.freeLocation != null) {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(offer.freeLocation)
+                    }
+                }
+
+                if (offer.region?.name  != null){
+                    append(", ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.actionTextColor)) {
+                        append(offer.region.name)
+                    }
+                }
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.black
+        )
+    }
+}
+
+@Composable
+fun SellerPanel(
+    offer: Offer,
+    goToSeller: () -> Unit,
+    goToAllLots: () -> Unit,
+    goToAboutMe: () -> Unit,
+    addToSubscriptions: () -> Unit,
+    goToSettings: (() -> Unit)? = null,
+    checkBlackList: suspend (Long, String, UserOperations) -> String? // Suspend function to check black/white lists
+) {
+    val seller = offer.sellerData
+    val statusCode : MutableState<String?> = remember { mutableStateOf(null) }
+    val userOperations = koinInject<UserOperations>()
+    // Check if the seller is in the black/white list
+    LaunchedEffect(seller?.id) {
+        seller?.let {
+            statusCode.value = checkBlackList(it.id, "blacklist_sellers", userOperations)
+        }
+    }
+
+    if (seller != null) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.medium)
+                .background(colors.white)
+                .padding(vertical = dimens.smallPadding)
+        ) {
+            // Header row with seller details
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(horizontal = dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // Seller rating badge
+                if (seller.ratingBadge?.imageUrl != null) {
+                    LoadImage(
+                        seller.ratingBadge.imageUrl,
+                        isShowLoading = false,
+                        isShowEmpty = false,
+                        size = dimens.mediumIconSize
+                    )
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+                }
+
+                // Verified seller icon
+                if (seller.isVerified) {
+                    Image(
+                        painter = painterResource(drawables.verifySellersIcon),
+                        contentDescription = null,
+                        modifier = Modifier.size(dimens.mediumIconSize)
+                    )
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+                }
+
+                Row(
+                    modifier = Modifier.weight(1f).padding(dimens.smallPadding).clickable {
+                        goToSeller()
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    val image = seller.avatar?.thumb?.content
+                    if (image != null) {
+                        Card(
+                            modifier = Modifier.padding(dimens.smallPadding),
+                            shape = MaterialTheme.shapes.extraLarge
+                        ) {
+                            LoadImage(
+                                url = image,
+                                isShowLoading = false,
+                                isShowEmpty = false,
+                                size = 60.dp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                    Text(
+                        text = seller.login ?: "",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = colors.brightBlue),
+                    )
+
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                    if (seller.rating > 0) {
+                        Box(
+                            modifier = Modifier
+                                .background(colors.ratingBlue, shape = MaterialTheme.shapes.medium)
+                                .padding(horizontal = dimens.smallPadding, vertical = dimens.extraSmallPadding)
+                        ) {
+                            Text(
+                                text = seller.rating.toString(),
+                                color = colors.alwaysWhite,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // Button: "All Offers"
+                SimpleTextButton(
+                    text = stringResource(strings.allOffers),
+                    backgroundColor = colors.inactiveBottomNavIconColor,
+                    shape = MaterialTheme.shapes.medium,
+                    onClick = goToAllLots
+                )
+
+                Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                // Button: "About Me"
+                SimpleTextButton(
+                    text = stringResource(strings.aboutMeLabel),
+                    backgroundColor = colors.textA0AE,
+                    shape = MaterialTheme.shapes.medium,
+                    onClick = goToAboutMe
+                )
+
+                Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                // Add to subscriptions icon
+                SmallIconButton(
+                    icon = drawables.subscriptionIcon,
+                    color = colors.greenColor,
+                    modifierIconSize = Modifier.size(dimens.mediumIconSize),
+                    onClick = addToSubscriptions
+                )
+            }
+
+            Spacer(modifier = Modifier.height(dimens.smallPadding))
+
+            // Check if the seller is in the black list
+            // Status annotation display based on the list type
+            statusCode.value?.let { status ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimens.smallPadding)
+                        .clickable {
+                            when (status) {
+                                "blacklist_sellers" -> goToSettings?.invoke() // Blacklist sellers action
+                                "blacklist_buyers" -> goToSettings?.invoke() // Blacklist buyers action
+                                "whitelist_buyers" -> goToSettings?.invoke() // Whitelist buyers action
+                            }
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(drawables.infoIcon),
+                        contentDescription = null,
+                        tint = when (status) {
+                            "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
+                            "whitelist_buyers" -> colors.black
+                            else -> colors.notifyTextColor
+                        },
+                        modifier = Modifier.size(dimens.smallIconSize)
+                    )
+
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                    Text(
+                        text = buildAnnotatedString {
+                            append(stringResource(strings.publicBlockUserLabel))
+                            append(": ")
+                            withStyle(
+                                style = SpanStyle(
+                                    color = colors.black,
+                                    fontWeight = FontWeight.Bold,
+                                    fontStyle = FontStyle.Italic
+                                )
+                            ) {
+                                append(
+                                    when (status) {
+                                        "blacklist_sellers" -> stringResource(strings.blackListUserLabel)
+                                        "blacklist_buyers" -> stringResource(strings.blackListUserLabel)
+                                        "whitelist_buyers" -> stringResource(strings.whiteListUserLabel)
+                                        else -> ""
+                                    }
+                                )
+                            }
+                        },
+                        color = when (status) {
+                            "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
+                            "whitelist_buyers" -> colors.black
+                            else -> colors.notifyTextColor
+                        },
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+            }
+
+            // Display vacation or seller status
+            if (seller.vacationEnabled) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimens.smallPadding)
+                        .background(colors.outgoingBubble, shape = MaterialTheme.shapes.medium)
+                        .clickable { goToSettings?.invoke() }
+                        .padding(dimens.smallPadding)
+                ) {
+                    val vacationMessage = buildAnnotatedString {
+                        // Header
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.notifyTextColor)) {
+                            append(if (UserData.login == seller.id) {
+                                stringResource(strings.publicVacationMyLabel)
+                            } else {
+                                stringResource(strings.publicVacationHeaderLabel)
+                            })
+                        }
+                        append("\n")
+
+                        // From Date
+                        withStyle(style = SpanStyle(color = colors.brightBlue)) {
+                            append("${stringResource(strings.fromParameterName)} ")
+                            append(seller.vacationStart.toString().convertDateWithMinutes())
+                        }
+                        append(" ")
+
+                        // To Date
+                        withStyle(style = SpanStyle(color = colors.brightBlue)) {
+                            append("${stringResource(strings.toAboutParameterName)} ")
+                            append(seller.vacationEnd.toString().convertDateWithMinutes())
+                        }
+                        append(".\n")
+
+                        // Vacation Comment
+                        if (seller.vacationMessage?.isNotEmpty() == true) {
+                            withStyle(style = SpanStyle(fontStyle = FontStyle.Italic, color = colors.grayText)) {
+                                append(seller.vacationMessage)
+                            }
+                        }
+                    }
+
+                    Text(
+                        text = vacationMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.notifyTextColor,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
 fun TimeOfferSession(
     offer: Offer,
     scope: CoroutineScope,
@@ -1025,7 +1368,7 @@ fun TimeOfferSession(
     onTimerFinish: (() -> Unit)? = null // Optional callback when timer finishes
 ) {
     // AnnotatedString to track the styled remaining time
-    var remainingTime by remember { mutableStateOf(AnnotatedString("")) }
+    val remainingTime = remember { mutableStateOf(AnnotatedString("")) }
 
     // Preload string resources
     val inactiveLabel = stringResource(strings.offerSessionInactiveLabel)
@@ -1035,6 +1378,7 @@ fun TimeOfferSession(
     val hoursLabel = stringResource(strings.hoursLabel)
     val minutesLabel = stringResource(strings.minutesLabel)
     val secondsLabel = stringResource(strings.secondsLabel)
+    val beforeGraduationLabel = stringResource(strings.beforeGraduationLabel)
 
     val endTime = offer.session?.end?.toLongOrNull()
 
@@ -1043,12 +1387,13 @@ fun TimeOfferSession(
         when (state) {
             OfferStates.ACTIVE -> {
                 if (endTime != null) {
-                    startKmpCountdownTimer(
+                    startCountdownTimer(
                         scope = scope,
                         endTime = endTime,
                         onTick = { millisUntilFinished ->
-                            remainingTime = formatRemainingTimeAnnotated(
+                            remainingTime.value = formatRemainingTimeAnnotated(
                                 millisUntilFinished,
+                                beforeGraduationLabel,
                                 daysLabel,
                                 hoursLabel,
                                 minutesLabel,
@@ -1056,21 +1401,21 @@ fun TimeOfferSession(
                             )
                         },
                         onFinish = {
-                            remainingTime = buildAnnotatedString {
+                            remainingTime.value = buildAnnotatedString {
                                 append(inactiveLabel)
                             }
                             onTimerFinish?.invoke()
                         }
                     )
                 } else {
-                    remainingTime = buildAnnotatedString {
+                    remainingTime.value = buildAnnotatedString {
                         append(completedLabel)
                     }
                 }
             }
 
             OfferStates.INACTIVE -> {
-                remainingTime = buildAnnotatedString {
+                remainingTime.value = buildAnnotatedString {
                     withStyle(style = SpanStyle(color = Color.Gray)) {
                         append(inactiveLabel)
                     }
@@ -1078,7 +1423,7 @@ fun TimeOfferSession(
             }
 
             OfferStates.COMPLETED -> {
-                remainingTime = buildAnnotatedString {
+                remainingTime.value = buildAnnotatedString {
                     withStyle(style = SpanStyle(color = Color.Gray)) {
                         append(completedLabel)
                     }
@@ -1086,13 +1431,13 @@ fun TimeOfferSession(
             }
 
             OfferStates.FUTURE -> {
-                remainingTime = buildAnnotatedString {
+                remainingTime.value = buildAnnotatedString {
                     append(futureLabel)
                 }
             }
 
             else -> {
-                remainingTime = AnnotatedString("")
+                remainingTime.value = AnnotatedString("")
             }
         }
     }
@@ -1100,9 +1445,9 @@ fun TimeOfferSession(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(dimens.smallPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+            .wrapContentHeight(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         SmallImageButton(
             drawables.iconClock
@@ -1111,37 +1456,46 @@ fun TimeOfferSession(
 
         // Display the styled AnnotatedString
         Text(
-            text = remainingTime,
+            text = buildAnnotatedString {
+                append(remainingTime.value)
+                if (offer.session?.end != null) {
+                    append(" \n (${offer.session.end.convertDateWithMinutes()})")
+                }
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = colors.black
         )
     }
 }
 
-
-fun startKmpCountdownTimer(
+fun startCountdownTimer(
     endTime: Long,
     scope: CoroutineScope,
     onTick: (Long) -> Unit,
     onFinish: () -> Unit
 ) {
-    val intervalMillis = 1000L
-    scope.launch {
+    val intervalMillis = 1000L // 1 second interval
+    scope.launch(Dispatchers.IO) {
         while (true) {
-            val remainingMillis = endTime - getCurrentDate().toLong()
+            val currentTime = getCurrentDate().toLong() // Ensure the timestamp is correctly updated
+            val remainingMillis = (endTime - currentTime) * 1000
             if (remainingMillis <= 0) {
-                onFinish()
+                withContext(Dispatchers.Main) {
+                    onFinish()
+                }
                 break
             }
-            onTick(remainingMillis)
+            withContext(Dispatchers.Main) {
+                onTick(remainingMillis) // Update remaining time on the main thread
+            }
             delay(intervalMillis)
         }
     }
 }
 
-
 fun formatRemainingTimeAnnotated(
     millisUntilFinished: Long,
+    beforeGraduationLabel: String,
     daysLabel: String,
     hoursLabel: String,
     minutesLabel: String,
@@ -1158,27 +1512,52 @@ fun formatRemainingTimeAnnotated(
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                 append(daysLabel)
             }
-            append(" ")
-        }
-        if (hours > 0) {
-            append("$hours ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(hoursLabel)
+            append(" $beforeGraduationLabel")
+        } else {
+            if (hours > 0) {
+                append("$hours ")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(hoursLabel)
+                }
+                append(" ")
             }
-            append(" ")
-        }
-        if (minutes > 0) {
-            append("$minutes ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(minutesLabel)
+            if (minutes > 0) {
+                append("$minutes ")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(minutesLabel)
+                }
+                append(" ")
             }
-            append(" ")
-        }
-        if (seconds > 0) {
-            append("$seconds ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(secondsLabel)
+
+            if (seconds > 0) {
+                append("$seconds ")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(secondsLabel)
+                }
             }
         }
+    }
+}
+
+suspend fun checkStatusSeller(
+    id: Long,
+    list: String,
+    userOperations: UserOperations
+): String? {
+    val body = hashMapOf("list_type" to list)
+
+    val buf = withContext(Dispatchers.IO) {
+        userOperations.getUsersOperationsGetUserList(UserData.login, body)
+    }
+
+    val success = buf.success ?: return null
+    val data = success.body?.data ?: return null
+
+    val found = data.find { it.id == id }
+    return when {
+        found != null -> list
+        list == "blacklist_sellers" -> checkStatusSeller(id, "blacklist_buyers", userOperations)
+        list == "blacklist_buyers" -> checkStatusSeller(id, "whitelist_buyers", userOperations)
+        else -> null
     }
 }

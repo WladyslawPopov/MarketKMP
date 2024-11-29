@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import market.engine.core.globalData.UserData
 
 
 @Serializable
@@ -155,7 +156,7 @@ data class Offer(
     @SerialName("discount_percentage") val discountPercentage: Int = 1,
     @SerialName("safe_deal") val safeDeal: Boolean = false,
     @SerialName("num_participants") val numParticipants: Int = 1,
-    @SerialName("seller_data") val sellerData: SellerData? = null,
+    @SerialName("seller_data") val sellerData: User? = null,
     @SerialName("buyer_data") val buyerData: BuyerData? = null,
     @SerialName("state") val state: String? = null,
     @SerialName("session") val session: Session? = null,
@@ -231,24 +232,6 @@ data class Operations(
     @SerialName("is_verified") val isVerified: Boolean = false,
     @SerialName("is_dataless") val isDataless: Boolean = false,
     @SerialName("is_allowed") val isAllowed: Boolean = false,
-)
-
-@Serializable
-data class SellerData(
-    @SerialName("id") val id: Long = 1L,
-    @SerialName("owner") val owner: Long = 1L,
-    @SerialName("created_ts") val createdTs: Long = 1,
-    @SerialName("login") val login: String? = null,
-    @SerialName("rating") val rating: Int = 1,
-    @SerialName("is_verified") val isVerified: Boolean = false,
-    @SerialName("rating_badge") val ratingBadge: RatingBadge? = null,
-    @SerialName("last_active_ts") val lastActiveTs: Long = 1,
-    @SerialName("avatar") val avatar: Avatar? = null,
-    @SerialName("followers_count") val followersCount: Int? = 0,
-    @SerialName("marked_as_deleted") val markedAsDeleted: Boolean = false,
-    @SerialName("role") val role: String? = null,
-    @SerialName("email") val email: String? = null,
-    @SerialName("average_response_time") val averageResponseTime: String? = null,
 )
 
 @Serializable
@@ -384,11 +367,25 @@ data class Banners(
 )
 
 @Serializable
+data class ListData(
+    @SerialName("data") val data: ArrayList<ListItem> = arrayListOf(),
+)
+
+@Serializable
+data class ListItem(
+    @SerialName("id") val id: Long = 0L,
+    @SerialName("login") val name: String? = null,
+    @SerialName("rating") val rating: Int = 0,
+    @SerialName("comment") val comment: String? = null,
+    @SerialName("listed_at") val listedAt: Long? = null,
+)
+
+@Serializable
 data class User(
     @SerialName("id") val id: Long = 1L,
     @SerialName("owner") val owner: Long = 1L,
-    @SerialName("created_ts") val createdTs: Long = 1,
-    @SerialName("lastupdated_ts") val lastUpdatedTs: Long = 1,
+    @SerialName("created_ts") val createdTs: Long = 1L,
+    @SerialName("lastupdated_ts") val lastUpdatedTs: Long = 1L,
     @SerialName("login") val login: String? = null,
     @SerialName("rating") val rating: Int = 1,
     @SerialName("is_verified") val isVerified: Boolean = false,
@@ -408,6 +405,15 @@ data class User(
     @SerialName("feedback_total") val feedbackTotal: FeedbackTotal? = null,
     @SerialName("count_unread_price_proposals") val countUnreadPriceProposals: Int = 0,
     @SerialName("average_response_time") val averageResponseTime: String? = null,
+    @SerialName("vacation_enabled") var vacationEnabled: Boolean = false,
+    @SerialName("vacation_end") val vacationEnd: Long = 0L,
+    @SerialName("vacation_start") val vacationStart: Long = 0L,
+    @SerialName("vacation_message") val vacationMessage: String? = null,
+    @SerialName("watermark_enabled") var waterMarkEnabled: Boolean = false,
+    @SerialName("block_rating_enabled") var blockRatingEnabled: Boolean = false,
+    @SerialName("auto_feedback_enabled") val autoFeedbackEnabled: Boolean = false,
+    @SerialName("auto_feedback_message") val autoFeedbackMessage: String? = null,
+    @SerialName("auto_feedback_after_exceeded_days_limit_enabled") val autoFeedbackExceededEnabled: Boolean = false,
 )
 
 @Serializable
@@ -426,7 +432,7 @@ data class Order(
     @SerialName("lastupdated_ts") val lastUpdatedTs: Long = 1,
     @SerialName("parcel_sent") val parcelSent: Boolean? = null,
     @SerialName("paid") val paid: Boolean? = null,
-    @SerialName("seller_data") val sellerData: SellerData? = null,
+    @SerialName("seller_data") val sellerData: User? = null,
     @SerialName("buyer_data") val buyerData: BuyerData? = null,
     @SerialName("suborders") val suborders: List<Offer> = listOf(),
     @SerialName("feedbacks") val feedbacks: Feedbacks? = null,
@@ -483,7 +489,7 @@ data class Conversations(
     @SerialName("id") val id: Long = 1L,
     @SerialName("created_ts") val createdTs: Long = 1L,
     @SerialName("lastupdated_ts") val lastUpdatedTs: Long = 1L,
-    @SerialName("interlocutor") val interlocutor: SellerData? = null,
+    @SerialName("interlocutor") val interlocutor: User? = null,
     @SerialName("about_object_class") val aboutObjectClass: String? = null,
     @SerialName("new_message") val newMessage: String? = null,
     @SerialName("quantity") val quantity: Int = 0,
@@ -515,8 +521,8 @@ data class Reports(
     @SerialName("comment") val comment: String? = null,
     @SerialName("order_id") val orderId: Long? = 1L,
     @SerialName("feedback_ts") val feedbackTs: Long = 1L,
-    @SerialName("to_user") val toUser: SellerData? = null,
-    @SerialName("from_user") val fromUser: SellerData? = null,
+    @SerialName("to_user") val toUser: User? = null,
+    @SerialName("from_user") val fromUser: User? = null,
     @SerialName("response_feedback") val responseFeedback: Report? = null,
     @SerialName("offersnapshot") val offerSnapshot: Snapshot? = null,
 )
@@ -529,7 +535,7 @@ data class MesImage(
 
 @Serializable
 data class Proposals(
-    @SerialName("buyer_info") val buyerInfo: SellerData? = null,
+    @SerialName("buyer_info") val buyerInfo: User? = null,
     @SerialName("proposals") val proposals: List<Proposal>? = null,
 )
 
@@ -559,7 +565,7 @@ data class Subscription(
     @SerialName("catpath") val catpath: Map<Long, String>? = null,
     @SerialName("region") val region: Region? = null,
     @SerialName("sale_type") val saleType: String? = null,
-    @SerialName("seller_data") val sellerData: SellerData? = null,
+    @SerialName("seller_data") val sellerData: User? = null,
     @SerialName("notification_schedule") val notificationSchedule: NotificationSchedule? = null
 )
 

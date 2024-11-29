@@ -104,4 +104,5 @@ interface Drawables {
    val addToCartIcon : DrawableResource
    val deliveryIcon : DrawableResource
    val antiSniperIcon : DrawableResource
+   val subscriptionIcon : DrawableResource
 }

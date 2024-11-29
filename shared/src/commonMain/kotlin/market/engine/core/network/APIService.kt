@@ -579,4 +579,25 @@ class APIService(private val client: HttpClient) {
     suspend fun postSubOperationsDelete(idSub: Long): AppResponse =
         client.post("subscriptions/$idSub/operations/delete_subscription").body()
 
+    suspend fun postUserList(idUser: Long, body: HashMap<String, String>): AppResponse {
+        return client.post("users/$idUser/operations/get_user_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+    }
+
+    suspend fun postUsersOperationRemoveFromList(idUser: Long, body: HashMap<String, String>, list : String? = null): AppResponse {
+        return client.post("users/$idUser/operations/remove_from_$list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+    }
+
+    suspend fun postUsersOperationAddList(idUser: Long, body: HashMap<String, String>, list : String? = null): AppResponse {
+        return client.post("users/$idUser/operations/$list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+    }
+
 }

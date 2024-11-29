@@ -32,6 +32,7 @@ import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
+import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
@@ -61,17 +62,12 @@ fun ListingItemContent(
         )
 
         if (offer.videoUrls?.isNotEmpty() == true) {
-            IconButton(
+            SmallImageButton(
+                drawables.iconYouTubeSmall,
+                modifierIconSize = Modifier.size(dimens.mediumIconSize),
                 modifier = Modifier.align(Alignment.TopStart),
-                onClick = {
+            ){
 
-                },
-            ) {
-                Image(
-                    painter = painterResource(drawables.iconYouTubeSmall),
-                    contentDescription = "",
-                    modifier = Modifier.size(dimens.mediumIconSize)
-                )
             }
         }
 

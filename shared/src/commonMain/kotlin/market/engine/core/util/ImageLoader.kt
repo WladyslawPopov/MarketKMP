@@ -23,7 +23,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 
 @Composable
-fun getImage(url : String?, size: Dp = 300.dp) {
+fun getImage(url : String?, size: Dp = 300.dp, showEmpty: Boolean = true) {
     val getClient : APIService = koinInject()
     val imageState = remember { mutableStateOf<ImageBitmap?>(null) }
 
@@ -37,23 +37,20 @@ fun getImage(url : String?, size: Dp = 300.dp) {
         }
     }
 
-    loadImage(imageState.value, size)
-}
-
-@Composable
-fun loadImage(image: ImageBitmap?, size : Dp){
-    if (image != null) {
+    if (imageState.value != null) {
         Image(
-            bitmap = image,
+            bitmap = imageState.value!!,
             contentDescription = null,
             modifier = Modifier.size(size)
         )
     }else{
-        Image(
-            painter = painterResource(drawables.noImageOffer),
-            contentDescription = null,
-            modifier = Modifier.size(size),
-            colorFilter = ColorFilter.tint(colors.grayLayout)
-        )
+        if (showEmpty) {
+            Image(
+                painter = painterResource(drawables.noImageOffer),
+                contentDescription = null,
+                modifier = Modifier.size(size),
+                colorFilter = ColorFilter.tint(colors.grayLayout)
+            )
+        }
     }
 }
