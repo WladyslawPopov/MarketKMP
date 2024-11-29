@@ -231,7 +231,7 @@ fun OfferContent(
                             if (offer.value.videoUrls?.isNotEmpty() == true) {
                                 SmallImageButton(
                                     drawables.iconYouTubeSmall,
-                                    modifierIconSize = Modifier.size(dimens.largeIconSize),
+                                    modifierIconSize = Modifier.size(dimens.mediumIconSize),
                                     modifier = Modifier.align(Alignment.TopEnd),
                                 ){
                                     //open web view youtube
@@ -1164,8 +1164,8 @@ fun SellerPanel(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    val image = seller.avatar?.thumb?.content
-                    if (image != null) {
+                    val image = seller.avatar?.origin?.content
+                    if (image != null && image != "http://auction.ru/images/no_avatar.svg") {
                         Card(
                             modifier = Modifier.padding(dimens.smallPadding),
                             shape = MaterialTheme.shapes.extraLarge
