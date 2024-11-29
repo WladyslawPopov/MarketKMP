@@ -86,6 +86,7 @@ interface Drawables {
    val dealsIcon : DrawableResource
    val deleteIcon : DrawableResource
    val proposalIcon : DrawableResource
+   val makeProposalIcon : DrawableResource
    val salesIcon : DrawableResource
    val tagIcon : DrawableResource
    val purchasesIcon : DrawableResource
@@ -101,4 +102,6 @@ interface Drawables {
    val calendarIcon : DrawableResource
    val copyIcon : DrawableResource
    val addToCartIcon : DrawableResource
+   val deliveryIcon : DrawableResource
+   val antiSniperIcon : DrawableResource
 }

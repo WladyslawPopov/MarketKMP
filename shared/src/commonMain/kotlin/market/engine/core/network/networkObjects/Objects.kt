@@ -192,7 +192,25 @@ data class Offer(
     @SerialName("version") var version: JsonElement? = null,
     @SerialName("is_prototype") var isPrototype : Boolean = false,
     @SerialName("external_url") val externalUrl : String? = null,
-    @SerialName("external_images") val externalImages : List<String>? = listOf()
+    @SerialName("external_images") val externalImages : List<String>? = listOf(),
+    @SerialName("standard_descriptions") val standardDescriptions : List<StandardDescriptions>? = listOf(),
+    @SerialName("added_descriptions") val addedDescriptions : List<AddedDescriptions>? = listOf()
+)
+
+@Serializable
+data class StandardDescriptions(
+    @SerialName("deleted") val deleted: Boolean = false,
+    @SerialName("active") val active: Boolean = false,
+    @SerialName("description") val description: String = "",
+    @SerialName("timestamp") val timestamp: Long = 0
+)
+
+@Serializable
+data class AddedDescriptions(
+    @SerialName("text")
+    val text: String,
+    @SerialName("timestamp")
+    val timestamp: Long,
 )
 
 @Serializable

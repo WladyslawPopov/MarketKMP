@@ -28,7 +28,6 @@ import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
@@ -151,7 +150,7 @@ fun FavItem(
                     }
 
                     if (!offer.isPrototype) {
-                        var sessionEnd = stringResource(strings.inactiveOffer)
+                        var sessionEnd = stringResource(strings.offerSessionInactiveLabel)
                         if (offer.session != null) {
                             sessionEnd = offer.session.end?.convertDateWithMinutes() ?: ""
                         }

@@ -41,6 +41,7 @@ class OfferViewModel(
         viewModelScope.launch {
             try {
                 setLoading(true)
+
                 getHistory(id)
                 getOurChoice(id)
 
@@ -107,16 +108,21 @@ class OfferViewModel(
                 offersHistory = sh.selectAll(UserData.login).executeAsList()
 
                 val deferredOffers = mutableListOf<Offer>()
-                val deferredResults = offersHistory.map { lot ->
-                    async {
-                        val res = apiService.getOffer(lot)
-                        val payload: ArrayList<Offer> = deserializePayload(res.payload)
-                        if(payload.firstOrNull() != null){
-                            deferredOffers.add(payload.first())
+
+                withContext(Dispatchers.IO) {
+                    // Process each category sequentially to preserve order
+                    for (offer in offersHistory) {
+                        try {
+                            val res = apiService.getOffer(offer)
+                            val payload: ArrayList<Offer> = deserializePayload(res.payload)
+                            if(payload.firstOrNull() != null){
+                                deferredOffers.add(payload.first())
+                            }
+                        } catch (e: Exception) {
+                            throw  e
                         }
                     }
                 }
-                deferredResults.awaitAll()
 
                 withContext(Dispatchers.Main) {
                     if (deferredOffers.isNotEmpty()) {
@@ -131,28 +137,29 @@ class OfferViewModel(
 
     private fun getCategoriesHistory(catpath: List<Long>) {
         viewModelScope.launch {
-            val cats = arrayListOf<Long>()
-            cats.addAll(catpath)
-            cats.reverse()
+            val cats = catpath.reversed() // Reverse the category path
             try {
-                val deferredOffers = mutableListOf<Category>()
-                val deferredResults = cats.map { cat ->
-                    async {
-                        val res = categoryOperations.getCategoryInfo(cat)
-                        val buffer = res.success
-                        if (buffer != null) {
-                            deferredOffers.add(buffer)
+                val orderedCategories = mutableListOf<Category>()
+
+                withContext(Dispatchers.IO) {
+                    // Process each category sequentially to preserve order
+                    for (cat in cats) {
+                        try {
+                            val res = categoryOperations.getCategoryInfo(cat)
+                            res.success?.let { category ->
+                                orderedCategories.add(category)
+                            }
+                        } catch (e: Exception) {
+                            throw  e
                         }
                     }
                 }
-                deferredResults.awaitAll()
 
                 withContext(Dispatchers.Main) {
-                    if (deferredOffers.isNotEmpty()) {
-                        _responseCatHistory.value = deferredOffers
-                    }
+                    // Update the state with the ordered list
+                    _responseCatHistory.value = orderedCategories.toList()
                 }
-            }catch (e : Exception){
+            } catch (e: Exception) {
                 onError(ServerErrorException(e.message.toString(), ""))
             }
         }

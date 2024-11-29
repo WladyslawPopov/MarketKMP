@@ -151,7 +151,7 @@ interface Strings {
     val noBuyer : StringResource
     val noBids : StringResource
     val blitzAuction : StringResource
-    val inactiveOffer : StringResource
+    val offerSessionInactiveLabel : StringResource
     val deleteSelectOffers : StringResource
     val activeFilterOffers : StringResource
     val inactiveFilterOffers : StringResource
@@ -216,4 +216,23 @@ interface Strings {
     val yourMaxBidParameterName : StringResource
     val actionAddBid : StringResource
     val buyNowPriceParameterName : StringResource
+    val additionalDescriptionsParameterName : StringResource
+    val standardDescriptionParameterName : StringResource
+    val editedStandardDescriptionParameterName : StringResource
+    val saleLabel : StringResource
+    val actionAskSellerLabel : StringResource
+    val actionProposalPriceLabel : StringResource
+    val whoPayForDeliveryLabel : StringResource
+    val antiSniperEnabledLabel : StringResource
+    val bidsMadeLabel : StringResource
+    val leadingBidsNowLabel : StringResource
+    val yourBidsFirstLabel : StringResource
+    val yourBidLabel : StringResource
+    val daysLabel : StringResource
+    val hoursLabel : StringResource
+    val minutesLabel : StringResource
+    val secondsLabel : StringResource
+    val offerSessionFutureLabel : StringResource
+    val offerSessionCompletedLabel : StringResource
+
 }

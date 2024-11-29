@@ -1,5 +1,6 @@
 package market.engine.widgets.buttons
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -11,9 +12,8 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun SmallIconButton(
+fun SmallImageButton(
     icon : DrawableResource,
-    color : Color,
     contentDescription : String = "",
     modifierIconSize: Modifier = Modifier.size(dimens.smallIconSize),
     modifier: Modifier = Modifier,
@@ -23,11 +23,10 @@ fun SmallIconButton(
         onClick = { onClick() },
         modifier = modifier
     ) {
-        Icon(
+        Image(
             painter = painterResource(icon),
             contentDescription = contentDescription,
             modifier = modifierIconSize,
-            tint = color
         )
     }
 }
