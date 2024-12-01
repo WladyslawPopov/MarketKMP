@@ -38,7 +38,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -78,7 +77,6 @@ import market.engine.core.network.networkObjects.PaymentMethod
 import market.engine.core.network.networkObjects.Value
 import market.engine.core.types.OfferStates
 import market.engine.core.util.convertDateWithMinutes
-import market.engine.core.util.getCurrentDate
 import market.engine.core.util.parseHtmlToAnnotatedString
 import market.engine.presentation.main.MainViewModel
 import market.engine.presentation.main.UIMainEvent
@@ -127,16 +125,44 @@ fun OfferContent(
 
     val scrollState = rememberCoroutineScope()
 
-    val offerState = remember { mutableStateOf(OfferStates.ACTIVE) }
+    val offerState = offerViewModel.offerState
     val isShowOptions = remember { mutableStateOf(false) }
     val myMaximalBid = remember { mutableStateOf("") }
     val isMyOffer = remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
 
-    val offer = lotState.value
 
-    if (offer != null) {
+    mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {})
+    mainViewModel.sendEvent(UIMainEvent.UpdateError(null))
+    mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(null))
+
+    DisposableEffect(Unit) {
+        onDispose {
+            offerViewModel.addHistory(model.value.id)
+            offerViewModel.clearTimers()
+        }
+    }
+
+    lotState.value?.let { offer ->
+
+        mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
+            if (!isImageViewerVisible.value) {
+                OfferAppBar(
+                    offer,
+                    isFavorite = offer.isWatchedByMe,
+                    onFavClick = {
+
+                    },
+                    onCartClick = {
+
+                    },
+                    onBeakClick = {
+                        component.onBeakClick()
+                    }
+                )
+            }
+        })
 
         val images = when {
             offer.images?.isNotEmpty() == true -> offer.images.map { it.urls?.big?.content.orEmpty() }
@@ -146,80 +172,6 @@ fun OfferContent(
         val pagerState = rememberPagerState(
             pageCount = { images.size },
         )
-
-        LaunchedEffect(offer) {
-            offerState.value = when {
-                model.value.isSnapshot -> OfferStates.SNAPSHOT
-                offer.isPrototype -> OfferStates.PROTOTYPE
-                offer.state == "active" -> {
-                    when {
-                        offer.session == null -> OfferStates.COMPLETED
-                        (offer.session.start?.toLongOrNull()
-                            ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
-
-                        (offer.session.end?.toLongOrNull()
-                            ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
-
-                        else -> OfferStates.INACTIVE
-                    }
-                }
-
-                offer.state == "sleeping" -> {
-                    if (offer.session == null) OfferStates.COMPLETED else OfferStates.INACTIVE
-                }
-
-                else -> offerState.value
-            }
-
-            isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
-
-            //init timers
-            val initTimer =
-                ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
-                    ?: 1L)) * 1000
-
-            if (initTimer < 24 * 60 * 60 * 1000) {
-                offerViewModel.startTimer(initTimer) {
-                    component.updateOffer(offer.id)
-                }
-            }else{
-                offerViewModel._remainingTime.value = initTimer
-            }
-
-            if (!isMyOffer.value && offerState.value == OfferStates.ACTIVE && offer.saleType != "buy_now") {
-                offerViewModel.startTimerUpdateBids(offer) {
-                    component.updateOffer(offer.id)
-                }
-            }
-
-            mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
-                if (!isImageViewerVisible.value) {
-                    OfferAppBar(
-                        offer,
-                        isFavorite = offer.isWatchedByMe,
-                        onFavClick = {
-
-                        },
-                        onCartClick = {
-
-                        },
-                        onBeakClick = {
-                            component.onBeakClick()
-                        }
-                    )
-                }
-            })
-            mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {})
-            mainViewModel.sendEvent(UIMainEvent.UpdateError(null))
-            mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(null))
-        }
-
-        DisposableEffect(Unit) {
-            onDispose {
-                offerViewModel.addHistory(model.value.id)
-                offerViewModel.clearTimers()
-            }
-        }
 
         Box(modifier.fillMaxSize()) {
             SwipeRefreshContent(
@@ -508,7 +460,7 @@ fun OfferContent(
 
                                         Text(
                                             text = offer.whoPaysForDelivery?.name ?: "",
-                                            style = MaterialTheme.typography.titleMedium,
+                                            style = MaterialTheme.typography.titleSmall,
                                             color = colors.black,
                                             fontStyle = FontStyle.Italic
                                         )

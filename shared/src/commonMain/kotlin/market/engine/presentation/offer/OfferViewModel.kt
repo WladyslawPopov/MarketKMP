@@ -1,5 +1,6 @@
 package market.engine.presentation.offer
 
+import androidx.compose.runtime.mutableStateOf
 import application.market.agora.business.core.network.functions.OfferOperations
 import application.market.agora.business.core.network.functions.UserOperations
 import kotlinx.coroutines.*
@@ -15,6 +16,7 @@ import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.types.OfferStates
 import market.engine.core.util.getCurrentDate
 import market.engine.presentation.base.BaseViewModel
 import market.engine.shared.MarketDB
@@ -42,13 +44,15 @@ class OfferViewModel(
     private val _statusList = MutableStateFlow<String?>(null)
     val statusList: StateFlow<String?> = _statusList.asStateFlow()
 
-    val _remainingTime = MutableStateFlow(0L)
+    private val _remainingTime = MutableStateFlow(0L)
     val remainingTime: StateFlow<Long> = _remainingTime.asStateFlow()
 
     private var timerJob: Job? = null
     private var timerBidsJob: Job? = null
 
-    fun getOffer(id: Long) {
+    val offerState = mutableStateOf(OfferStates.ACTIVE)
+
+    fun getOffer(id: Long, isSnapshot: Boolean = false) {
         viewModelScope.launch {
             setLoading(true)
             try {
@@ -58,7 +62,7 @@ class OfferViewModel(
                 }
                 offer?.let {
                     _responseOffer.value = it
-                    initializeOfferData(it)
+                    initializeOfferData(it, isSnapshot)
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))
@@ -66,7 +70,7 @@ class OfferViewModel(
         }
     }
 
-    private fun initializeOfferData(offer: Offer) {
+    private fun initializeOfferData(offer: Offer, isSnapshot: Boolean) {
         viewModelScope.launch {
             try {
                 coroutineScope {
@@ -74,7 +78,53 @@ class OfferViewModel(
                     launch { getOurChoice(offer.id) }
                     launch { getCategoriesHistory(offer.catpath) }
                     launch { checkStatusSeller(offer.sellerData?.id ?: 0) }
-                    launch { if (responseOffer.value != null) setLoading(false) }
+                    launch {
+                        if (responseOffer.value != null) {
+                            setLoading(false)
+
+                            //init timers
+                            val initTimer =
+                                ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
+                                    ?: 1L)) * 1000
+
+                            val isMyOffer= UserData.userInfo?.login == offer.sellerData?.login
+
+                            offerState.value = when {
+                                isSnapshot -> OfferStates.SNAPSHOT
+                                offer.isPrototype -> OfferStates.PROTOTYPE
+                                offer.state == "active" -> {
+                                    when {
+                                        offer.session == null -> OfferStates.COMPLETED
+                                        (offer.session.start?.toLongOrNull()
+                                            ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
+
+                                        (offer.session.end?.toLongOrNull()
+                                            ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
+
+                                        else -> OfferStates.INACTIVE
+                                    }
+                                }
+
+                                offer.state == "sleeping" -> {
+                                    if (offer.session == null) OfferStates.COMPLETED else OfferStates.INACTIVE
+                                }
+
+                                else -> offerState.value
+                            }
+
+                            if (!isMyOffer && offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
+                                startTimerUpdateBids(offer)
+                            }
+
+                            if (initTimer < 24 * 60 * 60 * 1000 && offerState.value == OfferStates.ACTIVE) {
+                                startTimer(initTimer) {
+                                    getOffer(offer.id)
+                                }
+                            }else{
+                                _remainingTime.value = initTimer
+                            }
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Initialization error", ""))
@@ -153,7 +203,7 @@ class OfferViewModel(
         _statusList.value = null
     }
 
-    fun startTimer(initialTime: Long, onFinish: () -> Unit) {
+    private fun startTimer(initialTime: Long, onFinish: () -> Unit) {
         _remainingTime.value = initialTime
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
@@ -166,7 +216,7 @@ class OfferViewModel(
     }
 
 
-    fun startTimerUpdateBids(offer: Offer, finishTimer: () -> Unit) {
+    private fun startTimerUpdateBids(offer: Offer) {
         val initialTime = (offer.session?.end?.toLongOrNull()?.let { it - getCurrentDate().toLong() } ?: 0L) * 1000
 
         timerBidsJob?.cancel()
@@ -184,8 +234,6 @@ class OfferViewModel(
                 delay(currentInterval)
                 millisUntilFinished -= currentInterval
             }
-
-            finishTimer()
             timerBidsJob?.cancel()
         }
     }
