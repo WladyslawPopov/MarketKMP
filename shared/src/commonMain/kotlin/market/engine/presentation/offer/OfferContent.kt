@@ -128,7 +128,8 @@ fun OfferContent(
     val offerState = offerViewModel.offerState
     val isShowOptions = remember { mutableStateOf(false) }
     val myMaximalBid = remember { mutableStateOf("") }
-    val isMyOffer = remember { mutableStateOf(false) }
+
+    val isMyOffer = offerViewModel.isMyOffer
 
     val focusManager = LocalFocusManager.current
 
@@ -1549,6 +1550,8 @@ fun formatRemainingTimeAnnotated(
                     append(secondsLabel)
                 }
             }
+
+            append(" $beforeGraduationLabel")
         }
     }
 }

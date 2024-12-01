@@ -52,6 +52,8 @@ class OfferViewModel(
 
     val offerState = mutableStateOf(OfferStates.ACTIVE)
 
+    val isMyOffer = mutableStateOf(false)
+
     fun getOffer(id: Long, isSnapshot: Boolean = false) {
         viewModelScope.launch {
             setLoading(true)
@@ -87,7 +89,7 @@ class OfferViewModel(
                                 ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
                                     ?: 1L)) * 1000
 
-                            val isMyOffer= UserData.userInfo?.login == offer.sellerData?.login
+                          isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
 
                             offerState.value = when {
                                 isSnapshot -> OfferStates.SNAPSHOT
@@ -112,7 +114,7 @@ class OfferViewModel(
                                 else -> offerState.value
                             }
 
-                            if (!isMyOffer && offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
+                            if (!isMyOffer.value && offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
                                 startTimerUpdateBids(offer)
                             }
 
