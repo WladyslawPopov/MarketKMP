@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -18,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -31,6 +29,13 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
+
+    val images = when {
+        offer.images?.isNotEmpty() == true -> offer.images.firstOrNull()?.urls?.small?.content ?: ""
+        offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull() ?: ""
+        else -> ""
+    }
+
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),
@@ -38,7 +43,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
     ) {
         Column(
             modifier = Modifier.padding(dimens.smallPadding)
-                .size(250.dp),
+                .size(280.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -48,7 +53,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 contentAlignment = Alignment.TopCenter
             ) {
                 LoadImage(
-                    url = offer.images?.firstOrNull()?.urls?.big?.content ?: "",
+                    url = images,
                     size = 160.dp
                 )
 
@@ -74,17 +79,14 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 text = offer.title ?: "",
                 color = colors.black,
                 modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
-                letterSpacing = 0.1.sp,
-                maxLines = 2,
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                style = MaterialTheme.typography.bodySmall
             )
             Spacer(modifier = Modifier.height(dimens.smallSpacer))
             Text(
                 text = offer.currentPricePerItem.toString() + stringResource(strings.currencySign),
                 color = colors.titleTextColor,
                 modifier = Modifier.align(Alignment.End),
-                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                letterSpacing = 0.1.sp,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }

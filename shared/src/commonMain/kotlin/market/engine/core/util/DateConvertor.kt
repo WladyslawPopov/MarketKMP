@@ -20,7 +20,7 @@ fun String.convertDateWithMinutes(): String {
             return ""
         }
 
-        val instant = Instant.fromEpochSeconds(this.toLong())
+        val instant = Instant.fromEpochSeconds(this.toLongOrNull() ?: this.toDouble().toLong())
         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
 
         val day = localDateTime.dayOfMonth.toString().padStart(2, '0')

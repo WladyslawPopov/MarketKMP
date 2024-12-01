@@ -55,7 +55,7 @@ fun ProfileMyOffersAppBar(
                 SimpleTextButton(
                     active,
                     backgroundColor = if (currentTab == LotsType.MYLOT_ACTIVE) colors.rippleColor else colors.white,
-                    fontSize = MaterialTheme.typography.bodySmall.fontSize
+                    textStyle = MaterialTheme.typography.bodySmall
                 ){
                     navigationClick(LotsType.MYLOT_ACTIVE)
                 }
@@ -63,7 +63,7 @@ fun ProfileMyOffersAppBar(
                 SimpleTextButton(
                     inactive,
                     if (currentTab == LotsType.MYLOT_UNACTIVE) colors.rippleColor else colors.white,
-                    fontSize = MaterialTheme.typography.bodySmall.fontSize
+                    textStyle = MaterialTheme.typography.bodySmall
                 ){
                     navigationClick(LotsType.MYLOT_UNACTIVE)
                 }
@@ -71,7 +71,7 @@ fun ProfileMyOffersAppBar(
                 SimpleTextButton(
                     future,
                     if (currentTab == LotsType.MYLOT_FUTURE) colors.rippleColor else colors.white,
-                    fontSize = MaterialTheme.typography.bodySmall.fontSize
+                    textStyle = MaterialTheme.typography.bodySmall
                 ){
                     navigationClick(LotsType.MYLOT_FUTURE)
                 }

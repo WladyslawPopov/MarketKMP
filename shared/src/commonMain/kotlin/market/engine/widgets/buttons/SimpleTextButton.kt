@@ -10,6 +10,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import market.engine.core.constants.ThemeResources.colors
@@ -20,8 +21,8 @@ fun SimpleTextButton(
     text: String,
     backgroundColor: Color = colors.white,
     shape: CornerBasedShape = MaterialTheme.shapes.small,
-    fontSize: TextUnit = MaterialTheme.typography.titleSmall.fontSize,
     textColor: Color = colors.black,
+    textStyle : TextStyle = MaterialTheme.typography.titleSmall,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onClick: () -> Unit,
@@ -40,8 +41,7 @@ fun SimpleTextButton(
         Text(
             text = text,
             color = textColor,
-            fontSize = fontSize,
-            modifier = Modifier.padding(dimens.extraSmallPadding)
+            style = textStyle
         )
     }
 }

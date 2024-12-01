@@ -115,12 +115,6 @@ fun FavItem(
 
                         }
                     }
-
-                    if (offer.discountPercentage > 0) {
-                        val pd = "-" + offer.discountPercentage.toString() + "%"
-
-                        DiscountBadge(pd)
-                    }
                 }
 
                 Column(

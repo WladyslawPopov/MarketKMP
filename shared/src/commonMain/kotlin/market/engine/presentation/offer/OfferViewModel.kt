@@ -1,14 +1,12 @@
 package market.engine.presentation.offer
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import application.market.agora.business.core.network.functions.OfferOperations
+import application.market.agora.business.core.network.functions.UserOperations
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.globalData.UserData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
@@ -17,16 +15,20 @@ import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.util.getCurrentDate
 import market.engine.presentation.base.BaseViewModel
 import market.engine.shared.MarketDB
 
 class OfferViewModel(
-    val apiService: APIService,
-    private val dataBase : MarketDB,
+    private val apiService: APIService,
+    private val dataBase: MarketDB,
     private val categoryOperations: CategoryOperations,
+    private val offerOperations: OfferOperations,
+    private val userOperations: UserOperations
 ) : BaseViewModel() {
-    private val _responseOffer = MutableStateFlow(Offer())
-    val responseOffer: StateFlow<Offer> = _responseOffer.asStateFlow()
+
+    private val _responseOffer : MutableStateFlow<Offer?> = MutableStateFlow(null)
+    val responseOffer: StateFlow<Offer?> = _responseOffer.asStateFlow()
 
     private val _responseHistory = MutableStateFlow<List<Offer>>(emptyList())
     val responseHistory: StateFlow<List<Offer>> = _responseHistory.asStateFlow()
@@ -37,130 +39,67 @@ class OfferViewModel(
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
+    private val _statusList = MutableStateFlow<String?>(null)
+    val statusList: StateFlow<String?> = _statusList.asStateFlow()
+
+    val _remainingTime = MutableStateFlow(0L)
+    val remainingTime: StateFlow<Long> = _remainingTime.asStateFlow()
+
+    private var timerJob: Job? = null
+    private var timerBidsJob: Job? = null
+
     fun getOffer(id: Long) {
         viewModelScope.launch {
+            setLoading(true)
             try {
-                setLoading(true)
-
-                getHistory(id)
-                getOurChoice(id)
-
-                val response = withContext(Dispatchers.IO) {
-                    apiService.getOffer(id)
+                val offer = withContext(Dispatchers.IO) {
+                    val response = apiService.getOffer(id)
+                    deserializePayload<ArrayList<Offer>>(response.payload).firstOrNull()
                 }
-
-                val payload: ArrayList<Offer> = deserializePayload(response.payload)
-                getCategoriesHistory(payload[0].catpath)
-                _responseOffer.value = payload[0]
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
-            } finally {
-                setLoading(false)
-            }
-        }
-    }
-
-    private fun getOurChoice(id: Long) {
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    val response = apiService.getOurChoiceOffers(id)
-                    withContext(Dispatchers.Main) {
-                        try {
-                            val payload : Payload<Offer> =
-                                deserializePayload(response.payload)
-                            _responseOurChoice.value = payload.objects
-                        }catch (e : Exception){
-                            throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-                        }
-                    }
-                }
-            }  catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-            }
-        }
-    }
-
-    private fun getHistory(currentId : Long = 1) {
-        try {
-            viewModelScope.launch {
-                val sh = dataBase.offerVisitedHistoryQueries
-                var offersHistory: List<Long> =
-                    sh.selectAll(UserData.login).executeAsList()
-
-                if (offersHistory.size > 17) {
-                    removeHistory(offersHistory[0])
-                }
-
-                val current =
-                    offersHistory.filter { it == currentId }
-
-                if (current.isNotEmpty()) {
-                    current.forEach {
-                        removeHistory(it)
-                    }
-                }
-
-                offersHistory = sh.selectAll(UserData.login).executeAsList()
-
-                val deferredOffers = mutableListOf<Offer>()
-
-                withContext(Dispatchers.IO) {
-                    // Process each category sequentially to preserve order
-                    for (offer in offersHistory) {
-                        try {
-                            val res = apiService.getOffer(offer)
-                            val payload: ArrayList<Offer> = deserializePayload(res.payload)
-                            if(payload.firstOrNull() != null){
-                                deferredOffers.add(payload.first())
-                            }
-                        } catch (e: Exception) {
-                            throw  e
-                        }
-                    }
-                }
-
-                withContext(Dispatchers.Main) {
-                    if (deferredOffers.isNotEmpty()) {
-                        _responseHistory.value = deferredOffers
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            onError(ServerErrorException(e.message.toString(), ""))
-        }
-    }
-
-    private fun getCategoriesHistory(catpath: List<Long>) {
-        viewModelScope.launch {
-            val cats = catpath.reversed() // Reverse the category path
-            try {
-                val orderedCategories = mutableListOf<Category>()
-
-                withContext(Dispatchers.IO) {
-                    // Process each category sequentially to preserve order
-                    for (cat in cats) {
-                        try {
-                            val res = categoryOperations.getCategoryInfo(cat)
-                            res.success?.let { category ->
-                                orderedCategories.add(category)
-                            }
-                        } catch (e: Exception) {
-                            throw  e
-                        }
-                    }
-                }
-
-                withContext(Dispatchers.Main) {
-                    // Update the state with the ordered list
-                    _responseCatHistory.value = orderedCategories.toList()
+                offer?.let {
+                    _responseOffer.value = it
+                    initializeOfferData(it)
                 }
             } catch (e: Exception) {
-                onError(ServerErrorException(e.message.toString(), ""))
+                onError(ServerErrorException(e.message ?: "Unknown error", ""))
+            }
+        }
+    }
+
+    private fun initializeOfferData(offer: Offer) {
+        viewModelScope.launch {
+            try {
+                coroutineScope {
+                    launch { getHistory(offer.id) }
+                    launch { getOurChoice(offer.id) }
+                    launch { getCategoriesHistory(offer.catpath) }
+                    launch { checkStatusSeller(offer.sellerData?.id ?: 0) }
+                    launch { if (responseOffer.value != null) setLoading(false) }
+                }
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "Initialization error", ""))
+            }
+        }
+    }
+
+    private fun getHistory(currentId: Long) {
+        viewModelScope.launch {
+            try {
+                val history = withContext(Dispatchers.IO) {
+                    val queries = dataBase.offerVisitedHistoryQueries
+                    queries.selectAll(UserData.login).executeAsList().apply {
+                        if (size > 17) queries.deleteById(first(), UserData.login)
+                        queries.insertEntry(currentId, UserData.login)
+                    }
+                }
+                val offers = withContext(Dispatchers.IO) {
+                    history.mapNotNull { id ->
+                        apiService.getOffer(id).let { deserializePayload<ArrayList<Offer>>(it.payload).firstOrNull() }
+                    }
+                }
+                _responseHistory.value = offers
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "Error fetching history", ""))
             }
         }
     }
@@ -170,8 +109,122 @@ class OfferViewModel(
         sh.insertEntry(id, UserData.login)
     }
 
-    private fun removeHistory(id : Long){
-        val sh = dataBase.offerVisitedHistoryQueries
-        sh.deleteById(id, UserData.login)
+    private fun getOurChoice(id: Long) {
+        viewModelScope.launch {
+            try {
+                val ourChoice = withContext(Dispatchers.IO) {
+                    val response = apiService.getOurChoiceOffers(id)
+                    deserializePayload<Payload<Offer>>(response.payload).objects
+                }
+                _responseOurChoice.value = ourChoice
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))
+            }
+        }
+    }
+
+    private fun getCategoriesHistory(catPath: List<Long>) {
+        viewModelScope.launch {
+            try {
+                val categories = withContext(Dispatchers.IO) {
+                    catPath.reversed().mapNotNull { id ->
+                        categoryOperations.getCategoryInfo(id).success
+                    }
+                }
+                _responseCatHistory.value = categories
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
+            }
+        }
+    }
+
+    private suspend fun checkStatusSeller(id: Long) {
+        val lists = listOf("blacklist_sellers", "blacklist_buyers", "whitelist_buyers")
+        for (list in lists) {
+            val found = withContext(Dispatchers.IO) {
+                userOperations.getUsersOperationsGetUserList(UserData.login, hashMapOf("list_type" to list))
+                    .success?.body?.data?.find { it.id == id }
+            }
+            if (found != null) {
+                _statusList.value = list
+                return
+            }
+        }
+        _statusList.value = null
+    }
+
+    fun startTimer(initialTime: Long, onFinish: () -> Unit) {
+        _remainingTime.value = initialTime
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (_remainingTime.value > 0) {
+                delay(1000L)
+                _remainingTime.value -= 1000L
+            }
+            onFinish()
+        }
+    }
+
+
+    fun startTimerUpdateBids(offer: Offer, finishTimer: () -> Unit) {
+        val initialTime = (offer.session?.end?.toLongOrNull()?.let { it - getCurrentDate().toLong() } ?: 0L) * 1000
+
+        timerBidsJob?.cancel()
+        timerBidsJob = viewModelScope.launch {
+            var millisUntilFinished = initialTime
+            var currentInterval = calculateNewInterval(millisUntilFinished)
+
+            while (millisUntilFinished > 0) {
+                updateBidsInfo(offer)
+                val newInterval = calculateNewInterval(millisUntilFinished)
+                if (newInterval != currentInterval) {
+                    currentInterval = newInterval
+                }
+
+                delay(currentInterval)
+                millisUntilFinished -= currentInterval
+            }
+
+            finishTimer()
+            timerBidsJob?.cancel()
+        }
+    }
+
+    private fun calculateNewInterval(millisUntilFinished: Long): Long {
+        return when {
+            millisUntilFinished > 2 * 60 * 1000 -> 10_000L // Every 10 seconds
+            millisUntilFinished in 1 * 60 * 1000..2 * 60 * 1000 -> 5_000L // Every 5 seconds
+            millisUntilFinished in 10_000 + 1..1 * 60 * 1000 -> 2_000L // Every 2 seconds
+            else -> 1_000L // Every second
+        }
+    }
+
+    private suspend fun updateBidsInfo(offer: Offer) {
+        try {
+            val response = offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
+            response.success?.body?.let { body ->
+                if (body.isChanged) {
+                    offer.apply {
+                        bids = body.bids
+                        version = JsonPrimitive(body.currentVersion)
+                        currentPricePerItem = body.currentPrice
+                        minimalAcceptablePrice = body.minimalAcceptablePrice
+                    }
+                    _responseOffer.value = offer
+                }
+            }
+        } catch (e: Exception) {
+            onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        clearTimers()
+    }
+
+    fun clearTimers() {
+        timerJob?.cancel()
+        timerBidsJob?.cancel()
     }
 }

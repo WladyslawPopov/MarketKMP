@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,11 +41,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,21 +60,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import application.market.agora.business.core.network.functions.UserOperations
+import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.SAPI
 import market.engine.core.globalData.UserData
+import market.engine.core.network.networkObjects.DealType
+import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.network.networkObjects.Param
+import market.engine.core.network.networkObjects.PaymentMethod
+import market.engine.core.network.networkObjects.Value
 import market.engine.core.types.OfferStates
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.core.util.getCurrentDate
@@ -94,9 +95,9 @@ import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.TitleText
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -109,378 +110,381 @@ fun OfferContent(
 
     val model = component.model.subscribeAsState()
     val offerViewModel = model.value.offerViewModel
-    val offer = offerViewModel.responseOffer.collectAsState()
+
+    val visitedHistory = offerViewModel.responseHistory.collectAsState()
+    val ourChoiceList = offerViewModel.responseOurChoice.collectAsState()
+
+    val catHistory = offerViewModel.responseCatHistory.collectAsState()
+    val blackList = offerViewModel.statusList.collectAsState()
+
+    val remainingTime = offerViewModel.remainingTime.collectAsState()
+
+    val lotState = offerViewModel.responseOffer.collectAsState()
+
     val isLoading = offerViewModel.isShowProgress.collectAsState()
 
     val isImageViewerVisible = remember { mutableStateOf(false) }
 
     val scrollState = rememberCoroutineScope()
 
-    val images = when {
-        offer.value.images?.isNotEmpty() == true -> offer.value.images?.map { it.urls?.big?.content.orEmpty() } ?: emptyList()
-        offer.value.externalImages?.isNotEmpty() == true -> offer.value.externalImages?: emptyList()
-        else -> emptyList()
-    }
-    val pagerState = rememberPagerState(
-        pageCount = { images.size},
-    )
-    val descriptionsDecodeHtmlString : MutableState<AnnotatedString> = remember { mutableStateOf(
-            buildAnnotatedString {
-
-            }
-        )
-    }
-    val visitedHistory = offerViewModel.responseHistory.collectAsState()
-    val ourChoiceList = offerViewModel.responseOurChoice.collectAsState()
-    val catHistory = offerViewModel.responseCatHistory.collectAsState()
-
-
+    val offerState = remember { mutableStateOf(OfferStates.ACTIVE) }
     val isShowOptions = remember { mutableStateOf(false) }
     val myMaximalBid = remember { mutableStateOf("") }
-
     val isMyOffer = remember { mutableStateOf(false) }
-    var offerState by remember {
-        mutableStateOf(OfferStates.ACTIVE)
-    }
 
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(offer.value) {
-        offerState = when {
-            model.value.isSnapshot -> OfferStates.SNAPSHOT
-            offer.value.isPrototype -> OfferStates.PROTOTYPE
-            offer.value.state == "active" -> {
-                when {
-                    offer.value.session == null -> OfferStates.COMPLETED
-                    (offer.value.session?.start?.toLongOrNull() ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
-                    (offer.value.session?.end?.toLongOrNull() ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
-                    else -> OfferStates.INACTIVE
+    val offer = lotState.value
+
+    if (offer != null) {
+
+        val images = when {
+            offer.images?.isNotEmpty() == true -> offer.images.map { it.urls?.big?.content.orEmpty() }
+            offer.externalImages?.isNotEmpty() == true -> offer.externalImages
+            else -> emptyList()
+        }
+        val pagerState = rememberPagerState(
+            pageCount = { images.size },
+        )
+
+        LaunchedEffect(offer) {
+            offerState.value = when {
+                model.value.isSnapshot -> OfferStates.SNAPSHOT
+                offer.isPrototype -> OfferStates.PROTOTYPE
+                offer.state == "active" -> {
+                    when {
+                        offer.session == null -> OfferStates.COMPLETED
+                        (offer.session.start?.toLongOrNull()
+                            ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
+
+                        (offer.session.end?.toLongOrNull()
+                            ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
+
+                        else -> OfferStates.INACTIVE
+                    }
+                }
+
+                offer.state == "sleeping" -> {
+                    if (offer.session == null) OfferStates.COMPLETED else OfferStates.INACTIVE
+                }
+
+                else -> offerState.value
+            }
+
+            isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
+
+            //init timers
+            val initTimer =
+                ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
+                    ?: 1L)) * 1000
+
+            if (initTimer < 24 * 60 * 60 * 1000) {
+                offerViewModel.startTimer(initTimer) {
+                    component.updateOffer(offer.id)
+                }
+            }else{
+                offerViewModel._remainingTime.value = initTimer
+            }
+
+            if (!isMyOffer.value && offerState.value == OfferStates.ACTIVE && offer.saleType != "buy_now") {
+                offerViewModel.startTimerUpdateBids(offer) {
+                    component.updateOffer(offer.id)
                 }
             }
-            offer.value.state == "sleeping" -> {
-                if (offer.value.session == null) OfferStates.COMPLETED else OfferStates.INACTIVE
-            }
-            else -> offerState
-        }
 
-        isMyOffer.value = UserData.userInfo?.login == offer.value.sellerData?.login
+            mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
+                if (!isImageViewerVisible.value) {
+                    OfferAppBar(
+                        offer,
+                        isFavorite = offer.isWatchedByMe,
+                        onFavClick = {
 
-        mainViewModel.sendEvent(UIMainEvent.UpdateTopBar{
-            if (!isImageViewerVisible.value) {
-                OfferAppBar(
-                    offer.value,
-                    isFavorite = offer.value.isWatchedByMe,
-                    onFavClick = {
-
-                    },
-                    onCartClick = {
-
-                    },
-                    onBeakClick = {
-                        component.onBeakClick()
-                    }
-                )
-            }
-        })
-        mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {})
-        mainViewModel.sendEvent(UIMainEvent.UpdateError(null))
-        mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(null))
-    }
-
-    DisposableEffect(Unit){
-        onDispose {
-            offerViewModel.addHistory(model.value.id)
-        }
-    }
-
-    Box(modifier.fillMaxSize()){
-        SwipeRefreshContent(
-            isRefreshing = isLoading.value,
-            modifier = modifier.fillMaxSize(),
-            onRefresh = {
-                component.updateOffer(model.value.id)
-            },
-        ) {
-            AnimatedVisibility(
-                modifier = modifier.fillMaxSize(),
-                visible = !isLoading.value,
-                enter = expandIn(),
-                exit = fadeOut()
-            ) {
-                LazyColumn(
-                    modifier = Modifier.background(color = colors.primaryColor)
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectTapGestures(onTap = {
-                                isShowOptions.value = false
-                                focusManager.clearFocus()
-                            })
                         },
-                    contentPadding = PaddingValues(dimens.smallPadding),
-                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
+                        onCartClick = {
+
+                        },
+                        onBeakClick = {
+                            component.onBeakClick()
+                        }
+                    )
+                }
+            })
+            mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {})
+            mainViewModel.sendEvent(UIMainEvent.UpdateError(null))
+            mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(null))
+        }
+
+        DisposableEffect(Unit) {
+            onDispose {
+                offerViewModel.addHistory(model.value.id)
+                offerViewModel.clearTimers()
+            }
+        }
+
+        Box(modifier.fillMaxSize()) {
+            SwipeRefreshContent(
+                isRefreshing = isLoading.value,
+                modifier = modifier.fillMaxSize(),
+                onRefresh = {
+                    component.updateOffer(model.value.id)
+                },
+            ) {
+                AnimatedVisibility(
+                    modifier = modifier.fillMaxSize(),
+                    visible = !isLoading.value,
+                    enter = expandIn(),
+                    exit = fadeOut()
                 ) {
-                    //images offer
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp)
-                                .clickable { isImageViewerVisible.value = true },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (offer.value.videoUrls?.isNotEmpty() == true) {
-                                SmallImageButton(
-                                    drawables.iconYouTubeSmall,
-                                    modifierIconSize = Modifier.size(dimens.mediumIconSize),
-                                    modifier = Modifier.align(Alignment.TopEnd),
-                                ){
-                                    //open web view youtube
+                    LazyColumn(
+                        modifier = Modifier.background(color = colors.primaryColor)
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTapGestures(onTap = {
+                                    isShowOptions.value = false
+                                    focusManager.clearFocus()
+                                })
+                            },
+                        contentPadding = PaddingValues(dimens.smallPadding),
+                        verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
+                    ) {
+                        //images offer
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .clickable { isImageViewerVisible.value = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                HorizontalImageViewer(
+                                    images = images,
+                                    pagerState = pagerState,
+                                )
+
+                                if (offer.videoUrls?.isNotEmpty() == true) {
+                                    SmallImageButton(
+                                        drawables.iconYouTubeSmall,
+                                        modifierIconSize = Modifier.size(dimens.largeIconSize),
+                                        modifier = Modifier
+                                            .size(90.dp)
+                                            .align(Alignment.TopEnd)
+                                            .zIndex(1f), // Higher priority
+                                    ) {
+                                        // Open web view YouTube
+                                    }
                                 }
                             }
-
-                            HorizontalImageViewer(
-                                images = images,
-                                pagerState = pagerState,
-                            )
                         }
-                    }
-                    if (offer.value.hasTempImages) {
+                        if (offer.hasTempImages) {
+                            item {
+                                Text(
+                                    stringResource(strings.tempPhotoLabel),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.grayText
+                                )
+                            }
+                        }
+                        //category stack
                         item {
-                            Text(
-                                stringResource(strings.tempPhotoLabel),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.grayText
-                            )
+                            FlowRow(
+                                horizontalArrangement = Arrangement.Start,
+                                verticalArrangement = Arrangement.SpaceAround,
+                            ) {
+                                if (catHistory.value.isNotEmpty()) {
+                                    catHistory.value.forEachIndexed { index, cat ->
+                                        Text(
+                                            text = if (catHistory.value.size - 1 == index)
+                                                cat.name ?: ""
+                                            else (cat.name ?: "") + "->",
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
+                                            modifier = Modifier.padding(dimens.smallPadding)
+                                                .clickable {
+                                                    //go to Listing
+                                                    if (cat.isLeaf) {
+                                                        //cat.parentId
+                                                    } else {
+                                                        //cat.id
+                                                    }
+                                                }
+                                        )
+                                    }
+                                }
+                            }
                         }
-                    }
-                    //category stack
-                    item {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalArrangement = Arrangement.SpaceAround,
-                        ) {
-                            if (catHistory.value.isNotEmpty()) {
-                                catHistory.value.forEachIndexed { index, cat ->
+                        //count and views label
+                        item {
+                            val countString =
+                                getCountString(offerState.value, offer, isMyOffer.value)
+
+                            FlowRow(
+                                horizontalArrangement = Arrangement.Start,
+                                verticalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (countString.isNotEmpty()) {
                                     Text(
-                                        text = if (catHistory.value.size - 1 == index)
-                                            cat.name ?: ""
-                                        else (cat.name ?: "") + "->",
-                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                        color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
-                                        modifier = Modifier.padding(dimens.smallPadding).clickable {
-                                            //go to Listing
-                                            if (cat.isLeaf) {
-                                                //cat.parentId
-                                            } else {
-                                                //cat.id
-                                            }
-                                        }
+                                        text = countString,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = colors.steelBlue,
+                                        modifier = Modifier.padding(dimens.smallPadding)
                                     )
                                 }
-                            }
-                        }
-                    }
-                    //count and views label
-                    item {
-                        val countString = getCountString(offerState, offer.value, isMyOffer.value)
 
-                        FlowRow(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            if (countString.isNotEmpty()) {
                                 Text(
-                                    text = countString,
+                                    text = stringResource(strings.viewsParams) + ": " + offer.viewsCount,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = colors.steelBlue,
                                     modifier = Modifier.padding(dimens.smallPadding)
                                 )
                             }
-
+                        }
+                        //title
+                        item {
                             Text(
-                                text = stringResource(strings.viewsParams) + ": " + offer.value.viewsCount,
-                                style = MaterialTheme.typography.titleSmall,
-                                color = colors.steelBlue,
-                                modifier = Modifier.padding(dimens.smallPadding)
+                                text = offer.title ?: "",
+                                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = dimens.extraLargeText
+                                ),
                             )
                         }
-                    }
-                    //title
-                    item {
-                        Text(
-                            text = offer.value.title ?: "",
-                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = dimens.extraLargeText
-                            ),
-                        )
-                    }
-                    //simple Price
-                    if (offerState == OfferStates.INACTIVE || offerState == OfferStates.COMPLETED || isMyOffer.value) {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                            ) {
-                                Text(
-                                    text = (offer.value.currentPricePerItem ?: "") +
-                                            " " + stringResource(strings.currencySign),
-                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = colors.titleTextColor
-                                )
+                        //simple Price
+                        if (offerState.value == OfferStates.INACTIVE || offerState.value == OfferStates.COMPLETED || isMyOffer.value) {
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                ) {
+                                    Text(
+                                        text = (offer.currentPricePerItem ?: "") +
+                                                " " + stringResource(strings.currencySign),
+                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                        color = colors.titleTextColor
+                                    )
+                                }
                             }
                         }
-                    }
-                    // active promo options
-                    if (isMyOffer.value) {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                TitleText(
-                                    stringResource(strings.activatePromoParameterName),
-                                    color = colors.black
-                                )
-                            }
-
-                            PromoRow(
-                                offer.value,
-                                showName = true,
-                                modifier = Modifier.padding(dimens.mediumPadding)
-                            ) {
-
-                            }
-                        }
-                    }
-                    //action seller mode
-                    if (isMyOffer.value) {
-                        item {
-                            Column {
+                        // active promo options
+                        if (isMyOffer.value) {
+                            item {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     TitleText(
-                                        stringResource(strings.actionsOffersParameterName),
+                                        stringResource(strings.activatePromoParameterName),
                                         color = colors.black
                                     )
                                 }
 
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
+                                PromoRow(
+                                    offer,
+                                    showName = true,
+                                    modifier = Modifier.padding(dimens.mediumPadding)
                                 ) {
-                                    PopupActionButton(
-                                        stringResource(strings.operationsParameterName),
-                                        color = colors.textA0AE,
-                                        tint = colors.alwaysWhite,
-                                        isShowOptions = isShowOptions
-                                    )
-                                }
 
-                                AnimatedVisibility(
-                                    isShowOptions.value,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    getOfferOperations(
-                                        offer.value,
-                                        offset = IntOffset(-150, 0),
-                                        showCopyId = false,
-                                        onUpdateMenuItem = { offer ->
-                                            component.updateOffer(offer.id)
-                                        },
-                                        onClose = {
-                                            isShowOptions.value = false
-                                        }
-                                    )
                                 }
                             }
                         }
-                    }
-                    //bids price
-                    if (offer.value.saleType != "buy_now" && !isMyOffer.value && offerState == OfferStates.ACTIVE) {
-                        item {
-                            AuctionPriceLayout(
-                                offer = offer.value,
-                                myMaximalBid = myMaximalBid.value,
-                                onBidChanged = { newBid ->
-                                    myMaximalBid.value = newBid
-                                },
-                                onAddBidClick = {
-
-                                }
-                            )
-                        }
-                    }
-                    //buy now price
-                    if ((offer.value.saleType == "buy_now" || offer.value.saleType == "auction_with_buy_now") && !isMyOffer.value) {
-                        item {
-                            BuyNowPriceLayout(
-                                offer = offer.value,
-                                offerState,
-                                onBuyNowClick = {
-
-                                },
-                                onAddToCartClick = {
-
-                                }
-                            )
-                        }
-                    }
-                    // actions and other status
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(colors.white)
-                                .padding(dimens.smallPadding)
-                        ) {
-                            Column {
-                                //mail to seller
-                                if (offer.value.sellerData != null && !isMyOffer.value && offerState == OfferStates.ACTIVE) {
-                                    MessageToSeller(offer.value)
-                                }
-
-                                //make proposal to seller
-                                if (offer.value.isProposalEnabled){
-                                    ProposalToSeller(
-                                        if(UserData.login == offer.value.sellerData?.id) "act_on_proposal" else "make_proposal",
-                                    )
-                                }
-                                // who pays for delivery
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(dimens.smallPadding),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start
-                                ) {
-                                    SmallImageButton(
-                                        drawables.deliveryIcon
-                                    ){
-
+                        //action seller mode
+                        if (isMyOffer.value) {
+                            item {
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        TitleText(
+                                            stringResource(strings.actionsOffersParameterName),
+                                            color = colors.black
+                                        )
                                     }
 
-                                    Text(
-                                        text = stringResource(strings.whoPayForDeliveryLabel),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = colors.greenColor
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        PopupActionButton(
+                                            stringResource(strings.operationsParameterName),
+                                            color = colors.textA0AE,
+                                            tint = colors.alwaysWhite,
+                                            isShowOptions = isShowOptions
+                                        )
+                                    }
 
-                                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
-                                    Text(
-                                        text = offer.value.whoPaysForDelivery?.name ?: "",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = colors.black,
-                                        fontStyle = FontStyle.Italic
-                                    )
+                                    AnimatedVisibility(
+                                        isShowOptions.value,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        getOfferOperations(
+                                            offer,
+                                            offset = IntOffset(-150, 0),
+                                            showCopyId = false,
+                                            onUpdateMenuItem = { offer ->
+                                                component.updateOffer(offer.id)
+                                            },
+                                            onClose = {
+                                                isShowOptions.value = false
+                                            }
+                                        )
+                                    }
                                 }
+                            }
+                        }
+                        //bids price
+                        if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
+                            item {
+                                AuctionPriceLayout(
+                                    offer = offer,
+                                    myMaximalBid = myMaximalBid.value,
+                                    onBidChanged = { newBid ->
+                                        myMaximalBid.value = newBid
+                                    },
+                                    onAddBidClick = {
 
+                                    }
+                                )
+                            }
+                        }
+                        //buy now price
+                        if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
+                            item {
+                                BuyNowPriceLayout(
+                                    offer = offer,
+                                    offerState.value,
+                                    onBuyNowClick = {
 
-                                if(offer.value.antisniper) {
+                                    },
+                                    onAddToCartClick = {
+
+                                    }
+                                )
+                            }
+                        }
+                        // actions and other status
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(colors.white)
+                                    .padding(dimens.smallPadding)
+                            ) {
+                                Column {
+                                    //mail to seller
+                                    if (offer.sellerData != null && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
+                                        MessageToSeller(offer)
+                                    }
+
+                                    //make proposal to seller
+                                    if (offer.isProposalEnabled) {
+                                        ProposalToSeller(
+                                            if (UserData.login == offer.sellerData?.id) "act_on_proposal" else "make_proposal",
+                                        )
+                                    }
+                                    // who pays for delivery
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -488,157 +492,157 @@ fun OfferContent(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Start
                                     ) {
-                                        SmallIconButton(
-                                            drawables.antiSniperIcon,
-                                            colors.inactiveBottomNavIconColor,
+                                        SmallImageButton(
+                                            drawables.deliveryIcon
                                         ) {
 
                                         }
 
                                         Text(
-                                            text = stringResource(strings.antiSniperEnabledLabel),
+                                            text = stringResource(strings.whoPayForDeliveryLabel),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = colors.inactiveBottomNavIconColor
+                                            color = colors.greenColor
+                                        )
+
+                                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
+                                        Text(
+                                            text = offer.whoPaysForDelivery?.name ?: "",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = colors.black,
+                                            fontStyle = FontStyle.Italic
                                         )
                                     }
-                                }
-                            }
-                        }
-                    }
-                    // state params
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(colors.white)
-                                .padding(dimens.smallPadding)
-                        ) {
-                            Column {
-                                //bids winner or last bid
-                                if (offerState == OfferStates.ACTIVE && offer.value.saleType != "buy_now") {
-                                    BidsWinnerOrLastBid(offer.value)
-                                }
 
-                                TimeOfferSession(
-                                    offer.value,
-                                    offerViewModel.viewModelScope,
-                                    offerState,
-                                ){
-                                    component.updateOffer(offer.value.id)
-                                }
 
-                                LocationOffer(offer.value){
-                                    //go to Listing
-                                }
-                            }
-                        }
-                    }
-                    // seller panel
-                    item {
-                        SellerPanel(
-                            offer.value,
-                            goToSeller = {
+                                    if (offer.antisniper) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(dimens.smallPadding),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start
+                                        ) {
+                                            SmallIconButton(
+                                                drawables.antiSniperIcon,
+                                                colors.inactiveBottomNavIconColor,
+                                            ) {
 
-                            },
-                            goToAllLots = {
+                                            }
 
-                            },
-                            goToAboutMe = {
-
-                            },
-                            addToSubscriptions = {
-
-                            },
-                            checkBlackList = ::checkStatusSeller
-                        )
-                    }
-                    //descriptions offer
-                    item {
-                        TitleText(
-                            text = stringResource(strings.description),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = dimens.smallPadding)
-                        )
-
-                        val descriptionHtml = offer.value.description ?: ""
-                        descriptionsDecodeHtmlString.value = descriptionHtml.parseHtmlToAnnotatedString()
-
-                        offer.value.addedDescriptions?.forEach { added ->
-                            val formattedDate = added.timestamp.toString().convertDateWithMinutes()
-                            descriptionsDecodeHtmlString.value = buildAnnotatedString {
-                                append(descriptionsDecodeHtmlString.value)
-
-                                append("\n")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("${stringResource(strings.additionalDescriptionsParameterName)} $formattedDate")
-                                }
-                                append("\n")
-                                append("${added.text}\n")
-                            }
-                        }
-
-                        offer.value.standardDescriptions?.forEach { standard ->
-                            val formattedDate = standard.timestamp.toString().convertDateWithMinutes()
-                            descriptionsDecodeHtmlString.value = buildAnnotatedString {
-                                append(descriptionsDecodeHtmlString.value)
-                                append("\n")
-                                if (!standard.deleted && standard.active) {
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append(stringResource(strings.standardDescriptionParameterName))
+                                            Text(
+                                                text = stringResource(strings.antiSniperEnabledLabel),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = colors.inactiveBottomNavIconColor
+                                            )
+                                        }
                                     }
-                                    append("\n")
-                                    append(standard.description.parseHtmlToAnnotatedString())
-                                    append("\n")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("${stringResource(strings.editedStandardDescriptionParameterName)} $formattedDate")
-                                    }
-                                } else {
-                                    append("\n")
-                                    append(standard.description.parseHtmlToAnnotatedString())
                                 }
                             }
                         }
-
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(colors.white)
-                                .padding(dimens.smallPadding)
-                        ) {
-                            Text(
-                                text = descriptionsDecodeHtmlString.value,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal)
-                            )
-                        }
-                    }
-                    //recommended list offers
-                    if (ourChoiceList.value.isNotEmpty()) {
+                        // state params
                         item {
-                            TitleText(
-                                text = stringResource(strings.ourChoice),
+                            Box(
                                 modifier = Modifier.fillMaxWidth()
-                            )
-                            LazyRow(
-                                modifier = Modifier.height(300.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(colors.white)
+                                    .padding(dimens.smallPadding)
                             ) {
-                                items(ourChoiceList.value) { offer ->
-                                    PromoOfferRowItem(
-                                        offer
-                                    ) {
-                                        component.navigateToOffers(offer.id)
+                                Column {
+                                    //bids winner or last bid
+                                    BidsWinnerOrLastBid(offer, offerState.value)
+
+                                    TimeOfferSession(
+                                        offer,
+                                        remainingTime.value,
+                                        offerState.value,
+                                    )
+
+                                    LocationOffer(offer) {
+                                        //go to Listing
                                     }
                                 }
                             }
                         }
-                    }
-                    // visited list offers
-                    if (visitedHistory.value.isNotEmpty()) {
+                        // seller panel
                         item {
-                            TitleText(
-                                text = stringResource(strings.lastViewedOffers),
-                                modifier = Modifier.fillMaxWidth()
+                            SellerPanel(
+                                offer,
+                                goToSeller = {
+
+                                },
+                                goToAllLots = {
+
+                                },
+                                goToAboutMe = {
+
+                                },
+                                addToSubscriptions = {
+
+                                },
+                                isBlackList = blackList.value
                             )
+                        }
+                        //payment and delivery
+                        if (offerState.value != OfferStates.PROTOTYPE) {
+                            item {
+                                PaymentAndDeliverySection(
+                                    offer.dealTypes,
+                                    offer.paymentMethods,
+                                    offer.deliveryMethods,
+                                )
+                            }
+                            //Parameters
+                            offer.params?.let {
+                                item {
+                                    ParametersSection(it)
+                                }
+                            }
+                        }
+                        //descriptions offer
+                        item {
+                            DescriptionHtmlOffer(offer)
+                        }
+                        //bids list
+                        item {
+                            if (offerState.value == OfferStates.ACTIVE) {
+                                AuctionBidsSection(
+                                    offer,
+                                    onRebidClick = { id ->
+                                        // The same what and click to bids btn
+                                    }
+                                )
+                            }
+                        }
+                        // removed bids
+                        item {
+
+                        }
+                        //recommended list offers
+                        item {
+                            if (ourChoiceList.value.isNotEmpty()) {
+                                TitleSeparatorOffer(strings.ourChoice)
+
+                                LazyRow(
+                                    modifier = Modifier.height(300.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    items(ourChoiceList.value) { offer ->
+                                        PromoOfferRowItem(
+                                            offer
+                                        ) {
+                                            component.navigateToOffers(offer.id)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // visited list offers
+                        item {
+                            if (visitedHistory.value.isNotEmpty()) {
+                                TitleSeparatorOffer(strings.lastViewedOffers)
+                            }
 
                             LazyRow(
                                 modifier = Modifier.height(300.dp),
@@ -656,24 +660,95 @@ fun OfferContent(
                         }
                     }
                 }
-            }
-            //full screen image viewer
-            if (isImageViewerVisible.value) {
-                FullScreenImageViewer(
-                    images = images,
-                    initialIndex = pagerState.currentPage,
-                    onClose = { exitPage ->
-                        scrollState.launch {
-                            isImageViewerVisible.value = false
-                            pagerState.scrollToPage(exitPage)
+                //full screen image viewer
+                if (isImageViewerVisible.value) {
+                    FullScreenImageViewer(
+                        images = images,
+                        initialIndex = pagerState.currentPage,
+                        onClose = { exitPage ->
+                            scrollState.launch {
+                                isImageViewerVisible.value = false
+                                pagerState.scrollToPage(exitPage)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
 }
 
+@Composable
+fun DescriptionHtmlOffer(
+    offer: Offer
+){
+    val descriptionsDecodeHtmlString : MutableState<AnnotatedString> = remember {
+        mutableStateOf(
+            buildAnnotatedString {
+
+            }
+        )
+    }
+
+    TitleSeparatorOffer(strings.description)
+
+    val descriptionHtml = offer.description ?: ""
+    descriptionsDecodeHtmlString.value = descriptionHtml.parseHtmlToAnnotatedString()
+
+    offer.addedDescriptions?.forEach { added ->
+        if ( added.text != null) {
+            val formattedDate =
+                added.timestamp.toString().convertDateWithMinutes()
+            descriptionsDecodeHtmlString.value = buildAnnotatedString {
+                append(descriptionsDecodeHtmlString.value)
+
+                append("\n")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append("${stringResource(strings.additionalDescriptionsParameterName)} $formattedDate")
+                }
+                append("\n")
+                append("${added.text}\n")
+            }
+        }
+    }
+
+    offer.standardDescriptions?.forEach { standard ->
+        if ( standard.description != null) {
+            val formattedDate =
+                standard.timestamp.toString().convertDateWithMinutes()
+            descriptionsDecodeHtmlString.value = buildAnnotatedString {
+                append(descriptionsDecodeHtmlString.value)
+                append("\n")
+                if (!standard.deleted && standard.active) {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(stringResource(strings.standardDescriptionParameterName))
+                    }
+                    append("\n")
+                    append(standard.description.parseHtmlToAnnotatedString())
+                    append("\n")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("${stringResource(strings.editedStandardDescriptionParameterName)} $formattedDate")
+                    }
+                } else {
+                    append("\n")
+                    append(standard.description.parseHtmlToAnnotatedString())
+                }
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(colors.white)
+            .padding(dimens.smallPadding)
+    ) {
+        Text(
+            text = descriptionsDecodeHtmlString.value,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal)
+        )
+    }
+}
 
 @Composable
 fun getCountString(offerState: OfferStates, offer: Offer, isMyOffer: Boolean): String {
@@ -1002,7 +1077,8 @@ fun ProposalToSeller(
 
 @Composable
 fun BidsWinnerOrLastBid(
-    offer: Offer
+    offer: Offer,
+    offerState: OfferStates
 ){
     val bids = offer.bids
 
@@ -1013,48 +1089,76 @@ fun BidsWinnerOrLastBid(
 
         // Annotated string to format the text
         buildAnnotatedString {
-            withStyle(style = SpanStyle(color = colors.actionTextColor)) {
-                append("${stringResource(strings.bidsMadeLabel)} : ")
+            if (offerState == OfferStates.ACTIVE) {
+                withStyle(style = SpanStyle(color = colors.actionTextColor)) {
+                    append("${stringResource(strings.bidsMadeLabel)} : ")
+                }
+                append("$bidsCount \n")
+                append("${stringResource(strings.leadingBidsNowLabel)} : ")
+            }else{
+                append("${stringResource(strings.winnerParameterName)} ")
             }
-            append("$bidsCount \n")
-
-            append("${stringResource(strings.leadingBidsNowLabel)} : ")
 
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.titleTextColor)) {
                 append(leadingBidder)
             }
         }
     } else {
-        // No bids yet message
-        buildAnnotatedString {
-            append("${stringResource(strings.noBids)}, ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.titleTextColor)) {
-                append(stringResource(strings.yourBidsFirstLabel))
+        if (offer.saleType == "buy_now") {
+            if (offer.buyerData?.login != null){
+                buildAnnotatedString {
+                    append("${stringResource(strings.buyerParameterName)} ")
+
+                    withStyle(style = SpanStyle(color = colors.actionTextColor)) {
+                        append(offer.buyerData.login)
+                    }
+                }
+            }else{
+                buildAnnotatedString {}
+            }
+
+        } else {
+            if (offerState == OfferStates.ACTIVE) {
+                // No bids yet message
+                buildAnnotatedString {
+                    append("${stringResource(strings.noBids)}, ")
+                    withStyle(
+                        style = SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = colors.titleTextColor
+                        )
+                    ) {
+                        append(stringResource(strings.yourBidsFirstLabel))
+                    }
+                }
+            }else{
+                buildAnnotatedString {}
             }
         }
     }
+    if ( sourceString.text != "") {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimens.smallPadding)
+                .clickable {
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(dimens.smallPadding)
-            .clickable {
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            SmallImageButton(
+                drawables.iconGroup,
+            ) {
 
-            },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        SmallImageButton(
-            drawables.iconGroup
-        ){
+            }
 
+            Text(
+                text = sourceString,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.black
+            )
         }
-
-        Text(
-            text = sourceString,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.black
-        )
     }
 }
 
@@ -1099,6 +1203,7 @@ fun LocationOffer(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SellerPanel(
     offer: Offer,
@@ -1107,19 +1212,14 @@ fun SellerPanel(
     goToAboutMe: () -> Unit,
     addToSubscriptions: () -> Unit,
     goToSettings: (() -> Unit)? = null,
-    checkBlackList: suspend (Long, String, UserOperations) -> String? // Suspend function to check black/white lists
+    isBlackList: String? // Suspend function to check black/white lists
 ) {
     val seller = offer.sellerData
-    val statusCode : MutableState<String?> = remember { mutableStateOf(null) }
-    val userOperations = koinInject<UserOperations>()
-    // Check if the seller is in the black/white list
-    LaunchedEffect(seller?.id) {
-        seller?.let {
-            statusCode.value = checkBlackList(it.id, "blacklist_sellers", userOperations)
-        }
-    }
 
     if (seller != null) {
+
+        TitleSeparatorOffer(strings.sellerLabel)
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1132,7 +1232,10 @@ fun SellerPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .padding(horizontal = dimens.smallPadding),
+                    .padding(dimens.smallPadding)
+                    .clickable {
+                        goToSeller()
+                    },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -1157,48 +1260,47 @@ fun SellerPanel(
                     Spacer(modifier = Modifier.width(dimens.smallPadding))
                 }
 
-                Row(
-                    modifier = Modifier.weight(1f).padding(dimens.smallPadding).clickable {
-                        goToSeller()
-                    },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    val image = seller.avatar?.origin?.content
-                    if (image != null && image != "http://auction.ru/images/no_avatar.svg") {
-                        Card(
-                            modifier = Modifier.padding(dimens.smallPadding),
-                            shape = MaterialTheme.shapes.extraLarge
-                        ) {
-                            LoadImage(
-                                url = image,
-                                isShowLoading = false,
-                                isShowEmpty = false,
-                                size = 60.dp
-                            )
-                        }
+                val image = seller.avatar?.thumb?.content
+                if (image != null && image != "${SAPI.SERVER_BASE}images/no_avatar.svg") {
+                    Card(
+                        modifier = Modifier.padding(dimens.smallPadding),
+                        shape = MaterialTheme.shapes.extraLarge
+                    ) {
+                        LoadImage(
+                            url = image,
+                            isShowLoading = false,
+                            isShowEmpty = false,
+                            size = 60.dp
+                        )
                     }
+                }
 
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+                Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
+                FlowRow(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Text(
                         text = seller.login ?: "",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = colors.brightBlue),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.brightBlue,
+                        modifier = Modifier.padding(dimens.smallPadding)
                     )
 
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                     if (seller.rating > 0) {
                         Box(
                             modifier = Modifier
                                 .background(colors.ratingBlue, shape = MaterialTheme.shapes.medium)
-                                .padding(horizontal = dimens.smallPadding, vertical = dimens.extraSmallPadding)
+                                .padding(dimens.smallPadding)
                         ) {
                             Text(
                                 text = seller.rating.toString(),
                                 color = colors.alwaysWhite,
                                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
                             )
                         }
                     }
@@ -1245,7 +1347,7 @@ fun SellerPanel(
 
             // Check if the seller is in the black list
             // Status annotation display based on the list type
-            statusCode.value?.let { status ->
+            isBlackList?.let { status ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1359,22 +1461,17 @@ fun SellerPanel(
     }
 }
 
-
 @Composable
 fun TimeOfferSession(
     offer: Offer,
-    scope: CoroutineScope,
-    state: OfferStates,
-    onTimerFinish: (() -> Unit)? = null // Optional callback when timer finishes
+    updatedTime: Long,
+    state: OfferStates
 ) {
-    // AnnotatedString to track the styled remaining time
-    val remainingTime = remember { mutableStateOf(AnnotatedString("")) }
-
     // Preload string resources
     val inactiveLabel = stringResource(strings.offerSessionInactiveLabel)
     val completedLabel = stringResource(strings.offerSessionCompletedLabel)
     val futureLabel = stringResource(strings.offerSessionFutureLabel)
-    val daysLabel = stringResource(strings.daysLabel)
+    val daysLabel = stringResource(strings.dayLabel)
     val hoursLabel = stringResource(strings.hoursLabel)
     val minutesLabel = stringResource(strings.minutesLabel)
     val secondsLabel = stringResource(strings.secondsLabel)
@@ -1382,63 +1479,53 @@ fun TimeOfferSession(
 
     val endTime = offer.session?.end?.toLongOrNull()
 
-    // Handle different states
-    LaunchedEffect(state, endTime) {
-        when (state) {
-            OfferStates.ACTIVE -> {
-                if (endTime != null) {
-                    startCountdownTimer(
-                        scope = scope,
-                        endTime = endTime,
-                        onTick = { millisUntilFinished ->
-                            remainingTime.value = formatRemainingTimeAnnotated(
-                                millisUntilFinished,
-                                beforeGraduationLabel,
-                                daysLabel,
-                                hoursLabel,
-                                minutesLabel,
-                                secondsLabel
-                            )
-                        },
-                        onFinish = {
-                            remainingTime.value = buildAnnotatedString {
-                                append(inactiveLabel)
-                            }
-                            onTimerFinish?.invoke()
-                        }
+    // AnnotatedString to track the styled remaining time
+    val remainingTime = when (state) {
+        OfferStates.ACTIVE -> {
+            if (endTime != null) {
+                buildAnnotatedString {
+                    append(
+                        formatRemainingTimeAnnotated(
+                            updatedTime,
+                            beforeGraduationLabel,
+                            daysLabel,
+                            hoursLabel,
+                            minutesLabel,
+                            secondsLabel
+                        )
                     )
-                } else {
-                    remainingTime.value = buildAnnotatedString {
-                        append(completedLabel)
-                    }
+                }
+            } else {
+                buildAnnotatedString {
+                    append(completedLabel)
                 }
             }
+        }
 
-            OfferStates.INACTIVE -> {
-                remainingTime.value = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                        append(inactiveLabel)
-                    }
+        OfferStates.INACTIVE -> {
+            buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.Gray)) {
+                    append(inactiveLabel)
                 }
             }
+        }
 
-            OfferStates.COMPLETED -> {
-                remainingTime.value = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                        append(completedLabel)
-                    }
+        OfferStates.COMPLETED -> {
+            buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.Gray)) {
+                    append(completedLabel)
                 }
             }
+        }
 
-            OfferStates.FUTURE -> {
-                remainingTime.value = buildAnnotatedString {
-                    append(futureLabel)
-                }
+        OfferStates.FUTURE -> {
+            buildAnnotatedString {
+                append(futureLabel)
             }
+        }
 
-            else -> {
-                remainingTime.value = AnnotatedString("")
-            }
+        else -> {
+            AnnotatedString("")
         }
     }
 
@@ -1457,7 +1544,7 @@ fun TimeOfferSession(
         // Display the styled AnnotatedString
         Text(
             text = buildAnnotatedString {
-                append(remainingTime.value)
+                append(remainingTime)
                 if (offer.session?.end != null) {
                     append(" \n (${offer.session.end.convertDateWithMinutes()})")
                 }
@@ -1465,31 +1552,6 @@ fun TimeOfferSession(
             style = MaterialTheme.typography.bodyMedium,
             color = colors.black
         )
-    }
-}
-
-fun startCountdownTimer(
-    endTime: Long,
-    scope: CoroutineScope,
-    onTick: (Long) -> Unit,
-    onFinish: () -> Unit
-) {
-    val intervalMillis = 1000L // 1 second interval
-    scope.launch(Dispatchers.IO) {
-        while (true) {
-            val currentTime = getCurrentDate().toLong() // Ensure the timestamp is correctly updated
-            val remainingMillis = (endTime - currentTime) * 1000
-            if (remainingMillis <= 0) {
-                withContext(Dispatchers.Main) {
-                    onFinish()
-                }
-                break
-            }
-            withContext(Dispatchers.Main) {
-                onTick(remainingMillis) // Update remaining time on the main thread
-            }
-            delay(intervalMillis)
-        }
     }
 }
 
@@ -1539,25 +1601,255 @@ fun formatRemainingTimeAnnotated(
     }
 }
 
-suspend fun checkStatusSeller(
-    id: Long,
-    list: String,
-    userOperations: UserOperations
-): String? {
-    val body = hashMapOf("list_type" to list)
 
-    val buf = withContext(Dispatchers.IO) {
-        userOperations.getUsersOperationsGetUserList(UserData.login, body)
+@Composable
+fun PaymentAndDeliverySection(
+    dealTypes: List<DealType>?,
+    paymentMethods: List<PaymentMethod>?,
+    deliveryMethods: List<DeliveryMethod>?
+) {
+    TitleSeparatorOffer(strings.paymentAndDeliveryLabel)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = colors.white, shape = MaterialTheme.shapes.medium)
+            .padding(dimens.smallPadding)
+    ) {
+        // Deal Types
+        InfoBlock(
+            title = stringResource(strings.dealTypeLabel),
+            content = dealTypes?.joinToString(separator = ". ") { it.name ?: ""  } ?: ""
+        )
+
+        // Payment Methods
+        InfoBlock(
+            title = stringResource(strings.paymentMethodLabel),
+            content = paymentMethods?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
+        )
+
+        // Delivery Methods
+        InfoBlock(
+            title = stringResource(strings.deliveryMethodLabel),
+            content = formatDeliveryMethods(deliveryMethods)
+        )
     }
+}
 
-    val success = buf.success ?: return null
-    val data = success.body?.data ?: return null
+@Composable
+fun InfoBlock(title: String, content: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = dimens.smallPadding)
+    ) {
+        // Title
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = colors.grayText,
+            modifier = Modifier.padding(dimens.extraSmallPadding)
+        )
 
-    val found = data.find { it.id == id }
-    return when {
-        found != null -> list
-        list == "blacklist_sellers" -> checkStatusSeller(id, "blacklist_buyers", userOperations)
-        list == "blacklist_buyers" -> checkStatusSeller(id, "whitelist_buyers", userOperations)
-        else -> null
+        // Content
+        Text(
+            text = content,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.black,
+            modifier = Modifier.padding(dimens.smallPadding)
+        )
+    }
+}
+
+@Composable
+fun formatDeliveryMethods(deliveryMethods: List<DeliveryMethod>?): String {
+    val currencySign = stringResource(strings.currencySign)
+    val withCountry = stringResource(strings.withinCountry)
+    val withWorld = stringResource(strings.withinWorld)
+    val withCity = stringResource(strings.withinCity)
+    val comment = stringResource(strings.commentLabel)
+
+    return deliveryMethods?.joinToString(separator = "\n\n") { dm ->
+        buildString {
+            append(dm.name)
+            dm.priceWithinCity?.let { price ->
+                if (price.toDouble().toLong() != -1L) {
+                    append("\n$withCity $price$currencySign")
+                }
+            }
+            dm.priceWithinCountry?.let { price ->
+                if (price.toDouble().toLong() != -1L) {
+                    append("\n$withCountry $price$currencySign")
+                }
+            }
+            dm.priceWithinWorld?.let { price ->
+                if (price.toDouble().toLong() != -1L) {
+                    append("\n$withWorld $price$currencySign")
+                }
+            }
+            if (!dm.comment.isNullOrEmpty()) {
+                append("\n$comment ${dm.comment}")
+            }
+        }
+    } ?: ""
+}
+
+@Composable
+fun TitleSeparatorOffer(
+    title: StringResource
+){
+    Text(
+        text = stringResource(title),
+        style = MaterialTheme.typography.titleLarge,
+        color = colors.black,
+        modifier = Modifier.padding(horizontal = dimens.mediumPadding, vertical = dimens.smallPadding)
+    )
+}
+
+@Composable
+fun ParametersSection(
+    parameters: List<Param>?
+) {
+    if (!parameters.isNullOrEmpty()) {
+        TitleSeparatorOffer(strings.parametersLabel)
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = colors.white, shape = MaterialTheme.shapes.medium)
+                .padding(dimens.smallPadding)
+        ) {
+            parameters.forEach { parameter ->
+                InfoBlock(
+                    title = parameter.name ?: "",
+                    content = formatParameterValue(parameter.value)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun formatParameterValue(value: Value?): String {
+    return buildString {
+        value?.valueFree?.let { append(it) }
+
+        value?.valueChoices?.forEach {
+            if (isNotEmpty()) append("; ")
+            append(it.name)
+        }
+
+        if (isNotEmpty() && last() == ' ') {
+            dropLast(2)
+        }
+    }
+}
+
+@Composable
+fun AuctionBidsSection(
+    offer: Offer,
+    onRebidClick: (id: Long) -> Unit
+) {
+   val bids =  offer.bids
+    if (bids != null) {
+        TitleSeparatorOffer(strings.bidsLabel)
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 400.dp)
+                .background(color = colors.white, shape = MaterialTheme.shapes.medium)
+                .padding(dimens.smallPadding)
+        ) {
+            // Header row
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = dimens.mediumPadding),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Text(
+                        text = stringResource(strings.bidsUserLabel),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = colors.grayText,
+                    )
+                    Text(
+                        text = stringResource(strings.yourMaxBidParameterName),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = colors.grayText,
+                    )
+                    Text(
+                        text = stringResource(strings.dateParameterName),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = colors.grayText,
+                    )
+                }
+            }
+
+            // List items
+            itemsIndexed(bids) { i, bid ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = dimens.smallPadding),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${i + 1}. ${bid.obfuscatedMoverLogin ?: bid.moverLogin ?: "User"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.black,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "${bid.curprice} ${stringResource(strings.currencySign)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.black,
+                        )
+
+                        // Rebid Button logic
+                        if (i == 0 || bid.moverId == UserData.login) {
+                            SimpleTextButton(
+                                text = if (bid.moverId == UserData.login)
+                                    stringResource(strings.yourBidLabel)
+                                else stringResource(strings.rebidLabel),
+                                textColor = colors.black,
+                                textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                backgroundColor = if (bid.moverId == UserData.login)
+                                    colors.grayText
+                                else colors.notifyTextColor,
+                                modifier = Modifier.heightIn(max = 35.dp),
+                            ) {
+                                onRebidClick(offer.id)
+                            }
+                        }
+                    }
+
+                    Text(
+                        text = bid.ts?.convertDateWithMinutes() ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.black,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            if (bids.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(strings.noBids),
+                        style = MaterialTheme.typography.titleMedium.copy(fontStyle = FontStyle.Italic),
+                        color = colors.notifyTextColor,
+                        modifier = Modifier.padding(top = dimens.mediumPadding)
+                    )
+                }
+            }
+        }
     }
 }

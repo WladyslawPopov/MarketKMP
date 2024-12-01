@@ -112,12 +112,6 @@ fun MyOffersItem(
 
                             }
                         }
-
-                        if (offer.discountPercentage > 0) {
-                            val pd = "-" + offer.discountPercentage.toString() + "%"
-
-                            DiscountBadge(pd)
-                        }
                     }
 
                     Column(

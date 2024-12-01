@@ -31,6 +31,13 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
+
+    val images = when {
+        offer.images?.isNotEmpty() == true -> offer.images.firstOrNull()?.urls?.small?.content ?: ""
+        offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull() ?: ""
+        else -> ""
+    }
+
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),
@@ -47,7 +54,7 @@ fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 contentAlignment = Alignment.TopCenter
             ) {
                 LoadImage(
-                    url = offer.images?.firstOrNull()?.urls?.mid?.content ?: "",
+                    url = images,
                     size = 200.dp
                 )
 
@@ -75,13 +82,14 @@ fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 letterSpacing = 0.1.sp,
                 fontSize = MaterialTheme.typography.bodyLarge.fontSize
             )
+
             Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
             Text(
                 text = offer.currentPricePerItem.toString() + stringResource(strings.currencySign),
                 color = colors.titleTextColor,
                 modifier = Modifier.align(Alignment.End),
-                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                letterSpacing = 0.1.sp,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }

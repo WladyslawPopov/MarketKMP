@@ -202,14 +202,14 @@ data class Offer(
 data class StandardDescriptions(
     @SerialName("deleted") val deleted: Boolean = false,
     @SerialName("active") val active: Boolean = false,
-    @SerialName("description") val description: String = "",
+    @SerialName("description") val description: String? = null,
     @SerialName("timestamp") val timestamp: Long = 0
 )
 
 @Serializable
 data class AddedDescriptions(
     @SerialName("text")
-    val text: String,
+    val text: String? = null,
     @SerialName("timestamp")
     val timestamp: Long,
 )
@@ -217,7 +217,7 @@ data class AddedDescriptions(
 @Serializable
 data class Bids(
     @SerialName("curprice") val curprice: String? = null,
-    @SerialName("ts") val ts: Double = 0.0,
+    @SerialName("ts") val ts: String? = null,
     @SerialName("mover_login") val moverLogin: String? = null,
     @SerialName("mover_id") val moverId: Long = 1L,
     @SerialName("obfuscated_mover_login") val obfuscatedMoverLogin: String? = null

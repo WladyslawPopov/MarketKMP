@@ -229,6 +229,8 @@ interface Strings {
     val yourBidsFirstLabel : StringResource
     val yourBidLabel : StringResource
     val daysLabel : StringResource
+    val dayLabel : StringResource
+    val hourLabel : StringResource
     val hoursLabel : StringResource
     val minutesLabel : StringResource
     val secondsLabel : StringResource
@@ -243,4 +245,18 @@ interface Strings {
     val publicBlockUserLabel : StringResource
     val blackListUserLabel : StringResource
     val whiteListUserLabel : StringResource
+    val sellerLabel : StringResource
+    val paymentAndDeliveryLabel : StringResource
+    val dealTypeLabel : StringResource
+    val paymentMethodLabel : StringResource
+    val deliveryMethodLabel : StringResource
+    val withinCountry : StringResource
+    val withinCity : StringResource
+    val withinWorld : StringResource
+    val commentLabel : StringResource
+    val parametersLabel : StringResource
+    val bidsLabel : StringResource
+    val bidsUserLabel : StringResource
+    val dateParameterName : StringResource
+    val rebidLabel : StringResource
 }
