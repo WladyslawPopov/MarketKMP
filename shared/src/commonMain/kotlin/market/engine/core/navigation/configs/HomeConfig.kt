@@ -8,5 +8,5 @@ sealed class HomeConfig {
     data object HomeScreen : HomeConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long) : HomeConfig()
+    data class OfferScreen(val id: Long, val ts: String) : HomeConfig()
 }

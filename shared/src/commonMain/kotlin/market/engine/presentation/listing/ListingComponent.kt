@@ -3,14 +3,14 @@ package market.engine.presentation.listing
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.analytics.AnalyticsHelper
+import market.engine.common.AnalyticsFactory
 import market.engine.core.network.networkObjects.Offer
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ListingComponent {
     val model : Value<Model>
     data class Model(
-        val listingViewModel: ListingViewModel
+        val listingViewModel: ListingViewModel,
     )
 
     fun onBackClicked()
@@ -34,8 +34,8 @@ class DefaultListingComponent(
     private val listingViewModel = model.value.listingViewModel
 
     private val listingData = listingViewModel.listingData
-    private val searchData = listingData.value.searchData
-    private val analyticsHelper = getKoin().get<AnalyticsHelper>()
+    private val searchData = listingData.searchData
+    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
         val eventParameters = mapOf(

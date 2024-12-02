@@ -1,12 +1,13 @@
 package market.engine.presentation.offer
 
 import androidx.compose.runtime.mutableStateOf
-import application.market.agora.business.core.network.functions.OfferOperations
-import application.market.agora.business.core.network.functions.UserOperations
+import market.engine.core.network.functions.OfferOperations
+import market.engine.core.network.functions.UserOperations
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.globalData.UserData
 import market.engine.core.network.APIService
@@ -60,7 +61,8 @@ class OfferViewModel(
             try {
                 val offer = withContext(Dispatchers.IO) {
                     val response = apiService.getOffer(id)
-                    deserializePayload<ArrayList<Offer>>(response.payload).firstOrNull()
+                    val serializer = ListSerializer(Offer.serializer())
+                    deserializePayload<List<Offer>>(response.payload, serializer).firstOrNull()
                 }
                 offer?.let {
                     _responseOffer.value = it
@@ -146,7 +148,10 @@ class OfferViewModel(
                 }
                 val offers = withContext(Dispatchers.IO) {
                     history.mapNotNull { id ->
-                        apiService.getOffer(id).let { deserializePayload<ArrayList<Offer>>(it.payload).firstOrNull() }
+                        apiService.getOffer(id).let {
+                            val serializer = ListSerializer(Offer.serializer())
+                            deserializePayload<List<Offer>>(it.payload, serializer).firstOrNull()
+                        }
                     }
                 }
                 _responseHistory.value = offers
@@ -166,7 +171,8 @@ class OfferViewModel(
             try {
                 val ourChoice = withContext(Dispatchers.IO) {
                     val response = apiService.getOurChoiceOffers(id)
-                    deserializePayload<Payload<Offer>>(response.payload).objects
+                    val serializer = Payload.serializer(Offer.serializer())
+                    deserializePayload<Payload<Offer>>(response.payload, serializer).objects
                 }
                 _responseOurChoice.value = ourChoice
             } catch (e: Exception) {

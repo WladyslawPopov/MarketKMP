@@ -1,5 +1,6 @@
-package application.market.agora.business.core.network.functions
+package market.engine.core.network.functions
 
+import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
@@ -19,11 +20,12 @@ import market.engine.core.network.networkObjects.ListData
 
 class UserOperations(val apiService: APIService) {
 
-    suspend fun getUsers(idUser: Long): ServerResponse<ArrayList<User>> {
+    suspend fun getUsers(idUser: Long): ServerResponse<List<User>> {
         return try {
             val response = apiService.getUsers(idUser)
             try {
-                val payload = deserializePayload<ArrayList<User>>(response.payload)
+                val serializer = ListSerializer(User.serializer())
+                val payload = deserializePayload<List<User>>(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -53,7 +55,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUserCreateSubscription(idUser)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -84,7 +87,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUserList(id, body)
             try {
-                val payload : BodyPayload<ListData> = deserializePayload(response.payload)
+                val serializer = BodyPayload.serializer(ListData.serializer())
+                val payload : BodyPayload<ListData> = deserializePayload(response.payload,serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -133,9 +137,10 @@ class UserOperations(val apiService: APIService) {
             val response =
                 apiService.postUserOperationsGetAdditionalDataBeforeCreateOrder(id ?: 1L, body)
             try {
+                val serializer = PayloadExistence.serializer(AdditionalDataForNewOrder.serializer())
                 val payload =
                     deserializePayload<PayloadExistence<AdditionalDataForNewOrder>>(
-                        response.payload
+                        response.payload, serializer
                     )
                 ServerResponse(success = payload)
             } catch (e : Exception){
@@ -166,7 +171,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetLogin(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             } catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -185,7 +191,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetLogin(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -204,7 +211,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetBiddingStep(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -223,7 +231,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetVacation(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -241,7 +250,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetWatermarkEnabled(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -259,7 +269,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetWatermarkDisabled(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -275,7 +286,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetEmail(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -291,7 +303,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetPhone(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -307,7 +320,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetMessageToBuyer(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -323,7 +337,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetAutoFeedback(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -339,7 +354,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetBiddingStep(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -355,7 +371,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetVacation(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -371,7 +388,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetWatermark(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -387,7 +405,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsAddressCards(id)
             try {
-                val payload : BodyPayload<AddressCards> = deserializePayload(response.payload)
+                val serializer = BodyPayload.serializer(AddressCards.serializer())
+                val payload : BodyPayload<AddressCards> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -404,7 +423,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetAddressCards(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -423,7 +443,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetAddressCards(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -439,7 +460,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetOutgoingAddress(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -458,7 +480,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetMessageToBuyer(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -477,7 +500,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetOutgoingAddress(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -496,7 +520,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetPhone(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -512,7 +537,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetPassword(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -528,7 +554,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsResetPassword()
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -547,7 +574,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetPassword(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -563,7 +591,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsResetPassword(body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -582,7 +611,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetEmail(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -601,7 +631,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsSetAutoFeedback(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -617,7 +648,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsEditAboutMe(id)
             try{
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -636,7 +668,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsEditAboutMe(id, body)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response?.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -680,9 +713,10 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.postUsersOperationsConfirmEmail(id, body)
             try {
+                val serializer = BodyPayload.serializer(BodyObj.serializer())
                 val payload =
                     deserializePayload<BodyPayload<BodyObj>>(
-                        response.payload
+                        response.payload, serializer
                     )
                 ServerResponse(success = payload)
             } catch (e : Exception){
@@ -741,7 +775,8 @@ class UserOperations(val apiService: APIService) {
         return try {
             val response = apiService.getUsersOperationsSetGender(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             } catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

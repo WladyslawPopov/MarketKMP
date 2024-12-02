@@ -33,7 +33,8 @@ class LoginViewModel(private val apiService: APIService) : BaseViewModel() {
 
                     withContext(Dispatchers.Main) {
                         try {
-                            val payload : UserPayload = deserializePayload(response.payload)
+                            val serializer = UserPayload.serializer()
+                            val payload : UserPayload = deserializePayload(response.payload, serializer)
 
                             setLoading(false)
                             if (payload.result == "success") {

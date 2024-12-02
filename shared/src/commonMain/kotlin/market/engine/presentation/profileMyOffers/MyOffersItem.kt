@@ -32,6 +32,7 @@ import market.engine.core.constants.ThemeResources.drawables
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.util.convertDateWithMinutes
+import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
@@ -44,6 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MyOffersItem(
     offer: Offer,
+    baseViewModel: BaseViewModel,
     onUpdateOfferItem : (offer: Offer) -> Unit,
     onItemClick: () -> Unit
 ) {
@@ -78,6 +80,7 @@ fun MyOffersItem(
                 AnimatedVisibility(isOpenPopup.value, modifier = Modifier.fillMaxWidth()){
                     getOfferOperations(
                         offer,
+                        baseViewModel = baseViewModel,
                         offset = IntOffset(0, -50),
                         onUpdateMenuItem = { offer->
                             onUpdateOfferItem(offer)

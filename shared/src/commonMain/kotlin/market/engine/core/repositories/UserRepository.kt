@@ -1,14 +1,14 @@
 package market.engine.core.repositories
 
-import application.market.agora.business.core.network.functions.UserOperations
+import market.engine.core.network.functions.UserOperations
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.common.AnalyticsFactory
 import market.engine.common.notificationIdentifier
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.globalData.SAPI
 import market.engine.core.globalData.UserData
 import market.engine.core.globalData.UserData.login
 import market.engine.core.globalData.UserData.picUri
@@ -18,8 +18,8 @@ class UserRepository(
     private val sapiRepository: SAPIRepository,
     private val settings : SettingsRepository,
     private val userOperations: UserOperations,
-    private val analyticsHelper: AnalyticsHelper
 ) {
+    private val analyticsHelper: AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     fun setToken(l : Long, t : String) {
         settings.setSettingValue("identity", l)

@@ -1,5 +1,6 @@
-package application.market.agora.business.core.network.functions
+package market.engine.core.network.functions
 
+import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.AdditionalData
@@ -24,9 +25,10 @@ class OfferOperations(private val apiService: APIService) {
         return try {
             val response = apiService.getOffer(id)
             try {
+                val serializer = ListSerializer(Offer.serializer())
                 val payload =
-                    deserializePayload<ArrayList<Offer>>(
-                        response.payload
+                    deserializePayload<List<Offer>>(
+                        response.payload, serializer
                     )
                 ServerResponse(success = payload.firstOrNull())
             }catch (e : Exception){
@@ -39,13 +41,14 @@ class OfferOperations(private val apiService: APIService) {
         }
     }
 
-    suspend fun getOperationsOffer(id: Long = 1L): ServerResponse<ArrayList<Operations>> {
+    suspend fun getOperationsOffer(id: Long = 1L): ServerResponse<List<Operations>> {
         return try {
             val response = apiService.getOfferOperations(id)
             try {
+                val serializer = ListSerializer(Operations.serializer())
                 val payload =
-                    deserializePayload<ArrayList<Operations>>(
-                        response.payload
+                    deserializePayload<List<Operations>>(
+                        response.payload, serializer
                     )
                 ServerResponse(success = payload)
             }catch (e : Exception){
@@ -95,7 +98,8 @@ class OfferOperations(private val apiService: APIService) {
         return try {
             val response = apiService.getOfferOperationsActivateOffer(offerId)
             try {
-                val payload = deserializePayload<DynamicPayload<Fields>>(response.payload)
+                val serializer = DynamicPayload.serializer(Fields.serializer())
+                val payload = deserializePayload<DynamicPayload<Fields>>(response.payload, serializer)
                 ServerResponse(success = payload.fields)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -188,7 +192,8 @@ class OfferOperations(private val apiService: APIService) {
         return try {
             val response = apiService.postCheckingConversationExistenceOffer(id)
             try {
-                val payload = deserializePayload<PayloadExistence<AdditionalData>>(response.payload)
+                val serializer = PayloadExistence.serializer(AdditionalData.serializer())
+                val payload = deserializePayload<PayloadExistence<AdditionalData>>(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -205,9 +210,10 @@ class OfferOperations(private val apiService: APIService) {
             val body = HashMap<String, String>().apply { put("version", version?.jsonPrimitive?.content ?: "") }
             val response = apiService.postOfferOperationsGetLeaderAndPrice(id, body)
             try {
+                val serializer = BodyPayload.serializer(BodyObj.serializer())
                 val payload =
-                    deserializePayload<BodyPayload<BodyObj>>(
-                        response.payload
+                    deserializePayload(
+                        response.payload, serializer
                     )
                 ServerResponse(success = payload)
             }catch (e : Exception){
@@ -225,9 +231,10 @@ class OfferOperations(private val apiService: APIService) {
         return try {
             val response = apiService.postOfferOperationsWriteToSeller(id, body)
             try {
+                val serializer = PayloadExistence.serializer(AdditionalData.serializer())
                 val payload =
                     deserializePayload<PayloadExistence<AdditionalData>>(
-                        response.payload
+                        response.payload, serializer
                     )
                 ServerResponse(success = payload)
             }catch (e : Exception){
@@ -244,7 +251,8 @@ class OfferOperations(private val apiService: APIService) {
         return try {
             val response = apiService.getMakeProposal(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -260,7 +268,8 @@ class OfferOperations(private val apiService: APIService) {
         return try {
             val response = apiService.getActOnProposal(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

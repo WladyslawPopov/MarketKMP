@@ -6,15 +6,17 @@ import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.items.ListingData
+import market.engine.core.network.APIService
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.paging.offer.OfferPagingRepository
+import market.engine.core.network.paging.PagingRepository
 import market.engine.core.types.LotsType
 import market.engine.presentation.base.BaseViewModel
 
 class ProfileMyOffersViewModel(
     val type: LotsType,
-    offerPagingRepository: OfferPagingRepository,
+    val apiService: APIService,
 ) : BaseViewModel() {
+    private val offerPagingRepository: PagingRepository<Offer> = PagingRepository()
     var listingData = mutableStateOf(ListingData())
     val pagingDataFlow: Flow<PagingData<Offer>>
 
@@ -40,7 +42,8 @@ class ProfileMyOffersViewModel(
         }
 
         listingData.value.data.value.methodServer = "get_cabinet_listing"
+        listingData.value.data.value.objServer = "offers"
 
-        pagingDataFlow = offerPagingRepository.getListing(listingData.value).cachedIn(viewModelScope)
+        pagingDataFlow = offerPagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
     }
 }

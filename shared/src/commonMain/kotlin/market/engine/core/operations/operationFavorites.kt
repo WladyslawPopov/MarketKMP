@@ -1,6 +1,6 @@
 package market.engine.core.operations
 
-import application.market.agora.business.core.network.functions.OfferOperations
+import market.engine.core.network.functions.OfferOperations
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

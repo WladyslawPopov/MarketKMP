@@ -1,7 +1,7 @@
 package market.engine.presentation.profileMyOffers
 
+import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -11,16 +11,14 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
-import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MyOffersContent(
     component: MyOffersComponent,
+    drawerState: DrawerState,
     modifier: Modifier,
 ) {
     val model by component.model.subscribeAsState()
@@ -30,18 +28,9 @@ fun MyOffersContent(
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
-    val mainViewModel : MainViewModel = koinViewModel()
 
-    LaunchedEffect(Unit) {
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateFloatingActionButton {
-                floatingCreateOfferButton {
-
-                }
-            }
-        )
-    }
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
+
     ListingBaseContent(
         columns = columns,
         modifier = modifier,
@@ -51,6 +40,20 @@ fun MyOffersContent(
         baseViewModel = viewModel,
         onRefresh = {
             data.refresh()
+        },
+        topBar = {
+            ProfileMyOffersAppBar(
+                model.type,
+                drawerState = drawerState,
+                navigationClick = { newType->
+                    component.selectMyOfferPage(newType)
+                }
+            )
+        },
+        floatingActionButton = {
+            floatingCreateOfferButton {
+
+            }
         },
         filtersContent = { isRefreshingFromFilters, onClose ->
             OfferFilterContent(
@@ -70,6 +73,7 @@ fun MyOffersContent(
         item = { offer->
             MyOffersItem(
                 offer = offer,
+                viewModel,
                 onUpdateOfferItem = {
                     data.refresh()
                 },

@@ -1,5 +1,6 @@
 package market.engine.core.network.functions
 
+import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.items.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
@@ -17,9 +18,10 @@ class CategoryOperations(private val apiService : APIService) {
         return try {
             val response = apiService.getPublicCategory(id ?: 1L)
             try {
+                val categoryListSerializer = ListSerializer(Category.serializer())
                 val payload =
-                    deserializePayload<ArrayList<Category>>(
-                        response.payload
+                    deserializePayload<List<Category>>(
+                        response.payload, categoryListSerializer
                     )
                 ServerResponse(success = payload.firstOrNull())
             }catch (e : Exception){
@@ -42,9 +44,10 @@ class CategoryOperations(private val apiService : APIService) {
             .build()
 
         try {
-            val response = apiService.getPageOffers(url)
+            val response = apiService.getPage(url)
             try {
-                val payload: Payload<RegionOptions> = deserializePayload(response.payload!!)
+                val serializer = Payload.serializer(RegionOptions.serializer())
+                val payload: Payload<RegionOptions> = deserializePayload(response.payload!!, serializer)
                 return ServerResponse(payload.totalCount)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -61,8 +64,9 @@ class CategoryOperations(private val apiService : APIService) {
             val response = apiService.getTaggedBy("region")
             if(response.payload != null) {
                 try {
+                    val serializer = Payload.serializer(RegionOptions.serializer())
                     val payload: Payload<RegionOptions> =
-                        deserializePayload(response.payload)
+                        deserializePayload(response.payload, serializer)
                     return payload.objects
                 }catch (_ : Exception){
                     return null
@@ -80,8 +84,9 @@ class CategoryOperations(private val apiService : APIService) {
             val response = apiService.getPublicCategories(id)
             if(response.payload != null) {
                 try {
+                    val serializer = Payload.serializer(Category.serializer())
                     val payload: Payload<Category> =
-                        deserializePayload(response.payload)
+                        deserializePayload(response.payload, serializer)
                     return payload.objects
                 }catch (_ : Exception){
                     return null

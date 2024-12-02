@@ -39,13 +39,15 @@ interface MainComponent {
 
     val myOffersPages: Value<ChildPages<*, MyOffersComponent>>
 
+    val homeStack : Value<MutableList<HomeConfig>>
+
     val categoryStack : Value<MutableList<CategoryConfig>>
+
+    val basketStack : Value<MutableList<BasketConfig>>
 
     val favoritesStack : Value<MutableList<FavScreenType>>
 
     val profileStack : Value<MutableList<ProfileScreenType>>
-
-    val mainViewModel: Value<MainViewModel>
 
     data class ModelNavigation(
         val homeNavigation : StackNavigation<HomeConfig>,

@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
-import application.market.agora.business.core.network.functions.OfferOperations
+import market.engine.core.network.functions.OfferOperations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -47,6 +47,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import market.engine.common.AnalyticsFactory
 import market.engine.common.clipBoardEvent
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
@@ -59,28 +60,27 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.types.ToastType
 import market.engine.core.util.convertDateYear
 import market.engine.core.util.getCurrentDate
-import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.main.UIMainEvent
+import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.lists.getDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun getOfferOperations(
     offer: Offer,
+    baseViewModel: BaseViewModel,
     showCopyId : Boolean = true,
     offset: IntOffset = IntOffset(0, 0),
     onUpdateMenuItem: (Offer) -> Unit,
     onClose: () -> Unit,
 ) {
-    val mainViewModel : MainViewModel = koinViewModel()
-    val scope = mainViewModel.viewModelScope
+
+    val scope = baseViewModel.viewModelScope
     val errorMes = remember { mutableStateOf("") }
     val offerOperations : OfferOperations = koinInject()
-    val analyticsHelper : AnalyticsHelper = koinInject()
+    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     val showDialog = remember { mutableStateOf(false) }
 
@@ -90,14 +90,6 @@ fun getOfferOperations(
     val showActivateOfferDialog = remember { mutableStateOf(false) }
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
 
-    val toast = remember { mutableStateOf(
-            ToastItem(isVisible = false, message = "", type = ToastType.SUCCESS)
-        )
-    }
-
-    mainViewModel.sendEvent(UIMainEvent.UpdateToast(
-        toast.value
-    ))
 
     LaunchedEffect(Unit){
         scope.launch(Dispatchers.IO) {
@@ -163,10 +155,13 @@ fun getOfferOperations(
                                     .fillMaxWidth()
                                     .clickable {
                                         clipBoardEvent(offer.id.toString())
-                                        toast.value = ToastItem(
-                                            isVisible = true,
-                                            message = idString,
-                                            type = ToastType.SUCCESS
+
+                                        baseViewModel.showToast(
+                                            ToastItem(
+                                                isVisible = true,
+                                                message = idString,
+                                                type = ToastType.SUCCESS
+                                            )
                                         )
                                         onClose()
                                     }

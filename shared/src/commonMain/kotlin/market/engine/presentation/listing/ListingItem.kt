@@ -11,11 +11,11 @@ import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Offer
-import org.koin.compose.koinInject
 
 @Composable
 fun ListingItem(
@@ -26,7 +26,7 @@ fun ListingItem(
 ) {
     var isPromo = false
 
-    val analyticsHelper : AnalyticsHelper = koinInject()
+    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     if (offer.promoOptions != null) {
         val isBackLight = offer.promoOptions.find { it.id == "backlignt_in_listing" }

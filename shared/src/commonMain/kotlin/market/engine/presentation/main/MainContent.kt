@@ -1,6 +1,8 @@
 package market.engine.presentation.main
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -15,7 +17,6 @@ import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.core.navigation.children.ChildMain
 import market.engine.core.navigation.configs.MainConfig
-import market.engine.presentation.base.BaseContent
 import market.engine.presentation.basket.BasketNavigation
 import market.engine.presentation.category.CategoryNavigation
 import market.engine.presentation.favorites.FavoritesNavigation
@@ -23,7 +24,6 @@ import market.engine.presentation.home.HomeNavigation
 import market.engine.presentation.profile.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MainContent(
@@ -31,13 +31,6 @@ fun MainContent(
     modifier: Modifier = Modifier
 ) {
     val childStack by component.childMainStack.subscribeAsState()
-    val model: MainViewModel = koinViewModel()
-
-    val topBarContent by model.topBarContent
-    val errorContent by model.errorContent
-    val noFoundContent by model.notFoundContent
-    val toastItem by model.toastItem
-    val floatingButton by model.actionFloatingButton
 
     val currentScreen = when (childStack.active.instance) {
         is ChildMain.HomeChildMain -> 0
@@ -91,19 +84,14 @@ fun MainContent(
         )
     )
 
-    BaseContent(
-        modifier = modifier,
-        toastItem = toastItem,
-        topBar = topBarContent,
+    Scaffold(
         bottomBar = { getBottomNavBar(component, modifier, listItems, currentScreen) },
-        floatingActionButton = floatingButton,
-        error = errorContent,
-        noFound = noFoundContent
-    ) {
+    ) { innerPadding ->
         Children(
             stack = childStack,
             modifier = modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(bottom = innerPadding.calculateBottomPadding()),
             animation = stackAnimation(fade())
         ) { child ->
             when (child.instance) {

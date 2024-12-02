@@ -3,7 +3,7 @@ package market.engine.presentation.subscriptions
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.analytics.AnalyticsHelper
+import market.engine.common.AnalyticsFactory
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -33,13 +33,12 @@ class DefaultSubscribesComponent(
     }
 
     private val listingViewModel = model.value.subViewModel
-    private val analyticsHelper = getKoin().get<AnalyticsHelper>()
+    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
 
     override fun onRefresh() {
         listingViewModel.firstVisibleItemScrollOffset = 0
         listingViewModel.firstVisibleItemIndex = 0
-        listingViewModel.updateCurrentListingData()
 
         analyticsHelper.reportEvent("open_subscribes", "")
     }

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,13 +22,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.common.SwipeRefreshContent
 import market.engine.core.baseFilters.SD
 import market.engine.core.constants.ThemeResources.dimens
+import market.engine.presentation.base.BaseContent
 import market.engine.widgets.exceptions.onError
-import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.main.UIMainEvent
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchContent(
@@ -54,11 +50,23 @@ fun SearchContent(
 
     var searchString by remember { mutableStateOf(TextFieldValue(searchData.value.searchString ?: "")) }
 
-    val mainViewModel : MainViewModel = koinViewModel()
 
+    val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
+        { onError(isError.value) { } }
+    }else{
+        null
+    }
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateTopBar {
+    BaseContent(
+        error = error,
+        isLoading = isLoading.value,
+        noFound = null,
+        toastItem = searchViewModel.toastItem.value,
+        onRefresh = {
+            searchString = searchString.copy("")
+            component.updateHistory(searchString.text)
+        },
+        topBar = {
             SearchAppBar(
                 modifier,
                 searchString,
@@ -75,66 +83,48 @@ fun SearchContent(
                 getSearchFilters(searchData, searchString.text)
                 component.onCloseClicked()
             }
-        }
-    )
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateFloatingActionButton {}
-    )
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateNotFound(null)
-    )
-
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateError(
-            if (isError.value.humanMessage != "") {
-                { onError(isError.value) { } }
-            }else{
-                null
-            }
-        )
-    )
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = dimens.mediumPadding)
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            },
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start
+        },
+        modifier = modifier.fillMaxSize()
     ) {
-        FiltersSearchBar(
-            modifier = modifier,
-            selectedUser = selectedUser,
-            selectedUserFinished = selectedUserFinished,
-            selectedCategory = selectedCategory,
-            searchData = searchData,
-            goToCategory = {
-                getSearchFilters(searchData, searchString.text)
-                component.goToCategory()
-            },
-        )
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = dimens.mediumPadding)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                },
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+            FiltersSearchBar(
+                modifier = modifier,
+                selectedUser = selectedUser,
+                selectedUserFinished = selectedUserFinished,
+                selectedCategory = selectedCategory,
+                searchData = searchData,
+                goToCategory = {
+                    getSearchFilters(searchData, searchString.text)
+                    component.goToCategory()
+                },
+            )
 
-        HistoryLayout(
-            historyItems = history.value,
-            modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
-            onItemClick = {
-                searchString = searchString.copy(it)
-                component.updateHistory(it)
-            },
-            onClearHistory = { component.deleteHistory() },
-            onDeleteItem = { component.deleteItemHistory(it) },
-            goToListing = {
-                getSearchFilters(searchData, it)
-                component.goToListing()
-            }
-        )
+            HistoryLayout(
+                historyItems = history.value,
+                modifier = modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                onItemClick = {
+                    searchString = searchString.copy(it)
+                    component.updateHistory(it)
+                },
+                onClearHistory = { component.deleteHistory() },
+                onDeleteItem = { component.deleteItemHistory(it) },
+                goToListing = {
+                    getSearchFilters(searchData, it)
+                    component.goToListing()
+                }
+            )
+        }
     }
 }
 

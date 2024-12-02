@@ -2,7 +2,7 @@ package market.engine.presentation.base
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,21 +27,15 @@ import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.common.SwipeRefreshContent
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
 import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.items.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
-import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.grids.PagingList
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun <T : Any>ListingBaseContent(
@@ -52,12 +46,14 @@ fun <T : Any>ListingBaseContent(
     data : LazyPagingItems<T>,
     baseViewModel: BaseViewModel,
     onRefresh : () -> Unit,
+    topBar : @Composable () -> Unit = {},
+    floatingActionButton : @Composable () -> Unit = {},
     item : @Composable (T) -> Unit,
     filtersContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
     sortingContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
     additionalBar : @Composable (LazyListState) -> Unit = {},
-    promoList :  ArrayList<Offer>? = null,
     promoContent : (@Composable (Offer) -> Unit)? = null,
+    promoList :  ArrayList<Offer>? = null,
     isShowGrid : Boolean = false,
     onSearchClick : () -> Unit = {}
 ){
@@ -80,15 +76,6 @@ fun <T : Any>ListingBaseContent(
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
     var error : (@Composable () -> Unit)? = null
     var noItem : (@Composable () -> Unit)? = null
-
-    val mainViewModel : MainViewModel = koinViewModel()
-
-    LaunchedEffect(searchData.value){
-        if (searchData.value.isRefreshing && scaffoldState.bottomSheetState.isCollapsed) {
-            searchData.value.isRefreshing = false
-            onRefresh()
-        }
-    }
 
     data.loadState.apply {
         when {
@@ -122,13 +109,12 @@ fun <T : Any>ListingBaseContent(
                 baseViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
-                        data.refresh()
+                        onRefresh()
                         isRefreshingFromFilters.value = false
                     }
                 }
             }
     }
-
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
@@ -153,95 +139,91 @@ fun <T : Any>ListingBaseContent(
         }
     }
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateError(error)
-    )
-
-    mainViewModel.sendEvent(UIMainEvent.UpdateNotFound(noItem))
-
-
-    SwipeRefreshContent(
-        isRefreshing = isLoading.value,
-        modifier = modifier.fillMaxSize(),
-        onRefresh = {
-            if (scaffoldState.bottomSheetState.isCollapsed)
-                onRefresh()
-        },
+    BaseContent(
+        topBar = topBar,
+        onRefresh = onRefresh,
+        error = error,
+        noFound = noItem,
+        isLoading = isLoading.value,
+        toastItem = baseViewModel.toastItem.value,
+        floatingActionButton = floatingActionButton,
+        modifier = modifier.fillMaxSize()
     ) {
-        AnimatedVisibility(
-            modifier = modifier,
-            visible = !isLoading.value,
-            enter = expandIn(),
-            exit = fadeOut()
-        ) {
-            BottomSheetScaffold(
-                scaffoldState = scaffoldState,
-                modifier = Modifier.fillMaxSize(),
-                sheetContentColor = colors.primaryColor,
-                sheetBackgroundColor = colors.primaryColor,
-                contentColor = colors.primaryColor,
-                backgroundColor = colors.primaryColor,
-                sheetPeekHeight = 0.dp,
-                sheetGesturesEnabled = false,
-                sheetContent = {
-                    when (activeFiltersType.value) {
-                        "filters" -> {
-                            filtersContent(isRefreshingFromFilters){
-                                activeFiltersType.value = ""
-                            }
-                        }
-                        "sorting" -> {
-                           sortingContent(isRefreshingFromFilters){
-                               activeFiltersType.value = ""
-                           }
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            modifier = Modifier.fillMaxSize(),
+            sheetContentColor = colors.primaryColor,
+            sheetBackgroundColor = colors.primaryColor,
+            contentColor = colors.primaryColor,
+            backgroundColor = colors.primaryColor,
+            sheetPeekHeight = 0.dp,
+            sheetGesturesEnabled = false,
+            sheetContent = {
+                when (activeFiltersType.value) {
+                    "filters" -> {
+                        filtersContent(isRefreshingFromFilters) {
+                            activeFiltersType.value = ""
                         }
                     }
-                },
-            ) {
-                Column(modifier = Modifier.fillMaxSize()) {
 
-                    additionalBar(scrollState)
+                    "sorting" -> {
+                        sortingContent(isRefreshingFromFilters) {
+                            activeFiltersType.value = ""
+                        }
+                    }
+                }
+            },
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
 
-                    FiltersBar(
-                        listingData.value,
-                        searchData.value,
-                        isShowGrid = isShowGrid,
-                        onChangeTypeList = {
-                            baseViewModel.settings.setSettingValue("listingType", it)
-                            listingData.value.listingType = it
-                            onRefresh()
-                        },
-                        onFilterClick = {
-                            activeFiltersType.value = "filters"
-                        },
-                        onSortClick = {
-                            activeFiltersType.value = "sorting"
+                additionalBar(scrollState)
 
-                        },
-                        onSearchClick = {
-                            onSearchClick()
-                        },
-                        onRefresh = { data.refresh() }
-                    )
+                FiltersBar(
+                    listingData.value,
+                    searchData.value,
+                    isShowGrid = isShowGrid,
+                    onChangeTypeList = {
+                        baseViewModel.settings.setSettingValue("listingType", it)
+                        listingData.value.listingType = it
+                        onRefresh()
+                    },
+                    onFilterClick = {
+                        activeFiltersType.value = "filters"
+                    },
+                    onSortClick = {
+                        activeFiltersType.value = "sorting"
 
-                    if (error != null) {
-                        error!!()
+                    },
+                    onSearchClick = {
+                        onSearchClick()
+                    },
+                    onRefresh = { data.refresh() }
+                )
+
+                if (error != null) {
+                    error!!()
+                } else {
+                    if (noItem != null) {
+                        noItem!!()
                     } else {
-                        if (noItem != null) {
-                            noItem!!()
-                        } else {
+                        AnimatedVisibility(
+                            baseViewModel.updateItem.value == null,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .animateContentSize()
                             ) {
+
                                 PagingList(
                                     state = scrollState,
                                     data = data,
                                     listingData = listingData,
                                     searchData = searchData,
                                     columns = columns.value,
-                                    content = { 
+                                    content = {
                                         item(it)
                                     },
                                     promoList = promoList,

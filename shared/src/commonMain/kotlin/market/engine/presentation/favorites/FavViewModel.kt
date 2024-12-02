@@ -6,14 +6,15 @@ import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.items.ListingData
+import market.engine.core.network.APIService
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.paging.offer.OfferPagingRepository
+import market.engine.core.network.paging.PagingRepository
 import market.engine.presentation.base.BaseViewModel
 
 class FavViewModel(
-    offerPagingRepository: OfferPagingRepository
+    private val apiService: APIService
 ) : BaseViewModel() {
-
+    private val pagingRepository: PagingRepository<Offer> = PagingRepository()
     var listingData = mutableStateOf(ListingData())
 
     val pagingDataFlow : Flow<PagingData<Offer>>
@@ -22,7 +23,8 @@ class FavViewModel(
         listingData.value.data.value.filters = arrayListOf()
         listingData.value.data.value.filters?.addAll(OfferFilters.filtersFav)
         listingData.value.data.value.methodServer = "get_cabinet_listing_watched_by_me"
+        listingData.value.data.value.objServer = "offers"
 
-        pagingDataFlow = offerPagingRepository.getListing(listingData.value).cachedIn(viewModelScope)
+        pagingDataFlow = pagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
     }
 }

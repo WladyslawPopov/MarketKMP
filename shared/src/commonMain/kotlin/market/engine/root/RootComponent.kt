@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.Value
+import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.globalData.SAPI
 import market.engine.core.items.DeepLink
@@ -35,7 +36,7 @@ class DefaultRootComponent(
     private val deepLink: DeepLink?
 ) : RootComponent, ComponentContext by componentContext {
 
-    private val analyticsHelper : AnalyticsHelper = getKoin().get()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
     private val settingsHelper : SettingsRepository = getKoin().get()
 
     private val navigation = StackNavigation<RootConfig>()

@@ -1,8 +1,5 @@
 package market.engine.presentation.category
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -35,15 +32,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.common.SwipeRefreshContent
 import market.engine.core.baseFilters.CategoryBaseFilters
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
 import market.engine.core.constants.ThemeResources.strings
 import market.engine.core.navigation.children.ChildCategory
 import market.engine.core.network.functions.CategoryOperations
-import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.main.UIMainEvent
+import market.engine.presentation.base.BaseContent
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.bars.FiltersBar
@@ -51,7 +46,6 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
 @Composable
@@ -64,8 +58,6 @@ fun CategoryContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val categoryViewModel = model.categoryViewModel
-
-    val mainViewModel : MainViewModel = koinViewModel()
     val listingData = CategoryBaseFilters.filtersData
     val ld = listingData.data.value
     val searchData = listingData.searchData
@@ -82,82 +74,9 @@ fun CategoryContent(
     }
 
     val scope = rememberCoroutineScope()
-
     val categoryOperations : CategoryOperations = getKoin().get()
 
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateFloatingActionButton {}
-    )
-
-    if (categories.value.isEmpty() && !isLoading.value){
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateNotFound {
-                showNoItemLayout {
-                    searchData.value.clear()
-                    component.onRefresh(searchData.value)
-                }
-            }
-        )
-
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateError(error)
-        )
-    }else{
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateNotFound(null)
-        )
-
-        mainViewModel.sendEvent(
-            UIMainEvent.UpdateError(null)
-        )
-    }
-
     val title = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
-
-    mainViewModel.sendEvent(
-        UIMainEvent.UpdateTopBar {
-            CategoryAppBar(
-                isShowNav = childStack.backStack.isNotEmpty(),
-                title = title.value,
-                searchData = searchData.value,
-                onSearchClick = {
-                    component.goToSearch()
-                },
-                onClearSearchClick = {
-                    if (!isLoading.value) {
-                        searchData.value.clearCategory()
-                        title.value = catDef
-                        component.onRefresh(searchData.value)
-                    }
-                }
-            ) {
-                if (searchData.value.searchCategoryID != 1L){
-                    scope.launch {
-                        withContext(Dispatchers.IO) {
-                            if (searchData.value.searchCategoryID != 1L) {
-                                val response = categoryOperations.getCategoryInfo(
-                                    searchData.value.searchParentID ?: 1L
-                                )
-                                withContext(Dispatchers.Main) {
-                                    val catInfo = response.success
-                                    if (catInfo != null) {
-                                        searchData.value.searchCategoryName = catInfo.name
-                                        searchData.value.searchCategoryID = catInfo.id
-                                        searchData.value.searchParentID = catInfo.parentId
-                                        searchData.value.searchIsLeaf = catInfo.isLeaf == true
-
-                                        title.value = catInfo.name ?: catDef
-                                    }
-
-                                    component.onBackClicked()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    )
 
     LaunchedEffect(searchData.value){
         if (searchData.value.isRefreshing) {
@@ -166,117 +85,163 @@ fun CategoryContent(
         }
     }
 
-    SwipeRefreshContent(
-        isRefreshing = isLoading.value,
-        modifier = modifier.fillMaxSize(),
-        onRefresh = {
-            component.onRefresh(searchData.value)
-        },
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ){
-            AnimatedVisibility(
-                modifier = modifier,
-                visible = !isLoading.value,
-                enter = expandIn(),
-                exit = fadeOut()
-            ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(top = dimens.mediumPadding, bottom = 60.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item {
-                        FiltersBar(
-                            ld,
-                            searchData.value,
-                            isShowFilters = false,
-                            onSearchClick = {
-                                component.goToSearch()
-                            }
-                        ) {
+        BaseContent(
+            topBar = {
+                CategoryAppBar(
+                    isShowNav = childStack.backStack.isNotEmpty(),
+                    title = title.value,
+                    searchData = searchData.value,
+                    onSearchClick = {
+                        component.goToSearch()
+                    },
+                    onClearSearchClick = {
+                        if (!isLoading.value) {
+                            searchData.value.clearCategory()
+                            title.value = catDef
                             component.onRefresh(searchData.value)
                         }
                     }
-
-                    items(categories.value) { category ->
-                        Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
-                        NavigationDrawerItem(
-                            label = {
-                                Box(
-                                    modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    Text(
-                                        category.name ?: "",
-                                        color = colors.black,
-                                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                        lineHeight = dimens.largeText
+                ) {
+                    if (searchData.value.searchCategoryID != 1L){
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                if (searchData.value.searchCategoryID != 1L) {
+                                    val response = categoryOperations.getCategoryInfo(
+                                        searchData.value.searchParentID ?: 1L
                                     )
-                                }
-                            },
-                            onClick = {
-                                searchData.value.searchCategoryID = category.id
-                                searchData.value.searchCategoryName = category.name
-                                searchData.value.searchParentID = category.parentId
-                                searchData.value.searchIsLeaf = category.isLeaf
+                                    withContext(Dispatchers.Main) {
+                                        val catInfo = response.success
+                                        if (catInfo != null) {
+                                            searchData.value.searchCategoryName = catInfo.name
+                                            searchData.value.searchCategoryID = catInfo.id
+                                            searchData.value.searchParentID = catInfo.parentId
+                                            searchData.value.searchIsLeaf = catInfo.isLeaf == true
 
-                                if (!category.isLeaf) {
-                                    component.goToNewCategory()
-                                } else {
-                                    component.goToListing()
+                                            title.value = catInfo.name ?: catDef
+                                        }
+
+                                        component.onBackClicked()
+                                    }
                                 }
-                            },
-                            icon = {
-                                getCategoryIcon(category.name)?.let {
-                                    Image(
-                                        painterResource(it),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(dimens.smallIconSize)
-                                    )
-                                }
-                            },
-                            badge = {
-                                Badge(
-                                    containerColor = colors.steelBlue
-                                ) {
-                                    Text(
-                                        text = category.estimatedActiveOffersCount.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.padding(dimens.extraSmallPadding),
-                                        color = colors.white
-                                    )
-                                }
-                            },
-                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                            colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = colors.selected,
-                                unselectedContainerColor = colors.white,
-                                selectedIconColor = colors.grayLayout,
-                                unselectedIconColor = colors.white,
-                                selectedTextColor = colors.grayLayout,
-                                selectedBadgeColor = colors.grayLayout,
-                                unselectedTextColor = colors.white,
-                                unselectedBadgeColor = colors.white
-                            ),
-                            shape = MaterialTheme.shapes.small,
-                            selected = category.isLeaf
-                        )
+                            }
+                        }
                     }
                 }
-            }
+            },
+            isLoading = isLoading.value,
+            error = error,
+            onRefresh = {
+                component.onRefresh(searchData.value)
+            },
+            noFound = {
+                if (categories.value.isEmpty() && !isLoading.value){
+                    showNoItemLayout {
+                        searchData.value.clear()
+                        component.onRefresh(searchData.value)
+                    }
+                }
+            },
+            toastItem = categoryViewModel.toastItem.value,
+            modifier = modifier.fillMaxSize()
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(top = dimens.mediumPadding, bottom = 60.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item {
+                    FiltersBar(
+                        ld,
+                        searchData.value,
+                        isShowFilters = false,
+                        onSearchClick = {
+                            component.goToSearch()
+                        }
+                    ) {
+                        component.onRefresh(searchData.value)
+                    }
+                }
 
-            AcceptedPageButton(
-                strings.categoryEnter,
-                Modifier.fillMaxWidth()
-                    .wrapContentHeight()
-                    .align(Alignment.BottomCenter)
-                    .padding(dimens.smallPadding),
-            ){
-                component.goToListing()
+                items(categories.value) { category ->
+                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+                    NavigationDrawerItem(
+                        label = {
+                            Box(
+                                modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Text(
+                                    category.name ?: "",
+                                    color = colors.black,
+                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                    lineHeight = dimens.largeText
+                                )
+                            }
+                        },
+                        onClick = {
+                            searchData.value.searchCategoryID = category.id
+                            searchData.value.searchCategoryName = category.name
+                            searchData.value.searchParentID = category.parentId
+                            searchData.value.searchIsLeaf = category.isLeaf
+
+                            if (!category.isLeaf) {
+                                component.goToNewCategory()
+                            } else {
+                                component.goToListing()
+                            }
+                        },
+                        icon = {
+                            getCategoryIcon(category.name)?.let {
+                                Image(
+                                    painterResource(it),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(dimens.smallIconSize)
+                                )
+                            }
+                        },
+                        badge = {
+                            Badge(
+                                containerColor = colors.steelBlue
+                            ) {
+                                Text(
+                                    text = category.estimatedActiveOffersCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(dimens.extraSmallPadding),
+                                    color = colors.white
+                                )
+                            }
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                        colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = colors.selected,
+                            unselectedContainerColor = colors.white,
+                            selectedIconColor = colors.grayLayout,
+                            unselectedIconColor = colors.white,
+                            selectedTextColor = colors.grayLayout,
+                            selectedBadgeColor = colors.grayLayout,
+                            unselectedTextColor = colors.white,
+                            unselectedBadgeColor = colors.white
+                        ),
+                        shape = MaterialTheme.shapes.small,
+                        selected = category.isLeaf
+                    )
+                }
             }
+        }
+
+
+        AcceptedPageButton(
+            strings.categoryEnter,
+            Modifier.fillMaxWidth()
+                .wrapContentHeight()
+                .align(Alignment.BottomCenter)
+                .padding(dimens.smallPadding),
+        ) {
+            component.goToListing()
         }
     }
 }

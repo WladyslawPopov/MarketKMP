@@ -5,6 +5,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.common.AnalyticsFactory
 import market.engine.common.getPermissionHandler
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.navigation.configs.HomeConfig
@@ -39,7 +40,7 @@ class DefaultHomeComponent(
 
     private val homeViewModel: HomeViewModel = getKoin().get()
 
-    private val analyticsHelper : AnalyticsHelper = getKoin().get()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     private val _model = MutableValue(
         HomeComponent.Model(

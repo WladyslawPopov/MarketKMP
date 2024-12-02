@@ -3,13 +3,10 @@ package market.engine.presentation.profileMyOffers
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.analytics.AnalyticsHelper
+import market.engine.common.AnalyticsFactory
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.LotsType
-import org.koin.core.parameter.parametersOf
-import org.koin.core.qualifier.named
-import org.koin.core.scope.Scope
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -21,12 +18,14 @@ interface MyOffersComponent {
     )
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
+    fun selectMyOfferPage(select : LotsType)
 }
 
 class DefaultMyOffersComponent(
     componentContext: ComponentContext,
     val type: LotsType = LotsType.MYLOT_ACTIVE,
     val offerSelected: (Long) -> Unit,
+    val selectedMyOfferPage: (LotsType) -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
     private val userRepository = getKoin().get<UserRepository>()
 
@@ -40,7 +39,7 @@ class DefaultMyOffersComponent(
         )
     )
     override val model: Value<MyOffersComponent.Model> = _model
-    private val analyticsHelper = getKoin().get<AnalyticsHelper>()
+    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
         userRepository.updateUserInfo(model.value.viewModel.viewModelScope)
@@ -89,6 +88,10 @@ class DefaultMyOffersComponent(
             )
         }
         offerSelected(offer.id)
+    }
+
+    override fun selectMyOfferPage(select: LotsType) {
+        selectedMyOfferPage(select)
     }
 
 }

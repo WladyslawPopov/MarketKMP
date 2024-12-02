@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -104,7 +104,7 @@ fun DrawerContent(
     )
 
     val userRepository : UserRepository = koinInject()
-    val analyticsHelper : AnalyticsHelper = koinInject()
+    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     val isShowDialog = remember { mutableStateOf(false) }
 

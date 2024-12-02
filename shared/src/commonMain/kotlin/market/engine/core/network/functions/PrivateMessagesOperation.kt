@@ -1,4 +1,4 @@
-package application.market.agora.business.core.network.functions
+package market.engine.core.network.functions
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse

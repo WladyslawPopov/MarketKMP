@@ -1,6 +1,5 @@
 package market.engine.presentation.home
 
-import androidx.compose.runtime.mutableStateOf
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
@@ -30,7 +29,7 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage2: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage2.asStateFlow()
 
-    val listingData = mutableStateOf( CategoryBaseFilters.filtersData)
+    val listingData = CategoryBaseFilters.filtersData
 
 
     fun getCategory(categoryId: Long = defaultCategoryId) {
@@ -41,7 +40,8 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
                 val response = withContext(Dispatchers.IO) {
                     apiService.getPublicCategories(categoryId)
                 }
-                val payload: Payload<Category> = deserializePayload(response.payload)
+                val serializer = Payload.serializer(Category.serializer())
+                val payload: Payload<Category> = deserializePayload(response.payload, serializer)
                 _responseCategory.value = payload.objects
             } catch (_: Exception) {}
         }
@@ -54,7 +54,8 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
                 val response = withContext(Dispatchers.IO) {
                     apiService.getOffersPromotedOnMainPage(page, ipp)
                 }
-                val payload: Payload<Offer> = deserializePayload(response.payload)
+                val serializer = Payload.serializer(Offer.serializer())
+                val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
                 when(page){
                     0 -> _responseOffersPromotedOnMainPage1.value = payload.objects
                     1 -> _responseOffersPromotedOnMainPage2.value = payload.objects

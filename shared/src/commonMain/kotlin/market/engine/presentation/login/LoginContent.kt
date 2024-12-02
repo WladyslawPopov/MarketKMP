@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
+import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -46,24 +46,25 @@ import market.engine.widgets.exceptions.onError
 import market.engine.widgets.textFields.TextInputField
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
-
 
 @Composable
 fun LoginContent(
     component: LoginComponent,
     modifier: Modifier = Modifier
 ) {
+    val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
+
     val modelState = component.model.subscribeAsState()
     val model = modelState.value.loginViewModel
+
     val isLoading = model.isShowProgress.collectAsState()
     val err = model.errorMessage.collectAsState()
-    val scrollState = rememberScrollState()
+
     val postAuth = model.responseAuth.collectAsState()
 
-    val analyticsHelper : AnalyticsHelper = koinInject()
+    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(err.value) {  } }
@@ -78,25 +79,20 @@ fun LoginContent(
 
     val successLogin = stringResource(strings.operationSuccess)
     val errorLogin = stringResource(strings.errorLogin)
-    val toastItem : MutableState<ToastItem> = remember {
-        mutableStateOf(
-            ToastItem(
-                message = "",
-                type = ToastType.ERROR,
-                isVisible = false
-            )
-        )
-    }
+
 
     LaunchedEffect(postAuth.value) {
         val res = postAuth.value?.result
         if (res != null) {
             if ( res == "SUCCESS") {
                 model.userRepository.setToken(postAuth.value?.user ?: 1L, postAuth.value?.token ?: "")
-                toastItem.value = ToastItem(
-                    message = successLogin,
-                    type = ToastType.SUCCESS,
-                    isVisible = true
+
+                model.showToast(
+                    ToastItem(
+                        isVisible = true,
+                        message = successLogin,
+                        type = ToastType.SUCCESS
+                    )
                 )
                 val events = mapOf(
                     "login_type" to "email",
@@ -116,10 +112,13 @@ fun LoginContent(
                         "login_email" to emailTextValue.value.text
                     )
                     analyticsHelper.reportEvent("login_fail",events)
-                    toastItem.value = ToastItem(
-                        message = errorLogin,
-                        type = ToastType.ERROR,
-                        isVisible = true
+
+                    model.showToast(
+                        ToastItem(
+                            message = errorLogin,
+                            type = ToastType.ERROR,
+                            isVisible = true
+                        )
                     )
                 }
             }
@@ -137,8 +136,10 @@ fun LoginContent(
                 }
             )
         },
-        toastItem = toastItem.value,
-        error = error
+        toastItem = model.toastItem.value,
+        error = error,
+        isLoading = isLoading.value,
+        onRefresh = {  }
     ) {
         Box(
             contentAlignment = Alignment.TopCenter,
@@ -222,10 +223,12 @@ fun LoginContent(
                                 captchaTextValue.value.text
                             )
                         }else{
-                            toastItem.value = ToastItem(
-                                message = errorLogin,
-                                type = ToastType.WARNING,
-                                isVisible = true
+                            model.showToast(
+                                ToastItem(
+                                    message = errorLogin,
+                                    type = ToastType.WARNING,
+                                    isVisible = true
+                                )
                             )
                         }
                     }

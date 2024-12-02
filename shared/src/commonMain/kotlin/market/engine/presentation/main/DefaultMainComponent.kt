@@ -35,6 +35,7 @@ import market.engine.core.navigation.configs.ProfileConfig
 import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.ProfileScreenType
+import market.engine.core.util.getCurrentDate
 import market.engine.presentation.category.CategoryComponent
 import market.engine.presentation.category.DefaultCategoryComponent
 import market.engine.presentation.favorites.DefaultFavoritesComponent
@@ -53,7 +54,6 @@ import market.engine.presentation.search.DefaultSearchComponent
 import market.engine.presentation.search.SearchComponent
 import market.engine.presentation.subscriptions.DefaultSubscribesComponent
 import market.engine.presentation.subscriptions.SubscribesComponent
-import org.koin.mp.KoinPlatform.getKoin
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
@@ -62,10 +62,13 @@ class DefaultMainComponent(
 
     ) : MainComponent, ComponentContext by componentContext
 {
+    override val homeStack: Value<MutableList<HomeConfig>> = MutableValue(
+        mutableListOf(HomeConfig.HomeScreen)
+    )
+    override val basketStack: Value<MutableList<BasketConfig>> = MutableValue(mutableListOf(BasketConfig.BasketScreen))
     override val categoryStack: Value<MutableList<CategoryConfig>> = MutableValue(mutableListOf(CategoryConfig.CategoryScreen(1L)))
     override val favoritesStack = MutableValue(mutableListOf(FavScreenType.FAVORITES))
     override val profileStack = MutableValue(mutableListOf(ProfileScreenType.MY_OFFERS))
-    override val mainViewModel = MutableValue<MainViewModel>(getKoin().get())
 
     private var currentNavigation = StackNavigation<MainConfig>()
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
@@ -104,6 +107,7 @@ class DefaultMainComponent(
             childFactory = ::createChild,
             key = "CategoryStack"
         )
+
 
 
 
@@ -198,7 +202,8 @@ class DefaultMainComponent(
                     componentContext,
                     config.id,
                     selectOffer = {
-                        modelNavigation.value.homeNavigation.pushNew(HomeConfig.OfferScreen(it))
+                        val offerConfig = HomeConfig.OfferScreen(it, getCurrentDate())
+                        modelNavigation.value.homeNavigation.pushNew(offerConfig)
                     },
                     onBack = {
                         modelNavigation.value.homeNavigation.pop()
@@ -229,10 +234,12 @@ class DefaultMainComponent(
                     componentContext,
                     config.id,
                     selectOffer = {
-                        modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.OfferScreen(it))
+                        navigateToOrPopUntil(CategoryConfig.OfferScreen(it, getCurrentDate()))
                     },
                     onBack = {
                         modelNavigation.value.categoryNavigation.pop()
+                        categoryStack.value.removeLastOrNull()
+                        categoryData.searchData.value.isRefreshing = true
                     }
                 )
             )
@@ -256,7 +263,10 @@ class DefaultMainComponent(
                     componentContext,
                     config.id,
                     selectOffer = {
-                        modelNavigation.value.favoritesNavigation.pushNew(FavoritesConfig.OfferScreen(it))
+                        modelNavigation.value.favoritesNavigation.pushNew(
+                            FavoritesConfig.OfferScreen(it, getCurrentDate()
+                            )
+                        )
                     },
                     onBack = {
                         modelNavigation.value.favoritesNavigation.pop()
@@ -293,7 +303,7 @@ class DefaultMainComponent(
                     componentContext,
                     config.id,
                     selectOffer = {
-                        modelNavigation.value.profileNavigation.pushNew(ProfileConfig.OfferScreen(it))
+                        modelNavigation.value.profileNavigation.pushNew(ProfileConfig.OfferScreen(it, getCurrentDate()))
                     },
                     onBack = {
                         modelNavigation.value.profileNavigation.pop()
@@ -326,7 +336,7 @@ class DefaultMainComponent(
                 goToLogin()
             },
             navigateToOfferSelected = { id ->
-                modelNavigation.value.homeNavigation.pushNew(HomeConfig.OfferScreen(id))
+                modelNavigation.value.homeNavigation.pushNew(HomeConfig.OfferScreen(id, getCurrentDate()))
             }
         )
     }
@@ -379,7 +389,7 @@ class DefaultMainComponent(
                 navigateToOrPopUntil(CategoryConfig.SearchScreen)
             },
             selectOffer = { id ->
-                navigateToOrPopUntil(CategoryConfig.OfferScreen(id))
+                navigateToOrPopUntil(CategoryConfig.OfferScreen(id, getCurrentDate()))
             },
             onBackPressed = {
                 categoryStack.value.removeLast()
@@ -417,7 +427,10 @@ class DefaultMainComponent(
             componentContext = componentContext,
             type = config.type,
             offerSelected = { id ->
-                modelNavigation.value.profileNavigation.pushNew(ProfileConfig.OfferScreen(id))
+                modelNavigation.value.profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+            },
+            selectedMyOfferPage = { type ->
+                selectMyOfferPage(type)
             }
         )
     }
@@ -472,18 +485,13 @@ class DefaultMainComponent(
     private fun pushFavStack(screenType: FavScreenType, id: Long = 1L){
         when(screenType){
             FavScreenType.FAVORITES -> {
-                favoritesStack.value.remove(FavScreenType.SUBSCRIBED)
-                favoritesStack.value.add(FavScreenType.FAVORITES)
-                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.FavoritesScreen)
+                modelNavigation.value.favoritesNavigation.replaceAll(FavoritesConfig.FavoritesScreen)
             }
             FavScreenType.SUBSCRIBED -> {
-                favoritesStack.value.remove(FavScreenType.FAVORITES)
-                favoritesStack.value.add(FavScreenType.SUBSCRIBED)
-                modelNavigation.value.favoritesNavigation.replaceCurrent(FavoritesConfig.SubscriptionsScreen)
+                modelNavigation.value.favoritesNavigation.replaceAll(FavoritesConfig.SubscriptionsScreen)
             }
-
             FavScreenType.OFFER -> {
-                modelNavigation.value.favoritesNavigation.pushNew(FavoritesConfig.OfferScreen(id))
+                modelNavigation.value.favoritesNavigation.pushNew(FavoritesConfig.OfferScreen(id, getCurrentDate()))
             }
         }
     }
@@ -506,6 +514,7 @@ class DefaultMainComponent(
             }
         }
     }
+
     private var activeCurrent = "Home"
     override fun navigateToBottomItem(config: MainConfig) {
         when(config){

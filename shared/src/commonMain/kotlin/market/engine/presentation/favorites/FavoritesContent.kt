@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import app.cash.paging.compose.collectAsLazyPagingItems
-import application.market.agora.business.core.network.functions.OfferOperations
+import market.engine.core.network.functions.OfferOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -22,13 +22,10 @@ import market.engine.core.types.LotsType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
-import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.main.UIMainEvent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun FavoritesContent(
@@ -40,7 +37,6 @@ fun FavoritesContent(
     val listingData = favViewModel.listingData
     val data = favViewModel.pagingDataFlow.collectAsLazyPagingItems()
 
-    val mainViewModel : MainViewModel = koinViewModel()
     val offerOperations : OfferOperations = koinInject()
 
     val selectedItems = remember { favViewModel.selectItems }
@@ -49,21 +45,6 @@ fun FavoritesContent(
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
-
-    LaunchedEffect(Unit) {
-        mainViewModel.sendEvent(UIMainEvent.UpdateTopBar {
-            FavoritesAppBar(
-                FavScreenType.FAVORITES,
-                modifier
-            ) { type ->
-                if (type == FavScreenType.SUBSCRIBED) {
-                    component.goToSubscribes()
-                }
-            }
-        })
-
-        mainViewModel.sendEvent(UIMainEvent.UpdateFloatingActionButton {})
-    }
 
     LaunchedEffect(selectedItems){
         snapshotFlow {
@@ -76,6 +57,16 @@ fun FavoritesContent(
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
     ListingBaseContent(
+        topBar = {
+            FavoritesAppBar(
+                FavScreenType.FAVORITES,
+                modifier
+            ) { type ->
+                if (type == FavScreenType.SUBSCRIBED) {
+                    component.goToSubscribes()
+                }
+            }
+        },
         columns = columns,
         modifier = modifier,
         listingData = ld,
@@ -130,6 +121,7 @@ fun FavoritesContent(
         item = { offer->
             FavItem(
                 offer,
+                favViewModel,
                 onSelectionChange = { isSelect ->
                     if (isSelect) {
                         selectedItems.add(offer.id)

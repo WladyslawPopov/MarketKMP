@@ -3,7 +3,7 @@ package market.engine.presentation.login
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.analytics.AnalyticsHelper
+import market.engine.common.AnalyticsFactory
 import market.engine.core.globalData.SAPI
 import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
@@ -27,7 +27,7 @@ class DefaultLoginComponent(
 
     private val userRepository = getKoin().get<UserRepository>()
 
-    private val analyticsHelper = getKoin().get<AnalyticsHelper>()
+    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
 
     private val _model = MutableValue(

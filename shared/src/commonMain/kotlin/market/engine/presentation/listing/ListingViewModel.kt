@@ -20,18 +20,19 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.network.paging.offer.OfferPagingRepository
+import market.engine.core.network.paging.PagingRepository
 import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
 class ListingViewModel(
     private val apiService: APIService,
-    private val offerPagingRepository: OfferPagingRepository,
 ) : BaseViewModel() {
+
+    private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
     private val categoryOperations : CategoryOperations = getKoin().get()
 
-    var listingData = mutableStateOf(CategoryBaseFilters.filtersData)
+    var listingData = CategoryBaseFilters.filtersData
 
     val regionOptions = mutableStateOf(arrayListOf<Options>())
 
@@ -41,22 +42,25 @@ class ListingViewModel(
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
      init {
-         listingData.value.data.value.methodServer = "get_public_listing"
-         if (listingData.value.data.value.filters.isNullOrEmpty()) {
-             listingData.value.data.value.filters = arrayListOf()
-             listingData.value.data.value.filters?.addAll(EmptyFilters.getEmpty())
+         listingData.data.value.methodServer = "get_public_listing"
+         listingData.data.value.objServer = "offers"
+
+         if (listingData.data.value.filters.isNullOrEmpty()) {
+             listingData.data.value.filters = arrayListOf()
+             listingData.data.value.filters?.addAll(EmptyFilters.getEmpty())
          }
-         listingData.value.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0
-         pagingDataFlow = offerPagingRepository.getListing(listingData.value).cachedIn(viewModelScope)
+         listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0
+
+         pagingDataFlow = pagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
+
          getRegions()
 
-         firstVisibleItemScrollOffset = 0
-         firstVisibleItemIndex = 0
-         getOffersRecommendedInListing(listingData.value.searchData.value.searchCategoryID ?: 1L)
+         getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID ?: 1L)
      }
 
     fun refresh(){
-        offerPagingRepository.refresh()
+
+        pagingRepository.refresh()
     }
 
     private fun getOffersRecommendedInListing(categoryID:Long) {
@@ -67,7 +71,8 @@ class ListingViewModel(
 
                     withContext(Dispatchers.Main) {
                         try {
-                            val payload : Payload<Offer> = deserializePayload(response.payload)
+                            val serializer = Payload.serializer(Offer.serializer())
+                            val payload : Payload<Offer> = deserializePayload(response.payload, serializer)
                             _responseOffersRecommendedInListing.value = payload.objects
                         }catch (e : Exception){
                             throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

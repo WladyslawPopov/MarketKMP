@@ -1,18 +1,18 @@
 package market.engine.core.network
 
+import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.globalData.UserData
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
 import market.engine.core.util.getCurrentDate
-import org.koin.mp.KoinPlatform.getKoin
 
 class UrlBuilder {
 
     private val queryParams: MutableMap<String, String> = mutableMapOf()
     private val pathSegments: MutableList<String> = mutableListOf()
 
-    private val analyticsHelper : AnalyticsHelper = getKoin().get()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
 
     fun addQueryParameter(name: String, value: String?): UrlBuilder {

@@ -1,6 +1,7 @@
-package application.market.agora.business.core.network.functions
+package market.engine.core.network.functions
 
 
+import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.deserializePayload
@@ -14,9 +15,10 @@ class ConversationsOperations(private val apiService : APIService) {
         return try {
             val response = apiService.getConversation(id)
             try {
+                val serializer = ListSerializer(Conversations.serializer())
                 val payload =
-                    deserializePayload<ArrayList<Conversations>>(
-                        response.payload
+                    deserializePayload<List<Conversations>>(
+                        response.payload, serializer
                     )
                 payload.firstOrNull()
             }catch (e : Exception){

@@ -11,5 +11,5 @@ sealed class FavoritesConfig {
     data object SubscriptionsScreen : FavoritesConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long) : FavoritesConfig()
+    data class OfferScreen(val id: Long, val ts: String) : FavoritesConfig()
 }

@@ -11,7 +11,7 @@ actual fun getPermissionHandler(): PermissionHandler {
 
 class IosPermissionHandler : PermissionHandler {
     private val settingsHelper : SettingsRepository = getKoin().get()
-    private val analyticsHelper : AnalyticsHelper = getKoin().get()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     private fun requestNotificationPermission(callback: (Boolean) -> Unit) {
         val center = UNUserNotificationCenter.currentNotificationCenter()

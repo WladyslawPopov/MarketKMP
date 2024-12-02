@@ -10,5 +10,5 @@ sealed class ProfileConfig {
     data object MyOffersScreen : ProfileConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long) : ProfileConfig()
+    data class OfferScreen(val id: Long, val ts: String) : ProfileConfig()
 }

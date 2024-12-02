@@ -9,10 +9,8 @@ import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import market.engine.core.types.LotsType
 import market.engine.presentation.main.MainComponent
-import market.engine.presentation.main.MainViewModel
-import market.engine.presentation.main.UIMainEvent
 import market.engine.presentation.profile.ProfileDrawer
-import org.koin.compose.viewmodel.koinViewModel
+
 
 @Composable
 fun ProfileMyOffersNavigation(
@@ -20,8 +18,6 @@ fun ProfileMyOffersNavigation(
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
-    val mainViewModel : MainViewModel = koinViewModel()
 
     ModalNavigationDrawer(
         modifier = modifier,
@@ -45,24 +41,12 @@ fun ProfileMyOffersNavigation(
                         LotsType.MYLOT_ACTIVE
                     }
                 }
-
-                mainViewModel.sendEvent(
-                    UIMainEvent.UpdateTopBar {
-                        ProfileMyOffersAppBar(
-                            select,
-                            drawerState = drawerState,
-                            navigationClick = { newType->
-                                component.selectMyOfferPage(newType)
-                            }
-                        )
-
-                        component.selectMyOfferPage(select)
-                    }
-                )
+                component.selectMyOfferPage(select)
             }
         ) { _, page ->
             MyOffersContent(
                 component = page,
+                drawerState,
                 modifier = modifier
             )
         }

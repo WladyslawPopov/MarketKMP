@@ -19,7 +19,7 @@ class APIService(private val client: HttpClient) {
     suspend fun getImage(url: String): HttpResponse =
         client.get(url).body()
 
-    suspend fun getPageOffers(url: String): AppResponse =
+    suspend fun getPage(url: String): AppResponse =
         client.get(url).body()
 
     suspend fun getPageSub(url: String): AppResponse =

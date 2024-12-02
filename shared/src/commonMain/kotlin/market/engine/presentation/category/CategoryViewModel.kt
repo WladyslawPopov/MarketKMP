@@ -29,7 +29,8 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
         viewModelScope.launch {
             try {
                 val response =  apiService.getPublicCategories(searchData.searchCategoryID ?: 1)
-                val payload: Payload<Category> = deserializePayload(response.payload)
+                val serializer = Payload.serializer(Category.serializer())
+                val payload: Payload<Category> = deserializePayload(response.payload, serializer)
 
                 val ld = CategoryBaseFilters.filtersData.deepCopy()
                 val categoriesWithLotCounts = payload.objects.map { category ->

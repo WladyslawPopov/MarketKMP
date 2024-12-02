@@ -1,5 +1,6 @@
-package application.market.agora.business.core.network.functions
+package market.engine.core.network.functions
 
+import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.AppResponse
@@ -9,6 +10,8 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonElement
+import market.engine.core.network.networkObjects.AdditionalData
+import market.engine.core.network.networkObjects.PayloadExistence
 
 class SubscriptionOperations(private val apiService: APIService) {
 
@@ -45,11 +48,12 @@ class SubscriptionOperations(private val apiService: APIService) {
         }
     }
 
-    suspend fun getOperationsSubscription(id: Long = 1L): ServerResponse<ArrayList<Operations>> {
+    suspend fun getOperationsSubscription(id: Long = 1L): ServerResponse<List<Operations>> {
         return try {
             val response = apiService.getSubscriptionOperations(id)
             try {
-                val payload : ArrayList<Operations> = deserializePayload(response.payload)
+                val serializer = ListSerializer(Operations.serializer())
+                val payload : List<Operations> = deserializePayload(response.payload, serializer)
                 ServerResponse(payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -65,7 +69,8 @@ class SubscriptionOperations(private val apiService: APIService) {
         return try {
             val response = apiService.getSubscriptionsEditSubscription(id)
             try {
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

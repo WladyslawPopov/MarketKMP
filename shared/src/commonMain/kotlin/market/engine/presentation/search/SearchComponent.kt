@@ -4,6 +4,7 @@ import market.engine.core.globalData.UserData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -43,7 +44,7 @@ class DefaultSearchComponent(
     )
 
     override val model: Value<SearchComponent.Model> = _model
-    private val analyticsHelper : AnalyticsHelper = getKoin().get()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
     private val searchViewModel: SearchViewModel = getKoin().get()
     private val searchData = model.value.searchViewModel.searchData
 
@@ -59,7 +60,7 @@ class DefaultSearchComponent(
         searchAnalytic()
         val searchString = searchData.value.searchString
         if (searchString != "" && searchString != null) {
-            val sh = searchViewModel.dataBase.searchHistoryQueries
+            val sh = searchViewModel.db.searchHistoryQueries
             if (sh.selectSearch(searchString, UserData.login).executeAsList().isEmpty()){
                 sh.insertEntry(searchString, UserData.login)
             }
@@ -72,13 +73,13 @@ class DefaultSearchComponent(
     }
 
     override fun deleteHistory() {
-        val sh = searchViewModel.dataBase.searchHistoryQueries
+        val sh = searchViewModel.db.searchHistoryQueries
         sh.deleteAll()
         searchViewModel.getHistory()
     }
 
     override fun deleteItemHistory(id: Long) {
-        val sh = searchViewModel.dataBase.searchHistoryQueries
+        val sh = searchViewModel.db.searchHistoryQueries
         sh.deleteById(id, UserData.login)
         searchViewModel.getHistory()
     }
