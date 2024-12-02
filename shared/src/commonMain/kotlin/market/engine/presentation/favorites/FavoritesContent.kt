@@ -17,14 +17,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.items.ToastItem
+import market.engine.core.repositories.UserRepository
 import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
+import market.engine.core.types.ToastType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -38,13 +43,17 @@ fun FavoritesContent(
     val data = favViewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val offerOperations : OfferOperations = koinInject()
+    val userRepository : UserRepository = koinInject()
 
     val selectedItems = remember { favViewModel.selectItems }
 
     val ld = listingData.value.data.subscribeAsState()
+    val sd = listingData.value.searchData.subscribeAsState()
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
+
+    val successToast = stringResource(strings.operationSuccess)
 
     LaunchedEffect(selectedItems){
         snapshotFlow {
@@ -55,6 +64,27 @@ fun FavoritesContent(
     }
 
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
+
+
+    //update item when we back
+    LaunchedEffect(Unit) {
+        if (favViewModel.updateItem.value != null) {
+            withContext(Dispatchers.Default) {
+                val offer =
+                    favViewModel.getUpdatedOfferById(favViewModel.updateItem.value!!)
+                withContext(Dispatchers.Main) {
+                    if (offer != null) {
+                        data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
+                            offer.isWatchedByMe
+                        favViewModel.updateItem.value = null
+                    }else{
+                        favViewModel.updateItem.value = null
+                    }
+                }
+            }
+        }
+    }
+
 
     ListingBaseContent(
         topBar = {
@@ -69,11 +99,13 @@ fun FavoritesContent(
         },
         columns = columns,
         modifier = modifier,
-        listingData = ld,
+        listingData = ld.value,
         data = data,
-        searchData = listingData.value.searchData.subscribeAsState(),
+        searchData = sd.value,
         baseViewModel = favViewModel,
         onRefresh = {
+            favViewModel.firstVisibleItemIndex = 0
+            favViewModel.firstVisibleItemScrollOffset = 0
             data.refresh()
         },
         filtersContent = { isRefreshingFromFilters, onClose ->
@@ -119,25 +151,37 @@ fun FavoritesContent(
             }
         },
         item = { offer->
-            FavItem(
-                offer,
-                favViewModel,
-                onSelectionChange = { isSelect ->
-                    if (isSelect) {
+            AnimatedVisibility (offer.isWatchedByMe, exit = fadeOut()) {
+                FavItem(
+                    offer,
+                    favViewModel,
+                    onSelectionChange = { isSelect ->
+                        if (isSelect) {
+                            selectedItems.add(offer.id)
+                        } else {
+                            selectedItems.remove(offer.id)
+                        }
+                    },
+                    onUpdateOfferItem = { selectedOffer ->
+                        data.itemSnapshotList.find { it?.id == selectedOffer.id }?.isWatchedByMe = false
+                        userRepository.updateUserInfo(favViewModel.viewModelScope)
+                        favViewModel.updateItem.value = selectedOffer.id
+                        favViewModel.updateItem.value = null // update item immediately
+                        favViewModel.showToast(ToastItem(
+                            isVisible = true,
+                            type = ToastType.SUCCESS,
+                            message = successToast
+                        ))
+                    },
+                    isSelected = selectedItems.contains(offer.id),
+                ) {
+                    if (selectedItems.isNotEmpty()) {
                         selectedItems.add(offer.id)
                     } else {
-                        selectedItems.remove(offer.id)
+                        component.goToOffer(offer)
+                        // set item for update
+                        favViewModel.updateItem.value = offer.id
                     }
-                },
-                onUpdateOfferItem = {
-                    data.refresh()
-                },
-                isSelected = selectedItems.contains(offer.id),
-            ) {
-                if (selectedItems.isNotEmpty()) {
-                    selectedItems.add(offer.id)
-                } else {
-                    component.goToOffer(offer)
                 }
             }
         }

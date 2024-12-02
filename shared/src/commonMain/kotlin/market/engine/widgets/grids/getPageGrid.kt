@@ -18,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,14 +42,14 @@ fun <T : Any> PagingList(
     data: LazyPagingItems<T>,
     state: LazyListState = rememberLazyListState(),
     columns : Int = 1,
-    listingData: State<LD>,
-    searchData: State<SD>? = null,
+    listingData: LD,
+    searchData: SD? = null,
     promoList: ArrayList<Offer>? = null,
     promoContent: (@Composable (Offer) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
-    val itemsPerPage = listingData.value.pageCountItems
-    val totalPages = listingData.value.totalPages
+    val itemsPerPage = listingData.pageCountItems
+    val totalPages = listingData.totalPages
 
     var previousIndex by remember { mutableStateOf(0) }
     var showUpButton by remember { mutableStateOf(false) }
@@ -134,19 +133,15 @@ fun <T : Any> PagingList(
                 }
             }
 
-            var isShowEndPromo = false
             items(data.itemCount) { index ->
-                if (promoContent != null && searchData?.value?.userSearch == false && searchData.value.searchString.isNullOrEmpty()) {
-                    if (index > 0 && !isShowEndPromo) {
+                if (promoContent != null && searchData?.userSearch == false && searchData.searchString.isNullOrEmpty()) {
+                    if (index > 0) {
                         val item = data[index] as? Offer
                         if (item?.promoOptions == null) {
                             val lastItem = data[index - 1] as? Offer
                             if (lastItem != null) {
-                                val isLastItemPromo =
-                                    lastItem.promoOptions?.any { it.id == "featured_in_listing" } == true
-
+                                val isLastItemPromo = lastItem.promoOptions?.any { it.id == "featured_in_listing" } == true
                                 if (isLastItemPromo) {
-                                    isShowEndPromo = true
                                     Text(
                                         text = stringResource(strings.promoEndLabel),
                                         color = colors.titleTextColor,
@@ -183,7 +178,7 @@ fun <T : Any> PagingList(
 
         PagingCounterBar(
             currentPage = currentPage,
-            totalPages = listingData.value.totalPages,
+            totalPages = listingData.totalPages,
             modifier = Modifier.align(Alignment.BottomStart)
         )
     }

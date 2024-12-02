@@ -2,7 +2,6 @@ package market.engine.presentation.listing
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -11,10 +10,8 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.constants.ThemeResources.strings
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
@@ -47,30 +44,28 @@ fun ListingContent(
 
     val data = remember { listingViewModel.pagingDataFlow }.collectAsLazyPagingItems()
 
-    LaunchedEffect(searchData.value) {
-        if (searchData.value.isRefreshing) {
-            if (listingViewModel.updateItem.value != null){
-                withContext(Dispatchers.IO) {
-                    val offer =
-                        listingViewModel.getUpdatedOfferById(listingViewModel.updateItem.value!!)
-                    withContext(Dispatchers.Main) {
-                        if (offer != null) {
-                            data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
-                                offer.isWatchedByMe
-                        }
-                        listingViewModel.updateItem.value = null
+    //update item when we back
+    LaunchedEffect(Unit) {
+        if (listingViewModel.updateItem.value != null){
+            withContext(Dispatchers.IO) {
+                val offer =
+                    listingViewModel.getUpdatedOfferById(listingViewModel.updateItem.value!!)
+                withContext(Dispatchers.Main) {
+                    if (offer != null) {
+                        data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
+                            offer.isWatchedByMe
                     }
+                    listingViewModel.updateItem.value = null
                 }
             }
-            searchData.value.isRefreshing = false
         }
     }
 
     ListingBaseContent(
         columns = columns,
         modifier = modifier,
-        listingData,
-        searchData,
+        listingData.value,
+        searchData.value,
         data = data,
         baseViewModel = listingViewModel,
         topBar = {
@@ -86,6 +81,8 @@ fun ListingContent(
             )
         },
         onRefresh = {
+            listingViewModel.firstVisibleItemIndex = 0
+            listingViewModel.firstVisibleItemScrollOffset = 0
             columns.value = if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
             listingViewModel.refresh()
         },

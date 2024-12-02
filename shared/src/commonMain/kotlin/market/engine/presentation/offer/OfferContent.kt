@@ -178,7 +178,7 @@ fun OfferContent(
             isLoading = isLoading.value,
             error = error,
             noFound = null,
-            toastItem = offerViewModel.toastItem.value,
+            toastItem = offerViewModel.toastItem,
             onRefresh = {
                 component.updateOffer(offer.id)
             },
@@ -1497,7 +1497,7 @@ fun TimeOfferSession(
             text = buildAnnotatedString {
                 append(remainingTime)
                 if (offer.session?.end != null) {
-                    append(" \n (${offer.session.end.convertDateWithMinutes()})")
+                    append(" \n (${offer.session?.end?.convertDateWithMinutes()})")
                 }
             },
             style = MaterialTheme.typography.bodyMedium,

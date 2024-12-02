@@ -99,10 +99,10 @@ class OfferViewModel(
                                 offer.state == "active" -> {
                                     when {
                                         offer.session == null -> OfferStates.COMPLETED
-                                        (offer.session.start?.toLongOrNull()
+                                        (offer.session?.start?.toLongOrNull()
                                             ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
 
-                                        (offer.session.end?.toLongOrNull()
+                                        (offer.session?.end?.toLongOrNull()
                                             ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
 
                                         else -> OfferStates.INACTIVE

@@ -186,7 +186,7 @@ fun HomeContent(
             },
             error = errorContent,
             noFound = null,
-            toastItem = homeViewModel.toastItem.value,
+            toastItem = homeViewModel.toastItem,
             modifier = Modifier.fillMaxSize()
         ) {
             Box(

@@ -239,7 +239,6 @@ class DefaultMainComponent(
                     onBack = {
                         modelNavigation.value.categoryNavigation.pop()
                         categoryStack.value.removeLastOrNull()
-                        categoryData.searchData.value.isRefreshing = true
                     }
                 )
             )
@@ -473,6 +472,7 @@ class DefaultMainComponent(
             } else {
                 if (isReplace) {
                     stack.removeLastOrNull()
+                    stack.add(screenConfig)
                     modelNavigation.value.categoryNavigation.replaceCurrent(screenConfig)
                 }else {
                     stack.add(screenConfig)

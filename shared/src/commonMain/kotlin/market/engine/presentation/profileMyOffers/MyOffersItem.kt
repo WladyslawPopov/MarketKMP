@@ -163,7 +163,7 @@ fun MyOffersItem(
                         if (!offer.isPrototype) {
                             var sessionEnd = stringResource(strings.offerSessionInactiveLabel)
                             if (offer.session != null) {
-                                sessionEnd = offer.session.end?.convertDateWithMinutes() ?: ""
+                                sessionEnd = offer.session?.end?.convertDateWithMinutes() ?: ""
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,

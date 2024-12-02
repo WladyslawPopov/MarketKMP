@@ -1,7 +1,10 @@
 package market.engine.widgets.lists
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenuItem
@@ -24,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import market.engine.core.constants.ThemeResources.colors
@@ -52,8 +55,14 @@ fun getDropdownMenu(
 
     Column(
         modifier = Modifier
+            .shadow(elevation = 3.dp, shape = MaterialTheme.shapes.medium, true)
             .clip(MaterialTheme.shapes.medium)
-            .background(color = colors.white),
+            .background(color = colors.white)
+            .animateContentSize(
+                animationSpec = spring(
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            ),
     ){
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -96,13 +105,13 @@ fun getDropdownMenu(
             }
         }
 
-        AnimatedVisibility(expanded) {
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 300.dp)
-                    .clip(MaterialTheme.shapes.medium)
-            ) {
-                items(selects){ option ->
+        LazyColumn(
+            modifier = Modifier
+                .heightIn(max = 300.dp)
+                .clip(MaterialTheme.shapes.medium)
+        ) {
+            if(expanded) {
+                items(selects) { option ->
                     DropdownMenuItem(
                         onClick = {
                             onItemClick(option)

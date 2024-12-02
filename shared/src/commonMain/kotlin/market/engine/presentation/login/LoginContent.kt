@@ -136,7 +136,7 @@ fun LoginContent(
                 }
             )
         },
-        toastItem = model.toastItem.value,
+        toastItem = model.toastItem,
         error = error,
         isLoading = isLoading.value,
         onRefresh = {  }

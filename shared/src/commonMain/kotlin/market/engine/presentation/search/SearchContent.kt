@@ -61,7 +61,7 @@ fun SearchContent(
         error = error,
         isLoading = isLoading.value,
         noFound = null,
-        toastItem = searchViewModel.toastItem.value,
+        toastItem = searchViewModel.toastItem,
         onRefresh = {
             searchString = searchString.copy("")
             component.updateHistory(searchString.text)

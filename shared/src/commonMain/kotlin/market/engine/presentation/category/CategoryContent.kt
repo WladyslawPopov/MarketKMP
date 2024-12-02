@@ -136,15 +136,18 @@ fun CategoryContent(
             onRefresh = {
                 component.onRefresh(searchData.value)
             },
-            noFound = {
+            noFound =
                 if (categories.value.isEmpty() && !isLoading.value){
-                    showNoItemLayout {
-                        searchData.value.clear()
-                        component.onRefresh(searchData.value)
+                    {
+                        showNoItemLayout {
+                            searchData.value.clear()
+                            component.onRefresh(searchData.value)
+                        }
                     }
-                }
-            },
-            toastItem = categoryViewModel.toastItem.value,
+                }else{
+                    null
+                },
+            toastItem = categoryViewModel.toastItem,
             modifier = modifier.fillMaxSize()
         ) {
             LazyColumn(

@@ -41,8 +41,8 @@ import market.engine.widgets.grids.PagingList
 fun <T : Any>ListingBaseContent(
     columns : MutableState<Int> = mutableStateOf(1),
     modifier: Modifier = Modifier,
-    listingData : State<LD>,
-    searchData : State<SD>,
+    listingData : LD,
+    searchData : SD,
     data : LazyPagingItems<T>,
     baseViewModel: BaseViewModel,
     onRefresh : () -> Unit,
@@ -59,8 +59,6 @@ fun <T : Any>ListingBaseContent(
 ){
 
     val activeFiltersType = remember { baseViewModel.activeFiltersType }
-
-    val isHideContent = remember { mutableStateOf(baseViewModel.isHideContent.value) }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
 
@@ -79,8 +77,12 @@ fun <T : Any>ListingBaseContent(
 
     data.loadState.apply {
         when {
+            refresh is LoadStateNotLoading && data.itemCount > 0 && !isLoading.value -> {
+                error = null
+                noItem = null
+            }
+
             refresh is LoadStateNotLoading && data.itemCount < 1 && !isLoading.value -> {
-                isHideContent.value = true
                 noItem = {
                     showNoItemLayout {
                         onRefresh()
@@ -89,7 +91,6 @@ fun <T : Any>ListingBaseContent(
             }
 
             refresh is LoadStateError && !isLoading.value -> {
-                isHideContent.value = true
                 error = {
                     onError(
                         ServerErrorException(
@@ -139,13 +140,20 @@ fun <T : Any>ListingBaseContent(
         }
     }
 
+    LaunchedEffect(searchData.isRefreshing){
+        if (searchData.isRefreshing){
+            onRefresh()
+            searchData.isRefreshing = false
+        }
+    }
+
     BaseContent(
         topBar = topBar,
         onRefresh = onRefresh,
-        error = error,
-        noFound = noItem,
+        error = null,
+        noFound = null,
         isLoading = isLoading.value,
-        toastItem = baseViewModel.toastItem.value,
+        toastItem = baseViewModel.toastItem,
         floatingActionButton = floatingActionButton,
         modifier = modifier.fillMaxSize()
     ) {
@@ -179,12 +187,12 @@ fun <T : Any>ListingBaseContent(
                 additionalBar(scrollState)
 
                 FiltersBar(
-                    listingData.value,
-                    searchData.value,
+                    listingData,
+                    searchData,
                     isShowGrid = isShowGrid,
                     onChangeTypeList = {
                         baseViewModel.settings.setSettingValue("listingType", it)
-                        listingData.value.listingType = it
+                        listingData.listingType = it
                         onRefresh()
                     },
                     onFilterClick = {
@@ -199,24 +207,20 @@ fun <T : Any>ListingBaseContent(
                     },
                     onRefresh = { data.refresh() }
                 )
-
-                if (error != null) {
-                    error!!()
-                } else {
-                    if (noItem != null) {
-                        noItem!!()
-                    } else {
-                        AnimatedVisibility(
-                            baseViewModel.updateItem.value == null,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .animateContentSize()
-                            ) {
-
+                AnimatedVisibility(
+                    baseViewModel.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .animateContentSize()
+                    ) {
+                        when{
+                            error != null -> error?.invoke()
+                            noItem != null -> noItem?.invoke()
+                            else -> {
                                 PagingList(
                                     state = scrollState,
                                     data = data,

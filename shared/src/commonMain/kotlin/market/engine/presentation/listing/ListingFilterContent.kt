@@ -8,6 +8,7 @@ import androidx.compose.runtime.State
 import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import market.engine.core.constants.ThemeResources.colors
 import market.engine.core.constants.ThemeResources.dimens
@@ -56,7 +60,7 @@ fun FilterListingContent(
     regionsOptions: ArrayList<Options>,
     onClosed: () -> Unit,
 ) {
-
+    val focusManager: FocusManager = LocalFocusManager.current
     val saleTypeFilters = listOf(
         "buynow" to stringResource(strings.buyNow),
         "auction" to stringResource(strings.ordinaryAuction),
@@ -91,7 +95,11 @@ fun FilterListingContent(
     val timeOptions = timeFilterMap.map { it.second }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        }
     ){
         Row(
             modifier = Modifier.fillMaxWidth()

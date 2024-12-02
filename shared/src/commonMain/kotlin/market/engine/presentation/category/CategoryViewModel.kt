@@ -47,7 +47,7 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", "An error occurred"))
+                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
             } finally {
                 setLoading(false)
             }

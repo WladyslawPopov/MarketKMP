@@ -31,9 +31,9 @@ fun SubscribesContent(
             }
         },
         modifier = modifier,
-        listingData = listingData,
+        listingData = listingData.value,
         data = data,
-        searchData = searchData,
+        searchData = searchData.value,
         baseViewModel = subViewModel,
         onRefresh = {
             subViewModel.refresh()

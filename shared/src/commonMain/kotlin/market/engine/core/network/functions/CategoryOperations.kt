@@ -20,7 +20,7 @@ class CategoryOperations(private val apiService : APIService) {
             try {
                 val categoryListSerializer = ListSerializer(Category.serializer())
                 val payload =
-                    deserializePayload<List<Category>>(
+                    deserializePayload(
                         response.payload, categoryListSerializer
                     )
                 ServerResponse(success = payload.firstOrNull())
@@ -46,6 +46,7 @@ class CategoryOperations(private val apiService : APIService) {
         try {
             val response = apiService.getPage(url)
             try {
+
                 val serializer = Payload.serializer(RegionOptions.serializer())
                 val payload: Payload<RegionOptions> = deserializePayload(response.payload!!, serializer)
                 return ServerResponse(payload.totalCount)

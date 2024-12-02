@@ -364,6 +364,8 @@ fun getOfferOperations(
 
     if (showDialog.value) {
         AlertDialog(
+            containerColor = colors.white,
+            tonalElevation = 0.dp,
             onDismissRequest = { showDialog.value = false },
             title = { Text(stringResource(strings.messageAboutError)) },
             text = { Text(errorMes.value) },
@@ -386,6 +388,7 @@ fun getOfferOperations(
             title = { Text(stringResource(strings.deleteSelectedLot)) },
             text = {  },
             containerColor = colors.white,
+            tonalElevation = 0.dp,
             confirmButton = {
                 SimpleTextButton(
                     text = stringResource(strings.acceptAction),
@@ -467,6 +470,8 @@ fun getOfferOperations(
 
         AnimatedVisibility(show.value) {
             AlertDialog(
+                containerColor = colors.white,
+                tonalElevation = 0.dp,
                 onDismissRequest = { showActivateOfferDialog.value = false },
                 title = { Text(title.value, style = MaterialTheme.typography.labelSmall) },
                 text = {
@@ -549,7 +554,7 @@ fun getOfferOperations(
         val oneDayInMillis = 24 * 60 * 60 * 1000
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = currentDate.toLong()*1000 + oneDayInMillis,
-            yearRange = currentYear.toInt()..2100,
+            yearRange = currentYear.toInt()..currentYear.toInt()+100,
             selectableDates = selectableDates
         )
 
@@ -558,6 +563,10 @@ fun getOfferOperations(
         )
 
         DatePickerDialog(
+            colors = DatePickerDefaults.colors(
+                containerColor = colors.white
+            ),
+            tonalElevation = 0.dp,
             properties = DialogProperties(usePlatformDefaultWidth = true),
             onDismissRequest = {
                 showActivateOfferForFutureDialog.value = false

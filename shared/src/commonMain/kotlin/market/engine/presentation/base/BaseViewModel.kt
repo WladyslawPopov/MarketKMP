@@ -1,6 +1,7 @@
 package market.engine.presentation.base
 
 import androidx.compose.material.BottomSheetValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +43,7 @@ open class BaseViewModel: ViewModel() {
     private val _errorMessage = MutableStateFlow(ServerErrorException())
     val errorMessage: StateFlow<ServerErrorException> = _errorMessage.asStateFlow()
 
-    private val _toastItem = MutableStateFlow(ToastItem(message = "", type = ToastType.WARNING, isVisible = false))
-    val toastItem: StateFlow<ToastItem> = _toastItem.asStateFlow()
+    val toastItem = mutableStateOf(ToastItem(message = "", type = ToastType.WARNING, isVisible = false))
 
     private val _isShowProgress = MutableStateFlow(false)
     val isShowProgress: StateFlow<Boolean> = _isShowProgress.asStateFlow()
@@ -58,11 +58,11 @@ open class BaseViewModel: ViewModel() {
         _isShowProgress.value = isLoading
     }
 
-    fun showToast(toastItem: ToastItem) {
-        _toastItem.value = toastItem
+    fun showToast(newToast: ToastItem) {
+        toastItem.value = newToast
         viewModelScope.launch {
             delay(3000)
-            _toastItem.value = ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
+            toastItem.value = ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
         }
     }
 
@@ -75,7 +75,6 @@ open class BaseViewModel: ViewModel() {
     var selectItems = mutableStateListOf<Long>()
 
     //filters params
-    var isHideContent = mutableStateOf(false)
     var activeFiltersType = mutableStateOf("")
     val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
 }
