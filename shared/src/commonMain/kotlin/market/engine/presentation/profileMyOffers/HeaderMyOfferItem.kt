@@ -19,11 +19,8 @@ import androidx.compose.ui.Modifier
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
-import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
-import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 
 @Composable
@@ -31,37 +28,15 @@ fun HeaderMyOfferItem(
     offer: Offer,
     onMenuClick: () -> Unit,
 ) {
-    var typeString = ""
-    var colorType = colors.titleTextColor
-
     Row(
-        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+        modifier = Modifier.fillMaxWidth()
+            .padding(dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        when (offer.saleType) {
-            "buy_now" -> {
-                typeString = stringResource(strings.buyNow)
-            }
-
-            "ordinary_auction" -> {
-                typeString = stringResource(strings.ordinaryAuction)
-            }
-
-            "auction_with_buy_now" -> {
-                typeString = stringResource(strings.blitzAuction)
-                colorType = colors.auctionWithBuyNow
-            }
-        }
-
-        TitleText(
-            text = typeString,
-            color = colorType
-        )
-
         Row(
-            modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
-            horizontalArrangement = Arrangement.End,
+            modifier = Modifier.wrapContentSize()
+                .padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Favorites Icon and Count
@@ -91,20 +66,18 @@ fun HeaderMyOfferItem(
                 text = offer.viewsCount.toString(),
                 style = MaterialTheme.typography.bodySmall,
             )
+        }
 
-            Spacer(modifier = Modifier.width(dimens.mediumPadding))
-
-            IconButton(
-                onClick = {
-                    onMenuClick()
-                },
-            ) {
-                Icon(
-                    painter = painterResource(drawables.menuIcon),
-                    contentDescription = "",
-                    tint = colors.black
-                )
-            }
+        IconButton(
+            onClick = {
+                onMenuClick()
+            },
+        ) {
+            Icon(
+                painter = painterResource(drawables.menuIcon),
+                contentDescription = "",
+                tint = colors.black
+            )
         }
     }
 }

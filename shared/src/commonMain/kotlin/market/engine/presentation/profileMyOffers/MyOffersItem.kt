@@ -37,6 +37,7 @@ import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.exceptions.getOfferOperations
+import market.engine.widgets.rows.OfferItemStatuses
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
@@ -182,101 +183,7 @@ fun MyOffersItem(
                             }
                         }
 
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Top,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                when (offer.saleType) {
-                                    "buy_now" -> {
-                                        Image(
-                                            painter = painterResource(drawables.iconCountBoxes),
-                                            contentDescription = stringResource(strings.numberOfItems),
-                                            modifier = Modifier.size(dimens.smallIconSize),
-                                        )
-
-                                        var myLotWinner = stringResource(strings.noBuyer)
-                                        var color = colors.grayText
-                                        if (offer.session != null && !offer.isPrototype) {
-                                            if (offer.currentQuantity < 2) {
-                                                if (offer.buyerData?.login != "" && offer.buyerData?.login != null) {
-                                                    myLotWinner = offer.buyerData.login
-                                                    color = colors.ratingBlue
-                                                }
-                                            }
-                                            if (offer.currentQuantity == 0){
-                                                Text(
-                                                    text = stringResource(strings.buyerParameterName),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
-                                                )
-                                            } else {
-                                                Text(
-                                                    text = offer.currentQuantity.toString(),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
-                                                )
-                                            }
-
-                                            Text(
-                                                text = myLotWinner,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = color
-                                            )
-                                        }
-                                    }
-
-                                    "auction_with_buy_now" , "ordinary_auction" -> {
-                                        Image(
-                                            painter = painterResource(drawables.iconGroup),
-                                            contentDescription = stringResource(strings.numberOfBids),
-                                            modifier = Modifier.size(dimens.smallIconSize),
-                                        )
-
-                                        var bids = stringResource(strings.noBids)
-                                        var color = colors.grayText
-
-                                        if (offer.buyerData?.login != "" && offer.buyerData?.login != null) {
-                                            bids = offer.buyerData.login
-                                            color = colors.ratingBlue
-                                        }
-
-                                        if (color == colors.ratingBlue){
-                                            Text(
-                                                text = stringResource(strings.winnerParameterName),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(horizontal = dimens.smallPadding)
-                                            )
-                                        }else{
-                                            Text(
-                                                text = offer.numParticipants.toString(),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(horizontal = dimens.smallPadding)
-                                            )
-                                        }
-
-                                        Text(
-                                            text = bids,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = color
-                                        )
-                                    }
-                                }
-
-                                if (offer.safeDeal) {
-                                    Image(
-                                        painter = painterResource(drawables.safeDealIcon),
-                                        contentDescription = "",
-                                        modifier = Modifier.size(dimens.smallIconSize).padding(
-                                            dimens.smallPadding),
-                                    )
-                                }
-                            }
-                        }
+                        OfferItemStatuses(offer)
 
 
                         if (offer.discountPercentage > 0 && offer.buyNowPrice?.toDouble() != offer.currentPricePerItem?.toDouble()) {

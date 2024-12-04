@@ -221,9 +221,9 @@ fun HomeContent(
                             component.goToOffer(it.id)
                         },
                         onAllClickButton = {
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.value =
                                 "promo_main_page"
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.interpritation =
                                 stringAllPromo
                             searchData.value.isRefreshing = true
                             component.navigateToListing()
@@ -245,13 +245,13 @@ fun HomeContent(
                             component.goToOffer(it.id)
                         },
                         onAllClickButton = {
-                            if (listingData.value.filters.isNullOrEmpty()) {
+                            if (listingData.value.filters.isEmpty()) {
                                 listingData.value.filters = arrayListOf()
-                                listingData.value.filters?.addAll(EmptyFilters.getEmpty())
+                                listingData.value.filters.addAll(EmptyFilters.getEmpty())
                             }
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.value =
+                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.value =
                                 "promo_main_page"
-                            listingData.value.filters?.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.interpritation =
                                 stringAllPromo
                             searchData.value.isRefreshing = true
                             component.navigateToListing()

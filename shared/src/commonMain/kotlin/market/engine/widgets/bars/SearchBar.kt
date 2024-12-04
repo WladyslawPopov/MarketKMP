@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -52,7 +53,8 @@ fun SearchBar(modifier: Modifier = Modifier, onSearchClick: () -> Unit) {
             Text(
                 modifier = Modifier.align(Alignment.CenterVertically).weight(0.8f),
                 text = stringResource(strings.searchTitle),
-                color = colors.black
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.steelBlue
             )
             Icon(
                 modifier = Modifier.weight(0.1f),

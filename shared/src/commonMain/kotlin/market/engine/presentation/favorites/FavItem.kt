@@ -35,6 +35,7 @@ import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.exceptions.getOfferOperations
+import market.engine.widgets.rows.OfferItemStatuses
 import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -185,116 +186,7 @@ fun FavItem(
                         }
                     }
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-
-                        var typeString = ""
-                        var colorType = colors.titleTextColor
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            when (offer.saleType) {
-                                "buy_now" -> {
-                                    typeString = stringResource(strings.buyNow)
-                                    colorType = colors.buyNowColor
-
-                                    Image(
-                                        painter = painterResource(drawables.iconCountBoxes),
-                                        contentDescription = stringResource(strings.numberOfItems),
-                                        modifier = Modifier.size(dimens.smallIconSize),
-                                    )
-
-                                    Text(
-                                        text = offer.currentQuantity.toString(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
-                                    )
-
-                                    if (offer.session != null && !offer.isPrototype) {
-                                        Text(
-                                            text = stringResource(strings.noBuyer),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = colors.grayText
-                                        )
-                                    }
-                                }
-
-                                "ordinary_auction" -> {
-                                    typeString = stringResource(strings.ordinaryAuction)
-
-                                    Image(
-                                        painter = painterResource(drawables.iconGroup),
-                                        contentDescription = stringResource(strings.numberOfBids),
-                                        modifier = Modifier.size(dimens.smallIconSize),
-                                    )
-
-                                    Text(
-                                        text = offer.numParticipants.toString(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.padding(horizontal = dimens.smallPadding)
-                                    )
-
-                                    var bids = stringResource(strings.noBids)
-                                    if (offer.bids?.isNotEmpty() == true) {
-                                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
-                                    }
-                                    Text(
-                                        text = bids,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.grayText
-                                    )
-                                }
-
-                                "auction_with_buy_now" -> {
-                                    typeString = stringResource(strings.blitzAuction)
-                                    colorType = colors.auctionWithBuyNow
-
-                                    Image(
-                                        painter = painterResource(drawables.iconGroup),
-                                        contentDescription = stringResource(strings.numberOfBids),
-                                        modifier = Modifier.size(dimens.smallIconSize),
-                                    )
-
-                                    Text(
-                                        text = offer.numParticipants.toString(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.padding(horizontal = dimens.smallPadding)
-                                    )
-
-                                    var bids = stringResource(strings.noBids)
-                                    if (offer.bids?.isNotEmpty() == true) {
-                                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
-                                    }
-
-                                    Text(
-                                        text = bids,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.grayText
-                                    )
-                                }
-                            }
-
-                            if (offer.safeDeal) {
-                                Image(
-                                    painter = painterResource(drawables.safeDealIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.smallIconSize).padding(dimens.smallPadding),
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = typeString,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = colorType,
-                            modifier = Modifier.padding(vertical = dimens.extraSmallPadding)
-                        )
-                    }
-
+                    OfferItemStatuses(offer)
 
                     if (offer.discountPercentage > 0 && offer.buyNowPrice?.toDouble() != offer.currentPricePerItem?.toDouble()) {
                         Row(

@@ -34,6 +34,7 @@ import market.engine.core.util.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.rows.OfferItemStatuses
 import market.engine.widgets.texts.DiscountText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -167,51 +168,7 @@ fun content(
         }
     }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        if (offer.saleType == "buy_now") {
-            Image(
-                painter = painterResource(drawables.iconCountBoxes),
-                contentDescription = stringResource(strings.numberOfItems),
-                modifier = Modifier.size(dimens.smallIconSize),
-            )
-
-            Text(
-                text = offer.currentQuantity.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
-            )
-
-            Text(
-                text = stringResource(strings.buyNow),
-                style = MaterialTheme.typography.titleSmall,
-                color = colors.titleTextColor,
-                modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
-            )
-
-        } else {
-            Image(
-                painter = painterResource(drawables.iconGroup),
-                contentDescription = stringResource(strings.numberOfBids),
-                modifier = Modifier.size(dimens.smallIconSize),
-            )
-
-            Text(
-                text = offer.numParticipants.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = dimens.smallPadding)
-            )
-        }
-        if (offer.safeDeal) {
-            Image(
-                painter = painterResource(drawables.safeDealIcon),
-                contentDescription = "",
-                modifier = Modifier.size(dimens.smallIconSize)
-            )
-        }
-    }
+    OfferItemStatuses(offer)
 
 
     if (offer.discountPercentage > 0 && offer.buyNowPrice?.toDouble() != offer.currentPricePerItem?.toDouble()) {
