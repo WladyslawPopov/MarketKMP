@@ -24,10 +24,10 @@ import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material.SwipeToDismiss
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.shared.SearchHistory
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.exceptions.dismissBackground

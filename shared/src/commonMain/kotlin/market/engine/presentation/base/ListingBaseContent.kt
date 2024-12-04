@@ -20,6 +20,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,7 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
-import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.bars.FiltersBar
@@ -49,6 +50,7 @@ fun <T : Any>ListingBaseContent(
     topBar : @Composable () -> Unit = {},
     floatingActionButton : @Composable () -> Unit = {},
     item : @Composable (T) -> Unit,
+    noFound : (@Composable () -> Unit)? = null,
     filtersContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
     sortingContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
     additionalBar : @Composable (LazyListState) -> Unit = {},
@@ -57,18 +59,15 @@ fun <T : Any>ListingBaseContent(
     isShowGrid : Boolean = false,
     onSearchClick : () -> Unit = {}
 ){
-
-    val activeFiltersType = remember { baseViewModel.activeFiltersType }
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
-
     val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = baseViewModel.firstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset = baseViewModel.firstVisibleItemScrollOffset
+        initialFirstVisibleItemIndex = listingData.firstVisibleItemIndex,
+        initialFirstVisibleItemScrollOffset = listingData.firstVisibleItemScrollOffset
     )
 
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(baseViewModel.bottomSheetState.value)
+        bottomSheetState = rememberBottomSheetState(listingData.bottomSheetState.value)
     )
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
@@ -84,12 +83,9 @@ fun <T : Any>ListingBaseContent(
 
             refresh is LoadStateNotLoading && data.itemCount < 1 && !isLoading.value -> {
                 noItem = {
-                    showNoItemLayout {
-                        onRefresh()
-                    }
+                    noFound?.invoke() ?: showNoItemLayout{onRefresh()}
                 }
             }
-
             refresh is LoadStateError && !isLoading.value -> {
                 error = {
                     onError(
@@ -107,7 +103,7 @@ fun <T : Any>ListingBaseContent(
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
-                baseViewModel.bottomSheetState.value = sheetValue
+                listingData.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
                         onRefresh()
@@ -121,22 +117,20 @@ fun <T : Any>ListingBaseContent(
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            baseViewModel.firstVisibleItemIndex = index
-            baseViewModel.firstVisibleItemScrollOffset = offset
+            listingData.firstVisibleItemIndex = index
+            listingData.firstVisibleItemScrollOffset = offset
         }
     }
 
-    LaunchedEffect(activeFiltersType.value){
+    LaunchedEffect(listingData.activeFiltersType.value){
         snapshotFlow {
-            activeFiltersType.value
+            listingData.activeFiltersType
         }.collect { type ->
-            if (type.isNotEmpty()) {
+            if (type.value.isNotEmpty()) {
                 scaffoldState.bottomSheetState.expand()
             } else {
                 scaffoldState.bottomSheetState.collapse()
             }
-
-            baseViewModel.activeFiltersType.value = type
         }
     }
 
@@ -167,16 +161,16 @@ fun <T : Any>ListingBaseContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                when (activeFiltersType.value) {
+                when (listingData.activeFiltersType.value) {
                     "filters" -> {
                         filtersContent(isRefreshingFromFilters) {
-                            activeFiltersType.value = ""
+                            listingData.activeFiltersType.value = ""
                         }
                     }
 
                     "sorting" -> {
                         sortingContent(isRefreshingFromFilters) {
-                            activeFiltersType.value = ""
+                            listingData.activeFiltersType.value = ""
                         }
                     }
                 }
@@ -196,11 +190,10 @@ fun <T : Any>ListingBaseContent(
                         onRefresh()
                     },
                     onFilterClick = {
-                        activeFiltersType.value = "filters"
+                        listingData.activeFiltersType.value = "filters"
                     },
                     onSortClick = {
-                        activeFiltersType.value = "sorting"
-
+                        listingData.activeFiltersType.value = "sorting"
                     },
                     onSearchClick = {
                         onSearchClick()
@@ -208,7 +201,7 @@ fun <T : Any>ListingBaseContent(
                     onRefresh = { data.refresh() }
                 )
                 AnimatedVisibility(
-                    baseViewModel.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
+                    listingData.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {

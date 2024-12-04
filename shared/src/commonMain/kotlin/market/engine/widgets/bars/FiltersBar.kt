@@ -13,17 +13,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import market.engine.core.baseFilters.Filter
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
 import market.engine.core.baseFilters.Sort
@@ -40,22 +39,26 @@ private fun constructActiveFiltersTitle(
     searchTitle: String = "",
     sortTitle: String = ""
 ): String {
+    var isShowSearch = false
     val titles = mutableListOf<String>()
 
     filters?.takeIf { it.isNotEmpty() }?.let {
         titles.add(filtersTitle)
     }
 
-    if (searchData.userSearch && searchData.userLogin != null) {
+    if (searchData.userSearch && searchData.userLogin != null && !isShowSearch) {
         titles.add(searchTitle)
+        isShowSearch = true
     }
 
-    if (!searchData.searchString.isNullOrEmpty()) {
+    if (!searchData.searchString.isNullOrEmpty()  && !isShowSearch) {
         titles.add(searchTitle)
+        isShowSearch = true
     }
 
-    if (searchData.searchFinished) {
+    if (searchData.searchFinished  && !isShowSearch) {
         titles.add(searchTitle)
+        isShowSearch = true
     }
 
     if (sort != null) {
@@ -66,11 +69,10 @@ private fun constructActiveFiltersTitle(
 }
 
 private fun filterListingFilters(
-    filters: List<Filter>?,
-    isShowFilters: Boolean,
+    filters: List<Filter>?
 ): List<Filter>? {
     return filters?.filter { filter ->
-        filter.interpritation != null && (!isShowFilters || (filter.interpritation != ""))
+         filter.interpritation != "" && filter.interpritation != null
     }
 }
 
@@ -92,8 +94,8 @@ fun FiltersBar(
     val userDef = stringResource(strings.searchUsersSearch)
 
     // Derived filters based on isShowFilters
-    val filters = remember(listingData.filters, isShowFilters) {
-        filterListingFilters(listingData.filters, isShowFilters)
+    val filters = remember(listingData.filters) {
+        filterListingFilters(listingData.filters)
     }
 
     // Construct active filters title
@@ -106,7 +108,7 @@ fun FiltersBar(
             title = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
-            hasNews = listingData.filters?.find { it.key !in listOf("state", "with_sales", "without_sales")} != null,
+            hasNews = listingData.filters.find { it.interpritation?.isNotEmpty() == true } != null,
             badgeCount = if(!filters.isNullOrEmpty()) filters.size else null,
         )
     }
@@ -165,8 +167,8 @@ fun FiltersBar(
                             ActiveFilterListing(
                                 text = text,
                                 removeFilter = {
-                                    listingData.filters?.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
-                                    listingData.filters?.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
+                                    listingData.filters.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
+                                    listingData.filters.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
                                     onRefresh()
                                 },
                             ){

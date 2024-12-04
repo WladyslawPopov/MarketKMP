@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException

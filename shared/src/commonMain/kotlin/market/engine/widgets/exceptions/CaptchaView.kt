@@ -17,8 +17,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import io.ktor.util.decodeBase64Bytes
 import market.engine.common.decodeToImageBitmap
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.widgets.textFields.TextInputField
 import org.jetbrains.compose.resources.stringResource
 

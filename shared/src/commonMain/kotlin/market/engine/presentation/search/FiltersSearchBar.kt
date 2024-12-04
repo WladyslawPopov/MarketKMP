@@ -16,10 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.baseFilters.SD
 import market.engine.widgets.buttons.FilterButton
 import market.engine.widgets.buttons.SmallIconButton

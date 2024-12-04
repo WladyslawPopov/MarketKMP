@@ -25,10 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.presentation.base.BaseContent

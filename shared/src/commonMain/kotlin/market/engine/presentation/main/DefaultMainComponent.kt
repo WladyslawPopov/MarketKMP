@@ -16,7 +16,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.globalData.UserData
 import market.engine.core.items.DeepLink
 import market.engine.core.navigation.children.ChildBasket
@@ -529,7 +529,7 @@ class DefaultMainComponent(
                 if(activeCurrent == "Category"){
                     categoryData.searchData.value.clear()
                     categoryData.searchData.value.clearCategory()
-                    categoryData.data.value.clear()
+                    categoryData.data.value.clearFilters()
                     categoryStack.value.clear()
                     categoryStack.value.add(CategoryConfig.CategoryScreen(1L))
                     modelNavigation.value.categoryNavigation.replaceAll(categoryStack.value.last())

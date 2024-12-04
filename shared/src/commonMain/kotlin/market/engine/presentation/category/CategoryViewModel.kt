@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.baseFilters.SD
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.presentation.base.BaseViewModel

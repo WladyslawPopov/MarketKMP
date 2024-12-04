@@ -24,9 +24,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.baseFilters.LD
 import market.engine.core.items.Tab
 import market.engine.core.types.TabTypeListing
@@ -48,21 +48,12 @@ fun SwipeTabsBar(
             (scrollState.firstVisibleItemIndex / itemsPerPage) + 1
         }
     }
-    var curTab = when (listingData.filters?.find { filter-> filter.key == "sale_type" }?.value){
+    val curTab = when (listingData.filters?.find { filter-> filter.key == "sale_type" }?.value){
         "auction" -> TabTypeListing.AUCTION
         "buynow" -> TabTypeListing.BUY_NOW
         else -> TabTypeListing.ALL
     }
-    val selectedTab = remember { mutableStateOf(curTab) }
     val isTabsVisible = remember { mutableStateOf(true) }
-
-    LaunchedEffect(selectedTab.value){
-        curTab = when (listingData.filters?.find { filter-> filter.key == "sale_type" }?.value){
-            "auction" -> TabTypeListing.AUCTION
-            "buynow" -> TabTypeListing.BUY_NOW
-            else -> TabTypeListing.ALL
-        }
-    }
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.firstVisibleItemIndex }
@@ -94,7 +85,6 @@ fun SwipeTabsBar(
             type = TabTypeListing.ALL,
             title = allString,
             onClick = {
-                selectedTab.value = TabTypeListing.ALL
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = ""
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = null
 
@@ -110,8 +100,6 @@ fun SwipeTabsBar(
             type = TabTypeListing.AUCTION,
             title = auctionString,
             onClick = {
-                selectedTab.value = TabTypeListing.AUCTION
-
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = "auction"
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = ""
 
@@ -127,8 +115,6 @@ fun SwipeTabsBar(
             type = TabTypeListing.BUY_NOW,
             title = buyNowString,
             onClick = {
-                selectedTab.value = TabTypeListing.BUY_NOW
-
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.value = "buynow"
                 listingData.filters?.find { filter-> filter.key == "sale_type" }?.interpritation = ""
 
@@ -157,7 +143,7 @@ fun SwipeTabsBar(
             items(tabs) { tab ->
                 FilterChip(
                     modifier = Modifier.padding(dimens.smallPadding),
-                    selected = tab.type == selectedTab.value,
+                    selected = tab.type == curTab,
                     onClick = {tab.onClick() },
                     label = {
                         Text(tab.title, style = MaterialTheme.typography.bodySmall)

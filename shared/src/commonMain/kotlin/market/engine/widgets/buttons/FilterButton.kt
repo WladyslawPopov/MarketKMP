@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.dimens
 
 @Composable
 fun FilterButton(

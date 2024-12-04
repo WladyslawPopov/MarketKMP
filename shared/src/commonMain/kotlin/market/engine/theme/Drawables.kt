@@ -105,4 +105,7 @@ interface Drawables {
    val deliveryIcon : DrawableResource
    val antiSniperIcon : DrawableResource
    val subscriptionIcon : DrawableResource
+
+   val emptyFavoritesImage : DrawableResource
+   val emptyOffersIcon : DrawableResource
 }

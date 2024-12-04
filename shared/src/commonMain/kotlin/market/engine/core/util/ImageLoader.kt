@@ -17,8 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import market.engine.common.toImageBitmap
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.drawables
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 

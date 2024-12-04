@@ -11,13 +11,16 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.filtersObjects.EmptyFilters
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
 import market.engine.widgets.bars.SwipeTabsBar
+import market.engine.widgets.exceptions.showNoItemLayout
+import market.engine.widgets.filterContents.FilterListingContent
 import market.engine.widgets.filterContents.SortingListingContent
 import market.engine.widgets.items.PromoOfferRowItem
 import org.jetbrains.compose.resources.stringResource
@@ -44,18 +47,38 @@ fun ListingContent(
 
     val data = remember { listingViewModel.pagingDataFlow }.collectAsLazyPagingItems()
 
+    val noFound = @Composable {
+        if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
+            searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
+        ){
+            showNoItemLayout(
+                textButton = stringResource(strings.resetLabel)
+            ){
+                searchData.value.clear()
+                listingData.value.filters.clear()
+                listingData.value.filters.addAll(EmptyFilters.getEmpty())
+                data.refresh()
+            }
+        }else {
+            showNoItemLayout {
+                listingData.value.resetScroll()
+                listingViewModel.refresh()
+            }
+        }
+    }
+
     //update item when we back
     LaunchedEffect(Unit) {
-        if (listingViewModel.updateItem.value != null){
+        if (listingData.value.updateItem.value != null){
             withContext(Dispatchers.IO) {
                 val offer =
-                    listingViewModel.getUpdatedOfferById(listingViewModel.updateItem.value!!)
+                    listingViewModel.getUpdatedOfferById(listingData.value.updateItem.value!!)
                 withContext(Dispatchers.Main) {
                     if (offer != null) {
                         data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
                             offer.isWatchedByMe
                     }
-                    listingViewModel.updateItem.value = null
+                    listingData.value.updateItem.value = null
                 }
             }
         }
@@ -68,6 +91,7 @@ fun ListingContent(
         searchData.value,
         data = data,
         baseViewModel = listingViewModel,
+        noFound = noFound,
         topBar = {
             ListingAppBar(
                 searchData.value.searchCategoryName ?: stringResource(strings.categoryMain),
@@ -81,15 +105,14 @@ fun ListingContent(
             )
         },
         onRefresh = {
-            listingViewModel.firstVisibleItemIndex = 0
-            listingViewModel.firstVisibleItemScrollOffset = 0
+            listingData.value.resetScroll()
             columns.value = if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
             listingViewModel.refresh()
         },
         filtersContent = { isRefreshingFromFilters, onClose ->
             FilterListingContent(
                 isRefreshingFromFilters,
-                listingData,
+                listingData.value,
                 regions,
                 onClose
             )
@@ -97,7 +120,7 @@ fun ListingContent(
         sortingContent = { isRefreshingFromFilters, onClose ->
             SortingListingContent(
                 isRefreshingFromFilters,
-                listingData,
+                listingData.value,
                 onClose
             )
         },
@@ -129,7 +152,7 @@ fun ListingContent(
                     }
                 }
             ) {
-                listingViewModel.updateItem.value = offer.id
+                listingData.value.updateItem.value = offer.id
                 component.goToOffer(offer)
             }
         },

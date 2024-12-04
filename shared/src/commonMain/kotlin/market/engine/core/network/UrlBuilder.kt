@@ -99,44 +99,40 @@ class UrlBuilder {
         }
 
         if (listingData != null) {
-            val filters = listingData.filters
-            if (filters != null) {
 
-                val eventParameters = mapOf("catalog_filter_string" to searchData?.searchCategoryName)
-                analyticsHelper.reportEvent("activate_filter_catalog", eventParameters)
+            val eventParameters = mapOf("catalog_filter_string" to searchData?.searchCategoryName)
+            analyticsHelper.reportEvent("activate_filter_catalog", eventParameters)
 
-                filters.forEach {
-                    if (it.interpritation != null) {
-                        when (it.key) {
-                            "session_start" -> {
-                                it.value = getCurrentDate()
-                            }
+            listingData.filters.forEach {
+                if (it.interpritation != null) {
+                    when (it.key) {
+                        "session_start" -> {
+                            it.value = getCurrentDate()
+                        }
 
-                            "users_to_act_on_price_proposals" -> {
-                                it.value = UserData.login.toString()
-                            }
+                        "users_to_act_on_price_proposals" -> {
+                            it.value = UserData.login.toString()
                         }
-                        queryParams["filter_${counter}_key"] = it.key
-                        if (it.value != "") {
-                            queryParams["filter_${counter}_value"] = it.value
-                        }
-                        val operation = it.operation
-                        if (operation != null) {
-                            queryParams["filter_${counter}_operation"] = operation
-                        }
-                        counter++
                     }
+                    queryParams["filter_${counter}_key"] = it.key
+                    if (it.value != "") {
+                        queryParams["filter_${counter}_value"] = it.value
+                    }
+                    val operation = it.operation
+                    if (operation != null) {
+                        queryParams["filter_${counter}_operation"] = operation
+                    }
+                    counter++
                 }
             }
 
             val sort = listingData.sort
             if (sort != null) {
-                val eventParameters = mapOf(
+                analyticsHelper.reportEvent("activate_sort_catalog", mapOf(
                     "catalog_filter_string" to searchData?.searchCategoryName,
                     "catalog_sort_type" to sort.key,
                     "sort_type" to sort.value
-                )
-                analyticsHelper.reportEvent("activate_sort_catalog", eventParameters)
+                ))
 
                 queryParams["sorter_1_key"] = sort.key
                 queryParams["sorter_1_value"] = sort.value

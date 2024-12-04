@@ -6,7 +6,7 @@ import market.engine.core.types.LotsType
 object OfferFilters {
     var filtersMyLotsActive = arrayListOf(
         Filter("state", "0", "", null),
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),
@@ -23,7 +23,7 @@ object OfferFilters {
     )
     var filtersMyLotsFuture = arrayListOf(
         Filter("state", "0", "", null),
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),
@@ -31,7 +31,7 @@ object OfferFilters {
     )
     var filtersMyBidsActive = arrayListOf(
         Filter("state", "0", "", null),
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),
@@ -47,7 +47,7 @@ object OfferFilters {
     )
     var filtersFav = arrayListOf(
         Filter("state", "0", "", null),//0 фильтр
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),
@@ -55,7 +55,7 @@ object OfferFilters {
     )
     var filtersProposeAll = arrayListOf(
         Filter("state", "0", "", null),//0 фильтр
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),
@@ -64,7 +64,7 @@ object OfferFilters {
 
     var filtersProposeNeed = arrayListOf(
         Filter("state", "0", "", null),//0 фильтр
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),
@@ -77,7 +77,7 @@ object OfferFilters {
             LotsType.MYLOT_ACTIVE ->{
                filtersMyLotsActive = arrayListOf(
                    Filter("state", "0", "", null),
-                   Filter("category", "1", "", null),
+                   Filter("category", "1", null, null),
                    Filter("sale_type", "", null, null),
                    Filter("id", "", null, null),
                    Filter("search", "", null, null),
@@ -99,7 +99,7 @@ object OfferFilters {
 
                 filtersMyLotsFuture = arrayListOf(
                     Filter("state", "0", "", null),
-                    Filter("category", "1", "", null),
+                    Filter("category", "1", null, null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),
                     Filter("search", "", null, null),
@@ -109,7 +109,7 @@ object OfferFilters {
             LotsType.MYBIDLOTS_ACTIVE ->{
                 filtersMyBidsActive = arrayListOf(
                     Filter("state", "0", "", null),
-                    Filter("category", "1", "", null),
+                    Filter("category", "1", null, null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),
                     Filter("search", "", null, null),
@@ -119,7 +119,7 @@ object OfferFilters {
             LotsType.MYBIDLOTS_UNACTIVE ->{
                 filtersMyBidsUnactive = arrayListOf(
                     Filter("state", "1", "", null),
-                    Filter("category", "1", "", null),
+                    Filter("category", "1", null, null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),
                     Filter("search", "", null, null),
@@ -130,7 +130,7 @@ object OfferFilters {
 
                 filtersFav = arrayListOf(
                     Filter("state", "0", "", null),//0 фильтр
-                    Filter("category", "1", "", null),
+                    Filter("category", "1", null, null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),
                     Filter("search", "", null, null),
@@ -140,7 +140,7 @@ object OfferFilters {
             LotsType.ALL_PROPOSAL ->{
                 filtersProposeAll = arrayListOf(
                     Filter("state", "0", "", null),//0 фильтр
-                    Filter("category", "1", "", null),
+                    Filter("category", "1", null, null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),
                     Filter("search", "", null, null),
@@ -150,7 +150,7 @@ object OfferFilters {
             LotsType.NEED_RESPOSE ->{
                 filtersProposeNeed = arrayListOf(
                     Filter("state", "0", "", null),//0 фильтр
-                    Filter("category", "1", "", null),
+                    Filter("category", "1", null, null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),
                     Filter("search", "", null, null),

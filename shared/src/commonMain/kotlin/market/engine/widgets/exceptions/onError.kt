@@ -1,13 +1,11 @@
 package market.engine.widgets.exceptions
 
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import market.engine.core.constants.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
 import market.engine.widgets.buttons.SimpleTextButton
 

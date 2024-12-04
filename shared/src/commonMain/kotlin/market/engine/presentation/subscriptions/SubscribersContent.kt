@@ -36,7 +36,8 @@ fun SubscribesContent(
         searchData = searchData.value,
         baseViewModel = subViewModel,
         onRefresh = {
-            subViewModel.refresh()
+            listingData.value.resetScroll()
+            data.refresh()
         },
         filtersContent = { _, _ ->
 

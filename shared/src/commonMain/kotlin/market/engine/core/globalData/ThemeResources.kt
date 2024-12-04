@@ -1,4 +1,4 @@
-package market.engine.core.constants
+package market.engine.core.globalData
 
 import market.engine.theme.Colors
 import market.engine.theme.Dimens

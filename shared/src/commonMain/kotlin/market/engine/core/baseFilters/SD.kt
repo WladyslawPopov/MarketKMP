@@ -6,14 +6,16 @@ import kotlinx.serialization.Serializable
 data class SD(
     var searchCategoryName: String? = null,
     var searchCategoryID: Long? = 1L,
-    var searchString: String? = null,
     var searchParentID:Long? = 1L,
     var searchParentName: String? = null,
     var searchIsLeaf: Boolean = false,
+
+    var searchString: String? = null,
     var searchFinished: Boolean = false,
     var userSearch: Boolean = false,
     var userLogin: String? = null,
     var userID: Long = 1L,
+
     var isRefreshing : Boolean = true
 )
 {

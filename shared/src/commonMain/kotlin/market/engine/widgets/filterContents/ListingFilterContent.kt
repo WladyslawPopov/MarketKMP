@@ -1,10 +1,9 @@
-package market.engine.presentation.listing
+package market.engine.widgets.filterContents
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,10 +40,10 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.networkObjects.Options
 import market.engine.widgets.buttons.ExpandableSection
@@ -56,7 +55,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FilterListingContent(
     isRefreshing: MutableState<Boolean>,
-    listingData: State<LD>,
+    listingData: LD,
     regionsOptions: ArrayList<Options>,
     onClosed: () -> Unit,
 ) {
@@ -130,11 +129,11 @@ fun FilterListingContent(
                 )
             }
 
-            if(isRefreshing.value || listingData.value.filters?.find { it.interpritation != null } != null) {
+            if(isRefreshing.value || listingData.filters?.find { it.interpritation != null } != null) {
                 Button(
                     onClick = {
                         isRefreshing.value = true
-                        listingData.value.filters = EmptyFilters.getEmpty()
+                        listingData.filters = EmptyFilters.getEmpty()
                         onClosed()
                     },
                     content = {
@@ -256,7 +255,7 @@ fun FilterListingContent(
                                     val (filterKey, filterText) = filter
 
                                     val isChecked =
-                                        remember { mutableStateOf(listingData.value.filters?.find { it.key == filter.first }?.interpritation != null) }
+                                        remember { mutableStateOf(listingData.filters?.find { it.key == filter.first }?.interpritation != null) }
 
                                     Row(
                                         horizontalArrangement = Arrangement.Start,
@@ -305,18 +304,18 @@ fun FilterListingContent(
                         )
 
                         getDropdownMenu(
-                            selectedText = listingData.value.filters?.find { it.key == "region" }?.interpritation,
+                            selectedText = listingData.filters?.find { it.key == "region" }?.interpritation,
                             selects =  regionsOptions.map { it.name.toString() },
                             onItemClick = { newRegion ->
-                                listingData.value.filters?.find { it.key == "region" }?.value =
+                                listingData.filters?.find { it.key == "region" }?.value =
                                     regionsOptions.find { it.name == newRegion }?.code.toString()
-                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                listingData.filters?.find { it.key == "region" }?.interpritation =
                                     newRegion
 
                                 isRefreshing.value = true
                             },
                             onClearItem = {
-                                listingData.value.filters?.find { it.key == "region" }?.interpritation =
+                                listingData.filters?.find { it.key == "region" }?.interpritation =
                                     null
 
                                 isRefreshing.value = true
@@ -355,22 +354,22 @@ fun FilterListingContent(
 
                                     getDropdownMenu(
                                         selectedText = timeFilterMap.find { time ->
-                                            time.first == listingData.value.filters?.find { it.key == "new" }?.value
+                                            time.first == listingData.filters?.find { it.key == "new" }?.value
                                         }?.second,
                                         selects = timeOptions,
                                         onItemClick = { time ->
-                                            listingData.value.filters?.find { it.key == "new" }?.value =
+                                            listingData.filters?.find { it.key == "new" }?.value =
                                                 timeFilterMap.find { it.second == time }?.first
                                                     ?: ""
-                                            listingData.value.filters?.find { it.key == "new" }?.interpritation =
+                                            listingData.filters?.find { it.key == "new" }?.interpritation =
                                                 "$title $time"
 
                                             isRefreshing.value = true
                                         },
                                         onClearItem = {
-                                            listingData.value.filters?.find { it.key == "new" }?.value =
+                                            listingData.filters?.find { it.key == "new" }?.value =
                                                 ""
-                                            listingData.value.filters?.find { it.key == "new" }?.interpritation =
+                                            listingData.filters?.find { it.key == "new" }?.interpritation =
                                                 null
 
                                             isRefreshing.value = true
@@ -388,22 +387,22 @@ fun FilterListingContent(
 
                                     getDropdownMenu(
                                         selectedText =timeFilterMap.find { time ->
-                                            time.first == listingData.value.filters?.find { it.key == "new_without_relisted" }?.value
+                                            time.first == listingData.filters?.find { it.key == "new_without_relisted" }?.value
                                         }?.second,
                                         selects = timeOptions,
                                         onItemClick = { time ->
-                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.value =
+                                            listingData.filters?.find { it.key == "new_without_relisted" }?.value =
                                                 timeFilterMap.find { it.second == time }?.first
                                                     ?: ""
-                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation =
+                                            listingData.filters?.find { it.key == "new_without_relisted" }?.interpritation =
                                                 "$title $time"
 
                                             isRefreshing.value = true
                                         },
                                         onClearItem = {
-                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.value =
+                                            listingData.filters?.find { it.key == "new_without_relisted" }?.value =
                                                 ""
-                                            listingData.value.filters?.find { it.key == "new_without_relisted" }?.interpritation =
+                                            listingData.filters?.find { it.key == "new_without_relisted" }?.interpritation =
                                                 null
 
                                             isRefreshing.value = true
@@ -421,22 +420,22 @@ fun FilterListingContent(
 
                                     getDropdownMenu(
                                         selectedText =timeFilterMap.find { time ->
-                                            time.first == listingData.value.filters?.find { it.key == "ending" }?.value
+                                            time.first == listingData.filters?.find { it.key == "ending" }?.value
                                         }?.second,
                                         selects = timeOptions,
                                         onItemClick = { time ->
-                                            listingData.value.filters?.find { it.key == "ending" }?.value =
+                                            listingData.filters?.find { it.key == "ending" }?.value =
                                                 timeFilterMap.find { it.second == time }?.first
                                                     ?: ""
-                                            listingData.value.filters?.find { it.key == "ending" }?.interpritation =
+                                            listingData.filters?.find { it.key == "ending" }?.interpritation =
                                                 "$title $time"
 
                                             isRefreshing.value = true
                                         },
                                         onClearItem = {
-                                            listingData.value.filters?.find { it.key == "ending" }?.value =
+                                            listingData.filters?.find { it.key == "ending" }?.value =
                                                 ""
-                                            listingData.value.filters?.find { it.key == "ending" }?.interpritation =
+                                            listingData.filters?.find { it.key == "ending" }?.interpritation =
                                                 null
 
                                             isRefreshing.value = true
@@ -473,8 +472,8 @@ fun FilterListingContent(
 
 }
 
-fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<LD>) {
-    val filters = listingData.value.filters
+fun applyFilterLogic(filterKey: String, filterName: String, listingData: LD) {
+    val filters = listingData.filters
     if (filters != null) {
         when (filterKey) {
             "buynow" -> {
@@ -501,7 +500,8 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<L
 
             "starting_price" -> {
                 filters.find { filter -> filter.key == "starting_price" }?.value = "1"
-                filters.find { filter -> filter.key == "starting_price" }?.interpritation = filterName
+                filters.find { filter -> filter.key == "starting_price" }?.interpritation =
+                    filterName
 
                 filters.find { filter -> filter.key == "discount_price" }?.value = ""
                 filters.find { filter -> filter.key == "discount_price" }?.interpritation = null
@@ -514,7 +514,8 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<L
             "discount_price" -> {
 
                 filters.find { filter -> filter.key == "discount_price" }?.value = "0"
-                filters.find { filter -> filter.key == "discount_price" }?.interpritation = filterName
+                filters.find { filter -> filter.key == "discount_price" }?.interpritation =
+                    filterName
 
                 filters.find { filter -> filter.key == "sale_type" }?.value = ""
                 filters.find { filter -> filter.key == "sale_type" }?.interpritation = null
@@ -526,7 +527,8 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<L
 
             "price_proposal" -> {
                 filters.find { filter -> filter.key == "price_proposal" }?.value = "enabled"
-                filters.find { filter -> filter.key == "price_proposal" }?.interpritation = filterName
+                filters.find { filter -> filter.key == "price_proposal" }?.interpritation =
+                    filterName
 
                 filters.find { filter -> filter.key == "sale_type" }?.value = "buynow"
                 filters.find { filter -> filter.key == "sale_type" }?.interpritation = ""
@@ -537,36 +539,37 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<L
                 filters.find { filter -> filter.key == "discount_price" }?.interpritation = null
             }
 
-            "with_video" ->{
-                if(filters.find { filter -> filter.key == "with_video" }?.value != filterKey) {
+            "with_video" -> {
+                if (filters.find { filter -> filter.key == "with_video" }?.value != filterKey) {
                     filters.find { filter -> filter.key == "with_video" }?.value = filterKey
                     filters.find { filter -> filter.key == "with_video" }?.interpritation =
                         filterName
-                }else{
+                } else {
                     filters.find { filter -> filter.key == "with_video" }?.value = ""
                     filters.find { filter -> filter.key == "with_video" }?.interpritation = null
                 }
             }
 
-            "with_safe_deal" ->{
-                if(filters.find { filter -> filter.key == "with_safe_deal" }?.value != filterKey) {
+            "with_safe_deal" -> {
+                if (filters.find { filter -> filter.key == "with_safe_deal" }?.value != filterKey) {
                     filters.find { filter -> filter.key == "with_safe_deal" }?.value = filterKey
                     filters.find { filter -> filter.key == "with_safe_deal" }?.interpritation =
                         filterName
-                }else{
+                } else {
                     filters.find { filter -> filter.key == "with_safe_deal" }?.value = ""
                     filters.find { filter -> filter.key == "with_safe_deal" }?.interpritation = null
                 }
             }
 
-            "promo_main_page" ->{
-                if(filters.find { filter -> filter.key == "promo_main_page" }?.value != filterKey) {
+            "promo_main_page" -> {
+                if (filters.find { filter -> filter.key == "promo_main_page" }?.value != filterKey) {
                     filters.find { filter -> filter.key == "promo_main_page" }?.value = filterKey
                     filters.find { filter -> filter.key == "promo_main_page" }?.interpritation =
                         filterName
-                }else{
+                } else {
                     filters.find { filter -> filter.key == "promo_main_page" }?.value = ""
-                    filters.find { filter -> filter.key == "promo_main_page" }?.interpritation = null
+                    filters.find { filter -> filter.key == "promo_main_page" }?.interpritation =
+                        null
                 }
             }
 
@@ -588,39 +591,40 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: State<L
     }
 }
 
-fun checkActiveSaleType(listFilters: List<Pair<String, String>>, listingData: State<LD>): String? {
-    val filters = listingData.value.filters
+fun checkActiveSaleType(listFilters: List<Pair<String, String>>, listingData: LD): String? {
+    val filters = listingData.filters
     var res : String? = null
-    if (filters != null) {
-        listFilters.forEach { filter ->
-            if (filter.first != "auction" && filter.first != "buynow") {
-                if (filters.find { it.key == filter.first }?.interpritation != null){
-                    res =  filter.first
-                }
-            }else{
-                if(filters.find { it.key == "sale_type" }?.value == filter.first
-                    && filters.find { it.key == "sale_type" }?.interpritation == filter.second){
-                    res = filter.first
-                }
+
+    if(filters == null) return null
+
+    listFilters.forEach { filter ->
+        if (filter.first != "auction" && filter.first != "buynow") {
+            if (filters.find { it.key == filter.first }?.interpritation != null){
+                res =  filter.first
+            }
+        }else{
+            if(filters.find { it.key == "sale_type" }?.value == filter.first
+                && filters.find { it.key == "sale_type" }?.interpritation == filter.second){
+                res = filter.first
             }
         }
     }
     return res
 }
 
-fun checkActiveTimeFilter(listingData: State<LD>): String? {
-    val filters = listingData.value.filters
+fun checkActiveTimeFilter(listingData: LD): String? {
+    val filters = listingData.filters
     var res : String? = null
-    if (filters != null) {
-        filters.find { it.key == "new" }?.interpritation?.let {
-            res = it
-        }
-        filters.find { it.key == "new_without_relisted" }?.interpritation?.let {
-            res = it
-        }
-        filters.find { it.key == "ending" }?.interpritation?.let {
-            res = it
-        }
+    if(filters == null) return null
+
+    filters.find { it.key == "new" }?.interpritation?.let {
+        res = it
+    }
+    filters.find { it.key == "new_without_relisted" }?.interpritation?.let {
+        res = it
+    }
+    filters.find { it.key == "ending" }?.interpritation?.let {
+        res = it
     }
     return res
 }

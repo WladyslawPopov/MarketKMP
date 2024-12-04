@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import app.cash.paging.compose.collectAsLazyPagingItems
 import market.engine.core.network.functions.OfferOperations
@@ -17,7 +16,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.filtersObjects.OfferFilters
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.ToastItem
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.FavScreenType
@@ -27,6 +28,7 @@ import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
+import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import org.jetbrains.compose.resources.stringResource
@@ -45,46 +47,57 @@ fun FavoritesContent(
     val offerOperations : OfferOperations = koinInject()
     val userRepository : UserRepository = koinInject()
 
-    val selectedItems = remember { favViewModel.selectItems }
-
     val ld = listingData.value.data.subscribeAsState()
     val sd = listingData.value.searchData.subscribeAsState()
+
+    val selectedItems = remember { ld.value.selectItems }
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
 
     val successToast = stringResource(strings.operationSuccess)
 
-    LaunchedEffect(selectedItems){
-        snapshotFlow {
-            selectedItems
-        }.collect {
-            favViewModel.selectItems = it
+    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
+
+    val noFound = @Composable {
+        if (ld.value.filters.any {it.interpritation != null && it.interpritation != "" }){
+            showNoItemLayout(
+                textButton = stringResource(strings.resetLabel)
+            ){
+                ld.value.filters.clear()
+                ld.value.filters.addAll(OfferFilters.filtersFav.toList())
+                data.refresh()
+            }
+        }else {
+            showNoItemLayout(
+                title = stringResource(strings.emptyFavoritesLabel),
+                image = drawables.emptyFavoritesImage
+            ) {
+                userRepository.updateUserInfo(favViewModel.viewModelScope)
+                ld.value.resetScroll()
+                data.refresh()
+            }
         }
     }
 
-    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
-
-
     //update item when we back
     LaunchedEffect(Unit) {
-        if (favViewModel.updateItem.value != null) {
+        if (ld.value.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =
-                    favViewModel.getUpdatedOfferById(favViewModel.updateItem.value!!)
+                    favViewModel.getUpdatedOfferById(ld.value.updateItem.value!!)
                 withContext(Dispatchers.Main) {
                     if (offer != null) {
                         data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
                             offer.isWatchedByMe
-                        favViewModel.updateItem.value = null
+                        ld.value.updateItem.value = null
                     }else{
-                        favViewModel.updateItem.value = null
+                        ld.value.updateItem.value = null
                     }
                 }
             }
         }
     }
-
 
     ListingBaseContent(
         topBar = {
@@ -103,15 +116,16 @@ fun FavoritesContent(
         data = data,
         searchData = sd.value,
         baseViewModel = favViewModel,
+        noFound = noFound,
         onRefresh = {
-            favViewModel.firstVisibleItemIndex = 0
-            favViewModel.firstVisibleItemScrollOffset = 0
+            userRepository.updateUserInfo(favViewModel.viewModelScope)
+            ld.value.resetScroll()
             data.refresh()
         },
         filtersContent = { isRefreshingFromFilters, onClose ->
             OfferFilterContent(
                 isRefreshingFromFilters,
-                ld,
+                ld.value,
                 LotsType.FAVORITES,
                 onClose
             )
@@ -119,21 +133,21 @@ fun FavoritesContent(
         sortingContent = { isRefreshingFromFilters, onClose ->
             SortingListingContent(
                 isRefreshingFromFilters,
-                ld,
+                ld.value,
                 onClose
             )
         },
         additionalBar = {
             AnimatedVisibility(
                 visible = selectedItems.isNotEmpty(),
-                enter = fadeIn() ,
-                exit = fadeOut() ,
+                enter = fadeIn(),
+                exit = fadeOut(),
                 modifier = Modifier.animateContentSize()
             ) {
                 DeletePanel(
                     selectedItems.size,
                     onCancel = {
-                        selectedItems.clear()
+                        ld.value.selectItems.clear()
                     },
                     onDelete = {
                         favViewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -142,7 +156,8 @@ fun FavoritesContent(
                             }
 
                             withContext(Dispatchers.Main) {
-                                selectedItems.clear()
+                                ld.value.selectItems.clear()
+                                userRepository.updateUserInfo(favViewModel.viewModelScope)
                                 data.refresh()
                             }
                         }
@@ -157,16 +172,16 @@ fun FavoritesContent(
                     favViewModel,
                     onSelectionChange = { isSelect ->
                         if (isSelect) {
-                            selectedItems.add(offer.id)
+                            ld.value.selectItems.add(offer.id)
                         } else {
-                            selectedItems.remove(offer.id)
+                            ld.value.selectItems.remove(offer.id)
                         }
                     },
                     onUpdateOfferItem = { selectedOffer ->
                         data.itemSnapshotList.find { it?.id == selectedOffer.id }?.isWatchedByMe = false
                         userRepository.updateUserInfo(favViewModel.viewModelScope)
-                        favViewModel.updateItem.value = selectedOffer.id
-                        favViewModel.updateItem.value = null // update item immediately
+                        ld.value.updateItem.value = selectedOffer.id
+                        ld.value.updateItem.value = null // update item immediately
                         favViewModel.showToast(ToastItem(
                             isVisible = true,
                             type = ToastType.SUCCESS,
@@ -175,12 +190,12 @@ fun FavoritesContent(
                     },
                     isSelected = selectedItems.contains(offer.id),
                 ) {
-                    if (selectedItems.isNotEmpty()) {
-                        selectedItems.add(offer.id)
+                    if (ld.value.selectItems.isNotEmpty()) {
+                        ld.value.selectItems.add(offer.id)
                     } else {
                         component.goToOffer(offer)
                         // set item for update
-                        favViewModel.updateItem.value = offer.id
+                        ld.value.updateItem.value = offer.id
                     }
                 }
             }

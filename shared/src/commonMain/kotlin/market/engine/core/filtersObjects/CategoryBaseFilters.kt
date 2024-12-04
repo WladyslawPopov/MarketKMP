@@ -1,4 +1,4 @@
-package market.engine.core.baseFilters
+package market.engine.core.filtersObjects
 
 import market.engine.core.items.ListingData
 

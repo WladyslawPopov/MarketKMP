@@ -259,4 +259,7 @@ interface Strings {
     val bidsUserLabel : StringResource
     val dateParameterName : StringResource
     val rebidLabel : StringResource
+
+    val emptyFavoritesLabel : StringResource
+    val simpleNotFoundLabel : StringResource
 }

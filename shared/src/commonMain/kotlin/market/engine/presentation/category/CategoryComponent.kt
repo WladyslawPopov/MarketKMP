@@ -3,7 +3,7 @@ package market.engine.presentation.category
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.baseFilters.SD
 import org.koin.mp.KoinPlatform.getKoin
 

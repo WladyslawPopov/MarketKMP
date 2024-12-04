@@ -50,9 +50,9 @@ import kotlinx.datetime.toLocalDateTime
 import market.engine.common.AnalyticsFactory
 import market.engine.common.clipBoardEvent
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.ToastItem
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Offer
@@ -544,7 +544,7 @@ fun getOfferOperations(
         val selectedDate = remember { mutableStateOf<String?>(null) }
         val currentDate = getCurrentDate()
 
-        val currentYear = currentDate.convertDateYear().drop(6)
+        val currentYear = currentDate.convertDateYear().drop(5)
 
         val selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
@@ -554,7 +554,7 @@ fun getOfferOperations(
         val oneDayInMillis = 24 * 60 * 60 * 1000
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = currentDate.toLong()*1000 + oneDayInMillis,
-            yearRange = currentYear.toInt()..currentYear.toInt()+100,
+            yearRange = currentYear.toInt()..(currentYear.toInt() + 100),
             selectableDates = selectableDates
         )
 

@@ -1,12 +1,6 @@
 package market.engine.presentation.base
 
-import androidx.compose.material.BottomSheetValue
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,9 +18,6 @@ import market.engine.core.types.ToastType
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
-
-    val updateItem = mutableStateOf<Long?>(null)
-
     private val offersOperations : OfferOperations = getKoin().get()
 
     suspend fun getUpdatedOfferById(offerId: Long) : Offer? {
@@ -67,14 +58,4 @@ open class BaseViewModel: ViewModel() {
     }
 
     val settings : SettingsRepository = getKoin().get()
-
-    //scroll positions
-    var firstVisibleItemIndex by mutableStateOf(0)
-    var firstVisibleItemScrollOffset by mutableStateOf(0)
-
-    var selectItems = mutableStateListOf<Long>()
-
-    //filters params
-    var activeFiltersType = mutableStateOf("")
-    val bottomSheetState = mutableStateOf(BottomSheetValue.Collapsed)
 }

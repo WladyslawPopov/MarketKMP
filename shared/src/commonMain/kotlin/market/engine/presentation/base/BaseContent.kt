@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.items.ToastItem
-import market.engine.widgets.badges.ToastTypeMessage
+import market.engine.widgets.exceptions.ToastTypeMessage
 
 @Composable
 fun BaseContent(

@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.baseFilters.SD
-import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.exceptions.onError
 

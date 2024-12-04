@@ -32,14 +32,10 @@ class DefaultSubscribesComponent(
         selectedFavorites()
     }
 
-    private val listingViewModel = model.value.subViewModel
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
 
     override fun onRefresh() {
-        listingViewModel.firstVisibleItemScrollOffset = 0
-        listingViewModel.firstVisibleItemIndex = 0
-
         analyticsHelper.reportEvent("open_subscribes", "")
     }
 }

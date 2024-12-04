@@ -13,7 +13,9 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.filtersObjects.OfferFilters
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.ToastItem
 import market.engine.core.types.LotsType
 import market.engine.core.types.ToastType
@@ -22,6 +24,7 @@ import market.engine.core.util.getCurrentDate
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
 import market.engine.widgets.buttons.floatingCreateOfferButton
+import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
 import org.jetbrains.compose.resources.stringResource
@@ -45,21 +48,58 @@ fun MyOffersContent(
 
     val successToast = stringResource(strings.operationSuccess)
 
+    val noFound = @Composable {
+        if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
+            showNoItemLayout(
+                textButton = stringResource(strings.resetLabel)
+            ) {
+                when(component.model.value.type){
+                    LotsType.MYLOT_ACTIVE ->{
+                        OfferFilters.clearTypeFilter(LotsType.MYLOT_ACTIVE)
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
+                    }
+                    LotsType.MYLOT_UNACTIVE ->{
+                        OfferFilters.clearTypeFilter(LotsType.MYLOT_UNACTIVE)
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
+                    }
+                    LotsType.MYLOT_FUTURE ->{
+                        OfferFilters.clearTypeFilter(LotsType.MYLOT_FUTURE)
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
+                    }
+                    else ->{
+                        listingData.value.filters.clear()
+                    }
+                }
+                viewModel.onRefresh()
+            }
+        }else {
+            showNoItemLayout(
+                title = stringResource(strings.simpleNotFoundLabel),
+                icon = drawables.emptyOffersIcon
+            ) {
+                listingData.value.resetScroll()
+                viewModel.onRefresh()
+            }
+        }
+    }
+
     //update item when we back
-    LaunchedEffect(viewModel.updateItem.value) {
-        if (viewModel.updateItem.value != null) {
+    LaunchedEffect(listingData.value.updateItem) {
+        if (listingData.value.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =
-                    viewModel.getUpdatedOfferById(viewModel.updateItem.value!!)
+                    viewModel.getUpdatedOfferById(listingData.value.updateItem.value!!)
                 withContext(Dispatchers.Main) {
                     if (offer != null) {
                         val item = data.itemSnapshotList.items.find { it.id == offer.id }
                         item?.state = offer.state
                         item?.session = offer.session
-                        viewModel.updateItem.value = null
-                    }else{
-                        viewModel.updateItem.value = null
                     }
+
+                    listingData.value.updateItem.value = null
                 }
             }
         }
@@ -73,10 +113,10 @@ fun MyOffersContent(
         data = data,
         baseViewModel = viewModel,
         onRefresh = {
-            viewModel.firstVisibleItemIndex = 0
-            viewModel.firstVisibleItemScrollOffset = 0
-            data.refresh()
+            listingData.value.resetScroll()
+            viewModel.onRefresh()
         },
+        noFound = noFound,
         topBar = {
             ProfileMyOffersAppBar(
                 model.type,
@@ -94,7 +134,7 @@ fun MyOffersContent(
         filtersContent = { isRefreshingFromFilters, onClose ->
             OfferFilterContent(
                 isRefreshingFromFilters,
-                listingData,
+                listingData.value,
                 model.type,
                 onClose
             )
@@ -102,7 +142,7 @@ fun MyOffersContent(
         sortingContent = { isRefreshingFromFilters, onClose ->
             SortingListingContent(
                 isRefreshingFromFilters,
-                listingData,
+                listingData.value,
                 onClose
             )
         },
@@ -132,7 +172,7 @@ fun MyOffersContent(
                     offer = offer,
                     viewModel,
                     onUpdateOfferItem = {
-                        viewModel.updateItem.value = it.id
+                        listingData.value.updateItem.value = it.id
                         viewModel.showToast(
                             ToastItem(
                                 isVisible = true,
@@ -144,7 +184,7 @@ fun MyOffersContent(
                     onItemClick = {
                         component.goToOffer(offer)
                         // set item for update
-                        viewModel.updateItem.value = offer.id
+                        listingData.value.updateItem.value = offer.id
                     }
                 )
             }

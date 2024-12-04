@@ -25,19 +25,19 @@ class ProfileMyOffersViewModel(
         when(type){
             LotsType.MYLOT_ACTIVE -> {
                 listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters?.addAll( OfferFilters.filtersMyLotsActive)
+                listingData.value.data.value.filters.addAll( OfferFilters.filtersMyLotsActive.toList())
             }
             LotsType.MYLOT_UNACTIVE -> {
                 listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters?.addAll(OfferFilters.filtersMyLotsUnactive)
+                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
             }
             LotsType.MYLOT_FUTURE -> {
                 listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters?.addAll(OfferFilters.filtersMyLotsFuture)
+                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
             }
             else -> {
                 listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters?.addAll(OfferFilters.filtersMyLotsActive)
+                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
             }
         }
 
@@ -45,5 +45,9 @@ class ProfileMyOffersViewModel(
         listingData.value.data.value.objServer = "offers"
 
         pagingDataFlow = offerPagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
+    }
+
+    fun onRefresh(){
+        offerPagingRepository.refresh()
     }
 }

@@ -2,18 +2,13 @@ package market.engine.widgets.bars
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.items.NavigationItem
 import market.engine.presentation.main.MainComponent
 import market.engine.presentation.main.navigateFromBottomBar

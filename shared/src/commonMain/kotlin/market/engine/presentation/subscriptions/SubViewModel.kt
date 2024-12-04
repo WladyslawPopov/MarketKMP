@@ -21,15 +21,13 @@ class SubViewModel(
     val pagingDataFlow : Flow<PagingData<Subscription>>
 
     init {
-        listingData.value.data.value.filters = arrayListOf()
-        listingData.value.data.value.filters?.addAll(OfferFilters.filtersFav)
+        if (listingData.value.data.value.filters.isNullOrEmpty()) {
+            listingData.value.data.value.filters = arrayListOf()
+            listingData.value.data.value.filters?.addAll(OfferFilters.filtersFav)
+        }
         listingData.value.data.value.methodServer = "get_cabinet_listing"
         listingData.value.data.value.objServer = "subscriptions"
 
         pagingDataFlow = pagingRepository.getListing(listingData.value, apiService, Subscription.serializer()).cachedIn(viewModelScope)
-    }
-
-    fun refresh() {
-        //pagingRepository.refresh()
     }
 }

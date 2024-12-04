@@ -24,7 +24,7 @@ open class GenericPagingSource<T : Any>(
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, T> =
-        (params.key ?: listingData.data.value.pgCount).let { page ->
+        (params.key ?: 0).let { page ->
             try {
                 val url = UrlBuilder()
                     .addPathSegment(listingData.data.value.objServer)
@@ -40,14 +40,14 @@ open class GenericPagingSource<T : Any>(
                     try {
                         val serializer = Payload.serializer(serializer)
                         val value = deserializePayload(data.payload, serializer)
-                        val totalCount = value.totalCount
-                        val totalPages = if (totalCount % listingData.data.value.pageCountItems == 0) {
-                            totalCount / listingData.data.value.pageCountItems
-                        } else {
-                            (totalCount / listingData.data.value.pageCountItems) + 1
-                        }
+                        //val totalCount = value.totalCount
+//                        val totalPages = if (totalCount % listingData.data.value.pageCountItems == 0) {
+//                            totalCount / listingData.data.value.pageCountItems
+//                        } else {
+//                            (totalCount / listingData.data.value.pageCountItems) + 1
+//                        }
                         listingData.data.value.totalCount = value.totalCount
-                        listingData.data.value.totalPages = totalPages
+//                        listingData.data.value.totalPages = totalPages
 
                         if (listingData.searchData.value.userSearch && listingData.searchData.value.userID != 1L && listingData.searchData.value.userLogin.isNullOrEmpty()){
                             val firstObject = value.objects.firstOrNull()
@@ -55,7 +55,7 @@ open class GenericPagingSource<T : Any>(
                                 listingData.searchData.value.userLogin = firstObject.sellerData?.login
                             }
                         }
-                        listingData.data.value.pgCount = page
+
                         LoadResult.Page(
                             data = value.objects.toList(),
                             prevKey = if (page > 0) page - 1 else null,

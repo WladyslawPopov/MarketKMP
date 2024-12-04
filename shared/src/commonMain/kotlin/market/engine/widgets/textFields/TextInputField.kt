@@ -2,7 +2,6 @@ package market.engine.widgets.textFields
 
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -20,7 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import market.engine.core.constants.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.drawables
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

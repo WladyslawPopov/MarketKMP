@@ -20,8 +20,10 @@ class FavViewModel(
     val pagingDataFlow : Flow<PagingData<Offer>>
 
     init {
-        listingData.value.data.value.filters = arrayListOf()
-        listingData.value.data.value.filters?.addAll(OfferFilters.filtersFav)
+        if (listingData.value.data.value.filters.isNullOrEmpty()) {
+            listingData.value.data.value.filters = arrayListOf()
+            listingData.value.data.value.filters?.addAll(OfferFilters.filtersFav)
+        }
         listingData.value.data.value.methodServer = "get_cabinet_listing_watched_by_me"
         listingData.value.data.value.objServer = "offers"
 

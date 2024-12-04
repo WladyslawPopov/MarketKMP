@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -44,10 +43,10 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.types.LotsType
 import market.engine.widgets.buttons.FilterButton
@@ -60,11 +59,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun OfferFilterContent(
     isRefreshing: MutableState<Boolean>,
-    filters: State<LD>,
+    filters: LD,
     typeFilters: LotsType,
     onClose :  () -> Unit,
 ) {
-    val listingData by remember { mutableStateOf(filters.value.filters) }
+    val listingData by remember { mutableStateOf(filters.filters) }
 
     val focusManager: FocusManager = LocalFocusManager.current
 
@@ -90,30 +89,25 @@ fun OfferFilterContent(
         stringResource(strings.auctionWithBuyNow)
     )
 
-    var isExpanded1 by remember { mutableStateOf(listingData?.find { it.key == "state" }?.value != "") }
+    var isExpanded1 by remember { mutableStateOf(listingData.find { it.key == "state" }?.value != "") }
     var isExpanded2 by remember {
-        mutableStateOf(listingData?.find { it.key in (listOf("with_sales", "without_sales")) }?.value != "")
+        mutableStateOf(listingData.find { it.key in (listOf("with_sales", "without_sales")) }?.value != "")
     }
 
-    val cat = remember { mutableStateOf(listingData?.find { it.key == "category" })}
     val defCat = stringResource(strings.offersCategoryParameterName)
-    val activeCategory = remember {
-        mutableStateOf(if(cat.value?.interpritation != null && cat.value?.interpritation != "") cat.value?.interpritation ?: defCat else defCat)
-    }
+    val activeCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.interpritation ?: defCat) }
 
-    LaunchedEffect(Unit){
-        cat.value = listingData?.find { it.key == "category" }
-        activeCategory.value = if(cat.value?.interpritation != null && cat.value?.interpritation != "") cat.value?.interpritation ?: defCat else defCat
-    }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openBottomSheet = remember { mutableStateOf(false) }
 
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
+            isRefreshing.value = true
             scaffoldState.bottomSheetState.expand()
         }else{
             scaffoldState.bottomSheetState.collapse()
+            activeCategory.value = listingData.find { it.key == "category" }?.interpritation ?: defCat
         }
     }
 
@@ -128,7 +122,7 @@ fun OfferFilterContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             CategoryFilter(
-                filters, scaffoldState, isRefreshing
+                filters
             ){
                 openBottomSheet.value = false
             }
@@ -171,12 +165,12 @@ fun OfferFilterContent(
                     )
                 }
 
-                if (isRefreshing.value || listingData?.find { it.interpritation != null && it.interpritation != "" && it.key !in listOf("state", "with_sales", "without_sales") } != null) {
+                if (isRefreshing.value || listingData.find { it.interpritation != null && it.interpritation != "" && it.key !in listOf("state", "with_sales", "without_sales") } != null) {
                     Button(
                         onClick = {
-                            listingData?.clear()
+                            listingData.clear()
                             OfferFilters.clearTypeFilter(typeFilters)
-                            listingData?.addAll(OfferFilters.addByTypeFilter(typeFilters))
+                            listingData.addAll(OfferFilters.addByTypeFilter(typeFilters))
                             isRefreshing.value = true
                             onClose()
                         },
@@ -211,7 +205,7 @@ fun OfferFilterContent(
                                 content = {
                                     val selectedFilterKey = remember {
                                         mutableStateOf(
-                                            listingData?.find { it.key == "state" }?.value
+                                            listingData.find { it.key == "state" }?.value
                                         )
                                     }
 
@@ -229,14 +223,14 @@ fun OfferFilterContent(
                                                     .fillMaxWidth()
                                                     .clip(MaterialTheme.shapes.medium)
                                                     .clickable {
-                                                        listingData?.find { it.key == "state" }?.value = filterKey
+                                                        listingData.find { it.key == "state" }?.value = filterKey
                                                         selectedFilterKey.value = filterKey
                                                     }
                                             ) {
                                                 RadioButton(
                                                     isChecked,
                                                     {
-                                                        listingData?.find { it.key == "state" }?.value = filterKey
+                                                        listingData.find { it.key == "state" }?.value = filterKey
                                                         selectedFilterKey.value = filterKey
                                                     },
                                                     colors = RadioButtonDefaults.colors(
@@ -275,8 +269,8 @@ fun OfferFilterContent(
                                             val filter1 = myOfferExpandChoice[1]
                                             val (filterKey1, filterText1) = filter1
 
-                                            val isChecked = remember { mutableStateOf( listingData?.find { it.key == filterKey }?.interpritation != null) }
-                                            val isChecked1 = remember { mutableStateOf( listingData?.find { it.key == filterKey1 }?.interpritation != null) }
+                                            val isChecked = remember { mutableStateOf( listingData.find { it.key == filterKey }?.interpritation != null) }
+                                            val isChecked1 = remember { mutableStateOf( listingData.find { it.key == filterKey1 }?.interpritation != null) }
 
                                             Row(
                                                 horizontalArrangement = Arrangement.Start,
@@ -288,12 +282,12 @@ fun OfferFilterContent(
                                                         isChecked.value = !isChecked.value
                                                         if (isChecked.value) {
                                                             isChecked1.value = false
-                                                            listingData?.find { it.key == filterKey1 }?.interpritation = null
+                                                            listingData.find { it.key == filterKey1 }?.interpritation = null
 
-                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                            listingData.find { it.key == filterKey }?.interpritation =
                                                                 filterText
                                                         }else {
-                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                            listingData.find { it.key == filterKey }?.interpritation =
                                                                 null
                                                         }
 
@@ -306,12 +300,12 @@ fun OfferFilterContent(
                                                         isChecked.value = !isChecked.value
                                                         if (isChecked.value) {
                                                             isChecked1.value = false
-                                                            listingData?.find { it.key == filterKey1 }?.interpritation = null
+                                                            listingData.find { it.key == filterKey1 }?.interpritation = null
 
-                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                            listingData.find { it.key == filterKey }?.interpritation =
                                                                 filterText
                                                         }else {
-                                                            listingData?.find { it.key == filterKey }?.interpritation =
+                                                            listingData.find { it.key == filterKey }?.interpritation =
                                                                 null
                                                         }
 
@@ -341,11 +335,11 @@ fun OfferFilterContent(
                                                         isChecked1.value = !isChecked1.value
                                                         if (isChecked1.value) {
                                                             isChecked.value = false
-                                                            listingData?.find { it.key == filterKey }?.interpritation = null
-                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                            listingData.find { it.key == filterKey }?.interpritation = null
+                                                            listingData.find { it.key == filterKey1 }?.interpritation =
                                                                 filterText1
                                                         }else {
-                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                            listingData.find { it.key == filterKey1 }?.interpritation =
                                                                 null
                                                         }
 
@@ -358,11 +352,11 @@ fun OfferFilterContent(
                                                         isChecked1.value = !isChecked1.value
                                                         if (isChecked1.value) {
                                                             isChecked.value = false
-                                                            listingData?.find { it.key == filterKey }?.interpritation = null
-                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                            listingData.find { it.key == filterKey }?.interpritation = null
+                                                            listingData.find { it.key == filterKey1 }?.interpritation =
                                                                 filterText1
                                                         }else {
-                                                            listingData?.find { it.key == filterKey1 }?.interpritation =
+                                                            listingData.find { it.key == filterKey1 }?.interpritation =
                                                                 null
                                                         }
 
@@ -410,22 +404,22 @@ fun OfferFilterContent(
                             )
 
                             getDropdownMenu(
-                                listingData?.find { it.key == "sale_type" }?.interpritation,
+                                listingData.find { it.key == "sale_type" }?.interpritation,
                                 offersType[0].second,
                                 offersTypeFilterMap,
                                 onItemClick = { type ->
                                     offersType.find { it.second == type }?.let { pair ->
-                                        listingData?.find { it.key == "sale_type" }?.value =
+                                        listingData.find { it.key == "sale_type" }?.value =
                                             pair.first
-                                        listingData?.find { it.key == "sale_type" }?.interpritation =
+                                        listingData.find { it.key == "sale_type" }?.interpritation =
                                             pair.second
                                     }
                                     isRefreshing.value = true
                                 },
                                 onClearItem = {
-                                    listingData?.find { it.key == "sale_type" }?.value =
+                                    listingData.find { it.key == "sale_type" }?.value =
                                         ""
-                                    listingData?.find { it.key == "sale_type" }?.interpritation =
+                                    listingData.find { it.key == "sale_type" }?.interpritation =
                                         null
                                     isRefreshing.value = true
                                 }
@@ -447,16 +441,14 @@ fun OfferFilterContent(
                                     openBottomSheet.value = true
                                 },
                                 onCancelClick = {
-                                    val name = listingData?.find { it.key == "category" }?.interpritation
+                                    val name = listingData.find { it.key == "category" }?.interpritation
                                     if (!name.isNullOrEmpty()) {
                                         IconButton(
                                             onClick = {
                                                 isRefreshing.value = true
-                                                listingData?.find { it.key == "category" }?.value =
-                                                    ""
-                                                listingData?.find { it.key == "category" }?.interpritation =
-                                                    null
-                                                activeCategory.value = if(cat.value?.interpritation != null && cat.value?.interpritation != "") cat.value?.interpritation ?: defCat else defCat
+                                                listingData.find { it.key == "category" }?.value = ""
+                                                listingData.find { it.key == "category" }?.interpritation = null
+                                                activeCategory.value = defCat
                                             },
                                             content = {
                                                 Icon(
@@ -481,7 +473,7 @@ fun OfferFilterContent(
             ) {
                 Button(
                     onClick = {
-                        filters.value.filters = listingData
+                        filters.filters = listingData
                         isRefreshing.value = true
                         onClose()
                     },
@@ -504,13 +496,13 @@ fun OfferFilterContent(
 @Composable
 fun InputsOfferFilterContent(
     isRefreshing: MutableState<Boolean>,
-    listingData: State<LD>
+    listingData: LD
 ) {
-    val filters = listingData.value.filters
+    val filters = listingData.filters
 
-    val idTextState = remember { mutableStateOf(filters?.find { it.key == "id"}?.value ?: "") }
-    val nameTextState = remember { mutableStateOf(filters?.find { it.key == "search"}?.value ?: "") }
-    val sellerLoginTextState = remember { mutableStateOf(filters?.find { it.key == "seller_login" }?.value) }
+    val idTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
+    val nameTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
+    val sellerLoginTextState = remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value) }
 
     Column(
         modifier = Modifier.padding(dimens.mediumPadding)
@@ -526,12 +518,12 @@ fun InputsOfferFilterContent(
                 textState = idTextState,
                 onTextChange = { text ->
                     if (idTextState.value.isNotBlank()) {
-                        filters?.find { it.key == "id"}?.apply {
+                        filters.find { it.key == "id"}?.apply {
                             value = text
                             interpritation = "$offerId: $text"
                         }
                     }else{
-                        filters?.find { it.key == "id" }.let {
+                        filters.find { it.key == "id" }.let {
                             it?.value = ""
                             it?.interpritation = null
                         }
@@ -551,12 +543,12 @@ fun InputsOfferFilterContent(
                 onTextChange = { text ->
                     if (nameTextState.value.isNotBlank()) {
 
-                        filters?.find { filter -> filter.key == "search"}?.apply {
+                        filters.find { filter -> filter.key == "search"}?.apply {
                             value = text
                             interpritation = "$offerName: $text"
                         }
                     }else{
-                        filters?.find { it.key == "search" }.let {
+                        filters.find { it.key == "search" }.let {
                             it?.value = ""
                             it?.interpritation = null
                         }
@@ -576,12 +568,12 @@ fun InputsOfferFilterContent(
                 textState = (sellerLoginTextState as MutableState<String>),
                 onTextChange = { text ->
                     if (sellerLoginTextState.value?.isNotBlank() == true) {
-                        filters?.find { filter -> filter.key == "seller_login" }?.apply {
+                        filters.find { filter -> filter.key == "seller_login" }?.apply {
                             value = text
                             interpritation = "$sellerLogin: $text"
                         }
                     }else{
-                        filters?.find { it.key == "seller_login" }.let {
+                        filters.find { it.key == "seller_login" }.let {
                             it?.value = ""
                             it?.interpritation = null
                         }

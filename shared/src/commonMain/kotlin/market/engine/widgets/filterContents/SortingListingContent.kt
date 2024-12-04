@@ -6,9 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import market.engine.core.baseFilters.LD
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -31,18 +29,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import market.engine.core.baseFilters.Sort
-import kotlinx.coroutines.launch
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SortingListingContent(
     isRefreshing: MutableState<Boolean>,
-    listingData: State<LD>,
+    listingData: LD,
     onClose: () -> Unit,
 ) {
     val sortSections = listOf(
@@ -100,11 +97,11 @@ fun SortingListingContent(
                 )
             }
 
-            if(listingData.value.sort != null) {
+            if(listingData.sort != null) {
                 Button(
                     onClick = {
                         isRefreshing.value = true
-                        listingData.value.sort = null
+                        listingData.sort = null
                         onClose()
                     },
                     content = {
@@ -148,7 +145,7 @@ fun SortingListingContent(
                                 .fillMaxWidth()
                                 .clickable {
                                     isRefreshing.value = true
-                                    listingData.value.sort = sortOption
+                                    listingData.sort = sortOption
                                     onClose()
                                 }
                                 .background(colors.white)
@@ -164,7 +161,7 @@ fun SortingListingContent(
                                 color = colors.black
                             )
 
-                            if (listingData.value.sort?.key == sortOption.key && listingData.value.sort?.value == sortOption.value) {
+                            if (listingData.sort?.key == sortOption.key && listingData.sort?.value == sortOption.value) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,

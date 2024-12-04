@@ -12,16 +12,16 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.Offer
+import market.engine.widgets.buttons.SmallImageButton
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -48,7 +48,7 @@ fun HeaderFavItemSection(
         )
 
         Row(
-            modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
+            modifier = Modifier.wrapContentSize(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -83,15 +83,12 @@ fun HeaderFavItemSection(
             Spacer(modifier = Modifier.width(dimens.mediumPadding))
 
             AnimatedVisibility (!isSelected) {
-                IconButton(
-                    onClick = { onMenuClick() },
-                ) {
-                    Icon(
-                        painter = painterResource(drawables.menuIcon),
-                        contentDescription = "",
-                        tint = colors.black,
-                        modifier = Modifier.size(dimens.smallIconSize)
-                    )
+                SmallImageButton(
+                    drawables.menuIcon,
+                    modifier = Modifier.size(dimens.smallIconSize),
+                    modifierIconSize = Modifier.size(dimens.smallIconSize)
+                ){
+                    onMenuClick()
                 }
             }
         }

@@ -23,16 +23,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.bars.PagingCounterBar
 import org.jetbrains.compose.resources.stringResource
@@ -48,42 +50,21 @@ fun <T : Any> PagingList(
     promoContent: (@Composable (Offer) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
-    val itemsPerPage = listingData.pageCountItems
-    val totalPages = listingData.totalPages
-
-    var previousIndex by remember { mutableStateOf(0) }
     var showUpButton by remember { mutableStateOf(false) }
-    var showDownButton by remember { mutableStateOf(true) }
+    var showDownButton by remember { mutableStateOf(false) }
 
-    val currentPage by remember {
+    val currentIndex by remember {
         derivedStateOf {
-            (state.firstVisibleItemIndex / itemsPerPage) + 1
+            state.firstVisibleItemIndex + if(listingData.totalCount > 1) 2 else 1
         }
     }
 
-    LaunchedEffect(state) {
-        snapshotFlow { state.firstVisibleItemIndex }
-            .collect { currentIndex ->
-                if (currentIndex < previousIndex) {
-                    showUpButton = true
-                    showDownButton = false
-                } else if (currentIndex > previousIndex) {
-                    showUpButton = false
-                    showDownButton = true
-                }
-
-                if (currentIndex == 0) {
-                    showUpButton = false
-                }
-
-                if (currentPage == totalPages) {
-                    showDownButton = false
-                    showUpButton = false
-                }
-
-                previousIndex = currentIndex
-            }
+    LaunchedEffect(state.firstVisibleItemIndex){
+        showUpButton = 2 < (state.firstVisibleItemIndex / listingData.pageCountItems)
+        showDownButton = listingData.prevIndex != null &&
+                state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
     }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -177,9 +158,31 @@ fun <T : Any> PagingList(
         }
 
         PagingCounterBar(
-            currentPage = currentPage,
-            totalPages = listingData.totalPages,
-            modifier = Modifier.align(Alignment.BottomStart)
+            currentPage = currentIndex,
+            totalPages = listingData.totalCount,
+            modifier = Modifier.align(Alignment.BottomStart),
+            showUpButton = showUpButton,
+            showDownButton = showDownButton,
+            onClick = {
+                when{
+                    showUpButton -> {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            listingData.prevIndex = currentIndex
+                            state.scrollToItem(0)
+                            showUpButton = false
+                            showDownButton = true
+                        }
+                    }
+                    showDownButton -> {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            state.scrollToItem(listingData.prevIndex ?: 1)
+                            listingData.prevIndex = null
+                            showDownButton = false
+                            showUpButton = true
+                        }
+                    }
+                }
+            }
         )
     }
 }

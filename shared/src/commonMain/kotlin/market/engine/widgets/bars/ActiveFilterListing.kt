@@ -7,9 +7,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.widgets.buttons.SmallIconButton
 
 @Composable
@@ -25,14 +25,14 @@ fun ActiveFilterListing(
         label = {
             Text(
                 text,
-                style = MaterialTheme.typography.labelSmall
+                style = MaterialTheme.typography.labelMedium
             )
         },
         trailingIcon = {
             SmallIconButton(
                 drawables.cancelIcon,
                 color = colors.black,
-                modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
+                modifierIconSize = Modifier.size(dimens.smallIconSize),
                 modifier = Modifier.size(dimens.smallIconSize)
             ) {
                 removeFilter()

@@ -21,8 +21,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.BottomSheetScaffoldState
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
@@ -30,26 +28,20 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.baseFilters.LD
-import market.engine.core.constants.ThemeResources.colors
-import market.engine.core.constants.ThemeResources.dimens
-import market.engine.core.constants.ThemeResources.drawables
-import market.engine.core.constants.ThemeResources.strings
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.networkObjects.Category
 import market.engine.widgets.buttons.AcceptedPageButton
@@ -60,60 +52,33 @@ import org.koin.compose.koinInject
 
 @Composable
 fun CategoryFilter(
-    listingData: State<LD>,
-    sheetState: BottomSheetScaffoldState,
-    isRefreshing: MutableState<Boolean>,
+    listingData: LD,
     onClosed: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     val categoryOperations : CategoryOperations = koinInject()
-    val isRefresh = remember { mutableStateOf(true) }
+
     val categories = remember { mutableStateListOf<Category>() }
-    val cat = remember { mutableStateOf( listingData.value.filters?.find { it.key == "category" } ) }
+
+    val cat = remember { listingData.filters.find { it.key == "category" } }
+
     val defCat = stringResource(strings.categoryMain)
+
     val catTitle = remember {
-        mutableStateOf(
-            if(!cat.value?.interpritation.isNullOrEmpty())
-            cat.value?.interpritation ?: defCat else defCat
-        )
+        mutableStateOf(cat?.interpritation ?: defCat)
     }
 
-    val pastCategory = remember { mutableStateListOf(cat.value) }
+    val pastCategory = remember { mutableStateListOf(cat) }
 
-    LaunchedEffect(isRefresh.value) {
-        snapshotFlow {
-            cat.value
-        }.collect { c ->
-            scope.launch {
-                withContext(Dispatchers.IO){
-                    val res = categoryOperations.getCategories(c?.value?.toLongOrNull() ?: 1L)
+    LaunchedEffect(catTitle.value) {
+        withContext(Dispatchers.IO){
+            val res = categoryOperations.getCategories(cat?.value?.toLongOrNull() ?: 1L)
 
-                    withContext(Dispatchers.Main){
-                        if (res != null) {
-                            categories.clear()
-                            categories.addAll(res)
-                            isRefresh.value = false
-                        }
-                    }
+            withContext(Dispatchers.Main){
+                if (res != null) {
+                    categories.clear()
+                    categories.addAll(res)
                 }
             }
-        }
-    }
-
-    LaunchedEffect(sheetState){
-        snapshotFlow {
-            sheetState.bottomSheetState.isCollapsed
-        }.collect {
-            cat.value = listingData.value.filters?.find { it.key == "category" }
-            catTitle.value = if(!cat.value?.interpritation.isNullOrEmpty())
-                        cat.value?.interpritation ?: defCat else defCat
-
-            if (cat.value?.interpritation == null) {
-                pastCategory.clear()
-                pastCategory.add(cat.value?.copy())
-            }
-
-            isRefresh.value = true
         }
     }
 
@@ -132,17 +97,15 @@ fun CategoryFilter(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 if (pastCategory.size > 1 ||
-                    (pastCategory.lastOrNull()?.value != null &&
+                    (pastCategory.lastOrNull() != null &&
                     pastCategory.lastOrNull()?.value?.toLongOrNull() != 1L)
                 ) {
                     IconButton(
                         onClick = {
                             val item = pastCategory.lastOrNull()
                             if (item != null) {
-                                listingData.value.filters?.find { it.key == "category" }?.value =
-                                    item.value
-                                listingData.value.filters?.find { it.key == "category" }?.interpritation =
-                                    item.interpritation
+                                listingData.filters.find { it.key == "category" }?.value = item.value
+                                listingData.filters.find { it.key == "category" }?.interpritation = item.interpritation
 
                                 if(!item.interpritation.isNullOrEmpty()) {
                                     catTitle.value = item.interpritation!!
@@ -151,7 +114,6 @@ fun CategoryFilter(
                                 }
 
                                 pastCategory.removeLast()
-                                isRefresh.value = true
                             }
                         },
                     ) {
@@ -184,9 +146,9 @@ fun CategoryFilter(
                     modifier = Modifier.align(Alignment.Bottom)
                 )
             }
-
+            val isSelect = remember { mutableStateOf(1L) }
             AnimatedVisibility(
-                visible = sheetState.bottomSheetState.isExpanded,
+                visible = true,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -195,7 +157,6 @@ fun CategoryFilter(
                         items(categories) { category ->
                             Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
-                            val isSelect = remember { mutableStateOf(false) }
                             NavigationDrawerItem(
                                 label = {
                                     Box(
@@ -212,20 +173,18 @@ fun CategoryFilter(
                                     }
                                 },
                                 onClick = {
-                                    catTitle.value = category.name ?: defCat
                                     if (!category.isLeaf) {
-                                        pastCategory.add(cat.value?.copy())
-                                        listingData.value.filters?.find { it.key == "category" }?.value =
+                                        catTitle.value = category.name ?: defCat
+                                        pastCategory.add(cat?.copy())
+                                        listingData.filters.find { it.key == "category" }?.value =
                                             category.id.toString()
-                                        listingData.value.filters?.find { it.key == "category" }?.interpritation =
+                                        listingData.filters.find { it.key == "category" }?.interpritation =
                                             category.name
-
-                                        isRefresh.value = true
                                     } else {
-                                        isSelect.value = true
-                                        listingData.value.filters?.find { it.key == "category" }?.value =
+                                        isSelect.value = category.id
+                                        listingData.filters.find { it.key == "category" }?.value =
                                             category.id.toString()
-                                        listingData.value.filters?.find { it.key == "category" }?.interpritation =
+                                        listingData.filters.find { it.key == "category" }?.interpritation =
                                             category.name
                                     }
                                 },
@@ -250,7 +209,7 @@ fun CategoryFilter(
                                     unselectedBadgeColor = colors.white
                                 ),
                                 shape = MaterialTheme.shapes.small,
-                                selected = isSelect.value
+                                selected = isSelect.value == category.id
                             )
                         }
                     }
@@ -266,7 +225,6 @@ fun CategoryFilter(
                 strings.actionAcceptFilters,
                 Modifier.align(Alignment.Center),
             ) {
-                isRefreshing.value = true
                 onClosed()
             }
         }

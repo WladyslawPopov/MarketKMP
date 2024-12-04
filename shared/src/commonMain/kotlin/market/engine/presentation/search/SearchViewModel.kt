@@ -4,8 +4,7 @@ import market.engine.core.globalData.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import market.engine.common.createSqlDriver
-import market.engine.core.baseFilters.CategoryBaseFilters
+import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.network.ServerErrorException
 
 import market.engine.presentation.base.BaseViewModel
