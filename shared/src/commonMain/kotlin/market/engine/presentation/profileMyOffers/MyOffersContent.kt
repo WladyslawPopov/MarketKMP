@@ -27,6 +27,7 @@ import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
+import market.engine.widgets.items.OfferItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -168,9 +169,10 @@ fun MyOffersContent(
                 else ->{}
             }
             AnimatedVisibility(checkItemSession, exit = fadeOut()) {
-                MyOffersItem(
-                    offer = offer,
-                    viewModel,
+                OfferItem(
+                    offer,
+                    isGrid = (columns.value > 1),
+                    baseViewModel = viewModel,
                     onUpdateOfferItem = {
                         listingData.value.updateItem.value = it.id
                         viewModel.showToast(
@@ -181,12 +183,11 @@ fun MyOffersContent(
                             )
                         )
                     },
-                    onItemClick = {
-                        component.goToOffer(offer)
-                        // set item for update
-                        listingData.value.updateItem.value = offer.id
-                    }
-                )
+                ){
+                    component.goToOffer(offer)
+                    // set item for update
+                    listingData.value.updateItem.value = offer.id
+                }
             }
         }
     )

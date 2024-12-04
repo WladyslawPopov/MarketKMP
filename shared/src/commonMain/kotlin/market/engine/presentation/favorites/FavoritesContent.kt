@@ -27,6 +27,7 @@ import market.engine.core.types.ToastType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
+import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
@@ -167,9 +168,11 @@ fun FavoritesContent(
         },
         item = { offer->
             AnimatedVisibility (offer.isWatchedByMe, exit = fadeOut()) {
-                FavItem(
+                OfferItem(
                     offer,
-                    favViewModel,
+                    isGrid = (columns.value > 1),
+                    baseViewModel = favViewModel,
+                    isSelection = selectedItems.contains(offer.id),
                     onSelectionChange = { isSelect ->
                         if (isSelect) {
                             ld.value.selectItems.add(offer.id)
@@ -188,8 +191,7 @@ fun FavoritesContent(
                             message = successToast
                         ))
                     },
-                    isSelected = selectedItems.contains(offer.id),
-                ) {
+                ){
                     if (ld.value.selectItems.isNotEmpty()) {
                         ld.value.selectItems.add(offer.id)
                     } else {

@@ -1,4 +1,4 @@
-package market.engine.widgets.rows
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +30,7 @@ fun OfferItemStatuses(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxWidth(),
     ) {
 
@@ -40,7 +40,7 @@ fun OfferItemStatuses(
         FlowRow(
             verticalArrangement = Arrangement.SpaceAround,
             horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
         ) {
             when (offer.saleType) {
                 "buy_now" -> {
@@ -53,11 +53,14 @@ fun OfferItemStatuses(
                         modifier = Modifier.size(dimens.smallIconSize),
                     )
 
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
                     Text(
                         text = offer.currentQuantity.toString(),
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
                     )
+
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                     if (offer.session != null && !offer.isPrototype) {
                         Text(
@@ -77,11 +80,14 @@ fun OfferItemStatuses(
                         modifier = Modifier.size(dimens.smallIconSize),
                     )
 
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
                     Text(
                         text = offer.numParticipants.toString(),
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = dimens.smallPadding)
                     )
+
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                     var bids = stringResource(strings.noBids)
                     if (offer.bids?.isNotEmpty() == true) {
@@ -104,10 +110,11 @@ fun OfferItemStatuses(
                         modifier = Modifier.size(dimens.smallIconSize),
                     )
 
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
                     Text(
                         text = offer.numParticipants.toString(),
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = dimens.smallPadding)
                     )
                 }
             }
@@ -127,7 +134,6 @@ fun OfferItemStatuses(
             text = typeString,
             style = MaterialTheme.typography.titleSmall,
             color = colorType,
-            modifier = Modifier.padding(vertical = dimens.extraSmallPadding)
         )
     }
 }

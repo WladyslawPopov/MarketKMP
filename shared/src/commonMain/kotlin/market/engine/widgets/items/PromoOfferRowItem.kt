@@ -25,6 +25,7 @@ import market.engine.core.globalData.ThemeResources.strings
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -43,7 +44,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
     ) {
         Column(
             modifier = Modifier.padding(dimens.smallPadding)
-                .size(280.dp),
+                .size(300.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -74,14 +75,13 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
-            Text(
-                text = offer.title ?: "",
-                color = colors.black,
-                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
-                style = MaterialTheme.typography.bodySmall
+            TitleText(
+                offer.title ?: "",
+                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
             Text(
                 text = offer.currentPricePerItem.toString() + stringResource(strings.currencySign),
                 color = colors.titleTextColor,

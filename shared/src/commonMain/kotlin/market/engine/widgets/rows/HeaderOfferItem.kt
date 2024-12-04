@@ -1,6 +1,6 @@
-package market.engine.presentation.profileMyOffers
+package market.engine.widgets.rows
 
-
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,8 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,12 +21,16 @@ import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.Offer
+import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.painterResource
 
 
 @Composable
-fun HeaderMyOfferItem(
+fun HeaderOfferItem(
     offer: Offer,
+    isSelected: Boolean = false,
+    isOpenMenu: Boolean = false,
+    onSelectionChange: ((Boolean) -> Unit)? = null,
     onMenuClick: () -> Unit,
 ) {
     Row(
@@ -39,6 +44,21 @@ fun HeaderMyOfferItem(
                 .padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+            if (onSelectionChange != null) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onSelectionChange(it) },
+                    modifier = Modifier.size(dimens.smallIconSize),
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = colors.inactiveBottomNavIconColor,
+                        uncheckedColor = colors.textA0AE,
+                        checkmarkColor = colors.alwaysWhite
+                    )
+                )
+                Spacer(modifier = Modifier.width(dimens.mediumSpacer))
+            }
+
             // Favorites Icon and Count
             Icon(
                 painter = painterResource(drawables.favoritesIcon),
@@ -68,16 +88,15 @@ fun HeaderMyOfferItem(
             )
         }
 
-        IconButton(
-            onClick = {
+        AnimatedVisibility(!isSelected){
+            SmallIconButton(
+                if(!isOpenMenu) drawables.menuIcon else drawables.cancelIcon,
+                if(!isOpenMenu) colors.black else colors.grayText,
+                modifierIconSize = Modifier.size(dimens.smallIconSize),
+                modifier = Modifier.size(dimens.smallIconSize)
+            ) {
                 onMenuClick()
-            },
-        ) {
-            Icon(
-                painter = painterResource(drawables.menuIcon),
-                contentDescription = "",
-                tint = colors.black
-            )
+            }
         }
     }
 }

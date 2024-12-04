@@ -27,6 +27,7 @@ import market.engine.core.globalData.ThemeResources.strings
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -44,7 +45,7 @@ fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
         onClick = { onOfferClick(offer) }
     ) {
         Column(
-            modifier = Modifier.padding(dimens.smallPadding).widthIn(max = 300.dp),
+            modifier = Modifier.padding(dimens.smallPadding).widthIn(max = 420.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -74,13 +75,10 @@ fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                     DiscountBadge(pd)
                 }
             }
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
-            Text(
-                text = offer.title ?: "",
-                color = colors.black,
-                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
-                letterSpacing = 0.1.sp,
-                fontSize = MaterialTheme.typography.bodyLarge.fontSize
+
+            TitleText(
+                offer.title ?: "",
+                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(dimens.smallSpacer))

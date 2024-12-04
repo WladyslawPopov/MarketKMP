@@ -22,6 +22,7 @@ import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterListingContent
 import market.engine.widgets.filterContents.SortingListingContent
+import market.engine.widgets.items.OfferItem
 import market.engine.widgets.items.PromoOfferRowItem
 import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
@@ -134,9 +135,10 @@ fun ListingContent(
             )
         },
         item = { offer ->
-            ListingItem(
+            OfferItem(
                 offer,
                 isGrid = listingData.value.listingType == 1,
+                baseViewModel = listingViewModel,
                 onFavouriteClick = {
                     val currentOffer =
                         data[data.itemSnapshotList.items.indexOf(
@@ -146,9 +148,9 @@ fun ListingContent(
                         val res =
                             operationFavorites(currentOffer, listingViewModel.viewModelScope)
                         userRepository.updateUserInfo(listingViewModel.viewModelScope)
-                        return@ListingItem res
+                        return@OfferItem res
                     } else {
-                        return@ListingItem it.isWatchedByMe
+                        return@OfferItem it.isWatchedByMe
                     }
                 }
             ) {

@@ -91,6 +91,7 @@ import market.engine.widgets.exceptions.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.texts.DiscountText
+import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -293,15 +294,12 @@ fun OfferContent(
                     }
                     //title
                     item {
-                        Text(
-                            text = offer.title ?: "",
-                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = dimens.extraLargeText
-                            ),
+                        TitleText(
+                            offer.title ?: "",
+                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
                         )
                     }
+
                     //simple Price
                     if (offerState.value == OfferStates.INACTIVE || offerState.value == OfferStates.COMPLETED || isMyOffer.value) {
                         item {
@@ -324,10 +322,7 @@ fun OfferContent(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                TitleText(
-                                    stringResource(strings.activatePromoParameterName),
-                                    color = colors.black
-                                )
+                                SeparatorLabel(strings.activatePromoParameterName)
                             }
 
                             PromoRow(
@@ -347,10 +342,7 @@ fun OfferContent(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    TitleText(
-                                        stringResource(strings.actionsOffersParameterName),
-                                        color = colors.black
-                                    )
+                                    SeparatorLabel(strings.actionsOffersParameterName)
                                 }
 
                                 Row(
@@ -572,7 +564,7 @@ fun OfferContent(
                     //recommended list offers
                     item {
                         if (ourChoiceList.value.isNotEmpty()) {
-                            TitleSeparatorOffer(strings.ourChoice)
+                            SeparatorLabel(strings.ourChoice)
 
                             LazyRow(
                                 modifier = Modifier.height(300.dp),
@@ -592,7 +584,7 @@ fun OfferContent(
                     // visited list offers
                     item {
                         if (visitedHistory.value.isNotEmpty()) {
-                            TitleSeparatorOffer(strings.lastViewedOffers)
+                            SeparatorLabel(strings.lastViewedOffers)
                         }
 
                         LazyRow(
@@ -641,7 +633,7 @@ fun DescriptionHtmlOffer(
         )
     }
 
-    TitleSeparatorOffer(strings.description)
+    SeparatorLabel(strings.description)
 
     val descriptionHtml = offer.description ?: ""
     descriptionsDecodeHtmlString.value = descriptionHtml.parseHtmlToAnnotatedString()
@@ -1169,7 +1161,7 @@ fun SellerPanel(
 
     if (seller != null) {
 
-        TitleSeparatorOffer(strings.sellerLabel)
+        SeparatorLabel(strings.sellerLabel)
 
         Column(
             modifier = Modifier
@@ -1561,7 +1553,7 @@ fun PaymentAndDeliverySection(
     paymentMethods: List<PaymentMethod>?,
     deliveryMethods: List<DeliveryMethod>?
 ) {
-    TitleSeparatorOffer(strings.paymentAndDeliveryLabel)
+    SeparatorLabel(strings.paymentAndDeliveryLabel)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1647,24 +1639,13 @@ fun formatDeliveryMethods(deliveryMethods: List<DeliveryMethod>?): String {
     } ?: ""
 }
 
-@Composable
-fun TitleSeparatorOffer(
-    title: StringResource
-){
-    Text(
-        text = stringResource(title),
-        style = MaterialTheme.typography.titleLarge,
-        color = colors.black,
-        modifier = Modifier.padding(horizontal = dimens.mediumPadding, vertical = dimens.smallPadding)
-    )
-}
 
 @Composable
 fun ParametersSection(
     parameters: List<Param>?
 ) {
     if (!parameters.isNullOrEmpty()) {
-        TitleSeparatorOffer(strings.parametersLabel)
+        SeparatorLabel(strings.parametersLabel)
 
         Column(
             modifier = Modifier
@@ -1705,7 +1686,7 @@ fun AuctionBidsSection(
 ) {
    val bids =  offer.bids
     if (bids != null) {
-        TitleSeparatorOffer(strings.bidsLabel)
+        SeparatorLabel(strings.bidsLabel)
 
         LazyColumn(
             modifier = Modifier
