@@ -172,7 +172,11 @@ fun OfferContent(
 
                     },
                     onBeakClick = {
-                        component.onBeakClick()
+                        if (!isImageViewerVisible.value) {
+                            component.onBeakClick()
+                        }else{
+                            isImageViewerVisible.value = false
+                        }
                     }
                 )
             },
@@ -299,7 +303,6 @@ fun OfferContent(
                             modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
                         )
                     }
-
                     //simple Price
                     if (offerState.value == OfferStates.INACTIVE || offerState.value == OfferStates.COMPLETED || isMyOffer.value) {
                         item {
@@ -737,21 +740,26 @@ fun AuctionPriceLayout(
             .clip(MaterialTheme.shapes.medium)
             .background(colors.white)
             .fillMaxWidth()
-            .padding(dimens.mediumPadding)
+            .padding(dimens.mediumPadding),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
         ) {
             // Current price
-            Column {
+            Column(
+                modifier = Modifier.padding(dimens.smallPadding),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Top
+            ) {
                 Text(
                     text = stringResource(strings.currentPriceParameterName),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = colors.grayText
+                    color = colors.grayText,
+                    modifier = Modifier.padding(dimens.smallPadding)
                 )
 
                 Text(
@@ -764,11 +772,16 @@ fun AuctionPriceLayout(
             }
 
             // Your maximum bid
-            Column {
+            Column(
+                modifier = Modifier.padding(dimens.smallPadding),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Top
+            ) {
                 Text(
                     text = stringResource(strings.yourMaxBidParameterName),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = colors.grayText
+                    color = colors.grayText,
+                    modifier = Modifier.padding(dimens.smallPadding)
                 )
 
                 Row(
@@ -812,20 +825,17 @@ fun AuctionPriceLayout(
                         modifier = Modifier.padding(dimens.smallPadding)
                     )
                 }
+
+                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+                SimpleTextButton(
+                    text = stringResource(strings.actionAddBid),
+                    backgroundColor = colors.inactiveBottomNavIconColor,
+                    textColor = colors.alwaysWhite,
+                    onClick = onAddBidClick,
+                )
             }
         }
-
-        Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
-        SimpleTextButton(
-            text = stringResource(strings.actionAddBid),
-            backgroundColor = colors.inactiveBottomNavIconColor,
-            modifier = Modifier
-                .align(Alignment.End)
-                .padding(horizontal = dimens.mediumPadding),
-            textColor = colors.alwaysWhite,
-            onClick = onAddBidClick,
-        )
     }
 }
 
@@ -843,7 +853,9 @@ fun BuyNowPriceLayout(
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.medium)
                 .background(colors.white)
-                .padding(dimens.mediumPadding)
+                .padding(dimens.mediumPadding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(
                 modifier = Modifier
@@ -1475,21 +1487,22 @@ fun TimeOfferSession(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
+            .wrapContentHeight()
+            .padding(dimens.smallPadding),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         SmallImageButton(
             drawables.iconClock
-        ) {
-        }
+        ){
 
+        }
         // Display the styled AnnotatedString
         Text(
             text = buildAnnotatedString {
                 append(remainingTime)
                 if (offer.session?.end != null) {
-                    append(" \n (${offer.session?.end?.convertDateWithMinutes()})")
+                    append("\n(${offer.session?.end?.convertDateWithMinutes()})")
                 }
             },
             style = MaterialTheme.typography.bodyMedium,
@@ -1545,7 +1558,6 @@ fun formatRemainingTimeAnnotated(
         }
     }
 }
-
 
 @Composable
 fun PaymentAndDeliverySection(

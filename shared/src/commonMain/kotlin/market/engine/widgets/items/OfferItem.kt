@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -230,6 +233,7 @@ fun contentStructure(
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun content(
     offer: Offer,
@@ -304,6 +308,111 @@ fun content(
     }
 
     OfferItemStatuses(offer)
+
+
+    if (offer.sellerData?.id == UserData.login) {
+        FlowRow(
+            horizontalArrangement = Arrangement.Start,
+            verticalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.padding(dimens.smallPadding)
+        ) {
+
+            // offer.promoOptions?.forEach { o ->
+//            Row(
+//                horizontalArrangement = Arrangement.Start,
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier.clickable {
+//                   // onItemClick(o.id)
+//                }
+//            ) {
+//                when (o.id) {
+//
+            //                               "featured_in_listing" -> {
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.brightPurple,
+                    contentColor = colors.white
+                )
+            ) {
+                Text(
+                    text = "TOP",
+                    color = colors.alwaysWhite,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(dimens.extraSmallPadding)
+                )
+            }
+            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "featured_on_main_page" -> {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.brightPurple,
+                    contentColor = colors.white
+                )
+            ) {
+                Icon(
+                    painter = painterResource(drawables.homeIcon),
+                    contentDescription = "",
+                    tint = colors.alwaysWhite
+                )
+            }
+            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "recommended_in_listing" -> {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.brightPurple,
+                    contentColor = colors.white
+                )
+            ) {
+                Icon(
+                    painter = painterResource(drawables.megaphoneIcon),
+                    contentDescription = "",
+                    tint = colors.alwaysWhite
+                )
+            }
+            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "backlignt_in_listing" -> {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.brightPurple,
+                    contentColor = colors.white
+                )
+            ) {
+                Icon(
+                    painter = painterResource(drawables.promoHighlightIcon),
+                    contentDescription = "",
+                    tint = colors.alwaysWhite
+                )
+            }
+            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+//                                }
+
+//                                "featured_in_offer" -> {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.brightPurple,
+                    contentColor = colors.white
+                )
+            ) {
+                Icon(
+                    painter = painterResource(drawables.adIcon),
+                    contentDescription = "",
+                    tint = colors.alwaysWhite
+                )
+            }
+//                }
+//            }
+            // }
+        }
+    }
 
     if (offer.discountPercentage > 0 && offer.buyNowPrice?.toDouble() != offer.currentPricePerItem?.toDouble()) {
         Row(
