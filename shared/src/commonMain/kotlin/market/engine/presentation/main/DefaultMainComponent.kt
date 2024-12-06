@@ -222,7 +222,6 @@ class DefaultMainComponent(
 
                 ChildCategory.ListingChild(
                     component = itemListing(componentContext, ld),
-                    listingData = ld
                 )
             }
             is CategoryConfig.OfferScreen -> ChildCategory.OfferChild(

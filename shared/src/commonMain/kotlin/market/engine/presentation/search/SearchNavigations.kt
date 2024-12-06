@@ -27,7 +27,7 @@ fun SearchNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildCategory.ListingChild -> ListingContent(stack, screen.listingData, screen.component, modifier)
+            is ChildCategory.ListingChild -> ListingContent(stack, screen.component, modifier)
             is ChildCategory.OfferChild -> OfferContent(screen.component, modifier)
         }
     }

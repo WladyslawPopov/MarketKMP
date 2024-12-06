@@ -87,5 +87,6 @@ class DefaultListingComponent(
             )
         }
         selectOffer(offer.id)
+        model.value.listingData.data.value.updateItem.value = offer.id
     }
 }

@@ -42,6 +42,7 @@ class ListingViewModel(
     val isCategorySelected = mutableStateOf(false)
     val isOpenCategory = mutableStateOf(true)
 
+
      fun init(listingData: ListingData) {
          listingData.data.value.methodServer = "get_public_listing"
          listingData.data.value.objServer = "offers"

@@ -5,6 +5,6 @@ import market.engine.presentation.search.listing.ListingComponent
 import market.engine.presentation.offer.OfferComponent
 
 sealed class ChildCategory {
-    class ListingChild(val listingData: ListingData, val component: ListingComponent) : ChildCategory()
+    class ListingChild(val component: ListingComponent) : ChildCategory()
     class OfferChild(val component: OfferComponent) : ChildCategory()
 }

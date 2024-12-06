@@ -1,5 +1,6 @@
 package market.engine.presentation.base
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +19,9 @@ import market.engine.core.types.ToastType
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
+
+
+    var updateItem : MutableState<Long?> = mutableStateOf(null)
     private val offersOperations : OfferOperations = getKoin().get()
 
     suspend fun getUpdatedOfferById(offerId: Long) : Offer? {

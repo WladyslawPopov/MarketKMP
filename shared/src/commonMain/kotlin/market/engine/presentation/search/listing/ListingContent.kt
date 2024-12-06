@@ -50,7 +50,6 @@ import org.koin.mp.KoinPlatform.getKoin
 @Composable
 fun ListingContent(
     stack: ChildStack<*, ChildCategory>,
-    initialListingData: ListingData?=null,
     component: ListingComponent,
     modifier: Modifier = Modifier
 ) {
@@ -58,6 +57,8 @@ fun ListingContent(
     val listingViewModel = modelState.value.listingViewModel
     val searchData = modelState.value.listingData.searchData.subscribeAsState()
     val listingData = modelState.value.listingData.data.subscribeAsState()
+
+    val data = remember { listingViewModel.pagingDataFlow }.collectAsLazyPagingItems()
 
     val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
     val regions = listingViewModel.regionOptions.value
@@ -103,7 +104,7 @@ fun ListingContent(
     val selectedUser = remember { mutableStateOf(searchData.value.userSearch) }
     val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isOpenSearch.value) {
         snapshotFlow { isOpenSearch.value }.collectLatest { isOpen ->
             if (isOpen) {
                 scaffoldStateSearch.bottomSheetState.expand()
@@ -112,7 +113,8 @@ fun ListingContent(
                 if (searchViewModel.responseHistory.value.isEmpty()) {
                     searchViewModel.getHistory()
                 }
-                searchString.value = searchString.value.copy(text = searchData.value.searchString ?: "")
+                searchString.value =
+                    searchString.value.copy(text = searchData.value.searchString ?: "")
                 selectedCategory.value = searchData.value.searchCategoryName ?: catDef
                 selectedUserLogin.value = searchData.value.userLogin
                 selectedUser.value = searchData.value.userSearch
@@ -123,6 +125,21 @@ fun ListingContent(
             } else {
                 focusManager.clearFocus()
                 scaffoldStateSearch.bottomSheetState.collapse()
+            }
+        }
+    }
+    LaunchedEffect(isOpenCat.value) {
+        snapshotFlow { isOpenCat.value }.collectLatest { isOpen ->
+            if (isOpen) {
+                scaffoldStateCategory.bottomSheetState.expand()
+
+                if (searchData.value.isRefreshing) {
+                    categoryViewModel.getCategory(searchData.value, listingData.value)
+                }
+                listingViewModel.isOpenCategory.value = true
+            } else {
+                scaffoldStateCategory.bottomSheetState.collapse()
+                listingViewModel.isOpenCategory.value = false
             }
         }
     }
@@ -142,28 +159,32 @@ fun ListingContent(
         }
     }
 
-    LaunchedEffect(Unit) {
-        snapshotFlow { isOpenCat.value }.collectLatest { isOpen ->
-            if (isOpen) {
-                scaffoldStateCategory.bottomSheetState.expand()
-
-                if(searchData.value.isRefreshing) {
-                    categoryViewModel.getCategory(searchData.value, listingData.value)
-                }
-                listingViewModel.isOpenCategory.value = true
-            } else {
-                scaffoldStateCategory.bottomSheetState.collapse()
-                listingViewModel.isOpenCategory.value = false
-            }
-        }
-    }
-
     LaunchedEffect(scaffoldStateCategory.bottomSheetState.isCollapsed) {
         if (scaffoldStateCategory.bottomSheetState.isCollapsed) {
             isOpenCat.value = false
             if (searchData.value.isRefreshing){
                 listingViewModel.refresh()
                 searchData.value.isRefreshing = false
+            }
+        }
+    }
+
+    val noFound = @Composable {
+        if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
+            searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
+        ){
+            showNoItemLayout(
+                textButton = stringResource(strings.resetLabel)
+            ){
+                searchData.value.clear()
+                listingData.value.filters.clear()
+                listingData.value.filters.addAll(EmptyFilters.getEmpty())
+                data.refresh()
+            }
+        }else {
+            showNoItemLayout {
+                listingData.value.resetScroll()
+                listingViewModel.refresh()
             }
         }
     }
@@ -235,41 +256,23 @@ fun ListingContent(
             },
         ){
             if (isCategorySelected.value) {
-                val data = remember { listingViewModel.pagingDataFlow }.collectAsLazyPagingItems()
 
-                //update item when we back
-                LaunchedEffect(Unit) {
-                    if (listingData.value.updateItem.value != null) {
-                        withContext(Dispatchers.IO) {
+                LaunchedEffect(Unit){
+                    //update item when we back
+                    withContext(Dispatchers.Default) {
+                        val updateItem = listingData.value.updateItem.value
+                        if (updateItem != null && stack.active.instance is ChildCategory.ListingChild ) {
                             val offer =
-                                listingViewModel.getUpdatedOfferById(listingData.value.updateItem.value!!)
+                                listingViewModel.getUpdatedOfferById(updateItem)
                             withContext(Dispatchers.Main) {
                                 if (offer != null) {
-                                    data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
+                                    val item =
+                                        data.itemSnapshotList.items.find { it.id == offer.id }
+                                    item?.isWatchedByMe =
                                         offer.isWatchedByMe
                                 }
                                 listingData.value.updateItem.value = null
                             }
-                        }
-                    }
-                }
-
-                val noFound = @Composable {
-                    if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
-                        searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
-                    ){
-                        showNoItemLayout(
-                            textButton = stringResource(strings.resetLabel)
-                        ){
-                            searchData.value.clear()
-                            listingData.value.filters.clear()
-                            listingData.value.filters.addAll(EmptyFilters.getEmpty())
-                            data.refresh()
-                        }
-                    }else {
-                        showNoItemLayout {
-                            listingData.value.resetScroll()
-                            listingViewModel.refresh()
                         }
                     }
                 }
@@ -338,6 +341,7 @@ fun ListingContent(
                         )
                     },
                     item = { offer ->
+
                         OfferItem(
                             offer,
                             isGrid = listingData.value.listingType == 1,
@@ -360,7 +364,6 @@ fun ListingContent(
                                 }
                             }
                         ) {
-                            listingData.value.updateItem.value = offer.id
                             component.goToOffer(offer)
                         }
                     },
