@@ -1,6 +1,7 @@
 package market.engine.presentation.search.listing
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,12 +20,12 @@ import market.engine.core.items.NavigationItem
 import market.engine.widgets.texts.TitleText
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.NavigationArrowButton
+import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListingAppBar(
-    isShowNav : Boolean,
     title : String,
     modifier: Modifier = Modifier,
     onCategoryClick: () -> Unit = {},
@@ -46,18 +47,23 @@ fun ListingAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-           TitleText(
-               title,
-               modifier = Modifier.clickable {
-                   onCategoryClick()
-               }
-           )
+            Row(
+                modifier = modifier.fillMaxWidth().clickable {
+                    onCategoryClick()
+                },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                TitleText(title)
+
+                SmallIconButton(drawables.iconArrowUp, colors.black){
+                    onCategoryClick()
+                }
+            }
         },
         navigationIcon = {
-            if(isShowNav) {
-                NavigationArrowButton {
-                    onBeakClick()
-                }
+            NavigationArrowButton {
+                onBeakClick()
             }
         },
         actions = {

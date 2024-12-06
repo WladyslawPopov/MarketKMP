@@ -107,18 +107,20 @@ fun CategoryContent(
         BaseContent(
             topBar = {
                 CategoryAppBar(
-                    isShowNav = true,
+                    isShowNav = searchData.searchCategoryID != 1L,
                     title = title.value,
                     searchData = searchData,
                     onSearchClick = goToSearch,
                     onClearSearchClick = onClearSearchClick,
-                ) {
-                    if (searchData.searchCategoryID != 1L){
-                        onCatBack(catDef, searchData, listingData, title, categoryViewModel)
-                    }else{
+                    onBeakClick = {
+                        if (searchData.searchCategoryID != 1L) {
+                            onCatBack(catDef, searchData, listingData, title, categoryViewModel)
+                        }
+                    },
+                    onCloseClick = {
                         onClose()
                     }
-                }
+                )
             },
             isLoading = isLoadingCategory.value,
             onRefresh = {

@@ -287,7 +287,6 @@ fun ListingContent(
                     noFound = noFound,
                     topBar = {
                         ListingAppBar(
-                            isShowNav = stack.backStack.isNotEmpty(),
                             searchData.value.searchCategoryName
                                 ?: stringResource(strings.categoryMain),
                             modifier,

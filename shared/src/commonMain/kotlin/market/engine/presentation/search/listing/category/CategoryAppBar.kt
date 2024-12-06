@@ -1,5 +1,7 @@
 package market.engine.presentation.search.listing.category
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,7 @@ import market.engine.core.items.NavigationItem
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TitleText
 import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,6 +35,7 @@ fun CategoryAppBar(
     onSearchClick: () -> Unit,
     onClearSearchClick: () -> Unit,
     onBeakClick: () -> Unit,
+    onCloseClick: () -> Unit
 ) {
     val listItems = listOf(
         NavigationItem(
@@ -57,7 +61,19 @@ fun CategoryAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            TitleText(title)
+            Row(
+                modifier = modifier.fillMaxWidth().clickable {
+                    onCloseClick()
+                },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                TitleText(title)
+
+                SmallIconButton(drawables.iconArrowDown, colors.black){
+                    onCloseClick()
+                }
+            }
         },
         navigationIcon = {
             if(isShowNav) {
