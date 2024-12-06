@@ -118,12 +118,11 @@ fun ListingContent(
                 selectedUser.value = searchData.value.userSearch
                 selectedUserFinished.value = searchData.value.searchFinished
 
-                listingViewModel.isOpenCategory.value = true
+
                 focusRequester.requestFocus()
             } else {
                 focusManager.clearFocus()
                 scaffoldStateSearch.bottomSheetState.collapse()
-                listingViewModel.isOpenCategory.value = false
             }
         }
     }
@@ -151,9 +150,10 @@ fun ListingContent(
                 if(searchData.value.isRefreshing) {
                     categoryViewModel.getCategory(searchData.value, listingData.value)
                 }
-
+                listingViewModel.isOpenCategory.value = true
             } else {
                 scaffoldStateCategory.bottomSheetState.collapse()
+                listingViewModel.isOpenCategory.value = false
             }
         }
     }

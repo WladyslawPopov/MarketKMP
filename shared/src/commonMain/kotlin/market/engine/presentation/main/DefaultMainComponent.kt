@@ -479,7 +479,7 @@ class DefaultMainComponent(
                     modelNavigation.value.categoryNavigation.replaceAll(categoryStack.value.last())
                 }
                 activeCurrent = "Category"
-                currentNavigation.replaceCurrent(config)
+                currentNavigation.replaceAll(config)
             }
             is MainConfig.Basket -> {
                 if (UserData.token == "") {
