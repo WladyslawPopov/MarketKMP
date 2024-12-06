@@ -1,4 +1,4 @@
-package market.engine.presentation.category
+package market.engine.presentation.search.listing.category
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
@@ -11,8 +11,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import market.engine.core.filtersObjects.CategoryBaseFilters
+import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
+import market.engine.core.items.ListingData
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.presentation.base.BaseViewModel
 import org.koin.mp.KoinPlatform.getKoin
@@ -24,7 +25,7 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
 
     private val categoryOperations : CategoryOperations = getKoin().get()
 
-    fun getCategory(searchData : SD) {
+    fun getCategory(searchData : SD, listingData : LD) {
         setLoading(true)
         viewModelScope.launch {
             try {
@@ -32,11 +33,14 @@ class CategoryViewModel(private val apiService: APIService) : BaseViewModel() {
                 val serializer = Payload.serializer(Category.serializer())
                 val payload: Payload<Category> = deserializePayload(response.payload, serializer)
 
-                val ld = CategoryBaseFilters.filtersData.deepCopy()
                 val categoriesWithLotCounts = payload.objects.map { category ->
                     async {
-                        ld.searchData.value.searchCategoryID = category.id
-                        val lotCount = categoryOperations.getTotalCount(ld)
+                        val sd = searchData.copy()
+                        sd.searchCategoryID = category.id
+                        val lotCount = categoryOperations.getTotalCount(ListingData(
+                            _searchData = sd,
+                            _data = listingData
+                        ))
                         category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
                     }
                 }

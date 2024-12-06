@@ -1,4 +1,4 @@
-package market.engine.presentation.search
+package market.engine.presentation.search.listing.search
 
 import market.engine.core.globalData.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,10 +19,6 @@ class SearchViewModel(val db : MarketDB) : BaseViewModel() {
     val searchData = CategoryBaseFilters.filtersData.searchData
     val listingData = CategoryBaseFilters.filtersData.data
 
-    init {
-        getHistory()
-    }
-
     fun getHistory(searchString : String = ""){
         try {
             val sh = db.searchHistoryQueries
@@ -33,5 +29,17 @@ class SearchViewModel(val db : MarketDB) : BaseViewModel() {
         }catch (e : Exception){
             onError(ServerErrorException(e.message.toString(), ""))
         }
+    }
+
+    fun deleteHistory() {
+        val sh = db.searchHistoryQueries
+        sh.deleteAll()
+        getHistory()
+    }
+
+    fun deleteItemHistory(id: Long) {
+        val sh = db.searchHistoryQueries
+        sh.deleteById(id, UserData.login)
+        getHistory()
     }
 }

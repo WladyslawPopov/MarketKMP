@@ -1,14 +1,11 @@
-package market.engine.presentation.listing
+package market.engine.presentation.search.listing
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -21,13 +18,16 @@ import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.texts.TitleText
 import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.buttons.NavigationArrowButton
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListingAppBar(
+    isShowNav : Boolean,
     title : String,
     modifier: Modifier = Modifier,
+    onCategoryClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     onBeakClick: () -> Unit,
 ) {
@@ -49,23 +49,15 @@ fun ListingAppBar(
            TitleText(
                title,
                modifier = Modifier.clickable {
-                   onBeakClick()
+                   onCategoryClick()
                }
            )
         },
         navigationIcon = {
-            IconButton(
-                modifier = modifier,
-                onClick = {
+            if(isShowNav) {
+                NavigationArrowButton {
                     onBeakClick()
                 }
-            ){
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(strings.menuTitle),
-                    modifier = modifier.size(dimens.smallIconSize),
-                    tint = colors.black
-                )
             }
         },
         actions = {

@@ -1,4 +1,4 @@
-package market.engine.presentation.category
+package market.engine.presentation.search
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -11,14 +11,11 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import market.engine.core.navigation.children.ChildCategory
-import market.engine.presentation.listing.ListingContent
 import market.engine.presentation.offer.OfferContent
-import market.engine.presentation.search.SearchContent
-
-
+import market.engine.presentation.search.listing.ListingContent
 
 @Composable
-fun CategoryNavigation (
+fun SearchNavigation(
     modifier: Modifier = Modifier,
     childStack: Value<ChildStack<*, ChildCategory>>
 ) {
@@ -30,20 +27,8 @@ fun CategoryNavigation (
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildCategory.SearchChild ->{
-                SearchContent(screen.component, modifier)
-            }
-            is ChildCategory.ListingChild ->{
-                ListingContent(screen.component, modifier)
-            }
-            is ChildCategory.CategoryChild ->{
-
-                CategoryContent(stack, screen.component, modifier)
-            }
-            is ChildCategory.OfferChild -> {
-                OfferContent(screen.component, modifier)
-            }
+            is ChildCategory.ListingChild -> ListingContent(stack, screen.listingData, screen.component, modifier)
+            is ChildCategory.OfferChild -> OfferContent(screen.component, modifier)
         }
     }
 }
-

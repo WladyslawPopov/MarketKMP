@@ -31,7 +31,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchTextField(
-    modifier: Modifier = Modifier,
     search : TextFieldValue,
     focusRequester: FocusRequester,
     onUpdateHistory: (String) -> Unit,
@@ -57,7 +56,7 @@ fun SearchTextField(
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
-        modifier = modifier
+        modifier = Modifier
             .clip(MaterialTheme.shapes.small)
             .wrapContentSize()
             .focusRequester(focusRequester),
@@ -76,7 +75,7 @@ fun SearchTextField(
                     icon = drawables.cancelIcon,
                     contentDescription = stringResource(strings.actionClose),
                     color = colors.steelBlue,
-                    modifierIconSize = modifier.size(dimens.extraSmallIconSize),
+                    modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
                 ) {
                     textState = TextFieldValue("")  // Очищаем текст
                     onUpdateHistory(textState.text)

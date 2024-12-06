@@ -1,4 +1,4 @@
-package market.engine.presentation.category
+package market.engine.presentation.search.listing.category
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,7 +57,7 @@ fun CategoryAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-           TitleText(title)
+            TitleText(title)
         },
         navigationIcon = {
             if(isShowNav) {
@@ -85,6 +85,6 @@ fun CategoryAppBar(
                     Spacer(modifier = Modifier.padding(dimens.smallPadding))
                 }
             }
-        }
+        },
     )
 }

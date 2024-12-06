@@ -20,6 +20,7 @@ import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.shared.SearchHistory
+import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -34,7 +35,7 @@ fun historyItem(
             .background(color = colors.white)
             .wrapContentHeight()
             .clickable {
-                onItemClick(history.query)
+                onSearchClick(history.query)
             },
     ) {
         Box(
@@ -50,18 +51,12 @@ fun historyItem(
                     .padding(start = dimens.mediumPadding)
             )
 
-            IconButton(
-                onClick = {
-                    onSearchClick(history.query)
-                },
-                modifier = Modifier.align(Alignment.CenterEnd)
+            SmallIconButton(
+                drawables.searchIcon,
+                colors.black,
+                modifier = Modifier.align(Alignment.CenterEnd),
             ){
-                Icon(
-                    painter = painterResource(drawables.searchIcon),
-                    contentDescription = stringResource(strings.searchTitle),
-                    modifier = Modifier.size(dimens.smallIconSize),
-                    tint = colors.black
-                )
+                onItemClick(history.query)
             }
         }
     }

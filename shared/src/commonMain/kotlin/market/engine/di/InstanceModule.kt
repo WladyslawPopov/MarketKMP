@@ -15,13 +15,13 @@ import market.engine.common.getKtorClient
 import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
-import market.engine.presentation.category.CategoryViewModel
+import market.engine.presentation.search.listing.category.CategoryViewModel
 import market.engine.presentation.favorites.FavViewModel
 import market.engine.presentation.home.HomeViewModel
-import market.engine.presentation.listing.ListingViewModel
+import market.engine.presentation.search.listing.ListingViewModel
 import market.engine.presentation.login.LoginViewModel
 import market.engine.presentation.offer.OfferViewModel
-import market.engine.presentation.search.SearchViewModel
+import market.engine.presentation.search.listing.search.SearchViewModel
 import market.engine.presentation.subscriptions.SubViewModel
 import market.engine.shared.MarketDB
 import org.koin.core.module.dsl.singleOf

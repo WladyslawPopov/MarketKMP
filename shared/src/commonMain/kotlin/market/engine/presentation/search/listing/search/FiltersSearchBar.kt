@@ -1,4 +1,4 @@
-package market.engine.presentation.search
+package market.engine.presentation.search.listing.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,9 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
@@ -27,14 +26,16 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FiltersSearchBar(
-    modifier: Modifier = Modifier,
+    selectedCategory: MutableState<String>,
     selectedUser: MutableState<Boolean>,
+    selectedUserLogin: MutableState<String?>,
     selectedUserFinished: MutableState<Boolean>,
-    searchData: State<SD>,
-    selectedCategory: MutableState<String?>,
+    modifier: Modifier = Modifier,
+    searchData: SD,
     goToCategory: () -> Unit,
 ) {
 
+    val us = stringResource(strings.searchUsersSearch)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -49,8 +50,8 @@ fun FiltersSearchBar(
             )
             {
                 FilterButton(
-                    selectedCategory.value ?: stringResource(strings.categoryMain),
-                    color =  if (searchData.value.searchCategoryID == 1L)
+                    selectedCategory.value,
+                    color =  if (searchData.searchCategoryID == 1L)
                         colors.simpleButtonColors
                     else
                         colors.themeButtonColors,
@@ -58,7 +59,7 @@ fun FiltersSearchBar(
                         goToCategory()
                     },
                     onCancelClick = {
-                        if (searchData.value.searchCategoryID != 1L) {
+                        if (searchData.searchCategoryID != 1L) {
                             val category = stringResource(strings.categoryMain)
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
@@ -67,8 +68,8 @@ fun FiltersSearchBar(
                                 modifier = modifier.size(dimens.extraSmallIconSize),
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
                             ) {
+                                searchData.clearCategory()
                                 selectedCategory.value = category
-                                searchData.value.clearCategory()
                             }
                         }
                     }
@@ -82,20 +83,18 @@ fun FiltersSearchBar(
             )
             {
                 FilterButton(
-                    if (!selectedUser.value)
-                        searchData.value.userLogin ?: stringResource(strings.searchUsersSearch)
-                    else
-                        searchData.value.userLogin ?: stringResource(strings.searchUsersSearch),
+                    selectedUserLogin.value ?: us,
                     color = if (!selectedUser.value)
                         colors.simpleButtonColors
                     else
                         colors.themeButtonColors,
                     onClick = {
-                        selectedUser.value = !selectedUser.value
-                        searchData.value.userSearch = !searchData.value.userSearch
+                        searchData.userSearch = !searchData.userSearch
+                        selectedUser.value = searchData.userSearch
+                        selectedUserLogin.value = searchData.userLogin
                     },
                     onCancelClick = {
-                        if (searchData.value.userLogin != null && searchData.value.userSearch) {
+                        if (selectedUserLogin.value != null) {
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),
@@ -104,8 +103,9 @@ fun FiltersSearchBar(
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
                             ) {
                                 selectedUser.value = false
-                                searchData.value.userSearch = false
-                                searchData.value.userLogin = null
+                                selectedUserLogin.value = null
+                                searchData.userSearch = false
+                                searchData.userLogin = null
                             }
                         }
                     }
@@ -118,7 +118,7 @@ fun FiltersSearchBar(
                     color = if (!selectedUserFinished.value) colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = {
                         selectedUserFinished.value = !selectedUserFinished.value
-                        searchData.value.searchFinished = !searchData.value.searchFinished
+                        searchData.searchFinished = !searchData.searchFinished
                     },
                 )
             }

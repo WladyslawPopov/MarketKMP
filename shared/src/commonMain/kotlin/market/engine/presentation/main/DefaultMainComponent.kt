@@ -16,9 +16,9 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.globalData.UserData
 import market.engine.core.items.DeepLink
+import market.engine.core.items.ListingData
 import market.engine.core.navigation.children.ChildBasket
 import market.engine.core.navigation.children.ChildCategory
 import market.engine.core.navigation.children.ChildFavorites
@@ -36,22 +36,18 @@ import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.types.ProfileScreenType
 import market.engine.core.util.getCurrentDate
-import market.engine.presentation.category.CategoryComponent
-import market.engine.presentation.category.DefaultCategoryComponent
 import market.engine.presentation.favorites.DefaultFavoritesComponent
 import market.engine.presentation.favorites.FavoritesComponent
 import market.engine.presentation.home.DefaultHomeComponent
 import market.engine.presentation.home.HomeComponent
-import market.engine.presentation.listing.DefaultListingComponent
-import market.engine.presentation.listing.ListingComponent
+import market.engine.presentation.search.listing.DefaultListingComponent
+import market.engine.presentation.search.listing.ListingComponent
 import market.engine.presentation.offer.DefaultOfferComponent
 import market.engine.presentation.offer.OfferComponent
 import market.engine.presentation.profile.DefaultProfileComponent
 import market.engine.presentation.profile.ProfileComponent
 import market.engine.presentation.profileMyOffers.DefaultMyOffersComponent
 import market.engine.presentation.profileMyOffers.MyOffersComponent
-import market.engine.presentation.search.DefaultSearchComponent
-import market.engine.presentation.search.SearchComponent
 import market.engine.presentation.subscriptions.DefaultSubscribesComponent
 import market.engine.presentation.subscriptions.SubscribesComponent
 
@@ -66,14 +62,12 @@ class DefaultMainComponent(
         mutableListOf(HomeConfig.HomeScreen)
     )
     override val basketStack: Value<MutableList<BasketConfig>> = MutableValue(mutableListOf(BasketConfig.BasketScreen))
-    override val categoryStack: Value<MutableList<CategoryConfig>> = MutableValue(mutableListOf(CategoryConfig.CategoryScreen(1L)))
+    override val categoryStack: Value<MutableList<CategoryConfig>> = MutableValue(mutableListOf())
     override val favoritesStack = MutableValue(mutableListOf(FavScreenType.FAVORITES))
     override val profileStack = MutableValue(mutableListOf(ProfileScreenType.MY_OFFERS))
 
     private var currentNavigation = StackNavigation<MainConfig>()
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
-
-    private val categoryData = CategoryBaseFilters.filtersData
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
@@ -99,16 +93,19 @@ class DefaultMainComponent(
         )
     }
 
-    override val childCategoryStack: Value<ChildStack<*, ChildCategory>> =
+    override val childCategoryStack: Value<ChildStack<*, ChildCategory>> by lazy {
+        val categoryData = ListingData()
         childStack(
             source = modelNavigation.value.categoryNavigation,
-            initialConfiguration = CategoryConfig.CategoryScreen(1L),
+            initialConfiguration = CategoryConfig.ListingScreen(
+                categoryData.data.value,
+                categoryData.searchData.value
+            ),
             serializer = CategoryConfig.serializer(),
             childFactory = ::createChild,
             key = "CategoryStack"
         )
-
-
+    }
 
 
     override val myOffersPages: Value<ChildPages<*, MyOffersComponent>> by lazy {
@@ -217,18 +214,17 @@ class DefaultMainComponent(
         componentContext: ComponentContext
     ): ChildCategory =
         when (config) {
-            is CategoryConfig.CategoryScreen -> ChildCategory.CategoryChild(
-                itemCategory(
-                    componentContext
+            is CategoryConfig.ListingScreen -> {
+                val ld = ListingData(
+                    _searchData = config.searchData,
+                    _data = config.listingData
                 )
-            )
-            CategoryConfig.SearchScreen -> ChildCategory.SearchChild(
-                itemSearch(componentContext)
-            )
 
-            CategoryConfig.ListingScreen -> ChildCategory.ListingChild(
-                itemListing(componentContext)
-            )
+                ChildCategory.ListingChild(
+                    component = itemListing(componentContext, ld),
+                    listingData = ld
+                )
+            }
             is CategoryConfig.OfferScreen -> ChildCategory.OfferChild(
                 component = itemOffer(
                     componentContext,
@@ -320,16 +316,12 @@ class DefaultMainComponent(
             navigateToSearchSelected = {
                 navigateToBottomItem(MainConfig.Category)
 
-                navigateToOrPopUntil(
-                    CategoryConfig.SearchScreen
-                )
+
             },
             navigateToListingSelected = {
                 navigateToBottomItem(MainConfig.Category)
 
-                navigateToOrPopUntil(
-                    CategoryConfig.ListingScreen
-                )
+
             },
             navigateToLoginSelected = {
                 goToLogin()
@@ -340,60 +332,14 @@ class DefaultMainComponent(
         )
     }
 
-    private fun itemCategory(componentContext: ComponentContext): CategoryComponent {
-        return DefaultCategoryComponent(
-            componentContext = componentContext,
-            goToListingSelected = {
-                navigateToOrPopUntil(
-                    CategoryConfig.ListingScreen
-                )
-            },
-            goToSearchSelected = {
-                navigateToOrPopUntil(
-                    CategoryConfig.SearchScreen
-                )
-            },
-            goToNewCategory = {
-                navigateToOrPopUntil(
-                    CategoryConfig.CategoryScreen(categoryData.searchData.value.searchCategoryID ?: 1)
-                )
-            },
-            onBackClicked = {
-                categoryStack.value.removeLastOrNull()
-                modelNavigation.value.categoryNavigation.pop()
-            }
-        )
-    }
-
-    private fun itemSearch(componentContext: ComponentContext): SearchComponent {
-        return DefaultSearchComponent(
-            componentContext = componentContext,
-            onBackPressed = {
-                categoryStack.value.removeLast()
-                modelNavigation.value.categoryNavigation.pop()
-            },
-            goToListingSelected = {
-                navigateToOrPopUntil(CategoryConfig.ListingScreen, true)
-            },
-            goToCategorySelected = {
-                navigateToOrPopUntil(CategoryConfig.CategoryScreen(categoryData.searchData.value.searchCategoryID ?: 1L))
-            }
-        )
-    }
-
-    private fun itemListing(componentContext: ComponentContext): ListingComponent {
+    private fun itemListing(componentContext: ComponentContext, listingData: ListingData): ListingComponent {
         return DefaultListingComponent(
             componentContext = componentContext,
-            searchSelected = {
-                navigateToOrPopUntil(CategoryConfig.SearchScreen)
-            },
+            listingData = listingData,
             selectOffer = { id ->
-                navigateToOrPopUntil(CategoryConfig.OfferScreen(id, getCurrentDate()))
+                val data = getCurrentDate()
+                modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.OfferScreen(id,data))
             },
-            onBackPressed = {
-                categoryStack.value.removeLast()
-                modelNavigation.value.categoryNavigation.pop()
-            }
         )
     }
     private fun itemOffer(componentContext: ComponentContext, id: Long, selectOffer: (Long) -> Unit, onBack : () -> Unit): OfferComponent {
@@ -527,11 +473,9 @@ class DefaultMainComponent(
             }
             is MainConfig.Category -> {
                 if(activeCurrent == "Category"){
-                    categoryData.searchData.value.clear()
-                    categoryData.searchData.value.clearCategory()
-                    categoryData.data.value.clearFilters()
+                    val categoryData = ListingData()
                     categoryStack.value.clear()
-                    categoryStack.value.add(CategoryConfig.CategoryScreen(1L))
+                    categoryStack.value.add(CategoryConfig.ListingScreen(categoryData.data.value, categoryData.searchData.value))
                     modelNavigation.value.categoryNavigation.replaceAll(categoryStack.value.last())
                 }
                 activeCurrent = "Category"
@@ -575,10 +519,10 @@ class DefaultMainComponent(
                 navigateToBottomItem(MainConfig.Profile)
             }
             is DeepLink.Listing -> {
-                categoryData.searchData.value.clear()
+                val categoryData = ListingData()
                 categoryData.searchData.value.userSearch = true
                 categoryData.searchData.value.userID = deepLink.ownerId
-                modelNavigation.value.categoryNavigation.replaceCurrent(CategoryConfig.ListingScreen)
+                modelNavigation.value.categoryNavigation.pushNew(CategoryConfig.ListingScreen(categoryData.data.value, categoryData.searchData.value))
                 navigateToBottomItem(MainConfig.Category)
             }
             is DeepLink.Offer -> {

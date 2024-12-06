@@ -1,4 +1,4 @@
-package market.engine.presentation.listing
+package market.engine.presentation.search.listing
 
 import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.filtersObjects.EmptyFilters
+import market.engine.core.items.ListingData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
@@ -32,26 +32,31 @@ class ListingViewModel(
 
     private val categoryOperations : CategoryOperations = getKoin().get()
 
-    var listingData = CategoryBaseFilters.filtersData
-
     val regionOptions = mutableStateOf(arrayListOf<Options>())
 
-    val pagingDataFlow : Flow<PagingData<Offer>>
+    lateinit var pagingDataFlow : Flow<PagingData<Offer>>
 
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
-     init {
+    val isCategorySelected = mutableStateOf(false)
+    val isOpenCategory = mutableStateOf(true)
+
+     fun init(listingData: ListingData) {
          listingData.data.value.methodServer = "get_public_listing"
          listingData.data.value.objServer = "offers"
 
-         if (listingData.data.value.filters.isNullOrEmpty()) {
+         if (listingData.data.value.filters.isEmpty()) {
              listingData.data.value.filters = arrayListOf()
-             listingData.data.value.filters?.addAll(EmptyFilters.getEmpty())
+             listingData.data.value.filters.addAll(EmptyFilters.getEmpty())
          }
          listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0
 
-         pagingDataFlow = pagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
+        if (!::pagingDataFlow.isInitialized) {
+            pagingDataFlow =
+                pagingRepository.getListing(listingData, apiService, Offer.serializer())
+                    .cachedIn(viewModelScope)
+        }
 
          getRegions()
 

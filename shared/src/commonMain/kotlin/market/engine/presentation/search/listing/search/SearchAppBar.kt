@@ -1,11 +1,9 @@
-package market.engine.presentation.search
+package market.engine.presentation.search.listing.search
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,21 +11,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.buttons.NavigationArrowButton
-import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.textFields.SearchTextField
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchAppBar(
-    modifier: Modifier = Modifier,
     searchString: TextFieldValue,
     focusRequester: FocusRequester,
     onSearchClick: () -> Unit,
@@ -42,16 +38,12 @@ fun SearchAppBar(
             badgeCount = null
         )
 
-    LaunchedEffect(focusRequester) {
-        focusRequester.requestFocus()
-    }
-
     TopAppBar(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth(),
         title = {
            SearchTextField(
-               modifier,searchString,focusRequester,onUpdateHistory,onSearchClick
+               searchString,focusRequester,onUpdateHistory,onSearchClick,
            )
         },
         navigationIcon = {
@@ -61,22 +53,15 @@ fun SearchAppBar(
         },
         actions = {
             Row(
-                modifier = modifier.padding(end = dimens.smallPadding),
+                modifier = Modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if(searchItem.isVisible){
-                    var modIB = modifier
-                    if(searchItem.badgeCount != null){
-                        val dynamicFontSize = (30 + (searchItem.badgeCount / 10)).coerceAtMost(35).dp
-                        modIB = modifier.size(dimens.smallIconSize + dynamicFontSize)
-                    }
-                    IconButton(
-                        modifier = modIB,
-                        onClick = {
-                            onSearchClick()
-                        }
-                    ) {
-                        getBadgedBox(modifier = modifier, searchItem)
+                    SmallIconButton(
+                        icon = searchItem.icon,
+                        color = searchItem.tint
+                    ){
+                        onSearchClick()
                     }
                 }
             }

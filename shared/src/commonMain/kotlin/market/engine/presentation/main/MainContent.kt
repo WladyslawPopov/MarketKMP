@@ -18,9 +18,9 @@ import market.engine.core.items.NavigationItem
 import market.engine.core.navigation.children.ChildMain
 import market.engine.core.navigation.configs.MainConfig
 import market.engine.presentation.basket.BasketNavigation
-import market.engine.presentation.category.CategoryNavigation
 import market.engine.presentation.favorites.FavoritesNavigation
 import market.engine.presentation.home.HomeNavigation
+import market.engine.presentation.search.SearchNavigation
 import market.engine.presentation.profile.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
 import org.jetbrains.compose.resources.stringResource
@@ -99,7 +99,7 @@ fun MainContent(
                     HomeNavigation(modifier, component.childHomeStack)
 
                 is ChildMain.CategoryChildMain ->
-                    CategoryNavigation(modifier, component.childCategoryStack)
+                    SearchNavigation(modifier, component.childCategoryStack)
 
                 is ChildMain.BasketChildMain ->
                     BasketNavigation(modifier, component.childBasketStack)
