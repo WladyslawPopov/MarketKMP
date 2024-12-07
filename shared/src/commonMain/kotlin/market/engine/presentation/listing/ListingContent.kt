@@ -1,4 +1,4 @@
-package market.engine.presentation.search.listing
+package market.engine.presentation.listing
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.BottomSheetScaffold
@@ -7,6 +7,7 @@ import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,25 +19,21 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.arkivanov.decompose.router.stack.ChildStack
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.items.ListingData
-import market.engine.core.navigation.children.ChildCategory
 import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.ListingBaseContent
-import market.engine.presentation.search.listing.category.CategoryContent
-import market.engine.presentation.search.listing.category.CategoryViewModel
-import market.engine.presentation.search.listing.search.SearchContent
-import market.engine.presentation.search.listing.search.SearchViewModel
+import market.engine.presentation.listing.category.CategoryContent
+import market.engine.presentation.listing.category.CategoryViewModel
+import market.engine.presentation.listing.search.SearchContent
+import market.engine.presentation.listing.search.SearchViewModel
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterListingContent
@@ -49,7 +46,6 @@ import org.koin.mp.KoinPlatform.getKoin
 
 @Composable
 fun ListingContent(
-    stack: ChildStack<*, ChildCategory>,
     component: ListingComponent,
     modifier: Modifier = Modifier
 ) {
@@ -66,33 +62,24 @@ fun ListingContent(
     val searchViewModel : SearchViewModel = koinViewModel()
     val categoryViewModel : CategoryViewModel = koinViewModel()
 
-    val isOpenSearch = remember { mutableStateOf(false) }
-    val isOpenCat = remember { mutableStateOf(listingViewModel.isOpenCategory.value) }
-
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
     val userRepository: UserRepository = getKoin().get()
 
     val scaffoldStateCategory = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
-            initialValue = if (isOpenCat.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
+            initialValue = if (listingData.value.isOpenCategory.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
-    val scaffoldStateSearch = rememberBottomSheetScaffoldState()
+    val scaffoldStateSearch = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberBottomSheetState(
+            initialValue = if (listingData.value.isOpenSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
+        )
+    )
 
     //val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-
-    val isCategorySelected = remember { mutableStateOf(listingViewModel.isCategorySelected.value) }
-
-    LaunchedEffect(isCategorySelected.value){
-        snapshotFlow {
-            isCategorySelected.value
-        }.collectLatest {
-            listingViewModel.isCategorySelected.value = it
-        }
-    }
 
     val columns =
         remember { mutableStateOf(if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2) }
@@ -104,8 +91,8 @@ fun ListingContent(
     val selectedUser = remember { mutableStateOf(searchData.value.userSearch) }
     val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
 
-    LaunchedEffect(isOpenSearch.value) {
-        snapshotFlow { isOpenSearch.value }.collectLatest { isOpen ->
+    LaunchedEffect(listingData.value.isOpenSearch.value) {
+        snapshotFlow { listingData.value.isOpenSearch.value }.collectLatest { isOpen ->
             if (isOpen) {
                 scaffoldStateSearch.bottomSheetState.expand()
 
@@ -128,18 +115,17 @@ fun ListingContent(
             }
         }
     }
-    LaunchedEffect(isOpenCat.value) {
-        snapshotFlow { isOpenCat.value }.collectLatest { isOpen ->
+
+    LaunchedEffect(listingData.value.isOpenCategory.value) {
+        snapshotFlow { listingData.value.isOpenCategory.value }.collectLatest { isOpen ->
             if (isOpen) {
                 scaffoldStateCategory.bottomSheetState.expand()
 
                 if (searchData.value.isRefreshing) {
                     categoryViewModel.getCategory(searchData.value, listingData.value)
                 }
-                listingViewModel.isOpenCategory.value = true
             } else {
                 scaffoldStateCategory.bottomSheetState.collapse()
-                listingViewModel.isOpenCategory.value = false
             }
         }
     }
@@ -147,11 +133,11 @@ fun ListingContent(
     LaunchedEffect(scaffoldStateSearch.bottomSheetState.isCollapsed) {
         if (scaffoldStateSearch.bottomSheetState.isCollapsed) {
             focusManager.clearFocus()
-            isOpenSearch.value = false
+            listingData.value.isOpenSearch.value = false
 
             if (searchData.value.isRefreshing){
                 when{
-                    isOpenCat.value -> categoryViewModel.getCategory(searchData.value, listingData.value)
+                    listingData.value.isOpenCategory.value -> categoryViewModel.getCategory(searchData.value, listingData.value)
                     else ->  listingViewModel.refresh()
                 }
                 searchData.value.isRefreshing = false
@@ -161,10 +147,32 @@ fun ListingContent(
 
     LaunchedEffect(scaffoldStateCategory.bottomSheetState.isCollapsed) {
         if (scaffoldStateCategory.bottomSheetState.isCollapsed) {
-            isOpenCat.value = false
+            listingData.value.isOpenCategory.value = false
             if (searchData.value.isRefreshing){
                 listingViewModel.refresh()
                 searchData.value.isRefreshing = false
+            }
+        }
+    }
+
+    LaunchedEffect(Unit){
+        //update item when we back
+
+        if (listingData.value.updateItem.value != null) {
+            withContext(Dispatchers.Default) {
+                val updateItem = listingData.value.updateItem.value
+                val offer =
+                    listingViewModel.getUpdatedOfferById(updateItem ?: 1L)
+                withContext(Dispatchers.Main) {
+                    if (offer != null) {
+                        val item =
+                            data.itemSnapshotList.items.find { it.id == offer.id }
+                        item?.isWatchedByMe =
+                            offer.isWatchedByMe
+
+                        listingData.value.updateItem.value = null
+                    }
+                }
             }
         }
     }
@@ -189,7 +197,6 @@ fun ListingContent(
         }
     }
 
-
     BottomSheetScaffold(
         scaffoldState = scaffoldStateSearch,
         modifier = Modifier.fillMaxSize(),
@@ -201,24 +208,24 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
+                searchData.value,
                 focusRequester,
                 searchString,
                 selectedCategory,
                 selectedUser,
                 selectedUserLogin,
                 selectedUserFinished,
-                searchData.value,
                 onClose = {
-                    isOpenSearch.value = false
+                    listingData.value.isOpenSearch.value = false
                 },
                 goToListing = {
-                    isOpenSearch.value = false
-                    isOpenCat.value = false
+                    listingData.value.isOpenSearch.value = false
+                    listingData.value.isOpenCategory.value = false
                     searchData.value.isRefreshing = true
                 },
                 goToCategory = {
-                    isOpenCat.value = true
-                    isOpenSearch.value = false
+                    listingData.value.isOpenCategory.value = true
+                    listingData.value.isOpenSearch.value = false
                 }
             )
         },
@@ -237,46 +244,22 @@ fun ListingContent(
                     searchData.value,
                     listingData.value,
                     onClose = {
-                        isOpenCat.value = false
-                        isCategorySelected.value = true
+                        listingData.value.isOpenCategory.value = false
                     },
                     goListing = {
-                        isOpenCat.value = false
-                        isCategorySelected.value = true
-
+                        listingData.value.isOpenCategory.value = false
                     },
                     onClearSearchClick = {
                         searchData.value.clearCategory()
                         categoryViewModel.getCategory(searchData.value, listingData.value)
                     },
-                    goToSearch ={
-                        isOpenSearch.value = true
+                    goToSearch = {
+                        listingData.value.isOpenSearch.value = true
                     }
                 )
             },
         ){
-            if (isCategorySelected.value) {
-
-                LaunchedEffect(Unit){
-                    //update item when we back
-                    withContext(Dispatchers.Default) {
-                        val updateItem = listingData.value.updateItem.value
-                        if (updateItem != null && stack.active.instance is ChildCategory.ListingChild ) {
-                            val offer =
-                                listingViewModel.getUpdatedOfferById(updateItem)
-                            withContext(Dispatchers.Main) {
-                                if (offer != null) {
-                                    val item =
-                                        data.itemSnapshotList.items.find { it.id == offer.id }
-                                    item?.isWatchedByMe =
-                                        offer.isWatchedByMe
-                                }
-                                listingData.value.updateItem.value = null
-                            }
-                        }
-                    }
-                }
-
+            //if (!listingData.value.isOpenCategory.value) {
                 ListingBaseContent(
                     columns = columns,
                     modifier = modifier,
@@ -291,21 +274,15 @@ fun ListingContent(
                                 ?: stringResource(strings.categoryMain),
                             modifier,
                             onSearchClick = {
-                                isOpenSearch.value = true
+                                listingData.value.isOpenSearch.value = true
                             },
                             onCategoryClick = {
-                                isOpenCat.value = true
+                                listingData.value.isOpenCategory.value = true
                                 searchData.value.isRefreshing = true
                             },
                             onBeakClick = {
-                                if (searchData.value.searchIsLeaf) {
-                                    searchData.value.searchCategoryID =
-                                        searchData.value.searchParentID
-                                    searchData.value.searchCategoryName =
-                                        searchData.value.searchParentName
-                                }
-                                searchData.value.isRefreshing = true
-                                isOpenCat.value = true
+                                component.goBack()
+                                listingData.value.isOpenCategory.value = true
                             }
                         )
                     },
@@ -376,13 +353,10 @@ fun ListingContent(
                     },
                     isShowGrid = true,
                     onSearchClick = {
-                        isOpenSearch.value = true
+                        listingData.value.isOpenSearch.value = true
                     }
                 )
-            }
+           // }
         }
     }
 }
-
-
-

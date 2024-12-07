@@ -1,4 +1,4 @@
-package market.engine.root
+package market.engine.core.navigation.root
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -15,8 +15,8 @@ import market.engine.core.navigation.configs.RootConfig
 import market.engine.core.repositories.SettingsRepository
 import market.engine.presentation.login.DefaultLoginComponent
 import market.engine.presentation.login.LoginComponent
-import market.engine.presentation.main.DefaultMainComponent
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.main.DefaultMainComponent
+import market.engine.core.navigation.main.MainComponent
 import org.koin.mp.KoinPlatform.getKoin
 
 interface RootComponent {

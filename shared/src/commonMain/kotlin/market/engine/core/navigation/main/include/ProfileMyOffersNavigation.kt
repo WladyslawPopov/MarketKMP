@@ -1,4 +1,4 @@
-package market.engine.presentation.profileMyOffers
+package market.engine.core.navigation.main.include
 
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
@@ -8,8 +8,9 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import market.engine.core.types.LotsType
-import market.engine.presentation.main.MainComponent
+import market.engine.core.navigation.main.MainComponent
 import market.engine.presentation.profile.ProfileDrawer
+import market.engine.presentation.profileMyOffers.MyOffersContent
 
 
 @Composable

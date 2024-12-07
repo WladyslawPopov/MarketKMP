@@ -5,10 +5,10 @@ import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
 
 @Serializable
-sealed class CategoryConfig {
+sealed class SearchConfig {
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD) : CategoryConfig()
+    data class ListingScreen(val listingData: LD, val searchData : SD) : SearchConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long, val ts: String) : CategoryConfig()
+    data class OfferScreen(val id: Long, val ts: String) : SearchConfig()
 }

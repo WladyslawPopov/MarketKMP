@@ -1,4 +1,4 @@
-package market.engine.presentation.search.listing.search
+package market.engine.presentation.listing.search
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,13 +27,13 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchContent(
+    searchData : SD,
     focusRequester : FocusRequester,
     searchString : MutableState<TextFieldValue>,
     selectedCategory : MutableState<String>,
     selectedUser : MutableState<Boolean>,
     selectedUserLogin : MutableState<String?>,
     selectedUserFinished : MutableState<Boolean>,
-    searchData : SD,
     onClose : () -> Unit,
     goToListing : () -> Unit,
     goToCategory : () -> Unit,
@@ -75,10 +74,8 @@ fun SearchContent(
                 onUpdateHistory = {
                     searchString.value = searchString.value.copy(it)
                     searchViewModel.getHistory(searchString.value.text)
-                    searchData.isRefreshing = true
                 }
             ) {
-                getSearchFilters(searchData, searchString.value.text)
                 onClose()
             }
         },

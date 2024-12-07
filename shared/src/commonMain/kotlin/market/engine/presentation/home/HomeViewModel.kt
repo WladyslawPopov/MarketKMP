@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.presentation.base.BaseViewModel
 
 class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
@@ -28,9 +27,6 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
 
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage2: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage2.asStateFlow()
-
-    val listingData = CategoryBaseFilters.filtersData
-
 
     fun getCategory(categoryId: Long = defaultCategoryId) {
         onError(ServerErrorException())
@@ -48,7 +44,6 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
     }
 
     fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
-
         viewModelScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {

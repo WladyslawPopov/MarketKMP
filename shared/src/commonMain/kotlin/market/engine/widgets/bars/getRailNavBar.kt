@@ -18,8 +18,8 @@ import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.NavigationItem
-import market.engine.presentation.main.MainComponent
-import market.engine.presentation.main.navigateFromBottomBar
+import market.engine.core.navigation.main.MainComponent
+import market.engine.core.navigation.main.navigateFromBottomBar
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import org.jetbrains.compose.resources.painterResource

@@ -1,4 +1,4 @@
-package market.engine.presentation.search.listing.category
+package market.engine.presentation.listing.category
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category

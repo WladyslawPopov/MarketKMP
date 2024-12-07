@@ -1,4 +1,4 @@
-package market.engine.presentation.main
+package market.engine.core.navigation.main
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,11 +17,11 @@ import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.core.navigation.children.ChildMain
 import market.engine.core.navigation.configs.MainConfig
-import market.engine.presentation.basket.BasketNavigation
-import market.engine.presentation.favorites.FavoritesNavigation
-import market.engine.presentation.home.HomeNavigation
-import market.engine.presentation.search.SearchNavigation
-import market.engine.presentation.profile.ProfileNavigation
+import market.engine.core.navigation.main.include.BasketNavigation
+import market.engine.core.navigation.main.include.FavoritesNavigation
+import market.engine.core.navigation.main.include.HomeNavigation
+import market.engine.core.navigation.main.include.SearchNavigation
+import market.engine.core.navigation.main.include.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
 import org.jetbrains.compose.resources.stringResource
 
@@ -99,7 +99,7 @@ fun MainContent(
                     HomeNavigation(modifier, component.childHomeStack)
 
                 is ChildMain.CategoryChildMain ->
-                    SearchNavigation(modifier, component.childCategoryStack)
+                    SearchNavigation(modifier, component.childSearchStack)
 
                 is ChildMain.BasketChildMain ->
                     BasketNavigation(modifier, component.childBasketStack)

@@ -1,4 +1,4 @@
-package market.engine.presentation.search.listing
+package market.engine.presentation.listing
 
 import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
@@ -39,9 +39,6 @@ class ListingViewModel(
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
-    val isCategorySelected = mutableStateOf(false)
-    val isOpenCategory = mutableStateOf(true)
-
 
      fun init(listingData: ListingData) {
          listingData.data.value.methodServer = "get_public_listing"
@@ -65,7 +62,6 @@ class ListingViewModel(
      }
 
     fun refresh(){
-
         pagingRepository.refresh()
     }
 

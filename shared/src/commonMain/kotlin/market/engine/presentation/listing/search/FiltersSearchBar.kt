@@ -1,4 +1,4 @@
-package market.engine.presentation.search.listing.search
+package market.engine.presentation.listing.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

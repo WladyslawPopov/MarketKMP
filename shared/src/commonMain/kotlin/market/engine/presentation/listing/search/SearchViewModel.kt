@@ -1,10 +1,9 @@
-package market.engine.presentation.search.listing.search
+package market.engine.presentation.listing.search
 
 import market.engine.core.globalData.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import market.engine.core.filtersObjects.CategoryBaseFilters
 import market.engine.core.network.ServerErrorException
 
 import market.engine.presentation.base.BaseViewModel
@@ -15,9 +14,6 @@ class SearchViewModel(val db : MarketDB) : BaseViewModel() {
 
     private val _responseHistory = MutableStateFlow<List<SearchHistory>>(emptyList())
     val responseHistory: StateFlow<List<SearchHistory>> = _responseHistory.asStateFlow()
-
-    val searchData = CategoryBaseFilters.filtersData.searchData
-    val listingData = CategoryBaseFilters.filtersData.data
 
     fun getHistory(searchString : String = ""){
         try {

@@ -1,9 +1,8 @@
-package market.engine.presentation.search.listing.category
+package market.engine.presentation.listing
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,36 +16,23 @@ import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.baseFilters.SD
 import market.engine.core.items.NavigationItem
-import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TitleText
 import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryAppBar(
-    isShowNav : Boolean,
+fun ListingAppBar(
+    title : String,
     modifier: Modifier = Modifier,
-    title: String,
-    searchData: SD,
-    onSearchClick: () -> Unit,
-    onClearSearchClick: () -> Unit,
+    onCategoryClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onBeakClick: () -> Unit,
-    onCloseClick: () -> Unit
 ) {
     val listItems = listOf(
-        NavigationItem(
-            title = stringResource(strings.resetLabel),
-            icon = drawables.cancelIcon,
-            tint = colors.steelBlue,
-            hasNews = false,
-            badgeCount = null,
-            isVisible = searchData.searchCategoryID != 1L,
-            onClick = { onClearSearchClick() }
-        ),
         NavigationItem(
             title = stringResource(strings.searchTitle),
             icon = drawables.searchIcon,
@@ -63,23 +49,21 @@ fun CategoryAppBar(
         title = {
             Row(
                 modifier = modifier.fillMaxWidth().clickable {
-                    onCloseClick()
+                    onCategoryClick()
                 },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 TitleText(title)
 
-                SmallIconButton(drawables.iconArrowDown, colors.black){
-                    onCloseClick()
+                SmallIconButton(drawables.iconArrowUp, colors.black){
+                    onCategoryClick()
                 }
             }
         },
         navigationIcon = {
-            if(isShowNav) {
-                NavigationArrowButton {
-                    onBeakClick()
-                }
+            NavigationArrowButton {
+                onBeakClick()
             }
         },
         actions = {
@@ -90,17 +74,14 @@ fun CategoryAppBar(
                 listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){
                         IconButton(
-                            modifier = modifier.size(dimens.mediumIconSize),
-                            onClick = {
-                                item.onClick()
-                            }
+                            modifier = modifier.size(dimens.smallIconSize),
+                            onClick = { item.onClick() }
                         ) {
                             getBadgedBox(modifier = modifier, item)
                         }
                     }
-                    Spacer(modifier = Modifier.padding(dimens.smallPadding))
                 }
             }
-        },
+        }
     )
 }

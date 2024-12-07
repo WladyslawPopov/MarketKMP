@@ -1,8 +1,9 @@
-package market.engine.presentation.search.listing
+package market.engine.presentation.listing
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.items.ListingData
 import market.engine.core.network.networkObjects.Offer
@@ -16,12 +17,14 @@ interface ListingComponent {
     )
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
+    fun goBack()
 }
 
 class DefaultListingComponent(
     componentContext: ComponentContext,
     listingData: ListingData,
     private val selectOffer: (Long) -> Unit,
+    private val selectedBack: () -> Unit
 ) : ListingComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -87,6 +90,13 @@ class DefaultListingComponent(
             )
         }
         selectOffer(offer.id)
-        model.value.listingData.data.value.updateItem.value = offer.id
+
+        lifecycle.doOnResume {
+            model.value.listingData.data.value.updateItem.value = offer.id
+        }
+    }
+
+    override fun goBack() {
+        selectedBack()
     }
 }

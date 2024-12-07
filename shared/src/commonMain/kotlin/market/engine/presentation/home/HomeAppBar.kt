@@ -29,7 +29,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeAppBar(
     modifier: Modifier = Modifier,
-    isFullScreen: Boolean = false,
     drawerState: DrawerState,
 ) {
     val userInfo = UserData.userInfo

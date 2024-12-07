@@ -1,24 +1,25 @@
 package market.engine.presentation.home
 
-
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.common.getPermissionHandler
 import market.engine.core.analytics.AnalyticsHelper
+import market.engine.core.filtersObjects.EmptyFilters
+import market.engine.core.globalData.ThemeResources.strings
+import market.engine.core.items.ListingData
+import market.engine.core.items.TopCategory
 import market.engine.core.navigation.configs.HomeConfig
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
+import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 interface HomeComponent {
     val model: Value<Model>
-
-    fun navigateToSearch()
-    fun navigateToListing()
-
     data class Model(
         val homeViewModel: HomeViewModel
     )
@@ -27,13 +28,16 @@ interface HomeComponent {
 
     fun goToLogin()
     fun goToOffer(id: Long)
+
+    fun goToNewSearch()
+    fun goToCategory(category: TopCategory)
+    fun goToAllPromo()
 }
 
 class DefaultHomeComponent(
     componentContext: ComponentContext,
     val navigation: StackNavigation<HomeConfig>,
-    val navigateToSearchSelected: () -> Unit,
-    val navigateToListingSelected: () -> Unit,
+    private val navigateToListingSelected: (ListingData) -> Unit,
     val navigateToLoginSelected: () -> Unit,
     val navigateToOfferSelected: (id: Long) -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
@@ -77,14 +81,6 @@ class DefaultHomeComponent(
         homeViewModel.getOffersPromotedOnMainPage(1, 16)
     }
 
-    override fun navigateToSearch() {
-        navigateToSearchSelected()
-    }
-
-    override fun navigateToListing() {
-        navigateToListingSelected()
-    }
-
     override fun onRefresh() {
         userRepository.updateToken()
         userRepository.updateUserInfo(homeViewModel.viewModelScope)
@@ -99,7 +95,51 @@ class DefaultHomeComponent(
     override fun goToOffer(id: Long) {
         navigateToOfferSelected(id)
     }
+
+    override fun goToNewSearch() {
+        val ld = ListingData()
+        val listingData = ld.data.value
+        listingData.isOpenSearch.value = true
+        listingData.isOpenCategory.value = false
+        navigateToListingSelected(ld)
+    }
+
+    override fun goToCategory(category: TopCategory) {
+        val ld = ListingData()
+        val searchData = ld.searchData.value
+
+        searchData.searchCategoryID = category.id
+        searchData.searchParentID = category.parentId
+        searchData.searchCategoryName = category.name
+        searchData.searchParentName = category.parentName
+        searchData.isRefreshing = true
+        ld.data.value.isOpenCategory.value = false
+
+        navigateToListingSelected(ld)
+    }
+
+    override fun goToAllPromo() {
+        val ld = ListingData()
+        val searchData = ld.searchData.value
+        val listingData = ld.data.value
+
+        if (listingData.filters.isEmpty()) {
+            listingData.filters = arrayListOf()
+            listingData.filters.addAll(EmptyFilters.getEmpty())
+        }
+
+        model.value.homeViewModel.viewModelScope.launch {
+            listingData.filters.find {
+                    filter -> filter.key == "promo_main_page"
+            }?.value = "promo_main_page"
+            listingData.filters.find {
+                    filter -> filter.key == "promo_main_page"
+            }?.interpritation = getString(strings.allPromoOffersBtn)
+
+            searchData.isRefreshing = true
+            ld.data.value.isOpenCategory.value = false
+
+            navigateToListingSelected(ld)
+        }
+    }
 }
-
-
-

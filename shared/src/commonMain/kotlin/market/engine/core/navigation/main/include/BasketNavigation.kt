@@ -1,4 +1,4 @@
-package market.engine.presentation.basket
+package market.engine.core.navigation.main.include
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -11,6 +11,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import market.engine.core.navigation.children.ChildBasket
+import market.engine.presentation.basket.BasketContent
 
 @Composable
 fun BasketNavigation(

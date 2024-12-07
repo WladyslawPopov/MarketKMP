@@ -1,4 +1,4 @@
-package market.engine.presentation.search.listing.category
+package market.engine.presentation.listing.category
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

@@ -19,10 +19,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.ScrollBarsProvider
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.items.TopCategory
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.rows.CategoryList
 import market.engine.widgets.rows.FooterRow
@@ -132,8 +129,6 @@ fun HomeContent(
     )
 
     val scrollState = rememberScrollState()
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -143,9 +138,6 @@ fun HomeContent(
 
     val isLoading = homeViewModel.isShowProgress.collectAsState()
     val err = homeViewModel.errorMessage.collectAsState()
-
-    val searchData = homeViewModel.listingData.searchData.subscribeAsState()
-    val listingData = homeViewModel.listingData.data.subscribeAsState()
 
     val categories = homeViewModel.responseCategory.collectAsState()
 
@@ -172,7 +164,6 @@ fun HomeContent(
             topBar = {
                 HomeAppBar(
                     modifier,
-                    showNavigationRail,
                     drawerState
                 )
             },
@@ -200,43 +191,36 @@ fun HomeContent(
                             .wrapContentHeight()
                             .wrapContentWidth(),
                         onSearchClick = {
-                            component.navigateToSearch()
+                            component.goToNewSearch()
                         }
                     )
 
+                    val defCat = stringResource(strings.categoryMain)
                     CategoryList(
                         categories = categories.value
                     ) { category ->
-                        searchData.value.searchCategoryID = category.id
-                        searchData.value.searchParentID = category.parentId
-                        searchData.value.searchCategoryName = category.name
-                        searchData.value.isRefreshing = true
-                        component.navigateToListing()
+                        val cat = TopCategory(
+                            id = category.id,
+                            parentId = category.parentId,
+                            name = category.name ?: defCat,
+                            parentName = null,
+                            icon = drawables.infoIcon
+                        )
+                        component.goToCategory(cat)
                     }
 
-                    val stringAllPromo = stringResource(strings.allPromoOffersBtn)
                     GridPromoOffers(
                         promoOffer1.value,
                         onOfferClick = {
                             component.goToOffer(it.id)
                         },
                         onAllClickButton = {
-                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.value =
-                                "promo_main_page"
-                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                                stringAllPromo
-                            searchData.value.isRefreshing = true
-                            component.navigateToListing()
+                          component.goToAllPromo()
                         }
                     )
 
                     GridPopularCategory(listTopCategory) { topCategory ->
-                        searchData.value.searchCategoryID = topCategory.id
-                        searchData.value.searchParentID = topCategory.parentId
-                        searchData.value.searchCategoryName = topCategory.name
-                        searchData.value.searchParentName = topCategory.parentName
-                        searchData.value.isRefreshing = true
-                        component.navigateToListing()
+                        component.goToCategory(topCategory)
                     }
 
                     GridPromoOffers(
@@ -245,16 +229,7 @@ fun HomeContent(
                             component.goToOffer(it.id)
                         },
                         onAllClickButton = {
-                            if (listingData.value.filters.isEmpty()) {
-                                listingData.value.filters = arrayListOf()
-                                listingData.value.filters.addAll(EmptyFilters.getEmpty())
-                            }
-                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.value =
-                                "promo_main_page"
-                            listingData.value.filters.find { filter -> filter.key == "promo_main_page" }?.interpritation =
-                                stringAllPromo
-                            searchData.value.isRefreshing = true
-                            component.navigateToListing()
+                            component.goToAllPromo()
                         }
                     )
 

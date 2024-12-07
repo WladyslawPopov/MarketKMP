@@ -3,6 +3,11 @@ package market.engine.presentation.offer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.core.filtersObjects.EmptyFilters
+import market.engine.core.items.ListingData
+import market.engine.core.network.networkObjects.Category
+import market.engine.core.network.networkObjects.Region
+import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -18,6 +23,10 @@ interface OfferComponent {
     fun updateOffer(id: Long)
     fun navigateToOffers(id: Long)
     fun onBeakClick()
+    fun goToCategory(cat: Category)
+    fun goToUsersListing(sellerData : User?)
+    fun goToRegion(region : Region?)
+    fun goToCart()
 }
 
 class DefaultOfferComponent(
@@ -25,7 +34,9 @@ class DefaultOfferComponent(
     isSnapshot: Boolean,
     componentContext: ComponentContext,
     val selectOffer: (id: Long) -> Unit,
-    val navigationBack: () -> Unit
+    val navigationBack: () -> Unit,
+    val navigationListing: (listingData: ListingData) -> Unit,
+    val navigationBasket: () -> Unit
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -56,6 +67,42 @@ class DefaultOfferComponent(
     override fun onBeakClick() {
         navigationBack()
     }
+
+    override fun goToCategory(cat: Category) {
+        val ld = ListingData()
+        ld.searchData.value.searchCategoryID = cat.id
+        ld.searchData.value.searchCategoryName = cat.name
+        ld.searchData.value.searchParentID = cat.parentId
+        ld.searchData.value.searchIsLeaf = cat.isLeaf
+        ld.data.value.isOpenCategory.value = false
+        navigationListing(ld)
+    }
+
+    override fun goToUsersListing(sellerData : User?) {
+        if (sellerData == null) return
+
+        val ld = ListingData()
+        ld.searchData.value.userID = sellerData.id
+        ld.searchData.value.userLogin = sellerData.login
+        ld.searchData.value.userSearch = true
+        ld.data.value.isOpenCategory.value = false
+        navigationListing(ld)
+    }
+
+    override fun goToRegion(region : Region?) {
+        if (region!= null){
+            val ld = ListingData()
+            val listingData = ld.data.value
+            listingData.filters = arrayListOf()
+            listingData.filters.addAll(EmptyFilters.getEmpty())
+            listingData.filters.find { it.key == "region" }?.value = region.code.toString()
+            listingData.filters.find { it.key == "region" }?.interpritation = region.name
+            ld.data.value.isOpenCategory.value = false
+            navigationListing(ld)
+        }
+    }
+
+    override fun goToCart() {
+        navigationBasket()
+    }
 }
-
-

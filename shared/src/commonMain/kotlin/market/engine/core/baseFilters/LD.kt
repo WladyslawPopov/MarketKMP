@@ -29,6 +29,8 @@ data class LD(
     var updateItem : MutableState<Long?> = mutableStateOf(null),
 
     //filters params
+    val isOpenSearch : MutableState<Boolean> = mutableStateOf(false), // first open search
+    val isOpenCategory : MutableState<Boolean> = mutableStateOf(true), // first open cat
     var activeFiltersType : MutableState<String> = mutableStateOf(""),
     var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed),
 ) {

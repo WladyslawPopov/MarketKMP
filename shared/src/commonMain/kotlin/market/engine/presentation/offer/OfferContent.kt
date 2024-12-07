@@ -93,7 +93,6 @@ import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -258,11 +257,7 @@ fun OfferContent(
                                         modifier = Modifier.padding(dimens.smallPadding)
                                             .clickable {
                                                 //go to Listing
-                                                if (cat.isLeaf) {
-                                                    //cat.parentId
-                                                } else {
-                                                    //cat.id
-                                                }
+                                                component.goToCategory(cat)
                                             }
                                     )
                                 }
@@ -506,6 +501,7 @@ fun OfferContent(
 
                                 LocationOffer(offer) {
                                     //go to Listing
+                                    component.goToRegion(offer.region)
                                 }
                             }
                         }
@@ -518,7 +514,7 @@ fun OfferContent(
 
                             },
                             goToAllLots = {
-
+                                component.goToUsersListing(offer.sellerData)
                             },
                             goToAboutMe = {
 
@@ -1127,7 +1123,7 @@ fun LocationOffer(
             .fillMaxWidth()
             .padding(dimens.smallPadding)
             .clickable {
-
+                goToLocation()
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
