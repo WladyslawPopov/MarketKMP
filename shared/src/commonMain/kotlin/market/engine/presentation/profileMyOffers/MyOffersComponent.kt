@@ -3,6 +3,7 @@ package market.engine.presentation.profileMyOffers
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.UserRepository
@@ -46,6 +47,8 @@ class DefaultMyOffersComponent(
         analyticsHelper.reportEvent("open_my_offers", mapOf())
     }
 
+    val listingData = model.value.viewModel.listingData
+
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
         if (isTopPromo){
             val eventParameters = mapOf(
@@ -88,6 +91,10 @@ class DefaultMyOffersComponent(
             )
         }
         offerSelected(offer.id)
+
+        lifecycle.doOnResume {
+            listingData.value.data.value.updateItem.value = offer.id
+        }
     }
 
     override fun selectMyOfferPage(select: LotsType) {

@@ -289,10 +289,13 @@ fun content(
     }
 
     if (!offer.isPrototype) {
-        val sessionEnd = offer.session?.end?.convertDateWithMinutes() ?: ""
+        var sessionEnd = stringResource(strings.offerSessionInactiveLabel)
+        if (offer.session != null) {
+            sessionEnd = offer.session?.end?.convertDateWithMinutes() ?: ""
+        }
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Image(
                 painter = painterResource(drawables.iconClock),

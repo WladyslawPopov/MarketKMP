@@ -91,10 +91,8 @@ fun FavoritesContent(
                     if (offer != null) {
                         data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
                             offer.isWatchedByMe
-                        ld.value.updateItem.value = null
-                    }else{
-                        ld.value.updateItem.value = null
                     }
+                    ld.value.updateItem.value = null
                 }
             }
         }

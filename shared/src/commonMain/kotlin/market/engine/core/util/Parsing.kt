@@ -56,9 +56,6 @@ fun String.parseHtmlToAnnotatedString(): AnnotatedString {
         // Stack to track pushed styles
         val pushedStylesStack = mutableListOf<String>()
 
-        // Track the currently active ParagraphStyle
-        var currentParagraphStyle: String? = null
-
         val handler = KsoupHtmlHandler
             .Builder()
             // Handles plain text content inside the HTML tags
@@ -141,18 +138,13 @@ fun String.parseHtmlToAnnotatedString(): AnnotatedString {
                     // Paragraphs and divs with alignment
                     "p", "div" -> {
                         // Handle ParagraphStyle to avoid overlap
-                        if (currentParagraphStyle != null) {
-                            // Add a line break to end the current paragraph
-                            append("\n")
-                            pop() // Close the previous ParagraphStyle
-                        }
                         val alignment = when (attrs["style"]?.extractCssProperty("text-align")) {
                             "center" -> TextAlign.Center
                             "right" -> TextAlign.Right
                             else -> TextAlign.Left
                         }
                         pushStyle(ParagraphStyle(textAlign = alignment))
-                        currentParagraphStyle = name.lowercase() // Track active ParagraphStyle
+                        pushedStylesStack.add(name.lowercase())
                     }
                     // Line breaks
                     "br" -> {
@@ -167,15 +159,9 @@ fun String.parseHtmlToAnnotatedString(): AnnotatedString {
             // Handles the closing of HTML tags
             .onCloseTag { name, _ ->
                 val tag = name.lowercase()
-                if (tag == currentParagraphStyle) {
-                    // Close the active ParagraphStyle
-                    append("\n") // Add a line break to end the paragraph
-                    pop()
-                    currentParagraphStyle = null
-                } else if (pushedStylesStack.contains(tag)) {
+               if (pushedStylesStack.contains(tag)) {
                     pop() // Only pop if the tag was previously pushed
-                    pushedStylesStack.remove(tag) // Remove the tag from the stack
-                }
+               }
             }
             // Handles errors during HTML parsing
             .onError { error ->

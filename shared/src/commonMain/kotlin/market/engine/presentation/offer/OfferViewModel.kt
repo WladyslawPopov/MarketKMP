@@ -33,11 +33,11 @@ class OfferViewModel(
     private val _responseOffer : MutableStateFlow<Offer?> = MutableStateFlow(null)
     val responseOffer: StateFlow<Offer?> = _responseOffer.asStateFlow()
 
-    private val _responseHistory = MutableStateFlow<List<Offer>>(emptyList())
-    val responseHistory: StateFlow<List<Offer>> = _responseHistory.asStateFlow()
+    private val _responseHistory = MutableStateFlow<ArrayList<Offer>>(arrayListOf())
+    val responseHistory: StateFlow<ArrayList<Offer>> = _responseHistory.asStateFlow()
 
-    private val _responseOurChoice = MutableStateFlow<List<Offer>>(emptyList())
-    val responseOurChoice: StateFlow<List<Offer>> = _responseOurChoice.asStateFlow()
+    private val _responseOurChoice = MutableStateFlow<ArrayList<Offer>>(arrayListOf())
+    val responseOurChoice: StateFlow<ArrayList<Offer>> = _responseOurChoice.asStateFlow()
 
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
@@ -59,10 +59,13 @@ class OfferViewModel(
         viewModelScope.launch {
             setLoading(true)
             try {
+                getHistory(id)
+                getOurChoice(id)
+
                 val offer = withContext(Dispatchers.IO) {
                     val response = apiService.getOffer(id)
                     val serializer = ListSerializer(Offer.serializer())
-                    deserializePayload<List<Offer>>(response.payload, serializer).firstOrNull()
+                    deserializePayload(response.payload, serializer).firstOrNull()
                 }
                 offer?.let {
                     _responseOffer.value = it
@@ -78,10 +81,6 @@ class OfferViewModel(
         viewModelScope.launch {
             try {
                 coroutineScope {
-                    launch { getHistory(offer.id) }
-                    launch { getOurChoice(offer.id) }
-                    launch { getCategoriesHistory(offer.catpath) }
-                    launch { checkStatusSeller(offer.sellerData?.id ?: 0) }
                     launch {
                         if (responseOffer.value != null) {
                             setLoading(false)
@@ -91,7 +90,7 @@ class OfferViewModel(
                                 ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
                                     ?: 1L)) * 1000
 
-                          isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
+                            isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
 
                             offerState.value = when {
                                 isSnapshot -> OfferStates.SNAPSHOT
@@ -129,6 +128,8 @@ class OfferViewModel(
                             }
                         }
                     }
+                    launch { getCategoriesHistory(offer.catpath) }
+                    launch { checkStatusSeller(offer.sellerData?.id ?: 0) }
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Initialization error", ""))
@@ -137,24 +138,23 @@ class OfferViewModel(
     }
 
     private fun getHistory(currentId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                val history = withContext(Dispatchers.IO) {
-                    val queries = dataBase.offerVisitedHistoryQueries
-                    queries.selectAll(UserData.login).executeAsList().apply {
-                        if (size > 17) queries.deleteById(first(), UserData.login)
-                        queries.insertEntry(currentId, UserData.login)
-                    }
+                val queries = dataBase.offerVisitedHistoryQueries
+                val history = queries.selectAll(UserData.login).executeAsList().apply {
+                    if (size > 17) queries.deleteById(first(), UserData.login)
+                    queries.insertEntry(currentId, UserData.login)
                 }
-                val offers = withContext(Dispatchers.IO) {
-                    history.mapNotNull { id ->
-                        apiService.getOffer(id).let {
-                            val serializer = ListSerializer(Offer.serializer())
-                            deserializePayload<List<Offer>>(it.payload, serializer).firstOrNull()
+
+                history.map { id ->
+                    apiService.getOffer(id).let {
+                        val serializer = ListSerializer(Offer.serializer())
+                        val offer = deserializePayload(it.payload, serializer).firstOrNull()
+                        if (offer != null) {
+                            _responseHistory.value.add(offer)
                         }
                     }
                 }
-                _responseHistory.value = offers
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error fetching history", ""))
             }
@@ -167,13 +167,11 @@ class OfferViewModel(
     }
 
     private fun getOurChoice(id: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                val ourChoice = withContext(Dispatchers.IO) {
-                    val response = apiService.getOurChoiceOffers(id)
-                    val serializer = Payload.serializer(Offer.serializer())
-                    deserializePayload<Payload<Offer>>(response.payload, serializer).objects
-                }
+                val response = apiService.getOurChoiceOffers(id)
+                val serializer = Payload.serializer(Offer.serializer())
+                val ourChoice = deserializePayload(response.payload, serializer).objects
                 _responseOurChoice.value = ourChoice
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))

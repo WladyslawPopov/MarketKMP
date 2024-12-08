@@ -88,7 +88,7 @@ fun MyOffersContent(
     }
 
     //update item when we back
-    LaunchedEffect(listingData.value.updateItem) {
+    LaunchedEffect(Unit) {
         if (listingData.value.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =
@@ -185,8 +185,6 @@ fun MyOffersContent(
                     },
                 ){
                     component.goToOffer(offer)
-                    // set item for update
-                    listingData.value.updateItem.value = offer.id
                 }
             }
         }

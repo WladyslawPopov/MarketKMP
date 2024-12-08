@@ -61,12 +61,19 @@ fun OfferItemStatuses(
                     )
 
                     Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
-                    if (offer.session != null && !offer.isPrototype) {
+                    var buyer = offer.buyerData?.login ?: stringResource(strings.noBuyer)
+                    var color = colors.grayText
+                    if (!offer.isPrototype) {
+                        if (offer.currentQuantity < 2) {
+                            if (offer.buyerData?.login != "" && offer.buyerData?.login != null) {
+                                buyer = offer.buyerData.login
+                                color = colors.ratingBlue
+                            }
+                        }
                         Text(
-                            text = stringResource(strings.noBuyer),
+                            text = buyer,
                             style = MaterialTheme.typography.bodySmall,
-                            color = colors.grayText
+                            color = color
                         )
                     }
                 }
@@ -90,13 +97,15 @@ fun OfferItemStatuses(
                     Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                     var bids = stringResource(strings.noBids)
+                    var color = colors.grayText
                     if (offer.bids?.isNotEmpty() == true) {
                         bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                        color = colors.ratingBlue
                     }
                     Text(
                         text = bids,
                         style = MaterialTheme.typography.bodySmall,
-                        color = colors.grayText
+                        color = color
                     )
                 }
 
@@ -115,6 +124,20 @@ fun OfferItemStatuses(
                     Text(
                         text = offer.numParticipants.toString(),
                         style = MaterialTheme.typography.bodySmall,
+                    )
+
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
+                    var bids = stringResource(strings.noBids)
+                    var color = colors.grayText
+                    if (offer.bids?.isNotEmpty() == true) {
+                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                        color = colors.ratingBlue
+                    }
+                    Text(
+                        text = bids,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = color
                     )
                 }
             }

@@ -168,7 +168,7 @@ fun OfferContent(
                         return@OfferAppBar res
                     },
                     onCartClick = {
-
+                        component.goToCart()
                     },
                     onBeakClick = {
                         if (!isImageViewerVisible.value) {
