@@ -40,7 +40,7 @@ class DefaultFavoritesComponent(
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
-        analyticsHelper.reportEvent("open_favorites", "")
+        analyticsHelper.reportEvent("open_favorites", mapOf())
     }
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {

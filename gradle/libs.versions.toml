@@ -13,6 +13,7 @@ koin = "4.0.0"
 ktor = "3.0.1"
 accompanist-version = "0.33.2-alpha"
 accompanist-permissions = "0.32.0"
+lifecycle = "2.3.0"
 multiplatformSettings = "1.2.0"
 runtimeDesktop = "1.7.0"
 kotlinx-datetime = "0.6.0"
@@ -33,10 +34,12 @@ coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.r
 
 ksoup-entities = { module = "com.mohamedrejeb.ksoup:ksoup-entities", version.ref = "version" }
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "version" }
+
 skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko_version" }
 
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose-version" }
 decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose-version" }
+lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "lifecycle" }
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 

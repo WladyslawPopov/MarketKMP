@@ -63,7 +63,7 @@ class UserRepository(
                                     "userRating" to newInfo.rating.toDouble(),
                                     "userVerified" to newInfo.isVerified,
                                 )
-                                analyticsHelper.setUserProfileID(newInfo.id)
+                                analyticsHelper.setUserProfileID(newInfo.id.toString())
                                 analyticsHelper.updateUserProfile(userProfileAttributes)
                                 notificationIdentifier(newInfo.id)
 

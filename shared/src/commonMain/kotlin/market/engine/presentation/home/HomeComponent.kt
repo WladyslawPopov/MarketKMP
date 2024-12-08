@@ -61,7 +61,7 @@ class DefaultHomeComponent(
         userRepository.updateToken()
         userRepository.updateUserInfo(homeViewModel.viewModelScope)
 
-        analyticsHelper.reportEvent("view_main_page", "")
+        analyticsHelper.reportEvent("view_main_page", mapOf())
 
         val isShowReview = settingsHelper.getSettingValue("isShowReview", false) ?: false
 

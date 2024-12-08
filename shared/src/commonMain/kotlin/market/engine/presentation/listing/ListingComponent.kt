@@ -7,6 +7,7 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.items.ListingData
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.util.printLogD
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ListingComponent {
@@ -93,6 +94,7 @@ class DefaultListingComponent(
 
         lifecycle.doOnResume {
             model.value.listingData.data.value.updateItem.value = offer.id
+            printLogD("Update item Listing", offer.id.toString())
         }
     }
 

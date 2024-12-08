@@ -39,7 +39,7 @@ class DefaultLoginComponent(
     override val model = _model
 
     init {
-        analyticsHelper.reportEvent("view_login_screen", "")
+        analyticsHelper.reportEvent("view_login_screen", mapOf())
     }
 
     override fun onLogin(email : String, password : String, captcha : String?) {

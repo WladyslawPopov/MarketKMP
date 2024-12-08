@@ -135,7 +135,7 @@ fun DrawerContent(
                                     text = stringResource(strings.logoutTitle),
                                     backgroundColor = colors.grayLayout,
                                     onClick = {
-                                        analyticsHelper.reportEvent("logout_success", "")
+                                        analyticsHelper.reportEvent("logout_success", mapOf())
                                         isShowDialog.value = false
                                         userRepository.delete()
                                         goToLogin()

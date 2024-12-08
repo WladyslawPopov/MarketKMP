@@ -43,7 +43,7 @@ class DefaultMyOffersComponent(
 
     init {
         userRepository.updateUserInfo(model.value.viewModel.viewModelScope)
-        analyticsHelper.reportEvent("open_my_offers", "")
+        analyticsHelper.reportEvent("open_my_offers", mapOf())
     }
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {

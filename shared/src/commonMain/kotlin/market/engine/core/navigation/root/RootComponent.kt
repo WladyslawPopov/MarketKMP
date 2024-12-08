@@ -62,13 +62,10 @@ class DefaultRootComponent(
         val isFirstLaunch = settingsHelper.getSettingValue("isFirstLaunch", true)
         if (isFirstLaunch == true) {
             settingsHelper.setSettingValue("isFirstLaunch", false)
-            analyticsHelper.reportEvent("launch_first_time", "")
+            analyticsHelper.reportEvent("launch_first_time", mapOf())
         }
 
-        val eventParameters =
-            "{\"traffic_source\":\"direct\"}"
-
-        analyticsHelper.reportEvent("start_session", eventParameters)
+        analyticsHelper.reportEvent("start_session", mapOf("traffic_source" to "direct"))
 
         val appAttributes = mapOf("app_version" to SAPI.version)
         analyticsHelper.updateUserProfile(appAttributes)

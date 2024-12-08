@@ -36,6 +36,6 @@ class DefaultSubscribesComponent(
 
 
     override fun onRefresh() {
-        analyticsHelper.reportEvent("open_subscribes", "")
+        analyticsHelper.reportEvent("open_subscribes", mapOf())
     }
 }
