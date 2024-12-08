@@ -61,7 +61,7 @@ class DefaultMyOffersComponent(
                 eventParameters
             )
         }
-        if (model.value.viewModel.listingData.value.searchData.value.userSearch || model.value.viewModel.listingData.value.searchData.value.searchString != null){
+        if (model.value.viewModel.listingData.searchData.value.userSearch || model.value.viewModel.listingData.searchData.value.searchString != null){
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
                 "lot_name" to offer.title,
@@ -93,7 +93,7 @@ class DefaultMyOffersComponent(
         offerSelected(offer.id)
 
         lifecycle.doOnResume {
-            listingData.value.data.value.updateItem.value = offer.id
+            listingData.data.value.updateItem.value = offer.id
         }
     }
 
