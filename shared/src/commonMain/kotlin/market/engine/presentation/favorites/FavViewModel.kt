@@ -15,18 +15,18 @@ class FavViewModel(
     private val apiService: APIService
 ) : BaseViewModel() {
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
-    var listingData = mutableStateOf(ListingData())
+    var listingData = ListingData()
 
     val pagingDataFlow : Flow<PagingData<Offer>>
 
     init {
-        if (listingData.value.data.value.filters.isNullOrEmpty()) {
-            listingData.value.data.value.filters = arrayListOf()
-            listingData.value.data.value.filters?.addAll(OfferFilters.filtersFav)
+        if (listingData.data.value.filters.isEmpty()) {
+            listingData.data.value.filters = arrayListOf()
+            listingData.data.value.filters.addAll(OfferFilters.filtersFav)
         }
-        listingData.value.data.value.methodServer = "get_cabinet_listing_watched_by_me"
-        listingData.value.data.value.objServer = "offers"
+        listingData.data.value.methodServer = "get_cabinet_listing_watched_by_me"
+        listingData.data.value.objServer = "offers"
 
-        pagingDataFlow = pagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
+        pagingDataFlow = pagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
     }
 }

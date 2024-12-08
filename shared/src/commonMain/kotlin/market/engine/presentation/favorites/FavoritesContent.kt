@@ -48,8 +48,8 @@ fun FavoritesContent(
     val offerOperations : OfferOperations = koinInject()
     val userRepository : UserRepository = koinInject()
 
-    val ld = listingData.value.data.subscribeAsState()
-    val sd = listingData.value.searchData.subscribeAsState()
+    val ld = listingData.data.subscribeAsState()
+    val sd = listingData.searchData.subscribeAsState()
 
     val selectedItems = remember { ld.value.selectItems }
 
@@ -82,7 +82,7 @@ fun FavoritesContent(
     }
 
     //update item when we back
-    LaunchedEffect(Unit) {
+    LaunchedEffect(ld.value.updateItem.value) {
         if (ld.value.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =

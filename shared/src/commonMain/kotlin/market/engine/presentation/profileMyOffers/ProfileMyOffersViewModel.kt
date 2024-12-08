@@ -1,6 +1,5 @@
 package market.engine.presentation.profileMyOffers
 
-import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
@@ -17,34 +16,34 @@ class ProfileMyOffersViewModel(
     val apiService: APIService,
 ) : BaseViewModel() {
     private val offerPagingRepository: PagingRepository<Offer> = PagingRepository()
-    var listingData = mutableStateOf(ListingData())
+    var listingData = ListingData()
     val pagingDataFlow: Flow<PagingData<Offer>>
 
     init {
 
         when(type){
             LotsType.MYLOT_ACTIVE -> {
-                listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters.addAll( OfferFilters.filtersMyLotsActive.toList())
+                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.addAll( OfferFilters.filtersMyLotsActive.toList())
             }
             LotsType.MYLOT_UNACTIVE -> {
-                listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
+                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
             }
             LotsType.MYLOT_FUTURE -> {
-                listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
+                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
             }
             else -> {
-                listingData.value.data.value.filters = arrayListOf()
-                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
+                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
             }
         }
 
-        listingData.value.data.value.methodServer = "get_cabinet_listing"
-        listingData.value.data.value.objServer = "offers"
+        listingData.data.value.methodServer = "get_cabinet_listing"
+        listingData.data.value.objServer = "offers"
 
-        pagingDataFlow = offerPagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
+        pagingDataFlow = offerPagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
     }
 
     fun onRefresh(){

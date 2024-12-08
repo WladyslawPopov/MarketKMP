@@ -38,8 +38,8 @@ fun MyOffersContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
-    val listingData = viewModel.listingData.value.data.subscribeAsState()
-    val searchData = viewModel.listingData.value.searchData.subscribeAsState()
+    val listingData = viewModel.listingData.data.subscribeAsState()
+    val searchData = viewModel.listingData.searchData.subscribeAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val windowClass = getWindowSizeClass()
@@ -88,7 +88,7 @@ fun MyOffersContent(
     }
 
     //update item when we back
-    LaunchedEffect(Unit) {
+    LaunchedEffect(listingData.value.updateItem.value) {
         if (listingData.value.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =
