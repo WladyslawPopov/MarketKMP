@@ -37,7 +37,7 @@ class DefaultFavoritesComponent(
 
     private val favViewModel = model.value.favViewModel
     private val listingData = favViewModel.listingData
-    private val searchData = listingData.value.searchData
+    private val searchData = listingData.searchData
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
@@ -87,7 +87,7 @@ class DefaultFavoritesComponent(
         }
         goToOffer(offer.id)
         lifecycle.doOnResume {
-            listingData.value.data.value.updateItem.value = offer.id
+            listingData.data.value.updateItem.value = offer.id
         }
     }
 }
