@@ -17,12 +17,15 @@ import market.engine.presentation.offer.OfferComponent
 import market.engine.presentation.offer.OfferContent
 import market.engine.presentation.profile.ProfileComponent
 import market.engine.presentation.profile.ProfileContent
+import market.engine.presentation.user.UserComponent
+import market.engine.presentation.user.UserContent
 
 sealed class ChildProfile {
     class ProfileChild(val component: ProfileComponent) : ChildProfile()
     class MyOffersChild(val component: MainComponent) : ChildProfile()
     class OfferChild(val component: OfferComponent) : ChildProfile()
     class ListingChild(val component: ListingComponent) : ChildProfile()
+    class UserChild(val component: UserComponent) : ChildProfile()
 }
 
 @Composable
@@ -43,6 +46,7 @@ fun ProfileNavigation(
             is ChildProfile.MyOffersChild -> ProfileMyOffersNavigation(screen.component, modifier)
             is ChildProfile.OfferChild -> OfferContent(screen.component, modifier)
             is ChildProfile.ListingChild -> ListingContent(screen.component, modifier)
+            is ChildProfile.UserChild -> UserContent(screen.component, modifier)
         }
     }
 }

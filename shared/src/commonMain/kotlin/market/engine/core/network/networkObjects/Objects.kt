@@ -156,7 +156,7 @@ data class Offer(
     @SerialName("discount_percentage") val discountPercentage: Int = 1,
     @SerialName("safe_deal") val safeDeal: Boolean = false,
     @SerialName("num_participants") val numParticipants: Int = 1,
-    @SerialName("seller_data") val sellerData: User? = null,
+    @SerialName("seller_data") var sellerData: User? = null,
     @SerialName("buyer_data") val buyerData: BuyerData? = null,
     @SerialName("state") var state: String? = null,
     @SerialName("session") var session: Session? = null,

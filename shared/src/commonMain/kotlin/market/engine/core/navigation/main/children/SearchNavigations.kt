@@ -14,10 +14,13 @@ import market.engine.presentation.listing.ListingComponent
 import market.engine.presentation.offer.OfferContent
 import market.engine.presentation.listing.ListingContent
 import market.engine.presentation.offer.OfferComponent
+import market.engine.presentation.user.UserComponent
+import market.engine.presentation.user.UserContent
 
 sealed class ChildSearch {
     class ListingChild(val component: ListingComponent) : ChildSearch()
     class OfferChild(val component: OfferComponent) : ChildSearch()
+    class UserChild(val component: UserComponent) : ChildSearch()
 }
 
 @Composable
@@ -36,6 +39,7 @@ fun SearchNavigation(
         when (val screen = child.instance) {
             is ChildSearch.ListingChild -> ListingContent(screen.component, modifier)
             is ChildSearch.OfferChild -> OfferContent(screen.component, modifier)
+            is ChildSearch.UserChild -> UserContent(screen.component, modifier)
         }
     }
 }

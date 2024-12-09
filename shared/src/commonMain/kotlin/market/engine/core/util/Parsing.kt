@@ -138,6 +138,11 @@ fun String.parseHtmlToAnnotatedString(): AnnotatedString {
                     // Paragraphs and divs with alignment
                     "p", "div" -> {
                         // Handle ParagraphStyle to avoid overlap
+                        if (pushedStylesStack.lastOrNull() == "p" || pushedStylesStack.lastOrNull() == "div") {
+                            pop()
+                            pushedStylesStack.removeLast()
+                        }
+                        // Add new ParagraphStyle
                         val alignment = when (attrs["style"]?.extractCssProperty("text-align")) {
                             "center" -> TextAlign.Center
                             "right" -> TextAlign.Right
@@ -160,7 +165,12 @@ fun String.parseHtmlToAnnotatedString(): AnnotatedString {
             .onCloseTag { name, _ ->
                 val tag = name.lowercase()
                if (pushedStylesStack.contains(tag)) {
-                    pop() // Only pop if the tag was previously pushed
+                   try {
+                       pop() // Only pop if the tag was previously pushed
+                       pushedStylesStack.removeLast()
+                   } catch (e: Exception) {
+                       e.printStackTrace()
+                   }
                }
             }
             // Handles errors during HTML parsing

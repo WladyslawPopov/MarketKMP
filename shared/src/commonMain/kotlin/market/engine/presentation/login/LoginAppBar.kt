@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.strings
+import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
@@ -33,18 +34,8 @@ fun LoginAppBar(
             TitleText(title)
         },
         navigationIcon = {
-            IconButton(
-                modifier = modifier,
-                onClick = {
-                    onBeakClick()
-                }
-            ){
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(strings.menuTitle),
-                    modifier = modifier.size(dimens.smallIconSize),
-                    tint = colors.black
-                )
+            NavigationArrowButton {
+                onBeakClick()
             }
         },
         actions = {

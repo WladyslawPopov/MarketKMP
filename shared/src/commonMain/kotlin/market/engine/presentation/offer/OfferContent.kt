@@ -1,7 +1,6 @@
 package market.engine.presentation.offer
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -28,7 +27,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -64,7 +62,6 @@ import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.globalData.SAPI
 import market.engine.core.globalData.UserData
 import market.engine.core.network.networkObjects.DealType
 import market.engine.core.network.networkObjects.DeliveryMethod
@@ -85,11 +82,11 @@ import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.HorizontalImageViewer
-import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.exceptions.getOfferOperations
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
+import market.engine.widgets.rows.UserPanel
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
@@ -508,10 +505,16 @@ fun OfferContent(
                     }
                     // seller panel
                     item {
-                        SellerPanel(
-                            offer,
-                            goToSeller = {
+                        SeparatorLabel(strings.sellerLabel)
 
+                        UserPanel(
+                            modifier = Modifier.fillMaxWidth()
+                                .clip(MaterialTheme.shapes.medium)
+                                .background(colors.white)
+                                .padding(vertical = dimens.smallPadding),
+                            offer.sellerData,
+                            goToUser = {
+                                component.goToUser(offer.sellerData?.id ?: 1L)
                             },
                             goToAllLots = {
                                 component.goToUsersListing(offer.sellerData)
@@ -520,6 +523,9 @@ fun OfferContent(
 
                             },
                             addToSubscriptions = {
+
+                            },
+                            goToSubscriptions = {
 
                             },
                             isBlackList = blackList.value
@@ -978,6 +984,12 @@ fun MessageToSeller(
         }
 
         Column {
+            Text(
+                text = stringResource(strings.actionAskSellerLabel),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.actionTextColor
+            )
+
             offer.sellerData?.averageResponseTime?.let {
                 if (it != "") {
                     Text(
@@ -987,12 +999,6 @@ fun MessageToSeller(
                     )
                 }
             }
-
-            Text(
-                text = stringResource(strings.actionAskSellerLabel),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.actionTextColor
-            )
         }
     }
 }
@@ -1151,264 +1157,6 @@ fun LocationOffer(
             style = MaterialTheme.typography.bodyMedium,
             color = colors.black
         )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun SellerPanel(
-    offer: Offer,
-    goToSeller: () -> Unit,
-    goToAllLots: () -> Unit,
-    goToAboutMe: () -> Unit,
-    addToSubscriptions: () -> Unit,
-    goToSettings: (() -> Unit)? = null,
-    isBlackList: String? // Suspend function to check black/white lists
-) {
-    val seller = offer.sellerData
-
-    if (seller != null) {
-
-        SeparatorLabel(strings.sellerLabel)
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.medium)
-                .background(colors.white)
-                .padding(vertical = dimens.smallPadding)
-        ) {
-            // Header row with seller details
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(dimens.smallPadding)
-                    .clickable {
-                        goToSeller()
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                // Seller rating badge
-                if (seller.ratingBadge?.imageUrl != null) {
-                    LoadImage(
-                        seller.ratingBadge.imageUrl,
-                        isShowLoading = false,
-                        isShowEmpty = false,
-                        size = dimens.mediumIconSize
-                    )
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                }
-
-                // Verified seller icon
-                if (seller.isVerified) {
-                    Image(
-                        painter = painterResource(drawables.verifySellersIcon),
-                        contentDescription = null,
-                        modifier = Modifier.size(dimens.mediumIconSize)
-                    )
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                }
-
-                val image = seller.avatar?.thumb?.content
-                if (image != null && image != "${SAPI.SERVER_BASE}images/no_avatar.svg") {
-                    Card(
-                        modifier = Modifier.padding(dimens.smallPadding),
-                        shape = MaterialTheme.shapes.extraLarge
-                    ) {
-                        LoadImage(
-                            url = image,
-                            isShowLoading = false,
-                            isShowEmpty = false,
-                            size = 60.dp
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
-                FlowRow(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = seller.login ?: "",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = colors.brightBlue,
-                        modifier = Modifier.padding(dimens.smallPadding)
-                    )
-
-                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
-                    if (seller.rating > 0) {
-                        Box(
-                            modifier = Modifier
-                                .background(colors.ratingBlue, shape = MaterialTheme.shapes.medium)
-                                .padding(dimens.smallPadding)
-                        ) {
-                            Text(
-                                text = seller.rating.toString(),
-                                color = colors.alwaysWhite,
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                // Button: "All Offers"
-                SimpleTextButton(
-                    text = stringResource(strings.allOffers),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
-                    shape = MaterialTheme.shapes.medium,
-                    onClick = goToAllLots
-                )
-
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-
-                // Button: "About Me"
-                SimpleTextButton(
-                    text = stringResource(strings.aboutMeLabel),
-                    backgroundColor = colors.textA0AE,
-                    shape = MaterialTheme.shapes.medium,
-                    onClick = goToAboutMe
-                )
-
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-
-                // Add to subscriptions icon
-                SmallIconButton(
-                    icon = drawables.subscriptionIcon,
-                    color = colors.greenColor,
-                    modifierIconSize = Modifier.size(dimens.mediumIconSize),
-                    onClick = addToSubscriptions
-                )
-            }
-
-            Spacer(modifier = Modifier.height(dimens.smallPadding))
-
-            // Check if the seller is in the black list
-            // Status annotation display based on the list type
-            isBlackList?.let { status ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = dimens.smallPadding)
-                        .clickable {
-                            when (status) {
-                                "blacklist_sellers" -> goToSettings?.invoke() // Blacklist sellers action
-                                "blacklist_buyers" -> goToSettings?.invoke() // Blacklist buyers action
-                                "whitelist_buyers" -> goToSettings?.invoke() // Whitelist buyers action
-                            }
-                        },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        painter = painterResource(drawables.infoIcon),
-                        contentDescription = null,
-                        tint = when (status) {
-                            "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
-                            "whitelist_buyers" -> colors.black
-                            else -> colors.notifyTextColor
-                        },
-                        modifier = Modifier.size(dimens.smallIconSize)
-                    )
-
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-
-                    Text(
-                        text = buildAnnotatedString {
-                            append(stringResource(strings.publicBlockUserLabel))
-                            append(": ")
-                            withStyle(
-                                style = SpanStyle(
-                                    color = colors.black,
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = FontStyle.Italic
-                                )
-                            ) {
-                                append(
-                                    when (status) {
-                                        "blacklist_sellers" -> stringResource(strings.blackListUserLabel)
-                                        "blacklist_buyers" -> stringResource(strings.blackListUserLabel)
-                                        "whitelist_buyers" -> stringResource(strings.whiteListUserLabel)
-                                        else -> ""
-                                    }
-                                )
-                            }
-                        },
-                        color = when (status) {
-                            "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
-                            "whitelist_buyers" -> colors.black
-                            else -> colors.notifyTextColor
-                        },
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-                }
-            }
-
-            // Display vacation or seller status
-            if (seller.vacationEnabled) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = dimens.smallPadding)
-                        .background(colors.outgoingBubble, shape = MaterialTheme.shapes.medium)
-                        .clickable { goToSettings?.invoke() }
-                        .padding(dimens.smallPadding)
-                ) {
-                    val vacationMessage = buildAnnotatedString {
-                        // Header
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.notifyTextColor)) {
-                            append(if (UserData.login == seller.id) {
-                                stringResource(strings.publicVacationMyLabel)
-                            } else {
-                                stringResource(strings.publicVacationHeaderLabel)
-                            })
-                        }
-                        append("\n")
-
-                        // From Date
-                        withStyle(style = SpanStyle(color = colors.brightBlue)) {
-                            append("${stringResource(strings.fromParameterName)} ")
-                            append(seller.vacationStart.toString().convertDateWithMinutes())
-                        }
-                        append(" ")
-
-                        // To Date
-                        withStyle(style = SpanStyle(color = colors.brightBlue)) {
-                            append("${stringResource(strings.toAboutParameterName)} ")
-                            append(seller.vacationEnd.toString().convertDateWithMinutes())
-                        }
-                        append(".\n")
-
-                        // Vacation Comment
-                        if (seller.vacationMessage?.isNotEmpty() == true) {
-                            withStyle(style = SpanStyle(fontStyle = FontStyle.Italic, color = colors.grayText)) {
-                                append(seller.vacationMessage)
-                            }
-                        }
-                    }
-
-                    Text(
-                        text = vacationMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.notifyTextColor,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
     }
 }
 

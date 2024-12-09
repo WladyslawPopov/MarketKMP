@@ -262,4 +262,10 @@ interface Strings {
 
     val emptyFavoritesLabel : StringResource
     val simpleNotFoundLabel : StringResource
+    val positiveFeedbackLabel : StringResource
+
+    val subscriptionsLabel : StringResource
+    val subscribersLabel : StringResource
+    val createdUserLabel : StringResource
+    val lastActiveUserLabel : StringResource
 }

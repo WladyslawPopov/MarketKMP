@@ -16,11 +16,14 @@ import market.engine.presentation.listing.ListingComponent
 import market.engine.presentation.listing.ListingContent
 import market.engine.presentation.offer.OfferComponent
 import market.engine.presentation.offer.OfferContent
+import market.engine.presentation.user.UserComponent
+import market.engine.presentation.user.UserContent
 
 sealed class ChildHome {
     class HomeChild(val component: HomeComponent) : ChildHome()
     class OfferChild(val component: OfferComponent) : ChildHome()
     class ListingChild(val component: ListingComponent) : ChildHome()
+    class UserChild(val component: UserComponent) : ChildHome()
 }
 
 @Composable
@@ -45,6 +48,9 @@ fun HomeNavigation(
             }
             is ChildHome.ListingChild ->{
                 ListingContent(screen.component, modifier)
+            }
+            is ChildHome.UserChild ->{
+                UserContent(screen.component, modifier)
             }
         }
     }

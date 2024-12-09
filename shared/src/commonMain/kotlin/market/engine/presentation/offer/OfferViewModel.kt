@@ -2,7 +2,6 @@ package market.engine.presentation.offer
 
 import androidx.compose.runtime.mutableStateOf
 import market.engine.core.network.functions.OfferOperations
-import market.engine.core.network.functions.UserOperations
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,10 +12,13 @@ import market.engine.core.globalData.UserData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
+import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
+import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.operations.checkStatusSeller
 import market.engine.core.types.OfferStates
 import market.engine.core.util.getCurrentDate
 import market.engine.presentation.base.BaseViewModel
@@ -42,8 +44,8 @@ class OfferViewModel(
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
-    private val _statusList = MutableStateFlow<String?>(null)
-    val statusList: StateFlow<String?> = _statusList.asStateFlow()
+    private val _statusList = MutableStateFlow<ArrayList<String>>(arrayListOf())
+    val statusList: StateFlow<ArrayList<String>> = _statusList.asStateFlow()
 
     private val _remainingTime = MutableStateFlow(0L)
     val remainingTime: StateFlow<Long> = _remainingTime.asStateFlow()
@@ -77,59 +79,82 @@ class OfferViewModel(
         }
     }
 
+    private fun getUserInfo(id : Long) {
+        viewModelScope.launch {
+            try {
+                val res =  withContext(Dispatchers.IO){
+                    userOperations.getUsers(id)
+                }
+
+                withContext(Dispatchers.Main){
+                    val user = res.success?.firstOrNull()
+                    val error = res.error
+                    if (user != null){
+                        responseOffer.value?.sellerData = user
+                    }else{
+                        error?.let { throw it }
+                    }
+                }
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            }
+        }
+    }
+
     private fun initializeOfferData(offer: Offer, isSnapshot: Boolean) {
         viewModelScope.launch {
             try {
                 coroutineScope {
                     launch {
-                        if (responseOffer.value != null) {
-                            setLoading(false)
+                        getUserInfo(offer.sellerData?.id ?: 1L)
+                    }
+                    launch {
+                        //init timers
+                        val initTimer =
+                            ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
+                                ?: 1L)) * 1000
 
-                            //init timers
-                            val initTimer =
-                                ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
-                                    ?: 1L)) * 1000
+                        isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
 
-                            isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
+                        offerState.value = when {
+                            isSnapshot -> OfferStates.SNAPSHOT
+                            offer.isPrototype -> OfferStates.PROTOTYPE
+                            offer.state == "active" -> {
+                                when {
+                                    offer.session == null -> OfferStates.COMPLETED
+                                    (offer.session?.start?.toLongOrNull()
+                                        ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
 
-                            offerState.value = when {
-                                isSnapshot -> OfferStates.SNAPSHOT
-                                offer.isPrototype -> OfferStates.PROTOTYPE
-                                offer.state == "active" -> {
-                                    when {
-                                        offer.session == null -> OfferStates.COMPLETED
-                                        (offer.session?.start?.toLongOrNull()
-                                            ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
+                                    (offer.session?.end?.toLongOrNull()
+                                        ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
 
-                                        (offer.session?.end?.toLongOrNull()
-                                            ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
-
-                                        else -> OfferStates.INACTIVE
-                                    }
+                                    else -> OfferStates.INACTIVE
                                 }
-
-                                offer.state == "sleeping" -> {
-                                    if (offer.session == null) OfferStates.COMPLETED else OfferStates.INACTIVE
-                                }
-
-                                else -> offerState.value
                             }
 
-                            if (!isMyOffer.value && offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
-                                startTimerUpdateBids(offer)
+                            offer.state == "sleeping" -> {
+                                if (offer.session == null) OfferStates.COMPLETED else OfferStates.INACTIVE
                             }
 
-                            if (initTimer < 24 * 60 * 60 * 1000 && offerState.value == OfferStates.ACTIVE) {
-                                startTimer(initTimer) {
-                                    getOffer(offer.id)
-                                }
-                            }else{
-                                _remainingTime.value = initTimer
+                            else -> offerState.value
+                        }
+
+                        if (!isMyOffer.value && offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
+                            startTimerUpdateBids(offer)
+                        }
+
+                        if (initTimer < 24 * 60 * 60 * 1000 && offerState.value == OfferStates.ACTIVE) {
+                            startTimer(initTimer) {
+                                getOffer(offer.id)
                             }
+                        }else{
+                            _remainingTime.value = initTimer
                         }
                     }
                     launch { getCategoriesHistory(offer.catpath) }
-                    launch { checkStatusSeller(offer.sellerData?.id ?: 0) }
+                    launch { _statusList.value = checkStatusSeller(offer.sellerData?.id ?: 0) }
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Initialization error", ""))
@@ -175,6 +200,8 @@ class OfferViewModel(
                 _responseOurChoice.value = ourChoice
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -192,21 +219,6 @@ class OfferViewModel(
                 onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
             }
         }
-    }
-
-    private suspend fun checkStatusSeller(id: Long) {
-        val lists = listOf("blacklist_sellers", "blacklist_buyers", "whitelist_buyers")
-        for (list in lists) {
-            val found = withContext(Dispatchers.IO) {
-                userOperations.getUsersOperationsGetUserList(UserData.login, hashMapOf("list_type" to list))
-                    .success?.body?.data?.find { it.id == id }
-            }
-            if (found != null) {
-                _statusList.value = list
-                return
-            }
-        }
-        _statusList.value = null
     }
 
     private fun startTimer(initialTime: Long, onFinish: () -> Unit) {

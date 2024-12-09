@@ -17,4 +17,7 @@ sealed class FavoritesConfig {
 
     @Serializable
     data class ListingScreen(val listingData: LD, val searchData : SD) : FavoritesConfig()
+
+    @Serializable
+    data class UserScreen(val userId: Long, val ts: String) : FavoritesConfig()
 }

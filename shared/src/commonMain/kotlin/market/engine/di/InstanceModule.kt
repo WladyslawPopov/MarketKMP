@@ -22,6 +22,7 @@ import market.engine.presentation.listing.ListingViewModel
 import market.engine.presentation.login.LoginViewModel
 import market.engine.presentation.offer.OfferViewModel
 import market.engine.presentation.listing.search.SearchViewModel
+import market.engine.presentation.profile.ProfileViewModel
 import market.engine.presentation.subscriptions.SubViewModel
 import market.engine.presentation.user.UserViewModel
 import market.engine.shared.MarketDB
@@ -50,6 +51,7 @@ val viewModelModule = module {
     viewModelOf(::SubViewModel)
     viewModelOf(::OfferViewModel)
     viewModelOf(::UserViewModel)
+    viewModelOf(::ProfileViewModel)
 }
 
 val networkModule = module {

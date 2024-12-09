@@ -27,6 +27,7 @@ interface OfferComponent {
     fun goToUsersListing(sellerData : User?)
     fun goToRegion(region : Region?)
     fun goToCart()
+    fun goToUser(userId: Long)
 }
 
 class DefaultOfferComponent(
@@ -36,7 +37,8 @@ class DefaultOfferComponent(
     val selectOffer: (id: Long) -> Unit,
     val navigationBack: () -> Unit,
     val navigationListing: (listingData: ListingData) -> Unit,
-    val navigationBasket: () -> Unit
+    val navigationBasket: () -> Unit,
+    val navigateToUser: (Long) -> Unit
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -104,5 +106,9 @@ class DefaultOfferComponent(
 
     override fun goToCart() {
         navigationBasket()
+    }
+
+    override fun goToUser(userId: Long) {
+        navigateToUser(userId)
     }
 }

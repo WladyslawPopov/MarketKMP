@@ -16,4 +16,7 @@ sealed class ProfileConfig {
 
     @Serializable
     data class ListingScreen(val listingData: LD, val searchData : SD) : ProfileConfig()
+
+    @Serializable
+    data class UserScreen(val userId: Long, val ts: String) : ProfileConfig()
 }

@@ -3,6 +3,8 @@ package market.engine.presentation.user
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.core.items.ListingData
+import market.engine.core.network.networkObjects.User
 import org.koin.mp.KoinPlatform.getKoin
 
 interface UserComponent {
@@ -14,14 +16,19 @@ interface UserComponent {
         val userViewModel: UserViewModel
     )
 
-    fun navigateToMyOffers()
+    fun updateUserInfo()
+
+    fun selectAllOffers(user : User)
+
+    fun onBack()
 }
 
 class DefaultUserComponent(
     userId: Long,
     isClickedAboutMe: Boolean = false,
     componentContext: ComponentContext,
-    val selectMyOffers: () -> Unit
+    val goToListing: (ListingData) -> Unit,
+    val navigateBack: () -> Unit
 ) : UserComponent, ComponentContext by componentContext {
 
     val _model = MutableValue(
@@ -35,11 +42,24 @@ class DefaultUserComponent(
     override val model = _model
 
     init {
-        model.value.userViewModel.getUserInfo(userId)
+        updateUserInfo()
     }
 
-    override fun navigateToMyOffers() {
-        selectMyOffers()
+    override fun updateUserInfo() {
+        model.value.userViewModel.getUserInfo(model.value.userId)
+    }
+
+    override fun selectAllOffers(user : User) {
+        val ld = ListingData()
+        val searchData = ld.searchData.value
+        searchData.userID = user.id
+        searchData.userSearch = true
+        searchData.userLogin = user.login
+        goToListing(ld)
+    }
+
+    override fun onBack() {
+        navigateBack()
     }
 }
 

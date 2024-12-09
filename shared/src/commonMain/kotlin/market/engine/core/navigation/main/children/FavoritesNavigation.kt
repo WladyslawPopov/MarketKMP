@@ -18,12 +18,15 @@ import market.engine.presentation.offer.OfferComponent
 import market.engine.presentation.offer.OfferContent
 import market.engine.presentation.subscriptions.SubscribesComponent
 import market.engine.presentation.subscriptions.SubscribesContent
+import market.engine.presentation.user.UserComponent
+import market.engine.presentation.user.UserContent
 
 sealed class ChildFavorites {
     class FavoritesChild(val component: FavoritesComponent) : ChildFavorites()
     class SubChild(val component: SubscribesComponent) : ChildFavorites()
     class OfferChild(val component: OfferComponent) : ChildFavorites()
     class ListingChild(val component: ListingComponent) : ChildFavorites()
+    class UserChild(val component: UserComponent) : ChildFavorites()
 }
 
 @Composable
@@ -44,6 +47,7 @@ fun FavoritesNavigation(
             is ChildFavorites.SubChild -> SubscribesContent(modifier, screen.component)
             is ChildFavorites.OfferChild -> OfferContent(screen.component, modifier)
             is ChildFavorites.ListingChild -> ListingContent(screen.component, modifier)
+            is ChildFavorites.UserChild -> UserContent(screen.component, modifier)
         }
     }
 }

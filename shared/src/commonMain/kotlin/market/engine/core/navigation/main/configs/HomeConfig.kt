@@ -14,4 +14,7 @@ sealed class HomeConfig {
 
     @Serializable
     data class ListingScreen(val listingData: LD, val searchData : SD) : HomeConfig()
+
+    @Serializable
+    data class UserScreen(val userId: Long, val ts: String) : HomeConfig()
 }

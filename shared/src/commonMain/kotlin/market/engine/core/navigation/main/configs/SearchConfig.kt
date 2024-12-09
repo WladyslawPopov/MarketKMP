@@ -11,4 +11,7 @@ sealed class SearchConfig {
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String) : SearchConfig()
+
+    @Serializable
+    data class UserScreen(val id: Long, val ts: String) : SearchConfig()
 }

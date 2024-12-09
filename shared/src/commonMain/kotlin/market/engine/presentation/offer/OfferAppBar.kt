@@ -46,6 +46,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.types.ToastType
 import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -116,18 +117,8 @@ fun OfferAppBar(
             TitleText(offer.name ?: stringResource(strings.defaultOfferTitle))
         },
         navigationIcon = {
-            IconButton(
-                modifier = modifier,
-                onClick = {
-                    onBeakClick()
-                }
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(strings.menuTitle),
-                    modifier = modifier.size(dimens.smallIconSize),
-                    tint = colors.black
-                )
+            NavigationArrowButton {
+                onBeakClick()
             }
         },
         actions = {
