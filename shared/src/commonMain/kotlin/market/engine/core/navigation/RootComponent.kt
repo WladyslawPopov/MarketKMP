@@ -1,4 +1,4 @@
-package market.engine.core.navigation.root
+package market.engine.core.navigation
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -11,7 +11,6 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.globalData.SAPI
 import market.engine.core.items.DeepLink
-import market.engine.core.navigation.configs.RootConfig
 import market.engine.core.repositories.SettingsRepository
 import market.engine.presentation.login.DefaultLoginComponent
 import market.engine.presentation.login.LoginComponent

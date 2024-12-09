@@ -1,4 +1,4 @@
-package market.engine.core.navigation.configs
+package market.engine.core.navigation.main.configs
 
 import kotlinx.serialization.Serializable
 

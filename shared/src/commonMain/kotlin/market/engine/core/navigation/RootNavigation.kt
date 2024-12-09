@@ -1,4 +1,4 @@
-package market.engine.core.navigation.root
+package market.engine.core.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
@@ -7,11 +7,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.serialization.Serializable
 import market.engine.presentation.login.LoginContent
-import market.engine.core.navigation.main.MainContent
+import market.engine.core.navigation.main.MainNavigation
 
 @Composable
-fun RootContent(
+fun RootNavigation(
     component: RootComponent,
     modifier: Modifier = Modifier
 ) {
@@ -26,7 +27,7 @@ fun RootContent(
         ) { child ->
             when (val instance = child.instance) {
                 is RootComponent.Child.MainChild -> {
-                    MainContent(instance.component)
+                    MainNavigation(instance.component)
                 }
 
                 is RootComponent.Child.LoginChild -> {
@@ -35,4 +36,13 @@ fun RootContent(
             }
         }
     }
+}
+
+@Serializable
+sealed class RootConfig {
+    @Serializable
+    data object Main : RootConfig()
+
+    @Serializable
+    data object Login : RootConfig()
 }

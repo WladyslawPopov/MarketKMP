@@ -6,10 +6,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import market.engine.core.network.networkObjects.Offer
-import org.koin.mp.KoinPlatform
+import org.koin.mp.KoinPlatform.getKoin
 
 suspend fun operationFavorites(currentOffer : Offer, scope: CoroutineScope) : Boolean {
-    val offerOperations : OfferOperations = KoinPlatform.getKoin().get()
+    val offerOperations : OfferOperations = getKoin().get()
     
     val res = scope.async {
         val buf = if (!currentOffer.isWatchedByMe) offerOperations.postOfferOperationWatch(

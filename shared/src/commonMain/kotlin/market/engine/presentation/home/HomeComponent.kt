@@ -12,7 +12,7 @@ import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.ListingData
 import market.engine.core.items.TopCategory
-import market.engine.core.navigation.configs.HomeConfig
+import market.engine.core.navigation.main.configs.HomeConfig
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import org.jetbrains.compose.resources.getString

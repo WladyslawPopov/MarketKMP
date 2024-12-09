@@ -1418,92 +1418,94 @@ fun TimeOfferSession(
     updatedTime: Long,
     state: OfferStates
 ) {
-    // Preload string resources
-    val inactiveLabel = stringResource(strings.offerSessionInactiveLabel)
-    val completedLabel = stringResource(strings.offerSessionCompletedLabel)
-    val futureLabel = stringResource(strings.offerSessionFutureLabel)
-    val daysLabel = stringResource(strings.dayLabel)
-    val hoursLabel = stringResource(strings.hoursLabel)
-    val minutesLabel = stringResource(strings.minutesLabel)
-    val secondsLabel = stringResource(strings.secondsLabel)
-    val beforeGraduationLabel = stringResource(strings.beforeGraduationLabel)
+    if (state != OfferStates.PROTOTYPE) {
+        // Preload string resources
+        val inactiveLabel = stringResource(strings.offerSessionInactiveLabel)
+        val completedLabel = stringResource(strings.offerSessionCompletedLabel)
+        val futureLabel = stringResource(strings.offerSessionFutureLabel)
+        val daysLabel = stringResource(strings.dayLabel)
+        val hoursLabel = stringResource(strings.hoursLabel)
+        val minutesLabel = stringResource(strings.minutesLabel)
+        val secondsLabel = stringResource(strings.secondsLabel)
+        val beforeGraduationLabel = stringResource(strings.beforeGraduationLabel)
 
-    val endTime = offer.session?.end?.toLongOrNull()
+        val endTime = offer.session?.end?.toLongOrNull()
 
-    // AnnotatedString to track the styled remaining time
-    val remainingTime = when (state) {
-        OfferStates.ACTIVE -> {
-            if (endTime != null) {
-                buildAnnotatedString {
-                    append(
-                        formatRemainingTimeAnnotated(
-                            updatedTime,
-                            beforeGraduationLabel,
-                            daysLabel,
-                            hoursLabel,
-                            minutesLabel,
-                            secondsLabel
+        // AnnotatedString to track the styled remaining time
+        val remainingTime = when (state) {
+            OfferStates.ACTIVE -> {
+                if (endTime != null) {
+                    buildAnnotatedString {
+                        append(
+                            formatRemainingTimeAnnotated(
+                                updatedTime,
+                                beforeGraduationLabel,
+                                daysLabel,
+                                hoursLabel,
+                                minutesLabel,
+                                secondsLabel
+                            )
                         )
-                    )
+                    }
+                } else {
+                    buildAnnotatedString {
+                        append(completedLabel)
+                    }
                 }
-            } else {
+            }
+
+            OfferStates.INACTIVE -> {
                 buildAnnotatedString {
-                    append(completedLabel)
+                    withStyle(style = SpanStyle(color = Color.Gray)) {
+                        append(inactiveLabel)
+                    }
                 }
+            }
+
+            OfferStates.COMPLETED -> {
+                buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Color.Gray)) {
+                        append(completedLabel)
+                    }
+                }
+            }
+
+            OfferStates.FUTURE -> {
+                buildAnnotatedString {
+                    append(futureLabel)
+                }
+            }
+
+            else -> {
+                AnnotatedString("")
             }
         }
 
-        OfferStates.INACTIVE -> {
-            buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.Gray)) {
-                    append(inactiveLabel)
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(dimens.smallPadding),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SmallImageButton(
+                drawables.iconClock
+            ) {
+
             }
+            // Display the styled AnnotatedString
+            Text(
+                text = buildAnnotatedString {
+                    append(remainingTime)
+                    if (offer.session?.end != null) {
+                        append("\n(${offer.session?.end?.convertDateWithMinutes()})")
+                    }
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.black
+            )
         }
-
-        OfferStates.COMPLETED -> {
-            buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.Gray)) {
-                    append(completedLabel)
-                }
-            }
-        }
-
-        OfferStates.FUTURE -> {
-            buildAnnotatedString {
-                append(futureLabel)
-            }
-        }
-
-        else -> {
-            AnnotatedString("")
-        }
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(dimens.smallPadding),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        SmallImageButton(
-            drawables.iconClock
-        ){
-
-        }
-        // Display the styled AnnotatedString
-        Text(
-            text = buildAnnotatedString {
-                append(remainingTime)
-                if (offer.session?.end != null) {
-                    append("\n(${offer.session?.end?.convertDateWithMinutes()})")
-                }
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.black
-        )
     }
 }
 

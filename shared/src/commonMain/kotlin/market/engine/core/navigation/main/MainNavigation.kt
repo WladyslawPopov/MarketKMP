@@ -15,18 +15,26 @@ import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
-import market.engine.core.navigation.children.ChildMain
-import market.engine.core.navigation.configs.MainConfig
-import market.engine.core.navigation.main.include.BasketNavigation
-import market.engine.core.navigation.main.include.FavoritesNavigation
-import market.engine.core.navigation.main.include.HomeNavigation
-import market.engine.core.navigation.main.include.SearchNavigation
-import market.engine.core.navigation.main.include.ProfileNavigation
+import market.engine.core.navigation.main.configs.MainConfig
+import market.engine.core.navigation.main.children.BasketNavigation
+import market.engine.core.navigation.main.children.FavoritesNavigation
+import market.engine.core.navigation.main.children.HomeNavigation
+import market.engine.core.navigation.main.children.SearchNavigation
+import market.engine.core.navigation.main.children.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
 import org.jetbrains.compose.resources.stringResource
 
+
+sealed class ChildMain {
+    data object HomeChildMain : ChildMain()
+    data object CategoryChildMain : ChildMain()
+    data object BasketChildMain : ChildMain()
+    data object FavoritesChildMain : ChildMain()
+    data object ProfileChildMain : ChildMain()
+}
+
 @Composable
-fun MainContent(
+fun MainNavigation(
     component: MainComponent,
     modifier: Modifier = Modifier
 ) {

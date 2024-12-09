@@ -19,19 +19,18 @@ import com.arkivanov.decompose.value.Value
 import market.engine.core.globalData.UserData
 import market.engine.core.items.DeepLink
 import market.engine.core.items.ListingData
-import market.engine.core.navigation.children.ChildBasket
-import market.engine.core.navigation.children.ChildSearch
-import market.engine.core.navigation.children.ChildFavorites
-import market.engine.core.navigation.children.ChildHome
-import market.engine.core.navigation.children.ChildMain
-import market.engine.core.navigation.children.ChildProfile
-import market.engine.core.navigation.configs.BasketConfig
-import market.engine.core.navigation.configs.SearchConfig
-import market.engine.core.navigation.configs.FavoritesConfig
-import market.engine.core.navigation.configs.HomeConfig
-import market.engine.core.navigation.configs.MainConfig
-import market.engine.core.navigation.configs.MyOfferConfig
-import market.engine.core.navigation.configs.ProfileConfig
+import market.engine.core.navigation.main.children.ChildBasket
+import market.engine.core.navigation.main.children.ChildSearch
+import market.engine.core.navigation.main.children.ChildHome
+import market.engine.core.navigation.main.children.ChildProfile
+import market.engine.core.navigation.main.configs.BasketConfig
+import market.engine.core.navigation.main.configs.SearchConfig
+import market.engine.core.navigation.main.configs.FavoritesConfig
+import market.engine.core.navigation.main.configs.HomeConfig
+import market.engine.core.navigation.main.configs.MainConfig
+import market.engine.core.navigation.main.configs.MyOfferConfig
+import market.engine.core.navigation.main.configs.ProfileConfig
+import market.engine.core.navigation.main.children.ChildFavorites
 import market.engine.core.types.FavScreenType
 import market.engine.core.types.LotsType
 import market.engine.core.util.getCurrentDate
@@ -495,7 +494,7 @@ class DefaultMainComponent(
     }
 
 
-    private fun itemMyOffers(config: MyOfferConfig,componentContext: ComponentContext): MyOffersComponent {
+    private fun itemMyOffers(config: MyOfferConfig, componentContext: ComponentContext): MyOffersComponent {
         return DefaultMyOffersComponent(
             componentContext = componentContext,
             type = config.type,

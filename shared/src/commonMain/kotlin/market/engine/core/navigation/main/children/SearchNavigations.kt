@@ -1,4 +1,4 @@
-package market.engine.core.navigation.main.include
+package market.engine.core.navigation.main.children
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -10,15 +10,23 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import market.engine.core.navigation.children.ChildBasket
-import market.engine.presentation.basket.BasketContent
+import market.engine.presentation.listing.ListingComponent
+import market.engine.presentation.offer.OfferContent
+import market.engine.presentation.listing.ListingContent
+import market.engine.presentation.offer.OfferComponent
+
+sealed class ChildSearch {
+    class ListingChild(val component: ListingComponent) : ChildSearch()
+    class OfferChild(val component: OfferComponent) : ChildSearch()
+}
 
 @Composable
-fun BasketNavigation(
+fun SearchNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, ChildBasket>>
+    childStack: Value<ChildStack<*, ChildSearch>>
 ) {
     val stack by childStack.subscribeAsState()
+
     Children(
         stack = stack,
         modifier = modifier
@@ -26,7 +34,8 @@ fun BasketNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildBasket.BasketChild -> BasketContent(screen.component)
+            is ChildSearch.ListingChild -> ListingContent(screen.component, modifier)
+            is ChildSearch.OfferChild -> OfferContent(screen.component, modifier)
         }
     }
 }

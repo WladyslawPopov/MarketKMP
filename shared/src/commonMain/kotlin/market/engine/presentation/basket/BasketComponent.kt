@@ -3,7 +3,7 @@ package market.engine.presentation.basket
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
-import market.engine.core.navigation.configs.BasketConfig
+import market.engine.core.navigation.main.configs.BasketConfig
 
 
 interface BasketComponent {
