@@ -31,7 +31,7 @@ class DefaultUserComponent(
     val navigateBack: () -> Unit
 ) : UserComponent, ComponentContext by componentContext {
 
-    val _model = MutableValue(
+    private val _model = MutableValue(
         UserComponent.Model(
             userId = userId,
             isClickedAboutMe = isClickedAboutMe,
@@ -55,6 +55,7 @@ class DefaultUserComponent(
         searchData.userID = user.id
         searchData.userSearch = true
         searchData.userLogin = user.login
+        ld.data.value.isOpenCategory.value = false
         goToListing(ld)
     }
 

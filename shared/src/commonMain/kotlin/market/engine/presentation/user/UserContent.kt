@@ -55,7 +55,9 @@ fun UserContent(
                user = user.value,
                goToUser = null,
                goToAllLots = {
-
+                   if (user.value != null) {
+                       component.selectAllOffers(user.value!!)
+                   }
                },
                goToAboutMe = {
 
