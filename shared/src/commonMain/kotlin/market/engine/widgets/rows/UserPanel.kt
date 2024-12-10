@@ -375,7 +375,7 @@ fun UserPanel(
                 Box(
                     modifier = Modifier
                         .padding(dimens.smallPadding)
-                        .background(colors.outgoingBubble, shape = MaterialTheme.shapes.medium)
+                        .background(colors.transparentGrayColor, shape = MaterialTheme.shapes.medium)
                         .clickable { goToSettings?.invoke() }
                 ) {
                     val vacationMessage = buildAnnotatedString {
