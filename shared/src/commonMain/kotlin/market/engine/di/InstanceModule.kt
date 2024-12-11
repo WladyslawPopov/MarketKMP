@@ -25,6 +25,7 @@ import market.engine.presentation.listing.search.SearchViewModel
 import market.engine.presentation.profile.ProfileViewModel
 import market.engine.presentation.subscriptions.SubViewModel
 import market.engine.presentation.user.UserViewModel
+import market.engine.presentation.user.feedbacks.FeedbacksViewModel
 import market.engine.shared.MarketDB
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -52,6 +53,7 @@ val viewModelModule = module {
     viewModelOf(::OfferViewModel)
     viewModelOf(::UserViewModel)
     viewModelOf(::ProfileViewModel)
+    viewModelOf(::FeedbacksViewModel)
 }
 
 val networkModule = module {

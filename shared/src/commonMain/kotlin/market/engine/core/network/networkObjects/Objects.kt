@@ -414,6 +414,7 @@ data class User(
     @SerialName("auto_feedback_enabled") val autoFeedbackEnabled: Boolean = false,
     @SerialName("auto_feedback_message") val autoFeedbackMessage: String? = null,
     @SerialName("auto_feedback_after_exceeded_days_limit_enabled") val autoFeedbackExceededEnabled: Boolean = false,
+    @SerialName("role") val role: String? = null,
 )
 
 @Serializable

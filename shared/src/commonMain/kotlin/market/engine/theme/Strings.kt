@@ -268,4 +268,9 @@ interface Strings {
     val subscribersLabel : StringResource
     val createdUserLabel : StringResource
     val lastActiveUserLabel : StringResource
+
+    val showAnswerLabel : StringResource
+    val hideAnswerLabel : StringResource
+
+    val orderLabel : StringResource
 }

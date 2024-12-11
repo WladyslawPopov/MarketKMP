@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -70,7 +71,7 @@ fun <T : Any> PagingList(
 
         LazyColumn(
             state = state,
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
             modifier = Modifier
                 .fillMaxSize()
                 .animateContentSize()
@@ -81,7 +82,7 @@ fun <T : Any> PagingList(
                     LazyRow(
                         modifier = Modifier.height(300.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                     ) {
                         items(promoList) { offer ->
                             promoContent(offer)

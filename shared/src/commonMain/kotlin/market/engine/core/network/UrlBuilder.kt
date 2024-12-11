@@ -92,10 +92,11 @@ class UrlBuilder {
                 queryParams["filter_${counter}_value"] = "1"
                 counter++
             }
-
-            queryParams["filter_${counter}_key"] = "category"
-            queryParams["filter_${counter}_value"] = searchData.searchCategoryID.toString()
-            counter++
+            if (searchData.searchCategoryID != 1L) {
+                queryParams["filter_${counter}_key"] = "category"
+                queryParams["filter_${counter}_value"] = searchData.searchCategoryID.toString()
+                counter++
+            }
         }
 
         if (listingData != null) {
