@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
@@ -154,7 +156,6 @@ fun <T : Any>ListingBaseContent(
     ) {
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
-            modifier = Modifier.fillMaxSize(),
             sheetContentColor = colors.primaryColor,
             sheetBackgroundColor = colors.primaryColor,
             contentColor = colors.primaryColor,

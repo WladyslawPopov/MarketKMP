@@ -1,21 +1,16 @@
-package market.engine.widgets.exceptions
+package market.engine.widgets.dropdown_menu
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
@@ -29,14 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.Popup
 import market.engine.core.network.functions.OfferOperations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -62,7 +54,6 @@ import market.engine.core.util.convertDateYear
 import market.engine.core.util.getCurrentDate
 import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.lists.getDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -71,12 +62,12 @@ import org.koin.compose.koinInject
 fun getOfferOperations(
     offer: Offer,
     baseViewModel: BaseViewModel,
+    modifier: Modifier = Modifier,
     showCopyId : Boolean = true,
-    offset: IntOffset = IntOffset(0, 0),
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
     onUpdateMenuItem: (Offer) -> Unit,
     onClose: () -> Unit,
 ) {
-
     val scope = baseViewModel.viewModelScope
     val errorMes = remember { mutableStateOf("") }
     val offerOperations : OfferOperations = koinInject()
@@ -89,7 +80,6 @@ fun getOfferOperations(
     val showMenu = remember { mutableStateOf(false) }
     val showActivateOfferDialog = remember { mutableStateOf(false) }
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
-
 
     LaunchedEffect(Unit){
         scope.launch(Dispatchers.IO) {
@@ -127,238 +117,220 @@ fun getOfferOperations(
         }
     }
 
-    AnimatedVisibility(showMenu.value) {
-        Popup(
-            alignment = Alignment.TopEnd,
-            offset = offset,
-            onDismissRequest = {
-                //onClose()
-            }
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(300.dp)
-                    .heightIn(max = 400.dp)
-                    .wrapContentSize()
-                    .shadow(4.dp, MaterialTheme.shapes.medium, true)
-                    .background(colors.white, MaterialTheme.shapes.medium)
-                    .padding(dimens.smallPadding)
-            ) {
-                LazyColumn {
-                    if (showCopyId) {
-                        item {
-                            val idString = stringResource(
-                                strings.idCopied
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        clipBoardEvent(offer.id.toString())
+    DropdownMenu(
+        modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp),
+        expanded = showMenu.value,
+        onDismissRequest = { onClose() },
+        containerColor = colors.white,
+        offset = offset
+    ) {
+        if (showCopyId) {
+            val idString = stringResource(strings.idCopied)
 
-                                        baseViewModel.showToast(
-                                            ToastItem(
-                                                isVisible = true,
-                                                message = idString,
-                                                type = ToastType.SUCCESS
-                                            )
-                                        )
-                                        onClose()
-                                    }
-                            ) {
-                                Text(
-                                    stringResource(strings.copyOfferId),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier.padding(dimens.smallPadding)
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = idString,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.black
+                    )
+                },
+                onClick = {
+                    clipBoardEvent(offer.id.toString())
+
+                    baseViewModel.showToast(
+                        ToastItem(
+                            isVisible = true,
+                            message = idString,
+                            type = ToastType.SUCCESS
+                        )
+                    )
+                    onClose()
+                }
+            )
+        }
+
+        listItemMenu.forEach { operation ->
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = operation.name ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.black
+                    )
+                },
+                onClick = {
+                    when (operation.id) {
+                        "watch" -> {
+                            scope.launch(Dispatchers.IO) {
+                                val buf = offerOperations.postOfferOperationWatch(
+                                    offer.id
                                 )
-                            }
-                        }
-                    }
-                    items(listItemMenu) { operation ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    when (operation.id) {
-                                        "watch" -> {
-                                            scope.launch(Dispatchers.IO) {
-                                                val buf = offerOperations.postOfferOperationWatch(
-                                                    offer.id
-                                                )
-                                                val response = buf.success
-                                                withContext(Dispatchers.Main) {
-                                                    if (response != null) {
-                                                        if (response.success) {
-                                                            onUpdateMenuItem(offer)
-                                                        } else {
-                                                            errorMes.value =
-                                                                response.humanMessage.toString()
-                                                            showDialog.value = true
-                                                            onClose()
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                val response = buf.success
+                                withContext(Dispatchers.Main) {
+                                    if (response != null) {
+                                        if (response.success) {
+                                            onUpdateMenuItem(offer)
+                                        } else {
+                                            errorMes.value =
+                                                response.humanMessage.toString()
+                                            showDialog.value = true
+                                            onClose()
                                         }
-                                        "unwatch" -> {
-                                            scope.launch(Dispatchers.IO) {
-                                                val buf = offerOperations.postOfferOperationUnwatch(
-                                                    offer.id
-                                                )
-                                                val response = buf.success
-                                                withContext(Dispatchers.Main) {
-                                                    if (response != null) {
-                                                        if (response.success) {
-                                                            onUpdateMenuItem(offer)
-                                                        } else {
-                                                            errorMes.value =
-                                                                response.humanMessage.toString()
-                                                            showDialog.value = true
-                                                            onClose()
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        "prolong_offer" -> {
-                                            scope.launch(Dispatchers.IO) {
-                                                val buf =
-                                                    offerOperations.postOfferOperationsProlongOffer(
-                                                        offer.id
-                                                    )
-                                                val r = buf.success
-                                                withContext(Dispatchers.Main) {
-                                                    if (r != null) {
-                                                        if (r.success) {
-                                                            onUpdateMenuItem(offer)
-                                                        } else {
-                                                            errorMes.value =
-                                                                r.humanMessage.toString()
-                                                            showDialog.value = true
-                                                            onClose()
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        "activate_offer_for_future" -> {
-                                            showActivateOfferForFutureDialog.value = !showActivateOfferForFutureDialog.value
-                                        }
-                                        "activate_offer" -> {
-                                            showActivateOfferDialog.value = !showActivateOfferDialog.value
-                                        }
-                                        "set_anti_sniper" -> {
-                                            scope.launch(Dispatchers.IO) {
-                                                val buf =
-                                                    offerOperations.postOfferOperationsSetAntiSniper(
-                                                        offer.id
-                                                    )
-                                                val r = buf.success
-                                                withContext(Dispatchers.Main) {
-                                                    if (r != null) {
-                                                        if (r.success) {
-                                                            val eventParam = mapOf(
-                                                                "lot_id" to offer.id,
-                                                                "lot_name" to offer.title,
-                                                                "lot_city" to offer.freeLocation,
-                                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                                "seller_id" to offer.sellerData?.id
-                                                            )
-
-                                                            analyticsHelper.reportEvent(
-                                                                "set_anti_sniper",
-                                                                eventParam
-                                                            )
-                                                            onUpdateMenuItem(offer)
-                                                            onClose()
-                                                        } else {
-                                                            errorMes.value =
-                                                                r.humanMessage.toString()
-                                                            showDialog.value = true
-                                                            onClose()
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        "unset_anti_sniper" -> {
-                                            scope.launch(Dispatchers.IO) {
-                                                val buf =
-                                                    offerOperations.postOfferOperationsUnsetAntiSniper(
-                                                        offer.id
-                                                    )
-                                                val r = buf.success
-                                                withContext(Dispatchers.Main) {
-                                                    if (r != null) {
-                                                        if (r.success) {
-
-                                                            val eventParam = mapOf(
-                                                                "lot_id" to offer.id,
-                                                                "lot_name" to offer.title,
-                                                                "lot_city" to offer.freeLocation,
-                                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                                "seller_id" to offer.sellerData?.id
-                                                            )
-
-                                                            analyticsHelper.reportEvent(
-                                                                "unset_anti_sniper",
-                                                                eventParam
-                                                            )
-                                                            onUpdateMenuItem(offer)
-                                                            onClose()
-                                                        } else {
-                                                            errorMes.value =
-                                                                r.humanMessage.toString()
-                                                            showDialog.value = true
-                                                            onClose()
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        "delete_offer" -> {
-                                            showDeleteOfferDialog.value =
-                                                !showDeleteOfferDialog.value
-                                        }
-                                        "finalize_session" -> {
-                                            scope.launch(Dispatchers.IO) {
-                                                val buf =
-                                                    offerOperations.postOfferOperationsFinalizeSession(
-                                                        offer.id
-                                                    )
-                                                val r = buf.success
-                                                withContext(Dispatchers.Main) {
-                                                    if (r != null) {
-                                                        if (r.success) {
-                                                            onUpdateMenuItem(offer)
-                                                        } else {
-                                                            errorMes.value =
-                                                                r.humanMessage.toString()
-                                                            showDialog.value = true
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        "copy_offer_without_old_photo" -> {}
-                                        "edit_offer" -> {}
-                                        "copy_offer" -> {}
-                                        "act_on_proposal" -> {}
-                                        "make_proposal" -> {}
-                                        "cancel_all_bids" -> {}
-                                        "remove_bids_of_users" -> {}
                                     }
                                 }
-                        ) {
-                            Text(
-                                operation.name ?: "",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(dimens.smallPadding)
-                            )
+                            }
                         }
+                        "unwatch" -> {
+                            scope.launch(Dispatchers.IO) {
+                                val buf = offerOperations.postOfferOperationUnwatch(
+                                    offer.id
+                                )
+                                val response = buf.success
+                                withContext(Dispatchers.Main) {
+                                    if (response != null) {
+                                        if (response.success) {
+                                            onUpdateMenuItem(offer)
+                                        } else {
+                                            errorMes.value =
+                                                response.humanMessage.toString()
+                                            showDialog.value = true
+                                            onClose()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "prolong_offer" -> {
+                            scope.launch(Dispatchers.IO) {
+                                val buf =
+                                    offerOperations.postOfferOperationsProlongOffer(
+                                        offer.id
+                                    )
+                                val r = buf.success
+                                withContext(Dispatchers.Main) {
+                                    if (r != null) {
+                                        if (r.success) {
+                                            onUpdateMenuItem(offer)
+                                        } else {
+                                            errorMes.value =
+                                                r.humanMessage.toString()
+                                            showDialog.value = true
+                                            onClose()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "activate_offer_for_future" -> {
+                            showActivateOfferForFutureDialog.value = !showActivateOfferForFutureDialog.value
+                        }
+                        "activate_offer" -> {
+                            showActivateOfferDialog.value = !showActivateOfferDialog.value
+                        }
+                        "set_anti_sniper" -> {
+                            scope.launch(Dispatchers.IO) {
+                                val buf =
+                                    offerOperations.postOfferOperationsSetAntiSniper(
+                                        offer.id
+                                    )
+                                val r = buf.success
+                                withContext(Dispatchers.Main) {
+                                    if (r != null) {
+                                        if (r.success) {
+                                            val eventParam = mapOf(
+                                                "lot_id" to offer.id,
+                                                "lot_name" to offer.title,
+                                                "lot_city" to offer.freeLocation,
+                                                "lot_category" to offer.catpath.lastOrNull(),
+                                                "seller_id" to offer.sellerData?.id
+                                            )
+
+                                            analyticsHelper.reportEvent(
+                                                "set_anti_sniper",
+                                                eventParam
+                                            )
+                                            onUpdateMenuItem(offer)
+                                            onClose()
+                                        } else {
+                                            errorMes.value =
+                                                r.humanMessage.toString()
+                                            showDialog.value = true
+                                            onClose()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "unset_anti_sniper" -> {
+                            scope.launch(Dispatchers.IO) {
+                                val buf =
+                                    offerOperations.postOfferOperationsUnsetAntiSniper(
+                                        offer.id
+                                    )
+                                val r = buf.success
+                                withContext(Dispatchers.Main) {
+                                    if (r != null) {
+                                        if (r.success) {
+
+                                            val eventParam = mapOf(
+                                                "lot_id" to offer.id,
+                                                "lot_name" to offer.title,
+                                                "lot_city" to offer.freeLocation,
+                                                "lot_category" to offer.catpath.lastOrNull(),
+                                                "seller_id" to offer.sellerData?.id
+                                            )
+
+                                            analyticsHelper.reportEvent(
+                                                "unset_anti_sniper",
+                                                eventParam
+                                            )
+                                            onUpdateMenuItem(offer)
+                                            onClose()
+                                        } else {
+                                            errorMes.value =
+                                                r.humanMessage.toString()
+                                            showDialog.value = true
+                                            onClose()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "delete_offer" -> {
+                            showDeleteOfferDialog.value =
+                                !showDeleteOfferDialog.value
+                        }
+                        "finalize_session" -> {
+                            scope.launch(Dispatchers.IO) {
+                                val buf =
+                                    offerOperations.postOfferOperationsFinalizeSession(
+                                        offer.id
+                                    )
+                                val r = buf.success
+                                withContext(Dispatchers.Main) {
+                                    if (r != null) {
+                                        if (r.success) {
+                                            onUpdateMenuItem(offer)
+                                        } else {
+                                            errorMes.value =
+                                                r.humanMessage.toString()
+                                            showDialog.value = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "copy_offer_without_old_photo" -> {}
+                        "edit_offer" -> {}
+                        "copy_offer" -> {}
+                        "act_on_proposal" -> {}
+                        "make_proposal" -> {}
+                        "cancel_all_bids" -> {}
+                        "remove_bids_of_users" -> {}
                     }
                 }
-            }
+            )
         }
     }
 

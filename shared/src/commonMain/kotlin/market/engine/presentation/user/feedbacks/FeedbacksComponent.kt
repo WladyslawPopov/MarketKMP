@@ -14,18 +14,27 @@ interface FeedbacksComponent {
 
     data class Model(
         val userId : Long,
-        val type : ReportPageType,
+        var type : ReportPageType,
         val feedbacksViewModel: FeedbacksViewModel,
         var pagingDataFlow : Flow<PagingData<Reports>>
     )
 
     fun onRefresh()
+
+    fun goToOrder(orderId : Long)
+
+    fun goToSnapshot(snapshotId : Long)
+
+    fun goToUser(userId : Long)
 }
 
 class DefaultFeedbacksComponent(
     val type : ReportPageType,
     val userId : Long,
     componentContext: ComponentContext,
+    private val navigateToOrder : (Long) -> Unit,
+    private val navigateToSnapshot : (Long) -> Unit,
+    private val navigateToUser : (Long) -> Unit
 ) : FeedbacksComponent, ComponentContext by componentContext {
 
     private  val feedbacksViewModel : FeedbacksViewModel = getKoin().get()
@@ -47,5 +56,17 @@ class DefaultFeedbacksComponent(
 
     override fun onRefresh() {
         model.value.feedbacksViewModel.refresh()
+    }
+
+    override fun goToOrder(orderId: Long) {
+        navigateToOrder(orderId)
+    }
+
+    override fun goToSnapshot(snapshotId: Long) {
+        navigateToSnapshot(snapshotId)
+    }
+
+    override fun goToUser(userId: Long) {
+        navigateToUser(userId)
     }
 }

@@ -12,11 +12,11 @@ sealed class ProfileConfig {
     data object MyOffersScreen : ProfileConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long, val ts: String) : ProfileConfig()
+    data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : ProfileConfig()
 
     @Serializable
     data class ListingScreen(val listingData: LD, val searchData : SD) : ProfileConfig()
 
     @Serializable
-    data class UserScreen(val userId: Long, val ts: String) : ProfileConfig()
+    data class UserScreen(val userId: Long, val ts: String, val aboutMe: Boolean) : ProfileConfig()
 }

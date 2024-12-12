@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -82,7 +84,7 @@ import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.HorizontalImageViewer
-import market.engine.widgets.exceptions.getOfferOperations
+import market.engine.widgets.dropdown_menu.getOfferOperations
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
@@ -100,8 +102,8 @@ fun OfferContent(
     component: OfferComponent,
     modifier: Modifier
 ) {
-    val model = component.model.subscribeAsState()
-    val offerViewModel = model.value.offerViewModel
+    val model by component.model.subscribeAsState()
+    val offerViewModel = model.offerViewModel
 
     val visitedHistory = offerViewModel.responseHistory.collectAsState()
     val ourChoiceList = offerViewModel.responseOurChoice.collectAsState()
@@ -130,7 +132,7 @@ fun OfferContent(
 
     DisposableEffect(Unit) {
         onDispose {
-            offerViewModel.addHistory(model.value.id)
+            offerViewModel.addHistory(model.id)
             offerViewModel.clearTimers()
         }
     }
@@ -138,7 +140,7 @@ fun OfferContent(
     lotState.value?.let { offer ->
 
         val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-            { onError(isError.value) { component.updateOffer(offer.id) } }
+            { onError(isError.value) { component.updateOffer(offer.id, model.isSnapshot) } }
         }else{
             null
         }
@@ -181,7 +183,7 @@ fun OfferContent(
             noFound = null,
             toastItem = offerViewModel.toastItem,
             onRefresh = {
-                component.updateOffer(offer.id)
+                component.updateOffer(offer.id, model.isSnapshot)
             },
             modifier = Modifier.fillMaxSize()
         ) {
@@ -296,7 +298,7 @@ fun OfferContent(
                         )
                     }
                     //simple Price
-                    if (offerState.value == OfferStates.INACTIVE || offerState.value == OfferStates.COMPLETED || isMyOffer.value) {
+                    if (offerState.value != OfferStates.ACTIVE || isMyOffer.value) {
                         item {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
@@ -332,46 +334,26 @@ fun OfferContent(
                     //action seller mode
                     if (isMyOffer.value) {
                         item {
-                            Column {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    SeparatorLabel(strings.actionsOffersParameterName)
-                                }
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    PopupActionButton(
-                                        stringResource(strings.operationsParameterName),
-                                        color = colors.textA0AE,
-                                        tint = colors.alwaysWhite,
-                                        isShowOptions = isShowOptions
-                                    )
-                                }
-
-                                AnimatedVisibility(
-                                    isShowOptions.value,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    getOfferOperations(
-                                        offer,
-                                        offerViewModel,
-                                        offset = IntOffset(-150, 0),
-                                        showCopyId = false,
-                                        onUpdateMenuItem = { offer ->
-                                            component.updateOffer(offer.id)
-                                        },
-                                        onClose = {
-                                            isShowOptions.value = false
-                                        }
-                                    )
-                                }
+                            AnimatedVisibility(
+                                isShowOptions.value,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                getOfferOperations(
+                                    offer,
+                                    offerViewModel,
+                                    offset = DpOffset((-150).dp, 0.dp),
+                                    showCopyId = false,
+                                    onUpdateMenuItem = { offer ->
+                                        component.updateOffer(offer.id, model.isSnapshot)
+                                    },
+                                    onClose = {
+                                        isShowOptions.value = false
+                                    }
+                                )
                             }
                         }
                     }
+
                     //bids price
                     if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
                         item {
@@ -514,13 +496,13 @@ fun OfferContent(
                                 .padding(vertical = dimens.smallPadding),
                             offer.sellerData,
                             goToUser = {
-                                component.goToUser(offer.sellerData?.id ?: 1L)
+                                component.goToUser(offer.sellerData?.id ?: 1L, false)
                             },
                             goToAllLots = {
                                 component.goToUsersListing(offer.sellerData)
                             },
                             goToAboutMe = {
-
+                                component.goToUser(offer.sellerData?.id ?: 1L, true)
                             },
                             addToSubscriptions = {
 
@@ -1166,7 +1148,7 @@ fun TimeOfferSession(
     updatedTime: Long,
     state: OfferStates
 ) {
-    if (state != OfferStates.PROTOTYPE) {
+    if (state != OfferStates.PROTOTYPE && state != OfferStates.SNAPSHOT) {
         // Preload string resources
         val inactiveLabel = stringResource(strings.offerSessionInactiveLabel)
         val completedLabel = stringResource(strings.offerSessionCompletedLabel)

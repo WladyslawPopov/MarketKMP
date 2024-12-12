@@ -273,4 +273,15 @@ interface Strings {
     val hideAnswerLabel : StringResource
 
     val orderLabel : StringResource
+
+    val positiveFilterParams : StringResource
+    val negativeFilterParams : StringResource
+    val neutralFilterParams : StringResource
+    val allFilterParams : StringResource
+
+    val allFeedbackToUserLabel : StringResource
+    val fromBuyerLabel : StringResource
+    val fromSellerLabel : StringResource
+    val fromUsersLabel : StringResource
+    val emptyAboutMeLabel : StringResource
 }

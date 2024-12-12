@@ -236,11 +236,12 @@ class DefaultMainComponent(
                             HomeConfig.ListingScreen(it.data.value, it.searchData.value)
                         )
                     },
-                    onUserSelected = {
+                    onUserSelected = { ui, about ->
                         modelNavigation.value.homeNavigation.pushNew(
-                            HomeConfig.UserScreen(it, getCurrentDate())
+                            HomeConfig.UserScreen(ui, getCurrentDate(), about)
                         )
-                    }
+                    },
+                    isSnapshot = config.isSnapshot
                 )
             )
             is HomeConfig.ListingScreen -> {
@@ -265,13 +266,29 @@ class DefaultMainComponent(
             }
 
             is HomeConfig.UserScreen -> ChildHome.UserChild(
-                component = itemUser(componentContext, config.userId, goToLogin = {
-                    modelNavigation.value.homeNavigation.pushNew(
-                        HomeConfig.ListingScreen(it.data.value, it.searchData.value)
-                    )
-                }, goBack = {
-                    modelNavigation.value.homeNavigation.pop()
-                })
+                component = itemUser(
+                    componentContext,
+                    config.userId,
+                    config.aboutMe,
+                    goToLogin = {
+                        modelNavigation.value.homeNavigation.pushNew(
+                            HomeConfig.ListingScreen(it.data.value, it.searchData.value)
+                        )
+                    },
+                    goBack = {
+                        modelNavigation.value.homeNavigation.pop()
+                    },
+                    goToSnapshot = { id->
+                       modelNavigation.value.homeNavigation.pushNew(
+                           HomeConfig.OfferScreen(id, getCurrentDate(), true)
+                       )
+                    },
+                    goToUser = {
+                        modelNavigation.value.homeNavigation.pushNew(
+                            HomeConfig.UserScreen(it, getCurrentDate(), false)
+                        )
+                    }
+                )
             )
         }
 
@@ -313,7 +330,7 @@ class DefaultMainComponent(
                         modelNavigation.value.searchNavigation.pushNew(
                             SearchConfig.OfferScreen(
                                 it,
-                                getCurrentDate()
+                                getCurrentDate(),
                             )
                         )
                     },
@@ -325,21 +342,38 @@ class DefaultMainComponent(
                             SearchConfig.ListingScreen(it.data.value, it.searchData.value)
                         )
                     },
-                    onUserSelected = {
+                    onUserSelected = { ui, about ->
                         modelNavigation.value.searchNavigation.pushNew(
-                            SearchConfig.UserScreen(it, getCurrentDate())
+                            SearchConfig.UserScreen(ui, getCurrentDate(), about)
                         )
-                    }
+                    },
+                    config.isSnapshot
                 )
             )
             is SearchConfig.UserScreen -> ChildSearch.UserChild(
-                component = itemUser(componentContext, config.id, goToLogin = {
-                    modelNavigation.value.searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data.value, it.searchData.value)
-                    )
-                }, goBack = {
-                    modelNavigation.value.searchNavigation.pop()
-                })
+                component = itemUser(
+                    componentContext,
+                    config.id,
+                    config.aboutMe,
+                    goToLogin = {
+                        modelNavigation.value.searchNavigation.pushNew(
+                            SearchConfig.ListingScreen(it.data.value, it.searchData.value)
+                        )
+                    },
+                    goBack = {
+                        modelNavigation.value.searchNavigation.pop()
+                    },
+                    goToSnapshot = { id ->
+                        modelNavigation.value.searchNavigation.pushNew(
+                            SearchConfig.OfferScreen(id, getCurrentDate(), true)
+                        )
+                    },
+                    goToUser = {
+                        modelNavigation.value.searchNavigation.pushNew(
+                            SearchConfig.UserScreen(it, getCurrentDate(), false)
+                        )
+                    }
+                )
             )
         }
 
@@ -362,8 +396,7 @@ class DefaultMainComponent(
                     config.id,
                     selectOffer = {
                         modelNavigation.value.favoritesNavigation.pushNew(
-                            FavoritesConfig.OfferScreen(it, getCurrentDate()
-                            )
+                            FavoritesConfig.OfferScreen(it, getCurrentDate())
                         )
                     },
                     onBack = {
@@ -374,11 +407,12 @@ class DefaultMainComponent(
                             FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
                         )
                     },
-                    onUserSelected = {
+                    onUserSelected = { ui, about ->
                         modelNavigation.value.favoritesNavigation.pushNew(
-                            FavoritesConfig.UserScreen(it, getCurrentDate())
+                            FavoritesConfig.UserScreen(ui, getCurrentDate(), about)
                         )
-                    }
+                    },
+                    isSnapshot = config.isSnap
                 )
             )
 
@@ -404,13 +438,29 @@ class DefaultMainComponent(
             }
 
             is FavoritesConfig.UserScreen -> ChildFavorites.UserChild(
-                component = itemUser(componentContext, config.userId, goToLogin = {
-                    modelNavigation.value.favoritesNavigation.pushNew(
-                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
-                    )
-                }, goBack = {
-                    modelNavigation.value.favoritesNavigation.pop()
-                })
+                itemUser(
+                    componentContext,
+                    config.userId,
+                    config.aboutMe,
+                    goToLogin = {
+                        modelNavigation.value.favoritesNavigation.pushNew(
+                            FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
+                        )
+                    },
+                    goBack = {
+                        modelNavigation.value.favoritesNavigation.pop()
+                    },
+                    goToSnapshot = { id->
+                        modelNavigation.value.favoritesNavigation.pushNew(
+                            FavoritesConfig.OfferScreen(id, getCurrentDate(), true)
+                        )
+                    },
+                    goToUser = {
+                        modelNavigation.value.favoritesNavigation.pushNew(
+                            FavoritesConfig.UserScreen(it, getCurrentDate(),false)
+                        )
+                    }
+                )
             )
         }
 
@@ -423,6 +473,9 @@ class DefaultMainComponent(
                 itemBasket(componentContext)
             )
         }
+
+
+
 
     private fun createChild(
         config: ProfileConfig,
@@ -437,8 +490,9 @@ class DefaultMainComponent(
                 component = this
             )
 
+
             is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
-                component = itemOffer(
+                component =  itemOffer(
                     componentContext,
                     config.id,
                     selectOffer = {
@@ -450,9 +504,10 @@ class DefaultMainComponent(
                     onListingSelected = { ld ->
                         modelNavigation.value.profileNavigation.pushNew(ProfileConfig.ListingScreen(ld.data.value, ld.searchData.value))
                     },
-                    onUserSelected = {
-                        modelNavigation.value.profileNavigation.pushNew(ProfileConfig.UserScreen(it, getCurrentDate()))
-                    }
+                    onUserSelected = { ui, about ->
+                        modelNavigation.value.profileNavigation.pushNew(ProfileConfig.UserScreen(ui, getCurrentDate(), about))
+                    },
+                    isSnapshot = config.isSnapshot
                 )
             )
 
@@ -479,16 +534,33 @@ class DefaultMainComponent(
 
             is ProfileConfig.UserScreen -> {
                 ChildProfile.UserChild(
-                    component = itemUser(componentContext, config.userId, goToLogin = {
-                        modelNavigation.value.profileNavigation.pushNew(
-                            ProfileConfig.ListingScreen(it.data.value, it.searchData.value)
-                        )
-                    }, goBack = {
-                        modelNavigation.value.profileNavigation.pop()
-                    })
+                    component = itemUser(
+                        componentContext,
+                        config.userId,
+                        config.aboutMe,
+                        goToLogin = {
+                            modelNavigation.value.profileNavigation.pushNew(
+                                ProfileConfig.ListingScreen(it.data.value, it.searchData.value)
+                            )
+                        },
+                        goBack = {
+                            modelNavigation.value.profileNavigation.pop()
+                        },
+                        goToSnapshot = { id->
+                            modelNavigation.value.profileNavigation.pushNew(
+                                ProfileConfig.OfferScreen(id, getCurrentDate(), true)
+                            )
+                        },
+                        goToUser = {
+                            modelNavigation.value.profileNavigation.pushNew(
+                                ProfileConfig.UserScreen(it, getCurrentDate(), false)
+                            )
+                        }
+                    )
                 )
             }
         }
+
 
     // Items
 
@@ -526,11 +598,12 @@ class DefaultMainComponent(
         selectOffer: (Long) -> Unit,
         onBack : () -> Unit,
         onListingSelected: (ListingData) -> Unit,
-        onUserSelected: (Long) -> Unit
+        onUserSelected: (Long, Boolean) -> Unit,
+        isSnapshot: Boolean = false,
     ): OfferComponent {
         return DefaultOfferComponent(
             id,
-            false,
+            isSnapshot,
             componentContext,
             selectOffer = { newId->
                 selectOffer(newId)
@@ -544,9 +617,9 @@ class DefaultMainComponent(
             navigationBasket = {
                 navigateToBottomItem(MainConfig.Basket)
             },
-            navigateToUser = {
-                onUserSelected(it)
-            }
+            navigateToUser = { ui, about ->
+                onUserSelected(ui, about)
+            },
         )
     }
 
@@ -555,6 +628,16 @@ class DefaultMainComponent(
             componentContext = componentContext,
             selectMyOffers = {
                 modelNavigation.value.profileNavigation.pushNew(ProfileConfig.MyOffersScreen)
+            },
+            navigateToUser = { id->
+                modelNavigation.value.profileNavigation.pushNew(
+                    ProfileConfig.UserScreen(id, getCurrentDate(), true)
+                )
+            },
+            navigateToListing = {
+                modelNavigation.value.profileNavigation.pushNew(
+                    ProfileConfig.ListingScreen(it.data.value, it.searchData.value)
+                )
             }
         )
     }
@@ -562,14 +645,23 @@ class DefaultMainComponent(
     private fun itemUser(
         componentContext: ComponentContext,
         userId: Long,
+        isClickedAboutMe: Boolean,
         goToLogin: (ListingData) -> Unit,
-        goBack: () -> Unit
+        goBack: () -> Unit,
+        goToSnapshot: (Long) -> Unit,
+        goToUser: (Long) -> Unit,
     ): UserComponent {
         return DefaultUserComponent(
             userId = userId,
+            isClickedAboutMe = isClickedAboutMe,
             componentContext = componentContext,
             goToListing = goToLogin,
-            navigateBack = goBack
+            navigateBack = goBack,
+            navigateToOrder = {
+
+            },
+            navigateToSnapshot = goToSnapshot,
+            navigateToUser = goToUser
         )
     }
 

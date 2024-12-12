@@ -30,7 +30,7 @@ fun FilterButton(
         colors = color,
     ) {
         Row(
-            modifier = Modifier.wrapContentWidth().padding(dimens.smallPadding),
+            modifier = Modifier.wrapContentWidth().padding(dimens.mediumPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(

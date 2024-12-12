@@ -3,6 +3,7 @@ package market.engine.widgets.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -71,7 +72,12 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 if (offer.discountPercentage > 0) {
                     val pd = "-" + offer.discountPercentage.toString() + "%"
 
-                    DiscountBadge(pd)
+                    Row(
+                        modifier = Modifier.align(Alignment.TopEnd),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        DiscountBadge(pd)
+                    }
                 }
             }
 

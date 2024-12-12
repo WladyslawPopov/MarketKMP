@@ -2,6 +2,7 @@ package market.engine.widgets.rows
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,13 +16,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.Offer
+import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.dropdown_menu.getOfferOperations
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -29,74 +36,92 @@ import org.jetbrains.compose.resources.painterResource
 fun HeaderOfferItem(
     offer: Offer,
     isSelected: Boolean = false,
-    isOpenMenu: Boolean = false,
     onSelectionChange: ((Boolean) -> Unit)? = null,
-    onMenuClick: () -> Unit,
+    onUpdateOfferItem : (Offer) -> Unit,
+    baseViewModel: BaseViewModel,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .padding(dimens.smallPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            modifier = Modifier.wrapContentSize()
-                .padding(dimens.smallPadding),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    val isOpenPopup = remember { mutableStateOf(false) }
 
-            if (onSelectionChange != null) {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = { onSelectionChange(it) },
-                    modifier = Modifier.size(dimens.smallIconSize),
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = colors.inactiveBottomNavIconColor,
-                        uncheckedColor = colors.textA0AE,
-                        checkmarkColor = colors.alwaysWhite
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(dimens.smallPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.wrapContentSize()
+                    .padding(dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                if (onSelectionChange != null) {
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = { onSelectionChange(it) },
+                        modifier = Modifier.size(dimens.smallIconSize),
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = colors.inactiveBottomNavIconColor,
+                            uncheckedColor = colors.textA0AE,
+                            checkmarkColor = colors.alwaysWhite
+                        )
                     )
+                    Spacer(modifier = Modifier.width(dimens.mediumSpacer))
+                }
+
+                // Favorites Icon and Count
+                Icon(
+                    painter = painterResource(drawables.favoritesIcon),
+                    contentDescription = "",
+                    modifier = Modifier.size(dimens.smallIconSize),
+                    tint = colors.textA0AE
                 )
-                Spacer(modifier = Modifier.width(dimens.mediumSpacer))
+                Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+                Text(
+                    text = offer.watchersCount.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+
+                Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+                // Views Icon and Count
+                Icon(
+                    painter = painterResource(drawables.eyeOpen),
+                    contentDescription = "",
+                    modifier = Modifier.size(dimens.smallIconSize),
+                    tint = colors.textA0AE
+                )
+                Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+                Text(
+                    text = offer.viewsCount.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                )
             }
 
-            // Favorites Icon and Count
-            Icon(
-                painter = painterResource(drawables.favoritesIcon),
-                contentDescription = "",
-                modifier = Modifier.size(dimens.smallIconSize),
-                tint = colors.textA0AE
-            )
-            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-            Text(
-                text = offer.watchersCount.toString(),
-                style = MaterialTheme.typography.bodySmall,
-            )
-
-            Spacer(modifier = Modifier.width(dimens.smallPadding))
-
-            // Views Icon and Count
-            Icon(
-                painter = painterResource(drawables.eyeOpen),
-                contentDescription = "",
-                modifier = Modifier.size(dimens.smallIconSize),
-                tint = colors.textA0AE
-            )
-            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-            Text(
-                text = offer.viewsCount.toString(),
-                style = MaterialTheme.typography.bodySmall,
-            )
+            AnimatedVisibility(!isSelected){
+                SmallIconButton(
+                    if(!isOpenPopup.value) drawables.menuIcon else drawables.cancelIcon,
+                    if(!isOpenPopup.value) colors.black else colors.grayText,
+                    modifierIconSize = Modifier.size(dimens.smallIconSize),
+                    modifier = Modifier.size(dimens.smallIconSize)
+                ) {
+                    isOpenPopup.value = !isOpenPopup.value
+                }
+            }
         }
 
-        AnimatedVisibility(!isSelected){
-            SmallIconButton(
-                if(!isOpenMenu) drawables.menuIcon else drawables.cancelIcon,
-                if(!isOpenMenu) colors.black else colors.grayText,
-                modifierIconSize = Modifier.size(dimens.smallIconSize),
-                modifier = Modifier.size(dimens.smallIconSize)
-            ) {
-                onMenuClick()
-            }
+        if (isOpenPopup.value) {
+            getOfferOperations(
+                offer = offer,
+                baseViewModel = baseViewModel,
+                offset = DpOffset(250.dp, 0.dp),
+                onUpdateMenuItem = { offer ->
+                    onUpdateOfferItem(offer)
+                },
+                onClose = {
+                    isOpenPopup.value = false
+                }
+            )
         }
     }
 }

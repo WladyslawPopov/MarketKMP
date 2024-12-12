@@ -13,11 +13,11 @@ sealed class FavoritesConfig {
     data object SubscriptionsScreen : FavoritesConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long, val ts: String) : FavoritesConfig()
+    data class OfferScreen(val id: Long, val ts: String, val isSnap: Boolean = false) : FavoritesConfig()
 
     @Serializable
     data class ListingScreen(val listingData: LD, val searchData : SD) : FavoritesConfig()
 
     @Serializable
-    data class UserScreen(val userId: Long, val ts: String) : FavoritesConfig()
+    data class UserScreen(val userId: Long, val ts: String, val aboutMe : Boolean) : FavoritesConfig()
 }

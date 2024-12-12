@@ -109,7 +109,10 @@ interface Drawables {
    val emptyFavoritesImage : DrawableResource
    val emptyOffersIcon : DrawableResource
 
-   val miniLikeIcon : DrawableResource
-   val miniDislikeIcon : DrawableResource
+   val miniLikeImage : DrawableResource
+   val miniDislikeImage : DrawableResource
    val vectorManSubscriptionIcon : DrawableResource
+
+   val likeIcon : DrawableResource
+   val dislikeIcon : DrawableResource
 }

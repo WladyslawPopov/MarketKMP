@@ -68,27 +68,28 @@ fun UserPanel(
             Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .padding(dimens.mediumPadding).clickable { goToUser() }
+                .padding(dimens.smallPadding).clickable { goToUser() }
         }else{
             Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .padding(dimens.mediumPadding)
+                .padding(dimens.smallPadding)
         }
 
         Column(
-            modifier = modifier
+            modifier = modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header row with user details
-            Row(
+            FlowRow(
                 modifier = userMod,
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceAround
+                verticalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Row(
-                    modifier = Modifier.wrapContentSize().weight(2f),
+                    modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
                 ) {
                     val image = user.avatar?.thumb?.content
                     if (image != null && image != "${SAPI.SERVER_BASE}images/no_avatar.svg") {
@@ -173,7 +174,7 @@ fun UserPanel(
                             .toString() + " %"
                     }
                     Column(
-                       modifier = Modifier.wrapContentSize().weight(0.8f),
+                       modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ){
@@ -191,7 +192,7 @@ fun UserPanel(
                             horizontalArrangement = Arrangement.Start
                         ) {
                             Image(
-                                painterResource(drawables.miniLikeIcon),
+                                painterResource(drawables.miniLikeImage),
                                 contentDescription = "",
                             )
                             Spacer(modifier = Modifier.width(dimens.smallSpacer))
@@ -202,7 +203,7 @@ fun UserPanel(
                             )
                             Spacer(modifier = Modifier.width(dimens.smallSpacer))
                             Image(
-                                painterResource(drawables.miniDislikeIcon),
+                                painterResource(drawables.miniDislikeImage),
                                 contentDescription = "",
                             )
 
@@ -217,92 +218,92 @@ fun UserPanel(
                         }
                     }
                 }
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                // Button: "All Offers"
-                SimpleTextButton(
-                    text = stringResource(strings.allOffers),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
-                    shape = MaterialTheme.shapes.medium,
-                    onClick = goToAllLots
-                )
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = dimens.smallPadding)
+                        .align(Alignment.CenterVertically),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // Button: "All Offers"
+                    SimpleTextButton(
+                        text = stringResource(strings.allOffers),
+                        backgroundColor = colors.inactiveBottomNavIconColor,
+                        shape = MaterialTheme.shapes.medium,
+                        onClick = goToAllLots
+                    )
 
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
 
-                // Button: "About Me"
-                SimpleTextButton(
-                    text = stringResource(strings.aboutMeLabel),
-                    backgroundColor = colors.textA0AE,
-                    shape = MaterialTheme.shapes.medium,
-                    onClick = goToAboutMe
-                )
+                    // Button: "About Me"
+                    SimpleTextButton(
+                        text = stringResource(strings.aboutMeLabel),
+                        backgroundColor = colors.textA0AE,
+                        shape = MaterialTheme.shapes.medium,
+                        onClick = goToAboutMe
+                    )
 
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                // Button: "Subscriptions"
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+                    // Button: "Subscriptions"
 
-                if (user.followersCount != null) {
-                    val subLabel = if (UserData.login == user.id){
-                        stringResource(strings.subscribersLabel)
-                    }else{
-                        stringResource(strings.subscriptionsLabel)
-                    }
-
-                    FlowRow(
-                        modifier = Modifier.wrapContentSize()
-                            .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
-                            .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
-                            .clickable {
-                                if (UserData.login == user.id){
-                                    goToSubscriptions()
-                                }else {
-                                    addToSubscriptions()
-                                }
-                            }
-                            .padding(dimens.extraSmallPadding),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = subLabel,
-                            color = colors.black,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(dimens.smallPadding),
-                        )
-                        Row(
-                            modifier = Modifier.wrapContentSize()
-                                .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
-                                .padding(dimens.extraSmallPadding)
-                                .align(Alignment.CenterVertically),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(
-                                painterResource(drawables.vectorManSubscriptionIcon),
-                                contentDescription = null,
-                                tint = colors.alwaysWhite,
-                                modifier = Modifier.size(dimens.extraSmallIconSize)
-                            )
-                            Spacer(modifier = Modifier.width(dimens.smallPadding))
-                            Text(
-                                text = user.followersCount.toString(),
-                                color = colors.alwaysWhite,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                    if (user.followersCount != null) {
+                        val subLabel = if (UserData.login == user.id){
+                            stringResource(strings.subscribersLabel)
+                        }else{
+                            stringResource(strings.subscriptionsLabel)
                         }
-                    }
-                }else{
-                    SmallIconButton(
-                        drawables.subscriptionIcon,
-                        color = colors.brightGreen
-                    ){
-                        addToSubscriptions()
+
+                        FlowRow(
+                            modifier = Modifier.wrapContentSize()
+                                .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
+                                .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
+                                .clickable {
+                                    if (UserData.login == user.id){
+                                        goToSubscriptions()
+                                    }else {
+                                        addToSubscriptions()
+                                    }
+                                }
+                                .padding(dimens.extraSmallPadding),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = subLabel,
+                                color = colors.black,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(dimens.smallPadding),
+                            )
+                            Row(
+                                modifier = Modifier.wrapContentSize()
+                                    .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
+                                    .padding(dimens.extraSmallPadding)
+                                    .align(Alignment.CenterVertically),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                Icon(
+                                    painterResource(drawables.vectorManSubscriptionIcon),
+                                    contentDescription = null,
+                                    tint = colors.alwaysWhite,
+                                    modifier = Modifier.size(dimens.extraSmallIconSize)
+                                )
+                                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                Text(
+                                    text = user.followersCount.toString(),
+                                    color = colors.alwaysWhite,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                    }else{
+                        SmallIconButton(
+                            drawables.subscriptionIcon,
+                            color = colors.brightGreen
+                        ){
+                            addToSubscriptions()
+                        }
                     }
                 }
             }
@@ -374,9 +375,9 @@ fun UserPanel(
             if (user.vacationEnabled) {
                 Box(
                     modifier = Modifier
-                        .padding(dimens.smallPadding)
                         .background(colors.transparentGrayColor, shape = MaterialTheme.shapes.medium)
                         .clickable { goToSettings?.invoke() }
+                        .padding(dimens.smallPadding)
                 ) {
                     val vacationMessage = buildAnnotatedString {
                         // Header
@@ -430,7 +431,7 @@ fun UserPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(dimens.smallPadding),
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(

@@ -1,6 +1,7 @@
 package market.engine.presentation.listing.category
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -102,7 +102,8 @@ fun CategoryContent(
         }
     
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
         BaseContent(
             topBar = {
@@ -127,14 +128,14 @@ fun CategoryContent(
                 categoryViewModel.getCategory(searchData, listingData)
             },
             toastItem = categoryViewModel.toastItem,
-            modifier = Modifier.fillMaxSize()
         ) {
             LazyColumn(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = dimens.extraSmallPadding, bottom = 60.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                item {
+                item{
                     FiltersBar(
                         listingData,
                         searchData,
@@ -156,17 +157,12 @@ fun CategoryContent(
 
                             NavigationDrawerItem(
                                 label = {
-                                    Box(
-                                        modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                                        contentAlignment = Alignment.CenterStart
-                                    ) {
-                                        Text(
-                                            category.name ?: "",
-                                            color = colors.black,
-                                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                            lineHeight = dimens.largeText
-                                        )
-                                    }
+                                    Text(
+                                        category.name ?: "",
+                                        color = colors.black,
+                                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                        lineHeight = dimens.largeText
+                                    )
                                 },
                                 onClick = {
                                     title.value = category.name ?: catDef
@@ -223,17 +219,17 @@ fun CategoryContent(
             }
         }
 
-
         AcceptedPageButton(
             strings.categoryEnter,
-            Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .align(Alignment.BottomCenter)
-                .padding(dimens.smallPadding),
+            Modifier.wrapContentWidth()
+                .padding(dimens.smallPadding)
+                .align(Alignment.BottomCenter),
         ) {
             searchData.isRefreshing = true
             goListing()
         }
+
+        Spacer(modifier = Modifier.height(dimens.mediumSpacer))
     }
 }
 

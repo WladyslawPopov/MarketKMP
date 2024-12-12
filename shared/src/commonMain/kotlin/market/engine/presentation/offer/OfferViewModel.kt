@@ -65,7 +65,8 @@ class OfferViewModel(
                 getOurChoice(id)
 
                 val offer = withContext(Dispatchers.IO) {
-                    val response = apiService.getOffer(id)
+
+                    val response = if (isSnapshot) apiService.getOfferSnapshots(id) else apiService.getOffer(id)
                     val serializer = ListSerializer(Offer.serializer())
                     deserializePayload(response.payload, serializer).firstOrNull()
                 }
@@ -78,6 +79,7 @@ class OfferViewModel(
             }
         }
     }
+
 
     private fun getUserInfo(id : Long) {
         viewModelScope.launch {

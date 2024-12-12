@@ -1,6 +1,5 @@
 package market.engine.widgets.items
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
@@ -47,8 +45,8 @@ import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.exceptions.getOfferOperations
 import market.engine.widgets.bars.OfferItemStatuses
+import market.engine.widgets.rows.UserSimpleRow
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
@@ -100,31 +98,16 @@ fun OfferItem(
                 onItemClick()
             }
     ) {
-        val isOpenPopup = remember { mutableStateOf(false) }
+
 
         if (onUpdateOfferItem != null) {
-
-            HeaderOfferItem(
-                offer = offer,
-                isSelected = isSelection,
-                onSelectionChange = onSelectionChange,
-                isOpenMenu = isOpenPopup.value,
-                onMenuClick = {
-                    isOpenPopup.value = !isOpenPopup.value
-                },
-            )
-
-            AnimatedVisibility(isOpenPopup.value, modifier = Modifier.fillMaxWidth()) {
-                getOfferOperations(
-                    offer,
-                    baseViewModel = baseViewModel,
-                    offset = IntOffset(0, 0),
-                    onUpdateMenuItem = { offer ->
-                        onUpdateOfferItem(offer)
-                    },
-                    onClose = {
-                        isOpenPopup.value = false
-                    }
+            Row {
+                HeaderOfferItem(
+                    offer = offer,
+                    isSelected = isSelection,
+                    onSelectionChange = onSelectionChange,
+                    onUpdateOfferItem = onUpdateOfferItem,
+                    baseViewModel = baseViewModel
                 )
             }
         }
@@ -134,7 +117,8 @@ fun OfferItem(
                 modifier = Modifier
                     .padding(dimens.smallPadding)
                     .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+
             ) {
                 contentStructure(
                     offer,
@@ -224,7 +208,10 @@ fun contentStructure(
     }
 
     if (!isGrid) {
-        Column {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
             content(offer, baseViewModel, onFavouriteClick)
         }
     }else{
@@ -295,7 +282,7 @@ fun content(
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
         ) {
             Image(
                 painter = painterResource(drawables.iconClock),
@@ -428,29 +415,19 @@ fun content(
     }
 
     Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
     Row(
-        modifier = Modifier.padding(dimens.smallPadding),
-        horizontalArrangement = Arrangement.Start,
+        Modifier.padding(dimens.smallPadding).fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (offer.sellerData?.isVerified == true) {
-            Image(
-                painter = painterResource(drawables.verifySellersIcon),
-                contentDescription = "",
+        offer.sellerData?.let {
+            UserSimpleRow(
+                it,
             )
         }
-
-        Text(
-            text = (offer.sellerData?.login + " (${offer.sellerData?.rating})"),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(dimens.smallPadding),
-            color = colors.actionTextColor
-        )
     }
 
-
-    Spacer(modifier = Modifier.height(dimens.mediumSpacer))
+    Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
     val priceText = buildAnnotatedString {
         append(offer.currentPricePerItem ?: "")

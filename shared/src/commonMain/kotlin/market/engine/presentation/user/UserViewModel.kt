@@ -1,5 +1,6 @@
 package market.engine.presentation.user
 
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.coroutineScope
@@ -24,7 +25,7 @@ class UserViewModel(
     private val _statusList = MutableStateFlow<ArrayList<String>>(arrayListOf())
     val statusList: StateFlow<ArrayList<String>> = _statusList.asStateFlow()
 
-
+    val isVisibleUserPanel = mutableStateOf(true)
 
     private fun initializeUserData(user: User) {
         viewModelScope.launch {

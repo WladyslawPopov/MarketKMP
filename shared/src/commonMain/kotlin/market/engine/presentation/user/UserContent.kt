@@ -1,35 +1,37 @@
 package market.engine.presentation.user
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.globalData.ThemeResources.dimens
+import kotlinx.coroutines.flow.collectLatest
+import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.types.ReportPageType
 import market.engine.presentation.base.BaseContent
+import market.engine.presentation.user.feedbacks.FeedbackTabs
 import market.engine.presentation.user.feedbacks.FeedbacksContent
-import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.UserPanel
+import market.engine.widgets.rows.UserSimpleRow
 
 @Composable
 fun UserContent(
     component: UserComponent,
     modifier: Modifier
 ) {
-    val scrollState = rememberScrollState()
     val modelState = component.model.subscribeAsState()
     val userViewModel = modelState.value.userViewModel
     val user = userViewModel.userInfo.collectAsState()
@@ -46,7 +48,35 @@ fun UserContent(
         null
     }
 
+    val isVisibleUserPanel = remember { mutableStateOf(userViewModel.isVisibleUserPanel.value) }
+
+    val selectedTabIndex = remember {
+        mutableStateOf(0)
+    }
+
+    LaunchedEffect(isVisibleUserPanel.value) {
+        snapshotFlow {
+            isVisibleUserPanel.value
+        }.collectLatest { value ->
+            userViewModel.isVisibleUserPanel.value = value
+        }
+    }
+
     BaseContent(
+        topBar = {
+            UserAppBar(
+                titleContent = {
+                    user.value?.let { UserSimpleRow(it) }
+                },
+                isVisibleUserPanel = isVisibleUserPanel.value,
+                onUserSliderClick = {
+                    isVisibleUserPanel.value = !isVisibleUserPanel.value
+                },
+                onBackClick = {
+                    component.onBack()
+                }
+            )
+        },
        modifier = modifier.fillMaxSize(),
        isLoading = isLoading.value,
        error = error,
@@ -54,15 +84,15 @@ fun UserContent(
        onRefresh = {
            component.updateUserInfo()
        },
-   ) {
+    ) {
         Column {
-            Box {
-                NavigationArrowButton {
-                    component.onBack()
-                }
-                Spacer(modifier = Modifier.width(dimens.mediumSpacer))
+            AnimatedVisibility(isVisibleUserPanel.value) {
                 UserPanel(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.background(colors.white)
+                        .fillMaxWidth()
+                        .clickable {
+                            isVisibleUserPanel.value = !isVisibleUserPanel.value
+                        },
                     user = user.value,
                     goToUser = null,
                     goToAllLots = {
@@ -71,7 +101,7 @@ fun UserContent(
                         }
                     },
                     goToAboutMe = {
-
+                        component.onTabSelect(4)
                     },
                     addToSubscriptions = {
 
@@ -82,6 +112,13 @@ fun UserContent(
                     isBlackList = blackList.value
                 )
             }
+
+            FeedbackTabs(
+                selectedTab = selectedTabIndex.value,
+                onTabSelected = { index ->
+                    component.onTabSelect(index)
+                }
+            )
 
             ChildPages(
                 pages = feedbacksPages,
@@ -97,14 +134,15 @@ fun UserContent(
                             ReportPageType.ALL_REPORTS
                         }
                     }
+                    selectedTabIndex.value = it
                     component.selectFeedbackPage(select)
                 }
-            ) { i, page ->
+            ) { _, page ->
                 FeedbacksContent(
-                    index = i,
-                    component = page
+                    component = page,
+                    aboutMe = user.value?.aboutMe
                 )
             }
         }
-   }
+    }
 }

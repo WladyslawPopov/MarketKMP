@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +36,6 @@ fun ProfileContent(
     component: ProfileComponent,
     modifier: Modifier
 ) {
-    val scrollState = rememberScrollState()
     val userInfo = UserData.userInfo
 
     val list = listOf(
@@ -142,6 +139,7 @@ fun ProfileContent(
     )
 
    BaseContent(
+       topBar = {},
        modifier = modifier.fillMaxSize(),
        isLoading = false,
        onRefresh = {
@@ -159,10 +157,10 @@ fun ProfileContent(
                    userInfo,
                    goToUser = null,
                    goToAllLots = {
-
+                        component.goToAllMyOfferListing()
                    },
                    goToAboutMe = {
-
+                        component.goToAboutMe()
                    },
                    addToSubscriptions = {
 

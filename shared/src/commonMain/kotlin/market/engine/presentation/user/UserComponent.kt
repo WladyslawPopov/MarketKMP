@@ -21,7 +21,7 @@ interface UserComponent {
 
     data class Model(
         val userId: Long,
-        val isClickedAboutMe: Boolean,
+        var isClickedAboutMe: Boolean,
         val userViewModel: UserViewModel
     )
 
@@ -34,6 +34,8 @@ interface UserComponent {
     fun onBack()
 
     fun selectFeedbackPage(type: ReportPageType)
+
+    fun onTabSelect(index: Int)
 }
 
 class DefaultUserComponent(
@@ -42,6 +44,9 @@ class DefaultUserComponent(
     componentContext: ComponentContext,
     val goToListing: (ListingData) -> Unit,
     val navigateBack: () -> Unit,
+    val navigateToSnapshot: (Long) -> Unit,
+    val navigateToOrder: (Long) -> Unit,
+    val navigateToUser: (Long) -> Unit,
 ) : UserComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -105,7 +110,31 @@ class DefaultUserComponent(
             userId = model.value.userId,
             type = config.type,
             componentContext = componentContext,
+            navigateToSnapshot = {
+                navigateToSnapshot(it)
+            },
+            navigateToOrder = {
+                navigateToOrder(it)
+            },
+            navigateToUser = {
+                navigateToUser(it)
+            }
         )
+    }
+
+    override fun onTabSelect(index: Int) {
+        val select = when(index){
+            0 -> ReportPageType.ALL_REPORTS
+            1 -> ReportPageType.FROM_BUYERS
+            2 -> ReportPageType.FROM_SELLERS
+            3 -> ReportPageType.FROM_USER
+            4 -> ReportPageType.ABOUT_ME
+            else -> {
+                ReportPageType.ALL_REPORTS
+            }
+        }
+
+        selectFeedbackPage(select)
     }
 
     override fun selectFeedbackPage(type: ReportPageType) {

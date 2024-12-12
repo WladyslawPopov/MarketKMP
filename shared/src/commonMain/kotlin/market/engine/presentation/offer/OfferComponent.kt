@@ -20,14 +20,14 @@ interface OfferComponent {
         val isSnapshot: Boolean,
         val offerViewModel: OfferViewModel
     )
-    fun updateOffer(id: Long)
+    fun updateOffer(id: Long, isSnapshot: Boolean)
     fun navigateToOffers(id: Long)
     fun onBeakClick()
     fun goToCategory(cat: Category)
     fun goToUsersListing(sellerData : User?)
     fun goToRegion(region : Region?)
     fun goToCart()
-    fun goToUser(userId: Long)
+    fun goToUser(userId: Long, aboutMe: Boolean)
 }
 
 class DefaultOfferComponent(
@@ -38,7 +38,7 @@ class DefaultOfferComponent(
     val navigationBack: () -> Unit,
     val navigationListing: (listingData: ListingData) -> Unit,
     val navigationBasket: () -> Unit,
-    val navigateToUser: (Long) -> Unit
+    val navigateToUser: (Long, Boolean) -> Unit
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -55,11 +55,12 @@ class DefaultOfferComponent(
     init {
         userRepository.updateToken()
         userRepository.updateUserInfo(offerViewModel.viewModelScope)
-        updateOffer(id)
+
+        updateOffer(id, isSnapshot)
     }
 
-    override fun updateOffer(id: Long) {
-        offerViewModel.getOffer(id)
+    override fun updateOffer(id: Long, isSnapshot: Boolean) {
+        offerViewModel.getOffer(id, isSnapshot)
     }
 
     override fun navigateToOffers(id: Long) {
@@ -108,7 +109,7 @@ class DefaultOfferComponent(
         navigationBasket()
     }
 
-    override fun goToUser(userId: Long) {
-        navigateToUser(userId)
+    override fun goToUser(userId: Long, aboutMe: Boolean) {
+        navigateToUser(userId, aboutMe)
     }
 }

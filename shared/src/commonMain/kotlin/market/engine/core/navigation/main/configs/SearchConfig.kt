@@ -10,8 +10,8 @@ sealed class SearchConfig {
     data class ListingScreen(val listingData: LD, val searchData : SD) : SearchConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long, val ts: String) : SearchConfig()
+    data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : SearchConfig()
 
     @Serializable
-    data class UserScreen(val id: Long, val ts: String) : SearchConfig()
+    data class UserScreen(val id: Long, val ts: String, val aboutMe : Boolean) : SearchConfig()
 }

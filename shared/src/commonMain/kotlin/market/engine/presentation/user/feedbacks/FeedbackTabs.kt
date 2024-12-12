@@ -1,8 +1,5 @@
 package market.engine.presentation.user.feedbacks
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
@@ -10,18 +7,23 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import market.engine.core.globalData.ThemeResources.strings
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FeedbackTabs(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit
 ) {
-    val tabs = listOf("Все", "От покупателей", "От продавцов", "От пользователя", "Обо мне")
+    val tabs = listOf(
+        stringResource(strings.allFeedbackToUserLabel),
+        stringResource(strings.fromBuyerLabel),
+        stringResource(strings.fromSellerLabel),
+        stringResource(strings.fromUsersLabel),
+        stringResource(strings.aboutMeLabel))
 
     ScrollableTabRow(
         selectedTabIndex = selectedTab,
-        modifier = Modifier.wrapContentSize()
     ) {
         tabs.forEachIndexed { index, title ->
             Tab(

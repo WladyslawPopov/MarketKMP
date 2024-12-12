@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import market.engine.common.SwipeRefreshContent
 import market.engine.core.items.ToastItem
@@ -22,19 +23,23 @@ fun BaseContent(
     toastItem: MutableState<ToastItem>? = null,
     isLoading : Boolean,
     onRefresh: () -> Unit,
-    topBar: (@Composable () -> Unit) = {},
+    topBar: (@Composable () -> Unit)? = null,
     error: (@Composable () -> Unit)? = null,
     noFound: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit) = {},
     content: @Composable () -> Unit,
 ){
     Scaffold(
-        topBar = topBar,
+        topBar = topBar ?: {},
         floatingActionButton = floatingActionButton
     ) { innerPadding ->
         SwipeRefreshContent(
             isRefreshing = isLoading,
-            modifier = modifier.fillMaxSize().padding(top = innerPadding.calculateTopPadding()),
+            modifier = modifier.fillMaxSize()
+                .padding(top = if (topBar != null)
+                                    innerPadding.calculateTopPadding()
+                                else 0.dp
+                        ),
             onRefresh = onRefresh,
         ) {
             AnimatedVisibility(
