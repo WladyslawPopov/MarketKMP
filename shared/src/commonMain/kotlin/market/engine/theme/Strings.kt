@@ -284,4 +284,5 @@ interface Strings {
     val fromSellerLabel : StringResource
     val fromUsersLabel : StringResource
     val emptyAboutMeLabel : StringResource
+    val notFoundFeedbackLabel : StringResource
 }

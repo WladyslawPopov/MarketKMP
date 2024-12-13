@@ -16,9 +16,13 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.globalData.UserData
 import market.engine.core.items.DeepLink
 import market.engine.core.items.ListingData
+import market.engine.core.items.NavigationItem
 import market.engine.core.navigation.main.children.ChildBasket
 import market.engine.core.navigation.main.children.ChildSearch
 import market.engine.core.navigation.main.children.ChildHome
@@ -68,6 +72,8 @@ interface MainComponent {
     val childProfileStack: Value<ChildStack<*, ChildProfile>>
 
     val myOffersPages: Value<ChildPages<*, MyOffersComponent>>
+
+    val profileNavigationList: Value<List<NavigationItem>>
 
     data class ModelNavigation(
         val homeNavigation : StackNavigation<HomeConfig>,
@@ -193,6 +199,124 @@ class DefaultMainComponent(
             },
             key = "MainStack"
         )
+
+    val userInfo = UserData.userInfo
+
+    private val _profNav by lazy { MutableValue(listOf(
+        NavigationItem(
+            title = strings.createNewOfferTitle,
+            icon = drawables.newLotIcon,
+            tint = colors.inactiveBottomNavIconColor,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+
+            }
+        ),
+        NavigationItem(
+            title = strings.myBidsTitle,
+            subtitle = strings.myBidsSubTitle,
+            icon = drawables.bidsIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.proposalTitle,
+            subtitle = strings.proposalPriceSubTitle,
+            icon = drawables.proposalIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
+                userInfo?.countUnreadPriceProposals else null
+        ),
+        NavigationItem(
+            title = strings.myPurchasesTitle,
+            subtitle = strings.myPurchasesSubTitle,
+            icon = drawables.purchasesIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.myOffersTitle,
+            subtitle = strings.myOffersSubTitle,
+            icon = drawables.tagIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                try {
+                    modelNavigation.value.profileNavigation.replaceCurrent(
+                        ProfileConfig.MyOffersScreen
+                    )
+                } catch ( _ : Exception){}
+            }
+        ),
+        NavigationItem(
+            title = strings.mySalesTitle,
+            subtitle = strings.mySalesSubTitle,
+            icon = drawables.salesIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.messageTitle,
+            subtitle = strings.messageSubTitle,
+            icon = drawables.dialogIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = userInfo?.countUnreadMessages
+        ),
+        NavigationItem(
+            title = strings.myProfileTitle,
+            subtitle =strings.myProfileSubTitle,
+            icon = drawables.profileIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                try {
+                    modelNavigation.value.profileNavigation.pushNew(
+                        ProfileConfig.UserScreen(
+                            UserData.login,
+                            getCurrentDate(),
+                            false
+                        )
+                    )
+                } catch ( _ : Exception){}
+            }
+        ),
+        NavigationItem(
+            title = strings.settingsProfileTitle,
+            subtitle = strings.profileSettingsSubTitle,
+            icon = drawables.settingsIcon,
+            tint = colors.black,
+            hasNews = true,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.myBalanceTitle,
+            subtitle = strings.myBalanceSubTitle,
+            icon = drawables.balanceIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.logoutTitle,
+            icon = drawables.logoutIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+
+            }
+        ),
+    )) }
+
+    override val profileNavigationList by lazy { _profNav }
 
     init {
         deepLink?.let { handleDeepLink(it) }
@@ -626,12 +750,13 @@ class DefaultMainComponent(
     private fun itemProfile(componentContext: ComponentContext): ProfileComponent {
         return DefaultProfileComponent(
             componentContext = componentContext,
+            navigationItems = profileNavigationList.value,
             selectMyOffers = {
                 modelNavigation.value.profileNavigation.pushNew(ProfileConfig.MyOffersScreen)
             },
-            navigateToUser = { id->
+            navigateToUser = { id, aboutMe ->
                 modelNavigation.value.profileNavigation.pushNew(
-                    ProfileConfig.UserScreen(id, getCurrentDate(), true)
+                    ProfileConfig.UserScreen(id, getCurrentDate(), aboutMe)
                 )
             },
             navigateToListing = {
@@ -786,7 +911,9 @@ class DefaultMainComponent(
                     goToLoginSelected()
                 }else{
                     if(activeCurrent == "Profile"){
-                        modelNavigation.value.profileNavigation.popToFirst()
+                        modelNavigation.value.profileNavigation.replaceAll(
+                            ProfileConfig.ProfileScreen
+                        )
                     }
                     activeCurrent = "Profile"
                     currentNavigation.replaceCurrent(config)

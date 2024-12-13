@@ -5,32 +5,36 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.globalData.UserData
 import market.engine.core.items.ListingData
+import market.engine.core.items.NavigationItem
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ProfileComponent {
     val model : Value<Model>
 
     data class Model(
+        val navigationItems: List<NavigationItem>,
         val profileViewModel: ProfileViewModel
     )
 
     fun navigateToMyOffers()
 
     fun updateProfile()
-
+    fun goToMyProfile()
     fun goToAllMyOfferListing()
     fun goToAboutMe()
 }
 
 class DefaultProfileComponent(
     componentContext: ComponentContext,
+    navigationItems: List<NavigationItem>,
     val selectMyOffers: () -> Unit,
     val navigateToListing: (ListingData) -> Unit,
-    val navigateToUser: (Long) -> Unit
+    val navigateToUser: (Long, Boolean) -> Unit
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
         ProfileComponent.Model(
+            navigationItems = navigationItems,
             profileViewModel = getKoin().get()
         )
     )
@@ -45,6 +49,10 @@ class DefaultProfileComponent(
         model.value.profileViewModel.getUserInfo(UserData.login)
     }
 
+    override fun goToMyProfile() {
+        navigateToUser(UserData.login, false)
+    }
+
     override fun goToAllMyOfferListing() {
         val ld = ListingData()
         val searchData = ld.searchData.value
@@ -56,7 +64,7 @@ class DefaultProfileComponent(
     }
 
     override fun goToAboutMe() {
-        navigateToUser(UserData.login)
+        navigateToUser(UserData.login, true)
     }
 
     override fun navigateToMyOffers() {

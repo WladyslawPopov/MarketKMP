@@ -334,22 +334,46 @@ fun OfferContent(
                     //action seller mode
                     if (isMyOffer.value) {
                         item {
-                            AnimatedVisibility(
-                                isShowOptions.value,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                getOfferOperations(
-                                    offer,
-                                    offerViewModel,
-                                    offset = DpOffset((-150).dp, 0.dp),
-                                    showCopyId = false,
-                                    onUpdateMenuItem = { offer ->
-                                        component.updateOffer(offer.id, model.isSnapshot)
-                                    },
-                                    onClose = {
-                                        isShowOptions.value = false
-                                    }
-                                )
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TitleText(
+                                        stringResource(strings.actionsOffersParameterName),
+                                        color = colors.black
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    PopupActionButton(
+                                        stringResource(strings.operationsParameterName),
+                                        color = colors.textA0AE,
+                                        tint = colors.alwaysWhite,
+                                        isShowOptions = isShowOptions
+                                    )
+                                }
+
+                                AnimatedVisibility(
+                                    isShowOptions.value,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    getOfferOperations(
+                                        offer,
+                                        offerViewModel,
+                                        offset = DpOffset(20.dp, 0.dp),
+                                        showCopyId = false,
+                                        onUpdateMenuItem = { offer ->
+                                            component.updateOffer(offer.id, model.isSnapshot)
+                                        },
+                                        onClose = {
+                                            isShowOptions.value = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

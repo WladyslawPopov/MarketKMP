@@ -22,7 +22,6 @@ import market.engine.core.navigation.main.children.HomeNavigation
 import market.engine.core.navigation.main.children.SearchNavigation
 import market.engine.core.navigation.main.children.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
-import org.jetbrains.compose.resources.stringResource
 
 
 sealed class ChildMain {
@@ -52,35 +51,35 @@ fun MainNavigation(
 
     val listItems = listOf(
         NavigationItem(
-            title = stringResource(strings.homeTitle),
+            title = strings.homeTitle,
             icon =  drawables.home,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = stringResource(strings.searchTitle),
+            title = strings.searchTitle,
             icon = drawables.search,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = stringResource(strings.basketTitle),
+            title = strings.basketTitle,
             icon = drawables.basketIcon,
             tint = colors.black,
             hasNews = false,
             badgeCount = userInfo?.countOffersInCart
         ),
         NavigationItem(
-            title = stringResource(strings.favoritesTitle),
+            title = strings.favoritesTitle,
             icon = drawables.favoritesIcon,
             tint = colors.black,
             hasNews = false,
             badgeCount = userInfo?.countWatchedOffers
         ),
         NavigationItem(
-            title = stringResource(strings.profileTitleBottom),
+            title = strings.profileTitleBottom,
             icon = drawables.profileIcon,
             image = userInfo?.avatar?.thumb?.content,
             tint = colors.black,

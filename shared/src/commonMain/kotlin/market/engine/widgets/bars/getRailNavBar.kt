@@ -95,7 +95,7 @@ fun getRailNavBar(
                 },
                 label = {
                     if(isSelected) {
-                        Text(text = item.title, fontSize = 10.sp)
+                        Text(text = stringResource(item.title), fontSize = 10.sp)
                     }
                 }
             )

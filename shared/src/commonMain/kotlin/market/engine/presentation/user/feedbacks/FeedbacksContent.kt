@@ -68,6 +68,7 @@ fun FeedbacksContent(
 
     val noFound = @Composable {
         showNoItemLayout(
+            title = stringResource(strings.notFoundFeedbackLabel),
             textButton = stringResource(strings.refreshButton)
         ) {
             setReportsFilters(listingData.value, component.model.value.userId, component.model.value.type)

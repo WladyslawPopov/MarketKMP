@@ -35,7 +35,7 @@ fun HomeAppBar(
 
     val listItems = listOf(
         NavigationItem(
-            title = stringResource(strings.proposalTitle),
+            title = strings.proposalTitle,
             icon = drawables.currencyIcon,
             tint = colors.notifyTextColor,
             hasNews = false,
@@ -43,14 +43,14 @@ fun HomeAppBar(
             isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0
         ),
         NavigationItem(
-            title = stringResource(strings.messageTitle),
+            title = strings.messageTitle,
             icon = drawables.mail,
             tint = colors.brightBlue,
             hasNews = false,
             badgeCount = if ((userInfo?.countUnreadMessages?:0) > 0) (userInfo?.countUnreadMessages?:0) else null,
         ),
         NavigationItem(
-            title = stringResource(strings.notificationTitle),
+            title = strings.notificationTitle,
             icon = drawables.notification,
             tint = colors.titleTextColor,
             hasNews = false,
@@ -79,7 +79,7 @@ fun HomeAppBar(
                 modifier = modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                listItems.forEachIndexed{ index, item ->
+                listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){
                         var modIB = modifier
                         if(item.badgeCount != null){

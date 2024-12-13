@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.NavigationArrowButton
@@ -29,7 +30,7 @@ fun UserAppBar(
 ) {
     val listItems = listOf(
         NavigationItem(
-            title = "",
+            title = strings.searchUserStringChoice,
             icon = if (isVisibleUserPanel) drawables.iconArrowUp else drawables.iconArrowDown,
             tint = colors.black,
             hasNews = false,

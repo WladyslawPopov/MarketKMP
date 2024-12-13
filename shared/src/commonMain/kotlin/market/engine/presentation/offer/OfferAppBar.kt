@@ -1,21 +1,15 @@
 package market.engine.presentation.offer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,11 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.launch
 import market.engine.common.clipBoardEvent
 import market.engine.core.globalData.ThemeResources.colors
@@ -73,7 +65,7 @@ fun OfferAppBar(
 
     val listItems = listOf(
         NavigationItem(
-            title = "",
+            title = strings.favoritesTitle,
             icon = if (isFavorites.value) drawables.favoritesIconSelected else drawables.favoritesIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
@@ -85,7 +77,7 @@ fun OfferAppBar(
             }
         ),
         NavigationItem(
-            title = "",
+            title = strings.basketTitle,
             icon = drawables.basketIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
@@ -93,7 +85,7 @@ fun OfferAppBar(
             onClick = { onCartClick() }
         ),
         NavigationItem(
-            title = "",
+            title = strings.menuTitle,
             icon = drawables.menuIcon,
             tint = colors.steelBlue,
             hasNews = false,
@@ -143,88 +135,70 @@ fun OfferAppBar(
         }
     )
 
-    AnimatedVisibility(showMenu.value, modifier = modifier.fillMaxWidth()) {
-        Popup(
-            alignment = Alignment.TopEnd,
-            offset = IntOffset(0, 200),
-            onDismissRequest = {
-                onClose()
+    DropdownMenu(
+        modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp),
+        expanded = showMenu.value,
+        onDismissRequest = { onClose() },
+        containerColor = colors.white,
+        offset = DpOffset(200.dp, 0.dp)
+    ) {
+        menuList.forEach { operation ->
+            val idString = stringResource(strings.idCopied)
+            var icon: Painter? = null
+            when(operation.first){
+                "copyId" -> {
+                    icon = painterResource(drawables.copyIcon)
+                }
+                "share" -> {
+                    icon = painterResource(drawables.shareIcon)
+                }
+                "calendar" -> {
+                    icon = painterResource(drawables.calendarIcon)
+                }
             }
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(300.dp)
-                    .heightIn(max = 400.dp)
-                    .wrapContentSize()
-                    .shadow(4.dp, MaterialTheme.shapes.medium, true)
-                    .background(colors.white, MaterialTheme.shapes.medium)
-                    .padding(dimens.smallPadding)
-            ) {
-                LazyColumn {
-                    items(menuList.size) { index ->
-                        val idString = stringResource(strings.idCopied)
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    when(menuList[index].first){
-                                        "copyId" -> {
-                                            clipBoardEvent(offer.id.toString())
+            DropdownMenuItem(
+                leadingIcon = {
+                    icon?.let {
+                        Icon(
+                            it,
+                            contentDescription = stringResource(strings.shareOffer),
+                            modifier = Modifier.size(dimens.smallIconSize),
+                            tint = colors.steelBlue
+                        )
+                    }
+                },
+                text = {
+                    Text(
+                        text = operation.second,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.black
+                    )
+                },
+                onClick = {
+                    when(operation.first){
+                        "copyId" -> {
+                            clipBoardEvent(offer.id.toString())
 
-                                            baseViewModel.showToast(
-                                                ToastItem(
-                                                    isVisible = true,
-                                                    message = idString,
-                                                    type = ToastType.SUCCESS
-                                                )
-                                            )
-
-                                            onClose()
-                                        }
-                                        "share" -> {
-
-                                        }
-                                        "calendar" -> {
-
-                                        }
-                                    }
-
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            var icon: Painter? = null
-                            when(menuList[index].first){
-                                "copyId" -> {
-                                    icon = painterResource(drawables.copyIcon)
-                                }
-                                "share" -> {
-                                     icon = painterResource(drawables.shareIcon)
-                                }
-                                "calendar" -> {
-                                    icon = painterResource(drawables.calendarIcon)
-                                }
-                            }
-
-                            icon?.let {
-                                Icon(
-                                    icon,
-                                    contentDescription = stringResource(strings.shareOffer),
-                                    modifier = Modifier.size(dimens.smallIconSize),
-                                    tint = colors.steelBlue
+                            baseViewModel.showToast(
+                                ToastItem(
+                                    isVisible = true,
+                                    message = idString,
+                                    type = ToastType.SUCCESS
                                 )
-                            }
-
-                            Text(
-                                menuList[index].second,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(dimens.smallPadding)
                             )
+
+                            onClose()
+                        }
+                        "share" -> {
+
+                        }
+                        "calendar" -> {
+
                         }
                     }
                 }
-            }
+            )
         }
     }
 }

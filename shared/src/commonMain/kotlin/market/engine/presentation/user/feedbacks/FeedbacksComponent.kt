@@ -50,10 +50,6 @@ class DefaultFeedbacksComponent(
 
     override val model = _model
 
-    init {
-        model.value.feedbacksViewModel.init(type,userId)
-    }
-
     override fun onRefresh() {
         model.value.feedbacksViewModel.refresh()
     }

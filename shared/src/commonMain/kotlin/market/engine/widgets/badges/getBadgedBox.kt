@@ -16,6 +16,7 @@ import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.items.NavigationItem
 import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getBadgedBox(
@@ -51,7 +52,7 @@ fun getBadgedBox(
         }else {
             Icon(
                 painter = painterResource(item.icon),
-                contentDescription = item.title,
+                contentDescription = stringResource(item.title),
                 tint = if (!selected) item.tint else item.tintSelected,
                 modifier = Modifier.size(dimens.smallIconSize)
             )

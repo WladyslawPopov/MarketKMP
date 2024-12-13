@@ -54,48 +54,48 @@ fun DrawerContent(
 ) {
     val list = listOf(
         NavigationItem(
-            title = stringResource(strings.top100Title),
-            subtitle = stringResource(strings.top100Subtitle),
+            title = strings.top100Title,
+            subtitle = strings.top100Subtitle,
             icon = drawables.top100Icon,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = stringResource(strings.helpTitle),
-            subtitle = stringResource(strings.helpSubtitle),
+            title = strings.helpTitle,
+            subtitle = strings.helpSubtitle,
             icon = drawables.helpIcon,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = stringResource(strings.contactUsTitle),
-            subtitle = stringResource(strings.contactUsSubtitle),
+            title = strings.contactUsTitle,
+            subtitle = strings.contactUsSubtitle,
             icon = drawables.contactUsIcon,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = stringResource(strings.aboutUsTitle),
-            subtitle = stringResource(strings.aboutUsSubtitle),
+            title = strings.aboutUsTitle,
+            subtitle = strings.aboutUsSubtitle,
             icon = drawables.infoIcon,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = stringResource(strings.reviewsTitle),
-            subtitle = stringResource(strings.reviewsSubtitle),
+            title = strings.reviewsTitle,
+            subtitle = strings.reviewsSubtitle,
             icon = drawables.starIcon,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = stringResource(strings.settingsTitleApp),
-            subtitle = stringResource(strings.settingsSubtitleApp),
+            title = strings.settingsTitleApp,
+            subtitle = strings.settingsSubtitleApp,
             icon = drawables.settingsIcon,
             tint = colors.black,
             hasNews = false,
@@ -197,14 +197,14 @@ fun DrawerContent(
                         ) {
                             Column{
                                 Text(
-                                    item.title,
+                                    stringResource(item.title),
                                     color = colors.black,
                                     fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                     lineHeight = dimens.largeText
                                 )
                                 if (item.subtitle != null) {
                                     Text(
-                                        item.subtitle,
+                                        stringResource(item.subtitle),
                                         color = colors.steelBlue,
                                         fontSize = MaterialTheme.typography.labelSmall.fontSize,
                                         lineHeight = dimens.largeText
@@ -222,7 +222,7 @@ fun DrawerContent(
                     icon = {
                         Icon(
                             painter = painterResource(item.icon),
-                            contentDescription = item.title,
+                            contentDescription = stringResource(item.title),
                             modifier = Modifier.size(dimens.smallIconSize)
                         )
                     },

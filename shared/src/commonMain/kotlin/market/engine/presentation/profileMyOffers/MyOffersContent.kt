@@ -2,7 +2,6 @@ package market.engine.presentation.profileMyOffers
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
-import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,7 +32,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MyOffersContent(
     component: MyOffersComponent,
-    drawerState: DrawerState,
     modifier: Modifier,
 ) {
     val model by component.model.subscribeAsState()
@@ -118,15 +116,6 @@ fun MyOffersContent(
             viewModel.onRefresh()
         },
         noFound = noFound,
-        topBar = {
-            ProfileMyOffersAppBar(
-                model.type,
-                drawerState = drawerState,
-                navigationClick = { newType->
-                    component.selectMyOfferPage(newType)
-                }
-            )
-        },
         floatingActionButton = {
             floatingCreateOfferButton {
 

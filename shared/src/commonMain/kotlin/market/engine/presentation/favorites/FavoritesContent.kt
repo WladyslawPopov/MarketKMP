@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import app.cash.paging.compose.collectAsLazyPagingItems
 import market.engine.core.network.functions.OfferOperations
@@ -165,12 +166,13 @@ fun FavoritesContent(
             }
         },
         item = { offer->
+            val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
             AnimatedVisibility (offer.isWatchedByMe, exit = fadeOut()) {
                 OfferItem(
                     offer,
                     isGrid = (columns.value > 1),
                     baseViewModel = favViewModel,
-                    isSelection = selectedItems.contains(offer.id),
+                    isSelection = isSelect.value,
                     onSelectionChange = { isSelect ->
                         if (isSelect) {
                             ld.value.selectItems.add(offer.id)
@@ -191,7 +193,11 @@ fun FavoritesContent(
                     },
                 ){
                     if (ld.value.selectItems.isNotEmpty()) {
-                        ld.value.selectItems.add(offer.id)
+                        if (ld.value.selectItems.contains(offer.id)){
+                            ld.value.selectItems.remove(offer.id)
+                        }else{
+                            ld.value.selectItems.add(offer.id)
+                        }
                     } else {
                         component.goToOffer(offer)
                         // set item for update

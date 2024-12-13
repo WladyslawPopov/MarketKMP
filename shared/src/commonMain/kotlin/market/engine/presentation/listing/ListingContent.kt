@@ -169,9 +169,9 @@ fun ListingContent(
                             data.itemSnapshotList.items.find { it.id == offer.id }
                         item?.isWatchedByMe =
                             offer.isWatchedByMe
-
-                        listingData.value.updateItem.value = null
                     }
+
+                    listingData.value.updateItem.value = null
                 }
             }
         }
@@ -260,102 +260,101 @@ fun ListingContent(
             },
         ){
             //if (!listingData.value.isOpenCategory.value) {
-                ListingBaseContent(
-                    columns = columns,
-                    modifier = modifier,
-                    listingData.value,
-                    searchData.value,
-                    data = data,
-                    baseViewModel = listingViewModel,
-                    noFound = noFound,
-                    topBar = {
-                        ListingAppBar(
-                            searchData.value.searchCategoryName
-                                ?: stringResource(strings.categoryMain),
-                            modifier,
-                            onSearchClick = {
-                                listingData.value.isOpenSearch.value = true
-                            },
-                            onCategoryClick = {
-                                listingData.value.isOpenCategory.value = true
-                                searchData.value.isRefreshing = true
-                            },
-                            onBeakClick = {
-                                component.goBack()
-                                listingData.value.isOpenCategory.value = true
-                            }
-                        )
-                    },
-                    onRefresh = {
-                        listingData.value.resetScroll()
-                        columns.value =
-                            if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
-                        listingViewModel.refresh()
-                    },
-                    filtersContent = { isRefreshingFromFilters, onClose ->
-                        FilterListingContent(
-                            isRefreshingFromFilters,
-                            listingData.value,
-                            regions,
-                            onClose
-                        )
-                    },
-                    sortingContent = { isRefreshingFromFilters, onClose ->
-                        SortingListingContent(
-                            isRefreshingFromFilters,
-                            listingData.value,
-                            onClose
-                        )
-                    },
-                    additionalBar = { state ->
-                        SwipeTabsBar(
-                            listingData.value,
-                            state,
-                            onRefresh = {
-                                data.refresh()
-                            }
-                        )
-                    },
-                    item = { offer ->
-
-                        OfferItem(
-                            offer,
-                            isGrid = listingData.value.listingType == 1,
-                            baseViewModel = listingViewModel,
-                            onFavouriteClick = {
-                                val currentOffer =
-                                    data[data.itemSnapshotList.items.indexOf(
-                                        it
-                                    )]
-                                if (currentOffer != null) {
-                                    val res =
-                                        operationFavorites(
-                                            currentOffer,
-                                            listingViewModel.viewModelScope
-                                        )
-                                    userRepository.updateUserInfo(listingViewModel.viewModelScope)
-                                    return@OfferItem res
-                                } else {
-                                    return@OfferItem it.isWatchedByMe
-                                }
-                            }
-                        ) {
-                            component.goToOffer(offer)
+            ListingBaseContent(
+                columns = columns,
+                modifier = modifier,
+                listingData.value,
+                searchData.value,
+                data = data,
+                baseViewModel = listingViewModel,
+                noFound = noFound,
+                topBar = {
+                    ListingAppBar(
+                        searchData.value.searchCategoryName
+                            ?: stringResource(strings.categoryMain),
+                        modifier,
+                        onSearchClick = {
+                            listingData.value.isOpenSearch.value = true
+                        },
+                        onCategoryClick = {
+                            listingData.value.isOpenCategory.value = true
+                            searchData.value.isRefreshing = true
+                        },
+                        onBeakClick = {
+                            component.goBack()
+                            listingData.value.isOpenCategory.value = true
                         }
-                    },
-                    promoList = promoList.value,
-                    promoContent = { offer ->
-                        PromoOfferRowItem(
-                            offer
-                        ) {
-                            component.goToOffer(offer, true)
+                    )
+                },
+                onRefresh = {
+                    listingData.value.resetScroll()
+                    columns.value =
+                        if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
+                    listingViewModel.refresh()
+                },
+                filtersContent = { isRefreshingFromFilters, onClose ->
+                    FilterListingContent(
+                        isRefreshingFromFilters,
+                        listingData.value,
+                        regions,
+                        onClose
+                    )
+                },
+                sortingContent = { isRefreshingFromFilters, onClose ->
+                    SortingListingContent(
+                        isRefreshingFromFilters,
+                        listingData.value,
+                        onClose
+                    )
+                },
+                additionalBar = { state ->
+                    SwipeTabsBar(
+                        listingData.value,
+                        state,
+                        onRefresh = {
+                            data.refresh()
                         }
-                    },
-                    isShowGrid = true,
-                    onSearchClick = {
-                        listingData.value.isOpenSearch.value = true
+                    )
+                },
+                item = { offer ->
+                    OfferItem(
+                        offer,
+                        isGrid = listingData.value.listingType == 1,
+                        baseViewModel = listingViewModel,
+                        onFavouriteClick = {
+                            val currentOffer =
+                                data[data.itemSnapshotList.items.indexOf(
+                                    it
+                                )]
+                            if (currentOffer != null) {
+                                val res =
+                                    operationFavorites(
+                                        currentOffer,
+                                        listingViewModel.viewModelScope
+                                    )
+                                userRepository.updateUserInfo(listingViewModel.viewModelScope)
+                                return@OfferItem res
+                            } else {
+                                return@OfferItem it.isWatchedByMe
+                            }
+                        }
+                    ) {
+                        component.goToOffer(offer)
                     }
-                )
+                },
+                promoList = promoList.value,
+                promoContent = { offer ->
+                    PromoOfferRowItem(
+                        offer
+                    ) {
+                        component.goToOffer(offer, true)
+                    }
+                },
+                isShowGrid = true,
+                onSearchClick = {
+                    listingData.value.isOpenSearch.value = true
+                }
+            )
            // }
         }
     }

@@ -58,7 +58,6 @@ private fun constructActiveFiltersTitle(
 
     if (searchData.searchFinished  && !isShowSearch) {
         titles.add(searchTitle)
-        isShowSearch = true
     }
 
     if (sort != null) {
@@ -105,7 +104,8 @@ fun FiltersBar(
 
     val itemFilter = remember(filters) {
         NavigationItem(
-            title = filterString,
+            title = strings.filter,
+            string = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
             hasNews = listingData.filters.find { it.interpritation?.isNotEmpty() == true } != null,
@@ -115,7 +115,8 @@ fun FiltersBar(
 
     val itemSort = remember(listingData.sort) {
         NavigationItem(
-            title = sortTitle,
+            title = strings.sort,
+            string = sortTitle,
             icon = drawables.sortIcon,
             tint = colors.black,
             hasNews = listingData.sort != null,
@@ -125,7 +126,7 @@ fun FiltersBar(
 
     val itemGallery = if (isShowGrid)
         NavigationItem(
-            title = "",
+            title = strings.menuTitle,
             icon = drawables.iconWidget,
             tint = colors.black,
             hasNews = false,

@@ -23,7 +23,6 @@ import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TitleText
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.SmallIconButton
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +38,7 @@ fun CategoryAppBar(
 ) {
     val listItems = listOf(
         NavigationItem(
-            title = stringResource(strings.resetLabel),
+            title = strings.resetLabel,
             icon = drawables.cancelIcon,
             tint = colors.steelBlue,
             hasNews = false,
@@ -48,7 +47,7 @@ fun CategoryAppBar(
             onClick = { onClearSearchClick() }
         ),
         NavigationItem(
-            title = stringResource(strings.searchTitle),
+            title = strings.searchTitle,
             icon = drawables.searchIcon,
             tint = colors.steelBlue,
             hasNews = false,

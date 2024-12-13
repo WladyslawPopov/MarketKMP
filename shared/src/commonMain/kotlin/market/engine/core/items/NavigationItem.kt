@@ -1,12 +1,15 @@
 package market.engine.core.items
 
 import androidx.compose.ui.graphics.Color
+import kotlinx.serialization.Serializable
 import market.engine.core.globalData.ThemeResources.colors
 import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 data class NavigationItem(
-    val title : String,
-    val subtitle : String? = null,
+    val title : StringResource,
+    val subtitle : StringResource? = null,
+    val string : String? = null,
     var icon : DrawableResource,
     var image : String? = null,
     val tint : Color,

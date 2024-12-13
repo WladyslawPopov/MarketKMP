@@ -22,10 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.drawables
-import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.globalData.UserData
-import market.engine.core.items.NavigationItem
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.rows.UserPanel
 import org.jetbrains.compose.resources.painterResource
@@ -37,106 +34,7 @@ fun ProfileContent(
     modifier: Modifier
 ) {
     val userInfo = UserData.userInfo
-
-    val list = listOf(
-        NavigationItem(
-            title = stringResource(strings.createNewOfferTitle),
-            icon = drawables.newLotIcon,
-            tint = colors.inactiveBottomNavIconColor,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.myBidsTitle),
-            subtitle = stringResource(strings.myBidsSubTitle),
-            icon = drawables.bidsIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = stringResource(strings.proposalTitle),
-            subtitle = stringResource(strings.proposalPriceSubTitle),
-            icon = drawables.proposalIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
-                userInfo?.countUnreadPriceProposals else null
-        ),
-        NavigationItem(
-            title = stringResource(strings.myPurchasesTitle),
-            subtitle = stringResource(strings.myPurchasesSubTitle),
-            icon = drawables.purchasesIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = stringResource(strings.myOffersTitle),
-            subtitle = stringResource(strings.myOffersSubTitle),
-            icon = drawables.tagIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                component.navigateToMyOffers()
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.mySalesTitle),
-            subtitle = stringResource(strings.mySalesSubTitle),
-            icon = drawables.salesIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = stringResource(strings.messageTitle),
-            subtitle = stringResource(strings.messageSubTitle),
-            icon = drawables.dialogIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = userInfo?.countUnreadMessages
-        ),
-        NavigationItem(
-            title = stringResource(strings.myProfileTitle),
-            subtitle = stringResource(strings.myProfileSubTitle),
-            icon = drawables.profileIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = stringResource(strings.settingsProfileTitle),
-            subtitle = stringResource(strings.profileSettingsSubTitle),
-            icon = drawables.settingsIcon,
-            tint = colors.black,
-            hasNews = true,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = "${stringResource(strings.myBalanceTitle)} ${userInfo?.balance} ${
-                stringResource(
-                    strings.currencyCode
-                )
-            }",
-            subtitle = stringResource(strings.myBalanceSubTitle),
-            icon = drawables.balanceIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = stringResource(strings.logoutTitle),
-            icon = drawables.logoutIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-    )
+    val list = component.model.value.navigationItems
 
    BaseContent(
        topBar = {},
@@ -183,14 +81,14 @@ fun ProfileContent(
                                horizontalAlignment = Alignment.Start
                            ) {
                                Text(
-                                   item.title,
+                                   stringResource(item.title),
                                    color = colors.black,
                                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                    lineHeight = dimens.largeText,
                                )
                                if (item.subtitle != null) {
                                    Text(
-                                       item.subtitle,
+                                       stringResource(item.subtitle),
                                        color = colors.steelBlue,
                                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                        lineHeight = dimens.largeText
@@ -204,7 +102,7 @@ fun ProfileContent(
                    icon = {
                        Icon(
                            painter = painterResource(item.icon),
-                           contentDescription = item.title,
+                           contentDescription = stringResource(item.title),
                            modifier = Modifier.size(dimens.smallIconSize),
                            tint = item.tint
                        )

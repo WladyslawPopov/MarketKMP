@@ -13,6 +13,7 @@ import market.engine.core.items.NavigationItem
 import market.engine.core.navigation.main.MainComponent
 import market.engine.core.navigation.main.navigateFromBottomBar
 import market.engine.widgets.badges.getBadgedBox
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getBottomNavBar(
@@ -41,7 +42,7 @@ fun getBottomNavBar(
                     label = {
                         if(isSelected) {
                             Text(
-                                text = item.title,
+                                text = stringResource(item.title),
                                 fontSize = 9.sp,
                                 maxLines = 1,
                                 lineHeight = 8.sp
