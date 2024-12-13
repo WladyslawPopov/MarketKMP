@@ -40,7 +40,7 @@ class DefaultRootComponent(
 
     private val navigation = StackNavigation<RootConfig>()
 
-    override val childStack: Value<ChildStack<*, RootComponent.Child>> =
+    override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {
         childStack(
             source = navigation,
             serializer = RootConfig.serializer(),
@@ -48,6 +48,7 @@ class DefaultRootComponent(
             handleBackButton = true,
             childFactory = ::createChild
         )
+    }
 
     override fun backToMain() {
         navigation.pop()

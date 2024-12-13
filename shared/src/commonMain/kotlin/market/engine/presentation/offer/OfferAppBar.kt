@@ -131,74 +131,75 @@ fun OfferAppBar(
                         }
                     }
                 }
+
+                DropdownMenu(
+                    modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp),
+                    expanded = showMenu.value,
+                    onDismissRequest = { onClose() },
+                    containerColor = colors.white,
+                    offset = DpOffset(0.dp, 0.dp)
+                ) {
+                    menuList.forEach { operation ->
+                        val idString = stringResource(strings.idCopied)
+                        var icon: Painter? = null
+                        when(operation.first){
+                            "copyId" -> {
+                                icon = painterResource(drawables.copyIcon)
+                            }
+                            "share" -> {
+                                icon = painterResource(drawables.shareIcon)
+                            }
+                            "calendar" -> {
+                                icon = painterResource(drawables.calendarIcon)
+                            }
+                        }
+
+                        DropdownMenuItem(
+                            leadingIcon = {
+                                icon?.let {
+                                    Icon(
+                                        it,
+                                        contentDescription = stringResource(strings.shareOffer),
+                                        modifier = Modifier.size(dimens.smallIconSize),
+                                        tint = colors.steelBlue
+                                    )
+                                }
+                            },
+                            text = {
+                                Text(
+                                    text = operation.second,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.black
+                                )
+                            },
+                            onClick = {
+                                when(operation.first){
+                                    "copyId" -> {
+                                        clipBoardEvent(offer.id.toString())
+
+                                        baseViewModel.showToast(
+                                            ToastItem(
+                                                isVisible = true,
+                                                message = idString,
+                                                type = ToastType.SUCCESS
+                                            )
+                                        )
+
+                                        onClose()
+                                    }
+                                    "share" -> {
+
+                                    }
+                                    "calendar" -> {
+
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     )
 
-    DropdownMenu(
-        modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp),
-        expanded = showMenu.value,
-        onDismissRequest = { onClose() },
-        containerColor = colors.white,
-        offset = DpOffset(200.dp, 0.dp)
-    ) {
-        menuList.forEach { operation ->
-            val idString = stringResource(strings.idCopied)
-            var icon: Painter? = null
-            when(operation.first){
-                "copyId" -> {
-                    icon = painterResource(drawables.copyIcon)
-                }
-                "share" -> {
-                    icon = painterResource(drawables.shareIcon)
-                }
-                "calendar" -> {
-                    icon = painterResource(drawables.calendarIcon)
-                }
-            }
-
-            DropdownMenuItem(
-                leadingIcon = {
-                    icon?.let {
-                        Icon(
-                            it,
-                            contentDescription = stringResource(strings.shareOffer),
-                            modifier = Modifier.size(dimens.smallIconSize),
-                            tint = colors.steelBlue
-                        )
-                    }
-                },
-                text = {
-                    Text(
-                        text = operation.second,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black
-                    )
-                },
-                onClick = {
-                    when(operation.first){
-                        "copyId" -> {
-                            clipBoardEvent(offer.id.toString())
-
-                            baseViewModel.showToast(
-                                ToastItem(
-                                    isVisible = true,
-                                    message = idString,
-                                    type = ToastType.SUCCESS
-                                )
-                            )
-
-                            onClose()
-                        }
-                        "share" -> {
-
-                        }
-                        "calendar" -> {
-
-                        }
-                    }
-                }
-            )
-        }
-    }
 }
