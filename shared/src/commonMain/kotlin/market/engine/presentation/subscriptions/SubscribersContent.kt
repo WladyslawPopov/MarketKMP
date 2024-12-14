@@ -1,10 +1,15 @@
 package market.engine.presentation.subscriptions
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.types.FavScreenType
+import market.engine.presentation.base.BaseContent
 import market.engine.presentation.base.ListingBaseContent
 import market.engine.presentation.favorites.FavoritesAppBar
 
@@ -19,7 +24,9 @@ fun SubscribesContent(
     val listingData = subViewModel.listingData.value.data.subscribeAsState()
     val data = subViewModel.pagingDataFlow.collectAsLazyPagingItems()
 
-    ListingBaseContent(
+    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+
+    BaseContent(
         topBar = {
             FavoritesAppBar(
                 FavScreenType.SUBSCRIBED,
@@ -30,23 +37,36 @@ fun SubscribesContent(
                 }
             }
         },
-        modifier = modifier,
-        listingData = listingData.value,
-        data = data,
-        searchData = searchData.value,
-        baseViewModel = subViewModel,
         onRefresh = {
             listingData.value.resetScroll()
             data.refresh()
         },
-        filtersContent = { _, _ ->
+        error = null,
+        noFound = null,
+        isLoading = isLoading.value,
+        toastItem = subViewModel.toastItem,
+        modifier = modifier.fillMaxSize()
+    ) {
+        ListingBaseContent(
+            isLoading = isLoading,
+            modifier = modifier,
+            listingData = listingData.value,
+            data = data,
+            searchData = searchData.value,
+            baseViewModel = subViewModel,
+            onRefresh = {
+                listingData.value.resetScroll()
+                data.refresh()
+            },
+            filtersContent = { _, _ ->
 
-        },
-        sortingContent = { _, _ ->
+            },
+            sortingContent = { _, _ ->
 
-        },
-        item = {
+            },
+            item = {
 
-        }
-    )
+            }
+        )
+    }
 }

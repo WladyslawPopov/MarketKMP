@@ -222,7 +222,7 @@ fun FiltersBar(
                     }
                 }
 
-                if (listingData.sort != null && isShowFilters) {
+                if (listingData.sort != null) {
                     item(key = "sort") {
                         ActiveFilterListing(
                             text = listingData.sort?.interpritation ?: "",

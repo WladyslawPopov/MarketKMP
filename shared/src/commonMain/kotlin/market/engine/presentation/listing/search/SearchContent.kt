@@ -69,6 +69,9 @@ fun SearchContent(
                 focusRequester,
                 onSearchClick = {
                     getSearchFilters(searchData, searchString.value.text)
+                    if (searchData.isRefreshing) {
+                        searchViewModel.addHistory(searchData)
+                    }
                     goToListing()
                 },
                 onUpdateHistory = {
@@ -102,7 +105,6 @@ fun SearchContent(
                 searchData = searchData,
                 goToCategory = {
                     getSearchFilters(searchData, searchString.value.text)
-                    searchData.isRefreshing = true
                     goToCategory()
                 },
             )
@@ -112,7 +114,7 @@ fun SearchContent(
                 modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
                 onItemClick = {
                     searchString.value = searchString.value.copy(it)
-                    searchData.isRefreshing = true
+                    getSearchFilters(searchData, it)
                 },
                 onClearHistory = {
                    searchViewModel.deleteHistory()

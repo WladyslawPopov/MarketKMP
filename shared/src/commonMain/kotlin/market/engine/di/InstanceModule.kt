@@ -15,7 +15,6 @@ import market.engine.common.getKtorClient
 import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
-import market.engine.presentation.listing.category.CategoryViewModel
 import market.engine.presentation.favorites.FavViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
@@ -43,9 +42,7 @@ object InstanceModule {
 
 val viewModelModule = module {
     viewModelOf(::HomeViewModel)
-    viewModelOf(::CategoryViewModel)
     viewModelOf(::ListingViewModel)
-    viewModelOf(::CategoryViewModel)
     viewModelOf(::SearchViewModel)
     viewModelOf(::LoginViewModel)
     viewModelOf(::FavViewModel)

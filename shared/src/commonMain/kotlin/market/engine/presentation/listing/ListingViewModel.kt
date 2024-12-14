@@ -5,17 +5,22 @@ import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.baseFilters.LD
+import market.engine.core.baseFilters.SD
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.items.ListingData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
+import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
@@ -39,6 +44,9 @@ class ListingViewModel(
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
+    private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
+    val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
+
 
      fun init(listingData: ListingData) {
          listingData.data.value.methodServer = "get_public_listing"
@@ -59,6 +67,8 @@ class ListingViewModel(
          getRegions()
 
          getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID ?: 1L)
+
+         getCategory(listingData.searchData.value, listingData.data.value)
      }
 
     fun refresh(){
@@ -99,6 +109,39 @@ class ListingViewModel(
                             ?.let { regionOptions.value.addAll(it) }
                     }
                 }
+            }
+        }
+    }
+
+    fun getCategory(searchData : SD, listingData : LD) {
+        setLoading(true)
+        viewModelScope.launch {
+            try {
+                val response =  apiService.getPublicCategories(searchData.searchCategoryID ?: 1)
+                val serializer = Payload.serializer(Category.serializer())
+                val payload: Payload<Category> = deserializePayload(response.payload, serializer)
+
+                val categoriesWithLotCounts = payload.objects.map { category ->
+                    async {
+                        val sd = searchData.copy()
+                        sd.searchCategoryID = category.id
+                        val lotCount = categoryOperations.getTotalCount(ListingData(
+                            _searchData = sd,
+                            _data = listingData
+                        ))
+                        category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
+                    }
+                }
+
+                val categories = categoriesWithLotCounts.awaitAll().filter { it.estimatedActiveOffersCount > 0 }
+                _responseCategory.value = categories
+
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
+            } finally {
+                setLoading(false)
             }
         }
     }

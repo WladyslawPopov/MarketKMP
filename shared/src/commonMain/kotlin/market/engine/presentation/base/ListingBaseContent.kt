@@ -43,11 +43,10 @@ fun <T : Any>ListingBaseContent(
     modifier: Modifier = Modifier,
     listingData : LD,
     searchData : SD,
+    isLoading : State<Boolean>,
     data : LazyPagingItems<T>,
     baseViewModel: BaseViewModel,
     onRefresh : () -> Unit,
-    topBar : (@Composable () -> Unit)? = null,
-    floatingActionButton : @Composable () -> Unit = {},
     item : @Composable (T) -> Unit,
     noFound : (@Composable () -> Unit)? = null,
     filtersContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
@@ -69,7 +68,6 @@ fun <T : Any>ListingBaseContent(
         bottomSheetState = rememberBottomSheetState(listingData.bottomSheetState.value)
     )
 
-    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
     var error : (@Composable () -> Unit)? = null
     var noItem : (@Composable () -> Unit)? = null
 
@@ -105,7 +103,7 @@ fun <T : Any>ListingBaseContent(
                 listingData.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
-                        scrollState.scrollToItem(0)
+                        listingData.resetScroll()
                         onRefresh()
                         isRefreshingFromFilters.value = false
                     }
@@ -141,91 +139,80 @@ fun <T : Any>ListingBaseContent(
         }
     }
 
-    BaseContent(
-        topBar = topBar,
-        onRefresh = onRefresh,
-        error = null,
-        noFound = null,
-        isLoading = isLoading.value,
-        toastItem = baseViewModel.toastItem,
-        floatingActionButton = floatingActionButton,
-        modifier = modifier.fillMaxSize()
-    ) {
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            sheetContentColor = colors.primaryColor,
-            sheetBackgroundColor = colors.primaryColor,
-            contentColor = colors.primaryColor,
-            backgroundColor = colors.primaryColor,
-            sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = false,
-            sheetContent = {
-                when (listingData.activeFiltersType.value) {
-                    "filters" -> {
-                        filtersContent(isRefreshingFromFilters) {
-                            listingData.activeFiltersType.value = ""
-                        }
-                    }
-
-                    "sorting" -> {
-                        sortingContent(isRefreshingFromFilters) {
-                            listingData.activeFiltersType.value = ""
-                        }
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetContentColor = colors.primaryColor,
+        sheetBackgroundColor = colors.primaryColor,
+        contentColor = colors.primaryColor,
+        backgroundColor = colors.primaryColor,
+        sheetPeekHeight = 0.dp,
+        sheetGesturesEnabled = false,
+        sheetContent = {
+            when (listingData.activeFiltersType.value) {
+                "filters" -> {
+                    filtersContent(isRefreshingFromFilters) {
+                        listingData.activeFiltersType.value = ""
                     }
                 }
-            },
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
 
-                additionalBar(scrollState)
+                "sorting" -> {
+                    sortingContent(isRefreshingFromFilters) {
+                        listingData.activeFiltersType.value = ""
+                    }
+                }
+            }
+        },
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
 
-                FiltersBar(
-                    listingData,
-                    searchData,
-                    isShowGrid = isShowGrid,
-                    onChangeTypeList = {
-                        baseViewModel.settings.setSettingValue("listingType", it)
-                        listingData.listingType = it
-                        onRefresh()
-                    },
-                    onFilterClick = {
-                        listingData.activeFiltersType.value = "filters"
-                    },
-                    onSortClick = {
-                        listingData.activeFiltersType.value = "sorting"
-                    },
-                    onSearchClick = {
-                        onSearchClick()
-                    },
-                    onRefresh = { data.refresh() }
-                )
-                AnimatedVisibility(
-                    listingData.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
-                    enter = fadeIn(),
-                    exit = fadeOut()
+            additionalBar(scrollState)
+
+            FiltersBar(
+                listingData,
+                searchData,
+                isShowGrid = isShowGrid,
+                onChangeTypeList = {
+                    baseViewModel.settings.setSettingValue("listingType", it)
+                    listingData.listingType = it
+                    onRefresh()
+                },
+                onFilterClick = {
+                    listingData.activeFiltersType.value = "filters"
+                },
+                onSortClick = {
+                    listingData.activeFiltersType.value = "sorting"
+                },
+                onSearchClick = {
+                    onSearchClick()
+                },
+                onRefresh = onRefresh
+            )
+            AnimatedVisibility(
+                listingData.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .animateContentSize()
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .animateContentSize()
-                    ) {
-                        when{
-                            error != null -> error?.invoke()
-                            noItem != null -> noItem?.invoke()
-                            else -> {
-                                PagingList(
-                                    state = scrollState,
-                                    data = data,
-                                    listingData = listingData,
-                                    searchData = searchData,
-                                    columns = columns.value,
-                                    content = {
-                                        item(it)
-                                    },
-                                    promoList = promoList,
-                                    promoContent = promoContent,
-                                )
-                            }
+                    when{
+                        error != null -> error?.invoke()
+                        noItem != null -> noItem?.invoke()
+                        else -> {
+                            PagingList(
+                                state = scrollState,
+                                data = data,
+                                listingData = listingData,
+                                searchData = searchData,
+                                columns = columns.value,
+                                content = {
+                                    item(it)
+                                },
+                                promoList = promoList,
+                                promoContent = promoContent,
+                            )
                         }
                     }
                 }

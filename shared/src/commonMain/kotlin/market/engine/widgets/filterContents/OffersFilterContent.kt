@@ -432,7 +432,8 @@ fun OfferFilterContent(
             AcceptedPageButton(
                 strings.actionAcceptFilters,
                 Modifier.align(Alignment.BottomCenter)
-                    .fillMaxWidth(0.6f)
+                    .wrapContentWidth()
+                    .padding(dimens.mediumPadding)
             ){
                 filters.filters = listingData
                 isRefreshing.value = true

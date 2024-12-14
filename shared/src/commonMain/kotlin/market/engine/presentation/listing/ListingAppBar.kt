@@ -1,5 +1,6 @@
 package market.engine.presentation.listing
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.globalData.ThemeResources.colors
@@ -27,10 +30,13 @@ import market.engine.widgets.buttons.SmallIconButton
 fun ListingAppBar(
     title : String,
     modifier: Modifier = Modifier,
-    onCategoryClick: () -> Unit = {},
+    isShowNav: Boolean,
+    isOpenCategory: Boolean,
+    closeCategory: () -> Unit = {},
+    onBackClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onBeakClick: () -> Unit,
 ) {
+    val isVisible = rememberUpdatedState(isOpenCategory)
     val listItems = listOf(
         NavigationItem(
             title = strings.searchTitle,
@@ -48,21 +54,31 @@ fun ListingAppBar(
         title = {
             Row(
                 modifier = modifier.fillMaxWidth().clickable {
-                    onCategoryClick()
+                    closeCategory()
                 },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 TitleText(title)
 
-                SmallIconButton(drawables.iconArrowUp, colors.black){
-                    onCategoryClick()
+                SmallIconButton(
+                    if (isVisible.value)
+                        drawables.iconArrowUp
+                    else
+                        drawables.iconArrowDown,
+                    colors.black,
+                    modifierIconSize = Modifier.size(dimens.mediumIconSize),
+                    modifier = Modifier.size(dimens.mediumIconSize),
+                ){
+                    closeCategory()
                 }
             }
         },
         navigationIcon = {
-            NavigationArrowButton {
-                onBeakClick()
+            AnimatedVisibility (isShowNav) {
+                NavigationArrowButton {
+                    onBackClick()
+                }
             }
         },
         actions = {

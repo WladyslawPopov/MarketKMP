@@ -4,12 +4,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import market.engine.core.network.functions.OfferOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -27,7 +30,9 @@ import market.engine.core.types.LotsType
 import market.engine.core.types.ToastType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
+import market.engine.presentation.base.BaseContent
 import market.engine.presentation.base.ListingBaseContent
+import market.engine.presentation.listing.ListingAppBar
 import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -53,6 +58,8 @@ fun FavoritesContent(
     val sd = listingData.searchData.subscribeAsState()
 
     val selectedItems = remember { ld.value.selectItems }
+
+    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
@@ -98,8 +105,7 @@ fun FavoritesContent(
             }
         }
     }
-
-    ListingBaseContent(
+    BaseContent(
         topBar = {
             FavoritesAppBar(
                 FavScreenType.FAVORITES,
@@ -110,101 +116,118 @@ fun FavoritesContent(
                 }
             }
         },
-        columns = columns,
-        modifier = modifier,
-        listingData = ld.value,
-        data = data,
-        searchData = sd.value,
-        baseViewModel = favViewModel,
-        noFound = noFound,
         onRefresh = {
             userRepository.updateUserInfo(favViewModel.viewModelScope)
             ld.value.resetScroll()
             data.refresh()
         },
-        filtersContent = { isRefreshingFromFilters, onClose ->
-            OfferFilterContent(
-                isRefreshingFromFilters,
-                ld.value,
-                LotsType.FAVORITES,
-                onClose
-            )
-        },
-        sortingContent = { isRefreshingFromFilters, onClose ->
-            SortingListingContent(
-                isRefreshingFromFilters,
-                ld.value,
-                onClose
-            )
-        },
-        additionalBar = {
-            AnimatedVisibility(
-                visible = selectedItems.isNotEmpty(),
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.animateContentSize()
-            ) {
-                DeletePanel(
-                    selectedItems.size,
-                    onCancel = {
-                        ld.value.selectItems.clear()
-                    },
-                    onDelete = {
-                        favViewModel.viewModelScope.launch(Dispatchers.IO) {
-                            selectedItems.forEach { item ->
-                                offerOperations.postOfferOperationUnwatch(item)
-                            }
-
-                            withContext(Dispatchers.Main) {
-                                ld.value.selectItems.clear()
-                                userRepository.updateUserInfo(favViewModel.viewModelScope)
-                                data.refresh()
-                            }
-                        }
-                    }
+        error = null,
+        noFound = null,
+        isLoading = isLoading.value,
+        toastItem = favViewModel.toastItem,
+        modifier = modifier.fillMaxSize()
+    ) {
+        ListingBaseContent(
+            columns = columns,
+            modifier = modifier,
+            listingData = ld.value,
+            data = data,
+            searchData = sd.value,
+            isLoading = isLoading,
+            baseViewModel = favViewModel,
+            noFound = noFound,
+            onRefresh = {
+                userRepository.updateUserInfo(favViewModel.viewModelScope)
+                ld.value.resetScroll()
+                data.refresh()
+            },
+            filtersContent = { isRefreshingFromFilters, onClose ->
+                OfferFilterContent(
+                    isRefreshingFromFilters,
+                    ld.value,
+                    LotsType.FAVORITES,
+                    onClose
                 )
-            }
-        },
-        item = { offer->
-            val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
-            AnimatedVisibility (offer.isWatchedByMe, exit = fadeOut()) {
-                OfferItem(
-                    offer,
-                    isGrid = (columns.value > 1),
-                    baseViewModel = favViewModel,
-                    isSelection = isSelect.value,
-                    onSelectionChange = { isSelect ->
-                        if (isSelect) {
-                            ld.value.selectItems.add(offer.id)
+            },
+            sortingContent = { isRefreshingFromFilters, onClose ->
+                SortingListingContent(
+                    isRefreshingFromFilters,
+                    ld.value,
+                    onClose
+                )
+            },
+            additionalBar = {
+                AnimatedVisibility(
+                    visible = selectedItems.isNotEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.animateContentSize()
+                ) {
+                    DeletePanel(
+                        selectedItems.size,
+                        onCancel = {
+                            ld.value.selectItems.clear()
+                        },
+                        onDelete = {
+                            favViewModel.viewModelScope.launch(Dispatchers.IO) {
+                                selectedItems.forEach { item ->
+                                    offerOperations.postOfferOperationUnwatch(item)
+                                }
+
+                                withContext(Dispatchers.Main) {
+                                    ld.value.selectItems.clear()
+                                    userRepository.updateUserInfo(favViewModel.viewModelScope)
+                                    data.refresh()
+                                }
+                            }
+                        }
+                    )
+                }
+            },
+            item = { offer ->
+                val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
+                AnimatedVisibility(offer.isWatchedByMe, exit = fadeOut()) {
+                    OfferItem(
+                        offer,
+                        isGrid = (columns.value > 1),
+                        baseViewModel = favViewModel,
+                        isSelection = isSelect.value,
+                        onSelectionChange = { isSelect ->
+                            if (isSelect) {
+                                ld.value.selectItems.add(offer.id)
+                            } else {
+                                ld.value.selectItems.remove(offer.id)
+                            }
+                        },
+                        onUpdateOfferItem = { selectedOffer ->
+                            data.itemSnapshotList.find { it?.id == selectedOffer.id }?.isWatchedByMe =
+                                false
+                            userRepository.updateUserInfo(favViewModel.viewModelScope)
+                            ld.value.updateItem.value = selectedOffer.id
+                            ld.value.updateItem.value = null // update item immediately
+                            favViewModel.showToast(
+                                ToastItem(
+                                    isVisible = true,
+                                    type = ToastType.SUCCESS,
+                                    message = successToast
+                                )
+                            )
+                        },
+                    ) {
+                        if (ld.value.selectItems.isNotEmpty()) {
+                            if (ld.value.selectItems.contains(offer.id)) {
+                                ld.value.selectItems.remove(offer.id)
+                            } else {
+                                ld.value.selectItems.add(offer.id)
+                            }
                         } else {
-                            ld.value.selectItems.remove(offer.id)
+                            component.goToOffer(offer)
+                            // set item for update
+                            ld.value.updateItem.value = offer.id
                         }
-                    },
-                    onUpdateOfferItem = { selectedOffer ->
-                        data.itemSnapshotList.find { it?.id == selectedOffer.id }?.isWatchedByMe = false
-                        userRepository.updateUserInfo(favViewModel.viewModelScope)
-                        ld.value.updateItem.value = selectedOffer.id
-                        ld.value.updateItem.value = null // update item immediately
-                        favViewModel.showToast(ToastItem(
-                            isVisible = true,
-                            type = ToastType.SUCCESS,
-                            message = successToast
-                        ))
-                    },
-                ){
-                    if (ld.value.selectItems.isNotEmpty()) {
-                        if (ld.value.selectItems.contains(offer.id)){
-                            ld.value.selectItems.remove(offer.id)
-                        }else{
-                            ld.value.selectItems.add(offer.id)
-                        }
-                    } else {
-                        component.goToOffer(offer)
-                        // set item for update
-                        ld.value.updateItem.value = offer.id
                     }
                 }
             }
-        }
-    )
+        )
+    }
 }

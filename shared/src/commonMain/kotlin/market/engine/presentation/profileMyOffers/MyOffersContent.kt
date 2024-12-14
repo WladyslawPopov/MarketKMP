@@ -2,12 +2,16 @@ package market.engine.presentation.profileMyOffers
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +25,7 @@ import market.engine.core.types.ToastType
 import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getCurrentDate
 import market.engine.core.util.getWindowSizeClass
+import market.engine.presentation.base.BaseContent
 import market.engine.presentation.base.ListingBaseContent
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -40,6 +45,8 @@ fun MyOffersContent(
     val searchData = viewModel.listingData.searchData.subscribeAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
 
+
+    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
     val windowClass = getWindowSizeClass()
     val isBigScreen = windowClass == WindowSizeClass.Big
 
@@ -103,79 +110,93 @@ fun MyOffersContent(
             }
         }
     }
-
-    ListingBaseContent(
-        columns = columns,
-        modifier = modifier,
-        listingData.value,
-        searchData = searchData.value,
-        data = data,
-        baseViewModel = viewModel,
+    BaseContent(
+        topBar = null,
         onRefresh = {
             listingData.value.resetScroll()
             viewModel.onRefresh()
         },
-        noFound = noFound,
+        error = null,
+        noFound = null,
+        isLoading = isLoading.value,
+        toastItem = viewModel.toastItem,
         floatingActionButton = {
             floatingCreateOfferButton {
 
             }
         },
-        filtersContent = { isRefreshingFromFilters, onClose ->
-            OfferFilterContent(
-                isRefreshingFromFilters,
-                listingData.value,
-                model.type,
-                onClose
-            )
-        },
-        sortingContent = { isRefreshingFromFilters, onClose ->
-            SortingListingContent(
-                isRefreshingFromFilters,
-                listingData.value,
-                onClose
-            )
-        },
-        item = { offer->
-            var checkItemSession = true
-            when (model.type){
-                LotsType.MYLOT_ACTIVE ->{
-                    checkItemSession = offer.state == "active" && offer.session != null
-                }
+        modifier = modifier.fillMaxSize()
+    ) {
+        ListingBaseContent(
+            columns = columns,
+            modifier = modifier,
+            listingData.value,
+            searchData = searchData.value,
+            data = data,
+            baseViewModel = viewModel,
+            onRefresh = {
+                listingData.value.resetScroll()
+                viewModel.onRefresh()
+            },
+            noFound = noFound,
+            isLoading = isLoading,
+            filtersContent = { isRefreshingFromFilters, onClose ->
+                OfferFilterContent(
+                    isRefreshingFromFilters,
+                    listingData.value,
+                    model.type,
+                    onClose
+                )
+            },
+            sortingContent = { isRefreshingFromFilters, onClose ->
+                SortingListingContent(
+                    isRefreshingFromFilters,
+                    listingData.value,
+                    onClose
+                )
+            },
+            item = { offer ->
+                var checkItemSession = true
+                when (model.type) {
+                    LotsType.MYLOT_ACTIVE -> {
+                        checkItemSession = offer.state == "active" && offer.session != null
+                    }
 
-                LotsType.MYLOT_UNACTIVE ->{
-                    checkItemSession = offer.state != "active"
-                }
+                    LotsType.MYLOT_UNACTIVE -> {
+                        checkItemSession = offer.state != "active"
+                    }
 
-                LotsType.MYLOT_FUTURE ->{
-                    val currentDate : Long? = getCurrentDate().toLongOrNull()
-                    if (currentDate != null) {
-                        val initD = (offer.session?.start?.toLongOrNull() ?:1L) - currentDate
-                        checkItemSession =
-                            offer.state == "active" && initD > 0
+                    LotsType.MYLOT_FUTURE -> {
+                        val currentDate: Long? = getCurrentDate().toLongOrNull()
+                        if (currentDate != null) {
+                            val initD = (offer.session?.start?.toLongOrNull() ?: 1L) - currentDate
+                            checkItemSession =
+                                offer.state == "active" && initD > 0
+                        }
+                    }
+
+                    else -> {}
+                }
+                AnimatedVisibility(checkItemSession, exit = fadeOut()) {
+                    OfferItem(
+                        offer,
+                        isGrid = (columns.value > 1),
+                        baseViewModel = viewModel,
+                        onUpdateOfferItem = {
+                            listingData.value.updateItem.value = it.id
+                            viewModel.showToast(
+                                ToastItem(
+                                    isVisible = true,
+                                    type = ToastType.SUCCESS,
+                                    message = successToast
+                                )
+                            )
+                        },
+                    ) {
+                        component.goToOffer(offer)
                     }
                 }
-                else ->{}
             }
-            AnimatedVisibility(checkItemSession, exit = fadeOut()) {
-                OfferItem(
-                    offer,
-                    isGrid = (columns.value > 1),
-                    baseViewModel = viewModel,
-                    onUpdateOfferItem = {
-                        listingData.value.updateItem.value = it.id
-                        viewModel.showToast(
-                            ToastItem(
-                                isVisible = true,
-                                type = ToastType.SUCCESS,
-                                message = successToast
-                            )
-                        )
-                    },
-                ){
-                    component.goToOffer(offer)
-                }
-            }
-        }
-    )
+        )
+    }
 }

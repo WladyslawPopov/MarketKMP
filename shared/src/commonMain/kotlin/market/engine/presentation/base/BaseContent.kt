@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -27,15 +28,16 @@ fun BaseContent(
     error: (@Composable () -> Unit)? = null,
     noFound: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit) = {},
-    content: @Composable () -> Unit,
+    content: @Composable BoxScope.() -> Unit,
 ){
     Scaffold(
+        modifier,
         topBar = topBar ?: {},
         floatingActionButton = floatingActionButton
     ) { innerPadding ->
         SwipeRefreshContent(
             isRefreshing = isLoading,
-            modifier = modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize()
                 .padding(top = if (topBar != null)
                                     innerPadding.calculateTopPadding()
                                 else 0.dp
@@ -43,15 +45,11 @@ fun BaseContent(
             onRefresh = onRefresh,
         ) {
             AnimatedVisibility(
-                modifier = modifier,
                 visible = !isLoading,
                 enter = expandIn(),
                 exit = fadeOut()
             ) {
-                Box(
-                    modifier = modifier
-                        .fillMaxSize()
-                ) {
+                Box {
                     when {
                         noFound != null -> {
                             noFound()

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SD(
     var searchCategoryName: String? = null,
-    var searchCategoryID: Long? = 1L,
+    var searchCategoryID: Long = 1L,
     var searchParentID:Long? = 1L,
     var searchParentName: String? = null,
     var searchIsLeaf: Boolean = false,
