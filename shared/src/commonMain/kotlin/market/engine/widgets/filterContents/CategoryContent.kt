@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -129,9 +130,12 @@ fun CategoryContent(
 
                         SimpleTextButton(
                             stringResource(strings.resetLabel),
+                            textColor = colors.actionTextColor,
+                            textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                         ){
                             searchData.clearCategory()
                             searchData.isRefreshing = true
+                            title.value = catDef
                             refresh()
                         }
                     }

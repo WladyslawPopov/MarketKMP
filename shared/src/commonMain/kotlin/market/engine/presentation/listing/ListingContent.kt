@@ -110,11 +110,9 @@ fun ListingContent(
         columns.value =
             if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
 
-        if (listingData.value.isOpenCategory.value) {
-            listingViewModel.getCategory(searchData.value, listingData.value)
-        }else{
-            listingViewModel.refresh()
-        }
+        listingViewModel.getCategory(searchData.value, listingData.value)
+        listingViewModel.refresh()
+
     }
 
     val error : (@Composable () -> Unit)? = if (isErrorCategory.humanMessage != "") {
@@ -123,7 +121,7 @@ fun ListingContent(
         null
     }
 
-    var backCountClick = remember { mutableStateOf(0) }
+    val backCountClick = remember { mutableStateOf(0) }
 
 
     LaunchedEffect(listingData.value.isOpenSearch.value) {
@@ -271,8 +269,7 @@ fun ListingContent(
                         goToSearch = {
                             listingData.value.isOpenSearch.value = true
                         },
-                        modifier = Modifier.fillMaxHeight(0.9f)
-                            .align(Alignment.CenterHorizontally),
+                        modifier = Modifier.fillMaxHeight(0.9f),
                         categories = categories.value,
                         isLoading = isLoading.value,
                         scope = listingViewModel.viewModelScope,
