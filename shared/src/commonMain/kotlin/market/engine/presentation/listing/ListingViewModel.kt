@@ -78,17 +78,17 @@ class ListingViewModel(
     private fun getOffersRecommendedInListing(categoryID:Long) {
         viewModelScope.launch{
             try {
-                withContext(Dispatchers.IO){
-                    val response = apiService.getOffersRecommendedInListing(categoryID)
+                val response = withContext(Dispatchers.IO){
+                    apiService.getOffersRecommendedInListing(categoryID)
+                }
 
-                    withContext(Dispatchers.Main) {
-                        try {
-                            val serializer = Payload.serializer(Offer.serializer())
-                            val payload : Payload<Offer> = deserializePayload(response.payload, serializer)
-                            _responseOffersRecommendedInListing.value = payload.objects
-                        }catch (e : Exception){
-                            throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-                        }
+                withContext(Dispatchers.Main) {
+                    try {
+                        val serializer = Payload.serializer(Offer.serializer())
+                        val payload : Payload<Offer> = deserializePayload(response.payload, serializer)
+                        _responseOffersRecommendedInListing.value = payload.objects
+                    }catch (e : Exception){
+                        throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                     }
                 }
             }  catch (exception: ServerErrorException) {
@@ -101,13 +101,13 @@ class ListingViewModel(
 
     private fun getRegions(){
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val res = categoryOperations.getRegions()
-                withContext(Dispatchers.Main) {
-                    if (res != null) {
-                        res.firstOrNull()?.options?.sortedBy { it.weight }
-                            ?.let { regionOptions.value.addAll(it) }
-                    }
+            val res = withContext(Dispatchers.IO) {
+                categoryOperations.getRegions()
+            }
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    res.firstOrNull()?.options?.sortedBy { it.weight }
+                        ?.let { regionOptions.value.addAll(it) }
                 }
             }
         }
@@ -115,9 +115,11 @@ class ListingViewModel(
 
     fun getCategory(searchData : SD, listingData : LD) {
         setLoading(true)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response =  apiService.getPublicCategories(searchData.searchCategoryID ?: 1)
+                val response =  apiService.getPublicCategories(searchData.searchCategoryID)
+
+
                 val serializer = Payload.serializer(Category.serializer())
                 val payload: Payload<Category> = deserializePayload(response.payload, serializer)
 
