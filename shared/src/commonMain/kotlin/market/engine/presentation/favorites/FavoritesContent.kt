@@ -32,7 +32,6 @@ import market.engine.core.types.WindowSizeClass
 import market.engine.core.util.getWindowSizeClass
 import market.engine.presentation.base.BaseContent
 import market.engine.presentation.base.ListingBaseContent
-import market.engine.presentation.listing.ListingAppBar
 import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -57,7 +56,7 @@ fun FavoritesContent(
     val ld = listingData.data.subscribeAsState()
     val sd = listingData.searchData.subscribeAsState()
 
-    val selectedItems = remember { ld.value.selectItems }
+    val selectedItems = remember { favViewModel.selectItems }
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -90,21 +89,22 @@ fun FavoritesContent(
     }
 
     //update item when we back
-    LaunchedEffect(ld.value.updateItem.value) {
-        if (ld.value.updateItem.value != null) {
+    LaunchedEffect(favViewModel.updateItem.value) {
+        if (favViewModel.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =
-                    favViewModel.getUpdatedOfferById(ld.value.updateItem.value!!)
+                    favViewModel.getUpdatedOfferById(favViewModel.updateItem.value!!)
                 withContext(Dispatchers.Main) {
                     if (offer != null) {
                         data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
                             offer.isWatchedByMe
                     }
-                    ld.value.updateItem.value = null
+                    favViewModel.updateItem.value = null
                 }
             }
         }
     }
+
     BaseContent(
         topBar = {
             FavoritesAppBar(
@@ -129,11 +129,9 @@ fun FavoritesContent(
     ) {
         ListingBaseContent(
             columns = columns,
-            modifier = modifier,
             listingData = ld.value,
             data = data,
             searchData = sd.value,
-            isLoading = isLoading,
             baseViewModel = favViewModel,
             noFound = noFound,
             onRefresh = {
@@ -166,7 +164,7 @@ fun FavoritesContent(
                     DeletePanel(
                         selectedItems.size,
                         onCancel = {
-                            ld.value.selectItems.clear()
+                            favViewModel.selectItems.clear()
                         },
                         onDelete = {
                             favViewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -175,7 +173,7 @@ fun FavoritesContent(
                                 }
 
                                 withContext(Dispatchers.Main) {
-                                    ld.value.selectItems.clear()
+                                    favViewModel.selectItems.clear()
                                     userRepository.updateUserInfo(favViewModel.viewModelScope)
                                     data.refresh()
                                 }
@@ -194,17 +192,17 @@ fun FavoritesContent(
                         isSelection = isSelect.value,
                         onSelectionChange = { isSelect ->
                             if (isSelect) {
-                                ld.value.selectItems.add(offer.id)
+                                favViewModel.selectItems.add(offer.id)
                             } else {
-                                ld.value.selectItems.remove(offer.id)
+                                favViewModel.selectItems.remove(offer.id)
                             }
                         },
                         onUpdateOfferItem = { selectedOffer ->
                             data.itemSnapshotList.find { it?.id == selectedOffer.id }?.isWatchedByMe =
                                 false
                             userRepository.updateUserInfo(favViewModel.viewModelScope)
-                            ld.value.updateItem.value = selectedOffer.id
-                            ld.value.updateItem.value = null // update item immediately
+                            favViewModel.updateItem.value = selectedOffer.id
+                            favViewModel.updateItem.value = null // update item immediately
                             favViewModel.showToast(
                                 ToastItem(
                                     isVisible = true,
@@ -214,16 +212,16 @@ fun FavoritesContent(
                             )
                         },
                     ) {
-                        if (ld.value.selectItems.isNotEmpty()) {
-                            if (ld.value.selectItems.contains(offer.id)) {
-                                ld.value.selectItems.remove(offer.id)
+                        if (favViewModel.selectItems.isNotEmpty()) {
+                            if (favViewModel.selectItems.contains(offer.id)) {
+                                favViewModel.selectItems.remove(offer.id)
                             } else {
-                                ld.value.selectItems.add(offer.id)
+                                favViewModel.selectItems.add(offer.id)
                             }
                         } else {
                             component.goToOffer(offer)
                             // set item for update
-                            ld.value.updateItem.value = offer.id
+                            favViewModel.updateItem.value = offer.id
                         }
                     }
                 }

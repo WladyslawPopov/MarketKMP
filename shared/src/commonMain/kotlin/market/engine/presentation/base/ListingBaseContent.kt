@@ -16,15 +16,12 @@ import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateError
-import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import market.engine.core.baseFilters.LD
@@ -40,10 +37,8 @@ import market.engine.widgets.grids.PagingList
 @Composable
 fun <T : Any>ListingBaseContent(
     columns : MutableState<Int> = mutableStateOf(1),
-    modifier: Modifier = Modifier,
     listingData : LD,
     searchData : SD,
-    isLoading : State<Boolean>,
     data : LazyPagingItems<T>,
     baseViewModel: BaseViewModel,
     onRefresh : () -> Unit,
@@ -65,7 +60,7 @@ fun <T : Any>ListingBaseContent(
     )
 
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(listingData.bottomSheetState.value)
+        bottomSheetState = rememberBottomSheetState(baseViewModel.bottomSheetState.value)
     )
 
     var error : (@Composable () -> Unit)? = null
@@ -73,17 +68,17 @@ fun <T : Any>ListingBaseContent(
 
     data.loadState.apply {
         when {
-            refresh is LoadStateNotLoading && data.itemCount > 0 && !isLoading.value -> {
+            refresh is LoadStateNotLoading && data.itemCount > 0 -> {
                 error = null
                 noItem = null
             }
 
-            refresh is LoadStateNotLoading && data.itemCount < 1 && !isLoading.value -> {
+            refresh is LoadStateNotLoading && data.itemCount < 1 -> {
                 noItem = {
                     noFound?.invoke() ?: showNoItemLayout{onRefresh()}
                 }
             }
-            refresh is LoadStateError && !isLoading.value -> {
+            refresh is LoadStateError -> {
                 error = {
                     onError(
                         ServerErrorException(
@@ -100,7 +95,7 @@ fun <T : Any>ListingBaseContent(
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
-                listingData.bottomSheetState.value = sheetValue
+                baseViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
                         listingData.resetScroll()
@@ -120,9 +115,9 @@ fun <T : Any>ListingBaseContent(
         }
     }
 
-    LaunchedEffect(listingData.activeFiltersType.value){
+    LaunchedEffect(baseViewModel.activeFiltersType.value){
         snapshotFlow {
-            listingData.activeFiltersType
+            baseViewModel.activeFiltersType
         }.collect { type ->
             if (type.value.isNotEmpty()) {
                 scaffoldState.bottomSheetState.expand()
@@ -148,16 +143,16 @@ fun <T : Any>ListingBaseContent(
         sheetPeekHeight = 0.dp,
         sheetGesturesEnabled = false,
         sheetContent = {
-            when (listingData.activeFiltersType.value) {
+            when (baseViewModel.activeFiltersType.value) {
                 "filters" -> {
                     filtersContent(isRefreshingFromFilters) {
-                        listingData.activeFiltersType.value = ""
+                        baseViewModel.activeFiltersType.value = ""
                     }
                 }
 
                 "sorting" -> {
                     sortingContent(isRefreshingFromFilters) {
-                        listingData.activeFiltersType.value = ""
+                        baseViewModel.activeFiltersType.value = ""
                     }
                 }
             }
@@ -167,40 +162,43 @@ fun <T : Any>ListingBaseContent(
 
             additionalBar(scrollState)
 
-            FiltersBar(
-                listingData,
-                searchData,
-                isShowGrid = isShowGrid,
-                onChangeTypeList = {
-                    baseViewModel.settings.setSettingValue("listingType", it)
-                    listingData.listingType = it
-                    onRefresh()
-                },
-                onFilterClick = {
-                    listingData.activeFiltersType.value = "filters"
-                },
-                onSortClick = {
-                    listingData.activeFiltersType.value = "sorting"
-                },
-                onSearchClick = {
-                    onSearchClick()
-                },
-                onRefresh = onRefresh
-            )
-            AnimatedVisibility(
-                listingData.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .animateContentSize()
-                ) {
-                    when{
-                        error != null -> error?.invoke()
-                        noItem != null -> noItem?.invoke()
-                        else -> {
+            if (!isRefreshingFromFilters.value) {
+                FiltersBar(
+                    listingData,
+                    searchData,
+                    isShowGrid = isShowGrid,
+                    onChangeTypeList = {
+                        baseViewModel.settings.setSettingValue("listingType", it)
+                        listingData.listingType = it
+                        onRefresh()
+                    },
+                    onFilterClick = {
+                        baseViewModel.activeFiltersType.value = "filters"
+                    },
+                    onSortClick = {
+                        baseViewModel.activeFiltersType.value = "sorting"
+                    },
+                    onSearchClick = {
+                        onSearchClick()
+                    },
+                    onRefresh = onRefresh
+                )
+            }
+
+            when {
+                error != null -> error?.invoke()
+                noItem != null -> noItem?.invoke()
+                else -> {
+                    AnimatedVisibility(
+                        baseViewModel.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .animateContentSize()
+                        ) {
                             PagingList(
                                 state = scrollState,
                                 data = data,
@@ -213,6 +211,7 @@ fun <T : Any>ListingBaseContent(
                                 promoList = promoList,
                                 promoContent = promoContent,
                             )
+
                         }
                     }
                 }

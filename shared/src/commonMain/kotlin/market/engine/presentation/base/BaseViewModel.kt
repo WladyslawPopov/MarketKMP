@@ -1,6 +1,8 @@
 package market.engine.presentation.base
 
+import androidx.compose.material.BottomSheetValue
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -19,9 +21,16 @@ import market.engine.core.types.ToastType
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
-
-
+    //select items and updateItem
+    var selectItems : MutableList<Long> = mutableStateListOf()
     var updateItem : MutableState<Long?> = mutableStateOf(null)
+
+    //filters params
+    val isOpenSearch : MutableState<Boolean> = mutableStateOf(false) // first open search
+    val isOpenCategory : MutableState<Boolean> = mutableStateOf(false) // first open cat
+    var activeFiltersType : MutableState<String> = mutableStateOf("")
+    var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed)
+
     private val offersOperations : OfferOperations = getKoin().get()
 
     suspend fun getUpdatedOfferById(offerId: Long) : Offer? {
@@ -45,11 +54,11 @@ open class BaseViewModel: ViewModel() {
 
     val viewModelScope = CoroutineScope(Dispatchers.Default)
 
-    protected fun onError(exception: ServerErrorException) {
+    fun onError(exception: ServerErrorException) {
         _errorMessage.value = exception
     }
 
-    protected fun setLoading(isLoading: Boolean) {
+    fun setLoading(isLoading: Boolean) {
         _isShowProgress.value = isLoading
     }
 

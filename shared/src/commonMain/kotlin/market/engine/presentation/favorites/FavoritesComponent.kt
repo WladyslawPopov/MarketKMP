@@ -87,7 +87,7 @@ class DefaultFavoritesComponent(
         }
         goToOffer(offer.id)
         lifecycle.doOnResume {
-            listingData.data.value.updateItem.value = offer.id
+            model.value.favViewModel.updateItem.value = offer.id
         }
     }
 }

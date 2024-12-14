@@ -1,5 +1,7 @@
 package market.engine.presentation.user.feedbacks
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
@@ -17,10 +19,11 @@ class FeedbacksViewModel(
     private val pagingRepository: PagingRepository<Reports> = PagingRepository()
     val listingData = ListingData()
 
+    val currentFilter = mutableStateOf("")
+
     fun init(type : ReportPageType, userId : Long) : Flow<PagingData<Reports>> {
         when(type){
             ReportPageType.ALL_REPORTS ->{
-                listingData.data.value.filters = arrayListOf()
                 listingData.data.value.filters.addAll(ReportFilters.filtersAll)
                 listingData.data.value.filters.find { it.key == "user_id" }?.value = userId.toString()
             }
@@ -30,12 +33,10 @@ class FeedbacksViewModel(
                 listingData.data.value.filters.find { it.key == "user_id" }?.value = userId.toString()
             }
             ReportPageType.FROM_SELLERS ->{
-                listingData.data.value.filters = arrayListOf()
                 listingData.data.value.filters.addAll(ReportFilters.filtersFromSellers)
                 listingData.data.value.filters.find { it.key == "user_id" }?.value = userId.toString()
             }
             ReportPageType.FROM_USER ->{
-                listingData.data.value.filters = arrayListOf()
                 listingData.data.value.filters.addAll(ReportFilters.filtersFromUsers)
                 listingData.data.value.filters.find { it.key == "user_id" }?.value = userId.toString()
             }

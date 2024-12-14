@@ -27,19 +27,15 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.paging.PagingRepository
 import market.engine.presentation.base.BaseViewModel
-import org.koin.mp.KoinPlatform.getKoin
 
 class ListingViewModel(
     private val apiService: APIService,
+    private val categoryOperations : CategoryOperations
 ) : BaseViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    private val categoryOperations : CategoryOperations = getKoin().get()
-
     val regionOptions = mutableStateOf(arrayListOf<Options>())
-
-    lateinit var pagingDataFlow : Flow<PagingData<Offer>>
 
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
@@ -48,7 +44,7 @@ class ListingViewModel(
     val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
 
 
-     fun init(listingData: ListingData) {
+     fun init(listingData: ListingData) : Flow<PagingData<Offer>> {
          listingData.data.value.methodServer = "get_public_listing"
          listingData.data.value.objServer = "offers"
 
@@ -58,17 +54,14 @@ class ListingViewModel(
          }
          listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0
 
-        if (!::pagingDataFlow.isInitialized) {
-            pagingDataFlow =
-                pagingRepository.getListing(listingData, apiService, Offer.serializer())
-                    .cachedIn(viewModelScope)
-        }
-
          getRegions()
 
-         getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID ?: 1L)
+         getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID)
 
          getCategory(listingData.searchData.value, listingData.data.value)
+
+        return pagingRepository.getListing(listingData, apiService, Offer.serializer())
+            .cachedIn(viewModelScope)
      }
 
     fun refresh(){
@@ -114,11 +107,16 @@ class ListingViewModel(
     }
 
     fun getCategory(searchData : SD, listingData : LD) {
-        setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response =  apiService.getPublicCategories(searchData.searchCategoryID)
 
+                val id = if (searchData.searchIsLeaf){
+                    searchData.searchParentID ?: 1L
+                }else{
+                    searchData.searchCategoryID
+                }
+
+                val response =  apiService.getPublicCategories(id)
 
                 val serializer = Payload.serializer(Category.serializer())
                 val payload: Payload<Category> = deserializePayload(response.payload, serializer)
@@ -142,7 +140,8 @@ class ListingViewModel(
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message ?: "Unknown error", ""))
-            } finally {
+            }
+            finally {
                 setLoading(false)
             }
         }

@@ -73,7 +73,6 @@ class DefaultUserComponent(
         searchData.userID = user.id
         searchData.userSearch = true
         searchData.userLogin = user.login
-        ld.data.value.isOpenCategory.value = false
         goToListing(ld)
     }
 

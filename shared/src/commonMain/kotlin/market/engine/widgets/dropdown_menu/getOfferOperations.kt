@@ -448,6 +448,8 @@ fun getOfferOperations(
                 title = { Text(title.value, style = MaterialTheme.typography.labelSmall) },
                 text = {
                     getDropdownMenu(
+                        selectedText = selected.value?.name.toString(),
+                        selectedTextDef = choices.firstOrNull()?.name.toString(),
                         selects = choices.map { it.name.toString() },
                         onItemClick = { type ->
                             selected.value = choices.find { it.name == type }

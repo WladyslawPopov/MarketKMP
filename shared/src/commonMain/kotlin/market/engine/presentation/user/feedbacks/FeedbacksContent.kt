@@ -66,13 +66,17 @@ fun FeedbacksContent(
         stringResource(strings.neutralFilterParams)
     )
 
-    val noFound = @Composable {
-        showNoItemLayout(
-            title = stringResource(strings.notFoundFeedbackLabel),
-            textButton = stringResource(strings.refreshButton)
-        ) {
-            setReportsFilters(listingData.value, component.model.value.userId, component.model.value.type)
-            component.onRefresh()
+    val state = rememberLazyListState(
+        initialFirstVisibleItemIndex = listingData.value.firstVisibleItemIndex,
+        initialFirstVisibleItemScrollOffset = listingData.value.firstVisibleItemScrollOffset
+    )
+
+    var showUpButton by remember { mutableStateOf(false) }
+    var showDownButton by remember { mutableStateOf(false) }
+
+    val currentIndex by remember {
+        derivedStateOf {
+            state.firstVisibleItemIndex + if(listingData.value.totalCount > 1) 2 else 1
         }
     }
 
@@ -84,17 +88,36 @@ fun FeedbacksContent(
 
     data.loadState.apply {
         when {
-            refresh is LoadStateNotLoading && data.itemCount > 0 && !isLoading.value -> {
+            refresh is LoadStateLoading -> {
                 error = null
                 noItem = null
             }
 
-            refresh is LoadStateNotLoading && data.itemCount < 1 && !isLoading.value -> {
+            refresh is LoadStateNotLoading && data.itemCount < 1 -> {
                 noItem = {
-                    noFound()
+                    if (listingData.value.filters.find { it.key == "evaluation" }?.value == "") {
+                        showNoItemLayout(
+                            title = stringResource(strings.notFoundFeedbackLabel),
+                            textButton = stringResource(strings.refreshButton)
+                        ) {
+                            component.onRefresh()
+                        }
+                    }else{
+                        showNoItemLayout(
+                            textButton = stringResource(strings.resetLabel)
+                        ) {
+                            viewModel.currentFilter.value = filters[0]
+                            setReportsFilters(
+                                listingData.value,
+                                component.model.value.userId,
+                                component.model.value.type
+                            )
+                            component.onRefresh()
+                        }
+                    }
                 }
             }
-            refresh is LoadStateError && !isLoading.value -> {
+            refresh is LoadStateError -> {
                 error = {
                     onError(
                         ServerErrorException(
@@ -108,32 +131,18 @@ fun FeedbacksContent(
         }
     }
 
-    val state = rememberLazyListState(
-        initialFirstVisibleItemIndex = listingData.value.firstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset = listingData.value.firstVisibleItemScrollOffset
-    )
-
-    var currentFilter by remember { mutableStateOf(
-        if (listingData.value.filters.find { it.key == "evaluation" }?.value == "") {
-            filters[0]
-        } else {
-            filters[listingData.value.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0]
-        })
-    }
-
-    var showUpButton by remember { mutableStateOf(false) }
-    var showDownButton by remember { mutableStateOf(false) }
-
-    val currentIndex by remember {
-        derivedStateOf {
-            state.firstVisibleItemIndex + if(listingData.value.totalCount > 1) 2 else 1
-        }
-    }
-
     LaunchedEffect(state.firstVisibleItemIndex){
         showUpButton = 2 < (state.firstVisibleItemIndex / listingData.value.pageCountItems)
         showDownButton = listingData.value.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.value.prevIndex ?: 0)
+    }
+
+    LaunchedEffect(Unit){
+        viewModel.currentFilter.value = if (listingData.value.filters.find { it.key == "evaluation" }?.value == "") {
+            filters[0]
+        }else{
+            filters[(listingData.value.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
+        }
     }
 
     Column {
@@ -143,11 +152,11 @@ fun FeedbacksContent(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 getDropdownMenu(
-                    selectedText = currentFilter,
+                    selectedText = viewModel.currentFilter.value,
                     selectedTextDef = filters[0],
                     selects = filters,
                     onClearItem = {
-                        currentFilter = filters[0]
+                        viewModel.currentFilter.value = filters[0]
                         setReportsFilters(
                             listingData.value,
                             component.model.value.userId,
@@ -156,10 +165,12 @@ fun FeedbacksContent(
                         component.onRefresh()
                     },
                     onItemClick = { filter ->
-                        currentFilter = filter
                         val newVal = listingData.value.filters.find { it.key == "evaluation" }
                         val oldVal =
                             listingData.value.filters.find { it.key == "evaluation" }?.value
+
+                        viewModel.currentFilter.value = filter
+
                         when (filters.indexOf(filter)) {
                             0 -> {
                                 newVal?.value = ""
@@ -207,7 +218,7 @@ fun FeedbacksContent(
                 ) {
                     when {
                         error != null -> item { error?.invoke() }
-                        noItem != null -> item { noFound() }
+                        noItem != null -> item { noItem?.invoke() }
                         model.type == ReportPageType.ABOUT_ME -> {
                             item {
                                 val aboutLabel = aboutMe?.parseHtmlToAnnotatedString() ?:
@@ -286,28 +297,32 @@ fun FeedbacksContent(
 fun setReportsFilters(listingData : LD, userId : Long, pageType : ReportPageType){
     when (pageType) {
         ReportPageType.ALL_REPORTS -> {
-            listingData.filters = arrayListOf()
+            ReportFilters.clearTypeFilter(ReportPageType.ALL_REPORTS)
+            listingData.filters.clear()
             listingData.filters.addAll(ReportFilters.filtersAll)
             listingData.filters.find { it.key == "user_id" }?.value =
                 userId.toString()
         }
 
         ReportPageType.FROM_BUYERS -> {
-            listingData.filters = arrayListOf()
+            ReportFilters.clearTypeFilter(ReportPageType.FROM_BUYERS)
+            listingData.filters.clear()
             listingData.filters.addAll(ReportFilters.filtersFromBuyers)
             listingData.filters.find { it.key == "user_id" }?.value =
                 userId.toString()
         }
 
         ReportPageType.FROM_SELLERS -> {
-            listingData.filters = arrayListOf()
+            ReportFilters.clearTypeFilter(ReportPageType.FROM_SELLERS)
+            listingData.filters.clear()
             listingData.filters.addAll(ReportFilters.filtersFromSellers)
             listingData.filters.find { it.key == "user_id" }?.value =
                 userId.toString()
         }
 
         ReportPageType.FROM_USER -> {
-            listingData.filters = arrayListOf()
+            ReportFilters.clearTypeFilter(ReportPageType.FROM_USER)
+            listingData.filters.clear()
             listingData.filters.addAll(ReportFilters.filtersFromUsers)
             listingData.filters.find { it.key == "user_id" }?.value =
                 userId.toString()

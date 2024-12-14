@@ -12,18 +12,16 @@ import market.engine.core.network.paging.PagingRepository
 import market.engine.presentation.base.BaseViewModel
 
 class SubViewModel(
-    private val apiService: APIService,
+    apiService: APIService,
 ) : BaseViewModel() {
     private val pagingRepository: PagingRepository<Subscription> = PagingRepository()
 
     var listingData = mutableStateOf(ListingData())
-
     val pagingDataFlow : Flow<PagingData<Subscription>>
 
     init {
-        if (listingData.value.data.value.filters.isNullOrEmpty()) {
-            listingData.value.data.value.filters = arrayListOf()
-            listingData.value.data.value.filters?.addAll(OfferFilters.filtersFav)
+        if (listingData.value.data.value.filters.isEmpty()) {
+            listingData.value.data.value.filters.addAll(OfferFilters.filtersFav)
         }
         listingData.value.data.value.methodServer = "get_cabinet_listing"
         listingData.value.data.value.objServer = "subscriptions"

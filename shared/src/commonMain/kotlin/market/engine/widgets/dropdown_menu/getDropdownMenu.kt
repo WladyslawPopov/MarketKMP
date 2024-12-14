@@ -42,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getDropdownMenu(
-    selectedText : String?=null,
+    selectedText : String,
     selectedTextDef : String? = null,
     selects: List<String>,
     onItemClick: (String) -> Unit,
@@ -50,8 +50,6 @@ fun getDropdownMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectDef = selectedTextDef ?: stringResource(strings.chooseAction)
-
-    var selectedOption by remember { mutableStateOf(selectedText ?: selectDef) }
 
     val rotationAngle by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f
@@ -80,19 +78,18 @@ fun getDropdownMenu(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                selectedOption,
+                selectedText,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(dimens.mediumPadding)
             )
             Row {
                 AnimatedVisibility(!expanded) {
-                    if (selectedOption != selectDef) {
+                    if (selectedText != selectDef) {
                         SmallIconButton(
                             drawables.cancelIcon,
                             colors.black,
                             onClick = {
                                 onClearItem()
-                                selectedOption = selectDef
                             },
                             modifier = Modifier.padding(end = dimens.smallPadding)
                         )
@@ -123,7 +120,6 @@ fun getDropdownMenu(
                 DropdownMenuItem(
                     onClick = {
                         onItemClick(option)
-                        selectedOption = option
                         expanded = false
                     },
                     text = {

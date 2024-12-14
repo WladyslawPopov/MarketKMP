@@ -3,12 +3,7 @@ package market.engine.presentation.login
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,8 +12,7 @@ import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.NavigationArrowButton
-import market.engine.widgets.texts.TitleText
-import org.jetbrains.compose.resources.stringResource
+import market.engine.widgets.texts.TextAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +25,7 @@ fun LoginAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            TitleText(title)
+            TextAppBar(title)
         },
         navigationIcon = {
             NavigationArrowButton {

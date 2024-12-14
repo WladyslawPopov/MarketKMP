@@ -14,7 +14,7 @@ sealed class HomeConfig {
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : HomeConfig()
 
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD) : HomeConfig()
+    data class ListingScreen(val isOpenSearch : Boolean, val listingData: LD, val searchData : SD) : HomeConfig()
 
     @Serializable
     data class UserScreen(val userId: Long, val ts: String, val aboutMe : Boolean) : HomeConfig()

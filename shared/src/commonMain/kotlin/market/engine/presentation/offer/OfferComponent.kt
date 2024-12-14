@@ -34,7 +34,7 @@ class DefaultOfferComponent(
     val id: Long,
     isSnapshot: Boolean,
     componentContext: ComponentContext,
-    val selectOffer: (id: Long) -> Unit,
+    val selectOffer: (Long) -> Unit,
     val navigationBack: () -> Unit,
     val navigationListing: (listingData: ListingData) -> Unit,
     val navigationBasket: () -> Unit,
@@ -77,7 +77,6 @@ class DefaultOfferComponent(
         ld.searchData.value.searchCategoryName = cat.name
         ld.searchData.value.searchParentID = cat.parentId
         ld.searchData.value.searchIsLeaf = cat.isLeaf
-        ld.data.value.isOpenCategory.value = false
         navigationListing(ld)
     }
 
@@ -88,7 +87,6 @@ class DefaultOfferComponent(
         ld.searchData.value.userID = sellerData.id
         ld.searchData.value.userLogin = sellerData.login
         ld.searchData.value.userSearch = true
-        ld.data.value.isOpenCategory.value = false
         navigationListing(ld)
     }
 
@@ -100,7 +98,6 @@ class DefaultOfferComponent(
             listingData.filters.addAll(EmptyFilters.getEmpty())
             listingData.filters.find { it.key == "region" }?.value = region.code.toString()
             listingData.filters.find { it.key == "region" }?.interpritation = region.name
-            ld.data.value.isOpenCategory.value = false
             navigationListing(ld)
         }
     }

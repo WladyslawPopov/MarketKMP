@@ -93,12 +93,11 @@ class DefaultMyOffersComponent(
         offerSelected(offer.id)
 
         lifecycle.doOnResume {
-            listingData.data.value.updateItem.value = offer.id
+            model.value.viewModel.updateItem.value = offer.id
         }
     }
 
     override fun selectMyOfferPage(select: LotsType) {
         selectedMyOfferPage(select)
     }
-
 }

@@ -405,7 +405,7 @@ fun OfferFilterContent(
                             )
 
                             getDropdownMenu(
-                                listingData.find { it.key == "sale_type" }?.interpritation,
+                                listingData.find { it.key == "sale_type" }?.interpritation ?: "",
                                 offersType[0].second,
                                 offersTypeFilterMap,
                                 onItemClick = { type ->
@@ -515,6 +515,7 @@ fun InputsOfferFilterContent(
                 modifier = Modifier.widthIn(max = 250.dp).weight(1f)
             )
         }
+
         Row(
             modifier = Modifier.wrapContentWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -548,36 +549,37 @@ fun InputsOfferFilterContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-            FilterButton(
-                activeCategory.value,
-                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                color = if (defCat == activeCategory.value) colors.simpleButtonColors else colors.themeButtonColors,
-                onClick = {
-                    openBottomSheet.value = true
-                },
-                onCancelClick = {
-                    val name = filters.find { it.key == "category" }?.interpritation
-                    if (!name.isNullOrEmpty()) {
-                        IconButton(
-                            onClick = {
-                                isRefreshing.value = true
-                                filters.find { it.key == "category" }?.value = ""
-                                filters.find { it.key == "category" }?.interpritation = null
-                                activeCategory.value = defCat
-                            },
-                            content = {
-                                Icon(
-                                    painterResource(drawables.cancelIcon),
-                                    tint = colors.black,
-                                    contentDescription = stringResource(strings.actionClose)
-                                )
-                            },
-                            modifier = Modifier.size(dimens.smallIconSize)
-                        )
+                FilterButton(
+                    modifier = Modifier.padding(dimens.mediumPadding),
+                    activeCategory.value,
+                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                    color = if (defCat == activeCategory.value) colors.simpleButtonColors else colors.themeButtonColors,
+                    onClick = {
+                        openBottomSheet.value = true
+                    },
+                    onCancelClick = {
+                        val name = filters.find { it.key == "category" }?.interpritation
+                        if (!name.isNullOrEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    isRefreshing.value = true
+                                    filters.find { it.key == "category" }?.value = ""
+                                    filters.find { it.key == "category" }?.interpritation = null
+                                    activeCategory.value = defCat
+                                },
+                                content = {
+                                    Icon(
+                                        painterResource(drawables.cancelIcon),
+                                        tint = colors.black,
+                                        contentDescription = stringResource(strings.actionClose)
+                                    )
+                                },
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                        }
                     }
-                }
-            )
-                }
+                )
+            }
         }
     }
 }

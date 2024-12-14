@@ -48,8 +48,6 @@ fun SubscribesContent(
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            isLoading = isLoading,
-            modifier = modifier,
             listingData = listingData.value,
             data = data,
             searchData = searchData.value,

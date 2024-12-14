@@ -34,6 +34,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SwipeTabsBar(
+    isVisibility: Boolean,
     listingData : LD,
     scrollState: LazyListState,
     onRefresh: () -> Unit
@@ -48,12 +49,17 @@ fun SwipeTabsBar(
             (scrollState.firstVisibleItemIndex / itemsPerPage) + 1
         }
     }
+
     val curTab = when (listingData.filters.find { filter-> filter.key == "sale_type" }?.value){
         "auction" -> TabTypeListing.AUCTION
         "buynow" -> TabTypeListing.BUY_NOW
         else -> TabTypeListing.ALL
     }
     val isTabsVisible = remember { mutableStateOf(true) }
+
+    if (isVisibility) {
+        isTabsVisible.value = true
+    }
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.firstVisibleItemIndex }
@@ -128,11 +134,10 @@ fun SwipeTabsBar(
         ),
     )
 
-
     AnimatedVisibility(
         visible = isTabsVisible.value,
-        enter = fadeIn() ,
-        exit = fadeOut() ,
+        enter = fadeIn(),
+        exit = fadeOut(),
         modifier = Modifier.animateContentSize()
     ) {
         LazyRow(
@@ -144,7 +149,7 @@ fun SwipeTabsBar(
                 FilterChip(
                     modifier = Modifier.padding(dimens.smallPadding),
                     selected = tab.type == curTab,
-                    onClick = {tab.onClick() },
+                    onClick = { tab.onClick() },
                     label = {
                         Text(tab.title, style = MaterialTheme.typography.bodySmall)
                     },

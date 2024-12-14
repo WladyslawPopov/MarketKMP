@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class SD(
     var searchCategoryName: String? = null,
     var searchCategoryID: Long = 1L,
-    var searchParentID:Long? = 1L,
+    var searchParentID: Long? = 1L,
     var searchParentName: String? = null,
     var searchIsLeaf: Boolean = false,
 
@@ -16,7 +16,7 @@ data class SD(
     var userLogin: String? = null,
     var userID: Long = 1L,
 
-    var isRefreshing : Boolean = true
+    var isRefreshing : Boolean = false
 )
 {
     fun clear(){

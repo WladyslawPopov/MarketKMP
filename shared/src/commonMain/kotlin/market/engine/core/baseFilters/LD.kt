@@ -1,14 +1,10 @@
 package market.engine.core.baseFilters
 
-import androidx.compose.material.BottomSheetValue
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class LD(
-    var filters : MutableList<Filter> = mutableStateListOf(),
+    var filters : ArrayList<Filter> = arrayListOf(),
     var sort : Sort? = null,
     var listingType : Int = 0,
 
@@ -23,16 +19,6 @@ data class LD(
     var firstVisibleItemIndex : Int = 0,
     var firstVisibleItemScrollOffset : Int = 0,
     var prevIndex : Int? = null,
-
-    //select items and updateItem
-    var selectItems : MutableList<Long> = mutableStateListOf(),
-    var updateItem : MutableState<Long?> = mutableStateOf(null),
-
-    //filters params
-    val isOpenSearch : MutableState<Boolean> = mutableStateOf(false), // first open search
-    val isOpenCategory : MutableState<Boolean> = mutableStateOf(true), // first open cat
-    var activeFiltersType : MutableState<String> = mutableStateOf(""),
-    var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed),
 ) {
     fun resetScroll(){
         firstVisibleItemIndex = 0
@@ -41,7 +27,7 @@ data class LD(
     }
 
     fun clearFilters(){
-        filters = mutableStateListOf()
+        filters = arrayListOf()
         sort = null
         listingType = 0
     }

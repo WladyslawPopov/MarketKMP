@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
@@ -59,9 +58,11 @@ fun ListingContent(
     val searchData = modelState.value.listingData.searchData.subscribeAsState()
     val listingData = modelState.value.listingData.data.subscribeAsState()
 
-    val data = remember { listingViewModel.pagingDataFlow }.collectAsLazyPagingItems()
+    val data = remember { component.model.value.pagingDataFlow }.collectAsLazyPagingItems()
 
-    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+    val isLoadingListing : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+
+    val isLoadingCategory = listingViewModel.isShowProgress.collectAsState()
 
     val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
     val regions = listingViewModel.regionOptions.value
@@ -78,12 +79,12 @@ fun ListingContent(
 
     val scaffoldStateCategory = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
-            initialValue = if (listingData.value.isOpenCategory.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
+            initialValue = if (listingViewModel.isOpenCategory.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
-            initialValue = if (listingData.value.isOpenSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
+            initialValue = if (listingViewModel.isOpenSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
 
@@ -104,15 +105,18 @@ fun ListingContent(
     val title = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
 
     val refresh = {
-
         listingData.value.resetScroll()
 
         columns.value =
             if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
 
-        listingViewModel.getCategory(searchData.value, listingData.value)
-        listingViewModel.refresh()
-
+        if (listingViewModel.isOpenCategory.value) {
+            listingViewModel.setLoading(true)
+            listingViewModel.getCategory(searchData.value, listingData.value)
+        }else {
+            listingViewModel.refresh()
+            listingViewModel.getCategory(searchData.value, listingData.value)
+        }
     }
 
     val error : (@Composable () -> Unit)? = if (isErrorCategory.humanMessage != "") {
@@ -124,8 +128,8 @@ fun ListingContent(
     val backCountClick = remember { mutableStateOf(0) }
 
 
-    LaunchedEffect(listingData.value.isOpenSearch.value) {
-        snapshotFlow { listingData.value.isOpenSearch.value }.collectLatest { isOpen ->
+    LaunchedEffect(listingViewModel.isOpenSearch.value) {
+        snapshotFlow { listingViewModel.isOpenSearch.value }.collectLatest { isOpen ->
             if (isOpen) {
                 scaffoldStateSearch.bottomSheetState.expand()
 
@@ -152,11 +156,11 @@ fun ListingContent(
     LaunchedEffect(scaffoldStateSearch.bottomSheetState.isCollapsed) {
         if (scaffoldStateSearch.bottomSheetState.isCollapsed) {
             focusManager.clearFocus()
-            listingData.value.isOpenSearch.value = false
+            listingViewModel.isOpenSearch.value = false
 
             if (searchData.value.isRefreshing){
                 when{
-                    listingData.value.isOpenCategory.value -> listingViewModel.getCategory(searchData.value, listingData.value)
+                    listingViewModel.isOpenCategory.value -> listingViewModel.getCategory(searchData.value, listingData.value)
                     else -> refresh()
                 }
                 searchData.value.isRefreshing = false
@@ -183,16 +187,16 @@ fun ListingContent(
                 selectedUserLogin,
                 selectedUserFinished,
                 onClose = {
-                    listingData.value.isOpenSearch.value = false
+                    listingViewModel.isOpenSearch.value = false
                 },
                 goToListing = {
-                    listingData.value.isOpenSearch.value = false
-                    listingData.value.isOpenCategory.value = false
+                    listingViewModel.isOpenSearch.value = false
+                    listingViewModel.isOpenCategory.value = false
                     searchData.value.isRefreshing = true
                 },
                 goToCategory = {
-                    listingData.value.isOpenCategory.value = true
-                    listingData.value.isOpenSearch.value = false
+                    listingViewModel.isOpenCategory.value = true
+                    listingViewModel.isOpenSearch.value = false
                 }
             )
         },
@@ -203,19 +207,19 @@ fun ListingContent(
                     title = title.value,
                     modifier,
                     isShowNav = backCountClick.value == 0,
-                    isOpenCategory = !listingData.value.isOpenCategory.value,
+                    isOpenCategory = !listingViewModel.isOpenCategory.value,
                     onBackClick = {
-                        if((listingData.value.isOpenCategory.value && searchData.value.searchCategoryID == 1L)){
+                        if((listingViewModel.isOpenCategory.value && searchData.value.searchCategoryID == 1L)){
                             backCountClick.value = 1
                         }
                         component.goBack()
-                        listingData.value.isOpenCategory.value = true
+                        listingViewModel.isOpenCategory.value = true
                     },
                     closeCategory = {
-                        listingData.value.isOpenCategory.value = !listingData.value.isOpenCategory.value
+                        listingViewModel.isOpenCategory.value = !listingViewModel.isOpenCategory.value
                     },
                     onSearchClick = {
-                        listingData.value.isOpenSearch.value = true
+                        listingViewModel.isOpenSearch.value = true
                     }
                 )
             },
@@ -224,7 +228,7 @@ fun ListingContent(
             },
             error = error,
             noFound = null,
-            isLoading = isLoading.value,
+            isLoading = isLoadingListing.value,
             toastItem = listingViewModel.toastItem,
             modifier = modifier.fillMaxSize()
         ) {
@@ -239,8 +243,8 @@ fun ListingContent(
                 sheetGesturesEnabled = false,
                 sheetContent = {
 
-                    LaunchedEffect(listingData.value.isOpenCategory.value) {
-                        snapshotFlow { listingData.value.isOpenCategory.value }.collectLatest { isOpen ->
+                    LaunchedEffect(listingViewModel.isOpenCategory.value) {
+                        snapshotFlow { listingViewModel.isOpenCategory.value }.collectLatest { isOpen ->
                             if (isOpen) {
                                 scaffoldStateCategory.bottomSheetState.expand()
                             } else {
@@ -251,7 +255,7 @@ fun ListingContent(
 
                     LaunchedEffect(scaffoldStateCategory.bottomSheetState.isCollapsed) {
                         if (scaffoldStateCategory.bottomSheetState.isCollapsed) {
-                            listingData.value.isOpenCategory.value = false
+                            listingViewModel.isOpenCategory.value = false
                             if (searchData.value.isRefreshing || data.itemCount == 0){
                                 refresh()
                                 searchData.value.isRefreshing = false
@@ -264,14 +268,14 @@ fun ListingContent(
                         searchData = searchData.value,
                         listingData = listingData.value,
                         goListing = {
-                            listingData.value.isOpenCategory.value = false
+                            listingViewModel.isOpenCategory.value = false
                         },
                         goToSearch = {
-                            listingData.value.isOpenSearch.value = true
+                            listingViewModel.isOpenSearch.value = true
                         },
                         modifier = Modifier.fillMaxHeight(0.9f),
                         categories = categories.value,
-                        isLoading = isLoading.value,
+                        isLoading = isLoadingCategory.value,
                         scope = listingViewModel.viewModelScope,
                         refresh = refresh
                     )
@@ -298,20 +302,19 @@ fun ListingContent(
                 //update item when we back
                 LaunchedEffect(Unit){
 
-                    if (listingData.value.updateItem.value != null) {
+                    if (listingViewModel.updateItem.value != null) {
                         withContext(Dispatchers.Default) {
-                            val updateItem = listingData.value.updateItem.value
+                            val updateItem = listingViewModel.updateItem.value
                             val offer =
                                 listingViewModel.getUpdatedOfferById(updateItem ?: 1L)
                             withContext(Dispatchers.Main) {
                                 if (offer != null) {
                                     val item =
                                         data.itemSnapshotList.items.find { it.id == offer.id }
-                                    item?.isWatchedByMe =
-                                        offer.isWatchedByMe
+                                    item?.isWatchedByMe = offer.isWatchedByMe
                                 }
 
-                                listingData.value.updateItem.value = null
+                                listingViewModel.updateItem.value = null
                             }
                         }
                     }
@@ -319,11 +322,9 @@ fun ListingContent(
 
                 ListingBaseContent(
                     columns = columns,
-                    modifier = modifier,
                     listingData.value,
                     searchData.value,
                     data = data,
-                    isLoading = isLoading,
                     baseViewModel = listingViewModel,
                     noFound = noFound,
                     onRefresh = {
@@ -346,6 +347,7 @@ fun ListingContent(
                     },
                     additionalBar = { state ->
                         SwipeTabsBar(
+                            isVisibility = listingViewModel.isOpenCategory.value,
                             listingData.value,
                             state,
                             onRefresh = {
@@ -389,14 +391,10 @@ fun ListingContent(
                     },
                     isShowGrid = true,
                     onSearchClick = {
-                        listingData.value.isOpenSearch.value = true
+                        listingViewModel.isOpenSearch.value = true
                     }
                 )
             }
         }
     }
 }
-
-
-
-

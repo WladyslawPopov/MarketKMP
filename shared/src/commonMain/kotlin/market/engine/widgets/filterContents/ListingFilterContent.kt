@@ -308,7 +308,7 @@ fun FilterListingContent(
                         )
 
                         getDropdownMenu(
-                            selectedText = listingData.filters.find { it.key == "region" }?.interpritation,
+                            selectedText = listingData.filters.find { it.key == "region" }?.interpritation ?: "",
                             selects = regionsOptions.map { it.name.toString() },
                             onItemClick = { newRegion ->
                                 listingData.filters.find { it.key == "region" }?.value =
@@ -358,7 +358,7 @@ fun FilterListingContent(
                                     getDropdownMenu(
                                         selectedText = timeFilterMap.find { time ->
                                             time.first == listingData.filters.find { it.key == "new" }?.value
-                                        }?.second,
+                                        }?.second ?: "",
                                         selects = timeOptions,
                                         onItemClick = { time ->
                                             listingData.filters.find { it.key == "new" }?.value =
@@ -391,7 +391,7 @@ fun FilterListingContent(
                                     getDropdownMenu(
                                         selectedText =timeFilterMap.find { time ->
                                             time.first == listingData.filters.find { it.key == "new_without_relisted" }?.value
-                                        }?.second,
+                                        }?.second ?: "",
                                         selects = timeOptions,
                                         onItemClick = { time ->
                                             listingData.filters.find { it.key == "new_without_relisted" }?.value =
@@ -424,7 +424,7 @@ fun FilterListingContent(
                                     getDropdownMenu(
                                         selectedText =timeFilterMap.find { time ->
                                             time.first == listingData.filters.find { it.key == "ending" }?.value
-                                        }?.second,
+                                        }?.second ?: "",
                                         selects = timeOptions,
                                         onItemClick = { time ->
                                             listingData.filters.find { it.key == "ending" }?.value =

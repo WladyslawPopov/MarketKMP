@@ -19,6 +19,7 @@ import market.engine.core.globalData.ThemeResources.dimens
 
 @Composable
 fun FilterButton(
+    modifier: Modifier,
     text: String,
     color: ButtonColors,
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
@@ -30,8 +31,8 @@ fun FilterButton(
         colors = color,
     ) {
         Row(
-            modifier = Modifier.wrapContentWidth().padding(dimens.mediumPadding),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = text,

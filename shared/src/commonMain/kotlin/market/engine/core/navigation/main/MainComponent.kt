@@ -357,7 +357,7 @@ class DefaultMainComponent(
                     },
                     onListingSelected = {
                         modelNavigation.value.homeNavigation.pushNew(
-                            HomeConfig.ListingScreen(it.data.value, it.searchData.value)
+                            HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
                         )
                     },
                     onUserSelected = { ui, about ->
@@ -384,8 +384,10 @@ class DefaultMainComponent(
                         },
                         onBack = {
                             modelNavigation.value.homeNavigation.pop()
-                        }
-                    )
+                        },
+                        isOpenCategory = false,
+                        isOpenSearch = config.isOpenSearch
+                    ),
                 )
             }
 
@@ -396,7 +398,7 @@ class DefaultMainComponent(
                     config.aboutMe,
                     goToLogin = {
                         modelNavigation.value.homeNavigation.pushNew(
-                            HomeConfig.ListingScreen(it.data.value, it.searchData.value)
+                            HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
                         )
                     },
                     goBack = {
@@ -442,7 +444,9 @@ class DefaultMainComponent(
                         },
                         onBack = {
                             modelNavigation.value.searchNavigation.pop()
-                        }
+                        },
+                        isOpenCategory = true,
+                        isOpenSearch = true
                     ),
                 )
             }
@@ -556,7 +560,8 @@ class DefaultMainComponent(
                         },
                         onBack = {
                             modelNavigation.value.favoritesNavigation.pop()
-                        }
+                        },
+                        isOpenCategory = false
                     )
                 )
             }
@@ -651,7 +656,8 @@ class DefaultMainComponent(
                         },
                         onBack = {
                             modelNavigation.value.profileNavigation.pop()
-                        }
+                        },
+                        isOpenCategory = false,
                     )
                 )
             }
@@ -692,8 +698,8 @@ class DefaultMainComponent(
         return DefaultHomeComponent(
             componentContext = componentContext,
             navigation = modelNavigation.value.homeNavigation,
-            navigateToListingSelected = {
-                modelNavigation.value.homeNavigation.pushNew(HomeConfig.ListingScreen(it.data.value, it.searchData.value))
+            navigateToListingSelected = { ld, isNewSearch ->
+                modelNavigation.value.homeNavigation.pushNew(HomeConfig.ListingScreen(isNewSearch, ld.data.value, ld.searchData.value))
             },
             navigateToLoginSelected = {
                 goToLogin()
@@ -704,8 +710,17 @@ class DefaultMainComponent(
         )
     }
 
-    private fun itemListing(componentContext: ComponentContext, listingData: ListingData, selectOffer: (Long) -> Unit, onBack : () -> Unit): ListingComponent {
+    private fun itemListing(
+        componentContext: ComponentContext,
+        listingData: ListingData,
+        selectOffer: (Long) -> Unit,
+        onBack : () -> Unit,
+        isOpenSearch : Boolean = false,
+        isOpenCategory : Boolean
+    ): ListingComponent {
         return DefaultListingComponent(
+            isOpenSearch = isOpenSearch,
+            isOpenCategory = isOpenCategory,
             componentContext = componentContext,
             listingData = listingData,
             selectOffer = { id ->
@@ -716,6 +731,7 @@ class DefaultMainComponent(
             },
         )
     }
+
     private fun itemOffer(
         componentContext: ComponentContext,
         id: Long,

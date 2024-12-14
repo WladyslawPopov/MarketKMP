@@ -1,9 +1,11 @@
 package market.engine.presentation.listing
 
+import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.items.ListingData
 import market.engine.core.network.networkObjects.Offer
@@ -14,6 +16,7 @@ interface ListingComponent {
     val model : Value<Model>
     data class Model(
         val listingData: ListingData,
+        var pagingDataFlow : Flow<PagingData<Offer>>,
         val listingViewModel: ListingViewModel,
     )
 
@@ -22,16 +25,21 @@ interface ListingComponent {
 }
 
 class DefaultListingComponent(
+    isOpenCategory : Boolean,
+    isOpenSearch : Boolean,
     componentContext: ComponentContext,
     listingData: ListingData,
     private val selectOffer: (Long) -> Unit,
     private val selectedBack: () -> Unit
 ) : ListingComponent, ComponentContext by componentContext {
 
+    private val listingViewModel : ListingViewModel = getKoin().get()
+
     private val _model = MutableValue(
         ListingComponent.Model(
             listingData = listingData,
-            listingViewModel = getKoin().get()
+            pagingDataFlow = listingViewModel.init(listingData),
+            listingViewModel = listingViewModel
         )
     )
 
@@ -46,10 +54,13 @@ class DefaultListingComponent(
             "category_id" to searchData.value.searchCategoryID.toString()
         )
         analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
-        model.value.listingViewModel.init(listingData)
+
+        listingViewModel.isOpenCategory.value = isOpenCategory
+        listingViewModel.isOpenSearch.value = isOpenSearch
     }
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
+
         if (isTopPromo){
             val eventParameters = mapOf(
                 "lot_category" to offer.catpath.lastOrNull(),
@@ -61,6 +72,7 @@ class DefaultListingComponent(
                 eventParameters
             )
         }
+
         if (searchData.value.userSearch || searchData.value.searchString != null){
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
@@ -93,7 +105,7 @@ class DefaultListingComponent(
         selectOffer(offer.id)
 
         lifecycle.doOnResume {
-            model.value.listingData.data.value.updateItem.value = offer.id
+            listingViewModel.updateItem.value = offer.id
             printLogD("Update item Listing", offer.id.toString())
         }
     }

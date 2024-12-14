@@ -29,6 +29,7 @@ import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.util.getImage
 import market.engine.core.util.printLogD
 
 @Composable
@@ -36,45 +37,57 @@ fun HorizontalImageViewer(
     images: List<String>,
     pagerState: PagerState,
 ) {
-    Box{
+    Box(
+        modifier = Modifier.background(colors.transparentGrayColor, MaterialTheme.shapes.small)
+            .padding(dimens.smallPadding),
+        contentAlignment = Alignment.Center
+    ){
         HorizontalPager(
             pageSize = PageSize.Fill,
             state = pagerState,
             snapPosition = SnapPosition.Center,
         ) { index ->
+            val imageLoadFailed = remember { mutableStateOf(false) }
             val loading = remember { mutableStateOf(true) }
             val imageUrl = images[index]
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                if (loading.value) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        CircularProgressIndicator(
-                            color = colors.inactiveBottomNavIconColor
-                        )
-                    }
-                }
 
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth().align(Alignment.Center),
-                    imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
-                        .crossfade(true)
-                        .components {
-                            add(SvgDecoder.Factory())
-                        }.build(),
-                    onSuccess = {
-                        loading.value = false
-                        printLogD("Coil success", imageUrl)
-                    },
-                    onError = {
-                        printLogD("Coil Error", it.result.throwable.message)
-                    },
-                )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                if (imageLoadFailed.value){
+                    getImage(imageUrl)
+                }else {
+                    if (loading.value) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            CircularProgressIndicator(
+                                color = colors.inactiveBottomNavIconColor
+                            )
+                        }
+                    }
+
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                        imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
+                            .crossfade(true)
+                            .components {
+                                add(SvgDecoder.Factory())
+                            }.build(),
+                        onSuccess = {
+                            loading.value = false
+                            printLogD("Coil success", imageUrl)
+                        },
+                        onError = {
+                            imageLoadFailed.value = true
+                            printLogD("Coil Error", it.result.throwable.message)
+                        },
+                    )
+                }
             }
         }
 

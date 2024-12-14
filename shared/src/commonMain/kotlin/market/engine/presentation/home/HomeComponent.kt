@@ -37,7 +37,7 @@ interface HomeComponent {
 class DefaultHomeComponent(
     componentContext: ComponentContext,
     val navigation: StackNavigation<HomeConfig>,
-    private val navigateToListingSelected: (ListingData) -> Unit,
+    private val navigateToListingSelected: (ListingData, Boolean) -> Unit,
     val navigateToLoginSelected: () -> Unit,
     val navigateToOfferSelected: (id: Long) -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
@@ -98,10 +98,7 @@ class DefaultHomeComponent(
 
     override fun goToNewSearch() {
         val ld = ListingData()
-        val listingData = ld.data.value
-        listingData.isOpenSearch.value = true
-        listingData.isOpenCategory.value = false
-        navigateToListingSelected(ld)
+        navigateToListingSelected(ld, true)
     }
 
     override fun goToCategory(category: TopCategory) {
@@ -113,9 +110,8 @@ class DefaultHomeComponent(
         searchData.searchCategoryName = category.name
         searchData.searchParentName = category.parentName
         searchData.isRefreshing = true
-        ld.data.value.isOpenCategory.value = false
 
-        navigateToListingSelected(ld)
+        navigateToListingSelected(ld, false)
     }
 
     override fun goToAllPromo() {
@@ -137,9 +133,8 @@ class DefaultHomeComponent(
             }?.interpritation = getString(strings.allPromoOffersBtn)
 
             searchData.isRefreshing = true
-            ld.data.value.isOpenCategory.value = false
 
-            navigateToListingSelected(ld)
+            navigateToListingSelected(ld, false)
         }
     }
 }

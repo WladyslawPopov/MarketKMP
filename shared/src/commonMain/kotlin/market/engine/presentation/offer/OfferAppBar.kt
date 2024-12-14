@@ -39,7 +39,7 @@ import market.engine.core.types.ToastType
 import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.NavigationArrowButton
-import market.engine.widgets.texts.TitleText
+import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -106,7 +106,7 @@ fun OfferAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            TitleText(offer.name ?: stringResource(strings.defaultOfferTitle))
+            TextAppBar(offer.name ?: stringResource(strings.defaultOfferTitle))
         },
         navigationIcon = {
             NavigationArrowButton {

@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import market.engine.core.globalData.ThemeResources.colors
@@ -40,6 +41,7 @@ import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FeedbackItem(
     report: Reports,
@@ -64,14 +66,15 @@ fun FeedbackItem(
   
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth().wrapContentHeight()
             .background(colors.white, shape = MaterialTheme.shapes.medium)
             .padding(dimens.smallPadding)
     ) {
         Row(
-           modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+           modifier = Modifier.fillMaxWidth()
+               .padding(dimens.smallPadding),
            verticalAlignment = Alignment.CenterVertically,
-           horizontalArrangement = Arrangement.SpaceAround
+           horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Card(
                 modifier = Modifier.padding(dimens.smallPadding),
@@ -84,111 +87,39 @@ fun FeedbackItem(
                     size = 40.dp
                 )
             }
-            Spacer(modifier = Modifier.width(dimens.smallPadding))
 
-            Column {
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
-                Row(
-                    modifier = Modifier.wrapContentSize().clickable { 
-                        onClickReporter(report.fromUser?.id ?: 1L)
-                    }
-                ) {
-                    Text(
-                        text = report.fromUser?.login ?: "",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = colors.actionTextColor,
-                    )
-                    
-                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
-                    
-                    // role + rating
-                    val roleLabel = if (report.fromUser?.role == "buyer")
-                        stringResource(strings.buyerParameterName) else
-                            stringResource(strings.sellerLabel)
-                    Text(
-                        text = "(${report.fromUser?.rating}) $roleLabel",
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                }
-
-                if (!report.comment.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
-                    Text(
-                        text = report.comment,
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(0.7f).clickable {
+                    onClickReporter(report.fromUser?.id ?: 1L)
+                },
+                horizontalArrangement = Arrangement.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
-                    text = report.feedbackTs.toString().convertDateWithMinutes(),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.align(Alignment.End)
-                )
-                Spacer(modifier = Modifier.width(dimens.mediumSpacer))
-
-                val orderText = buildAnnotatedString {
-                    append(stringResource(strings.orderLabel))
-
-
-                    withStyle(
-                        if (isMyFeedbacks || report.fromUser?.id == UserData.login)
-                            SpanStyle(
-                                color = colors.actionTextColor,
-                            )
-                        else
-                            SpanStyle(
-                                color = colors.grayText,
-                            )
-                    ){
-                        append(" #${report.orderId}")
-                    }
-                }
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
-                Text(
-                    text = orderText,
+                    text = report.fromUser?.login ?: "",
                     style = MaterialTheme.typography.titleSmall,
-                    color = colors.black,
-                    modifier = if (isMyFeedbacks || report.fromUser?.id == UserData.login)
-                        Modifier.clickable { onClickOrder(report.orderId ?: 1L) }
-                    else
-                        Modifier
+                    color = colors.actionTextColor,
                 )
-                
-                report.offerSnapshot?.let { snap ->
-                    if (snap.pricePerItem?.toDouble() == 0.0) return@let
-                    val titleText = buildAnnotatedString {
-                        if ((snap.title?.length ?: 0) <= 20) {
-                            append(snap.title ?: "")
-                            withStyle(
-                                SpanStyle(
-                                    color = colors.titleTextColor,
-                                )
-                            ) {
-                                append("  ${snap.pricePerItem} ${stringResource(strings.currencySign)}")
-                            }
-                        } else {
-                            append("${(snap.title?.take(18) ?: "")}...  ")
-                            withStyle(
-                                SpanStyle(
-                                    color = colors.titleTextColor,
-                                )
-                            ) {
-                                append(
-                                    "${snap.pricePerItem} ${stringResource(strings.currencySign)}"
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
-                    Text(
-                        text = titleText,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.actionTextColor,
-                        modifier = Modifier.clickable { onClickSnapshot(snap.id ?: 1L) }
-                    )
-                }
+
+                Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
+                // role + rating
+                val roleLabel = if (report.fromUser?.role == "buyer")
+                    stringResource(strings.buyerParameterName) else
+                    stringResource(strings.sellerLabel)
+                Text(
+                    text = "(${report.fromUser?.rating})",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+
+                Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
+                Text(
+                    text = roleLabel,
+                    style = MaterialTheme.typography.titleSmall,
+                )
             }
+
 
             Icon(
                 painter = painterResource(repTypeIcon),
@@ -196,11 +127,94 @@ fun FeedbackItem(
                 modifier = Modifier.size(dimens.mediumIconSize),
                 tint = reColorType
             )
-            Spacer(modifier = Modifier.width(dimens.smallSpacer))
         }
-        
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .padding(dimens.mediumPadding),
+        ) {
+
+            if (!report.comment.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+                Text(
+                    text = report.comment,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+            Text(
+                text = report.feedbackTs.toString().convertDateWithMinutes(),
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.align(Alignment.End)
+            )
+            Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+            val orderText = buildAnnotatedString {
+                append(stringResource(strings.orderLabel))
+
+
+                withStyle(
+                    if (isMyFeedbacks || report.fromUser?.id == UserData.login)
+                        SpanStyle(
+                            color = colors.actionTextColor,
+                        )
+                    else
+                        SpanStyle(
+                            color = colors.grayText,
+                        )
+                ){
+                    append(" #${report.orderId}")
+                }
+            }
+            Text(
+                text = orderText,
+                style = MaterialTheme.typography.titleSmall,
+                color = colors.black,
+                modifier = if (isMyFeedbacks || report.fromUser?.id == UserData.login)
+                    Modifier.clickable { onClickOrder(report.orderId ?: 1L) }
+                else
+                    Modifier
+            )
+            Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+            report.offerSnapshot?.let { snap ->
+                if (snap.pricePerItem?.toDouble() == 0.0) return@let
+                val titleText = buildAnnotatedString {
+                    if ((snap.title?.length ?: 0) <= 20) {
+                        append(snap.title ?: "")
+                        withStyle(
+                            SpanStyle(
+                                color = colors.titleTextColor,
+                            )
+                        ) {
+                            append("  ${snap.pricePerItem} ${stringResource(strings.currencySign)}")
+                        }
+                    } else {
+                        append("${(snap.title?.take(18) ?: "")}...  ")
+                        withStyle(
+                            SpanStyle(
+                                color = colors.titleTextColor,
+                            )
+                        ) {
+                            append(
+                                "${snap.pricePerItem} ${stringResource(strings.currencySign)}"
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = titleText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.actionTextColor,
+                    modifier = Modifier.clickable { onClickSnapshot(snap.id ?: 1L) }
+                )
+            }
+        }
+
         report.responseFeedback?.comment?.let { response ->
-            Spacer(modifier = Modifier.height(dimens.mediumSpacer))
             if (showAnswer) {
                 Text(
                     text = response,

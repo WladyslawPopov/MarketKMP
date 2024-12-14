@@ -50,6 +50,7 @@ fun FiltersSearchBar(
             )
             {
                 FilterButton(
+                    modifier = Modifier.padding(dimens.smallPadding),
                     selectedCategory.value,
                     color =  if (searchData.searchCategoryID == 1L)
                         colors.simpleButtonColors
@@ -83,6 +84,7 @@ fun FiltersSearchBar(
             )
             {
                 FilterButton(
+                    modifier = Modifier.padding(dimens.smallPadding),
                     selectedUserLogin.value ?: us,
                     color = if (!selectedUser.value)
                         colors.simpleButtonColors
@@ -114,6 +116,7 @@ fun FiltersSearchBar(
                 Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                 FilterButton(
+                    modifier = Modifier.padding(dimens.smallPadding),
                     text = stringResource(strings.searchUserFinishedStringChoice),
                     color = if (!selectedUserFinished.value) colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = {

@@ -9,18 +9,24 @@ import androidx.compose.ui.text.font.FontWeight
 import market.engine.core.globalData.ThemeResources.colors
 
 @Composable
-fun TitleText(
+fun TextAppBar(
     text : String,
     color : Color = colors.black,
     modifier: Modifier = Modifier
 ) {
+    val title = if(text.length > 15){
+        text.substring(0,20) + "..."
+    }else{
+        text
+    }
+
     Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
         color = color,
         modifier = modifier,
-        maxLines = 3,
+        maxLines = 1,
         softWrap = true
     )
 }

@@ -93,11 +93,11 @@ fun MyOffersContent(
     }
 
     //update item when we back
-    LaunchedEffect(listingData.value.updateItem.value) {
-        if (listingData.value.updateItem.value != null) {
+    LaunchedEffect(viewModel.updateItem.value) {
+        if (viewModel.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =
-                    viewModel.getUpdatedOfferById(listingData.value.updateItem.value!!)
+                    viewModel.getUpdatedOfferById(viewModel.updateItem.value!!)
                 withContext(Dispatchers.Main) {
                     if (offer != null) {
                         val item = data.itemSnapshotList.items.find { it.id == offer.id }
@@ -105,7 +105,7 @@ fun MyOffersContent(
                         item?.session = offer.session
                     }
 
-                    listingData.value.updateItem.value = null
+                    viewModel.updateItem.value = null
                 }
             }
         }
@@ -129,8 +129,7 @@ fun MyOffersContent(
     ) {
         ListingBaseContent(
             columns = columns,
-            modifier = modifier,
-            listingData.value,
+            listingData = listingData.value,
             searchData = searchData.value,
             data = data,
             baseViewModel = viewModel,
@@ -139,7 +138,6 @@ fun MyOffersContent(
                 viewModel.onRefresh()
             },
             noFound = noFound,
-            isLoading = isLoading,
             filtersContent = { isRefreshingFromFilters, onClose ->
                 OfferFilterContent(
                     isRefreshingFromFilters,
@@ -183,7 +181,7 @@ fun MyOffersContent(
                         isGrid = (columns.value > 1),
                         baseViewModel = viewModel,
                         onUpdateOfferItem = {
-                            listingData.value.updateItem.value = it.id
+                            viewModel.updateItem.value = it.id
                             viewModel.showToast(
                                 ToastItem(
                                     isVisible = true,

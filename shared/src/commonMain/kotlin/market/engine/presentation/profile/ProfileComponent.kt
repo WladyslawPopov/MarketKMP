@@ -59,7 +59,6 @@ class DefaultProfileComponent(
         searchData.userID = UserData.login
         searchData.userLogin = UserData.userInfo?.login
         searchData.userSearch = true
-        ld.data.value.isOpenCategory.value = false
         navigateToListing(ld)
     }
 
