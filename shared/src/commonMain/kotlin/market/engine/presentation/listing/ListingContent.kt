@@ -182,7 +182,6 @@ fun ListingContent(
                 goToListing = {
                     listingViewModel.isOpenSearch.value = false
                     listingViewModel.activeFiltersType.value = ""
-                    searchData.value.isRefreshing = true
                 },
             )
         },

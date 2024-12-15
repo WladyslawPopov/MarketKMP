@@ -23,10 +23,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Button
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -52,9 +50,8 @@ import market.engine.core.network.networkObjects.Options
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.ExpandableSection
-import market.engine.widgets.items.PriceFilter
+import market.engine.widgets.rows.PriceFilter
 import market.engine.widgets.dropdown_menu.getDropdownMenu
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
