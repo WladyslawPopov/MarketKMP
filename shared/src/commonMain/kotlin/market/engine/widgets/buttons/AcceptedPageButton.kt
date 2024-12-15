@@ -14,6 +14,7 @@ import org.jetbrains.compose.resources.stringResource
 fun AcceptedPageButton(
     text: StringResource,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
 
@@ -23,8 +24,8 @@ fun AcceptedPageButton(
         },
         colors = colors.themeButtonColors,
         modifier = modifier,
-        shape = MaterialTheme.shapes.small
-
+        shape = MaterialTheme.shapes.small,
+        enabled = enabled
     ){
         Text(
             text = stringResource(text),

@@ -36,7 +36,7 @@ fun String.convertDateWithMinutes(): String {
     }
 }
 
-fun String.convertDateYear() :String{
+fun String.convertDateYear(): String{
     try {
         // Validate that the input date string is not empty
         if (this.isEmpty()) {
@@ -45,7 +45,31 @@ fun String.convertDateYear() :String{
 
         val instant = Instant.fromEpochSeconds(this.toLong())
         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-        return "${localDateTime.dayOfMonth}.${localDateTime.monthNumber}.${localDateTime.year}"
+
+        val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
+        val month = localDateTime.monthNumber.toString().padStart(2, '0')
+        val year = localDateTime.year
+
+        return "$day.$month.$year"
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return ""
+    }
+}
+
+fun String.convertDateOnlyYear(): String {
+    try {
+        // Validate that the input date string is not empty
+        if (this.isEmpty()) {
+            return ""
+        }
+
+        val instant = Instant.fromEpochSeconds(this.toLong())
+        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        val year = localDateTime.year
+
+        return "$year"
     } catch (e: Exception) {
         e.printStackTrace()
         return ""

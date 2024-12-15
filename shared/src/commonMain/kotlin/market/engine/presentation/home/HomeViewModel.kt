@@ -1,7 +1,6 @@
 package market.engine.presentation.home
 
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
@@ -17,31 +16,11 @@ import market.engine.presentation.base.BaseViewModel
 
 class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
 
-    private val defaultCategoryId = 1L
-
-    private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
-    val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
-
     private val _responseOffersPromotedOnMainPage1 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage1: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage1.asStateFlow()
 
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage2: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage2.asStateFlow()
-
-    fun getCategory(categoryId: Long = defaultCategoryId) {
-        onError(ServerErrorException())
-        setLoading(true)
-        viewModelScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    apiService.getPublicCategories(categoryId)
-                }
-                val serializer = Payload.serializer(Category.serializer())
-                val payload: Payload<Category> = deserializePayload(response.payload, serializer)
-                _responseCategory.value = payload.objects
-            } catch (_: Exception) {}
-        }
-    }
 
     fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
         viewModelScope.launch {

@@ -59,9 +59,6 @@ fun SubscribesContent(
             filtersContent = { _, _ ->
 
             },
-            sortingContent = { _, _ ->
-
-            },
             item = {
 
             }

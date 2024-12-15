@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,12 +22,18 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import market.engine.common.AnalyticsFactory
+import market.engine.core.baseFilters.LD
 import market.engine.core.baseFilters.SD
+import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.globalData.UserData
 import market.engine.presentation.base.BaseContent
 import market.engine.widgets.exceptions.onError
+import market.engine.widgets.filterContents.CategoryContent
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -36,7 +47,6 @@ fun SearchContent(
     selectedUserFinished : MutableState<Boolean>,
     onClose : () -> Unit,
     goToListing : () -> Unit,
-    goToCategory : () -> Unit,
 ) {
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
@@ -49,10 +59,27 @@ fun SearchContent(
 
     val history = searchViewModel.responseHistory.collectAsState()
 
+    val defCat = stringResource(strings.categoryMain)
+
     val errorSearch : (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
         { onError(isErrorSearch.value) { } }
     }else{
         null
+    }
+
+    val scaffoldState = rememberBottomSheetScaffoldState()
+    val openBottomSheet = remember { mutableStateOf(false) }
+
+    LaunchedEffect(openBottomSheet.value){
+        if (openBottomSheet.value) {
+            searchViewModel.setLoading(true)
+            searchViewModel.getCategories(searchData, LD(), true)
+            focusManager.clearFocus()
+            scaffoldState.bottomSheetState.expand()
+        }else{
+            scaffoldState.bottomSheetState.collapse()
+            selectedCategory.value = searchData.searchCategoryName ?: defCat
+        }
     }
 
     BaseContent(
@@ -84,62 +111,82 @@ fun SearchContent(
         },
         modifier = Modifier.fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = dimens.mediumPadding)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                    })
-                },
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            modifier = Modifier.fillMaxSize(),
+            sheetContentColor = colors.primaryColor,
+            sheetBackgroundColor = colors.primaryColor,
+            contentColor = colors.primaryColor,
+            backgroundColor = colors.primaryColor,
+            sheetPeekHeight = 0.dp,
+            sheetGesturesEnabled = false,
+            sheetContent = {
+                CategoryContent(
+                    baseViewModel = searchViewModel,
+                    searchData = searchData,
+                    goListing = {
+                        openBottomSheet.value = false
+                    },
+                    isFilters = true
+                )
+            },
         ) {
-            FiltersSearchBar(
-                selectedCategory = selectedCategory,
-                selectedUser = selectedUser,
-                selectedUserLogin = selectedUserLogin,
-                selectedUserFinished = selectedUserFinished,
-                modifier = Modifier,
-                searchData = searchData,
-                goToCategory = {
-                    getSearchFilters(searchData, searchString.value.text)
-                    goToCategory()
-                },
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = dimens.mediumPadding)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            focusManager.clearFocus()
+                        })
+                    },
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start
+            ) {
+                FiltersSearchBar(
+                    selectedCategory = selectedCategory,
+                    selectedUser = selectedUser,
+                    selectedUserLogin = selectedUserLogin,
+                    selectedUserFinished = selectedUserFinished,
+                    modifier = Modifier,
+                    searchData = searchData,
+                    goToCategory = {
+                        openBottomSheet.value = !openBottomSheet.value
+                    },
+                )
 
-            HistoryLayout(
-                historyItems = history.value,
-                modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
-                onItemClick = {
-                    searchString.value = searchString.value.copy(it)
-                    getSearchFilters(searchData, it)
-                },
-                onClearHistory = {
-                   searchViewModel.deleteHistory()
-                },
-                onDeleteItem = {
-                    searchViewModel.deleteItemHistory(it)
-                },
-                goToListing = {
-                    getSearchFilters(searchData, it)
+                HistoryLayout(
+                    historyItems = history.value,
+                    modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                    onItemClick = {
+                        searchString.value = searchString.value.copy(it)
+                        getSearchFilters(searchData, it)
+                    },
+                    onClearHistory = {
+                        searchViewModel.deleteHistory()
+                    },
+                    onDeleteItem = {
+                        searchViewModel.deleteItemHistory(it)
+                    },
+                    goToListing = {
+                        getSearchFilters(searchData, it)
 
-                    if (searchData.isRefreshing) {
-                        val event = mapOf(
-                            "search_query" to searchData.searchString,
-                            "visitor_id" to UserData.login,
-                            "search_cat_id" to searchData.searchCategoryID,
-                            "user_search" to searchData.userSearch,
-                            "user_search_login" to searchData.userLogin,
-                            "user_search_id" to searchData.userID
-                        )
-                        analyticsHelper.reportEvent("search_for_item", event)
+                        if (searchData.isRefreshing) {
+                            val event = mapOf(
+                                "search_query" to searchData.searchString,
+                                "visitor_id" to UserData.login,
+                                "search_cat_id" to searchData.searchCategoryID,
+                                "user_search" to searchData.userSearch,
+                                "user_search_login" to searchData.userLogin,
+                                "user_search_id" to searchData.userID
+                            )
+                            analyticsHelper.reportEvent("search_for_item", event)
+                        }
+
+                        goToListing()
                     }
-
-                    goToListing()
-                }
-            )
+                )
+            }
         }
     }
 }

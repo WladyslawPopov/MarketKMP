@@ -45,14 +45,17 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import market.engine.core.baseFilters.SD
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.types.LotsType
+import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.FilterButton
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.textFields.TextFieldWithState
@@ -63,6 +66,7 @@ import org.jetbrains.compose.resources.stringResource
 fun OfferFilterContent(
     isRefreshing: MutableState<Boolean>,
     filters: LD,
+    baseViewModel: BaseViewModel,
     typeFilters: LotsType,
     onClose :  () -> Unit,
 ) {
@@ -100,12 +104,48 @@ fun OfferFilterContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openBottomSheet = remember { mutableStateOf(false) }
 
+    val searchData = remember { mutableStateOf(
+        SD(
+            searchCategoryID = listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L,
+            searchCategoryName = listingData.find { it.key == "category" }?.interpritation,
+            searchParentID = listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L,
+            searchIsLeaf = listingData.find { it.key == "category" }?.operation?.toBoolean() ?: false
+        )
+    ) }
+
+    val defCat = stringResource(strings.categoryMain)
+
+    val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName ?: defCat) }
+
+    val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpritation ?: offersType[0].second) }
+
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
-            isRefreshing.value = true
+            baseViewModel.setLoading(true)
+            baseViewModel.getCategories(searchData.value, LD(),true)
+
             scaffoldState.bottomSheetState.expand()
         }else{
             scaffoldState.bottomSheetState.collapse()
+        }
+    }
+
+    LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed) {
+        if (scaffoldState.bottomSheetState.isCollapsed) {
+            if (searchData.value.searchCategoryID != 1L) {
+                listingData.find { it.key == "category" }?.value =
+                    searchData.value.searchCategoryID.toString()
+                listingData.find { it.key == "category" }?.interpritation =
+                    searchData.value.searchCategoryName
+                listingData.find { it.key == "category" }?.operation =
+                    searchData.value.searchIsLeaf.toString()
+            }else{
+                listingData.find { it.key == "category" }?.value = ""
+                listingData.find { it.key == "category" }?.interpritation = null
+                listingData.find { it.key == "category" }?.operation = null
+            }
+            selectedCategory.value = searchData.value.searchCategoryName?: defCat
+            isRefreshing.value = true
         }
     }
 
@@ -119,11 +159,14 @@ fun OfferFilterContent(
         sheetPeekHeight = 0.dp,
         sheetGesturesEnabled = false,
         sheetContent = {
-            CategoryFilter(
-                filters
-            ){
-                openBottomSheet.value = false
-            }
+            CategoryContent(
+                baseViewModel = baseViewModel,
+                searchData = searchData.value,
+                goListing = {
+                    openBottomSheet.value = false
+                },
+                isFilters = true
+            )
         },
     ) {
         Box(
@@ -386,8 +429,10 @@ fun OfferFilterContent(
 
                     item {
                         InputsOfferFilterContent(
+                            selectedCategory,
                             isRefreshing,
                             filters,
+                            searchData.value,
                             openBottomSheet,
                         )
                     }
@@ -396,7 +441,7 @@ fun OfferFilterContent(
                         val title = stringResource(strings.saleTypeParameterName)
 
                         Column(
-                            modifier = Modifier.padding(dimens.smallPadding)
+                            modifier = Modifier.padding(dimens.mediumPadding)
                         ){
                             Text(
                                 text = title,
@@ -405,7 +450,7 @@ fun OfferFilterContent(
                             )
 
                             getDropdownMenu(
-                                listingData.find { it.key == "sale_type" }?.interpritation ?: "",
+                                selectedType.value,
                                 offersType[0].second,
                                 offersTypeFilterMap,
                                 onItemClick = { type ->
@@ -414,7 +459,9 @@ fun OfferFilterContent(
                                             pair.first
                                         listingData.find { it.key == "sale_type" }?.interpritation =
                                             pair.second
+                                        selectedType.value = pair.second
                                     }
+
                                     isRefreshing.value = true
                                 },
                                 onClearItem = {
@@ -422,6 +469,7 @@ fun OfferFilterContent(
                                         ""
                                     listingData.find { it.key == "sale_type" }?.interpritation =
                                         null
+                                    selectedType.value = offersType[0].second
                                     isRefreshing.value = true
                                 }
                             )
@@ -436,7 +484,6 @@ fun OfferFilterContent(
                     .padding(dimens.mediumPadding)
             ){
                 filters.filters = listingData
-                isRefreshing.value = true
                 onClose()
             }
             Spacer(modifier = Modifier.height(dimens.mediumSpacer))
@@ -446,17 +493,17 @@ fun OfferFilterContent(
 
 @Composable
 fun InputsOfferFilterContent(
+    activeCategory: MutableState<String>,
     isRefreshing: MutableState<Boolean>,
     listingData: LD,
+    searchData: SD,
     openBottomSheet: MutableState<Boolean>,
 ) {
     val filters = listingData.filters
-
+    val defCat = stringResource(strings.categoryMain)
     val idTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
     val nameTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
     val sellerLoginTextState = remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
-    val defCat = stringResource(strings.offersCategoryParameterName)
-    val activeCategory = remember { mutableStateOf(filters.find { it.key == "category" }?.interpritation ?: defCat) }
 
     Column(
         modifier = Modifier.padding(dimens.smallPadding),
@@ -498,7 +545,6 @@ fun InputsOfferFilterContent(
                 textState = nameTextState,
                 onTextChange = { text ->
                     if (nameTextState.value.isNotBlank()) {
-
                         filters.find { filter -> filter.key == "search"}?.apply {
                             value = text
                             interpritation = "$offerName: $text"
@@ -544,38 +590,34 @@ fun InputsOfferFilterContent(
                     modifier = Modifier.widthIn(max = 250.dp).weight(1f)
                 )
             }
+
             Row(
-                modifier = Modifier.wrapContentWidth().widthIn(max = 250.dp).weight(1f),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(dimens.smallPadding)
+            ){
                 FilterButton(
-                    modifier = Modifier.padding(dimens.mediumPadding),
+                    modifier = Modifier.padding(dimens.smallPadding),
                     activeCategory.value,
-                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                    color = if (defCat == activeCategory.value) colors.simpleButtonColors else colors.themeButtonColors,
+                    color = if(searchData.searchCategoryID == 1L)
+                        colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = {
-                        openBottomSheet.value = true
+                        openBottomSheet.value = !openBottomSheet.value
                     },
                     onCancelClick = {
-                        val name = filters.find { it.key == "category" }?.interpritation
-                        if (!name.isNullOrEmpty()) {
-                            IconButton(
-                                onClick = {
-                                    isRefreshing.value = true
-                                    filters.find { it.key == "category" }?.value = ""
-                                    filters.find { it.key == "category" }?.interpritation = null
-                                    activeCategory.value = defCat
-                                },
-                                content = {
-                                    Icon(
-                                        painterResource(drawables.cancelIcon),
-                                        tint = colors.black,
-                                        contentDescription = stringResource(strings.actionClose)
-                                    )
-                                },
-                                modifier = Modifier.size(dimens.smallIconSize)
-                            )
+                        if (searchData.searchCategoryID != 1L) {
+                            SmallIconButton(
+                                icon = drawables.cancelIcon,
+                                contentDescription = stringResource(strings.actionClose),
+                                color = colors.steelBlue,
+                                modifier = Modifier.size(dimens.extraSmallIconSize),
+                                modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
+                            ) {
+                                isRefreshing.value = true
+                                filters.find { it.key == "category" }?.value = ""
+                                filters.find { it.key == "category" }?.interpritation = null
+                                searchData.clearCategory()
+                                activeCategory.value = defCat
+                            }
                         }
                     }
                 )

@@ -31,7 +31,6 @@ fun BaseContent(
     content: @Composable BoxScope.() -> Unit,
 ){
     Scaffold(
-        modifier,
         topBar = topBar ?: {},
         floatingActionButton = floatingActionButton
     ) { innerPadding ->
@@ -45,11 +44,14 @@ fun BaseContent(
             onRefresh = onRefresh,
         ) {
             AnimatedVisibility(
+                modifier = modifier,
                 visible = !isLoading,
                 enter = expandIn(),
                 exit = fadeOut()
             ) {
-                Box {
+                Box(
+                    modifier = modifier,
+                ) {
                     when {
                         noFound != null -> {
                             noFound()

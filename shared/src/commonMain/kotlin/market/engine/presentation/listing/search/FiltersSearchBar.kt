@@ -45,10 +45,8 @@ fun FiltersSearchBar(
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
                 modifier = Modifier.padding(dimens.smallPadding)
-            )
-            {
+            ){
                 FilterButton(
                     modifier = Modifier.padding(dimens.smallPadding),
                     selectedCategory.value,
@@ -61,7 +59,7 @@ fun FiltersSearchBar(
                     },
                     onCancelClick = {
                         if (searchData.searchCategoryID != 1L) {
-                            val category = stringResource(strings.categoryMain)
+                            val category = stringResource(strings.offersCategoryParameterName)
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),

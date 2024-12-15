@@ -49,12 +49,13 @@ fun ListingAppBar(
 
     TopAppBar(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+                closeCategory()
+            },
         title = {
             Row(
-                modifier = modifier.fillMaxWidth().clickable {
-                    closeCategory()
-                },
+                modifier = modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {

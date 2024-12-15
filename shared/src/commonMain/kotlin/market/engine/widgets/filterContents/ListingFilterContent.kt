@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Button
@@ -30,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +50,7 @@ import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.network.networkObjects.Options
 import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.items.PriceFilter
 import market.engine.widgets.dropdown_menu.getDropdownMenu
@@ -62,6 +65,7 @@ fun FilterListingContent(
     onClosed: () -> Unit,
 ) {
     val focusManager: FocusManager = LocalFocusManager.current
+
     val saleTypeFilters = listOf(
         "buynow" to stringResource(strings.buyNow),
         "auction" to stringResource(strings.ordinaryAuction),
@@ -73,11 +77,13 @@ fun FilterListingContent(
         "discount_price" to stringResource(strings.discountPriceParameterName),
         "price_proposal" to stringResource(strings.proposalTitle)
     )
+
     val specialFilters = listOf(
         "with_video" to stringResource(strings.offerWithVideoParameterName),
         "with_safe_deal" to stringResource(strings.offerWithSafeDealParameterName),
         "promo_main_page" to stringResource(strings.allPromoOffersBtn),
     )
+
     val timeFilterMap = listOf(
         "1h" to stringResource(strings.oneHour),
         "2h" to stringResource(strings.twoHour),
@@ -95,6 +101,56 @@ fun FilterListingContent(
     )
     val timeOptions = timeFilterMap.map { it.second }
 
+    val regionSelected = remember { mutableStateOf(listingData.filters.find { it.key == "region" }?.interpritation) }
+
+    val timeNewSelected = remember {
+        mutableStateOf(
+            timeFilterMap.find { time ->
+                time.first == listingData.filters.find { it.key == "new" }?.value
+            }?.second
+        )
+    }
+    val timeNewWithoutRelistedSelected = remember {
+        mutableStateOf(
+            timeFilterMap.find { time ->
+                time.first == listingData.filters.find { it.key == "new_without_relisted" }?.value
+            }?.second
+        )
+    }
+    val timeEndingSelected = remember {
+        mutableStateOf(
+            timeFilterMap.find { time ->
+                time.first == listingData.filters.find { it.key == "ending" }?.value
+            }?.second
+        )
+    }
+
+    val scrollState = rememberLazyListState()
+
+    var isExpanded1 by remember {
+        mutableStateOf(
+            checkActiveSaleType(
+                saleTypeFilters,
+                listingData
+            ) != null
+        )
+    }
+    var isExpanded2 by remember {
+        mutableStateOf(
+            checkActiveSaleType(
+                specialFilters,
+                listingData
+            ) != null
+        )
+    }
+    var isExpanded3 by remember { mutableStateOf(checkActiveTimeFilter(listingData) != null) }
+
+    LaunchedEffect(isExpanded3){
+        if (isExpanded3){
+            scrollState.animateScrollToItem(4, 999)
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
@@ -102,7 +158,7 @@ fun FilterListingContent(
             })
         },
         contentAlignment = Alignment.TopCenter
-    ){
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth()
                 .padding(dimens.smallPadding).align(Alignment.TopCenter),
@@ -112,18 +168,12 @@ fun FilterListingContent(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(
-                    onClick = {
-                        onClosed()
-                    },
-                    content = {
-                        Icon(
-                            painterResource(drawables.closeBtn),
-                            tint = colors.black,
-                            contentDescription = stringResource(strings.actionClose)
-                        )
-                    },
-                )
+                SmallIconButton(
+                    drawables.closeBtn,
+                    colors.black,
+                ){
+                    onClosed()
+                }
 
                 Text(
                     stringResource(strings.filter),
@@ -132,7 +182,7 @@ fun FilterListingContent(
                 )
             }
 
-            if(isRefreshing.value || listingData.filters.find { it.interpritation != null } != null) {
+            if (isRefreshing.value || listingData.filters.find { it.interpritation != null } != null) {
                 Button(
                     onClick = {
                         isRefreshing.value = true
@@ -156,14 +206,11 @@ fun FilterListingContent(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            var isExpanded1 by remember { mutableStateOf(checkActiveSaleType(saleTypeFilters, listingData) != null) }
-            var isExpanded2 by remember { mutableStateOf(checkActiveSaleType(specialFilters, listingData) != null) }
-            var isExpanded3 by remember { mutableStateOf(checkActiveTimeFilter(listingData) != null) }
-
             LazyColumn(
                 modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                state = scrollState
             ) {
                 item {
                     //SaleType Filters
@@ -239,7 +286,10 @@ fun FilterListingContent(
                                             )
                                         )
                                         Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                        Text(filterText, style = MaterialTheme.typography.bodySmall)
+                                        Text(
+                                            filterText,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
                                         Spacer(modifier = Modifier.width(dimens.smallPadding))
                                     }
                                 }
@@ -271,7 +321,11 @@ fun FilterListingContent(
                                             .clip(MaterialTheme.shapes.medium)
                                             .clickable {
                                                 isChecked.value = !isChecked.value
-                                                applyFilterLogic(filterKey, filterText, listingData)
+                                                applyFilterLogic(
+                                                    filterKey,
+                                                    filterText,
+                                                    listingData
+                                                )
 
                                                 isRefreshing.value = true
                                             }
@@ -280,7 +334,11 @@ fun FilterListingContent(
                                             isChecked.value,
                                             {
                                                 isChecked.value = !isChecked.value
-                                                applyFilterLogic(filterKey, filterText, listingData)
+                                                applyFilterLogic(
+                                                    filterKey,
+                                                    filterText,
+                                                    listingData
+                                                )
 
                                                 isRefreshing.value = true
                                             },
@@ -290,7 +348,10 @@ fun FilterListingContent(
                                             )
                                         )
                                         Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                        Text(filterText, style = MaterialTheme.typography.bodySmall)
+                                        Text(
+                                            filterText,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
                                         Spacer(modifier = Modifier.width(dimens.smallPadding))
                                     }
                                 }
@@ -300,7 +361,11 @@ fun FilterListingContent(
                 }
                 item {
                     // Region
-                    Column{
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(
                             text = stringResource(strings.regionParameterName),
                             style = MaterialTheme.typography.titleSmall,
@@ -308,7 +373,7 @@ fun FilterListingContent(
                         )
 
                         getDropdownMenu(
-                            selectedText = listingData.filters.find { it.key == "region" }?.interpritation ?: "",
+                            selectedText = regionSelected.value ?: stringResource(strings.chooseAction),
                             selects = regionsOptions.map { it.name.toString() },
                             onItemClick = { newRegion ->
                                 listingData.filters.find { it.key == "region" }?.value =
@@ -316,12 +381,14 @@ fun FilterListingContent(
                                 listingData.filters.find { it.key == "region" }?.interpritation =
                                     newRegion
 
+                                regionSelected.value = newRegion
+
                                 isRefreshing.value = true
                             },
                             onClearItem = {
                                 listingData.filters.find { it.key == "region" }?.interpritation =
                                     null
-
+                                regionSelected.value = null
                                 isRefreshing.value = true
                             }
                         )
@@ -349,101 +416,127 @@ fun FilterListingContent(
                             ) {
                                 item {
                                     val title = stringResource(strings.offersFor)
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(dimens.smallPadding)
-                                    )
 
-                                    getDropdownMenu(
-                                        selectedText = timeFilterMap.find { time ->
-                                            time.first == listingData.filters.find { it.key == "new" }?.value
-                                        }?.second ?: "",
-                                        selects = timeOptions,
-                                        onItemClick = { time ->
-                                            listingData.filters.find { it.key == "new" }?.value =
-                                                timeFilterMap.find { it.second == time }?.first
-                                                    ?: ""
-                                            listingData.filters.find { it.key == "new" }?.interpritation =
-                                                "$title $time"
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            modifier = Modifier.padding(dimens.smallPadding)
+                                        )
 
-                                            isRefreshing.value = true
-                                        },
-                                        onClearItem = {
-                                            listingData.filters.find { it.key == "new" }?.value =
-                                                ""
-                                            listingData.filters.find { it.key == "new" }?.interpritation =
-                                                null
+                                        getDropdownMenu(
+                                            selectedText = timeNewSelected.value ?: stringResource(strings.chooseAction),
+                                            selects = timeOptions,
+                                            onItemClick = { time ->
+                                                listingData.filters.find { it.key == "new" }?.value =
+                                                    timeFilterMap.find { it.second == time }?.first
+                                                        ?: ""
+                                                listingData.filters.find { it.key == "new" }?.interpritation =
+                                                    "$title $time"
 
-                                            isRefreshing.value = true
-                                        }
-                                    )
+                                                timeNewSelected.value = time
+
+                                                isRefreshing.value = true
+                                            },
+                                            onClearItem = {
+                                                listingData.filters.find { it.key == "new" }?.value =
+                                                    ""
+                                                listingData.filters.find { it.key == "new" }?.interpritation =
+                                                    null
+
+                                                timeNewSelected.value = null
+
+                                                isRefreshing.value = true
+                                            }
+                                        )
+                                    }
                                 }
 
                                 item {
-                                    val title = stringResource(strings.newOffersWithoutRelistedFor)
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(dimens.smallPadding)
-                                    )
+                                    val title =
+                                        stringResource(strings.newOffersWithoutRelistedFor)
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            modifier = Modifier.padding(dimens.smallPadding)
+                                        )
 
-                                    getDropdownMenu(
-                                        selectedText =timeFilterMap.find { time ->
-                                            time.first == listingData.filters.find { it.key == "new_without_relisted" }?.value
-                                        }?.second ?: "",
-                                        selects = timeOptions,
-                                        onItemClick = { time ->
-                                            listingData.filters.find { it.key == "new_without_relisted" }?.value =
-                                                timeFilterMap.find { it.second == time }?.first
-                                                    ?: ""
-                                            listingData.filters.find { it.key == "new_without_relisted" }?.interpritation =
-                                                "$title $time"
+                                        getDropdownMenu(
+                                            selectedText = timeNewWithoutRelistedSelected.value ?: stringResource(strings.chooseAction),
+                                            selects = timeOptions,
+                                            onItemClick = { time ->
+                                                listingData.filters.find { it.key == "new_without_relisted" }?.value =
+                                                    timeFilterMap.find { it.second == time }?.first
+                                                        ?: ""
+                                                listingData.filters.find { it.key == "new_without_relisted" }?.interpritation =
+                                                    "$title $time"
 
-                                            isRefreshing.value = true
-                                        },
-                                        onClearItem = {
-                                            listingData.filters.find { it.key == "new_without_relisted" }?.value =
-                                                ""
-                                            listingData.filters.find { it.key == "new_without_relisted" }?.interpritation =
-                                                null
+                                                timeNewWithoutRelistedSelected.value = time
 
-                                            isRefreshing.value = true
-                                        }
-                                    )
+                                                isRefreshing.value = true
+                                            },
+                                            onClearItem = {
+                                                listingData.filters.find { it.key == "new_without_relisted" }?.value =
+                                                    ""
+                                                listingData.filters.find { it.key == "new_without_relisted" }?.interpritation =
+                                                    null
+
+                                                timeNewWithoutRelistedSelected.value = null
+
+                                                isRefreshing.value = true
+                                            }
+                                        )
+                                    }
                                 }
 
                                 item {
                                     val title = stringResource(strings.endingWith)
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(dimens.smallPadding)
-                                    )
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            modifier = Modifier.padding(dimens.smallPadding)
+                                        )
 
-                                    getDropdownMenu(
-                                        selectedText =timeFilterMap.find { time ->
-                                            time.first == listingData.filters.find { it.key == "ending" }?.value
-                                        }?.second ?: "",
-                                        selects = timeOptions,
-                                        onItemClick = { time ->
-                                            listingData.filters.find { it.key == "ending" }?.value =
-                                                timeFilterMap.find { it.second == time }?.first
-                                                    ?: ""
-                                            listingData.filters.find { it.key == "ending" }?.interpritation =
-                                                "$title $time"
+                                        getDropdownMenu(
+                                            selectedText = timeEndingSelected.value ?: stringResource(strings.chooseAction),
+                                            selects = timeOptions,
+                                            onItemClick = { time ->
+                                                listingData.filters.find { it.key == "ending" }?.value =
+                                                    timeFilterMap.find { it.second == time }?.first
+                                                        ?: ""
+                                                listingData.filters.find { it.key == "ending" }?.interpritation =
+                                                    "$title $time"
 
-                                            isRefreshing.value = true
-                                        },
-                                        onClearItem = {
-                                            listingData.filters.find { it.key == "ending" }?.value =
-                                                ""
-                                            listingData.filters.find { it.key == "ending" }?.interpritation =
-                                                null
+                                                timeEndingSelected.value = time
 
-                                            isRefreshing.value = true
-                                        }
-                                    )
+                                                isRefreshing.value = true
+                                            },
+                                            onClearItem = {
+                                                listingData.filters.find { it.key == "ending" }?.value =
+                                                    ""
+                                                listingData.filters.find { it.key == "ending" }?.interpritation =
+                                                    null
+
+                                                timeEndingSelected.value = null
+
+                                                isRefreshing.value = true
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -454,13 +547,15 @@ fun FilterListingContent(
 
         AcceptedPageButton(
             strings.actionAcceptFilters,
-            Modifier.wrapContentWidth().padding(dimens.smallPadding).align(Alignment.BottomCenter)
-        ){
+            Modifier.wrapContentWidth().padding(dimens.smallPadding)
+                .align(Alignment.BottomCenter)
+        ) {
             onClosed()
         }
 
         Spacer(modifier = Modifier.height(dimens.smallSpacer))
     }
+
 }
 
 fun applyFilterLogic(filterKey: String, filterName: String, listingData: LD) {

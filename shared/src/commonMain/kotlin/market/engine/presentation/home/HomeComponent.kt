@@ -8,6 +8,8 @@ import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.common.getPermissionHandler
 import market.engine.core.analytics.AnalyticsHelper
+import market.engine.core.baseFilters.LD
+import market.engine.core.baseFilters.SD
 import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.ListingData
@@ -76,7 +78,7 @@ class DefaultHomeComponent(
     }
 
     private fun updateModel() {
-        homeViewModel.getCategory()
+        homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true)
         homeViewModel.getOffersPromotedOnMainPage(0, 16)
         homeViewModel.getOffersPromotedOnMainPage(1, 16)
     }

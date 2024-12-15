@@ -45,7 +45,6 @@ fun <T : Any>ListingBaseContent(
     item : @Composable (T) -> Unit,
     noFound : (@Composable () -> Unit)? = null,
     filtersContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
-    sortingContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
     additionalBar : @Composable (LazyListState) -> Unit = {},
     promoContent : (@Composable (Offer) -> Unit)? = null,
     promoList :  ArrayList<Offer>? = null,
@@ -123,46 +122,17 @@ fun <T : Any>ListingBaseContent(
                 scaffoldState.bottomSheetState.expand()
             } else {
                 scaffoldState.bottomSheetState.collapse()
+                baseViewModel.activeFiltersType.value = ""
             }
         }
     }
 
-    LaunchedEffect(searchData.isRefreshing){
-        if (searchData.isRefreshing){
-            onRefresh()
-            searchData.isRefreshing = false
-        }
-    }
+    Column(modifier = Modifier.fillMaxSize()) {
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetContentColor = colors.primaryColor,
-        sheetBackgroundColor = colors.primaryColor,
-        contentColor = colors.primaryColor,
-        backgroundColor = colors.primaryColor,
-        sheetPeekHeight = 0.dp,
-        sheetGesturesEnabled = false,
-        sheetContent = {
-            when (baseViewModel.activeFiltersType.value) {
-                "filters" -> {
-                    filtersContent(isRefreshingFromFilters) {
-                        baseViewModel.activeFiltersType.value = ""
-                    }
-                }
+        AnimatedVisibility (baseViewModel.activeFiltersType.value == "" || baseViewModel.activeFiltersType.value == "categories") {
+            Column {
+                additionalBar(scrollState)
 
-                "sorting" -> {
-                    sortingContent(isRefreshingFromFilters) {
-                        baseViewModel.activeFiltersType.value = ""
-                    }
-                }
-            }
-        },
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-
-            additionalBar(scrollState)
-
-            if (!isRefreshingFromFilters.value) {
                 FiltersBar(
                     listingData,
                     searchData,
@@ -184,7 +154,24 @@ fun <T : Any>ListingBaseContent(
                     onRefresh = onRefresh
                 )
             }
+        }
 
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetContentColor = colors.primaryColor,
+            sheetBackgroundColor = colors.primaryColor,
+            contentColor = colors.primaryColor,
+            backgroundColor = colors.primaryColor,
+            sheetPeekHeight = 0.dp,
+            sheetGesturesEnabled = false,
+            sheetContent = {
+                if (baseViewModel.activeFiltersType.value != "") {
+                    filtersContent(isRefreshingFromFilters) {
+                        baseViewModel.activeFiltersType.value = ""
+                    }
+                }
+            },
+        ) {
             when {
                 error != null -> error?.invoke()
                 noItem != null -> noItem?.invoke()

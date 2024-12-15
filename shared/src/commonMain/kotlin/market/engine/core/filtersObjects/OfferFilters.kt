@@ -39,7 +39,7 @@ object OfferFilters {
     )
     var filtersMyBidsUnactive = arrayListOf(
         Filter("state", "1", "", null),
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),

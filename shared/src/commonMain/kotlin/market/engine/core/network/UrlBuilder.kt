@@ -120,7 +120,7 @@ class UrlBuilder {
                         queryParams["filter_${counter}_value"] = it.value
                     }
                     val operation = it.operation
-                    if (operation != null) {
+                    if (operation != null && it.key != "category") {
                         queryParams["filter_${counter}_operation"] = operation
                     }
                     counter++

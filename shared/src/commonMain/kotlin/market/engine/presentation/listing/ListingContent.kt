@@ -1,6 +1,5 @@
 package market.engine.presentation.listing
 
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
@@ -62,12 +61,8 @@ fun ListingContent(
 
     val isLoadingListing : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val isLoadingCategory = listingViewModel.isShowProgress.collectAsState()
-
     val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
     val regions = listingViewModel.regionOptions.value
-
-    val categories = listingViewModel.responseCategory.collectAsState()
 
     val isErrorCategory = listingViewModel.errorMessage.value
 
@@ -77,11 +72,6 @@ fun ListingContent(
     val isBigScreen = windowClass == WindowSizeClass.Big
     val userRepository: UserRepository = getKoin().get()
 
-    val scaffoldStateCategory = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(
-            initialValue = if (listingViewModel.isOpenCategory.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
-        )
-    )
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
             initialValue = if (listingViewModel.isOpenSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
@@ -107,16 +97,14 @@ fun ListingContent(
     val refresh = {
         listingData.value.resetScroll()
 
+        title.value = searchData.value.searchCategoryName ?: catDef
+
         columns.value =
             if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
 
-        if (listingViewModel.isOpenCategory.value) {
-            listingViewModel.setLoading(true)
-            listingViewModel.getCategory(searchData.value, listingData.value)
-        }else {
-            listingViewModel.refresh()
-            listingViewModel.getCategory(searchData.value, listingData.value)
-        }
+        listingViewModel.getCategories(searchData.value, listingData.value)
+
+        listingViewModel.refresh()
     }
 
     val error : (@Composable () -> Unit)? = if (isErrorCategory.humanMessage != "") {
@@ -160,13 +148,15 @@ fun ListingContent(
 
             if (searchData.value.isRefreshing){
                 when{
-                    listingViewModel.isOpenCategory.value -> listingViewModel.getCategory(searchData.value, listingData.value)
+                    listingViewModel.activeFiltersType.value == "categories" ->
+                    listingViewModel.getCategories(searchData.value, listingData.value)
                     else -> refresh()
                 }
                 searchData.value.isRefreshing = false
             }
         }
     }
+
 
     BottomSheetScaffold(
         scaffoldState = scaffoldStateSearch,
@@ -191,32 +181,71 @@ fun ListingContent(
                 },
                 goToListing = {
                     listingViewModel.isOpenSearch.value = false
-                    listingViewModel.isOpenCategory.value = false
+                    listingViewModel.activeFiltersType.value = ""
                     searchData.value.isRefreshing = true
                 },
-                goToCategory = {
-                    listingViewModel.isOpenCategory.value = true
-                    listingViewModel.isOpenSearch.value = false
-                }
             )
         },
     ) {
+        val noFound = @Composable {
+            if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
+                searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
+            ){
+                showNoItemLayout(
+                    textButton = stringResource(strings.resetLabel)
+                ){
+                    searchData.value.clear()
+                    listingData.value.filters.clear()
+                    listingData.value.filters.addAll(EmptyFilters.getEmpty())
+                    refresh()
+                }
+            }else {
+                showNoItemLayout {
+                    refresh()
+                }
+            }
+        }
+        //update item when we back
+        LaunchedEffect(Unit){
+
+            if (listingViewModel.updateItem.value != null) {
+                withContext(Dispatchers.Default) {
+                    val updateItem = listingViewModel.updateItem.value
+                    val offer =
+                        listingViewModel.getUpdatedOfferById(updateItem ?: 1L)
+                    withContext(Dispatchers.Main) {
+                        if (offer != null) {
+                            val item =
+                                data.itemSnapshotList.items.find { it.id == offer.id }
+                            item?.isWatchedByMe = offer.isWatchedByMe
+                        }
+
+                        listingViewModel.updateItem.value = null
+                    }
+                }
+            }
+        }
+
         BaseContent(
             topBar = {
                 ListingAppBar(
                     title = title.value,
                     modifier,
                     isShowNav = backCountClick.value == 0,
-                    isOpenCategory = !listingViewModel.isOpenCategory.value,
+                    isOpenCategory = listingViewModel.activeFiltersType.value != "categories",
                     onBackClick = {
-                        if((listingViewModel.isOpenCategory.value && searchData.value.searchCategoryID == 1L)){
+                        if(searchData.value.searchCategoryID == 1L){
                             backCountClick.value = 1
                         }
                         component.goBack()
-                        listingViewModel.isOpenCategory.value = true
+                        listingViewModel.activeFiltersType.value = "categories"
                     },
                     closeCategory = {
-                        listingViewModel.isOpenCategory.value = !listingViewModel.isOpenCategory.value
+                        if (listingViewModel.activeFiltersType.value == "categories"){
+                            listingViewModel.activeFiltersType.value = ""
+                        }else {
+                            listingViewModel.activeFiltersType.value = "categories"
+                        }
                     },
                     onSearchClick = {
                         listingViewModel.isOpenSearch.value = true
@@ -232,169 +261,95 @@ fun ListingContent(
             toastItem = listingViewModel.toastItem,
             modifier = modifier.fillMaxSize()
         ) {
-            BottomSheetScaffold(
-                scaffoldState = scaffoldStateCategory,
-                modifier = Modifier.fillMaxSize(),
-                sheetContentColor = colors.primaryColor,
-                sheetBackgroundColor = colors.primaryColor,
-                contentColor = colors.primaryColor,
-                backgroundColor = colors.primaryColor,
-                sheetPeekHeight = 0.dp,
-                sheetGesturesEnabled = false,
-                sheetContent = {
-
-                    LaunchedEffect(listingViewModel.isOpenCategory.value) {
-                        snapshotFlow { listingViewModel.isOpenCategory.value }.collectLatest { isOpen ->
-                            if (isOpen) {
-                                scaffoldStateCategory.bottomSheetState.expand()
-                            } else {
-                                scaffoldStateCategory.bottomSheetState.collapse()
-                            }
+            ListingBaseContent(
+                columns = columns,
+                listingData.value,
+                searchData.value,
+                data = data,
+                baseViewModel = listingViewModel,
+                noFound = noFound,
+                onRefresh = {
+                    refresh()
+                },
+                filtersContent = { isRefreshingFromFilters, onClose ->
+                    when (listingViewModel.activeFiltersType.value){
+                        "filters" -> {
+                            FilterListingContent(
+                                isRefreshingFromFilters,
+                                listingData = listingData.value,
+                                regionsOptions = regions,
+                                onClosed = onClose,
+                            )
+                        }
+                        "sorting" -> {
+                            SortingListingContent(
+                                isRefreshingFromFilters,
+                                listingData.value,
+                                onClose
+                            )
+                        }
+                        "categories" ->{
+                            CategoryContent(
+                                baseViewModel = listingViewModel,
+                                searchData = searchData.value,
+                                listingData = listingData.value,
+                                goListing = {
+                                    isRefreshingFromFilters.value = true
+                                    listingViewModel.activeFiltersType.value = ""
+                                },
+                            )
                         }
                     }
-
-                    LaunchedEffect(scaffoldStateCategory.bottomSheetState.isCollapsed) {
-                        if (scaffoldStateCategory.bottomSheetState.isCollapsed) {
-                            listingViewModel.isOpenCategory.value = false
-                            if (searchData.value.isRefreshing || data.itemCount == 0){
-                                refresh()
-                                searchData.value.isRefreshing = false
-                            }
+                },
+                additionalBar = { state ->
+                    SwipeTabsBar(
+                        isVisibility = listingViewModel.activeFiltersType.value == "categories",
+                        listingData.value,
+                        state,
+                        onRefresh = {
+                            refresh()
                         }
-                    }
-
-                    CategoryContent(
-                        title = title,
-                        searchData = searchData.value,
-                        listingData = listingData.value,
-                        goListing = {
-                            listingViewModel.isOpenCategory.value = false
-                        },
-                        goToSearch = {
-                            listingViewModel.isOpenSearch.value = true
-                        },
-                        modifier = Modifier.fillMaxHeight(0.9f),
-                        categories = categories.value,
-                        isLoading = isLoadingCategory.value,
-                        scope = listingViewModel.viewModelScope,
-                        refresh = refresh
                     )
                 },
-            ) {
-                val noFound = @Composable {
-                    if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
-                        searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
-                    ){
-                        showNoItemLayout(
-                            textButton = stringResource(strings.resetLabel)
-                        ){
-                            searchData.value.clear()
-                            listingData.value.filters.clear()
-                            listingData.value.filters.addAll(EmptyFilters.getEmpty())
-                            refresh()
+                item = { offer ->
+                    OfferItem(
+                        offer,
+                        isGrid = listingData.value.listingType == 1,
+                        baseViewModel = listingViewModel,
+                        onFavouriteClick = {
+                            val currentOffer =
+                                data[data.itemSnapshotList.items.indexOf(
+                                    it
+                                )]
+                            if (currentOffer != null) {
+                                val res =
+                                    operationFavorites(
+                                        currentOffer,
+                                        listingViewModel.viewModelScope
+                                    )
+                                userRepository.updateUserInfo(listingViewModel.viewModelScope)
+                                return@OfferItem res
+                            } else {
+                                return@OfferItem it.isWatchedByMe
+                            }
                         }
-                    }else {
-                        showNoItemLayout {
-                            refresh()
-                        }
+                    ) {
+                        component.goToOffer(offer)
                     }
+                },
+                promoList = promoList.value,
+                promoContent = { offer ->
+                    PromoOfferRowItem(
+                        offer
+                    ) {
+                        component.goToOffer(offer, true)
+                    }
+                },
+                isShowGrid = true,
+                onSearchClick = {
+                    listingViewModel.isOpenSearch.value = true
                 }
-                //update item when we back
-                LaunchedEffect(Unit){
-
-                    if (listingViewModel.updateItem.value != null) {
-                        withContext(Dispatchers.Default) {
-                            val updateItem = listingViewModel.updateItem.value
-                            val offer =
-                                listingViewModel.getUpdatedOfferById(updateItem ?: 1L)
-                            withContext(Dispatchers.Main) {
-                                if (offer != null) {
-                                    val item =
-                                        data.itemSnapshotList.items.find { it.id == offer.id }
-                                    item?.isWatchedByMe = offer.isWatchedByMe
-                                }
-
-                                listingViewModel.updateItem.value = null
-                            }
-                        }
-                    }
-                }
-
-                ListingBaseContent(
-                    columns = columns,
-                    listingData.value,
-                    searchData.value,
-                    data = data,
-                    baseViewModel = listingViewModel,
-                    noFound = noFound,
-                    onRefresh = {
-                        refresh()
-                    },
-                    filtersContent = { isRefreshingFromFilters, onClose ->
-                        FilterListingContent(
-                            isRefreshingFromFilters,
-                            listingData.value,
-                            regions,
-                            onClose
-                        )
-                    },
-                    sortingContent = { isRefreshingFromFilters, onClose ->
-                        SortingListingContent(
-                            isRefreshingFromFilters,
-                            listingData.value,
-                            onClose
-                        )
-                    },
-                    additionalBar = { state ->
-                        SwipeTabsBar(
-                            isVisibility = listingViewModel.isOpenCategory.value,
-                            listingData.value,
-                            state,
-                            onRefresh = {
-                                refresh()
-                            }
-                        )
-                    },
-                    item = { offer ->
-                        OfferItem(
-                            offer,
-                            isGrid = listingData.value.listingType == 1,
-                            baseViewModel = listingViewModel,
-                            onFavouriteClick = {
-                                val currentOffer =
-                                    data[data.itemSnapshotList.items.indexOf(
-                                        it
-                                    )]
-                                if (currentOffer != null) {
-                                    val res =
-                                        operationFavorites(
-                                            currentOffer,
-                                            listingViewModel.viewModelScope
-                                        )
-                                    userRepository.updateUserInfo(listingViewModel.viewModelScope)
-                                    return@OfferItem res
-                                } else {
-                                    return@OfferItem it.isWatchedByMe
-                                }
-                            }
-                        ) {
-                            component.goToOffer(offer)
-                        }
-                    },
-                    promoList = promoList.value,
-                    promoContent = { offer ->
-                        PromoOfferRowItem(
-                            offer
-                        ) {
-                            component.goToOffer(offer, true)
-                        }
-                    },
-                    isShowGrid = true,
-                    onSearchClick = {
-                        listingViewModel.isOpenSearch.value = true
-                    }
-                )
-            }
+            )
         }
     }
 }

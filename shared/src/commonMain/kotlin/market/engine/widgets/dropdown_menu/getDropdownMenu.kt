@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -43,13 +40,12 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun getDropdownMenu(
     selectedText : String,
-    selectedTextDef : String? = null,
+    selectedTextDef : String = stringResource(strings.chooseAction),
     selects: List<String>,
     onItemClick: (String) -> Unit,
     onClearItem: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selectDef = selectedTextDef ?: stringResource(strings.chooseAction)
 
     val rotationAngle by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f
@@ -57,7 +53,6 @@ fun getDropdownMenu(
 
     Column(
         modifier = Modifier
-            .widthIn(min = 300.dp, max = 500.dp)
             .shadow(elevation = 3.dp, shape = MaterialTheme.shapes.medium, true)
             .clip(MaterialTheme.shapes.medium)
             .background(color = colors.white)
@@ -70,8 +65,7 @@ fun getDropdownMenu(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .clickable {
+            modifier = Modifier.fillMaxWidth().clickable {
                     expanded = !expanded
                 },
             verticalAlignment = Alignment.CenterVertically,
@@ -84,7 +78,7 @@ fun getDropdownMenu(
             )
             Row {
                 AnimatedVisibility(!expanded) {
-                    if (selectedText != selectDef) {
+                    if (selectedText != selectedTextDef) {
                         SmallIconButton(
                             drawables.cancelIcon,
                             colors.black,

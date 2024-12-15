@@ -55,7 +55,8 @@ class DefaultListingComponent(
         )
         analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
 
-        listingViewModel.isOpenCategory.value = isOpenCategory
+        if(isOpenCategory)
+            listingViewModel.activeFiltersType.value = "categories"
         listingViewModel.isOpenSearch.value = isOpenSearch
     }
 

@@ -50,6 +50,7 @@ import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.types.ToastType
+import market.engine.core.util.convertDateOnlyYear
 import market.engine.core.util.convertDateYear
 import market.engine.core.util.getCurrentDate
 import market.engine.presentation.base.BaseViewModel
@@ -518,7 +519,7 @@ fun getOfferOperations(
         val selectedDate = remember { mutableStateOf<String?>(null) }
         val currentDate = getCurrentDate()
 
-        val currentYear = currentDate.convertDateYear().drop(5)
+        val year = currentDate.convertDateOnlyYear().toInt()
 
         val selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
@@ -528,7 +529,7 @@ fun getOfferOperations(
         val oneDayInMillis = 24 * 60 * 60 * 1000
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = currentDate.toLong()*1000 + oneDayInMillis,
-            yearRange = currentYear.toInt()..(currentYear.toInt() + 100),
+            yearRange = year..(year + 100),
             selectableDates = selectableDates
         )
 

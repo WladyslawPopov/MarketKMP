@@ -3,6 +3,7 @@ package market.engine.widgets.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -37,8 +38,7 @@ fun PriceFilter(
     val to = stringResource(strings.toAboutParameterName)
 
     Column(
-        modifier = Modifier.wrapContentSize()
-            .padding(dimens.mediumPadding),
+        modifier = Modifier.fillMaxWidth(0.8f),
     ) {
         Text(
             text = price,
@@ -48,7 +48,7 @@ fun PriceFilter(
 
         Row(
             modifier = Modifier
-                .padding(horizontal = dimens.smallPadding),
+                .padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {

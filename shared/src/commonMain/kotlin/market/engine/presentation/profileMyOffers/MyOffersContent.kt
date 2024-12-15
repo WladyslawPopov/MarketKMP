@@ -139,19 +139,20 @@ fun MyOffersContent(
             },
             noFound = noFound,
             filtersContent = { isRefreshingFromFilters, onClose ->
-                OfferFilterContent(
-                    isRefreshingFromFilters,
-                    listingData.value,
-                    model.type,
-                    onClose
-                )
-            },
-            sortingContent = { isRefreshingFromFilters, onClose ->
-                SortingListingContent(
-                    isRefreshingFromFilters,
-                    listingData.value,
-                    onClose
-                )
+                when(viewModel.activeFiltersType.value){
+                    "filters" -> OfferFilterContent(
+                        isRefreshingFromFilters,
+                        listingData.value,
+                        viewModel,
+                        model.type,
+                        onClose
+                    )
+                    "sorting" -> SortingListingContent(
+                        isRefreshingFromFilters,
+                        listingData.value,
+                        onClose
+                    )
+                }
             },
             item = { offer ->
                 var checkItemSession = true

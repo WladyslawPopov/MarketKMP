@@ -140,19 +140,20 @@ fun FavoritesContent(
                 data.refresh()
             },
             filtersContent = { isRefreshingFromFilters, onClose ->
-                OfferFilterContent(
-                    isRefreshingFromFilters,
-                    ld.value,
-                    LotsType.FAVORITES,
-                    onClose
-                )
-            },
-            sortingContent = { isRefreshingFromFilters, onClose ->
-                SortingListingContent(
-                    isRefreshingFromFilters,
-                    ld.value,
-                    onClose
-                )
+                when (favViewModel.activeFiltersType.value){
+                    "filters" -> OfferFilterContent(
+                        isRefreshingFromFilters,
+                        ld.value,
+                        favViewModel,
+                        LotsType.FAVORITES,
+                        onClose
+                    )
+                    "sorting" -> SortingListingContent(
+                        isRefreshingFromFilters,
+                        ld.value,
+                        onClose
+                    )
+                }
             },
             additionalBar = {
                 AnimatedVisibility(
