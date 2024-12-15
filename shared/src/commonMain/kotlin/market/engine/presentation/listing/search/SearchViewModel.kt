@@ -12,7 +12,7 @@ import market.engine.presentation.base.BaseViewModel
 import market.engine.shared.MarketDB
 import market.engine.shared.SearchHistory
 
-class SearchViewModel(val db : MarketDB) : BaseViewModel() {
+class SearchViewModel(private val db : MarketDB) : BaseViewModel() {
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
@@ -49,7 +49,7 @@ class SearchViewModel(val db : MarketDB) : BaseViewModel() {
         val searchString = searchData.searchString
         if (searchString != "" && searchString != null) {
             val sh = db.searchHistoryQueries
-            if (sh.selectSearch(searchString, UserData.login).executeAsList().isEmpty()){
+            if (sh.selectSearch("${searchString.trim()}%", UserData.login).executeAsList().isEmpty()){
                 sh.insertEntry(searchString, UserData.login)
             }
         }
