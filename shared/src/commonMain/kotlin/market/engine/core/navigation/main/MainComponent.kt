@@ -445,7 +445,7 @@ class DefaultMainComponent(
                         onBack = {
                             modelNavigation.value.searchNavigation.pop()
                         },
-                        isOpenCategory = true,
+                        isOpenCategory = false,
                         isOpenSearch = true
                     ),
                 )
