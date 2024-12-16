@@ -203,8 +203,10 @@ fun getSearchFilters(searchData: SD, it: String) {
             searchData.searchFinished = false
         }
     }else{
-        searchData.searchString = it
-        searchData.isRefreshing = true
+        if (searchData.searchString != it) {
+            searchData.searchString = it
+            searchData.isRefreshing = true
+        }
     }
 }
 

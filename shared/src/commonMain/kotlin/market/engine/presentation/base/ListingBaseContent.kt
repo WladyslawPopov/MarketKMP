@@ -22,6 +22,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateError
+import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import market.engine.core.baseFilters.LD
@@ -129,7 +130,9 @@ fun <T : Any>ListingBaseContent(
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        AnimatedVisibility (baseViewModel.activeFiltersType.value == "" || baseViewModel.activeFiltersType.value == "categories") {
+        AnimatedVisibility (data.loadState.refresh is LoadStateLoading ||
+                data.loadState.refresh is LoadStateNotLoading
+        ) {
             Column {
                 additionalBar(scrollState)
 
@@ -198,7 +201,6 @@ fun <T : Any>ListingBaseContent(
                                 promoList = promoList,
                                 promoContent = promoContent,
                             )
-
                         }
                     }
                 }

@@ -14,8 +14,8 @@ object OfferFilters {
     )
     var filtersMyLotsUnactive = arrayListOf(
         Filter("state", "1", "", null),
-        Filter("with_sales", "", null, null),//0 фильтр
-        Filter("without_sales", "", null, null),//0 фильтр
+        Filter("with_sales", "", null, null),
+        Filter("without_sales", "", null, null),
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),

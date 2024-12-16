@@ -83,7 +83,7 @@ fun ListingContent(
     val focusManager = LocalFocusManager.current
 
     val columns =
-        remember { mutableStateOf(if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2) }
+        remember { mutableStateOf(if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2) }
 
     val catDef = stringResource(strings.categoryMain)
     val searchString = remember { mutableStateOf(TextFieldValue(searchData.value.searchString ?: "")) }
@@ -157,6 +157,45 @@ fun ListingContent(
         }
     }
 
+    val noFound = @Composable {
+        if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
+            searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
+        ){
+            showNoItemLayout(
+                textButton = stringResource(strings.resetLabel)
+            ){
+                searchData.value.clear()
+                listingData.value.filters.clear()
+                listingData.value.filters.addAll(EmptyFilters.getEmpty())
+                refresh()
+            }
+        }else {
+            showNoItemLayout {
+                refresh()
+            }
+        }
+    }
+    //update item when we back
+    LaunchedEffect(Unit){
+
+        if (listingViewModel.updateItem.value != null) {
+            withContext(Dispatchers.Default) {
+                val updateItem = listingViewModel.updateItem.value
+                val offer =
+                    listingViewModel.getUpdatedOfferById(updateItem ?: 1L)
+                withContext(Dispatchers.Main) {
+                    if (offer != null) {
+                        val item =
+                            data.itemSnapshotList.items.find { it.id == offer.id }
+                        item?.isWatchedByMe = offer.isWatchedByMe
+                    }
+
+                    listingViewModel.updateItem.value = null
+                }
+            }
+        }
+    }
+
 
     BottomSheetScaffold(
         scaffoldState = scaffoldStateSearch,
@@ -186,45 +225,6 @@ fun ListingContent(
             )
         },
     ) {
-        val noFound = @Composable {
-            if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
-                searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
-            ){
-                showNoItemLayout(
-                    textButton = stringResource(strings.resetLabel)
-                ){
-                    searchData.value.clear()
-                    listingData.value.filters.clear()
-                    listingData.value.filters.addAll(EmptyFilters.getEmpty())
-                    refresh()
-                }
-            }else {
-                showNoItemLayout {
-                    refresh()
-                }
-            }
-        }
-        //update item when we back
-        LaunchedEffect(Unit){
-
-            if (listingViewModel.updateItem.value != null) {
-                withContext(Dispatchers.Default) {
-                    val updateItem = listingViewModel.updateItem.value
-                    val offer =
-                        listingViewModel.getUpdatedOfferById(updateItem ?: 1L)
-                    withContext(Dispatchers.Main) {
-                        if (offer != null) {
-                            val item =
-                                data.itemSnapshotList.items.find { it.id == offer.id }
-                            item?.isWatchedByMe = offer.isWatchedByMe
-                        }
-
-                        listingViewModel.updateItem.value = null
-                    }
-                }
-            }
-        }
-
         BaseContent(
             topBar = {
                 ListingAppBar(
