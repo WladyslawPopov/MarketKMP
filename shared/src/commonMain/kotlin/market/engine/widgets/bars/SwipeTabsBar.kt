@@ -50,11 +50,13 @@ fun SwipeTabsBar(
         }
     }
 
-    val curTab = when (listingData.filters.find { filter-> filter.key == "sale_type" }?.value){
-        "auction" -> TabTypeListing.AUCTION
-        "buynow" -> TabTypeListing.BUY_NOW
-        else -> TabTypeListing.ALL
-    }
+    val curTab = remember { mutableStateOf(
+        when (listingData.filters.find { filter-> filter.key == "sale_type" }?.value){
+            "auction" -> TabTypeListing.AUCTION
+            "buynow" -> TabTypeListing.BUY_NOW
+            else -> TabTypeListing.ALL
+        }
+    ) }
     val isTabsVisible = remember { mutableStateOf(true) }
 
     if (isVisibility) {
@@ -148,8 +150,11 @@ fun SwipeTabsBar(
             items(tabs) { tab ->
                 FilterChip(
                     modifier = Modifier.padding(dimens.smallPadding),
-                    selected = tab.type == curTab,
-                    onClick = { tab.onClick() },
+                    selected = tab.type == curTab.value,
+                    onClick = {
+                        curTab.value = tab.type
+                        tab.onClick()
+                    },
                     label = {
                         Text(tab.title, style = MaterialTheme.typography.bodySmall)
                     },

@@ -391,7 +391,7 @@ fun FilterListingContent(
                 }
                 item {
                     // Price Filter
-                    PriceFilter(listingData) {
+                    PriceFilter(listingData.filters) {
                         isRefreshing.value = true
                     }
                 }

@@ -14,19 +14,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import market.engine.core.baseFilters.Filter
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.baseFilters.LD
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PriceFilter(
-    listingData: LD,
+    filters: ArrayList<Filter>,
     onFiltersUpdated: () -> Unit
 ) {
-    val filters = listingData.filters
-
     val priceFrom = rememberSaveable { mutableStateOf(filters.find { it.key == "current_price" && it.operation == "gte" }?.value ?: "") }
     val priceTo =  rememberSaveable { mutableStateOf(filters.find { it.key == "current_price" && it.operation == "lte" }?.value ?: "") }
 

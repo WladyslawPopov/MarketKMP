@@ -13,7 +13,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,9 +71,9 @@ private fun constructActiveFiltersTitle(
 }
 
 private fun filterListingFilters(
-    filters: List<Filter>?
-): List<Filter>? {
-    return filters?.filter { filter ->
+    filters: ArrayList<Filter>
+): List<Filter> {
+    return filters.filter { filter ->
          filter.interpritation != "" && filter.interpritation != null
     }
 }
@@ -87,41 +90,43 @@ fun FiltersBar(
     onSortClick: () -> Unit = {},
     onRefresh: () -> Unit = {},
 ) {
+    val filters = rememberUpdatedState(filterListingFilters(listingData.filters))
     val filterString = stringResource(strings.filter)
     val sortTitle = stringResource(strings.sort)
     val searchTitle = stringResource(strings.searchTitle)
     val userDef = stringResource(strings.searchUsersSearch)
 
-    val ld = listingData.copy()
-
     // Derived filters based on isShowFilters
-    val filters = remember {
-        filterListingFilters(ld.filters.toList())
-    }
+
+    val search = remember { mutableStateOf(searchData) }
 
     // Construct active filters title
-    val activeFiltersTitle = remember(filters, searchData, ld.sort) {
-        constructActiveFiltersTitle(filters, searchData, ld.sort, filterString, searchTitle, sortTitle)
+    val activeFiltersTitle = remember {
+        mutableStateOf(constructActiveFiltersTitle(filters.value, searchData, listingData.sort, filterString, searchTitle, sortTitle))
     }
 
-    val itemFilter = remember(filters) {
+    LaunchedEffect(Unit){
+        search.value = searchData
+    }
+
+    val itemFilter = remember(filters.value) {
         NavigationItem(
             title = strings.filter,
             string = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
-            hasNews = ld.filters.find { it.interpritation?.isNotEmpty() == true } != null,
-            badgeCount = if(!filters.isNullOrEmpty()) filters.size else null,
+            hasNews = filters.value.find { it.interpritation?.isNotEmpty() == true } != null,
+            badgeCount = if(filters.value.isNotEmpty()) filters.value.size else null,
         )
     }
 
-    val itemSort = remember(ld.sort) {
+    val itemSort = remember(listingData.sort) {
         NavigationItem(
             title = strings.sort,
             string = sortTitle,
             icon = drawables.sortIcon,
             tint = colors.black,
-            hasNews = ld.sort != null,
+            hasNews = listingData.sort != null,
             badgeCount = null
         )
     }
@@ -134,17 +139,17 @@ fun FiltersBar(
             hasNews = false,
             badgeCount = null,
             isVisible = true
-        ) 
+        )
     else null
 
     Column {
-        if (activeFiltersTitle.isNotEmpty()) {
+        if (activeFiltersTitle.value.isNotEmpty()) {
             Box(
                 modifier = Modifier
                     .padding(top = dimens.smallPadding, start = dimens.mediumPadding)
             ) {
                 Text(
-                    text = activeFiltersTitle,
+                    text = activeFiltersTitle.value,
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.black,
                 )
@@ -163,27 +168,25 @@ fun FiltersBar(
                     .clip(MaterialTheme.shapes.medium),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
-                if (filters != null) {
-                    items(filters) { filter ->
-                        filter.interpritation?.let { text->
-                            ActiveFilterListing(
-                                text = text,
-                                removeFilter = {
-                                    ld.filters.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
-                                    ld.filters.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
-                                    onRefresh()
-                                },
-                            ){
-                                onFilterClick()
-                            }
+                items(filters.value) { filter ->
+                    filter.interpritation?.let { text->
+                        ActiveFilterListing(
+                            text = text,
+                            removeFilter = {
+                                filters.value.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
+                                filters.value.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
+                                onRefresh()
+                            },
+                        ){
+                            onFilterClick()
                         }
                     }
                 }
 
-                if (searchData.userSearch && searchData.userLogin != null) {
+                if (search.value.userSearch && search.value.userLogin != null) {
                     item(key = "search_user") {
                         ActiveFilterListing(
-                            text = searchData.userLogin ?: userDef,
+                            text = search.value.userLogin ?: userDef,
                             removeFilter = {
                                 searchData.userLogin = null
                                 searchData.userSearch = false
@@ -196,10 +199,10 @@ fun FiltersBar(
                     }
                 }
 
-                if (!searchData.searchString.isNullOrEmpty()) {
+                if (!search.value.searchString.isNullOrEmpty()) {
                     item(key = "search_string") {
                         ActiveFilterListing(
-                            text = searchData.searchString ?: searchTitle,
+                            text = search.value.searchString ?: searchTitle,
                             removeFilter = {
                                 searchData.searchString = null
                                 onRefresh()
@@ -210,12 +213,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (searchData.searchFinished) {
+                if (search.value.searchFinished) {
                     item(key = "search_finished") {
                         ActiveFilterListing(
                             text = stringResource(strings.searchUserFinishedStringChoice),
                             removeFilter = {
-                                searchData.searchFinished = false
+                                search.value.searchFinished = false
                                 onRefresh()
                             },
                         ){
@@ -224,12 +227,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (ld.sort != null) {
+                if (listingData.sort != null) {
                     item(key = "sort") {
                         ActiveFilterListing(
-                            text = ld.sort?.interpritation ?: "",
+                            text = listingData.sort?.interpritation ?: "",
                             removeFilter = {
-                                ld.sort = null
+                                listingData.sort = null
                                 onRefresh()
                             },
                         ){
@@ -249,7 +252,7 @@ fun FiltersBar(
                     onChangeTypeList = { newType ->
                         onChangeTypeList(newType)
                     },
-                    listingType = ld.listingType
+                    listingType = listingData.listingType
                 )
             }
         }

@@ -129,11 +129,12 @@ fun <T : Any>ListingBaseContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-
         AnimatedVisibility (
-            data.loadState.refresh is LoadStateLoading ||
-            data.loadState.refresh is LoadStateNotLoading ||
-            data.loadState.refresh is LoadStateError,
+            ((baseViewModel.activeFiltersType.value == "" ||
+                    baseViewModel.activeFiltersType.value == "categories") &&
+                    !baseViewModel.isOpenSearch.value),
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
             Column {
                 additionalBar(scrollState)
