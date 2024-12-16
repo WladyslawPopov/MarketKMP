@@ -130,8 +130,10 @@ fun <T : Any>ListingBaseContent(
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        AnimatedVisibility (data.loadState.refresh is LoadStateLoading ||
-                data.loadState.refresh is LoadStateNotLoading
+        AnimatedVisibility (
+            data.loadState.refresh is LoadStateLoading ||
+            data.loadState.refresh is LoadStateNotLoading ||
+            data.loadState.refresh is LoadStateError,
         ) {
             Column {
                 additionalBar(scrollState)
