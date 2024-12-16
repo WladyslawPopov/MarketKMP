@@ -5,6 +5,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -77,7 +79,11 @@ fun getDropdownMenu(
                 modifier = Modifier.padding(dimens.mediumPadding)
             )
             Row {
-                AnimatedVisibility(!expanded) {
+                AnimatedVisibility(
+                    !expanded,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
                     if (selectedText != selectedTextDef) {
                         SmallIconButton(
                             drawables.cancelIcon,

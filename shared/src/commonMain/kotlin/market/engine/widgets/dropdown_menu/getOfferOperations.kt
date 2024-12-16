@@ -1,6 +1,8 @@
 package market.engine.widgets.dropdown_menu
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -441,7 +443,11 @@ fun getOfferOperations(
             }
         }
 
-        AnimatedVisibility(show.value) {
+        AnimatedVisibility(
+            show.value,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
             AlertDialog(
                 containerColor = colors.white,
                 tonalElevation = 0.dp,

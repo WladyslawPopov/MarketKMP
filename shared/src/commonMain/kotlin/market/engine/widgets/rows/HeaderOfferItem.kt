@@ -1,6 +1,8 @@
 package market.engine.widgets.rows
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -98,12 +100,16 @@ fun HeaderOfferItem(
                 )
             }
 
-            AnimatedVisibility(!isSelected){
+            AnimatedVisibility(
+                !isSelected,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ){
                 SmallIconButton(
                     if(!isOpenPopup.value) drawables.menuIcon else drawables.cancelIcon,
                     if(!isOpenPopup.value) colors.black else colors.grayText,
                     modifierIconSize = Modifier.size(dimens.smallIconSize),
-                    modifier = Modifier.size(dimens.smallIconSize)
+                    modifier = Modifier.size(dimens.smallIconSize),
                 ) {
                     isOpenPopup.value = !isOpenPopup.value
                 }

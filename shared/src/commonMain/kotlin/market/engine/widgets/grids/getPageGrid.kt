@@ -56,7 +56,7 @@ fun <T : Any> PagingList(
 
     val currentIndex by remember {
         derivedStateOf {
-            state.firstVisibleItemIndex + if(listingData.totalCount > 1) 2 else 1
+            state.firstVisibleItemIndex + if(listingData.totalCount > 1 && listingData.totalCount%2 == 0) 2 else 1
         }
     }
 

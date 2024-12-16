@@ -167,6 +167,7 @@ fun SearchContent(
                     },
                     onDeleteItem = {
                         searchViewModel.deleteItemHistory(it)
+                        searchViewModel.getHistory(searchString.value.text)
                     },
                     goToListing = {
                         getSearchFilters(searchData, it)

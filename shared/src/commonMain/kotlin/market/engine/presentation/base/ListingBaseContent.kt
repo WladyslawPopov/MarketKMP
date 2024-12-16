@@ -2,6 +2,7 @@ package market.engine.presentation.base
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
@@ -133,7 +134,7 @@ fun <T : Any>ListingBaseContent(
             ((baseViewModel.activeFiltersType.value == "" ||
                     baseViewModel.activeFiltersType.value == "categories") &&
                     !baseViewModel.isOpenSearch.value),
-            enter = fadeIn(),
+            enter = expandIn(),
             exit = fadeOut()
         ) {
             Column {

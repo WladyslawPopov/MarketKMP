@@ -1,5 +1,7 @@
 package market.engine.presentation.listing.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,8 +24,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.rememberDismissState
+import androidx.compose.material.FixedThreshold
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
@@ -101,20 +105,28 @@ fun HistoryLayout(
                 confirmStateChange = { dismissValue ->
                     if (dismissValue == DismissValue.DismissedToStart) {
                         onDeleteItem(historyItem.id)
-                        true
+                        false
                     } else {
                         false
                     }
                 }
             )
-
-            if(dismissState.currentValue != DismissValue.DismissedToStart) {
+            AnimatedVisibility(
+                dismissState.currentValue != DismissValue.DismissedToStart,
+                enter = expandIn(),
+            ) {
                 SwipeToDismiss(
                     state = dismissState,
                     directions = setOf(DismissDirection.EndToStart),
                     background = { dismissBackground() },
                     dismissContent = {
                         historyItem(historyItem, onItemClick, goToListing)
+                    },
+                    dismissThresholds = { direction ->
+                        when (direction) {
+                            DismissDirection.EndToStart -> FractionalThreshold(0.5f)
+                            else -> FixedThreshold(80.dp)
+                        }
                     }
                 )
             }

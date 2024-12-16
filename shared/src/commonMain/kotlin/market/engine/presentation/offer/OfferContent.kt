@@ -1,6 +1,8 @@
 package market.engine.presentation.offer
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -414,7 +416,9 @@ fun OfferContent(
 
                                     AnimatedVisibility(
                                         isShowOptions.value,
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.fillMaxWidth(),
+                                        enter = expandIn(),
+                                        exit = fadeOut()
                                     ) {
                                         getOfferOperations(
                                             offer,

@@ -1,6 +1,8 @@
 package market.engine.widgets.exceptions
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,7 +32,11 @@ fun CaptchaView(
     focusRequester: FocusRequester = remember { FocusRequester() },
     onCaptchaTextChange: (TextFieldValue) -> Unit
 ) {
-    AnimatedVisibility(isVisible) {
+    AnimatedVisibility(
+        isVisible,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),

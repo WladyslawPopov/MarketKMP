@@ -68,7 +68,9 @@ fun BaseContent(
                             toastItem.value.isVisible,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .zIndex(100f)
+                                .zIndex(100f),
+                            enter = expandIn(),
+                            exit = fadeOut()
                         ) {
                             ToastTypeMessage(
                                 message = toastItem.value.message,

@@ -1,6 +1,7 @@
 package market.engine.presentation.profileMyOffers
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -176,7 +177,7 @@ fun MyOffersContent(
 
                     else -> {}
                 }
-                AnimatedVisibility(checkItemSession, exit = fadeOut()) {
+                AnimatedVisibility(checkItemSession, enter = fadeIn(), exit = fadeOut()) {
                     OfferItem(
                         offer,
                         isGrid = (columns.value > 1),
