@@ -41,7 +41,6 @@ class ListingViewModel(
          listingData.data.value.objServer = "offers"
 
          if (listingData.data.value.filters.isEmpty()) {
-             listingData.data.value.filters = arrayListOf()
              listingData.data.value.filters.addAll(EmptyFilters.getEmpty())
          }
          listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0

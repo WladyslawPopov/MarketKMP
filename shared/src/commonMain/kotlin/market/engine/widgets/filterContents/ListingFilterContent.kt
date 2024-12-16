@@ -64,8 +64,6 @@ fun FilterListingContent(
     val focusManager: FocusManager = LocalFocusManager.current
 
     val saleTypeFilters = listOf(
-        "buynow" to stringResource(strings.buyNow),
-        "auction" to stringResource(strings.ordinaryAuction),
         "starting_price" to stringResource(strings.saleTypeNameFromOne) + " 1 ${
             stringResource(
                 strings.currencyCode

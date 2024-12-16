@@ -98,7 +98,10 @@ fun OfferFilterContent(
 
     var isExpanded1 by remember { mutableStateOf(listingData.find { it.key == "state" }?.value != "") }
     var isExpanded2 by remember {
-        mutableStateOf(listingData.find { it.key in (listOf("with_sales", "without_sales")) }?.value != "")
+        mutableStateOf(
+            listingData.find { it.key == "with_sales" }?.interpritation != null ||
+                listingData.find { it.key == "without_sales" }?.interpritation != null
+        )
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -118,6 +121,13 @@ fun OfferFilterContent(
     val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName ?: defCat) }
 
     val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpritation ?: offersType[0].second) }
+
+    val selectedFilterKey = remember {
+        mutableStateOf(
+            listingData.find { it.key == "state" }?.value
+        )
+    }
+
 
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
@@ -247,12 +257,6 @@ fun OfferFilterContent(
                                 isExpanded = isExpanded1,
                                 onExpandChange = { isExpanded1 = !isExpanded1 },
                                 content = {
-                                    val selectedFilterKey = remember {
-                                        mutableStateOf(
-                                            listingData.find { it.key == "state" }?.value
-                                        )
-                                    }
-
                                     LazyColumn(
                                         modifier = Modifier.heightIn(max = 500.dp)
                                     ) {

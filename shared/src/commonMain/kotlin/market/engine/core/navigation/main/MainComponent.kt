@@ -130,7 +130,8 @@ class DefaultMainComponent(
             source = modelNavigation.value.searchNavigation,
             initialConfiguration = SearchConfig.ListingScreen(
                 categoryData.data.value,
-                categoryData.searchData.value
+                categoryData.searchData.value,
+                true
             ),
             serializer = SearchConfig.serializer(),
             childFactory = ::createChild,
@@ -446,7 +447,7 @@ class DefaultMainComponent(
                             modelNavigation.value.searchNavigation.pop()
                         },
                         isOpenCategory = false,
-                        isOpenSearch = true
+                        isOpenSearch = config.isOpenSearch
                     ),
                 )
             }
@@ -467,7 +468,7 @@ class DefaultMainComponent(
                     },
                     onListingSelected = {
                         modelNavigation.value.searchNavigation.pushNew(
-                            SearchConfig.ListingScreen(it.data.value, it.searchData.value)
+                            SearchConfig.ListingScreen(it.data.value, it.searchData.value, false)
                         )
                     },
                     onUserSelected = { ui, about ->
@@ -485,7 +486,7 @@ class DefaultMainComponent(
                     config.aboutMe,
                     goToLogin = {
                         modelNavigation.value.searchNavigation.pushNew(
-                            SearchConfig.ListingScreen(it.data.value, it.searchData.value)
+                            SearchConfig.ListingScreen(it.data.value, it.searchData.value, false)
                         )
                     },
                     goBack = {
@@ -896,7 +897,8 @@ class DefaultMainComponent(
                     modelNavigation.value.searchNavigation.replaceAll(
                         SearchConfig.ListingScreen(
                             categoryData.data.value,
-                            categoryData.searchData.value
+                            categoryData.searchData.value,
+                            true
                         )
                     )
                 }
@@ -946,7 +948,13 @@ class DefaultMainComponent(
                 val categoryData = ListingData()
                 categoryData.searchData.value.userSearch = true
                 categoryData.searchData.value.userID = deepLink.ownerId
-                modelNavigation.value.searchNavigation.pushNew(SearchConfig.ListingScreen(categoryData.data.value, categoryData.searchData.value))
+                modelNavigation.value.searchNavigation.pushNew(
+                    SearchConfig.ListingScreen(
+                        categoryData.data.value,
+                        categoryData.searchData.value,
+                        false
+                    )
+                )
                 navigateToBottomItem(MainConfig.Category)
             }
             is DeepLink.Offer -> {

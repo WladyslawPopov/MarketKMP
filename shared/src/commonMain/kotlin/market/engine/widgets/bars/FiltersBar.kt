@@ -92,14 +92,16 @@ fun FiltersBar(
     val searchTitle = stringResource(strings.searchTitle)
     val userDef = stringResource(strings.searchUsersSearch)
 
+    val ld = listingData.copy()
+
     // Derived filters based on isShowFilters
-    val filters = remember(listingData.filters) {
-        filterListingFilters(listingData.filters)
+    val filters = remember {
+        filterListingFilters(ld.filters.toList())
     }
 
     // Construct active filters title
-    val activeFiltersTitle = remember(filters, searchData, listingData.sort) {
-        constructActiveFiltersTitle(filters, searchData, listingData.sort, filterString, searchTitle, sortTitle)
+    val activeFiltersTitle = remember(filters, searchData, ld.sort) {
+        constructActiveFiltersTitle(filters, searchData, ld.sort, filterString, searchTitle, sortTitle)
     }
 
     val itemFilter = remember(filters) {
@@ -108,18 +110,18 @@ fun FiltersBar(
             string = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
-            hasNews = listingData.filters.find { it.interpritation?.isNotEmpty() == true } != null,
+            hasNews = ld.filters.find { it.interpritation?.isNotEmpty() == true } != null,
             badgeCount = if(!filters.isNullOrEmpty()) filters.size else null,
         )
     }
 
-    val itemSort = remember(listingData.sort) {
+    val itemSort = remember(ld.sort) {
         NavigationItem(
             title = strings.sort,
             string = sortTitle,
             icon = drawables.sortIcon,
             tint = colors.black,
-            hasNews = listingData.sort != null,
+            hasNews = ld.sort != null,
             badgeCount = null
         )
     }
@@ -167,8 +169,8 @@ fun FiltersBar(
                             ActiveFilterListing(
                                 text = text,
                                 removeFilter = {
-                                    listingData.filters.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
-                                    listingData.filters.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
+                                    ld.filters.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
+                                    ld.filters.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
                                     onRefresh()
                                 },
                             ){
@@ -222,12 +224,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (listingData.sort != null) {
+                if (ld.sort != null) {
                     item(key = "sort") {
                         ActiveFilterListing(
-                            text = listingData.sort?.interpritation ?: "",
+                            text = ld.sort?.interpritation ?: "",
                             removeFilter = {
-                                listingData.sort = null
+                                ld.sort = null
                                 onRefresh()
                             },
                         ){
@@ -247,7 +249,7 @@ fun FiltersBar(
                     onChangeTypeList = { newType ->
                         onChangeTypeList(newType)
                     },
-                    listingType = listingData.listingType
+                    listingType = ld.listingType
                 )
             }
         }

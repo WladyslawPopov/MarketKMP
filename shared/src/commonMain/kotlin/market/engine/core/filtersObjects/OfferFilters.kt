@@ -16,7 +16,7 @@ object OfferFilters {
         Filter("state", "1", "", null),
         Filter("with_sales", "", null, null),//0 фильтр
         Filter("without_sales", "", null, null),//0 фильтр
-        Filter("category", "1", "", null),
+        Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
         Filter("id", "", null, null),
         Filter("search", "", null, null),
@@ -89,7 +89,7 @@ object OfferFilters {
                     Filter("state", "1", "", null),
                     Filter("with_sales", "", null, null),//0 фильтр
                     Filter("without_sales", "", null, null),//0 фильтр
-                    Filter("category", "1", "", null),
+                    Filter("category", "1", null, null),
                     Filter("sale_type", "", null, null),
                     Filter("id", "", null, null),
                     Filter("search", "", null, null),
