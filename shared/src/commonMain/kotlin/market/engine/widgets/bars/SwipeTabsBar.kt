@@ -42,7 +42,7 @@ fun SwipeTabsBar(
     val itemsPerPage = listingData.pageCountItems
     val totalPages = listingData.totalPages
 
-    var previousIndex by remember { mutableStateOf(0) }
+    var previousIndex by remember { mutableStateOf(3) }
 
     val currentPage by remember {
         derivedStateOf {
@@ -72,15 +72,11 @@ fun SwipeTabsBar(
                     isTabsVisible.value = false
                 }
 
-                if (currentIndex == 0) {
+                if (currentPage == 0) {
                     isTabsVisible.value = true
                 }
-
-                if (currentPage == totalPages) {
-                    isTabsVisible.value = true
-                }
-
-                previousIndex = currentIndex
+                if (currentIndex > (previousIndex+3) || currentIndex < (previousIndex-3))
+                    previousIndex = currentIndex
             }
     }
 
