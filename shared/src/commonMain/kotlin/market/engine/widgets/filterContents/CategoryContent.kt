@@ -1,5 +1,8 @@
 package market.engine.widgets.filterContents
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,7 +55,7 @@ fun CategoryContent(
     listingData: LD = LD(),
     complete: () -> Unit = {},
 ) {
-    val catDef = stringResource(strings.categoryMain)
+    val catDef = if (isCreateOffer || isFilters) stringResource(strings.selectCategory) else stringResource(strings.categoryMain)
 
     val isLoading = baseViewModel.isShowProgress.collectAsState()
     val categories = baseViewModel.responseCategory.collectAsState()
@@ -111,10 +114,12 @@ fun CategoryContent(
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    NavigationArrowButton {
-                        if (searchData.searchCategoryID == 1L){
-                            complete()
-                        }else{
+                    AnimatedVisibility(
+                        visible = searchData.searchCategoryID != 1L,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        NavigationArrowButton {
                             baseViewModel.onCatBack(searchData, refresh)
                         }
                     }
@@ -174,7 +179,7 @@ fun CategoryContent(
                                     if (!category.isLeaf) {
                                         refresh()
                                     } else {
-                                        if (!isFilters) {
+                                        if (!isFilters && !isCreateOffer) {
                                             complete()
                                         }else{
                                             isSelected.value = category.id
@@ -224,10 +229,10 @@ fun CategoryContent(
             }
         }
 
-       val btn =  if (isFilters || isCreateOffer){
-           strings.actionAcceptFilters
-       }else{
-          strings.categoryEnter
+       val btn = when{
+           isFilters -> strings.actionAcceptFilters
+           isCreateOffer -> strings.continueLabel
+           else -> strings.categoryEnter
        }
 
         AcceptedPageButton(

@@ -33,7 +33,7 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
             try {
                 withContext(Dispatchers.IO) {
                     setLoading(true)
-                    val response = apiService.getCreateOfferPage(url)
+                    val response = apiService.getPage(url)
                     withContext(Dispatchers.Main) {
                         setLoading(false)
                         try {
@@ -58,7 +58,7 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
             try {
                 withContext(Dispatchers.IO) {
                     setLoading(true)
-                    val response = apiService.getCreateOfferPage(url)
+                    val response = apiService.getPage(url)
                     withContext(Dispatchers.Main) {
                         setLoading(false)
                         try {

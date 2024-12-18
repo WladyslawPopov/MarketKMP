@@ -22,27 +22,6 @@ class APIService(private val client: HttpClient) {
     suspend fun getPage(url: String): AppResponse =
         client.get(url).body()
 
-    suspend fun getPageSub(url: String): AppResponse =
-        client.get(url).body()
-
-    suspend fun getPageOrders(url: String): AppResponse =
-        client.get(url).body()
-
-    suspend fun getPageConversations(url: String): AppResponse =
-        client.get(url).body()
-
-    suspend fun getPageSearchDialogs(url: String): AppResponse =
-        client.get(url).body()
-
-    suspend fun getPageFeedbacks(url: String): AppResponse =
-        client.get(url).body()
-
-    suspend fun getPageDialogs(url: String): AppResponse =
-        client.get(url).body()
-
-    suspend fun getCreateOfferPage(url: String): AppResponse =
-        client.get(url).body()
-
     suspend fun postCreateOfferPage(url: String, body: JsonObject): AppResponse =
         client.post(url) {
             contentType(ContentType.Application.Json)

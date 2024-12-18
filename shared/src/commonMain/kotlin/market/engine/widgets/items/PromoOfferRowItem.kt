@@ -26,7 +26,6 @@ import market.engine.core.globalData.ThemeResources.strings
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -81,9 +80,12 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 }
             }
 
-            TitleText(
+            Text(
                 offer.title ?: "",
-                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth()
+                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
+                color = colors.black,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 3
             )
 
             Spacer(modifier = Modifier.height(dimens.smallSpacer))

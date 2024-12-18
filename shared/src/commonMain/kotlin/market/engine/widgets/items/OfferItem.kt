@@ -263,7 +263,7 @@ fun content(
     if (location.isNotEmpty()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
+            modifier = Modifier.fillMaxWidth().padding(dimens.extraSmallPadding)
         ) {
             Image(
                 painter = painterResource(drawables.locationIcon),
@@ -285,7 +285,7 @@ fun content(
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
+            modifier = Modifier.fillMaxWidth().padding(dimens.extraSmallPadding)
         ) {
             Image(
                 painter = painterResource(drawables.iconClock),

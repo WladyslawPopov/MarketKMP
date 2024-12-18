@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
@@ -28,7 +27,6 @@ import market.engine.core.globalData.ThemeResources.strings
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -81,9 +79,12 @@ fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 }
             }
 
-            TitleText(
+            Text(
                 offer.title ?: "",
-                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth()
+                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
+                color = colors.black,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 3
             )
 
             Spacer(modifier = Modifier.height(dimens.smallSpacer))

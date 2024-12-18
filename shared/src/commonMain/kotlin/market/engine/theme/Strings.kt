@@ -3,6 +3,8 @@ package market.engine.theme
 import org.jetbrains.compose.resources.StringResource
 
 interface Strings {
+    val continueLabel: StringResource
+    val selectCategory: StringResource
     val profileTitleBottom: StringResource
     val menuTitle: StringResource
     val homeTitle: StringResource

@@ -63,7 +63,14 @@ fun CreateOfferContent(
         }
     }
 
-
+    LaunchedEffect(viewModel.activeFiltersType.value){
+        if (viewModel.activeFiltersType.value == ""){
+            scaffoldState.bottomSheetState.collapse()
+            refresh()
+        }else{
+            scaffoldState.bottomSheetState.expand()
+        }
+    }
 
     val isLoading = viewModel.isShowProgress.collectAsState()
     val error : (@Composable () -> Unit)? = null
