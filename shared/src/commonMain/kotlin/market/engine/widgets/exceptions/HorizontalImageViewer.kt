@@ -29,8 +29,8 @@ import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.util.getImage
-import market.engine.core.util.printLogD
+import market.engine.core.utils.getImage
+import market.engine.core.utils.printLogD
 
 @Composable
 fun HorizontalImageViewer(

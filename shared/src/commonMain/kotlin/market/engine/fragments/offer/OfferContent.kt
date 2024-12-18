@@ -77,8 +77,8 @@ import market.engine.core.network.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
-import market.engine.core.util.convertDateWithMinutes
-import market.engine.core.util.parseHtmlToAnnotatedString
+import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.parseHtmlToAnnotatedString
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.PopupActionButton

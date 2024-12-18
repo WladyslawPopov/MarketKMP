@@ -1,4 +1,4 @@
-package market.engine.core.util
+package market.engine.core.utils
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size

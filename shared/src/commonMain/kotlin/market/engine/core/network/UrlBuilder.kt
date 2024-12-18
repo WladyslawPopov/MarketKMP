@@ -5,7 +5,7 @@ import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.util.getCurrentDate
+import market.engine.core.utils.getCurrentDate
 
 class UrlBuilder {
 

@@ -21,7 +21,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.TopCategory
 import market.engine.core.data.types.WindowType
-import market.engine.core.util.getWindowType
+import market.engine.core.utils.getWindowType
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

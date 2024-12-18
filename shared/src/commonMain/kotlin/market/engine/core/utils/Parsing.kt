@@ -1,4 +1,4 @@
-package market.engine.core.util
+package market.engine.core.utils
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString

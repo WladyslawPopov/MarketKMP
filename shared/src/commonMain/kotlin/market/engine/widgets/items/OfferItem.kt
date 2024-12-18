@@ -36,7 +36,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.CreateOfferType
-import market.engine.core.util.convertDateWithMinutes
+import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.rows.HeaderOfferItem
 import market.engine.widgets.badges.DiscountBadge

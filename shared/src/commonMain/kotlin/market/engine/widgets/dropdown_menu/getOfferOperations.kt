@@ -53,8 +53,8 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ToastType
-import market.engine.core.util.convertDateOnlyYear
-import market.engine.core.util.getCurrentDate
+import market.engine.core.utils.convertDateOnlyYear
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource

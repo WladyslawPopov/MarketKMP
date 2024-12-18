@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.util.printLogD
+import market.engine.core.utils.printLogD
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ListingComponent {

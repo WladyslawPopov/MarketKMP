@@ -17,7 +17,7 @@ import market.engine.navigation.main.children.profile.MyOfferConfig
 import market.engine.navigation.main.children.profile.ProfileConfig
 import market.engine.navigation.main.children.profile.itemMyOffers
 import market.engine.core.data.types.LotsType
-import market.engine.core.util.getCurrentDate
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.profileMyOffers.MyOffersComponent
 import org.koin.mp.KoinPlatform.getKoin
 

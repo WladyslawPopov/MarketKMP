@@ -15,7 +15,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.TopCategory
 import market.engine.core.data.types.WindowType
-import market.engine.core.util.getWindowType
+import market.engine.core.utils.getWindowType
 import market.engine.widgets.items.PopularCategoryItem
 import market.engine.widgets.texts.SeparatorLabel
 

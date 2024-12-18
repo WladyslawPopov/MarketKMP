@@ -41,7 +41,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
-import market.engine.core.util.parseHtmlToAnnotatedString
+import market.engine.core.utils.parseHtmlToAnnotatedString
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.bars.PagingCounterBar
 import market.engine.widgets.exceptions.onError

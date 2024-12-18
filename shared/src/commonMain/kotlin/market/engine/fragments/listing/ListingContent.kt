@@ -30,7 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.WindowType
-import market.engine.core.util.getWindowType
+import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.filterContents.CategoryContent

@@ -29,7 +29,7 @@ import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ToastType
 import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.WindowType
-import market.engine.core.util.getWindowType
+import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.OfferItem

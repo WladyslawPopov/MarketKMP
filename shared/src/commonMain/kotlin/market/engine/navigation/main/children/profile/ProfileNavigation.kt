@@ -30,7 +30,7 @@ import market.engine.navigation.main.publicItems.itemListing
 import market.engine.navigation.main.publicItems.itemOffer
 import market.engine.navigation.main.publicItems.itemUser
 import market.engine.core.data.types.CreateOfferType
-import market.engine.core.util.getCurrentDate
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.createOffer.CreateOfferComponent
 import market.engine.fragments.createOffer.CreateOfferContent
 import market.engine.fragments.listing.ListingComponent

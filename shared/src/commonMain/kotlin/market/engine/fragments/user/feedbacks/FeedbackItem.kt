@@ -35,7 +35,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Reports
-import market.engine.core.util.convertDateWithMinutes
+import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource

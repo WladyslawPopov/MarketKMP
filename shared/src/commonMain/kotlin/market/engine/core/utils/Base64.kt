@@ -1,4 +1,4 @@
-package market.engine.core.util
+package market.engine.core.utils
 import kotlin.math.min
 
 object Base64 {

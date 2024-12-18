@@ -19,7 +19,7 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.operations.checkStatusSeller
 import market.engine.core.data.types.OfferStates
-import market.engine.core.util.getCurrentDate
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
 

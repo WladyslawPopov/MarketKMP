@@ -1,4 +1,4 @@
-package market.engine.core.util
+package market.engine.core.utils
 
 import coil3.Uri
 import market.engine.core.data.items.DeepLink
