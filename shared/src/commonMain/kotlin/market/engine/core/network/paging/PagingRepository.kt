@@ -6,7 +6,7 @@ import androidx.paging.PagingData
 import market.engine.core.network.APIService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
-import market.engine.core.items.ListingData
+import market.engine.core.data.items.ListingData
 
 
 class PagingRepository<T : Any>{

@@ -1,7 +1,7 @@
 package market.engine.core.network.functions
 
 import kotlinx.serialization.builtins.ListSerializer
-import market.engine.core.items.ListingData
+import market.engine.core.data.items.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.UrlBuilder

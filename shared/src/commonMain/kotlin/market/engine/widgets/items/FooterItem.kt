@@ -17,17 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.items.TopCategory
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.items.TopCategory
+import market.engine.core.data.types.WindowType
+import market.engine.core.util.getWindowType
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun FooterItem(modifier: Modifier, category: TopCategory, onClick: (TopCategory) -> Unit) {
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
+    val windowClass = getWindowType()
+    val showNavigationRail = windowClass == WindowType.Big
     Box(
         modifier = Modifier.sizeIn(minWidth = if (showNavigationRail) 300.dp else 100.dp).clickable {
             onClick(category)

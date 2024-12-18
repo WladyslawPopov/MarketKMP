@@ -20,17 +20,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.items.TopCategory
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.items.TopCategory
+import market.engine.core.data.types.WindowType
+import market.engine.core.util.getWindowType
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (TopCategory) -> Unit) {
-    val windowClass = getWindowSizeClass()
-    val bs = windowClass == WindowSizeClass.Big
+    val windowClass = getWindowType()
+    val bs = windowClass == WindowType.Big
 
     Card(
         modifier = Modifier.sizeIn(

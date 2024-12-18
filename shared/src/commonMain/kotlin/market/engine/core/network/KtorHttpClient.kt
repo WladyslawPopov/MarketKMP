@@ -1,6 +1,6 @@
 package market.engine.core.network
 
-import market.engine.core.globalData.SAPI
+import market.engine.core.data.globalData.SAPI
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpResponseValidator

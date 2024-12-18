@@ -16,10 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.drawables
-import market.engine.core.types.ToastType
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.types.ToastType
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

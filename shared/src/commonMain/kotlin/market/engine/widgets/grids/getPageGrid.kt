@@ -30,11 +30,11 @@ import app.cash.paging.compose.LazyPagingItems
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import market.engine.core.baseFilters.LD
-import market.engine.core.baseFilters.SD
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.strings
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.bars.PagingCounterBar
 import org.jetbrains.compose.resources.stringResource
@@ -162,7 +162,7 @@ fun <T : Any> PagingList(
 
         PagingCounterBar(
             currentPage = currentIndex,
-            totalPages = data.itemCount,
+            totalPages = listingData.totalCount,
             modifier = Modifier.align(Alignment.BottomStart),
             showUpButton = showUpButton,
             showDownButton = showDownButton,

@@ -7,7 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.MutableState
-import market.engine.core.baseFilters.LD
+import market.engine.core.data.baseFilters.LD
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,11 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import market.engine.core.baseFilters.Sort
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.drawables
-import market.engine.core.globalData.ThemeResources.strings
+import market.engine.core.data.baseFilters.Sort
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

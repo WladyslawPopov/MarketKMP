@@ -9,10 +9,10 @@ import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.common.notificationIdentifier
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.globalData.UserData
-import market.engine.core.globalData.UserData.login
-import market.engine.core.globalData.UserData.picUri
-import market.engine.core.globalData.UserData.token
+import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.UserData.login
+import market.engine.core.data.globalData.UserData.picUri
+import market.engine.core.data.globalData.UserData.token
 
 class UserRepository(
     private val sapiRepository: SAPIRepository,

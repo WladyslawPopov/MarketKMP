@@ -1,7 +1,7 @@
 package market.engine.core.util
 
 import coil3.Uri
-import market.engine.core.items.DeepLink
+import market.engine.core.data.items.DeepLink
 
 
 fun parseDeepLink(uri: Uri): DeepLink? {

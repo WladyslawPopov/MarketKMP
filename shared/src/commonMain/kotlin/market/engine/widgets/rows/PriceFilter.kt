@@ -14,9 +14,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import market.engine.core.baseFilters.Filter
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.strings
+import market.engine.core.data.baseFilters.Filter
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 

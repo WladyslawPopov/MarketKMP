@@ -24,12 +24,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.baseFilters.LD
-import market.engine.core.items.Tab
-import market.engine.core.types.TabTypeListing
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.items.Tab
+import market.engine.core.data.types.TabTypeListing
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

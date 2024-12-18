@@ -8,8 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.items.NavigationItem
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.badges.getBadgedBox
 import org.jetbrains.compose.resources.stringResource
 

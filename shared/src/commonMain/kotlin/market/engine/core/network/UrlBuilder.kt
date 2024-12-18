@@ -2,9 +2,9 @@ package market.engine.core.network
 
 import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.globalData.UserData
-import market.engine.core.baseFilters.LD
-import market.engine.core.baseFilters.SD
+import market.engine.core.data.globalData.UserData
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
 import market.engine.core.util.getCurrentDate
 
 class UrlBuilder {

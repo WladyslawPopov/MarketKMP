@@ -29,15 +29,15 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.drawables
-import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.globalData.UserData
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.types.CreateOfferTypes
+import market.engine.core.data.types.CreateOfferType
 import market.engine.core.util.convertDateWithMinutes
-import market.engine.presentation.base.BaseViewModel
+import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.rows.HeaderOfferItem
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
@@ -59,7 +59,7 @@ fun OfferItem(
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
-    goToCreateOffer : (CreateOfferTypes, Long?) -> Unit = { _, _ -> },
+    goToCreateOffer : (CreateOfferType, Long?) -> Unit = { _, _ -> },
     onItemClick: () -> Unit = {}
 ) {
     var isPromo = false

@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import market.engine.core.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.dimens
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 

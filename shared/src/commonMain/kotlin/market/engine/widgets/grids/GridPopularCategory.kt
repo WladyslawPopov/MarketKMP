@@ -11,21 +11,19 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.items.TopCategory
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.TopCategory
+import market.engine.core.data.types.WindowType
+import market.engine.core.util.getWindowType
 import market.engine.widgets.items.PopularCategoryItem
 import market.engine.widgets.texts.SeparatorLabel
-import market.engine.widgets.texts.TitleText
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopCategory) -> Unit) {
 
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
+    val windowClass = getWindowType()
+    val showNavigationRail = windowClass == WindowType.Big
 
     Spacer(modifier = Modifier.heightIn(dimens.mediumPadding))
 

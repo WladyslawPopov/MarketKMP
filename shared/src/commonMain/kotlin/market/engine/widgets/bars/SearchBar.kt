@@ -18,18 +18,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.types.WindowType
+import market.engine.core.util.getWindowType
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchBar(modifier: Modifier = Modifier, onSearchClick: () -> Unit) {
 
-    val windowClass = getWindowSizeClass()
-    val isBigWindow = windowClass == WindowSizeClass.Big
+    val windowClass = getWindowType()
+    val isBigWindow = windowClass == WindowType.Big
 
     Box(
         modifier = modifier

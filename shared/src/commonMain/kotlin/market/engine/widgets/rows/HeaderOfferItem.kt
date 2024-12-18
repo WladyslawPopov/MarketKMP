@@ -24,12 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import market.engine.core.globalData.ThemeResources.colors
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.types.CreateOfferTypes
-import market.engine.presentation.base.BaseViewModel
+import market.engine.core.data.types.CreateOfferType
+import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.getOfferOperations
 import org.jetbrains.compose.resources.painterResource
@@ -41,7 +41,7 @@ fun HeaderOfferItem(
     isSelected: Boolean = false,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onUpdateOfferItem : (Offer) -> Unit,
-    goToCreateOffer : (CreateOfferTypes, Long?) -> Unit,
+    goToCreateOffer : (CreateOfferType, Long?) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }

@@ -15,15 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.globalData.ThemeResources.dimens
-import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.types.WindowSizeClass
-import market.engine.core.util.getWindowSizeClass
+import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.types.WindowType
+import market.engine.core.util.getWindowType
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.items.PromoOfferGridItem
 import market.engine.widgets.texts.SeparatorLabel
-import market.engine.widgets.texts.TitleText
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GridPromoOffers(
@@ -32,8 +30,8 @@ fun GridPromoOffers(
     onAllClickButton: () -> Unit
 ) {
 
-    val windowClass = getWindowSizeClass()
-    val showNavigationRail = windowClass == WindowSizeClass.Big
+    val windowClass = getWindowType()
+    val showNavigationRail = windowClass == WindowType.Big
 
     Spacer(modifier = Modifier.heightIn(dimens.mediumPadding))
 

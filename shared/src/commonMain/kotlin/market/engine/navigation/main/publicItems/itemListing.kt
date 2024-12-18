@@ -1,0 +1,28 @@
+package market.engine.navigation.main.publicItems
+
+import com.arkivanov.decompose.ComponentContext
+import market.engine.core.data.items.ListingData
+import market.engine.fragments.listing.DefaultListingComponent
+import market.engine.fragments.listing.ListingComponent
+
+fun itemListing(
+    componentContext: ComponentContext,
+    listingData: ListingData,
+    selectOffer: (Long) -> Unit,
+    onBack : () -> Unit,
+    isOpenSearch : Boolean = false,
+    isOpenCategory : Boolean
+    ): ListingComponent {
+        return DefaultListingComponent(
+            isOpenSearch = isOpenSearch,
+            isOpenCategory = isOpenCategory,
+            componentContext = componentContext,
+            listingData = listingData,
+            selectOffer = { id ->
+                selectOffer(id)
+            },
+            selectedBack = {
+                onBack()
+            },
+        )
+    }

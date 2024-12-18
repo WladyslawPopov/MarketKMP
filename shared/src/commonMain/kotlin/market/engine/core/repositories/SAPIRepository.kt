@@ -1,6 +1,6 @@
 package market.engine.core.repositories
 
-import market.engine.core.globalData.SAPI
+import market.engine.core.data.globalData.SAPI
 
 class SAPIRepository {
 

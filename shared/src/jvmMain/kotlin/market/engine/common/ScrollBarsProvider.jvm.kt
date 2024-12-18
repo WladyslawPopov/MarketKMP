@@ -14,7 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import market.engine.core.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.colors
 
 actual class ScrollBarsProvider {
 
