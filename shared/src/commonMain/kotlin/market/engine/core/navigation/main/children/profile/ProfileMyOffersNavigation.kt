@@ -1,4 +1,4 @@
-package market.engine.core.navigation.main.children
+package market.engine.core.navigation.main.children.profile
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.DrawerValue
@@ -7,21 +7,33 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
+import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.pushNew
+import kotlinx.serialization.Serializable
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.types.LotsType
-import market.engine.core.navigation.main.MainComponent
+import market.engine.core.util.getCurrentDate
+import market.engine.presentation.profile.ProfileComponent
+import market.engine.presentation.profileMyOffers.DefaultMyOffersComponent
+import market.engine.presentation.profileMyOffers.MyOffersComponent
 import market.engine.widgets.exceptions.ProfileDrawer
 import market.engine.presentation.profileMyOffers.MyOffersContent
 import market.engine.presentation.profileMyOffers.ProfileMyOffersAppBar
 
 
+@Serializable
+data class MyOfferConfig(
+    @Serializable
+    val type: LotsType
+)
+
 @Composable
 fun ProfileMyOffersNavigation(
-    component: MainComponent,
+    component: ProfileComponent,
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -30,7 +42,7 @@ fun ProfileMyOffersNavigation(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(strings.myOffersTitle, component.profileNavigationList.value)
+            ProfileDrawer(strings.myOffersTitle, component.model.value.navigationItems)
         },
         gesturesEnabled = drawerState.isOpen,
     ) {
@@ -69,4 +81,31 @@ fun ProfileMyOffersNavigation(
             }
         }
     }
+}
+
+fun itemMyOffers(
+    config: MyOfferConfig,
+    componentContext: ComponentContext,
+    profileNavigation: StackNavigation<ProfileConfig>,
+    selectMyOfferPage: (LotsType) -> Unit
+): MyOffersComponent {
+    return DefaultMyOffersComponent(
+        componentContext = componentContext,
+        type = config.type,
+        offerSelected = { id ->
+            profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+        },
+        selectedMyOfferPage = { type ->
+            selectMyOfferPage(type)
+        },
+        navigateToCreateOffer = { type, offerId ->
+            profileNavigation.pushNew(
+                ProfileConfig.CreateOfferScreen(
+                    categoryId = 1L,
+                    type = type,
+                    offerId = offerId,
+                )
+            )
+        }
+    )
 }

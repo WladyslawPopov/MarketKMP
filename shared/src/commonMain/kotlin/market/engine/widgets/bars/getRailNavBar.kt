@@ -19,7 +19,6 @@ import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.NavigationItem
 import market.engine.core.navigation.main.MainComponent
-import market.engine.core.navigation.main.navigateFromBottomBar
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import org.jetbrains.compose.resources.painterResource
@@ -27,7 +26,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getRailNavBar(
-    component: MainComponent,
     modifier: Modifier = Modifier,
     currentScreen: Int,
     listItems: List<NavigationItem>,
@@ -87,9 +85,7 @@ fun getRailNavBar(
             NavigationRailItem(
                 colors = colors.navRailItemColors,
                 selected = isSelected,
-                onClick = {
-                    navigateFromBottomBar(index, component)
-                },
+                onClick = item.onClick,
                 icon = {
                     getBadgedBox(modifier = modifier, item, isSelected)
                 },

@@ -15,6 +15,8 @@ import market.engine.common.getKtorClient
 import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
+import market.engine.presentation.createOffer.CreateOfferContent
+import market.engine.presentation.createOffer.CreateOfferViewModel
 import market.engine.presentation.favorites.FavViewModel
 import market.engine.presentation.home.HomeViewModel
 import market.engine.presentation.listing.ListingViewModel
@@ -51,6 +53,7 @@ val viewModelModule = module {
     viewModelOf(::UserViewModel)
     viewModelOf(::ProfileViewModel)
     viewModelOf(::FeedbacksViewModel)
+    viewModelOf(::CreateOfferViewModel)
 }
 
 val networkModule = module {

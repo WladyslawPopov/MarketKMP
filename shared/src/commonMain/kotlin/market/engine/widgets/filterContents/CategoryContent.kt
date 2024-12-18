@@ -50,7 +50,7 @@ fun CategoryContent(
     isCreateOffer: Boolean = false,
     searchData: SD = SD(),
     listingData: LD = LD(),
-    goListing: () -> Unit = {},
+    complete: () -> Unit = {},
 ) {
     val catDef = stringResource(strings.categoryMain)
 
@@ -113,7 +113,7 @@ fun CategoryContent(
                 ) {
                     NavigationArrowButton {
                         if (searchData.searchCategoryID == 1L){
-                            goListing()
+                            complete()
                         }else{
                             baseViewModel.onCatBack(searchData, refresh)
                         }
@@ -175,7 +175,7 @@ fun CategoryContent(
                                         refresh()
                                     } else {
                                         if (!isFilters) {
-                                            goListing()
+                                            complete()
                                         }else{
                                             isSelected.value = category.id
                                         }
@@ -237,7 +237,7 @@ fun CategoryContent(
                 .align(Alignment.BottomCenter),
             enabled = !(isCreateOffer && !searchData.searchIsLeaf)
         ) {
-            goListing()
+            complete()
         }
 
         Spacer(modifier = Modifier.height(dimens.mediumSpacer))

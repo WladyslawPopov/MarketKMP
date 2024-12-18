@@ -1,4 +1,4 @@
-package market.engine.core.navigation
+package market.engine.core.navigation.root
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack

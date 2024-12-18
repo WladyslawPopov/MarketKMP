@@ -7,6 +7,7 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.UserRepository
+import market.engine.core.types.CreateOfferTypes
 import market.engine.core.types.LotsType
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -20,13 +21,15 @@ interface MyOffersComponent {
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun selectMyOfferPage(select : LotsType)
+    fun goToCreateOffer(type : CreateOfferTypes, offerId : Long? = null)
 }
 
 class DefaultMyOffersComponent(
     componentContext: ComponentContext,
     val type: LotsType = LotsType.MYLOT_ACTIVE,
     val offerSelected: (Long) -> Unit,
-    val selectedMyOfferPage: (LotsType) -> Unit
+    val selectedMyOfferPage: (LotsType) -> Unit,
+    val navigateToCreateOffer: (CreateOfferTypes, Long?) -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
     private val userRepository = getKoin().get<UserRepository>()
 
@@ -99,5 +102,9 @@ class DefaultMyOffersComponent(
 
     override fun selectMyOfferPage(select: LotsType) {
         selectedMyOfferPage(select)
+    }
+
+    override fun goToCreateOffer(type: CreateOfferTypes, offerId: Long?) {
+        navigateToCreateOffer(type, offerId)
     }
 }

@@ -56,12 +56,11 @@ fun <T : Any> PagingList(
     val currentIndex by remember {
         derivedStateOf {
             val pos = ((state.firstVisibleItemIndex * columns) / columns) + columns
-            if (pos < listingData.totalCount){
+            if (pos < data.itemCount){
                 pos
             }else{
-                listingData.totalCount
+                data.itemCount
             }
-
         }
     }
 
@@ -94,9 +93,7 @@ fun <T : Any> PagingList(
                         }
                     }
                 }
-            }
 
-            if (promoContent != null) {
                 if ((data.itemSnapshotList.items.firstOrNull() as? Offer)?.promoOptions != null) {
                     item {
                         Text(
@@ -165,7 +162,7 @@ fun <T : Any> PagingList(
 
         PagingCounterBar(
             currentPage = currentIndex,
-            totalPages =  listingData.totalCount,
+            totalPages = data.itemCount,
             modifier = Modifier.align(Alignment.BottomStart),
             showUpButton = showUpButton,
             showDownButton = showDownButton,

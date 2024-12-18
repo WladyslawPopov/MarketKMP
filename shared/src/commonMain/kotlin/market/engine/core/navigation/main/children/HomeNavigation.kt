@@ -4,12 +4,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.Value
+import kotlinx.serialization.Serializable
+import market.engine.core.baseFilters.LD
+import market.engine.core.baseFilters.SD
+import market.engine.core.items.ListingData
+import market.engine.core.navigation.main.publicItems.itemCreateOffer
+import market.engine.core.navigation.main.publicItems.itemListing
+import market.engine.core.navigation.main.publicItems.itemOffer
+import market.engine.core.navigation.main.publicItems.itemUser
+import market.engine.core.types.CreateOfferTypes
+import market.engine.core.util.getCurrentDate
+import market.engine.presentation.createOffer.CreateOfferComponent
+import market.engine.presentation.createOffer.CreateOfferContent
+import market.engine.presentation.home.DefaultHomeComponent
 import market.engine.presentation.home.HomeComponent
 import market.engine.presentation.home.HomeContent
 import market.engine.presentation.listing.ListingComponent
@@ -19,11 +36,35 @@ import market.engine.presentation.offer.OfferContent
 import market.engine.presentation.user.UserComponent
 import market.engine.presentation.user.UserContent
 
+@Serializable
+sealed class HomeConfig {
+    @Serializable
+    data object HomeScreen : HomeConfig()
+
+    @Serializable
+    data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : HomeConfig()
+
+    @Serializable
+    data class ListingScreen(val isOpenSearch : Boolean, val listingData: LD, val searchData : SD) : HomeConfig()
+
+    @Serializable
+    data class UserScreen(val userId: Long, val ts: String, val aboutMe : Boolean) : HomeConfig()
+
+    @Serializable
+    data class CreateOfferScreen(
+        val categoryId: Long,
+        val offerId: Long? = null,
+        val type : CreateOfferTypes,
+        val externalImages : List<String>? = null
+    ) : HomeConfig()
+}
+
 sealed class ChildHome {
     class HomeChild(val component: HomeComponent) : ChildHome()
     class OfferChild(val component: OfferComponent) : ChildHome()
     class ListingChild(val component: ListingComponent) : ChildHome()
     class UserChild(val component: UserComponent) : ChildHome()
+    class CreateOfferChild(val component: CreateOfferComponent) : ChildHome()
 }
 
 @Composable
@@ -52,6 +93,155 @@ fun HomeNavigation(
             is ChildHome.UserChild ->{
                 UserContent(screen.component, modifier)
             }
+            is ChildHome.CreateOfferChild ->{
+                CreateOfferContent(screen.component)
+            }
         }
     }
+}
+
+fun createHomeChild(
+    config: HomeConfig,
+    componentContext: ComponentContext,
+    homeNavigation: StackNavigation<HomeConfig>,
+    goToLogin: () -> Unit
+): ChildHome = when (config) {
+    HomeConfig.HomeScreen -> ChildHome.HomeChild(
+        itemHome(
+            componentContext,
+            homeNavigation,
+            goToLogin = { goToLogin() }
+        )
+    )
+
+    is HomeConfig.OfferScreen -> ChildHome.OfferChild(
+        component = itemOffer(
+            componentContext,
+            config.id,
+            selectOffer = {
+                val offerConfig = HomeConfig.OfferScreen(it, getCurrentDate())
+                homeNavigation.pushNew(offerConfig)
+            },
+            onBack = {
+                homeNavigation.pop()
+            },
+            onListingSelected = {
+                homeNavigation.pushNew(
+                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
+                )
+            },
+            onUserSelected = { ui, about ->
+                homeNavigation.pushNew(
+                    HomeConfig.UserScreen(ui, getCurrentDate(), about)
+                )
+            },
+            isSnapshot = config.isSnapshot,
+            navigateToCreateOffer = { type, offerId, externalImages ->
+                homeNavigation.pushNew(
+                    HomeConfig.CreateOfferScreen(
+                        categoryId = 1L,
+                        type = type,
+                        externalImages = externalImages,
+                        offerId = offerId
+                    )
+                )
+            }
+        )
+    )
+    is HomeConfig.ListingScreen -> {
+        val ld = ListingData(
+            _searchData = config.searchData,
+            _data = config.listingData
+        )
+        ChildHome.ListingChild(
+            component = itemListing(
+                componentContext,
+                ld,
+                selectOffer = {
+                    homeNavigation.pushNew(
+                        HomeConfig.OfferScreen(it, getCurrentDate())
+                    )
+                },
+                onBack = {
+                    homeNavigation.pop()
+                },
+                isOpenCategory = false,
+                isOpenSearch = config.isOpenSearch
+            ),
+        )
+    }
+
+    is HomeConfig.UserScreen -> ChildHome.UserChild(
+        component = itemUser(
+            componentContext,
+            config.userId,
+            config.aboutMe,
+            goToLogin = {
+                homeNavigation.pushNew(
+                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
+                )
+            },
+            goBack = {
+                homeNavigation.pop()
+            },
+            goToSnapshot = { id ->
+                homeNavigation.pushNew(
+                    HomeConfig.OfferScreen(id, getCurrentDate(), true)
+                )
+            },
+            goToUser = {
+                homeNavigation.pushNew(
+                    HomeConfig.UserScreen(it, getCurrentDate(), false)
+                )
+            }
+        )
+    )
+    is HomeConfig.CreateOfferScreen -> ChildHome.CreateOfferChild(
+        component = itemCreateOffer(
+            componentContext = componentContext,
+            categoryId = config.categoryId,
+            offerId = config.offerId,
+            type = config.type,
+            externalImages = config.externalImages,
+            navigateBack = {
+                homeNavigation.pop()
+            }
+        )
+    )
+}
+
+fun itemHome(
+    componentContext: ComponentContext,
+    homeNavigation : StackNavigation<HomeConfig>,
+    goToLogin: () -> Unit
+): HomeComponent {
+    return DefaultHomeComponent(
+        componentContext = componentContext,
+        navigation = homeNavigation,
+        navigateToListingSelected = { ld, isNewSearch ->
+            homeNavigation.pushNew(
+                HomeConfig.ListingScreen(
+                    isNewSearch,
+                    ld.data.value,
+                    ld.searchData.value
+                )
+            )
+        },
+        navigateToLoginSelected = {
+            goToLogin()
+        },
+        navigateToOfferSelected = { id ->
+            homeNavigation.pushNew(HomeConfig.OfferScreen(id, getCurrentDate()))
+        },
+        navigateToCreateOfferSelected = {
+            homeNavigation.pushNew(
+                HomeConfig.CreateOfferScreen(
+                    1L,
+                    null,
+                    CreateOfferTypes.CREATE,
+                    null
+                )
+            )
+        }
+    )
 }

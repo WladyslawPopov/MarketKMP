@@ -75,6 +75,7 @@ import market.engine.core.network.networkObjects.PaymentMethod
 import market.engine.core.network.networkObjects.Value
 import market.engine.core.operations.operationFavorites
 import market.engine.core.repositories.UserRepository
+import market.engine.core.types.CreateOfferTypes
 import market.engine.core.types.OfferStates
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.core.util.parseHtmlToAnnotatedString
@@ -206,9 +207,6 @@ fun OfferContent(
                         val res = operationFavorites(offer, offerViewModel.viewModelScope)
                         userRepository.updateUserInfo(offerViewModel.viewModelScope)
                         return@OfferAppBar res
-                    },
-                    onCartClick = {
-                        component.goToCart()
                     },
                     onBeakClick = {
                         if (!isImageViewerVisible.value) {
@@ -428,6 +426,9 @@ fun OfferContent(
                                             onUpdateMenuItem = { offer ->
                                                 component.updateOffer(offer.id, model.isSnapshot)
                                             },
+                                            goToCreateOffer = { type, id ->
+                                                component.goToCreateOffer(type, id, null)
+                                            },
                                             onClose = {
                                                 isShowOptions.value = false
                                             }
@@ -463,6 +464,13 @@ fun OfferContent(
                                     },
                                     onAddToCartClick = {
 
+                                    },
+                                    onSaleClick = {
+                                        component.goToCreateOffer(
+                                            CreateOfferTypes.COPY_PROTOTYPE,
+                                            offer.id,
+                                            images
+                                        )
                                     }
                                 )
                             }

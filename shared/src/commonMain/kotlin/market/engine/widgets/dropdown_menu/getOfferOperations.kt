@@ -51,9 +51,9 @@ import market.engine.core.items.ToastItem
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
+import market.engine.core.types.CreateOfferTypes
 import market.engine.core.types.ToastType
 import market.engine.core.util.convertDateOnlyYear
-import market.engine.core.util.convertDateYear
 import market.engine.core.util.getCurrentDate
 import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
@@ -69,6 +69,7 @@ fun getOfferOperations(
     showCopyId : Boolean = true,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
     onUpdateMenuItem: (Offer) -> Unit,
+    goToCreateOffer: (CreateOfferTypes, Long?) -> Unit,
     onClose: () -> Unit,
 ) {
     val scope = baseViewModel.viewModelScope
@@ -300,6 +301,7 @@ fun getOfferOperations(
                                 }
                             }
                         }
+
                         "delete_offer" -> {
                             showDeleteOfferDialog.value =
                                 !showDeleteOfferDialog.value
@@ -324,9 +326,15 @@ fun getOfferOperations(
                                 }
                             }
                         }
-                        "copy_offer_without_old_photo" -> {}
-                        "edit_offer" -> {}
-                        "copy_offer" -> {}
+                        "copy_offer_without_old_photo" -> {
+                            goToCreateOffer(CreateOfferTypes.COPY_WITHOUT_IMAGE, offer.id)
+                        }
+                        "edit_offer" -> {
+                            goToCreateOffer(CreateOfferTypes.EDIT, offer.id)
+                        }
+                        "copy_offer" -> {
+                            goToCreateOffer(CreateOfferTypes.COPY, offer.id)
+                        }
                         "act_on_proposal" -> {}
                         "make_proposal" -> {}
                         "cancel_all_bids" -> {}

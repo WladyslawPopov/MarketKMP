@@ -172,7 +172,7 @@ fun OfferFilterContent(
             CategoryContent(
                 baseViewModel = baseViewModel,
                 searchData = searchData.value,
-                goListing = {
+                complete = {
                     openBottomSheet.value = false
                 },
                 isFilters = true

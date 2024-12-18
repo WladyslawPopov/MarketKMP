@@ -5,8 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +35,7 @@ import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.types.CreateOfferTypes
 import market.engine.core.util.convertDateWithMinutes
 import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.rows.HeaderOfferItem
@@ -46,8 +44,8 @@ import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.bars.OfferItemStatuses
+import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.rows.UserSimpleRow
-import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -61,6 +59,7 @@ fun OfferItem(
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
+    goToCreateOffer : (CreateOfferTypes, Long?) -> Unit = { _, _ -> },
     onItemClick: () -> Unit = {}
 ) {
     var isPromo = false
@@ -107,6 +106,7 @@ fun OfferItem(
                     isSelected = isSelection,
                     onSelectionChange = onSelectionChange,
                     onUpdateOfferItem = onUpdateOfferItem,
+                    goToCreateOffer = goToCreateOffer,
                     baseViewModel = baseViewModel
                 )
             }
@@ -123,6 +123,7 @@ fun OfferItem(
                 contentStructure(
                     offer,
                     isGrid,
+                    onUpdateOfferItem != null,
                     baseViewModel,
                     onFavouriteClick,
                 )
@@ -136,13 +137,14 @@ fun OfferItem(
                 contentStructure(
                     offer,
                     isGrid,
+                    onUpdateOfferItem != null,
                     baseViewModel,
                     onFavouriteClick,
                 )
             }
         }
 
-        if (offer.relistingMode != null && UserData.login == offer.sellerData?.id) {
+        if (offer.relistingMode != null && UserData.login == offer.sellerData?.id && onUpdateOfferItem != null) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
@@ -170,6 +172,7 @@ fun OfferItem(
 fun contentStructure(
     offer: Offer,
     isGrid : Boolean,
+    isShowPromo : Boolean = false,
     baseViewModel: BaseViewModel,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
 ){
@@ -212,19 +215,19 @@ fun contentStructure(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            content(offer, baseViewModel, onFavouriteClick)
+            content(offer, baseViewModel, isShowPromo, onFavouriteClick)
         }
     }else{
-        content(offer, baseViewModel, onFavouriteClick)
+        content(offer, baseViewModel, isShowPromo, onFavouriteClick)
     }
 }
 
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun content(
     offer: Offer,
     baseViewModel : BaseViewModel,
+    isShowPromo : Boolean = false,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null
 ){
     val isFavorites = remember { mutableStateOf(offer.isWatchedByMe) }
@@ -300,117 +303,9 @@ fun content(
     OfferItemStatuses(offer)
 
 
-    if (offer.sellerData?.id == UserData.login) {
-        FlowRow(
-            horizontalArrangement = Arrangement.Start,
-            verticalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.padding(dimens.smallPadding)
-        ) {
+    if (offer.sellerData?.id == UserData.login && isShowPromo) {
+        PromoRow(offer, false){
 
-            // offer.promoOptions?.forEach { o ->
-//            Row(
-//                horizontalArrangement = Arrangement.Start,
-//                verticalAlignment = Alignment.CenterVertically,
-//                modifier = Modifier.clickable {
-//                   // onItemClick(o.id)
-//                }
-//            ) {
-//                when (o.id) {
-//
-            //                               "featured_in_listing" -> {
-
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.brightPurple,
-                    contentColor = colors.white
-                )
-            ) {
-                Text(
-                    text = "TOP",
-                    color = colors.alwaysWhite,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier.padding(dimens.extraSmallPadding)
-                )
-            }
-            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-//                                }
-
-//                                "featured_on_main_page" -> {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.brightPurple,
-                    contentColor = colors.white
-                )
-            ) {
-                Icon(
-                    painter = painterResource(drawables.homeIcon),
-                    contentDescription = "",
-                    tint = colors.alwaysWhite
-                )
-            }
-            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-//                                }
-
-//                                "recommended_in_listing" -> {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.brightPurple,
-                    contentColor = colors.white
-                )
-            ) {
-                Icon(
-                    painter = painterResource(drawables.megaphoneIcon),
-                    contentDescription = "",
-                    tint = colors.alwaysWhite
-                )
-            }
-            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-//                                }
-
-//                                "backlignt_in_listing" -> {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.brightPurple,
-                    contentColor = colors.white
-                )
-            ) {
-                Icon(
-                    painter = painterResource(drawables.promoHighlightIcon),
-                    contentDescription = "",
-                    tint = colors.alwaysWhite
-                )
-            }
-            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-//                                }
-
-//                                "featured_in_offer" -> {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.brightPurple,
-                    contentColor = colors.white
-                )
-            ) {
-                Icon(
-                    painter = painterResource(drawables.adIcon),
-                    contentDescription = "",
-                    tint = colors.alwaysWhite
-                )
-            }
-//                }
-//            }
-            // }
-        }
-    }
-
-    if (offer.discountPercentage > 0 && offer.buyNowPrice?.toDouble() != offer.currentPricePerItem?.toDouble()) {
-        Row(
-            Modifier.padding(dimens.smallPadding).padding(dimens.smallPadding),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            DiscountText(offer.buyNowPrice.toString())
         }
     }
 

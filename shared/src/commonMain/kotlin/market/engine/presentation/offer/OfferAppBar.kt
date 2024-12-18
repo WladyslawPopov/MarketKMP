@@ -31,7 +31,6 @@ import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
-import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
 import market.engine.core.items.ToastItem
 import market.engine.core.network.networkObjects.Offer
@@ -51,7 +50,6 @@ fun OfferAppBar(
     modifier: Modifier = Modifier,
     isFavorite: Boolean = false,
     onFavClick: suspend () -> Boolean,
-    onCartClick: () -> Unit,
     onBeakClick: () -> Unit,
 ) {
     val showMenu = remember { mutableStateOf(false) }
@@ -75,14 +73,6 @@ fun OfferAppBar(
                     isFavorites.value = onFavClick()
                 }
             }
-        ),
-        NavigationItem(
-            title = strings.basketTitle,
-            icon = drawables.basketIcon,
-            tint = colors.inactiveBottomNavIconColor,
-            hasNews = false,
-            badgeCount = UserData.userInfo?.countOffersInCart,
-            onClick = { onCartClick() }
         ),
         NavigationItem(
             title = strings.menuTitle,

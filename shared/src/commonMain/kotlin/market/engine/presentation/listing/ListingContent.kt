@@ -292,7 +292,7 @@ fun ListingContent(
                                 baseViewModel = listingViewModel,
                                 searchData = searchData.value,
                                 listingData = listingData.value,
-                                goListing = {
+                                complete = {
                                     isRefreshingFromFilters.value = true
                                     listingViewModel.activeFiltersType.value = ""
                                 },

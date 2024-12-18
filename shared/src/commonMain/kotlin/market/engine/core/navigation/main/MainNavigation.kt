@@ -10,17 +10,17 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.serialization.Serializable
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.globalData.UserData
 import market.engine.core.items.NavigationItem
-import market.engine.core.navigation.main.configs.MainConfig
 import market.engine.core.navigation.main.children.BasketNavigation
 import market.engine.core.navigation.main.children.FavoritesNavigation
 import market.engine.core.navigation.main.children.HomeNavigation
 import market.engine.core.navigation.main.children.SearchNavigation
-import market.engine.core.navigation.main.children.ProfileNavigation
+import market.engine.core.navigation.main.children.profile.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
 
 
@@ -55,28 +55,40 @@ fun MainNavigation(
             icon =  drawables.home,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                component.navigateToBottomItem(MainConfig.Home)
+            }
         ),
         NavigationItem(
             title = strings.searchTitle,
             icon = drawables.search,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                component.navigateToBottomItem(MainConfig.Search)
+            }
         ),
         NavigationItem(
             title = strings.basketTitle,
             icon = drawables.basketIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = userInfo?.countOffersInCart
+            badgeCount = userInfo?.countOffersInCart,
+            onClick = {
+                component.navigateToBottomItem(MainConfig.Basket)
+            }
         ),
         NavigationItem(
             title = strings.favoritesTitle,
             icon = drawables.favoritesIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = userInfo?.countWatchedOffers
+            badgeCount = userInfo?.countWatchedOffers,
+            onClick = {
+                component.navigateToBottomItem(MainConfig.Favorites)
+            }
         ),
         NavigationItem(
             title = strings.profileTitleBottom,
@@ -87,12 +99,15 @@ fun MainNavigation(
                         (userInfo?.countUnreadMessages ?: 0) > 0 ||
                         (userInfo?.countUnreadPriceProposals ?:0) > 0
                     ),
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                component.navigateToBottomItem(MainConfig.Profile)
+            }
         )
     )
 
     Scaffold(
-        bottomBar = { getBottomNavBar(component, modifier, listItems, currentScreen) },
+        bottomBar = { getBottomNavBar(modifier, listItems, currentScreen) },
     ) { innerPadding ->
         Children(
             stack = childStack,
@@ -121,12 +136,16 @@ fun MainNavigation(
     }
 }
 
-fun navigateFromBottomBar(index: Int, component: MainComponent){
-    when(index){
-        0 -> component.navigateToBottomItem(MainConfig.Home)
-        1 -> component.navigateToBottomItem(MainConfig.Category)
-        2 -> component.navigateToBottomItem(MainConfig.Basket)
-        3 -> component.navigateToBottomItem(MainConfig.Favorites)
-        4 -> component.navigateToBottomItem(MainConfig.Profile)
-    }
+@Serializable
+sealed class MainConfig {
+    @Serializable
+    data object Home : MainConfig()
+    @Serializable
+    data object Search : MainConfig()
+    @Serializable
+    data object Basket : MainConfig()
+    @Serializable
+    data object Favorites : MainConfig()
+    @Serializable
+    data object Profile : MainConfig()
 }

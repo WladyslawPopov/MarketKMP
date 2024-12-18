@@ -172,7 +172,7 @@ fun HomeContent(
 
             floatingActionButton = {
                 floatingCreateOfferButton {
-
+                    component.goToCreateOffer()
                 }
             },
             error = errorContent,

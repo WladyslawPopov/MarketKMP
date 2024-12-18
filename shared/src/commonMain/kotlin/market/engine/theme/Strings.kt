@@ -285,4 +285,7 @@ interface Strings {
     val fromUsersLabel : StringResource
     val emptyAboutMeLabel : StringResource
     val notFoundFeedbackLabel : StringResource
+    val editOfferLabel : StringResource
+    val actionSaveLabel : StringResource
+    val sellOfferLabel : StringResource
 }

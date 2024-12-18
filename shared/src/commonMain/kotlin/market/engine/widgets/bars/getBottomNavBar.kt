@@ -10,17 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.items.NavigationItem
-import market.engine.core.navigation.main.MainComponent
-import market.engine.core.navigation.main.navigateFromBottomBar
 import market.engine.widgets.badges.getBadgedBox
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getBottomNavBar(
-    component: MainComponent,
     modifier: Modifier = Modifier,
     listItems: List<NavigationItem>,
-    currentScreen: Int
+    currentScreen: Int,
 ){
     NavigationBar(
         modifier = Modifier,
@@ -33,9 +30,7 @@ fun getBottomNavBar(
                 NavigationBarItem(
                     colors = colors.navItemColors,
                     selected = isSelected,
-                    onClick = {
-                        navigateFromBottomBar(index, component)
-                    },
+                    onClick = item.onClick,
                     icon = {
                         getBadgedBox(modifier, item, isSelected)
                     },

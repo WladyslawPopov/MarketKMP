@@ -14,7 +14,7 @@ import market.engine.core.filtersObjects.EmptyFilters
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.ListingData
 import market.engine.core.items.TopCategory
-import market.engine.core.navigation.main.configs.HomeConfig
+import market.engine.core.navigation.main.children.HomeConfig
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import org.jetbrains.compose.resources.getString
@@ -34,6 +34,7 @@ interface HomeComponent {
     fun goToNewSearch()
     fun goToCategory(category: TopCategory)
     fun goToAllPromo()
+    fun goToCreateOffer()
 }
 
 class DefaultHomeComponent(
@@ -41,7 +42,8 @@ class DefaultHomeComponent(
     val navigation: StackNavigation<HomeConfig>,
     private val navigateToListingSelected: (ListingData, Boolean) -> Unit,
     val navigateToLoginSelected: () -> Unit,
-    val navigateToOfferSelected: (id: Long) -> Unit
+    val navigateToOfferSelected: (id: Long) -> Unit,
+    val navigateToCreateOfferSelected: () -> Unit
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
@@ -138,5 +140,9 @@ class DefaultHomeComponent(
 
             navigateToListingSelected(ld, false)
         }
+    }
+
+    override fun goToCreateOffer() {
+        navigateToCreateOfferSelected()
     }
 }

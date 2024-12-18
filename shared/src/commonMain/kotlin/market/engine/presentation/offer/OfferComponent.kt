@@ -9,6 +9,7 @@ import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Region
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.UserRepository
+import market.engine.core.types.CreateOfferTypes
 import org.koin.mp.KoinPlatform.getKoin
 
 interface OfferComponent {
@@ -26,8 +27,8 @@ interface OfferComponent {
     fun goToCategory(cat: Category)
     fun goToUsersListing(sellerData : User?)
     fun goToRegion(region : Region?)
-    fun goToCart()
     fun goToUser(userId: Long, aboutMe: Boolean)
+    fun goToCreateOffer(type: CreateOfferTypes, offerId: Long?, externalImages : List<String>?)
 }
 
 class DefaultOfferComponent(
@@ -37,8 +38,8 @@ class DefaultOfferComponent(
     val selectOffer: (Long) -> Unit,
     val navigationBack: () -> Unit,
     val navigationListing: (listingData: ListingData) -> Unit,
-    val navigationBasket: () -> Unit,
-    val navigateToUser: (Long, Boolean) -> Unit
+    val navigateToUser: (Long, Boolean) -> Unit,
+    val navigationCreateOffer: (type: CreateOfferTypes, offerId: Long?, externalImages : List<String>?) -> Unit
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -102,11 +103,15 @@ class DefaultOfferComponent(
         }
     }
 
-    override fun goToCart() {
-        navigationBasket()
-    }
-
     override fun goToUser(userId: Long, aboutMe: Boolean) {
         navigateToUser(userId, aboutMe)
+    }
+
+    override fun goToCreateOffer(
+        type: CreateOfferTypes,
+        offerId: Long?,
+        externalImages: List<String>?
+    ) {
+        navigationCreateOffer(type, offerId, externalImages)
     }
 }

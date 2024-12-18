@@ -28,6 +28,7 @@ import market.engine.core.globalData.ThemeResources.colors
 import market.engine.core.globalData.ThemeResources.dimens
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.types.CreateOfferTypes
 import market.engine.presentation.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.getOfferOperations
@@ -40,6 +41,7 @@ fun HeaderOfferItem(
     isSelected: Boolean = false,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onUpdateOfferItem : (Offer) -> Unit,
+    goToCreateOffer : (CreateOfferTypes, Long?) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
@@ -124,6 +126,7 @@ fun HeaderOfferItem(
                 onUpdateMenuItem = { offer ->
                     onUpdateOfferItem(offer)
                 },
+                goToCreateOffer = goToCreateOffer,
                 onClose = {
                     isOpenPopup.value = false
                 }

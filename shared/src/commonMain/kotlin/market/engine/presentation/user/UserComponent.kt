@@ -8,8 +8,8 @@ import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import kotlinx.serialization.Serializable
 import market.engine.core.items.ListingData
-import market.engine.core.navigation.main.configs.FeedbackConfig
 import market.engine.core.network.networkObjects.User
 import market.engine.core.types.ReportPageType
 import market.engine.presentation.user.feedbacks.DefaultFeedbacksComponent
@@ -156,5 +156,11 @@ class DefaultUserComponent(
         }
     }
 }
+
+@Serializable
+data class FeedbackConfig(
+    @Serializable
+    val type: ReportPageType
+)
 
 

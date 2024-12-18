@@ -21,6 +21,7 @@ import market.engine.core.filtersObjects.OfferFilters
 import market.engine.core.globalData.ThemeResources.drawables
 import market.engine.core.globalData.ThemeResources.strings
 import market.engine.core.items.ToastItem
+import market.engine.core.types.CreateOfferTypes
 import market.engine.core.types.LotsType
 import market.engine.core.types.ToastType
 import market.engine.core.types.WindowSizeClass
@@ -123,7 +124,7 @@ fun MyOffersContent(
         toastItem = viewModel.toastItem,
         floatingActionButton = {
             floatingCreateOfferButton {
-
+                component.goToCreateOffer(CreateOfferTypes.CREATE)
             }
         },
         modifier = modifier.fillMaxSize()
@@ -182,6 +183,9 @@ fun MyOffersContent(
                         offer,
                         isGrid = (columns.value > 1),
                         baseViewModel = viewModel,
+                        goToCreateOffer = { type, id ->
+                            component.goToCreateOffer(type, id)
+                        },
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id
                             viewModel.showToast(

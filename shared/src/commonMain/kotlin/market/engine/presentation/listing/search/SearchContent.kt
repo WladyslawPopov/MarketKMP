@@ -124,7 +124,7 @@ fun SearchContent(
                 CategoryContent(
                     baseViewModel = searchViewModel,
                     searchData = searchData,
-                    goListing = {
+                    complete = {
                         openBottomSheet.value = false
                     },
                     isFilters = true
