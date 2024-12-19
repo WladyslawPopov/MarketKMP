@@ -38,8 +38,6 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message ?: "Unknown error", "An error occurred"))
-            } finally {
-                setLoading(false)
             }
         }
     }

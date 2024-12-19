@@ -25,8 +25,6 @@ class DefaultLoginComponent(
     private val onBackSelected: () -> Unit
 ) : LoginComponent {
 
-    private val userRepository = getKoin().get<UserRepository>()
-
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
 
@@ -57,7 +55,6 @@ class DefaultLoginComponent(
     }
 
     override fun onBack() {
-        userRepository.updateUserInfo(model.value.loginViewModel.viewModelScope)
         onBackSelected()
     }
 }

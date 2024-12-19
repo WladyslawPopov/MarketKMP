@@ -13,13 +13,13 @@ import kotlinx.coroutines.withContext
 import market.engine.core.network.networkObjects.UserPayload
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
-import org.koin.mp.KoinPlatform.getKoin
 
-class LoginViewModel(private val apiService: APIService) : BaseViewModel() {
+class LoginViewModel(
+    private val apiService: APIService,
+    val userRepository: UserRepository
+) : BaseViewModel() {
 
 //    var postChangeGoogleAuth = MutableLiveData<GoogleAuthResponse?>()
-
-    val userRepository : UserRepository = getKoin().get()
 
     private val _responseAuth = MutableStateFlow<UserPayload?>(null)
     val responseAuth: StateFlow<UserPayload?> = _responseAuth.asStateFlow()
@@ -54,6 +54,12 @@ class LoginViewModel(private val apiService: APIService) : BaseViewModel() {
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
             }
+        }
+    }
+
+    fun updateUserInfo(){
+        viewModelScope.launch {
+            userRepository.updateUserInfo()
         }
     }
 

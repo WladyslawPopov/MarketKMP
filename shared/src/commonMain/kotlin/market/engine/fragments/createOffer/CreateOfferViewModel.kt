@@ -11,7 +11,6 @@ import kotlinx.serialization.json.JsonObject
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.DynamicPayload
-import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
@@ -24,56 +23,50 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
     private var _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responsePostPage : StateFlow<DynamicPayload<OperationResult>?> = _responsePostPage.asStateFlow()
 
-    private var _responseGetPageParams = MutableStateFlow<ArrayList<Fields>>(arrayListOf())
-    val responseGetPageParams : StateFlow<ArrayList<Fields>> = _responseGetPageParams.asStateFlow()
 
-
-    fun getPageParams(url: String) {
+    fun getPage(url: String, categoryID: Long? = null) {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    setLoading(true)
-                    val response = apiService.getPage(url)
+                setLoading(true)
+
+                val response = withContext(Dispatchers.IO) {
+                    apiService.getPage(url)
+                }
+
+                try {
                     withContext(Dispatchers.Main) {
-                        setLoading(false)
+                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                        val payload: DynamicPayload<OperationResult> =
+                            deserializePayload(response.payload, serializer)
+                        _responseGetPage.value = payload
+                    }
+
+
+                    if (categoryID != null){
+                       val res = withContext(Dispatchers.IO) { apiService.getPage("categories/$categoryID/operations/create_offer")}
                         try {
-                            val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                            val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            _responseGetPageParams.value = payload.fields
+                            withContext(Dispatchers.Main) {
+                                val serializer =
+                                    DynamicPayload.serializer(OperationResult.serializer())
+                                val payload: DynamicPayload<OperationResult> =
+                                    deserializePayload(res.payload, serializer)
+                                val filteredFields =
+                                    payload.fields.filter { it.key.toString().contains("par_") }
+                                _responseGetPage.value?.fields?.addAll(filteredFields)
+                            }
                         }catch (e: Exception){
                             throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                         }
                     }
+                }catch (e: Exception){
+                    throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-            }
-        }
-    }
-
-    fun getPage(url: String) {
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    setLoading(true)
-                    val response = apiService.getPage(url)
-                    withContext(Dispatchers.Main) {
-                        setLoading(false)
-                        try {
-                            val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                            val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            _responseGetPage.value = payload
-                        }catch (e: Exception){
-                            throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
-                        }
-                    }
-                }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            } finally {
+                setLoading(false)
             }
         }
     }

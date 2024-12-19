@@ -144,13 +144,13 @@ class DefaultUserComponent(
             ReportPageType.FROM_BUYERS -> {
                 navigation.select(1)
             }
-            market.engine.core.data.types.ReportPageType.FROM_SELLERS -> {
+            ReportPageType.FROM_SELLERS -> {
                 navigation.select(2)
             }
-            market.engine.core.data.types.ReportPageType.FROM_USER -> {
+            ReportPageType.FROM_USER -> {
                 navigation.select(3)
             }
-            market.engine.core.data.types.ReportPageType.ABOUT_ME -> {
+            ReportPageType.ABOUT_ME -> {
                 navigation.select(4)
             }
         }
@@ -160,7 +160,7 @@ class DefaultUserComponent(
 @Serializable
 data class FeedbackConfig(
     @Serializable
-    val type: market.engine.core.data.types.ReportPageType
+    val type: ReportPageType
 )
 
 

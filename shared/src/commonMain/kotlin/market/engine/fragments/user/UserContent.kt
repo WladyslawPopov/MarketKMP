@@ -137,7 +137,7 @@ fun UserContent(
                         3 -> ReportPageType.FROM_USER
                         4 -> ReportPageType.ABOUT_ME
                         else -> {
-                            market.engine.core.data.types.ReportPageType.ALL_REPORTS
+                            ReportPageType.ALL_REPORTS
                         }
                     }
                     selectedTabIndex.value = it

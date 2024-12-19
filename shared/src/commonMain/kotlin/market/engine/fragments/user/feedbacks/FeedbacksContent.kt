@@ -320,15 +320,15 @@ fun setReportsFilters(listingData : LD, userId : Long, pageType : ReportPageType
                 userId.toString()
         }
 
-        market.engine.core.data.types.ReportPageType.FROM_USER -> {
-            ReportFilters.clearTypeFilter(market.engine.core.data.types.ReportPageType.FROM_USER)
+        ReportPageType.FROM_USER -> {
+            ReportFilters.clearTypeFilter(ReportPageType.FROM_USER)
             listingData.filters.clear()
             listingData.filters.addAll(ReportFilters.filtersFromUsers)
             listingData.filters.find { it.key == "user_id" }?.value =
                 userId.toString()
         }
 
-        market.engine.core.data.types.ReportPageType.ABOUT_ME -> {
+        ReportPageType.ABOUT_ME -> {
 
         }
     }

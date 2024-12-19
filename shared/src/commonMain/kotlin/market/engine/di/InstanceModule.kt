@@ -23,6 +23,7 @@ import market.engine.fragments.login.LoginViewModel
 import market.engine.fragments.offer.OfferViewModel
 import market.engine.fragments.listing.search.SearchViewModel
 import market.engine.fragments.profile.ProfileViewModel
+import market.engine.fragments.profileMyOffers.ProfileMyOffersViewModel
 import market.engine.fragments.subscriptions.SubViewModel
 import market.engine.fragments.user.UserViewModel
 import market.engine.fragments.user.feedbacks.FeedbacksViewModel

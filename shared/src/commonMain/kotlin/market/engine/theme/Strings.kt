@@ -290,4 +290,8 @@ interface Strings {
     val editOfferLabel : StringResource
     val actionSaveLabel : StringResource
     val sellOfferLabel : StringResource
+    val changeCategory : StringResource
+    val inCategoryLabel : StringResource
+
+    val charactersLeftLabel : StringResource
 }

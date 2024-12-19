@@ -19,6 +19,7 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.operations.checkStatusSeller
 import market.engine.core.data.types.OfferStates
+import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
@@ -28,7 +29,8 @@ class OfferViewModel(
     private val dataBase: MarketDB,
     private val categoryOperations: CategoryOperations,
     private val offerOperations: OfferOperations,
-    private val userOperations: UserOperations
+    private val userOperations: UserOperations,
+    val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val _responseOffer : MutableStateFlow<Offer?> = MutableStateFlow(null)
@@ -109,6 +111,7 @@ class OfferViewModel(
             try {
                 coroutineScope {
                     launch {
+                        updateUserInfo()
                         getUserInfo(offer.sellerData?.id ?: 1L)
                     }
                     launch {
@@ -282,6 +285,13 @@ class OfferViewModel(
             }
         } catch (e: Exception) {
             onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
+        }
+    }
+
+    fun updateUserInfo(){
+        viewModelScope.launch {
+            userRepository.updateToken()
+            userRepository.updateUserInfo()
         }
     }
 

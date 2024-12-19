@@ -27,7 +27,6 @@ import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ToastType
-import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
@@ -51,7 +50,6 @@ fun FavoritesContent(
     val data = favViewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val offerOperations : OfferOperations = koinInject()
-    val userRepository : UserRepository = koinInject()
 
     val ld = listingData.data.subscribeAsState()
     val sd = listingData.searchData.subscribeAsState()
@@ -74,16 +72,16 @@ fun FavoritesContent(
             ){
                 ld.value.filters.clear()
                 ld.value.filters.addAll(OfferFilters.filtersFav.toList())
-                data.refresh()
+                favViewModel.refresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.emptyFavoritesLabel),
                 image = drawables.emptyFavoritesImage
             ) {
-                userRepository.updateUserInfo(favViewModel.viewModelScope)
+                favViewModel.updateUserInfo()
                 ld.value.resetScroll()
-                data.refresh()
+                favViewModel.refresh()
             }
         }
     }
@@ -117,9 +115,9 @@ fun FavoritesContent(
             }
         },
         onRefresh = {
-            userRepository.updateUserInfo(favViewModel.viewModelScope)
+            favViewModel.updateUserInfo()
             ld.value.resetScroll()
-            data.refresh()
+            favViewModel.refresh()
         },
         error = null,
         noFound = null,
@@ -135,7 +133,7 @@ fun FavoritesContent(
             baseViewModel = favViewModel,
             noFound = noFound,
             onRefresh = {
-                userRepository.updateUserInfo(favViewModel.viewModelScope)
+                favViewModel.updateUserInfo()
                 ld.value.resetScroll()
                 data.refresh()
             },
@@ -175,7 +173,7 @@ fun FavoritesContent(
 
                                 withContext(Dispatchers.Main) {
                                     favViewModel.selectItems.clear()
-                                    userRepository.updateUserInfo(favViewModel.viewModelScope)
+                                    favViewModel.updateUserInfo()
                                     data.refresh()
                                 }
                             }
@@ -201,7 +199,7 @@ fun FavoritesContent(
                         onUpdateOfferItem = { selectedOffer ->
                             data.itemSnapshotList.find { it?.id == selectedOffer.id }?.isWatchedByMe =
                                 false
-                            userRepository.updateUserInfo(favViewModel.viewModelScope)
+                            favViewModel.updateUserInfo()
                             favViewModel.updateItem.value = selectedOffer.id
                             favViewModel.updateItem.value = null // update item immediately
                             favViewModel.showToast(

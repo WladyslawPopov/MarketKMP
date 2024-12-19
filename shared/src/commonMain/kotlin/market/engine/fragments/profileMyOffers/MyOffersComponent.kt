@@ -7,7 +7,6 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.LotsType
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -31,14 +30,16 @@ class DefaultMyOffersComponent(
     val selectedMyOfferPage: (LotsType) -> Unit,
     val navigateToCreateOffer: (CreateOfferType, Long?) -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
-    private val userRepository = getKoin().get<UserRepository>()
+
+    private val viewModel : ProfileMyOffersViewModel = ProfileMyOffersViewModel(
+        type,
+        getKoin().get(),
+        getKoin().get()
+    )
 
     private val _model = MutableValue(
         MyOffersComponent.Model(
-            viewModel = ProfileMyOffersViewModel(
-                type,
-                getKoin().get(),
-            ),
+            viewModel = viewModel,
             type = type
         )
     )
@@ -46,7 +47,7 @@ class DefaultMyOffersComponent(
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
-        userRepository.updateUserInfo(model.value.viewModel.viewModelScope)
+        viewModel.updateUserInfo()
         analyticsHelper.reportEvent("open_my_offers", mapOf())
     }
 

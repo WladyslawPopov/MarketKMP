@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Badge
@@ -29,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -148,8 +147,8 @@ fun CategoryContent(
 
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = dimens.extraSmallPadding, bottom = 60.dp),
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.9f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when {
@@ -229,23 +228,20 @@ fun CategoryContent(
             }
         }
 
-       val btn = when{
-           isFilters -> strings.actionAcceptFilters
-           isCreateOffer -> strings.continueLabel
-           else -> strings.categoryEnter
-       }
+        val btn = when{
+            isFilters -> strings.actionAcceptFilters
+            isCreateOffer -> strings.continueLabel
+            else -> strings.categoryEnter
+        }
 
         AcceptedPageButton(
             btn,
-            Modifier.wrapContentWidth()
-                .padding(dimens.smallPadding)
-                .align(Alignment.BottomCenter),
+            Modifier.fillMaxWidth()
+                .padding(dimens.mediumPadding).align(Alignment.BottomCenter),
             enabled = !(isCreateOffer && !searchData.searchIsLeaf)
         ) {
             complete()
         }
-
-        Spacer(modifier = Modifier.height(dimens.mediumSpacer))
     }
 }
 

@@ -136,11 +136,9 @@ fun HomeContent(
     val model = modelState.value
     val homeViewModel = model.homeViewModel
 
-    val isLoading = homeViewModel.isShowProgress.collectAsState()
     val err = homeViewModel.errorMessage.collectAsState()
 
     val categories = homeViewModel.responseCategory.collectAsState()
-
     val promoOffer1 = homeViewModel.responseOffersPromotedOnMainPage1.collectAsState()
     val promoOffer2 = homeViewModel.responseOffersPromotedOnMainPage2.collectAsState()
 
@@ -167,9 +165,8 @@ fun HomeContent(
                     drawerState
                 )
             },
-            isLoading = isLoading.value,
+            isLoading = promoOffer2.value.isEmpty() || promoOffer1.value.isEmpty(),
             onRefresh = { component.onRefresh() },
-
             floatingActionButton = {
                 floatingCreateOfferButton {
                     component.goToCreateOffer()
@@ -235,7 +232,6 @@ fun HomeContent(
 
                     FooterRow(listFooterItem)
                 }
-
 
                 ScrollBarsProvider().getVerticalScrollbar(
                     scrollState,

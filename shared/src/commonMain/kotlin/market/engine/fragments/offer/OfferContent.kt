@@ -74,7 +74,6 @@ import market.engine.core.network.networkObjects.Param
 import market.engine.core.network.networkObjects.PaymentMethod
 import market.engine.core.network.networkObjects.Value
 import market.engine.core.network.operations.operationFavorites
-import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.utils.convertDateWithMinutes
@@ -97,7 +96,6 @@ import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -123,7 +121,6 @@ fun OfferContent(
 
     val isMyOffer = offerViewModel.isMyOffer
     val offerState = offerViewModel.offerState
-    val userRepository : UserRepository = koinInject()
 
     val isImageViewerVisible = remember { mutableStateOf(false) }
     val isShowOptions = remember { mutableStateOf(false) }
@@ -205,7 +202,7 @@ fun OfferContent(
                     isFavorite = offer.isWatchedByMe,
                     onFavClick = {
                         val res = operationFavorites(offer, offerViewModel.viewModelScope)
-                        userRepository.updateUserInfo(offerViewModel.viewModelScope)
+                        offerViewModel.updateUserInfo()
                         return@OfferAppBar res
                     },
                     onBeakClick = {
@@ -910,7 +907,7 @@ fun BuyNowPriceLayout(
     onSaleClick: () -> Unit = {},
     onAddToCartClick: () -> Unit
 ) {
-    if (offerState == market.engine.core.data.types.OfferStates.PROTOTYPE || offerState == market.engine.core.data.types.OfferStates.ACTIVE) {
+    if (offerState == OfferStates.PROTOTYPE || offerState == OfferStates.ACTIVE) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -988,7 +985,7 @@ fun BuyNowPriceLayout(
                     )
 
 
-                    if (offerState == market.engine.core.data.types.OfferStates.PROTOTYPE) {
+                    if (offerState == OfferStates.PROTOTYPE) {
                         SimpleTextButton(
                             text = stringResource(strings.saleLabel),
                             backgroundColor = colors.greenColor,
@@ -999,7 +996,7 @@ fun BuyNowPriceLayout(
                         )
                     }
 
-                    if (offerState == market.engine.core.data.types.OfferStates.ACTIVE) {
+                    if (offerState == OfferStates.ACTIVE) {
                         Box(
                             modifier = Modifier
                                 .clip(MaterialTheme.shapes.small)
@@ -1096,7 +1093,7 @@ fun ProposalToSeller(
 @Composable
 fun BidsWinnerOrLastBid(
     offer: Offer,
-    offerState: market.engine.core.data.types.OfferStates
+    offerState: OfferStates
 ){
     val bids = offer.bids
 
@@ -1107,7 +1104,7 @@ fun BidsWinnerOrLastBid(
 
         // Annotated string to format the text
         buildAnnotatedString {
-            if (offerState == market.engine.core.data.types.OfferStates.ACTIVE) {
+            if (offerState == OfferStates.ACTIVE) {
                 withStyle(style = SpanStyle(color = colors.actionTextColor)) {
                     append("${stringResource(strings.bidsMadeLabel)} : ")
                 }
@@ -1136,7 +1133,7 @@ fun BidsWinnerOrLastBid(
             }
 
         } else {
-            if (offerState == market.engine.core.data.types.OfferStates.ACTIVE) {
+            if (offerState == OfferStates.ACTIVE) {
                 // No bids yet message
                 buildAnnotatedString {
                     append("${stringResource(strings.noBids)}, ")
@@ -1225,9 +1222,9 @@ fun LocationOffer(
 fun TimeOfferSession(
     offer: Offer,
     updatedTime: Long,
-    state: market.engine.core.data.types.OfferStates
+    state: OfferStates
 ) {
-    if (state != market.engine.core.data.types.OfferStates.PROTOTYPE && state != market.engine.core.data.types.OfferStates.SNAPSHOT) {
+    if (state != OfferStates.PROTOTYPE && state != OfferStates.SNAPSHOT) {
         // Preload string resources
         val inactiveLabel = stringResource(strings.offerSessionInactiveLabel)
         val completedLabel = stringResource(strings.offerSessionCompletedLabel)
@@ -1242,7 +1239,7 @@ fun TimeOfferSession(
 
         // AnnotatedString to track the styled remaining time
         val remainingTime = when (state) {
-            market.engine.core.data.types.OfferStates.ACTIVE -> {
+            OfferStates.ACTIVE -> {
                 if (endTime != null) {
                     buildAnnotatedString {
                         append(
@@ -1263,7 +1260,7 @@ fun TimeOfferSession(
                 }
             }
 
-            market.engine.core.data.types.OfferStates.INACTIVE -> {
+            OfferStates.INACTIVE -> {
                 buildAnnotatedString {
                     withStyle(style = SpanStyle(color = Color.Gray)) {
                         append(inactiveLabel)
@@ -1271,7 +1268,7 @@ fun TimeOfferSession(
                 }
             }
 
-            market.engine.core.data.types.OfferStates.COMPLETED -> {
+            OfferStates.COMPLETED -> {
                 buildAnnotatedString {
                     withStyle(style = SpanStyle(color = Color.Gray)) {
                         append(completedLabel)
@@ -1279,7 +1276,7 @@ fun TimeOfferSession(
                 }
             }
 
-            market.engine.core.data.types.OfferStates.FUTURE -> {
+            OfferStates.FUTURE -> {
                 buildAnnotatedString {
                     append(futureLabel)
                 }

@@ -9,7 +9,7 @@ fun itemCreateOffer(
     componentContext: ComponentContext,
     categoryId: Long,
     offerId: Long?,
-    type : market.engine.core.data.types.CreateOfferType,
+    type : CreateOfferType,
     externalImages : List<String>?,
     navigateBack: () -> Unit
     ): CreateOfferComponent {

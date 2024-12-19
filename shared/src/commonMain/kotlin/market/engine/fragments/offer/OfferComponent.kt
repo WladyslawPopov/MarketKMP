@@ -8,7 +8,6 @@ import market.engine.core.data.items.ListingData
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Region
 import market.engine.core.network.networkObjects.User
-import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.CreateOfferType
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -51,12 +50,9 @@ class DefaultOfferComponent(
     )
     override val model: Value<OfferComponent.Model> = _model
     private val offerViewModel = model.value.offerViewModel
-    private val userRepository = getKoin().get<UserRepository>()
+
 
     init {
-        userRepository.updateToken()
-        userRepository.updateUserInfo(offerViewModel.viewModelScope)
-
         updateOffer(id, isSnapshot)
     }
 

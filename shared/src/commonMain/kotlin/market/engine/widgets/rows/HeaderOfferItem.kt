@@ -31,6 +31,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.CreateOfferType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dropdown_menu.getOfferOperations
 import org.jetbrains.compose.resources.painterResource
 
@@ -60,17 +61,12 @@ fun HeaderOfferItem(
             ) {
 
                 if (onSelectionChange != null) {
-                    Checkbox(
-                        checked = isSelected,
-                        onCheckedChange = { onSelectionChange(it) },
-                        modifier = Modifier.size(dimens.smallIconSize),
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = colors.inactiveBottomNavIconColor,
-                            uncheckedColor = colors.textA0AE,
-                            checkmarkColor = colors.alwaysWhite
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(dimens.mediumSpacer))
+                   ThemeCheckBox(
+                       isSelected = isSelected,
+                       onSelectionChange = onSelectionChange,
+                       modifier = Modifier.size(dimens.smallIconSize)
+                   )
+                   Spacer(modifier = Modifier.width(dimens.mediumSpacer))
                 }
 
                 // Favorites Icon and Count

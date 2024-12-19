@@ -67,9 +67,9 @@ data class Parameters(
 
 @Serializable
 data class Choices(
-    @SerialName("code") val code: Int = 0,
+    @SerialName("code") val code: JsonPrimitive? = null,
     @SerialName("name") val name: String? = null,
-    @SerialName("weight") val weight: Int? = null,
+    @SerialName("weight") val weight: JsonPrimitive? = null,
     @SerialName("extended_fields") val extendedFields: List<Fields>? = null
 )
 

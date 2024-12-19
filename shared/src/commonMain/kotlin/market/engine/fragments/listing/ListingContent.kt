@@ -70,7 +70,6 @@ fun ListingContent(
 
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
-    val userRepository: UserRepository = getKoin().get()
 
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
@@ -326,7 +325,7 @@ fun ListingContent(
                                         currentOffer,
                                         listingViewModel.viewModelScope
                                     )
-                                userRepository.updateUserInfo(listingViewModel.viewModelScope)
+                                listingViewModel.updateUserInfo()
                                 return@OfferItem res
                             } else {
                                 return@OfferItem it.isWatchedByMe

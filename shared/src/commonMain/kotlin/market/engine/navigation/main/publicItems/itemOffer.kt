@@ -14,7 +14,7 @@ fun itemOffer(
     onListingSelected: (ListingData) -> Unit,
     onUserSelected: (Long, Boolean) -> Unit,
     isSnapshot: Boolean = false,
-    navigateToCreateOffer: (type: market.engine.core.data.types.CreateOfferType, offerId: Long?, externalImages : List<String>?) -> Unit
+    navigateToCreateOffer: (type: CreateOfferType, offerId: Long?, externalImages : List<String>?) -> Unit
 ): OfferComponent {
         return DefaultOfferComponent(
             id,

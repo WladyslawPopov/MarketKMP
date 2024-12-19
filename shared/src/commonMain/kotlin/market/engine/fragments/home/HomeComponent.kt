@@ -55,28 +55,13 @@ class DefaultHomeComponent(
             homeViewModel
         )
     )
-    private val userRepository = getKoin().get<UserRepository>()
-    private val settingsHelper = getKoin().get<SettingsRepository>()
+
     override val model: Value<HomeComponent.Model> = _model
 
     init {
         updateModel()
-
-        userRepository.updateToken()
-        userRepository.updateUserInfo(homeViewModel.viewModelScope)
-
         analyticsHelper.reportEvent("view_main_page", mapOf())
-
-        val isShowReview = settingsHelper.getSettingValue("isShowReview", false) ?: false
-
-        val countLaunch = settingsHelper.getSettingValue("count_launch", 0) ?: 0
-
-        if (countLaunch > 10 && !isShowReview){
-            //check review
-        }
-
         getPermissionHandler().AskPermissionNotification()
-
     }
 
     private fun updateModel() {
@@ -86,9 +71,6 @@ class DefaultHomeComponent(
     }
 
     override fun onRefresh() {
-        userRepository.updateToken()
-        userRepository.updateUserInfo(homeViewModel.viewModelScope)
-
         updateModel()
     }
 

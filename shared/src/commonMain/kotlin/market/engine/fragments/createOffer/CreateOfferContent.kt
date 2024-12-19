@@ -1,13 +1,18 @@
 package market.engine.fragments.createOffer
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,14 +20,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.CreateOfferType
 import market.engine.fragments.base.BaseContent
+import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.buttons.ActionButton
+import market.engine.widgets.exceptions.DynamicPayloadContent
 import market.engine.widgets.filterContents.CategoryContent
+import market.engine.widgets.textFields.DynamicInputField
 
 @Composable
 fun CreateOfferContent(
@@ -35,18 +49,17 @@ fun CreateOfferContent(
     val type = model.value.type
     val getPage = viewModel.responseGetPage.collectAsState()
     val postPage = viewModel.responsePostPage.collectAsState()
-    val params = viewModel.responseGetPageParams.collectAsState()
+
+    val focusManager = LocalFocusManager.current
 
     val refresh = {
-        val cURL = when(type){
-            CreateOfferType.CREATE -> "categories/$categoryID/operations/create_offer"
-            CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
-            CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
-            CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
-            CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
+        when(type){
+            CreateOfferType.CREATE -> viewModel.getPage("categories/$categoryID/operations/create_offer")
+            CreateOfferType.EDIT ->  viewModel.getPage("offers/$offerId/operations/edit_offer", categoryID)
+            CreateOfferType.COPY ->  viewModel.getPage("offers/$offerId/operations/copy_offer", categoryID)
+            CreateOfferType.COPY_WITHOUT_IMAGE -> viewModel.getPage("offers/$offerId/operations/copy_offer_without_old_photo", categoryID)
+            CreateOfferType.COPY_PROTOTYPE -> viewModel.getPage("offers/$offerId/operations/copy_offer_from_prototype", categoryID)
         }
-        viewModel.getPage(cURL)
-        viewModel.getPageParams("categories/$categoryID/operations/create_offer")
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -56,6 +69,7 @@ fun CreateOfferContent(
         )
     )
     val searchData = remember { mutableStateOf(SD()) }
+
 
     LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed){
         if (scaffoldState.bottomSheetState.isCollapsed){
@@ -114,24 +128,84 @@ fun CreateOfferContent(
                 )
             },
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(dimens.mediumSpacer),
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                //title
-                item {
+            AnimatedVisibility(scaffoldState.bottomSheetState.isCollapsed) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                focusManager.clearFocus()
+                            })
+                        },
+                ) {
+                    item {
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(dimens.smallPadding)
+                        ) {
+                            Text(
+                                getPage.value?.description ?: "",
+                                color = colors.black,
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(dimens.smallPadding)
+                            )
 
-                }
+                            ActionButton(
+                                strings.changeCategory,
+                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                alignment = Alignment.TopEnd,
+                            ) {
+                                viewModel.activeFiltersType.value = "categories"
+                            }
+                        }
+                    }
 
-                // category btn
-                item {
+                    item {
+                        val titleField = getPage.value?.fields?.find { it.key == "title" }
+                        if (titleField != null) {
+                            DynamicInputField(
+                                titleField,
+                                Modifier.fillMaxWidth().padding(dimens.smallPadding)
+                            )
+                        }
+                    }
 
-                }
+                    item {
+                        val paramList = getPage.value?.fields?.filter { it.key?.contains("par_") == true } ?: emptyList()
+                        DynamicPayloadContent(
+                            paramList,
+                            Modifier.fillMaxWidth()
+                                .padding(dimens.smallPadding)
+                        )
+                    }
 
-                // parameters
-                item {
+                    // Images
+                    item {
 
+                    }
+
+                    getPage.value?.fields?.forEach { field ->
+                        when (field.key) {
+                            "category_id" -> {
+                                field.data?.jsonPrimitive?.longOrNull?.let {
+                                    model.value.categoryId = it
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        val label = when (type) {
+                            CreateOfferType.EDIT -> strings.actionSaveLabel
+                            else -> strings.sellOfferLabel
+                        }
+                        AcceptedPageButton(
+                            text = label,
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(dimens.mediumPadding),
+                        ) {
+
+                        }
+                    }
                 }
             }
         }

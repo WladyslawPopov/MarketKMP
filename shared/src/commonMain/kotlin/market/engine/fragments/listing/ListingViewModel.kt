@@ -21,11 +21,13 @@ import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.paging.PagingRepository
+import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
 class ListingViewModel(
     private val apiService: APIService,
-    private val categoryOperations : CategoryOperations
+    private val categoryOperations : CategoryOperations,
+    val userRepository: UserRepository
 ) : BaseViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
@@ -57,6 +59,12 @@ class ListingViewModel(
 
     fun refresh(){
         pagingRepository.refresh()
+    }
+
+    fun updateUserInfo() {
+        viewModelScope.launch {
+            userRepository.updateUserInfo()
+        }
     }
 
     private fun getOffersRecommendedInListing(categoryID:Long) {

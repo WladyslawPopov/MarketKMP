@@ -12,6 +12,7 @@ import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.items.DeepLink
 import market.engine.core.repositories.SettingsRepository
+import market.engine.core.repositories.UserRepository
 import market.engine.fragments.login.DefaultLoginComponent
 import market.engine.fragments.login.LoginComponent
 import market.engine.navigation.main.DefaultMainComponent
@@ -72,6 +73,12 @@ class DefaultRootComponent(
 
         var countLaunch = settingsHelper.getSettingValue("count_launch", 0) ?: 0
         settingsHelper.setSettingValue("count_launch", ++countLaunch)
+
+
+        val isShowReview = settingsHelper.getSettingValue("isShowReview", false) ?: false
+        if (countLaunch > 10 && !isShowReview){
+            //check review
+        }
     }
 
     private fun createChild(rootConfig: RootConfig, componentContext: ComponentContext): RootComponent.Child =

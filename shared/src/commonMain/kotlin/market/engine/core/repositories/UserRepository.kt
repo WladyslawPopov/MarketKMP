@@ -1,11 +1,6 @@
 package market.engine.core.repositories
 
 import market.engine.core.network.functions.UserOperations
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.common.notificationIdentifier
 import market.engine.core.analytics.AnalyticsHelper
@@ -44,36 +39,29 @@ class UserRepository(
         //remove screenshots
     }
 
-    fun updateUserInfo(scope : CoroutineScope){
-        scope.launch {
-            withContext(Dispatchers.IO){
-                val res = userOperations.getUsers(login)
+    suspend fun updateUserInfo(){
+        val res = userOperations.getUsers(login)
+        if (res.success != null){
+                val newInfo = res.success?.firstOrNull()
+                if (newInfo != null){
+                    if (newInfo.markedAsDeleted){
+                        //delete screenshots
+                        delete()
+                    }else{
+                        val userProfileAttributes = mapOf(
+                            "name" to newInfo.login,
+                            "gender" to newInfo.gender,
+                            "userRating" to newInfo.rating.toDouble(),
+                            "userVerified" to newInfo.isVerified,
+                        )
+                        analyticsHelper.setUserProfileID(newInfo.id.toString())
+                        analyticsHelper.updateUserProfile(userProfileAttributes)
+                        notificationIdentifier(newInfo.id)
 
-                withContext(Dispatchers.Main){
-                    if (res.success != null){
-                        val newInfo = res.success?.firstOrNull()
-                        if (newInfo != null){
-                            if (newInfo.markedAsDeleted){
-                                //delete screenshots
-                                delete()
-                            }else{
-                                val userProfileAttributes = mapOf(
-                                    "name" to newInfo.login,
-                                    "gender" to newInfo.gender,
-                                    "userRating" to newInfo.rating.toDouble(),
-                                    "userVerified" to newInfo.isVerified,
-                                )
-                                analyticsHelper.setUserProfileID(newInfo.id.toString())
-                                analyticsHelper.updateUserProfile(userProfileAttributes)
-                                notificationIdentifier(newInfo.id)
-
-                                UserData.updateUserInfo(newInfo)
-                            }
-                        }
+                        UserData.updateUserInfo(newInfo)
                     }
                 }
             }
-        }
     }
 
     fun clear(){
