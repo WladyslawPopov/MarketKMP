@@ -183,8 +183,8 @@ fun MyOffersContent(
                         offer,
                         isGrid = (columns.value > 1),
                         baseViewModel = viewModel,
-                        goToCreateOffer = { type, id ->
-                            component.goToCreateOffer(type, id)
+                        goToCreateOffer = { type ->
+                            component.goToCreateOffer(type)
                         },
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id

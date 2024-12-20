@@ -195,11 +195,11 @@ fun SearchContent(
 fun getSearchFilters(searchData: SD, it: String) {
     if (searchData.userSearch && searchData.userLogin == null){
         if (it != "") {
-            searchData.searchString = null
+            searchData.searchString = ""
             searchData.userLogin = it
             searchData.isRefreshing = true
         } else {
-            searchData.searchString = null
+            searchData.searchString = ""
             searchData.userSearch = false
             searchData.searchFinished = false
         }

@@ -137,10 +137,10 @@ fun createProfileChild(
                     profileNavigation.pushNew(ProfileConfig.UserScreen(ui, getCurrentDate(), about))
                 },
                 isSnapshot = config.isSnapshot,
-                navigateToCreateOffer = { type, offerId, externalImages ->
+                navigateToCreateOffer = { type, categoryId, offerId, externalImages ->
                     profileNavigation.pushNew(
                         ProfileConfig.CreateOfferScreen(
-                            categoryId = 1L,
+                            categoryId = categoryId,
                             type = type,
                             externalImages = externalImages,
                             offerId = offerId

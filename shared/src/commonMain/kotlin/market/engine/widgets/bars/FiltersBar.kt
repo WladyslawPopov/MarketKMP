@@ -54,7 +54,7 @@ private fun constructActiveFiltersTitle(
         isShowSearch = true
     }
 
-    if (!searchData.searchString.isNullOrEmpty()  && !isShowSearch) {
+    if (searchData.searchString.isNotEmpty() && !isShowSearch) {
         titles.add(searchTitle)
         isShowSearch = true
     }
@@ -199,12 +199,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (!search.value.searchString.isNullOrEmpty()) {
+                if (search.value.searchString.isNotEmpty()) {
                     item(key = "search_string") {
                         ActiveFilterListing(
-                            text = search.value.searchString ?: searchTitle,
+                            text = search.value.searchString,
                             removeFilter = {
-                                searchData.searchString = null
+                                searchData.searchString = ""
                                 onRefresh()
                             },
                         ){

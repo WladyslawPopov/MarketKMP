@@ -140,10 +140,10 @@ fun createSearchChild(
                     )
                 },
                 config.isSnapshot,
-                navigateToCreateOffer = { type, offerId, externalImages ->
+                navigateToCreateOffer = { type, categoryId, offerId, externalImages ->
                     searchNavigation.pushNew(
                         SearchConfig.CreateOfferScreen(
-                            categoryId = 1L,
+                            categoryId = categoryId,
                             type = type,
                             externalImages = externalImages,
                             offerId = offerId

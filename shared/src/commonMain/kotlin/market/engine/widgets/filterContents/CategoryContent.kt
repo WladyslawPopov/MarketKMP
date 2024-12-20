@@ -72,15 +72,12 @@ fun CategoryContent(
     val noFound : (@Composable () -> Unit)? =
         if (categories.value.isEmpty()) {
             @Composable {
-                if (searchData.userSearch || searchData.searchString?.isNotEmpty() == true) {
+                if (searchData.userSearch || searchData.searchString.isNotEmpty() || listingData.filters.any { it.interpritation != null }
+                ) {
                     showNoItemLayout(
                         textButton = stringResource(strings.resetLabel),
                     ) {
                         searchData.clear()
-                        refresh()
-                    }
-                } else {
-                    showNoItemLayout {
                         refresh()
                     }
                 }
@@ -148,7 +145,7 @@ fun CategoryContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.9f),
+                    .fillMaxHeight(0.85f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when {

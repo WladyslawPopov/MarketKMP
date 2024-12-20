@@ -69,7 +69,7 @@ fun getOfferOperations(
     showCopyId : Boolean = true,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
     onUpdateMenuItem: (Offer) -> Unit,
-    goToCreateOffer: (CreateOfferType, Long?) -> Unit,
+    goToCreateOffer: (CreateOfferType) -> Unit,
     onClose: () -> Unit,
 ) {
     val scope = baseViewModel.viewModelScope
@@ -327,13 +327,13 @@ fun getOfferOperations(
                             }
                         }
                         "copy_offer_without_old_photo" -> {
-                            goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE, offer.id)
+                            goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE)
                         }
                         "edit_offer" -> {
-                            goToCreateOffer(CreateOfferType.EDIT, offer.id)
+                            goToCreateOffer(CreateOfferType.EDIT)
                         }
                         "copy_offer" -> {
-                            goToCreateOffer(CreateOfferType.COPY, offer.id)
+                            goToCreateOffer(CreateOfferType.COPY)
                         }
                         "act_on_proposal" -> {}
                         "make_proposal" -> {}

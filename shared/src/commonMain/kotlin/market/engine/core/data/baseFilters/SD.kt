@@ -10,7 +10,7 @@ data class SD(
     var searchParentName: String? = null,
     var searchIsLeaf: Boolean = false,
 
-    var searchString: String? = null,
+    var searchString: String = "",
     var searchFinished: Boolean = false,
     var userSearch: Boolean = false,
     var userLogin: String? = null,
@@ -20,7 +20,7 @@ data class SD(
 )
 {
     fun clear(){
-        searchString = null
+        searchString = ""
         userID = 1L
         searchFinished = false
         userSearch = false

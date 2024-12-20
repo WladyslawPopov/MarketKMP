@@ -17,6 +17,7 @@ import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.navigation.main.publicItems.itemCreateOffer
 import market.engine.navigation.main.publicItems.itemListing
@@ -136,15 +137,19 @@ fun createHomeChild(
                 )
             },
             isSnapshot = config.isSnapshot,
-            navigateToCreateOffer = { type, offerId, externalImages ->
-                homeNavigation.pushNew(
-                    HomeConfig.CreateOfferScreen(
-                        categoryId = 1L,
-                        type = type,
-                        externalImages = externalImages,
-                        offerId = offerId
+            navigateToCreateOffer = { type, categoryId, offerId, externalImages ->
+                if(UserData.token != "") {
+                    homeNavigation.pushNew(
+                        HomeConfig.CreateOfferScreen(
+                            categoryId,
+                            offerId,
+                            type,
+                            externalImages
+                        )
                     )
-                )
+                }else{
+                    goToLogin()
+                }
             }
         )
     )
@@ -234,14 +239,18 @@ fun itemHome(
             homeNavigation.pushNew(HomeConfig.OfferScreen(id, getCurrentDate()))
         },
         navigateToCreateOfferSelected = {
-            homeNavigation.pushNew(
-                HomeConfig.CreateOfferScreen(
-                    1L,
-                    null,
-                    CreateOfferType.CREATE,
-                    null
+            if(UserData.token != "") {
+                homeNavigation.pushNew(
+                    HomeConfig.CreateOfferScreen(
+                        1L,
+                        null,
+                        CreateOfferType.CREATE,
+                        null
+                    )
                 )
-            )
+            }else{
+                goToLogin()
+            }
         }
     )
 }

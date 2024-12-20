@@ -423,8 +423,8 @@ fun OfferContent(
                                             onUpdateMenuItem = { offer ->
                                                 component.updateOffer(offer.id, model.isSnapshot)
                                             },
-                                            goToCreateOffer = { type, id ->
-                                                component.goToCreateOffer(type, id, null)
+                                            goToCreateOffer = { type ->
+                                                component.goToCreateOffer(type, offer.catpath[0], offer.id, null)
                                             },
                                             onClose = {
                                                 isShowOptions.value = false
@@ -465,6 +465,7 @@ fun OfferContent(
                                     onSaleClick = {
                                         component.goToCreateOffer(
                                             CreateOfferType.COPY_PROTOTYPE,
+                                            offer.catpath[0],
                                             offer.id,
                                             images
                                         )

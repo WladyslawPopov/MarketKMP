@@ -14,7 +14,7 @@ fun itemOffer(
     onListingSelected: (ListingData) -> Unit,
     onUserSelected: (Long, Boolean) -> Unit,
     isSnapshot: Boolean = false,
-    navigateToCreateOffer: (type: CreateOfferType, offerId: Long?, externalImages : List<String>?) -> Unit
+    navigateToCreateOffer: (type: CreateOfferType, categoryId : Long, offerId: Long, externalImages : List<String>?) -> Unit
 ): OfferComponent {
         return DefaultOfferComponent(
             id,
@@ -32,8 +32,8 @@ fun itemOffer(
             navigateToUser = { ui, about ->
                 onUserSelected(ui, about)
             },
-            navigationCreateOffer = { type, offerId, externalImages ->
-                navigateToCreateOffer(type, offerId, externalImages)
+            navigationCreateOffer = { type, categoryId, offerId, externalImages ->
+                navigateToCreateOffer(type, categoryId, offerId, externalImages)
             }
         )
     }

@@ -15,8 +15,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.TopCategory
 import market.engine.navigation.main.children.HomeConfig
-import market.engine.core.repositories.SettingsRepository
-import market.engine.core.repositories.UserRepository
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 

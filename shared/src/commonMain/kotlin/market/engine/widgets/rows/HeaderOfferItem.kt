@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,7 +40,7 @@ fun HeaderOfferItem(
     isSelected: Boolean = false,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onUpdateOfferItem : (Offer) -> Unit,
-    goToCreateOffer : (CreateOfferType, Long?) -> Unit,
+    goToCreateOffer : (CreateOfferType) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }

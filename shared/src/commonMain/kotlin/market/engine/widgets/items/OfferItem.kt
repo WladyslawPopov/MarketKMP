@@ -59,7 +59,7 @@ fun OfferItem(
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
-    goToCreateOffer : (CreateOfferType, Long?) -> Unit = { _, _ -> },
+    goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
     onItemClick: () -> Unit = {}
 ) {
     var isPromo = false

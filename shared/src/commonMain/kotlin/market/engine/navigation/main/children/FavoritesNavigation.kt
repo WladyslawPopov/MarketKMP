@@ -139,10 +139,10 @@ fun createFavoritesChild(
                     )
                 },
                 isSnapshot = config.isSnap,
-                navigateToCreateOffer = { type, offerId, externalImages ->
+                navigateToCreateOffer = { type, categoryId, offerId, externalImages ->
                     favoritesNavigation.pushNew(
                         FavoritesConfig.CreateOfferScreen(
-                            categoryId = 1L,
+                            categoryId = categoryId,
                             type = type,
                             externalImages = externalImages,
                             offerId = offerId
