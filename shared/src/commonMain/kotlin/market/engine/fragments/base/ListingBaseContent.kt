@@ -2,7 +2,6 @@ package market.engine.fragments.base
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
@@ -30,7 +29,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
-import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.grids.PagingList
@@ -49,8 +47,6 @@ fun <T : Any>ListingBaseContent(
     additionalBar : @Composable (LazyListState) -> Unit = {},
     promoContent : (@Composable (Offer) -> Unit)? = null,
     promoList :  ArrayList<Offer>? = null,
-    isShowGrid : Boolean = false,
-    onSearchClick : () -> Unit = {}
 ){
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
@@ -130,35 +126,12 @@ fun <T : Any>ListingBaseContent(
 
     Column(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility (
-            ((baseViewModel.activeFiltersType.value == "" ||
-                    baseViewModel.activeFiltersType.value == "categories") &&
-                    !baseViewModel.isOpenSearch.value),
-            enter = expandIn(),
+            (baseViewModel.activeFiltersType.value == "" || baseViewModel.activeFiltersType.value == "categories"),
+            enter = fadeIn(),
             exit = fadeOut()
         ) {
             Column {
                 additionalBar(scrollState)
-
-                FiltersBar(
-                    listingData,
-                    searchData,
-                    isShowGrid = isShowGrid,
-                    onChangeTypeList = {
-                        baseViewModel.settings.setSettingValue("listingType", it)
-                        listingData.listingType = it
-                        onRefresh()
-                    },
-                    onFilterClick = {
-                        baseViewModel.activeFiltersType.value = "filters"
-                    },
-                    onSortClick = {
-                        baseViewModel.activeFiltersType.value = "sorting"
-                    },
-                    onSearchClick = {
-                        onSearchClick()
-                    },
-                    onRefresh = onRefresh
-                )
             }
         }
 

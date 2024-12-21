@@ -9,19 +9,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -31,24 +24,16 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchTextField(
-    search : TextFieldValue,
+    search : MutableState<String>,
     focusRequester: FocusRequester,
     onUpdateHistory: (String) -> Unit,
     goToListing: () -> Unit,
 ){
-    var textState by remember { mutableStateOf(search) }
-
-    val currentSearchState by rememberUpdatedState(newValue = search)
-
-    LaunchedEffect(currentSearchState) {
-        textState = currentSearchState.copy(selection = TextRange(currentSearchState.text.length))
-    }
-
     TextField(
-        value = textState,
+        value = search.value,
         onValueChange = {
-            textState = it.copy(selection = TextRange(it.text.length))
-            onUpdateHistory(it.text)
+            search.value = it
+            onUpdateHistory(it)
         },
         placeholder = {
             Text(
@@ -70,15 +55,15 @@ fun SearchTextField(
             }
         ),
         trailingIcon = {
-            if (textState.text.isNotEmpty()) {
+            if (search.value.isNotEmpty()) {
                 SmallIconButton(
                     icon = drawables.cancelIcon,
                     contentDescription = stringResource(strings.actionClose),
                     color = colors.steelBlue,
                     modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
                 ) {
-                    textState = TextFieldValue("")  // Очищаем текст
-                    onUpdateHistory(textState.text)
+                    search.value = ""
+                    onUpdateHistory("")
                 }
             }
         },

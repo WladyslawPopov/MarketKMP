@@ -29,6 +29,7 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
@@ -43,9 +44,9 @@ fun MyOffersContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
-    val listingData = viewModel.listingData.data.subscribeAsState()
-    val searchData = viewModel.listingData.searchData.subscribeAsState()
-    val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val listingData = model.listingData.data
+    val searchData = model.listingData.searchData
+    val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
@@ -55,6 +56,11 @@ fun MyOffersContent(
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
     val successToast = stringResource(strings.operationSuccess)
+
+    val refresh = {
+        listingData.value.resetScroll()
+        viewModel.onRefresh()
+    }
 
     val noFound = @Composable {
         if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
@@ -115,8 +121,7 @@ fun MyOffersContent(
     BaseContent(
         topBar = null,
         onRefresh = {
-            listingData.value.resetScroll()
-            viewModel.onRefresh()
+            refresh()
         },
         error = null,
         noFound = null,
@@ -136,10 +141,25 @@ fun MyOffersContent(
             data = data,
             baseViewModel = viewModel,
             onRefresh = {
-                listingData.value.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             },
             noFound = noFound,
+            additionalBar = {
+                FiltersBar(
+                    searchData.value,
+                    listingData.value,
+                    isShowGrid = false,
+                    onFilterClick = {
+                        viewModel.activeFiltersType.value = "filters"
+                    },
+                    onSortClick = {
+                        viewModel.activeFiltersType.value = "sorting"
+                    },
+                    onRefresh = {
+                        refresh()
+                    }
+                )
+            },
             filtersContent = { isRefreshingFromFilters, onClose ->
                 when(viewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(

@@ -108,10 +108,7 @@ open class BaseViewModel: ViewModel() {
                                 val sd = searchData.copy()
                                 sd.searchCategoryID = category.id
                                 val lotCount = categoryOperations.getTotalCount(
-                                    ListingData(
-                                        _searchData = sd,
-                                        _data = listingData
-                                    )
+                                    sd, listingData
                                 )
                                 category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
                             }
@@ -126,8 +123,15 @@ open class BaseViewModel: ViewModel() {
                     _responseCategory.value = categories
                 }else{
                     if(activeFiltersType.value == "categories") {
-                        onCatBack(searchData) {
-                            getCategories(searchData, listingData, withoutCounter)
+                        val category = onCatBack(searchData.searchParentID ?: 1L)
+                        if (category != null) {
+                            val sd = searchData.copy(
+                                searchCategoryID = category.id,
+                                searchCategoryName = category.name,
+                                searchParentID = category.parentId,
+                                searchIsLeaf = category.isLeaf
+                            )
+                            getCategories(sd, listingData, withoutCounter)
                         }
                     }
                 }
@@ -143,40 +147,14 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun onCatBack(
-        searchData: SD,
-        refresh: () -> Unit
-    ){
-        viewModelScope.launch {
-            if (searchData.searchCategoryID != 1L) {
-                val response = withContext(Dispatchers.IO) {
-                    categoryOperations.getCategoryInfo(
-                        searchData.searchParentID ?: 1L
-                    )
-                }
-
-                withContext(Dispatchers.Main) {
-                    val catInfo = response.success
-                    if (catInfo != null) {
-
-                        if (!catInfo.isLeaf){
-                            searchData.searchCategoryID = catInfo.id
-                        }else{
-                            searchData.searchCategoryID = catInfo.parentId
-                        }
-                        if (catInfo.id == 1L) {
-                            searchData.searchCategoryName = null
-                        }else{
-                            searchData.searchCategoryName = catInfo.name
-                        }
-                        searchData.searchParentID = catInfo.parentId
-                        searchData.searchIsLeaf = catInfo.isLeaf
-                        searchData.isRefreshing = true
-
-                        refresh()
-                    }
-                }
-            }
+    suspend fun onCatBack(
+        uploadId: Long,
+    ) : Category? {
+        val response = withContext(Dispatchers.IO) {
+            categoryOperations.getCategoryInfo(
+                uploadId
+            )
         }
+        return response.success
     }
 }

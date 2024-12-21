@@ -56,7 +56,7 @@ fun FeedbacksContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.feedbacksViewModel
-    val listingData = viewModel.listingData.data.subscribeAsState()
+    val listingData = model.listingData.data
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
     val filters = listOf(

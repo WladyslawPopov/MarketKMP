@@ -63,10 +63,10 @@ class DefaultProfileComponent(
 
     override fun goToAllMyOfferListing() {
         val ld = ListingData()
-        val searchData = ld.searchData.value
-        searchData.userID = UserData.login
-        searchData.userLogin = UserData.userInfo?.login
-        searchData.userSearch = true
+        val searchData = ld.searchData
+        searchData.value.userID = UserData.login
+        searchData.value.userLogin = UserData.userInfo?.login
+        searchData.value.userSearch = true
         navigationProfile.pushNew(
             ProfileConfig.ListingScreen(ld.data.value, ld.searchData.value)
         )

@@ -1,10 +1,13 @@
 package market.engine.fragments.profileMyOffers
 
+import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
@@ -14,6 +17,8 @@ import org.koin.mp.KoinPlatform.getKoin
 interface MyOffersComponent {
     val model : Value<Model>
     data class Model(
+        val listingData: ListingData,
+        val pagingDataFlow : Flow<PagingData<Offer>>,
         val viewModel: ProfileMyOffersViewModel,
         var type : LotsType
     )
@@ -37,8 +42,12 @@ class DefaultMyOffersComponent(
         getKoin().get()
     )
 
+    private val listingData = ListingData()
+
     private val _model = MutableValue(
         MyOffersComponent.Model(
+            listingData = listingData,
+            pagingDataFlow = viewModel.init(listingData),
             viewModel = viewModel,
             type = type
         )
@@ -50,8 +59,6 @@ class DefaultMyOffersComponent(
         viewModel.updateUserInfo()
         analyticsHelper.reportEvent("open_my_offers", mapOf())
     }
-
-    val listingData = model.value.viewModel.listingData
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
         if (isTopPromo){
@@ -65,7 +72,7 @@ class DefaultMyOffersComponent(
                 eventParameters
             )
         }
-        if (model.value.viewModel.listingData.searchData.value.userSearch || model.value.viewModel.listingData.searchData.value.searchString != null){
+        if (listingData.searchData.value.userSearch || listingData.searchData.value.searchString.isNotEmpty()){
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
                 "lot_name" to offer.title,

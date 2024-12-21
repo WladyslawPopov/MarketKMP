@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
+import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -44,7 +45,6 @@ fun CreateOfferContent(
 ) {
     val model = component.model.subscribeAsState()
     val viewModel = model.value.createOfferViewModel
-    val categoryID = model.value.categoryId
     val offerId = model.value.offerId
     val type = model.value.type
     val getPage = viewModel.responseGetPage.collectAsState()
@@ -52,13 +52,18 @@ fun CreateOfferContent(
 
     val focusManager = LocalFocusManager.current
 
+
+    val categoryName = remember { mutableStateOf("") }
+    val categoryID = remember { mutableStateOf(model.value.categoryId) }
+
+
     val refresh = {
         when(type){
-            CreateOfferType.CREATE -> viewModel.getPage("categories/$categoryID/operations/create_offer")
-            CreateOfferType.EDIT ->  viewModel.getPage("offers/$offerId/operations/edit_offer", categoryID)
-            CreateOfferType.COPY ->  viewModel.getPage("offers/$offerId/operations/copy_offer", categoryID)
-            CreateOfferType.COPY_WITHOUT_IMAGE -> viewModel.getPage("offers/$offerId/operations/copy_offer_without_old_photo", categoryID)
-            CreateOfferType.COPY_PROTOTYPE -> viewModel.getPage("offers/$offerId/operations/copy_offer_from_prototype", categoryID)
+            CreateOfferType.CREATE -> viewModel.getPage("categories/${categoryID.value}/operations/create_offer")
+            CreateOfferType.EDIT ->  viewModel.getPage("offers/$offerId/operations/edit_offer", categoryID.value)
+            CreateOfferType.COPY ->  viewModel.getPage("offers/$offerId/operations/copy_offer", categoryID.value)
+            CreateOfferType.COPY_WITHOUT_IMAGE -> viewModel.getPage("offers/$offerId/operations/copy_offer_without_old_photo", categoryID.value)
+            CreateOfferType.COPY_PROTOTYPE -> viewModel.getPage("offers/$offerId/operations/copy_offer_from_prototype", categoryID.value)
         }
     }
 
@@ -68,7 +73,12 @@ fun CreateOfferContent(
                 BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
-    val searchData = remember { mutableStateOf(SD()) }
+    val searchData = remember { mutableStateOf(SD(
+        searchCategoryID = model.value.categoryId,
+        searchCategoryName = categoryName.value
+    )) }
+
+    val listingData = remember { mutableStateOf(LD()) }
 
 
     LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed){
@@ -119,12 +129,15 @@ fun CreateOfferContent(
             sheetContent = {
                 CategoryContent(
                     baseViewModel = viewModel,
-                    searchData = searchData.value,
                     complete = {
                         model.value.categoryId = searchData.value.searchCategoryID
                         viewModel.activeFiltersType.value = ""
                     },
-                    isCreateOffer = true
+                    isCreateOffer = true,
+                    searchData = searchData.value,
+                    listingData = listingData.value,
+                    searchCategoryId = categoryID,
+                    searchCategoryName = categoryName
                 )
             },
         ) {

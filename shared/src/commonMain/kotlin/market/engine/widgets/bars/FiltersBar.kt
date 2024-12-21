@@ -13,7 +13,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -80,8 +80,11 @@ private fun filterListingFilters(
 
 @Composable
 fun FiltersBar(
-    listingData: LD,
     searchData: SD,
+    listingData: LD,
+    searchString : MutableState<String>? = null,
+    searchUserLogin : MutableState<String?>? = null,
+    searchFinished : MutableState<Boolean>? = null,
     isShowFilters: Boolean = true,
     isShowGrid: Boolean = false,
     onChangeTypeList: (Int) -> Unit = {},
@@ -96,17 +99,9 @@ fun FiltersBar(
     val searchTitle = stringResource(strings.searchTitle)
     val userDef = stringResource(strings.searchUsersSearch)
 
-    // Derived filters based on isShowFilters
-
-    val search = remember { mutableStateOf(searchData) }
-
     // Construct active filters title
     val activeFiltersTitle = remember {
         mutableStateOf(constructActiveFiltersTitle(filters.value, searchData, listingData.sort, filterString, searchTitle, sortTitle))
-    }
-
-    LaunchedEffect(Unit){
-        search.value = searchData
     }
 
     val itemFilter = remember(filters.value) {
@@ -183,10 +178,10 @@ fun FiltersBar(
                     }
                 }
 
-                if (search.value.userSearch && search.value.userLogin != null) {
+                if (searchData.userSearch && searchData.userLogin != null) {
                     item(key = "search_user") {
                         ActiveFilterListing(
-                            text = search.value.userLogin ?: userDef,
+                            text = searchUserLogin?.value ?: userDef,
                             removeFilter = {
                                 searchData.userLogin = null
                                 searchData.userSearch = false
@@ -199,10 +194,10 @@ fun FiltersBar(
                     }
                 }
 
-                if (search.value.searchString.isNotEmpty()) {
+                if (searchString?.value?.isNotEmpty() == true) {
                     item(key = "search_string") {
                         ActiveFilterListing(
-                            text = search.value.searchString,
+                            text = searchString.value,
                             removeFilter = {
                                 searchData.searchString = ""
                                 onRefresh()
@@ -213,12 +208,12 @@ fun FiltersBar(
                     }
                 }
 
-                if (search.value.searchFinished) {
+                if (searchFinished?.value == true) {
                     item(key = "search_finished") {
                         ActiveFilterListing(
                             text = stringResource(strings.searchUserFinishedStringChoice),
                             removeFilter = {
-                                search.value.searchFinished = false
+                                searchData.searchFinished = false
                                 onRefresh()
                             },
                         ){

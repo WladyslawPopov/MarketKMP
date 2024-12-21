@@ -119,6 +119,7 @@ fun OfferFilterContent(
     val defCat = stringResource(strings.categoryMain)
 
     val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName ?: defCat) }
+    val selectedCategoryID = remember { mutableStateOf(searchData.value.searchCategoryID) }
 
     val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpritation ?: offersType[0].second) }
 
@@ -172,6 +173,9 @@ fun OfferFilterContent(
             CategoryContent(
                 baseViewModel = baseViewModel,
                 searchData = searchData.value,
+                listingData = LD(),
+                searchCategoryId = selectedCategoryID,
+                searchCategoryName = selectedCategory,
                 complete = {
                     openBottomSheet.value = false
                 },

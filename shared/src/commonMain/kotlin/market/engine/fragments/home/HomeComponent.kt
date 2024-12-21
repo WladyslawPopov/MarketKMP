@@ -21,6 +21,7 @@ import org.koin.mp.KoinPlatform.getKoin
 interface HomeComponent {
     val model: Value<Model>
     data class Model(
+        val listingData: ListingData,
         val homeViewModel: HomeViewModel
     )
 
@@ -48,8 +49,11 @@ class DefaultHomeComponent(
 
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
+    private val listingData = ListingData()
+
     private val _model = MutableValue(
         HomeComponent.Model(
+            listingData,
             homeViewModel
         )
     )
@@ -81,44 +85,37 @@ class DefaultHomeComponent(
     }
 
     override fun goToNewSearch() {
-        val ld = ListingData()
-        navigateToListingSelected(ld, true)
+        navigateToListingSelected(listingData, true)
     }
 
     override fun goToCategory(category: TopCategory) {
-        val ld = ListingData()
-        val searchData = ld.searchData.value
+        listingData.searchData.value.searchCategoryID = category.id
+        listingData.searchData.value.searchParentID = category.parentId
+        listingData.searchData.value.searchCategoryName = category.name
+        listingData.searchData.value.searchParentName = category.parentName
+        listingData.searchData.value.isRefreshing = true
 
-        searchData.searchCategoryID = category.id
-        searchData.searchParentID = category.parentId
-        searchData.searchCategoryName = category.name
-        searchData.searchParentName = category.parentName
-        searchData.isRefreshing = true
-
-        navigateToListingSelected(ld, false)
+        navigateToListingSelected(listingData, false)
     }
 
     override fun goToAllPromo() {
-        val ld = ListingData()
-        val searchData = ld.searchData.value
-        val listingData = ld.data.value
 
-        if (listingData.filters.isEmpty()) {
-            listingData.filters = arrayListOf()
-            listingData.filters.addAll(EmptyFilters.getEmpty())
+        if (listingData.data.value.filters.isEmpty()) {
+            listingData.data.value.filters = arrayListOf()
+            listingData.data.value.filters.addAll(EmptyFilters.getEmpty())
         }
 
         model.value.homeViewModel.viewModelScope.launch {
-            listingData.filters.find {
+            listingData.data.value.filters.find {
                     filter -> filter.key == "promo_main_page"
             }?.value = "promo_main_page"
-            listingData.filters.find {
+            listingData.data.value.filters.find {
                     filter -> filter.key == "promo_main_page"
             }?.interpritation = getString(strings.allPromoOffersBtn)
 
-            searchData.isRefreshing = true
+            listingData.searchData.value.isRefreshing = true
 
-            navigateToListingSelected(ld, false)
+            navigateToListingSelected(listingData, false)
         }
     }
 

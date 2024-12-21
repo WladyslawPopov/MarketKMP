@@ -33,6 +33,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingListingContent
@@ -46,13 +47,13 @@ fun FavoritesContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val favViewModel = modelState.value.favViewModel
-    val listingData = favViewModel.listingData
-    val data = favViewModel.pagingDataFlow.collectAsLazyPagingItems()
-
-    val offerOperations : OfferOperations = koinInject()
+    val listingData = modelState.value.listingData
+    val data = modelState.value.pagingDataFlow.collectAsLazyPagingItems()
 
     val ld = listingData.data.subscribeAsState()
     val sd = listingData.searchData.subscribeAsState()
+
+    val offerOperations : OfferOperations = koinInject()
 
     val selectedItems = remember { favViewModel.selectItems }
 
@@ -86,6 +87,12 @@ fun FavoritesContent(
         }
     }
 
+    val refresh = {
+        favViewModel.updateUserInfo()
+        ld.value.resetScroll()
+        favViewModel.refresh()
+    }
+
     //update item when we back
     LaunchedEffect(favViewModel.updateItem.value) {
         if (favViewModel.updateItem.value != null) {
@@ -115,9 +122,7 @@ fun FavoritesContent(
             }
         },
         onRefresh = {
-            favViewModel.updateUserInfo()
-            ld.value.resetScroll()
-            favViewModel.refresh()
+            refresh()
         },
         error = null,
         noFound = null,
@@ -180,6 +185,21 @@ fun FavoritesContent(
                         }
                     )
                 }
+
+                FiltersBar(
+                    sd.value,
+                    ld.value,
+                    isShowGrid = false,
+                    onFilterClick = {
+                        favViewModel.activeFiltersType.value = "filters"
+                    },
+                    onSortClick = {
+                        favViewModel.activeFiltersType.value = "sorting"
+                    },
+                    onRefresh = {
+                        refresh()
+                    }
+                )
             },
             item = { offer ->
                 val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))

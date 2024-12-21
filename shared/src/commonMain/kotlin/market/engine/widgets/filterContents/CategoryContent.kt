@@ -23,12 +23,15 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -50,23 +53,39 @@ fun CategoryContent(
     baseViewModel: BaseViewModel,
     isFilters: Boolean = false,
     isCreateOffer: Boolean = false,
-    searchData: SD = SD(),
-    listingData: LD = LD(),
+    searchData: SD,
+    listingData: LD,
+    searchCategoryName : MutableState<String>,
+    searchCategoryId : MutableState<Long>,
+    searchParentID : MutableState<Long?> = mutableStateOf(1L),
+    searchIsLeaf : MutableState<Boolean> = mutableStateOf(false),
+    isRefreshingFromFilters: MutableState<Boolean> = mutableStateOf(false),
     complete: () -> Unit = {},
 ) {
     val catDef = if (isCreateOffer || isFilters) stringResource(strings.selectCategory) else stringResource(strings.categoryMain)
+    if (searchCategoryName.value == ""){
+        searchCategoryName.value = catDef
+    }
 
     val isLoading = baseViewModel.isShowProgress.collectAsState()
     val categories = baseViewModel.responseCategory.collectAsState()
 
-    val title = remember {
-        mutableStateOf(searchData.searchCategoryName?:catDef)
+    val refresh = {
+        val sd = searchData.copy(
+            searchCategoryID = searchCategoryId.value,
+            searchCategoryName = searchCategoryName.value,
+            searchParentID = searchParentID.value,
+            searchIsLeaf = searchIsLeaf.value
+        )
+        baseViewModel.setLoading(true)
+        baseViewModel.getCategories(sd, listingData, (isFilters || isCreateOffer))
     }
 
-    val refresh = {
-        baseViewModel.setLoading(true)
-        baseViewModel.getCategories(searchData, listingData, (isFilters || isCreateOffer))
-        title.value = searchData.searchCategoryName ?: catDef
+    LaunchedEffect(isRefreshingFromFilters.value){
+        if (isRefreshingFromFilters.value){
+            refresh()
+            isRefreshingFromFilters.value = false
+        }
     }
 
     val noFound : (@Composable () -> Unit)? =
@@ -116,14 +135,23 @@ fun CategoryContent(
                         exit = fadeOut()
                     ) {
                         NavigationArrowButton {
-                            baseViewModel.onCatBack(searchData, refresh)
+                            baseViewModel.viewModelScope.launch {
+                               val newCat = baseViewModel.onCatBack(searchParentID.value ?: 1L)
+                                if (newCat != null) {
+                                    searchCategoryId.value = newCat.id
+                                    searchCategoryName.value = newCat.name ?: catDef
+                                    searchParentID.value = newCat.parentId
+                                    searchIsLeaf.value = newCat.isLeaf
+                                    refresh()
+                                }
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                     TextAppBar(
-                        title.value
+                        searchCategoryName.value
                     )
                 }
 
@@ -133,10 +161,8 @@ fun CategoryContent(
                         textColor = colors.actionTextColor,
                         textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                     ) {
-                        searchData.clearCategory()
-                        searchData.isRefreshing = true
-                        title.value = catDef
-
+                        searchCategoryId.value = 1L
+                        searchCategoryName.value = catDef
                         refresh()
                     }
                 }
@@ -164,18 +190,16 @@ fun CategoryContent(
                                     )
                                 },
                                 onClick = {
-                                    searchData.searchCategoryID = category.id
-                                    searchData.searchCategoryName = category.name
-                                    searchData.searchParentID = category.parentId
-                                    searchData.searchIsLeaf = category.isLeaf
-                                    searchData.isRefreshing = true
-
-                                    title.value = category.name ?: catDef
+                                    searchCategoryId.value = category.id
+                                    searchCategoryName.value = category.name ?: catDef
+                                    searchParentID.value = category.parentId
+                                    searchIsLeaf.value = category.isLeaf
 
                                     if (!category.isLeaf) {
                                         refresh()
                                     } else {
                                         if (!isFilters && !isCreateOffer) {
+                                            isRefreshingFromFilters.value = true
                                             complete()
                                         }else{
                                             isSelected.value = category.id
@@ -237,9 +261,8 @@ fun CategoryContent(
                 .padding(dimens.mediumPadding).align(Alignment.BottomCenter),
             enabled = !(isCreateOffer && !searchData.searchIsLeaf)
         ) {
+            isRefreshingFromFilters.value = true
             complete()
         }
     }
 }
-
-

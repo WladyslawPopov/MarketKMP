@@ -16,7 +16,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
@@ -28,7 +27,6 @@ import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.operations.operationFavorites
-import market.engine.core.repositories.UserRepository
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
@@ -36,6 +34,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.fragments.listing.search.SearchContent
 import market.engine.fragments.listing.search.SearchViewModel
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -45,7 +44,7 @@ import market.engine.widgets.items.OfferItem
 import market.engine.widgets.items.PromoOfferRowItem
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.mp.KoinPlatform.getKoin
+
 
 @Composable
 fun ListingContent(
@@ -85,8 +84,12 @@ fun ListingContent(
         remember { mutableStateOf(if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2) }
 
     val catDef = stringResource(strings.categoryMain)
-    val searchString = remember { mutableStateOf(TextFieldValue(searchData.value.searchString ?: "")) }
+
+    val searchString = remember { mutableStateOf(searchData.value.searchString) }
     val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
+    val selectedCategoryID = remember { mutableStateOf(searchData.value.searchCategoryID) }
+    val selectedCategoryParentID = remember { mutableStateOf(searchData.value.searchParentID) }
+    val selectedCategoryIsLeaf = remember { mutableStateOf(searchData.value.searchIsLeaf) }
     val selectedUserLogin = remember { mutableStateOf(searchData.value.userLogin) }
     val selectedUser = remember { mutableStateOf(searchData.value.userSearch) }
     val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
@@ -94,16 +97,62 @@ fun ListingContent(
     val title = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
 
     val refresh = {
+        listingViewModel.refresh()
+    }
+
+    val refreshSearch = {
         listingData.value.resetScroll()
-
-        title.value = searchData.value.searchCategoryName ?: catDef
-
         columns.value =
             if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
 
-        listingViewModel.getCategories(searchData.value, listingData.value)
+        if (!searchData.value.isRefreshing) {
+            searchData.value.searchCategoryID = selectedCategoryID.value
+            searchData.value.searchCategoryName = selectedCategory.value
+            searchData.value.searchParentID = selectedCategoryParentID.value
+            searchData.value.searchIsLeaf = selectedCategoryIsLeaf.value
+            searchData.value.userLogin = selectedUserLogin.value
+            searchData.value.userSearch = selectedUser.value
+            searchData.value.searchFinished = selectedUserFinished.value
+            searchData.value.searchString = searchString.value
+        }else{
+            searchData.value.isRefreshing = false
+            searchString.value = searchData.value.searchString
+            selectedUserLogin.value = searchData.value.userLogin
+            selectedUser.value = searchData.value.userSearch
+            selectedUserFinished.value = searchData.value.searchFinished
+            selectedCategoryID.value = searchData.value.searchCategoryID
+            selectedCategory.value = searchData.value.searchCategoryName ?: catDef
+            selectedCategoryID.value = searchData.value.searchCategoryID
+            selectedCategoryParentID.value = searchData.value.searchParentID
+            selectedCategoryIsLeaf.value = searchData.value.searchIsLeaf
+        }
 
+        title.value = searchData.value.searchCategoryName ?: catDef
+
+        listingViewModel.getCategories(searchData.value, listingData.value)
         listingViewModel.refresh()
+    }
+
+    val getSearchFilters = {
+        if (selectedUser.value && selectedUserLogin.value == null){
+            if (searchString.value != "") {
+                searchData.value.isRefreshing = true
+                selectedUserLogin.value = searchString.value
+                searchString.value = ""
+            } else {
+                searchData.value.isRefreshing = true
+                selectedUser.value = false
+                selectedUserLogin.value = null
+            }
+        }else{
+            if (searchData.value.searchString != searchString.value) {
+                searchData.value.isRefreshing = true
+            }
+
+            if (searchData.value.searchCategoryID != selectedCategoryID.value){
+                searchData.value.isRefreshing = true
+            }
+        }
     }
 
     val error : (@Composable () -> Unit)? = if (isErrorCategory.humanMessage != "") {
@@ -114,7 +163,6 @@ fun ListingContent(
 
     val backCountClick = remember { mutableStateOf(0) }
 
-
     LaunchedEffect(listingViewModel.isOpenSearch.value) {
         snapshotFlow { listingViewModel.isOpenSearch.value }.collectLatest { isOpen ->
             if (isOpen) {
@@ -124,14 +172,6 @@ fun ListingContent(
                 if (searchViewModel.responseHistory.value.isEmpty()) {
                     searchViewModel.getHistory()
                 }
-                searchString.value =
-                    searchString.value.copy(text = searchData.value.searchString ?: "")
-                selectedCategory.value = searchData.value.searchCategoryName ?: catDef
-                selectedUserLogin.value = searchData.value.userLogin
-                selectedUser.value = searchData.value.userSearch
-                selectedUserFinished.value = searchData.value.searchFinished
-
-
                 focusRequester.requestFocus()
             } else {
                 focusManager.clearFocus()
@@ -144,21 +184,28 @@ fun ListingContent(
         if (scaffoldStateSearch.bottomSheetState.isCollapsed) {
             focusManager.clearFocus()
             listingViewModel.isOpenSearch.value = false
-
-            if (searchData.value.isRefreshing){
-                when{
-                    listingViewModel.activeFiltersType.value == "categories" ->
-                    listingViewModel.getCategories(searchData.value, listingData.value)
-                    else -> refresh()
-                }
+            getSearchFilters()
+            if (searchData.value.isRefreshing) {
                 searchData.value.isRefreshing = false
+                refreshSearch()
             }
+        }
+    }
+
+    LaunchedEffect(listingViewModel.activeFiltersType.value){
+        if (listingViewModel.activeFiltersType.value == "categories"){
+            listingViewModel.setLoading(true)
+            selectedCategoryID.value = searchData.value.searchCategoryID
+            selectedCategory.value = searchData.value.searchCategoryName ?: catDef
+            selectedCategoryParentID.value = searchData.value.searchParentID
+            selectedCategoryIsLeaf.value = searchData.value.searchIsLeaf
+            listingViewModel.getCategories(searchData.value, listingData.value)
         }
     }
 
     val noFound = @Composable {
         if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
-            searchData.value.userSearch || searchData.value.searchString?.isNotEmpty() == true
+            searchData.value.userSearch || searchData.value.searchString.isNotEmpty()
         ){
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
@@ -166,7 +213,8 @@ fun ListingContent(
                 searchData.value.clear()
                 listingData.value.filters.clear()
                 listingData.value.filters.addAll(EmptyFilters.getEmpty())
-                refresh()
+                searchData.value.isRefreshing = true
+                refreshSearch()
             }
         }else {
             showNoItemLayout {
@@ -207,10 +255,12 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
-                searchData.value,
                 focusRequester,
                 searchString,
                 selectedCategory,
+                selectedCategoryID,
+                selectedCategoryParentID,
+                selectedCategoryIsLeaf,
                 selectedUser,
                 selectedUserLogin,
                 selectedUserFinished,
@@ -267,7 +317,7 @@ fun ListingContent(
                 baseViewModel = listingViewModel,
                 noFound = noFound,
                 onRefresh = {
-                    refresh()
+                    refreshSearch()
                 },
                 filtersContent = { isRefreshingFromFilters, onClose ->
                     when (listingViewModel.activeFiltersType.value){
@@ -289,8 +339,13 @@ fun ListingContent(
                         "categories" ->{
                             CategoryContent(
                                 baseViewModel = listingViewModel,
-                                searchData = searchData.value,
                                 listingData = listingData.value,
+                                searchData = searchData.value,
+                                searchCategoryId = selectedCategoryID,
+                                searchCategoryName = selectedCategory,
+                                searchIsLeaf = selectedCategoryIsLeaf,
+                                searchParentID = selectedCategoryParentID,
+                                isRefreshingFromFilters = isRefreshingFromFilters,
                                 complete = {
                                     isRefreshingFromFilters.value = true
                                     listingViewModel.activeFiltersType.value = ""
@@ -305,7 +360,35 @@ fun ListingContent(
                         listingData.value,
                         state,
                         onRefresh = {
-                            refresh()
+                            refreshSearch()
+                        }
+                    )
+
+                    FiltersBar(
+                        searchData.value,
+                        listingData.value,
+                        searchString,
+                        selectedUserLogin,
+                        selectedUserFinished,
+                        isShowGrid = true,
+                        onChangeTypeList = {
+                            listingViewModel.settings.setSettingValue("listingType", it)
+                            listingData.value.listingType = it
+                            searchData.value.isRefreshing = true
+                            refreshSearch()
+                        },
+                        onFilterClick = {
+                            listingViewModel.activeFiltersType.value = "filters"
+                        },
+                        onSortClick = {
+                            listingViewModel.activeFiltersType.value = "sorting"
+                        },
+                        onSearchClick = {
+                            listingViewModel.isOpenSearch.value = true
+                        },
+                        onRefresh = {
+                            searchData.value.isRefreshing = true
+                            refreshSearch()
                         }
                     )
                 },
@@ -342,10 +425,6 @@ fun ListingContent(
                     ) {
                         component.goToOffer(offer, true)
                     }
-                },
-                isShowGrid = true,
-                onSearchClick = {
-                    listingViewModel.isOpenSearch.value = true
                 }
             )
         }

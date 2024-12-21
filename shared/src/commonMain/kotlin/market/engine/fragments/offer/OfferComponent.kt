@@ -90,11 +90,11 @@ class DefaultOfferComponent(
     override fun goToRegion(region : Region?) {
         if (region!= null){
             val ld = ListingData()
-            val listingData = ld.data.value
-            listingData.filters = arrayListOf()
-            listingData.filters.addAll(EmptyFilters.getEmpty())
-            listingData.filters.find { it.key == "region" }?.value = region.code.toString()
-            listingData.filters.find { it.key == "region" }?.interpritation = region.name
+            val listingData = ld.data
+            listingData.value.filters = arrayListOf()
+            listingData.value.filters.addAll(EmptyFilters.getEmpty())
+            listingData.value.filters.find { it.key == "region" }?.value = region.code.toString()
+            listingData.value.filters.find { it.key == "region" }?.interpritation = region.name
             navigationListing(ld)
         }
     }

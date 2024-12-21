@@ -152,8 +152,8 @@ fun createProfileChild(
 
         is ProfileConfig.ListingScreen -> {
             val ld = ListingData(
-                _searchData = config.searchData,
-                _data = config.listingData
+                searchData = MutableValue(config.searchData),
+                data = MutableValue(config.listingData)
             )
             ChildProfile.ListingChild(
                 component = itemListing(

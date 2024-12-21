@@ -20,8 +20,8 @@ fun SubscribesContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val subViewModel = modelState.value.subViewModel
-    val searchData = subViewModel.listingData.value.searchData.subscribeAsState()
-    val listingData = subViewModel.listingData.value.data.subscribeAsState()
+    val searchData = subViewModel.listingData.value.searchData
+    val listingData = subViewModel.listingData.value.data
     val data = subViewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)

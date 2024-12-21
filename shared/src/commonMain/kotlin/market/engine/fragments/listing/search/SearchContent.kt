@@ -21,35 +21,30 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.filterContents.CategoryContent
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchContent(
-    searchData : SD,
     focusRequester : FocusRequester,
-    searchString : MutableState<TextFieldValue>,
+    searchString : MutableState<String>,
     selectedCategory : MutableState<String>,
+    selectedCategoryID : MutableState<Long>,
+    selectedCategoryParentID : MutableState<Long?>,
+    selectedCategoryIsLeaf : MutableState<Boolean>,
     selectedUser : MutableState<Boolean>,
     selectedUserLogin : MutableState<String?>,
     selectedUserFinished : MutableState<Boolean>,
     onClose : () -> Unit,
     goToListing : () -> Unit,
 ) {
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
-
     val searchViewModel : SearchViewModel = koinViewModel()
 
     val isLoadingSearch = searchViewModel.isShowProgress.collectAsState()
@@ -59,7 +54,6 @@ fun SearchContent(
 
     val history = searchViewModel.responseHistory.collectAsState()
 
-    val defCat = stringResource(strings.categoryMain)
 
     val errorSearch : (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
         { onError(isErrorSearch.value) { } }
@@ -70,15 +64,28 @@ fun SearchContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openBottomSheet = remember { mutableStateOf(false) }
 
+    val searchData = SD(
+        searchString = searchString.value,
+        searchCategoryID = selectedCategoryID.value,
+        userSearch = selectedUser.value,
+        userLogin = selectedUserLogin.value,
+        searchFinished = selectedUserFinished.value,
+        searchCategoryName = selectedCategory.value,
+        searchParentID = selectedCategoryParentID.value,
+        searchIsLeaf = selectedCategoryIsLeaf.value
+    )
+
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
             searchViewModel.setLoading(true)
             searchViewModel.getCategories(searchData, LD(), true)
             focusManager.clearFocus()
+            searchViewModel.activeFiltersType.value = "categories"
             scaffoldState.bottomSheetState.expand()
         }else{
+            searchViewModel.activeFiltersType.value = ""
             scaffoldState.bottomSheetState.collapse()
-            selectedCategory.value = searchData.searchCategoryName ?: defCat
+            selectedCategory.value = selectedCategory.value
         }
     }
 
@@ -88,22 +95,19 @@ fun SearchContent(
         noFound = null,
         toastItem = searchViewModel.toastItem,
         onRefresh = {
-            searchViewModel.getHistory(searchString.value.text)
+            searchViewModel.getHistory(searchString.value)
         },
         topBar = {
             SearchAppBar(
-                searchString.value,
+                searchString,
                 focusRequester,
                 onSearchClick = {
-                    getSearchFilters(searchData, searchString.value.text)
-                    if (searchData.isRefreshing) {
-                        searchViewModel.addHistory(searchData)
-                    }
+                    searchViewModel.searchAnalytic(searchData)
+                    searchViewModel.addHistory(searchString.value)
                     goToListing()
                 },
                 onUpdateHistory = {
-                    searchString.value = searchString.value.copy(it)
-                    searchViewModel.getHistory(searchString.value.text)
+                    searchViewModel.getHistory(searchString.value)
                 }
             ) {
                 onClose()
@@ -123,11 +127,17 @@ fun SearchContent(
             sheetContent = {
                 CategoryContent(
                     baseViewModel = searchViewModel,
-                    searchData = searchData,
                     complete = {
+
                         openBottomSheet.value = false
                     },
-                    isFilters = true
+                    isFilters = true,
+                    searchData = searchData,
+                    listingData = LD(),
+                    searchCategoryId = selectedCategoryID,
+                    searchCategoryName = selectedCategory,
+                    searchParentID = selectedCategoryParentID,
+                    searchIsLeaf = selectedCategoryIsLeaf,
                 )
             },
         ) {
@@ -145,11 +155,11 @@ fun SearchContent(
             ) {
                 FiltersSearchBar(
                     selectedCategory = selectedCategory,
+                    selectedCategoryID = selectedCategoryID,
                     selectedUser = selectedUser,
                     selectedUserLogin = selectedUserLogin,
                     selectedUserFinished = selectedUserFinished,
                     modifier = Modifier,
-                    searchData = searchData,
                     goToCategory = {
                         openBottomSheet.value = !openBottomSheet.value
                     },
@@ -159,31 +169,18 @@ fun SearchContent(
                     historyItems = history.value,
                     modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
                     onItemClick = {
-                        searchString.value = searchString.value.copy(it)
-                        getSearchFilters(searchData, it)
+                        searchString.value = it
                     },
                     onClearHistory = {
                         searchViewModel.deleteHistory()
                     },
                     onDeleteItem = {
                         searchViewModel.deleteItemHistory(it)
-                        searchViewModel.getHistory(searchString.value.text)
+                        searchViewModel.getHistory(searchString.value)
                     },
                     goToListing = {
-                        getSearchFilters(searchData, it)
-
-                        if (searchData.isRefreshing) {
-                            val event = mapOf(
-                                "search_query" to searchData.searchString,
-                                "visitor_id" to UserData.login,
-                                "search_cat_id" to searchData.searchCategoryID,
-                                "user_search" to searchData.userSearch,
-                                "user_search_login" to searchData.userLogin,
-                                "user_search_id" to searchData.userID
-                            )
-                            analyticsHelper.reportEvent("search_for_item", event)
-                        }
-
+                        searchString.value = it
+                        searchViewModel.searchAnalytic(searchData)
                         goToListing()
                     }
                 )
@@ -191,24 +188,3 @@ fun SearchContent(
         }
     }
 }
-
-fun getSearchFilters(searchData: SD, it: String) {
-    if (searchData.userSearch && searchData.userLogin == null){
-        if (it != "") {
-            searchData.searchString = ""
-            searchData.userLogin = it
-            searchData.isRefreshing = true
-        } else {
-            searchData.searchString = ""
-            searchData.userSearch = false
-            searchData.searchFinished = false
-        }
-    }else{
-        if (searchData.searchString != it) {
-            searchData.searchString = it
-            searchData.isRefreshing = true
-        }
-    }
-}
-
-

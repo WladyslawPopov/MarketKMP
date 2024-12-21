@@ -13,6 +13,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
@@ -90,8 +91,8 @@ fun createSearchChild(
     when (config) {
         is SearchConfig.ListingScreen -> {
             val ld = ListingData(
-                _searchData = config.searchData,
-                _data = config.listingData
+                searchData = MutableValue(config.searchData),
+                data = MutableValue(config.listingData)
             )
 
             ChildSearch.ListingChild(

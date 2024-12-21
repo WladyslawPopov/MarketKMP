@@ -44,10 +44,8 @@ class SearchViewModel(private val db : MarketDB) : BaseViewModel() {
     }
 
 
-    fun addHistory(searchData: SD) {
-        searchAnalytic(searchData)
-        val searchString = searchData.searchString
-        if (searchString != "" && searchString != null) {
+    fun addHistory(searchString: String) {
+        if (searchString != "") {
             val sh = db.searchHistoryQueries
             if (sh.selectSearch("${searchString.trim()}%", UserData.login).executeAsList().isEmpty()){
                 sh.insertEntry(searchString, UserData.login)
@@ -55,7 +53,7 @@ class SearchViewModel(private val db : MarketDB) : BaseViewModel() {
         }
     }
 
-    private fun searchAnalytic(searchData : SD){
+    fun searchAnalytic(searchData : SD){
         if (searchData.isRefreshing) {
             val event = mapOf(
                 "search_query" to searchData.searchString,

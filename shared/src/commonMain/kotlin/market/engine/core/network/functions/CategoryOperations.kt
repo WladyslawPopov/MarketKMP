@@ -1,6 +1,8 @@
 package market.engine.core.network.functions
 
 import kotlinx.serialization.builtins.ListSerializer
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
@@ -34,9 +36,9 @@ class CategoryOperations(private val apiService : APIService) {
         }
     }
 
-    suspend fun getTotalCount(listingData: ListingData): ServerResponse<Int> {
-        val sd = listingData.searchData.value.copy()
-        val ld = listingData.data.value.copy()
+    suspend fun getTotalCount(searchData: SD, listingData: LD): ServerResponse<Int> {
+        val sd = searchData.copy()
+        val ld = listingData.copy()
         val url = UrlBuilder()
             .addPathSegment("offers")
             .addPathSegment("get_public_listing_counter")

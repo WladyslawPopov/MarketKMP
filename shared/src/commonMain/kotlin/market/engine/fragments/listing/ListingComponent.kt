@@ -7,6 +7,8 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.printLogD
@@ -15,7 +17,7 @@ import org.koin.mp.KoinPlatform.getKoin
 interface ListingComponent {
     val model : Value<Model>
     data class Model(
-        val listingData: ListingData,
+        val listingData : ListingData,
         var pagingDataFlow : Flow<PagingData<Offer>>,
         val listingViewModel: ListingViewModel,
     )
@@ -45,13 +47,13 @@ class DefaultListingComponent(
 
     override val model: Value<ListingComponent.Model> = _model
 
-    private val searchData = listingData.searchData
+    private val searchData = listingData.searchData.value
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
         val eventParameters = mapOf(
-            "catalog_category" to searchData.value.searchCategoryName,
-            "category_id" to searchData.value.searchCategoryID.toString()
+            "catalog_category" to searchData.searchCategoryName,
+            "category_id" to searchData.searchCategoryID.toString()
         )
         analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
 
@@ -74,7 +76,7 @@ class DefaultListingComponent(
             )
         }
 
-        if (searchData.value.userSearch || searchData.value.searchString != null){
+        if (searchData.userSearch || searchData.searchString.isNotEmpty()){
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
                 "lot_name" to offer.title,

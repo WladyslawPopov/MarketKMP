@@ -37,7 +37,6 @@ class ListingViewModel(
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
-
      fun init(listingData: ListingData) : Flow<PagingData<Offer>> {
          listingData.data.value.methodServer = "get_public_listing"
          listingData.data.value.objServer = "offers"
@@ -45,6 +44,7 @@ class ListingViewModel(
          if (listingData.data.value.filters.isEmpty()) {
              listingData.data.value.filters.addAll(EmptyFilters.getEmpty())
          }
+
          listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0
 
          getRegions()
@@ -53,8 +53,7 @@ class ListingViewModel(
 
          getCategories(listingData.searchData.value, listingData.data.value)
 
-        return pagingRepository.getListing(listingData, apiService, Offer.serializer())
-            .cachedIn(viewModelScope)
+        return pagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
      }
 
     fun refresh(){
@@ -86,7 +85,12 @@ class ListingViewModel(
             }  catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+                onError (
+                    ServerErrorException(
+                        errorCode = exception.message.toString(),
+                        humanMessage = exception.message.toString()
+                    )
+                )
             }
         }
     }
@@ -98,8 +102,7 @@ class ListingViewModel(
             }
             withContext(Dispatchers.Main) {
                 if (res != null) {
-                    res.firstOrNull()?.options?.sortedBy { it.weight }
-                        ?.let { regionOptions.value.addAll(it) }
+                    res.firstOrNull()?.options?.sortedBy { it.weight }?.let { regionOptions.value.addAll(it) }
                 }
             }
         }

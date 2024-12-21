@@ -18,26 +18,25 @@ class ProfileMyOffersViewModel(
     val apiService: APIService,
     val userRepository: UserRepository
 ) : BaseViewModel() {
-    private val offerPagingRepository: PagingRepository<Offer> = PagingRepository()
-    var listingData = ListingData()
-    val pagingDataFlow: Flow<PagingData<Offer>>
 
-    init {
+    private val offerPagingRepository: PagingRepository<Offer> = PagingRepository()
+
+    fun init(listingData : ListingData): Flow<PagingData<Offer>> {
         when(type){
             LotsType.MYLOT_ACTIVE -> {
-                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.clear()
                 listingData.data.value.filters.addAll( OfferFilters.filtersMyLotsActive.toList())
             }
             LotsType.MYLOT_UNACTIVE -> {
-                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.clear()
                 listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
             }
             LotsType.MYLOT_FUTURE -> {
-                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.clear()
                 listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
             }
             else -> {
-                listingData.data.value.filters = arrayListOf()
+                listingData.data.value.filters.clear()
                 listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
             }
         }
@@ -45,7 +44,7 @@ class ProfileMyOffersViewModel(
         listingData.data.value.methodServer = "get_cabinet_listing"
         listingData.data.value.objServer = "offers"
 
-        pagingDataFlow = offerPagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
+        return offerPagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
     }
 
     fun onRefresh(){

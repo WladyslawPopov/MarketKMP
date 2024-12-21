@@ -19,7 +19,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.baseFilters.SD
 import market.engine.widgets.buttons.FilterButton
 import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
@@ -27,11 +26,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FiltersSearchBar(
     selectedCategory: MutableState<String>,
+    selectedCategoryID: MutableState<Long>,
     selectedUser: MutableState<Boolean>,
     selectedUserLogin: MutableState<String?>,
     selectedUserFinished: MutableState<Boolean>,
     modifier: Modifier = Modifier,
-    searchData: SD,
     goToCategory: () -> Unit,
 ) {
 
@@ -50,7 +49,7 @@ fun FiltersSearchBar(
                 FilterButton(
                     modifier = Modifier.padding(dimens.smallPadding),
                     selectedCategory.value,
-                    color =  if (searchData.searchCategoryID == 1L)
+                    color =  if (selectedCategoryID.value == 1L)
                         colors.simpleButtonColors
                     else
                         colors.themeButtonColors,
@@ -58,7 +57,7 @@ fun FiltersSearchBar(
                         goToCategory()
                     },
                     onCancelClick = {
-                        if (searchData.searchCategoryID != 1L) {
+                        if (selectedCategoryID.value != 1L) {
                             val category = stringResource(strings.offersCategoryParameterName)
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
@@ -67,7 +66,7 @@ fun FiltersSearchBar(
                                 modifier = modifier.size(dimens.extraSmallIconSize),
                                 modifierIconSize = modifier.size(dimens.extraSmallIconSize),
                             ) {
-                                searchData.clearCategory()
+                                selectedCategoryID.value = 1L
                                 selectedCategory.value = category
                             }
                         }
@@ -89,9 +88,8 @@ fun FiltersSearchBar(
                     else
                         colors.themeButtonColors,
                     onClick = {
-                        searchData.userSearch = !searchData.userSearch
-                        selectedUser.value = searchData.userSearch
-                        selectedUserLogin.value = searchData.userLogin
+                        selectedUser.value = !selectedUser.value
+                        selectedUserLogin.value = selectedUserLogin.value
                     },
                     onCancelClick = {
                         if (selectedUserLogin.value != null) {
@@ -104,8 +102,6 @@ fun FiltersSearchBar(
                             ) {
                                 selectedUser.value = false
                                 selectedUserLogin.value = null
-                                searchData.userSearch = false
-                                searchData.userLogin = null
                             }
                         }
                     }
@@ -119,7 +115,6 @@ fun FiltersSearchBar(
                     color = if (!selectedUserFinished.value) colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = {
                         selectedUserFinished.value = !selectedUserFinished.value
-                        searchData.searchFinished = !searchData.searchFinished
                     },
                 )
             }
