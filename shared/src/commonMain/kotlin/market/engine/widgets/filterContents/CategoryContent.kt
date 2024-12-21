@@ -130,7 +130,7 @@ fun CategoryContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AnimatedVisibility(
-                        visible = searchData.searchCategoryID != 1L,
+                        visible = searchCategoryId.value != 1L,
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
