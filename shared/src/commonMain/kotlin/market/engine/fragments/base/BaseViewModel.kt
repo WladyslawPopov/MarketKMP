@@ -17,9 +17,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.common.getFileUpload
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.ToastItem
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
@@ -30,6 +32,7 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
+import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
@@ -156,5 +159,30 @@ open class BaseViewModel: ViewModel() {
             )
         }
         return response.success
+    }
+
+    suspend fun uploadFile(photoTemp: PhotoTemp) : String? {
+        val res = withContext(Dispatchers.IO) {
+           getFileUpload(photoTemp)
+        }
+
+        return withContext(Dispatchers.Main) {
+            val id = res.success
+            val err = res.error
+
+            if (id != null) {
+                id
+            } else {
+                showToast(
+                     ToastItem(
+                        isVisible = true,
+                        message = getString(strings.failureUploadPhoto) + err?.humanMessage,
+                        type = ToastType.ERROR
+                    )
+                )
+
+                id
+            }
+        }
     }
 }

@@ -128,7 +128,6 @@ fun SearchContent(
                 CategoryContent(
                     baseViewModel = searchViewModel,
                     complete = {
-
                         openBottomSheet.value = false
                     },
                     isFilters = true,
@@ -138,6 +137,7 @@ fun SearchContent(
                     searchCategoryName = selectedCategory,
                     searchParentID = selectedCategoryParentID,
                     searchIsLeaf = selectedCategoryIsLeaf,
+                    isRefreshingFromFilters = openBottomSheet
                 )
             },
         ) {

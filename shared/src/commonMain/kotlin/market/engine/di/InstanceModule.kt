@@ -1,7 +1,6 @@
 package market.engine.di
 
 import market.engine.core.network.functions.ConversationsOperations
-import market.engine.core.network.functions.FileUpload
 import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.functions.PrivateMessagesOperation
@@ -72,7 +71,6 @@ val databaseModule = module {
 val operationsModule = module {
     singleOf(::CategoryOperations)
     singleOf(::ConversationsOperations)
-    singleOf(::FileUpload)
     singleOf(::OfferOperations)
     singleOf(::OrderOperations)
     singleOf(::PrivateMessagesOperation)

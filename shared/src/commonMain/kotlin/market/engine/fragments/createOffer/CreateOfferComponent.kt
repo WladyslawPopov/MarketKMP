@@ -9,7 +9,6 @@ import market.engine.core.data.types.CreateOfferType
 import org.koin.mp.KoinPlatform.getKoin
 
 interface CreateOfferComponent {
-
     val model : Value<Model>
 
     data class Model(

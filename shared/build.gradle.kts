@@ -21,7 +21,6 @@ sqldelight {
 
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -69,6 +68,8 @@ kotlin {
             implementation(libs.decompose.extensions)
 
             implementation(libs.skiko)
+
+            implementation(libs.reorderable)
 
             implementation(libs.ksoup.html)
             implementation(libs.ksoup.entities)

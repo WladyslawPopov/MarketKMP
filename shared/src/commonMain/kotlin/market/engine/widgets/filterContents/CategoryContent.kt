@@ -57,9 +57,9 @@ fun CategoryContent(
     listingData: LD,
     searchCategoryName : MutableState<String>,
     searchCategoryId : MutableState<Long>,
-    searchParentID : MutableState<Long?> = mutableStateOf(1L),
-    searchIsLeaf : MutableState<Boolean> = mutableStateOf(false),
-    isRefreshingFromFilters: MutableState<Boolean> = mutableStateOf(false),
+    searchParentID : MutableState<Long?>,
+    searchIsLeaf : MutableState<Boolean>,
+    isRefreshingFromFilters: MutableState<Boolean>,
     complete: () -> Unit = {},
 ) {
     val catDef = if (isCreateOffer || isFilters) stringResource(strings.selectCategory) else stringResource(strings.categoryMain)
@@ -259,7 +259,7 @@ fun CategoryContent(
             btn,
             Modifier.fillMaxWidth()
                 .padding(dimens.mediumPadding).align(Alignment.BottomCenter),
-            enabled = !(isCreateOffer && !searchData.searchIsLeaf)
+            enabled = !(isCreateOffer && isSelected.value == 1L)
         ) {
             isRefreshingFromFilters.value = true
             complete()

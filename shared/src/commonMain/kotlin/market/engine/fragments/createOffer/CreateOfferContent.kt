@@ -3,6 +3,7 @@ package market.engine.fragments.createOffer
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
+import market.engine.common.getPermissionHandler
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -37,6 +40,7 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.exceptions.DynamicPayloadContent
 import market.engine.widgets.filterContents.CategoryContent
+import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.textFields.DynamicInputField
 
 @Composable
@@ -50,11 +54,16 @@ fun CreateOfferContent(
     val getPage = viewModel.responseGetPage.collectAsState()
     val postPage = viewModel.responsePostPage.collectAsState()
 
+    val images = viewModel.responseImages.collectAsState()
+
     val focusManager = LocalFocusManager.current
 
 
     val categoryName = remember { mutableStateOf("") }
     val categoryID = remember { mutableStateOf(model.value.categoryId) }
+    val parentID : MutableState<Long?> = remember { mutableStateOf(null) }
+    val isLeaf = remember { mutableStateOf(false) }
+    val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
 
     val refresh = {
@@ -137,7 +146,10 @@ fun CreateOfferContent(
                     searchData = searchData.value,
                     listingData = listingData.value,
                     searchCategoryId = categoryID,
-                    searchCategoryName = categoryName
+                    searchCategoryName = categoryName,
+                    searchParentID = parentID,
+                    searchIsLeaf = isLeaf,
+                    isRefreshingFromFilters = isRefreshingFromFilters,
                 )
             },
         ) {
@@ -193,7 +205,37 @@ fun CreateOfferContent(
 
                     // Images
                     item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(dimens.smallPadding)
+                        ) {
+                            Text(
+                                "Прикрепить фотографии к лоту",
+                                color = colors.black,
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(dimens.smallPadding)
+                            )
 
+                            ActionButton(
+                                strings.chooseAction,
+                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                alignment = Alignment.TopEnd,
+                            ) {
+                                if (!getPermissionHandler().checkImagePermissions()){
+                                    getPermissionHandler().requestImagePermissions {
+                                        if (it) {
+                                            viewModel.getImages()
+                                        }
+                                    }
+                                }else{
+                                    viewModel.getImages()
+                                }
+                            }
+                        }
+
+                        AnimatedVisibility(images.value.isNotEmpty()){
+                            PhotoDraggableGrid(images.value, viewModel)
+                        }
                     }
 
                     getPage.value?.fields?.forEach { field ->

@@ -5,8 +5,16 @@ actual fun getPermissionHandler(): PermissionHandler {
 }
 
 class DesktopPermissionHandler : PermissionHandler {
-    override fun AskPermissionNotification() {
+    override fun askPermissionNotification() {
         // No-op for Desktop, as notifications permissions are not applicable.
         println("askPermissionNotification() is not implemented on Desktop.")
+    }
+
+    override fun requestImagePermissions(onPermissionResult: (Boolean) -> Unit) {
+        onPermissionResult(true)
+    }
+
+    override fun checkImagePermissions(): Boolean {
+        return true
     }
 }

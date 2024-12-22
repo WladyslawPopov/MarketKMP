@@ -1,5 +1,7 @@
 package market.engine.common
 
 interface PermissionHandler {
-    fun AskPermissionNotification()
+    fun askPermissionNotification()
+    fun requestImagePermissions(onPermissionResult: (Boolean) -> Unit)
+    fun checkImagePermissions(): Boolean
 }

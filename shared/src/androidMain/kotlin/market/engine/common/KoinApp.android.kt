@@ -5,12 +5,10 @@ import market.engine.di.InstanceModule.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
-lateinit var appContext: Context
 
 fun launchKoin(context: Context) {
-    appContext = context
     startKoin {
-        androidContext(appContext)
+        androidContext(context)
         modules(appModule)
     }
 }

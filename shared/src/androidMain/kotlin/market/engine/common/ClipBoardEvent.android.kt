@@ -6,9 +6,10 @@ import android.content.Context
 
 
 actual fun clipBoardEvent(string: String) {
-    val context = appContext
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("offerId", string)
-        clipboard.setPrimaryClip(clip)
+    if (string.isEmpty()) return
+    if (appContext == null) return
+    val clipboard = appContext!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText("offerId", string)
+    clipboard.setPrimaryClip(clip)
 }
 

@@ -3,6 +3,10 @@ package market.engine.common
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.repositories.SettingsRepository
 import org.koin.mp.KoinPlatform.getKoin
+import platform.Photos.PHAccessLevelReadWrite
+import platform.Photos.PHAuthorizationStatusAuthorized
+import platform.Photos.PHAuthorizationStatusLimited
+import platform.Photos.PHPhotoLibrary
 import platform.UserNotifications.UNUserNotificationCenter
 
 actual fun getPermissionHandler(): PermissionHandler {
@@ -30,7 +34,7 @@ class IosPermissionHandler : PermissionHandler {
         }
     }
 
-    override fun AskPermissionNotification() {
+    override fun askPermissionNotification() {
         requestNotificationPermission { granted ->
             settingsHelper.setSettingValue("isPermissionRequested", true)
             val userProfileAttributes = mapOf(
@@ -38,5 +42,20 @@ class IosPermissionHandler : PermissionHandler {
             )
             analyticsHelper.updateUserProfile(userProfileAttributes)
         }
+    }
+
+    override fun requestImagePermissions(onPermissionResult: (Boolean) -> Unit) {
+        PHPhotoLibrary.requestAuthorization { status ->
+            when (status) {
+                PHAuthorizationStatusAuthorized,
+                PHAuthorizationStatusLimited -> onPermissionResult(true)
+                else -> onPermissionResult(false)
+            }
+        }
+    }
+
+    override fun checkImagePermissions(): Boolean {
+        val status = PHPhotoLibrary.authorizationStatusForAccessLevel(PHAccessLevelReadWrite)
+        return (status == PHAuthorizationStatusAuthorized || status == PHAuthorizationStatusLimited)
     }
 }

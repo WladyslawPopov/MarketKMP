@@ -294,4 +294,8 @@ interface Strings {
     val inCategoryLabel : StringResource
 
     val charactersLeftLabel : StringResource
+    val sizeLabel : StringResource
+    val fileNotFound : StringResource
+    val fileTooLarge : StringResource
+    val failureUploadPhoto : StringResource
 }

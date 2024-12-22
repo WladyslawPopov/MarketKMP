@@ -183,9 +183,7 @@ fun OfferFilterContent(
                 searchCategoryName = selectedCategory,
                 searchParentID = selectedCategoryParentID,
                 searchIsLeaf = selectedCategoryIsLeaf,
-                complete = {
-                    openBottomSheet.value = false
-                },
+                isRefreshingFromFilters = openBottomSheet,
                 isFilters = true
             )
         },

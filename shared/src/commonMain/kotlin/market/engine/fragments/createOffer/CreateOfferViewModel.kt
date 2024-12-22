@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import market.engine.common.getPhotoPicker
+import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.DynamicPayload
@@ -23,6 +25,20 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
     private var _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responsePostPage : StateFlow<DynamicPayload<OperationResult>?> = _responsePostPage.asStateFlow()
 
+    private var _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
+    val responseImages : StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
+
+    fun getImages() {
+        val photoPicker = getPhotoPicker()
+        viewModelScope.launch {
+            val images = withContext(Dispatchers.IO){
+                photoPicker.pickImagesRaw()
+            }
+            withContext(Dispatchers.Main){
+                _responseImages.value = images
+            }
+        }
+    }
 
     fun getPage(url: String, categoryID: Long? = null) {
         viewModelScope.launch {

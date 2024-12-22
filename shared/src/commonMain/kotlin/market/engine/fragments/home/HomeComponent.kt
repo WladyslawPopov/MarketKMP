@@ -63,7 +63,7 @@ class DefaultHomeComponent(
     init {
         updateModel()
         analyticsHelper.reportEvent("view_main_page", mapOf())
-        getPermissionHandler().AskPermissionNotification()
+        getPermissionHandler().askPermissionNotification()
     }
 
     private fun updateModel() {
