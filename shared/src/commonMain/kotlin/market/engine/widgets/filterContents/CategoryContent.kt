@@ -64,7 +64,7 @@ fun CategoryContent(
     complete: () -> Unit = {},
 ) {
     val focus = LocalFocusManager.current
-    val catDef = if (isCreateOffer || isFilters) stringResource(strings.selectCategory) else stringResource(strings.categoryMain)
+    val catDef = stringResource(strings.categoryMain)
     if (searchCategoryName.value == ""){
         searchCategoryName.value = catDef
     }

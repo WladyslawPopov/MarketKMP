@@ -98,10 +98,10 @@ fun itemMyOffers(
         selectedMyOfferPage = { type ->
             selectMyOfferPage(type)
         },
-        navigateToCreateOffer = { type, offerId ->
+        navigateToCreateOffer = { type, offerId, categoryId ->
             profileNavigation.pushNew(
                 ProfileConfig.CreateOfferScreen(
-                    categoryId = 1L,
+                    categoryId = categoryId ?: 1L,
                     type = type,
                     offerId = offerId,
                 )

@@ -86,7 +86,7 @@ fun getOfferOperations(
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit){
-        scope.launch(Dispatchers.IO) {
+        scope.launch {
             val res = offerOperations.getOperationsOffer(offer.id)
             withContext(Dispatchers.Main){
                 val buf = res.success?.filter {

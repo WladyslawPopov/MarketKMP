@@ -14,15 +14,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import coil3.ImageLoader
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.crossfade
+import coil3.svg.SvgDecoder
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.PhotoTemp
+import market.engine.core.utils.printLogD
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.exceptions.LoadImage
 
 @Composable
 fun PhotoCard(
@@ -88,20 +93,30 @@ fun PhotoCard(
 
             if (isLoading.value) {
                 Box(
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(150.dp)
                 ){
                     CircularProgressIndicator(
                         color = colors.inactiveBottomNavIconColor
                     )
                 }
             } else {
-                LoadImage(
-                    item.uri ?: item.url ?: "",
-                    size = 150.dp,
-                    rotation = rotate.value.toFloat(),
-                    isShowLoading = false,
-                    contentScale = ContentScale.FillBounds
+                AsyncImage(
+                    model = item.uri ?: item.url ?: "",
+                    contentDescription = null,
+                    modifier = Modifier.rotate(rotate.value.toFloat()).fillMaxSize(),
+                    imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
+                        .crossfade(true)
+                        .components {
+                            add(SvgDecoder.Factory())
+                        }.build(),
+                    contentScale = ContentScale.Crop,
+                    onSuccess = {
+                        isLoading.value = false
+                    },
+                    onError = {
+                        printLogD("Coil Error", it.result.throwable.message)
+                    },
                 )
             }
         }

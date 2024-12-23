@@ -58,7 +58,7 @@ fun FiltersSearchBar(
                     },
                     onCancelClick = {
                         if (selectedCategoryID.value != 1L) {
-                            val category = stringResource(strings.offersCategoryParameterName)
+                            val category = stringResource(strings.categoryMain)
                             SmallIconButton(
                                 icon = drawables.cancelIcon,
                                 contentDescription = stringResource(strings.actionClose),

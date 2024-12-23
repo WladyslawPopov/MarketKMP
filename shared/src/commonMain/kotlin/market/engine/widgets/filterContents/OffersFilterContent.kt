@@ -108,13 +108,13 @@ fun OfferFilterContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openBottomSheet = remember { mutableStateOf(false) }
 
-    val defCat = stringResource(strings.categoryMain)
+    val defCat = stringResource(strings.selectCategory)
 
     val selectedCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.interpritation ?: defCat) }
     val selectedCategoryID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
     val selectedCategoryParentID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull()) }
     val selectedCategoryIsLeaf = remember { mutableStateOf(listingData.find { it.key == "category" }?.operation?.toBoolean() ?: false) }
-
+    val isRefreshingFromFilters = remember { mutableStateOf(false) }
     val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpritation ?: offersType[0].second) }
 
     val selectedFilterKey = remember {
@@ -183,8 +183,11 @@ fun OfferFilterContent(
                 searchCategoryName = selectedCategory,
                 searchParentID = selectedCategoryParentID,
                 searchIsLeaf = selectedCategoryIsLeaf,
-                isRefreshingFromFilters = openBottomSheet,
-                isFilters = true
+                isRefreshingFromFilters = isRefreshingFromFilters,
+                isFilters = true,
+                complete = {
+                    openBottomSheet.value = false
+                }
             )
         },
     ) {
@@ -444,6 +447,7 @@ fun OfferFilterContent(
                         InputsOfferFilterContent(
                             selectedCategory,
                             selectedCategoryID,
+                            selectedCategoryParentID,
                             isRefreshing,
                             listingData,
                             openBottomSheet,
@@ -508,12 +512,13 @@ fun OfferFilterContent(
 fun InputsOfferFilterContent(
     activeCategory: MutableState<String>,
     selectedCategoryID: MutableState<Long>,
+    selectedParentId : MutableState<Long?>,
     isRefreshing: MutableState<Boolean>,
     filters: List<Filter>,
     openBottomSheet: MutableState<Boolean>,
 ) {
 
-    val defCat = stringResource(strings.categoryMain)
+    val defCat = stringResource(strings.selectCategory)
     val idTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
     val nameTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
     val sellerLoginTextState = remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
@@ -629,6 +634,8 @@ fun InputsOfferFilterContent(
                                 filters.find { it.key == "category" }?.value = ""
                                 filters.find { it.key == "category" }?.interpritation = null
                                 activeCategory.value = defCat
+                                selectedCategoryID.value = 1L
+                                selectedParentId.value = null
                             }
                         }
                     }

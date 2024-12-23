@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -43,12 +44,12 @@ fun PhotoDraggableGrid(
     val error = stringResource(strings.failureUploadPhoto)
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(3),
-        modifier = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+        columns = StaggeredGridCells.Adaptive(minSize = 150.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(max = (200 * photoList.size).dp),
         state = lazyStaggeredGridState,
-        contentPadding = PaddingValues(dimens.smallPadding),
-        verticalItemSpacing = dimens.smallPadding,
-        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        contentPadding = PaddingValues(dimens.mediumPadding),
+        verticalItemSpacing = dimens.mediumPadding,
+        horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
     ) {
         items(listState.value, key = { it.id ?: it.tempId ?: it.uri ?: it.url ?: "" }) { item ->
             ReorderableItem(reorderableState, key = item.id ?: item.tempId ?: item.uri ?: item.url ?: "") {
@@ -70,7 +71,7 @@ fun PhotoDraggableGrid(
 //                                    )
                         },
                         interactionSource = interactionSource,
-                    ),
+                    ).sizeIn(maxWidth = 600.dp, maxHeight = 150.dp),
                     updatePhoto = {
                         val tempId = uploadFile(item)
                         if (tempId != null){

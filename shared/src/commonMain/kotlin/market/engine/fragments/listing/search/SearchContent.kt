@@ -54,7 +54,6 @@ fun SearchContent(
 
     val history = searchViewModel.responseHistory.collectAsState()
 
-
     val errorSearch : (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
         { onError(isErrorSearch.value) { } }
     }else{
@@ -83,6 +82,7 @@ fun SearchContent(
             focusManager.clearFocus()
             scaffoldState.bottomSheetState.expand()
         }else{
+            searchViewModel.activeFiltersType.value = ""
             scaffoldState.bottomSheetState.collapse()
             selectedCategory.value = selectedCategory.value
         }
@@ -160,6 +160,7 @@ fun SearchContent(
                     selectedUserFinished = selectedUserFinished,
                     modifier = Modifier,
                     goToCategory = {
+                        searchViewModel.activeFiltersType.value = "categories"
                         openBottomSheet.value = true
                     },
                 )

@@ -65,20 +65,21 @@ fun CreateOfferContent(
 
     val focusManager = LocalFocusManager.current
 
-    val isEditCat = false
+    val isEditCat = remember { mutableStateOf(false) }
 
 
     val categoryName = remember { mutableStateOf("") }
     val categoryID = remember { mutableStateOf(model.value.categoryId) }
-    val parentID : MutableState<Long?> = remember { mutableStateOf(null) }
-    val isLeaf = remember { mutableStateOf(false) }
-    val isRefreshingFromFilters = remember { mutableStateOf(false) }
+    val parentID : MutableState<Long?> = remember { mutableStateOf(model.value.categoryId) }
+    val isLeaf = remember { mutableStateOf(true) }
+    val isRefreshingFromFilters = remember { mutableStateOf(true) }
 
 
     val refresh = {
-        if (isEditCat){
+        if (isEditCat.value){
             // update params
-            viewModel.updateParams(model.value.categoryId)
+            viewModel.updateParams(categoryID.value)
+            isEditCat.value = false
         }else {
             when (type) {
                 CreateOfferType.CREATE -> viewModel.getPage("categories/${categoryID.value}/operations/create_offer")
@@ -96,13 +97,6 @@ fun CreateOfferContent(
                 BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
-    val searchData = remember { mutableStateOf(SD(
-        searchCategoryID = model.value.categoryId,
-        searchCategoryName = categoryName.value
-    )) }
-
-    val listingData = remember { mutableStateOf(LD()) }
-
 
     LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed){
         if (scaffoldState.bottomSheetState.isCollapsed){
@@ -150,15 +144,23 @@ fun CreateOfferContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
+                val searchData = SD(
+                    searchCategoryID = categoryID.value,
+                    searchCategoryName = categoryName.value,
+                    searchParentID = parentID.value,
+                    searchIsLeaf = isLeaf.value
+                )
+                val listingData = LD()
+
                 CategoryContent(
                     baseViewModel = viewModel,
                     complete = {
-                        model.value.categoryId = searchData.value.searchCategoryID
+                        model.value.categoryId = categoryID.value
                         viewModel.activeFiltersType.value = ""
                     },
                     isCreateOffer = true,
-                    searchData = searchData.value,
-                    listingData = listingData.value,
+                    searchData = searchData,
+                    listingData = listingData,
                     searchCategoryId = categoryID,
                     searchCategoryName = categoryName,
                     searchParentID = parentID,
@@ -193,8 +195,9 @@ fun CreateOfferContent(
                                     fontSize = MaterialTheme.typography.labelMedium.fontSize,
                                     alignment = Alignment.TopEnd,
                                 ) {
-
+                                    isEditCat.value = true
                                     viewModel.activeFiltersType.value = "categories"
+                                    isRefreshingFromFilters.value = true
                                 }
                             }
                         }

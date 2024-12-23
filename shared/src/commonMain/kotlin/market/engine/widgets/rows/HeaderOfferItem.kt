@@ -116,7 +116,7 @@ fun HeaderOfferItem(
             getOfferOperations(
                 offer = offer,
                 baseViewModel = baseViewModel,
-                offset = DpOffset(250.dp, 0.dp),
+                offset = DpOffset(400.dp, 0.dp),
                 onUpdateMenuItem = { offer ->
                     onUpdateOfferItem(offer)
                 },
