@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
@@ -62,6 +63,7 @@ fun CategoryContent(
     isRefreshingFromFilters: MutableState<Boolean>,
     complete: () -> Unit = {},
 ) {
+    val focus = LocalFocusManager.current
     val catDef = if (isCreateOffer || isFilters) stringResource(strings.selectCategory) else stringResource(strings.categoryMain)
     if (searchCategoryName.value == ""){
         searchCategoryName.value = catDef
@@ -135,6 +137,7 @@ fun CategoryContent(
                         exit = fadeOut()
                     ) {
                         NavigationArrowButton {
+                            focus.clearFocus()
                             baseViewModel.viewModelScope.launch {
                                val newCat = baseViewModel.onCatBack(searchParentID.value ?: 1L)
                                 if (newCat != null) {
@@ -190,6 +193,7 @@ fun CategoryContent(
                                     )
                                 },
                                 onClick = {
+                                    focus.clearFocus()
                                     searchCategoryId.value = category.id
                                     searchCategoryName.value = category.name ?: catDef
                                     searchParentID.value = category.parentId

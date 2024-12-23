@@ -64,6 +64,8 @@ fun SearchContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openBottomSheet = remember { mutableStateOf(false) }
 
+    val isRefreshingFromFilters = remember { mutableStateOf(false) }
+
     val searchData = SD(
         searchString = searchString.value,
         searchCategoryID = selectedCategoryID.value,
@@ -77,13 +79,10 @@ fun SearchContent(
 
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
-            searchViewModel.setLoading(true)
             searchViewModel.getCategories(searchData, LD(), true)
             focusManager.clearFocus()
-            searchViewModel.activeFiltersType.value = "categories"
             scaffoldState.bottomSheetState.expand()
         }else{
-            searchViewModel.activeFiltersType.value = ""
             scaffoldState.bottomSheetState.collapse()
             selectedCategory.value = selectedCategory.value
         }
@@ -137,7 +136,7 @@ fun SearchContent(
                     searchCategoryName = selectedCategory,
                     searchParentID = selectedCategoryParentID,
                     searchIsLeaf = selectedCategoryIsLeaf,
-                    isRefreshingFromFilters = openBottomSheet
+                    isRefreshingFromFilters = isRefreshingFromFilters
                 )
             },
         ) {
@@ -161,7 +160,7 @@ fun SearchContent(
                     selectedUserFinished = selectedUserFinished,
                     modifier = Modifier,
                     goToCategory = {
-                        openBottomSheet.value = !openBottomSheet.value
+                        openBottomSheet.value = true
                     },
                 )
 
