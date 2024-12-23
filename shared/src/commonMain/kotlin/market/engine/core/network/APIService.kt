@@ -35,6 +35,7 @@ class APIService(private val client: HttpClient) {
         ).body()
     }
 
+
     suspend fun getOurChoiceOffers(idOffer : Long): AppResponse =
         client.get("offers/get_featured_in_offers?offer_id=$idOffer").body()
 

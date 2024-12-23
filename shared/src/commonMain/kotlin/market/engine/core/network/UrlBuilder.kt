@@ -36,8 +36,8 @@ class UrlBuilder {
                     queryParams["filter_${counter}_key"] = "seller_id"
                     queryParams["filter_${counter}_value"] = searchData.userID.toString()
 
-                    if (searchData.searchString != null) {
-                        val search = replaceSpecialCharacters(searchData.searchString.toString())
+                    if (searchData.searchString.isNotEmpty()) {
+                        val search = replaceSpecialCharacters(searchData.searchString)
                         if (search != "") {
                             counter++
                             queryParams["filter_${counter}_key"] = "search"
@@ -52,8 +52,8 @@ class UrlBuilder {
                             queryParams["filter_${counter}_value"] = s
                         }
 
-                        if (searchData.searchString != null) {
-                            val search = replaceSpecialCharacters(searchData.searchString.toString())
+                        if (searchData.searchString.isNotEmpty()) {
+                            val search = replaceSpecialCharacters(searchData.searchString)
                             if (search != "") {
                                 counter++
                                 queryParams["filter_${counter}_key"] = "search"
@@ -72,8 +72,8 @@ class UrlBuilder {
                 analyticsHelper.reportEvent("show_search_user_offers_results", eventParameters)
                 counter++
             }else {
-                if (searchData.searchString != null) {
-                    val search = replaceSpecialCharacters(searchData.searchString.toString())
+                if (searchData.searchString.isNotEmpty()) {
+                    val search = replaceSpecialCharacters(searchData.searchString)
                     if (search != "") {
                         queryParams["filter_${counter}_key"] = "search"
                         queryParams["filter_${counter}_value"] = search

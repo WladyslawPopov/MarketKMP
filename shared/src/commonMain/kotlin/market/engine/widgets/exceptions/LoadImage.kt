@@ -8,6 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
@@ -24,10 +26,12 @@ fun LoadImage(
     isShowLoading: Boolean = true,
     isShowEmpty: Boolean = true,
     size: Dp,
-    modifier: Modifier = Modifier
+    rotation: Float = 0f,
+    contentScale: ContentScale = ContentScale.Fit,
 ) {
     val imageLoadFailed = remember { mutableStateOf(false) }
     val isLoading = remember { mutableStateOf(true) }
+
     if (imageLoadFailed.value){
         getImage(url, size, isShowEmpty)
     }else {
@@ -44,16 +48,16 @@ fun LoadImage(
         AsyncImage(
             model = url,
             contentDescription = null,
-            modifier = modifier.size(size),
+            modifier = Modifier.size(size).rotate(rotation),
             imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
                 .crossfade(true)
                 .components {
                 add(SvgDecoder.Factory())
             }.build(),
+            contentScale = contentScale,
             onSuccess = {
                 isLoading.value = false
                 imageLoadFailed.value = false
-                printLogD("Coil success", url)
             },
             onError = {
                 printLogD("Coil Error", it.result.throwable.message)

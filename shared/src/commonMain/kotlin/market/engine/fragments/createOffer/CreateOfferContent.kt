@@ -2,6 +2,7 @@ package market.engine.fragments.createOffer
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,9 +33,12 @@ import kotlinx.serialization.json.longOrNull
 import market.engine.common.getPermissionHandler
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.CreateOfferType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
@@ -42,6 +47,8 @@ import market.engine.widgets.exceptions.DynamicPayloadContent
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.textFields.DynamicInputField
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CreateOfferContent(
@@ -58,6 +65,8 @@ fun CreateOfferContent(
 
     val focusManager = LocalFocusManager.current
 
+    val isEditCat = false
+
 
     val categoryName = remember { mutableStateOf("") }
     val categoryID = remember { mutableStateOf(model.value.categoryId) }
@@ -67,12 +76,17 @@ fun CreateOfferContent(
 
 
     val refresh = {
-        when(type){
-            CreateOfferType.CREATE -> viewModel.getPage("categories/${categoryID.value}/operations/create_offer")
-            CreateOfferType.EDIT ->  viewModel.getPage("offers/$offerId/operations/edit_offer", categoryID.value)
-            CreateOfferType.COPY ->  viewModel.getPage("offers/$offerId/operations/copy_offer", categoryID.value)
-            CreateOfferType.COPY_WITHOUT_IMAGE -> viewModel.getPage("offers/$offerId/operations/copy_offer_without_old_photo", categoryID.value)
-            CreateOfferType.COPY_PROTOTYPE -> viewModel.getPage("offers/$offerId/operations/copy_offer_from_prototype", categoryID.value)
+        if (isEditCat){
+            // update params
+            viewModel.updateParams(model.value.categoryId)
+        }else {
+            when (type) {
+                CreateOfferType.CREATE -> viewModel.getPage("categories/${categoryID.value}/operations/create_offer")
+                CreateOfferType.EDIT -> viewModel.getPage("offers/$offerId/operations/edit_offer")
+                CreateOfferType.COPY -> viewModel.getPage("offers/$offerId/operations/copy_offer")
+                CreateOfferType.COPY_WITHOUT_IMAGE -> viewModel.getPage("offers/$offerId/operations/copy_offer_without_old_photo")
+                CreateOfferType.COPY_PROTOTYPE -> viewModel.getPage("offers/$offerId/operations/copy_offer_from_prototype")
+            }
         }
     }
 
@@ -153,7 +167,7 @@ fun CreateOfferContent(
                 )
             },
         ) {
-            AnimatedVisibility(scaffoldState.bottomSheetState.isCollapsed) {
+            AnimatedVisibility(scaffoldState.bottomSheetState.isCollapsed && getPage.value != null) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
@@ -173,13 +187,15 @@ fun CreateOfferContent(
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier.padding(dimens.smallPadding)
                             )
+                            if (type != CreateOfferType.EDIT) {
+                                ActionButton(
+                                    strings.changeCategory,
+                                    fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                    alignment = Alignment.TopEnd,
+                                ) {
 
-                            ActionButton(
-                                strings.changeCategory,
-                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                alignment = Alignment.TopEnd,
-                            ) {
-                                viewModel.activeFiltersType.value = "categories"
+                                    viewModel.activeFiltersType.value = "categories"
+                                }
                             }
                         }
                     }
@@ -205,21 +221,60 @@ fun CreateOfferContent(
 
                     // Images
                     item {
+                        val photos = getPage.value?.fields?.filter { it.key?.contains("photo_") == true } ?: emptyList()
+                        val tempPhotos : ArrayList<PhotoTemp> = arrayListOf()
+                        photos.forEach { field ->
+                            if (field.links != null) {
+                                tempPhotos.add(
+                                    PhotoTemp(
+                                        url = field.links.mid?.jsonPrimitive?.content
+                                    )
+                                )
+                            }
+                        }
+                        if (tempPhotos.isNotEmpty()) {
+                            viewModel.setImages(tempPhotos.toList())
+                        }else{
+                            if (model.value.externalImages != null){
+                                model.value.externalImages?.forEach {
+                                    tempPhotos.add(
+                                        PhotoTemp(
+                                            url = it
+                                        )
+                                    )
+                                }
+                                viewModel.setImages(tempPhotos.toList())
+                            }
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth()
-                                .padding(dimens.smallPadding)
+                                .padding(dimens.smallPadding),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceAround
                         ) {
-                            Text(
-                                "Прикрепить фотографии к лоту",
-                                color = colors.black,
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(dimens.smallPadding)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    stringResource(strings.actionAddPhoto),
+                                    color = colors.black,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(dimens.smallPadding)
+                                )
+
+                                Icon(
+                                    painterResource(drawables.addGalleryIcon),
+                                    contentDescription = stringResource(strings.actionAddPhoto),
+                                    tint = colors.black
+                                )
+                            }
+
 
                             ActionButton(
                                 strings.chooseAction,
                                 fontSize = MaterialTheme.typography.labelMedium.fontSize,
                                 alignment = Alignment.TopEnd,
+                                enabled = images.value.size < MAX_IMAGE_COUNT
                             ) {
                                 if (!getPermissionHandler().checkImagePermissions()){
                                     getPermissionHandler().requestImagePermissions {
@@ -234,7 +289,11 @@ fun CreateOfferContent(
                         }
 
                         AnimatedVisibility(images.value.isNotEmpty()){
-                            PhotoDraggableGrid(images.value, viewModel)
+                            PhotoDraggableGrid(images.value, viewModel){
+                                val newList = images.value.toMutableList()
+                                newList.remove(it)
+                                viewModel.setImages(newList)
+                            }
                         }
                     }
 

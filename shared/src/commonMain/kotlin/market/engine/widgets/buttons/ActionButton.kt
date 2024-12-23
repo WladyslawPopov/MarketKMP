@@ -17,7 +17,8 @@ fun ActionButton(
     modifier: Modifier = Modifier,
     fontSize: TextUnit,
     alignment: Alignment,
-    onClick: () -> Unit
+    enabled: Boolean = true,
+    onClick: () -> Unit,
 ) {
     Box(
         modifier = modifier,
@@ -28,12 +29,13 @@ fun ActionButton(
                 onClick()
             },
             modifier = modifier,
+            enabled = enabled,
             colors = colors.actionButtonColors
         ){
             Text(
                 text = stringResource(text),
                 fontSize = fontSize,
-                color = colors.actionTextColor,
+                color = if (enabled) colors.actionTextColor else colors.steelBlue,
             )
         }
     }

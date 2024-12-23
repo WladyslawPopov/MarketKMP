@@ -367,13 +367,6 @@ fun OfferContent(
                         // active promo options
                         if (isMyOffer.value) {
                             item {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    SeparatorLabel(strings.activatePromoParameterName)
-                                }
-
                                 PromoRow(
                                     offer,
                                     showName = true,

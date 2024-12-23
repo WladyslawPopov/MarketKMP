@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
+import io.ktor.utils.io.ByteReadChannel
 import market.engine.core.data.globalData.ThemeResources.colors
 
 fun String.parseColorString(): Color {
@@ -190,3 +191,4 @@ fun String.extractCssProperty(propertyName: String): String? {
     val regex = Regex("$propertyName:\\s*([^;]+);?")
     return regex.find(this)?.groupValues?.get(1)?.trim()
 }
+

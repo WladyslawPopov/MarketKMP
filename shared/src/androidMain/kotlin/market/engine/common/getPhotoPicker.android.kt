@@ -20,7 +20,7 @@ actual fun getPhotoPicker(): PhotoPicker {
 }
 
 var pickMultipleMedia : ActivityResultLauncher<PickVisualMediaRequest>? = null
-val callback : CompletableDeferred<List<Uri>> = CompletableDeferred()
+var callback : CompletableDeferred<List<Uri>> = CompletableDeferred()
 
 class PhotoPickerImpl : PhotoPicker{
     override suspend fun pickImagesRaw(maxCount : Int, maxSizeBytes : Long): List<PhotoTemp> {
@@ -39,7 +39,6 @@ class PhotoPickerImpl : PhotoPicker{
                     val fd = activity.contentResolver.openAssetFileDescriptor(imageUri, "r")
                     val fileSize = fd?.length ?: 0
                     fd?.close()
-
                     if (fileSize < maxSizeBytes) {
                         photoList.add(
                             PhotoTemp(
@@ -67,7 +66,7 @@ class PhotoPickerImpl : PhotoPicker{
             }
         }
 
-        callback.complete(emptyList())
+        callback = CompletableDeferred()
         return photoList
     }
 }

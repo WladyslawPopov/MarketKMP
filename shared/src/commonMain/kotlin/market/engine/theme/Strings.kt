@@ -298,4 +298,5 @@ interface Strings {
     val fileNotFound : StringResource
     val fileTooLarge : StringResource
     val failureUploadPhoto : StringResource
+    val actionAddPhoto : StringResource
 }

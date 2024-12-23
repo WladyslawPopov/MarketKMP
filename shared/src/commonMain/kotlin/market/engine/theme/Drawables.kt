@@ -115,4 +115,6 @@ interface Drawables {
 
    val likeIcon : DrawableResource
    val dislikeIcon : DrawableResource
+
+   val addGalleryIcon : DrawableResource
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
@@ -21,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
+import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -32,82 +35,90 @@ fun PromoRow(
     modifier: Modifier = Modifier.padding(dimens.smallPadding),
     onItemClick: (String?) -> Unit
 ) {
+    if(offer.promoOptions != null ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SeparatorLabel(strings.activatePromoParameterName)
+        }
 
-    Box(
-        modifier = modifier
-    ) {
-        FlowRow(
-            horizontalArrangement = Arrangement.Start,
-            verticalArrangement = Arrangement.SpaceAround,
+        Box(
             modifier = modifier
         ) {
-             offer.promoOptions?.forEach { o ->
-                 Card(
-                     colors = CardDefaults.cardColors(
-                         containerColor = colors.brightPurple,
-                         contentColor = colors.white
-                     ),
-                     modifier = Modifier.clickable {
-                         onItemClick(o.id)
-                     }
-                 ) {
-                     when (o.id) {
-                         "featured_in_listing" -> {
-                             Text(
-                                 text = "TOP",
-                                 color = colors.alwaysWhite,
-                                 style = MaterialTheme.typography.bodySmall.copy(
-                                     fontWeight = FontWeight.Bold
-                                 ),
-                                 modifier = Modifier.padding(dimens.extraSmallPadding)
-                             )
-                         }
+            FlowRow(
+                horizontalArrangement = Arrangement.Start,
+                verticalArrangement = Arrangement.SpaceAround,
+                modifier = modifier
+            ) {
+                offer.promoOptions.forEach { o ->
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = colors.brightPurple,
+                            contentColor = colors.white
+                        ),
+                        modifier = Modifier.clickable {
+                            onItemClick(o.id)
+                        }
+                    ) {
+                        when (o.id) {
+                            "featured_in_listing" -> {
+                                Text(
+                                    text = "TOP",
+                                    color = colors.alwaysWhite,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    modifier = Modifier.padding(dimens.extraSmallPadding)
+                                )
+                            }
 
-                         "featured_on_main_page" -> {
-                             Icon(
-                                 painter = painterResource(drawables.homeIcon),
-                                 contentDescription = "",
-                                 tint = colors.alwaysWhite
-                             )
-                         }
+                            "featured_on_main_page" -> {
+                                Icon(
+                                    painter = painterResource(drawables.homeIcon),
+                                    contentDescription = "",
+                                    tint = colors.alwaysWhite
+                                )
+                            }
 
-                         "recommended_in_listing" -> {
-                             Icon(
-                                 painter = painterResource(drawables.megaphoneIcon),
-                                 contentDescription = "",
-                                 tint = colors.alwaysWhite
-                             )
-                         }
+                            "recommended_in_listing" -> {
+                                Icon(
+                                    painter = painterResource(drawables.megaphoneIcon),
+                                    contentDescription = "",
+                                    tint = colors.alwaysWhite
+                                )
+                            }
 
-                         "backlignt_in_listing" -> {
-                             Icon(
-                                 painter = painterResource(drawables.promoHighlightIcon),
-                                 contentDescription = "",
-                                 tint = colors.alwaysWhite
-                             )
-                         }
+                            "backlignt_in_listing" -> {
+                                Icon(
+                                    painter = painterResource(drawables.promoHighlightIcon),
+                                    contentDescription = "",
+                                    tint = colors.alwaysWhite
+                                )
+                            }
 
-                         "featured_in_offer" -> {
-                             Icon(
-                                 painter = painterResource(drawables.adIcon),
-                                 contentDescription = "",
-                                 tint = colors.alwaysWhite
-                             )
-                         }
-                     }
-                 }
-                 Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-                 if (showName) {
-                     Text(
-                         o.name ?: "",
-                         style = MaterialTheme.typography.bodySmall.copy(
-                             fontWeight = FontWeight.Bold
-                         ),
-                         modifier = Modifier.padding(dimens.extraSmallPadding)
-                     )
-                     Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-                 }
-             }
+                            "featured_in_offer" -> {
+                                Icon(
+                                    painter = painterResource(drawables.adIcon),
+                                    contentDescription = "",
+                                    tint = colors.alwaysWhite
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+                    if (showName) {
+                        Text(
+                            o.name ?: "",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(dimens.extraSmallPadding)
+                        )
+                        Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+                    }
+                }
+            }
         }
     }
 }
