@@ -14,8 +14,8 @@ fun TextAppBar(
     color : Color = colors.black,
     modifier: Modifier = Modifier
 ) {
-    val title = if(text.length > 20){
-        text.substring(0,20) + "..."
+    val title = if(text.length > 30){
+        text.substring(0,30) + "..."
     }else{
         text
     }

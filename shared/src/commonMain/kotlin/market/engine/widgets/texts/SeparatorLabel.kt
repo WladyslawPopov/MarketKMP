@@ -12,10 +12,10 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SeparatorLabel(
-    title: StringResource
+    title: String
 ){
     Text(
-        text = stringResource(title),
+        text = title,
         style = MaterialTheme.typography.titleLarge,
         color = colors.black,
         modifier = Modifier.padding(horizontal = dimens.mediumPadding, vertical = dimens.smallPadding)

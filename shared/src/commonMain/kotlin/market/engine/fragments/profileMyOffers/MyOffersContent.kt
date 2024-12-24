@@ -129,7 +129,7 @@ fun MyOffersContent(
         toastItem = viewModel.toastItem,
         floatingActionButton = {
             floatingCreateOfferButton {
-                component.goToCreateOffer(CreateOfferType.CREATE)
+                component.goToCreateOffer(CreateOfferType.CREATE, null, null)
             }
         },
         modifier = modifier.fillMaxSize()
@@ -204,7 +204,7 @@ fun MyOffersContent(
                         isGrid = (columns.value > 1),
                         baseViewModel = viewModel,
                         goToCreateOffer = { type ->
-                            component.goToCreateOffer(type, offer.id, offer.catpath[0])
+                            component.goToCreateOffer(type, offer.id, offer.catpath)
                         },
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id

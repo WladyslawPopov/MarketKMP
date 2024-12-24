@@ -43,7 +43,7 @@ open class BaseViewModel: ViewModel() {
 
     private val apiService = getKoin().get<APIService>()
     private val offersOperations : OfferOperations = getKoin().get()
-    private val categoryOperations : CategoryOperations = getKoin().get()
+    val categoryOperations : CategoryOperations = getKoin().get()
 
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
     val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()

@@ -61,7 +61,7 @@ sealed class ProfileConfig {
 
     @Serializable
     data class CreateOfferScreen(
-        val categoryId: Long,
+        val catPath: List<Long>?,
         val offerId: Long? = null,
         val type : CreateOfferType,
         val externalImages : List<String>? = null
@@ -137,10 +137,10 @@ fun createProfileChild(
                     profileNavigation.pushNew(ProfileConfig.UserScreen(ui, getCurrentDate(), about))
                 },
                 isSnapshot = config.isSnapshot,
-                navigateToCreateOffer = { type, categoryId, offerId, externalImages ->
+                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
                     profileNavigation.pushNew(
                         ProfileConfig.CreateOfferScreen(
-                            categoryId = categoryId,
+                            catPath = catPath,
                             type = type,
                             externalImages = externalImages,
                             offerId = offerId
@@ -203,7 +203,7 @@ fun createProfileChild(
         is ProfileConfig.CreateOfferScreen -> ChildProfile.CreateOfferChild(
             component = itemCreateOffer(
                 componentContext = componentContext,
-                categoryId = config.categoryId,
+                catPath = config.catPath,
                 offerId = config.offerId,
                 type = config.type,
                 externalImages = config.externalImages,
@@ -229,7 +229,7 @@ fun itemProfile(
             badgeCount = null,
             onClick = {
                 profileNavigation.pushNew(
-                    ProfileConfig.CreateOfferScreen(1L, null, CreateOfferType.CREATE, null)
+                    ProfileConfig.CreateOfferScreen(null, null, CreateOfferType.CREATE, null)
                 )
             }
         ),

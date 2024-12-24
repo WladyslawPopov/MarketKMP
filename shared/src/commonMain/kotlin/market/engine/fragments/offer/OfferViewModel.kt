@@ -11,7 +11,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
@@ -27,7 +26,6 @@ import market.engine.shared.MarketDB
 class OfferViewModel(
     private val apiService: APIService,
     private val dataBase: MarketDB,
-    private val categoryOperations: CategoryOperations,
     private val offerOperations: OfferOperations,
     private val userOperations: UserOperations,
     val userRepository: UserRepository

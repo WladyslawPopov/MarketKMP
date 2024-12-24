@@ -54,7 +54,7 @@ sealed class HomeConfig {
 
     @Serializable
     data class CreateOfferScreen(
-        val categoryId: Long,
+        val catPath: List<Long>? = null,
         val offerId: Long? = null,
         val type : CreateOfferType,
         val externalImages : List<String>? = null
@@ -138,11 +138,11 @@ fun createHomeChild(
                 )
             },
             isSnapshot = config.isSnapshot,
-            navigateToCreateOffer = { type, categoryId, offerId, externalImages ->
+            navigateToCreateOffer = { type, catPath, offerId, externalImages ->
                 if(UserData.token != "") {
                     homeNavigation.pushNew(
                         HomeConfig.CreateOfferScreen(
-                            categoryId,
+                            catPath,
                             offerId,
                             type,
                             externalImages
@@ -205,7 +205,7 @@ fun createHomeChild(
     is HomeConfig.CreateOfferScreen -> ChildHome.CreateOfferChild(
         component = itemCreateOffer(
             componentContext = componentContext,
-            categoryId = config.categoryId,
+            catPath = config.catPath,
             offerId = config.offerId,
             type = config.type,
             externalImages = config.externalImages,
@@ -243,7 +243,7 @@ fun itemHome(
             if(UserData.token != "") {
                 homeNavigation.pushNew(
                     HomeConfig.CreateOfferScreen(
-                        1L,
+                        null,
                         null,
                         CreateOfferType.CREATE,
                         null

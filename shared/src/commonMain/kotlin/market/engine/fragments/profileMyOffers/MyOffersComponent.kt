@@ -25,7 +25,7 @@ interface MyOffersComponent {
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun selectMyOfferPage(select : LotsType)
-    fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null, categoryId : Long? = null)
+    fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
 }
 
 class DefaultMyOffersComponent(
@@ -33,7 +33,7 @@ class DefaultMyOffersComponent(
     val type: LotsType = LotsType.MYLOT_ACTIVE,
     val offerSelected: (Long) -> Unit,
     val selectedMyOfferPage: (LotsType) -> Unit,
-    val navigateToCreateOffer: (CreateOfferType, Long?, Long?) -> Unit
+    val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
 
     private val viewModel : ProfileMyOffersViewModel = ProfileMyOffersViewModel(
@@ -112,7 +112,7 @@ class DefaultMyOffersComponent(
         selectedMyOfferPage(select)
     }
 
-    override fun goToCreateOffer(type: CreateOfferType, offerId: Long?, categoryId : Long?) {
-        navigateToCreateOffer(type, offerId, categoryId)
+    override fun goToCreateOffer(type: CreateOfferType, offerId: Long?, catPath : List<Long>?) {
+        navigateToCreateOffer(type, offerId, catPath)
     }
 }

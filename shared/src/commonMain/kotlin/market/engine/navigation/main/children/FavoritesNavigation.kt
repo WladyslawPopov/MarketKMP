@@ -61,7 +61,7 @@ sealed class FavoritesConfig {
 
     @Serializable
     data class CreateOfferScreen(
-        val categoryId: Long,
+        val catPath: List<Long>?,
         val offerId: Long? = null,
         val type : CreateOfferType,
         val externalImages : List<String>? = null
@@ -140,10 +140,10 @@ fun createFavoritesChild(
                     )
                 },
                 isSnapshot = config.isSnap,
-                navigateToCreateOffer = { type, categoryId, offerId, externalImages ->
+                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
                     favoritesNavigation.pushNew(
                         FavoritesConfig.CreateOfferScreen(
-                            categoryId = categoryId,
+                            catPath = catPath,
                             type = type,
                             externalImages = externalImages,
                             offerId = offerId
@@ -204,7 +204,7 @@ fun createFavoritesChild(
         is FavoritesConfig.CreateOfferScreen -> ChildFavorites.CreateOfferChild(
             component = itemCreateOffer(
                 componentContext = componentContext,
-                categoryId = config.categoryId,
+                catPath = config.catPath,
                 offerId = config.offerId,
                 type = config.type,
                 externalImages = config.externalImages,

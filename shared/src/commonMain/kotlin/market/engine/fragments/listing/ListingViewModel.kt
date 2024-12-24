@@ -15,7 +15,6 @@ import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
@@ -26,7 +25,6 @@ import market.engine.fragments.base.BaseViewModel
 
 class ListingViewModel(
     private val apiService: APIService,
-    private val categoryOperations : CategoryOperations,
     val userRepository: UserRepository
 ) : BaseViewModel() {
 

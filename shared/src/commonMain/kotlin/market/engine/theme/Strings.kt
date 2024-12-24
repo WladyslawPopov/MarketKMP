@@ -299,4 +299,16 @@ interface Strings {
     val fileTooLarge : StringResource
     val failureUploadPhoto : StringResource
     val actionAddPhoto : StringResource
+    val photoLabel : StringResource
+    val saleTypeLabel : StringResource
+
+    val deliveryCityParameterLabel : StringResource
+    val deliveryCountryParameterLabel : StringResource
+    val deliveryWorldParameterLabel : StringResource
+
+    val offerStartNowLabel : StringResource
+    val offerStartInactiveLabel : StringResource
+    val offerStartInFutureLabel : StringResource
+    val selectTimeActiveLabel : StringResource
+    val actionChangeLabel :  StringResource
 }

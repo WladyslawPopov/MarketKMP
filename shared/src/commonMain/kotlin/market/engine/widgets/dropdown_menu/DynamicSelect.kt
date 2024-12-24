@@ -12,6 +12,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.processInput
 import market.engine.widgets.texts.DynamicLabel
@@ -21,7 +22,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DynamicSelect(
     field: Fields,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    itemClick: ((Choices?) -> Unit)? = null
 ) {
     val selectDef = stringResource(strings.chooseAction)
 
@@ -58,12 +60,15 @@ fun DynamicSelect(
                 val choice = field.choices?.find { it.name == item }
                 field.data = JsonPrimitive(choice?.code?.int)
                 textSelect.value = item
+                itemClick?.invoke(choice)
             },
             onClearItem = {
                 field.data = null
                 textSelect.value = selectDef
+                itemClick?.invoke(null)
             }
         )
+
         if (error.value != null){
             ErrorText(
                 text = error.value ?: "",

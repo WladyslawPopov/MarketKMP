@@ -27,7 +27,7 @@ interface OfferComponent {
     fun goToUsersListing(sellerData : User?)
     fun goToRegion(region : Region?)
     fun goToUser(userId: Long, aboutMe: Boolean)
-    fun goToCreateOffer(type: CreateOfferType, categoryId: Long, offerId: Long, externalImages : List<String>?)
+    fun goToCreateOffer(type: CreateOfferType,catPath: List<Long>?, offerId: Long, externalImages : List<String>?)
 }
 
 class DefaultOfferComponent(
@@ -38,7 +38,12 @@ class DefaultOfferComponent(
     val navigationBack: () -> Unit,
     val navigationListing: (listingData: ListingData) -> Unit,
     val navigateToUser: (Long, Boolean) -> Unit,
-    val navigationCreateOffer: (type: CreateOfferType, categoryId : Long, offerId: Long, externalImages : List<String>?) -> Unit
+    val navigationCreateOffer: (
+        type: CreateOfferType,
+        catPath : List<Long>?,
+        offerId: Long,
+        externalImages : List<String>?
+    ) -> Unit
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -105,10 +110,10 @@ class DefaultOfferComponent(
 
     override fun goToCreateOffer(
         type: CreateOfferType,
-        categoryId: Long,
+        catPath: List<Long>?,
         offerId: Long,
         externalImages: List<String>?
     ) {
-        navigationCreateOffer(type, categoryId, offerId, externalImages)
+        navigationCreateOffer(type, catPath, offerId, externalImages)
     }
 }

@@ -22,6 +22,7 @@ import market.engine.core.utils.getWindowType
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.items.PromoOfferGridItem
 import market.engine.widgets.texts.SeparatorLabel
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GridPromoOffers(
@@ -35,7 +36,7 @@ fun GridPromoOffers(
 
     Spacer(modifier = Modifier.heightIn(dimens.mediumPadding))
 
-    SeparatorLabel(strings.topOffersTitle)
+    SeparatorLabel(stringResource(strings.topOffersTitle))
 
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(if (showNavigationRail) 4 else 2),

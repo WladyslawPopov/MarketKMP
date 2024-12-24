@@ -67,6 +67,8 @@ kotlin {
             implementation(libs.decompose)
             implementation(libs.decompose.extensions)
 
+            implementation(libs.richeditor.compose)
+
             implementation(libs.skiko)
 
             implementation(libs.reorderable)

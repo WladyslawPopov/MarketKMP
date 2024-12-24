@@ -26,6 +26,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -40,7 +41,7 @@ fun PromoRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SeparatorLabel(strings.activatePromoParameterName)
+            SeparatorLabel(stringResource(strings.activatePromoParameterName))
         }
 
         Box(

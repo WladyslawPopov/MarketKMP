@@ -7,14 +7,14 @@ import market.engine.fragments.createOffer.DefaultCreateOfferComponent
 
 fun itemCreateOffer(
     componentContext: ComponentContext,
-    categoryId: Long,
+    catPath: List<Long>?,
     offerId: Long?,
     type : CreateOfferType,
     externalImages : List<String>?,
     navigateBack: () -> Unit
     ): CreateOfferComponent {
         return DefaultCreateOfferComponent(
-            categoryId = categoryId,
+            catPath = catPath,
             offerId = offerId,
             type = type,
             externalImages = externalImages,

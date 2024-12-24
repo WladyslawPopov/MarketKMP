@@ -117,4 +117,20 @@ interface Drawables {
    val dislikeIcon : DrawableResource
 
    val addGalleryIcon : DrawableResource
+
+   val alignCenterIcon: DrawableResource
+   val alignLeftIcon: DrawableResource
+   val alignRightIcon: DrawableResource
+   val codeIcon: DrawableResource
+   val linkIcon: DrawableResource
+   val listCheckIcon: DrawableResource
+   val listOrderedIcon: DrawableResource
+   val recordCircleIcon: DrawableResource
+   val sortByAlphabetIcon: DrawableResource
+   val textBigIcon: DrawableResource
+   val textBoldIcon: DrawableResource
+   val textCrossIcon: DrawableResource
+   val textItalicIcon: DrawableResource
+   val textUnderlineIcon: DrawableResource
+   val fillCircleIcon: DrawableResource
 }

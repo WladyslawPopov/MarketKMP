@@ -12,7 +12,7 @@ interface CreateOfferComponent {
     val model : Value<Model>
 
     data class Model(
-        var categoryId : Long,
+        var catPath : List<Long>?,
         val offerId : Long?,
         val type : CreateOfferType,
         val externalImages : List<String>?,
@@ -23,7 +23,7 @@ interface CreateOfferComponent {
 }
 
 class DefaultCreateOfferComponent(
-    categoryId : Long,
+    catPath : List<Long>?,
     offerId : Long?,
     type : CreateOfferType,
     externalImages : List<String>?,
@@ -35,7 +35,7 @@ class DefaultCreateOfferComponent(
 
     private val _model = MutableValue(
         CreateOfferComponent.Model(
-            categoryId = categoryId,
+            catPath = catPath,
             offerId = offerId,
             type = type,
             externalImages = externalImages,
@@ -50,7 +50,7 @@ class DefaultCreateOfferComponent(
             CreateOfferType.CREATE -> {
                 createOfferViewModel.activeFiltersType.value = "categories"
                 val searchData = SD()
-                searchData.searchCategoryID = categoryId
+                searchData.searchCategoryID = catPath?.get(0) ?: 1L
                 createOfferViewModel.getCategories(searchData, LD(), withoutCounter = true)
             }
             else ->{

@@ -13,6 +13,7 @@ import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.deserializePayload
@@ -30,6 +31,9 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
 
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
     val responseImages: StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
+
+    private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
+    val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
     @OptIn(ExperimentalUuidApi::class)
     fun getImages() {
@@ -151,6 +155,21 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            }
+        }
+    }
+
+    fun getCategoriesHistory(catPath: List<Long>) {
+        viewModelScope.launch {
+            try {
+                val categories = withContext(Dispatchers.IO) {
+                    catPath.reversed().mapNotNull { id ->
+                        categoryOperations.getCategoryInfo(id).success
+                    }
+                }
+                _responseCatHistory.value = categories
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
             }
         }
     }

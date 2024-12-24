@@ -9,9 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -25,7 +22,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DynamicInputField(
     field: Fields,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    label : String? = null,
+    sufix : String? = null,
+    mandatory: Boolean? = null,
+    singleLine: Boolean = true
 ) {
 
     val textState = remember {
@@ -43,37 +44,43 @@ fun DynamicInputField(
     val counter = remember { mutableStateOf(maxSymbols) }
 
     val isMandatory = remember {
-        mutableStateOf(
-        field.validators?.find { it.type == "mandatory" } != null
+      mutableStateOf(
+          (mandatory ?: field.validators?.find { it.type == "mandatory" }) != null
         )
     }
 
     TextField(
         value = textState.value,
         onValueChange = {
-            if (maxSymbols != null && maxSymbols > it.length) {
-                counter.value = maxSymbols - it.length
+            if (maxSymbols != null) {
+                if ( maxSymbols >= it.length) {
+                    counter.value = maxSymbols - it.length
+                    field.data = JsonPrimitive(it)
+                    textState.value = it
+                }
+            }else{
+                field.data = JsonPrimitive(it)
+                textState.value = it
             }
-            field.data = JsonPrimitive(it)
-            textState.value = it
+
         },
         label = {
             DynamicLabel(
-                text = field.longDescription ?: field.shortDescription ?: "",
+                text = label ?: field.shortDescription ?: field.longDescription ?:  "",
                 isMandatory = isMandatory.value
             )
         },
         suffix = {
-            if (maxSymbols != null) {
+            if (sufix != null) {
                 Text(
-                    "${stringResource(strings.charactersLeftLabel)}: ${counter.value}",
-                    style = MaterialTheme.typography.labelMedium
+                    text = sufix,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.black
                 )
             }
         },
         modifier = modifier,
-        singleLine = true,
-        maxLines = 1,
+        singleLine = singleLine,
         shape = MaterialTheme.shapes.medium,
         colors = TextFieldDefaults.colors(
             focusedTextColor = colors.black,
@@ -97,6 +104,14 @@ fun DynamicInputField(
         ),
         isError = isError.value,
         supportingText = {
+
+            if (maxSymbols != null) {
+                Text(
+                    "${stringResource(strings.charactersLeftLabel)}: ${counter.value}",
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+
             Text(
                 error.value ?: "",
                 style = MaterialTheme.typography.labelMedium,

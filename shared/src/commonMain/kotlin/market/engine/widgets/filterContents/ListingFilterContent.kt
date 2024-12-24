@@ -41,6 +41,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -49,6 +50,7 @@ import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.network.networkObjects.Options
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.checkboxs.RadioGroup
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.rows.PriceFilter
 import market.engine.widgets.dropdown_menu.getDropdownMenu
@@ -222,71 +224,26 @@ fun FilterListingContent(
                                     )
                                 )
                             }
-                            LazyColumn(
-                                modifier = Modifier.heightIn(max = 500.dp)
-                            ) {
-                                items(saleTypeFilters) { filter ->
-                                    val (filterKey, filterText) = filter
-                                    val isChecked = selectedFilterKey.value == filterKey
-                                    Row(
-                                        horizontalArrangement = Arrangement.Start,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(MaterialTheme.shapes.medium)
-                                            .clickable {
-                                                if (isChecked) {
-                                                    selectedFilterKey.value = null
-                                                    applyFilterLogic(
-                                                        "clear_saleType",
-                                                        "",
-                                                        listingData
-                                                    )
-                                                } else {
-                                                    selectedFilterKey.value = filterKey
-                                                    applyFilterLogic(
-                                                        filterKey,
-                                                        filterText,
-                                                        listingData
-                                                    )
-                                                }
-
-                                                isRefreshing.value = true
-                                            }
-                                    ) {
-                                        RadioButton(
-                                            isChecked,
-                                            {
-                                                if (isChecked) {
-                                                    selectedFilterKey.value = null
-                                                    applyFilterLogic(
-                                                        "clear_saleType",
-                                                        "",
-                                                        listingData
-                                                    )
-                                                } else {
-                                                    selectedFilterKey.value = filterKey
-                                                    applyFilterLogic(
-                                                        filterKey,
-                                                        filterText,
-                                                        listingData
-                                                    )
-                                                }
-
-                                                isRefreshing.value = true
-                                            },
-                                            colors = RadioButtonDefaults.colors(
-                                                selectedColor = colors.inactiveBottomNavIconColor,
-                                                unselectedColor = colors.black
-                                            )
-                                        )
-                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                        Text(
-                                            filterText,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                    }
+                            RadioGroup(
+                                saleTypeFilters,
+                                selectedFilterKey.value
+                            ){ isChecked, choice ->
+                                if(isChecked) {
+                                    selectedFilterKey.value = null
+                                    applyFilterLogic(
+                                        "clear_saleType",
+                                        "",
+                                        listingData
+                                    )
+                                    isRefreshing.value = true
+                                }else{
+                                    selectedFilterKey.value = choice
+                                    applyFilterLogic(
+                                        choice,
+                                        saleTypeFilters.find { it.first == choice }?.second ?: "",
+                                        listingData
+                                    )
+                                    isRefreshing.value = true
                                 }
                             }
                         }
@@ -299,56 +256,31 @@ fun FilterListingContent(
                         isExpanded = isExpanded2,
                         onExpandChange = { isExpanded2 = !isExpanded2 },
                         content = {
-                            LazyColumn(
-                                modifier = Modifier.heightIn(max = 500.dp)
-                            ) {
-                                items(specialFilters) { filter ->
-                                    val (filterKey, filterText) = filter
-
-                                    val isChecked =
-                                        remember { mutableStateOf(listingData.filters.find { it.key == filter.first }?.interpritation != null) }
-
-                                    Row(
-                                        horizontalArrangement = Arrangement.Start,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(MaterialTheme.shapes.medium)
-                                            .clickable {
-                                                isChecked.value = !isChecked.value
-                                                applyFilterLogic(
-                                                    filterKey,
-                                                    filterText,
-                                                    listingData
-                                                )
-
-                                                isRefreshing.value = true
-                                            }
-                                    ) {
-                                        RadioButton(
-                                            isChecked.value,
-                                            {
-                                                isChecked.value = !isChecked.value
-                                                applyFilterLogic(
-                                                    filterKey,
-                                                    filterText,
-                                                    listingData
-                                                )
-
-                                                isRefreshing.value = true
-                                            },
-                                            colors = RadioButtonDefaults.colors(
-                                                selectedColor = colors.inactiveBottomNavIconColor,
-                                                unselectedColor = colors.black
-                                            )
-                                        )
-                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                        Text(
-                                            filterText,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                    }
+                            val selectedFilterKey = remember {
+                                mutableStateOf(
+                                    listingData.filters.find { it.key == specialFilters[0].first }?.interpritation
+                                )
+                            }
+                            RadioGroup(
+                                specialFilters,
+                                selectedFilterKey.value
+                            ){ isChecked, choice ->
+                                if(isChecked) {
+                                    selectedFilterKey.value = null
+                                    applyFilterLogic(
+                                        choice,
+                                        specialFilters.find { it.first == choice }?.second ?: "",
+                                        listingData
+                                    )
+                                    isRefreshing.value = true
+                                }else{
+                                    selectedFilterKey.value = choice
+                                    applyFilterLogic(
+                                        choice,
+                                        specialFilters.find { it.first == choice }?.second ?: "",
+                                        listingData
+                                    )
+                                    isRefreshing.value = true
                                 }
                             }
                         }

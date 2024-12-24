@@ -417,7 +417,7 @@ fun OfferContent(
                                                 component.updateOffer(offer.id, model.isSnapshot)
                                             },
                                             goToCreateOffer = { type ->
-                                                component.goToCreateOffer(type, offer.catpath[0], offer.id, null)
+                                                component.goToCreateOffer(type, offer.catpath, offer.id, null)
                                             },
                                             onClose = {
                                                 isShowOptions.value = false
@@ -458,7 +458,7 @@ fun OfferContent(
                                     onSaleClick = {
                                         component.goToCreateOffer(
                                             CreateOfferType.COPY_PROTOTYPE,
-                                            offer.catpath[0],
+                                            offer.catpath,
                                             offer.id,
                                             images
                                         )
@@ -569,7 +569,7 @@ fun OfferContent(
                         }
                         // seller panel
                         item {
-                            SeparatorLabel(strings.sellerLabel)
+                            SeparatorLabel(stringResource(strings.sellerLabel))
 
                             UserPanel(
                                 modifier = Modifier.fillMaxWidth()
@@ -633,7 +633,7 @@ fun OfferContent(
                         //recommended list offers
                         item {
                             if (ourChoiceList.value.isNotEmpty()) {
-                                SeparatorLabel(strings.ourChoice)
+                                SeparatorLabel(stringResource(strings.ourChoice))
 
                                 LazyRow(
                                     modifier = Modifier.height(300.dp),
@@ -653,7 +653,7 @@ fun OfferContent(
                         // visited list offers
                         item {
                             if (visitedHistory.value.isNotEmpty()) {
-                                SeparatorLabel(strings.lastViewedOffers)
+                                SeparatorLabel(stringResource(strings.lastViewedOffers))
                             }
 
                             LazyRow(
@@ -690,7 +690,7 @@ fun DescriptionHtmlOffer(
         )
     }
 
-    SeparatorLabel(strings.description)
+    SeparatorLabel(stringResource(strings.description))
 
     val descriptionHtml = offer.description ?: ""
     descriptionsDecodeHtmlString.value = descriptionHtml.parseHtmlToAnnotatedString()
@@ -1363,7 +1363,7 @@ fun PaymentAndDeliverySection(
     paymentMethods: List<PaymentMethod>?,
     deliveryMethods: List<DeliveryMethod>?
 ) {
-    SeparatorLabel(strings.paymentAndDeliveryLabel)
+    SeparatorLabel(stringResource(strings.paymentAndDeliveryLabel))
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1455,7 +1455,7 @@ fun ParametersSection(
     parameters: List<Param>?
 ) {
     if (!parameters.isNullOrEmpty()) {
-        SeparatorLabel(strings.parametersLabel)
+        SeparatorLabel(stringResource(strings.parametersLabel))
 
         Column(
             modifier = Modifier
@@ -1496,7 +1496,7 @@ fun AuctionBidsSection(
 ) {
    val bids =  offer.bids
     if (bids != null) {
-        SeparatorLabel(strings.bidsLabel)
+        SeparatorLabel(stringResource(strings.bidsLabel))
 
         LazyColumn(
             modifier = Modifier

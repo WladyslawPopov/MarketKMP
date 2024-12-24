@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -14,7 +15,8 @@ import market.engine.core.data.globalData.ThemeResources.colors
 fun DynamicLabel(
     text : String,
     isMandatory : Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.labelMedium
 ) {
     val label = buildAnnotatedString {
         append(text)
@@ -29,7 +31,7 @@ fun DynamicLabel(
     ) {
         Text(
             label,
-            style = MaterialTheme.typography.labelMedium
+            style = style
         )
     }
 }
