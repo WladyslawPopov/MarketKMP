@@ -116,7 +116,7 @@ open class BaseViewModel: ViewModel() {
                         categoriesWithLotCounts.awaitAll()
                             .filter { it.estimatedActiveOffersCount > 0 }
                     } else {
-                        payload.objects.filter { it.estimatedActiveOffersCount > 0 }
+                        payload.objects
                     }
 
                     _responseCategory.value = categories

@@ -1,5 +1,9 @@
 package market.engine.widgets.textFields
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -8,8 +12,11 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -33,11 +40,7 @@ fun DynamicInputField(
         mutableStateOf(field.data?.jsonPrimitive?.content ?: "")
     }
 
-    val error = remember {  mutableStateOf(processInput(field.errors)) }
-
-    val isError = remember {
-        mutableStateOf(error.value == null)
-    }
+    val errorState = rememberUpdatedState(field.errors)
 
     val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
 
@@ -49,75 +52,86 @@ fun DynamicInputField(
         )
     }
 
-    TextField(
-        value = textState.value,
-        onValueChange = {
-            if (maxSymbols != null) {
-                if ( maxSymbols >= it.length) {
-                    counter.value = maxSymbols - it.length
+    Column {
+        if (maxSymbols != null) {
+            Text(
+                "${stringResource(strings.charactersLeftLabel)}: ${counter.value}",
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.align(Alignment.End)
+            )
+        }
+        TextField(
+            value = textState.value,
+            onValueChange = {
+                if (maxSymbols != null) {
+                    if ( maxSymbols >= it.length) {
+                        counter.value = maxSymbols - it.length
+                        field.data = JsonPrimitive(it)
+                        textState.value = it
+                    }
+                }else{
                     field.data = JsonPrimitive(it)
                     textState.value = it
                 }
-            }else{
-                field.data = JsonPrimitive(it)
-                textState.value = it
-            }
 
-        },
-        label = {
-            DynamicLabel(
-                text = label ?: field.shortDescription ?: field.longDescription ?:  "",
-                isMandatory = isMandatory.value
-            )
-        },
-        suffix = {
-            if (sufix != null) {
+            },
+            label = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    DynamicLabel(
+                        text = label ?: field.shortDescription ?: field.longDescription ?:  "",
+                        isMandatory = isMandatory.value
+                    )
+                }
+            },
+            suffix = {
+                if (sufix != null) {
+                    Text(
+                        text = sufix,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.black
+                    )
+                }
+            },
+            modifier = modifier,
+            singleLine = singleLine,
+            shape = MaterialTheme.shapes.medium,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = colors.black,
+                unfocusedTextColor = colors.black,
+
+                focusedContainerColor = colors.white,
+                unfocusedContainerColor = colors.white,
+
+                focusedIndicatorColor = colors.transparent,
+                unfocusedIndicatorColor = colors.transparent,
+                disabledIndicatorColor = colors.transparent,
+                errorIndicatorColor = colors.transparent,
+
+                errorContainerColor = colors.white,
+
+                focusedPlaceholderColor = colors.steelBlue,
+                unfocusedPlaceholderColor = colors.steelBlue,
+                disabledPlaceholderColor = colors.transparent
+            ),
+            textStyle = MaterialTheme.typography.titleSmall,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = checkNumberKeyBoard(field)
+            ),
+            supportingText = {
                 Text(
-                    text = sufix,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.black
+                    processInput(errorState.value) ?: "",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.notifyTextColor
                 )
             }
-        },
-        modifier = modifier,
-        singleLine = singleLine,
-        shape = MaterialTheme.shapes.medium,
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = colors.black,
-            unfocusedTextColor = colors.black,
+        )
+    }
 
-            focusedContainerColor = colors.white,
-            unfocusedContainerColor = colors.white,
 
-            focusedIndicatorColor = colors.transparent,
-            unfocusedIndicatorColor = colors.transparent,
-            disabledIndicatorColor = colors.transparent,
-            errorIndicatorColor = colors.transparent,
 
-            focusedPlaceholderColor = colors.steelBlue,
-            unfocusedPlaceholderColor = colors.steelBlue,
-            disabledPlaceholderColor = colors.transparent
-        ),
-        textStyle = MaterialTheme.typography.titleSmall,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = checkNumberKeyBoard(field)
-        ),
-        isError = isError.value,
-        supportingText = {
-
-            if (maxSymbols != null) {
-                Text(
-                    "${stringResource(strings.charactersLeftLabel)}: ${counter.value}",
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-
-            Text(
-                error.value ?: "",
-                style = MaterialTheme.typography.labelMedium,
-                color = colors.notifyTextColor
-            )
-        }
-    )
 }
 

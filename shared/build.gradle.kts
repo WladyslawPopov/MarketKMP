@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -22,7 +21,7 @@ sqldelight {
 kotlin {
     androidTarget {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
 
@@ -69,6 +68,14 @@ kotlin {
 
             implementation(libs.richeditor.compose)
 
+            // Enables FileKit without Compose dependencies
+            implementation(libs.filekit.core)
+
+            // Enables FileKit with Composable utilities
+            implementation(libs.filekit.compose)
+
+            implementation(libs.slf4j.simple)
+
             implementation(libs.skiko)
 
             implementation(libs.reorderable)
@@ -83,6 +90,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java)
             implementation(libs.androidx.runtime.desktop)
+
+
         }
         iosMain.dependencies {
             implementation(libs.native.driver)
@@ -110,11 +119,12 @@ android {
     namespace = "market.engine.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
 }
+
 

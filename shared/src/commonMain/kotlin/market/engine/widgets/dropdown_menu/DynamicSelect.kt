@@ -72,6 +72,7 @@ fun DynamicSelect(
         if (error.value != null){
             ErrorText(
                 text = error.value ?: "",
+                modifier = Modifier.padding(dimens.smallPadding)
             )
         }
     }

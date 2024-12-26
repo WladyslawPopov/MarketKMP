@@ -28,7 +28,7 @@ import market.engine.fragments.profileMyOffers.ProfileMyOffersAppBar
 @Serializable
 data class MyOfferConfig(
     @Serializable
-    val type: LotsType
+    val lotsType: LotsType
 )
 
 @Composable
@@ -91,7 +91,7 @@ fun itemMyOffers(
 ): MyOffersComponent {
     return DefaultMyOffersComponent(
         componentContext = componentContext,
-        type = config.type,
+        type = config.lotsType,
         offerSelected = { id ->
             profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
         },
@@ -102,7 +102,7 @@ fun itemMyOffers(
             profileNavigation.pushNew(
                 ProfileConfig.CreateOfferScreen(
                     catPath = catPath,
-                    type = type,
+                    createOfferType = type,
                     offerId = offerId,
                 )
             )

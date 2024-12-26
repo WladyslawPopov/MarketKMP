@@ -63,7 +63,7 @@ sealed class ProfileConfig {
     data class CreateOfferScreen(
         val catPath: List<Long>?,
         val offerId: Long? = null,
-        val type : CreateOfferType,
+        val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : ProfileConfig()
 }
@@ -141,7 +141,7 @@ fun createProfileChild(
                     profileNavigation.pushNew(
                         ProfileConfig.CreateOfferScreen(
                             catPath = catPath,
-                            type = type,
+                            createOfferType = type,
                             externalImages = externalImages,
                             offerId = offerId
                         )
@@ -205,7 +205,7 @@ fun createProfileChild(
                 componentContext = componentContext,
                 catPath = config.catPath,
                 offerId = config.offerId,
-                type = config.type,
+                type = config.createOfferType,
                 externalImages = config.externalImages,
             ) {
                 profileNavigation.pop()

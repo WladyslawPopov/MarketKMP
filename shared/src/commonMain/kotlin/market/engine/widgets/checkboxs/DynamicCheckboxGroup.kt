@@ -114,7 +114,8 @@ fun DynamicCheckboxGroup(
                         modifier = Modifier.padding(start = dimens.smallPadding)
                     )
                 }
-                AnimatedVisibility(selectedItems.value.contains(choiceCode)) {
+
+                AnimatedVisibility(selectedItems.value.contains(choiceCode) && choice.extendedFields != null) {
                     Column(
                         modifier = Modifier.fillMaxWidth()
                             .padding(dimens.smallPadding),
@@ -175,7 +176,7 @@ fun DynamicCheckboxGroup(
         }
 
         if (error.value != null) {
-            ErrorText(text = error.value ?: "")
+            ErrorText(text = error.value ?: "", modifier = Modifier.padding(dimens.smallPadding))
         }
     }
 }

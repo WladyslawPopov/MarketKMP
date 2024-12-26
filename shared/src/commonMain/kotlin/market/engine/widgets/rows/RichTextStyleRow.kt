@@ -1,15 +1,10 @@
 package market.engine.widgets.rows
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.ParagraphStyle
@@ -18,224 +13,241 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
-import com.mohamedrejeb.richeditor.model.RichSpanStyle
 import com.mohamedrejeb.richeditor.model.RichTextState
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.widgets.buttons.RichTextStyleButton
-import market.engine.widgets.buttons.SpellCheck
 
 
-@OptIn(ExperimentalRichTextApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RichTextStyleRow(
     modifier: Modifier = Modifier,
     state: RichTextState,
 ) {
-    LazyRow(
-        verticalAlignment = Alignment.CenterVertically,
+    FlowRow (
+        verticalArrangement = Arrangement.SpaceAround,
+        horizontalArrangement = Arrangement.Start,
         modifier = modifier
     ) {
-        item {
-            RichTextStyleButton(
-                onClick = {
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentParagraphStyle.textAlign != TextAlign.Center) {
                     state.addParagraphStyle(
                         ParagraphStyle(
-                            textAlign = TextAlign.Left,
+                            textAlign = TextAlign.Left
                         )
                     )
-                },
-                isSelected = state.currentParagraphStyle.textAlign == TextAlign.Left,
-                icon = drawables.alignLeftIcon
-            )
-        }
+                } else {
+                    state.removeParagraphStyle(
+                        ParagraphStyle(
+                            textAlign = TextAlign.Left
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentParagraphStyle.textAlign == TextAlign.Left,
+            icon = drawables.alignLeftIcon
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentParagraphStyle.textAlign != TextAlign.Center) {
                     state.addParagraphStyle(
                         ParagraphStyle(
                             textAlign = TextAlign.Center
                         )
                     )
-                },
-                isSelected = state.currentParagraphStyle.textAlign == TextAlign.Center,
-                icon = drawables.alignCenterIcon
-            )
-        }
+                } else {
+                    state.removeParagraphStyle(
+                        ParagraphStyle(
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+            },
+            isSelected = state.currentParagraphStyle.textAlign == TextAlign.Center,
+            icon = drawables.alignCenterIcon
+        )
+
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentParagraphStyle.textAlign != TextAlign.Right) {
                     state.addParagraphStyle(
                         ParagraphStyle(
                             textAlign = TextAlign.Right
                         )
                     )
-                },
-                isSelected = state.currentParagraphStyle.textAlign == TextAlign.Right,
-                icon = drawables.alignRightIcon
-            )
-        }
+                }else{
+                    state.removeParagraphStyle(
+                        ParagraphStyle(
+                            textAlign = TextAlign.Right
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentParagraphStyle.textAlign == TextAlign.Right,
+            icon = drawables.alignRightIcon
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentSpanStyle.fontWeight != FontWeight.Bold) {
                     state.toggleSpanStyle(
                         SpanStyle(
                             fontWeight = FontWeight.Bold
                         )
                     )
-                },
-                isSelected = state.currentSpanStyle.fontWeight == FontWeight.Bold,
-                icon = drawables.textBoldIcon
-            )
-        }
+                }else{
+                    state.removeSpanStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentSpanStyle.fontWeight == FontWeight.Bold,
+            icon = drawables.textBoldIcon
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentSpanStyle.fontStyle != FontStyle.Italic) {
                     state.toggleSpanStyle(
                         SpanStyle(
                             fontStyle = FontStyle.Italic
                         )
                     )
-                },
-                isSelected = state.currentSpanStyle.fontStyle == FontStyle.Italic,
-                icon = drawables.textItalicIcon
-            )
-        }
+                }else{
+                    state.removeSpanStyle(
+                        SpanStyle(
+                            fontStyle = FontStyle.Italic
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentSpanStyle.fontStyle == FontStyle.Italic,
+            icon = drawables.textItalicIcon
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentSpanStyle.textDecoration?.contains(TextDecoration.Underline) != true) {
                     state.toggleSpanStyle(
                         SpanStyle(
                             textDecoration = TextDecoration.Underline
                         )
                     )
-                },
-                isSelected = state.currentSpanStyle.textDecoration?.contains(TextDecoration.Underline) == true,
-                icon = drawables.textUnderlineIcon
-            )
-        }
+                }else{
+                    state.removeSpanStyle(
+                        SpanStyle(
+                            textDecoration = TextDecoration.Underline
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentSpanStyle.textDecoration?.contains(TextDecoration.Underline) == true,
+            icon = drawables.textUnderlineIcon
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentSpanStyle.textDecoration?.contains(TextDecoration.LineThrough) != true) {
                     state.toggleSpanStyle(
                         SpanStyle(
                             textDecoration = TextDecoration.LineThrough
                         )
                     )
-                },
-                isSelected = state.currentSpanStyle.textDecoration?.contains(TextDecoration.LineThrough) == true,
-                icon = drawables.textCrossIcon
-            )
-        }
-
-        item {
-            RichTextStyleButton(
-                onClick = {
-                    state.toggleSpanStyle(
+                }else{
+                    state.removeSpanStyle(
                         SpanStyle(
-                            fontSize = 28.sp
+                            textDecoration = TextDecoration.LineThrough
                         )
                     )
-                },
-                isSelected = state.currentSpanStyle.fontSize == 28.sp,
-                icon = drawables.textBigIcon
-            )
-        }
+                }
+            },
+            isSelected = state.currentSpanStyle.textDecoration?.contains(TextDecoration.LineThrough) == true,
+            icon = drawables.textCrossIcon
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+        val largeText = MaterialTheme.typography
+
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentSpanStyle.fontSize != largeText.titleLarge.fontSize) {
+                    state.toggleSpanStyle(
+                        SpanStyle(
+                            fontSize = largeText.titleLarge.fontSize,
+                        )
+                    )
+                }else{
+                    state.removeSpanStyle(
+                        SpanStyle(
+                            fontSize = largeText.titleLarge.fontSize,
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentSpanStyle.fontSize == largeText.titleLarge.fontSize,
+            icon = drawables.textBigIcon
+        )
+
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentSpanStyle.color != Color.Red) {
                     state.toggleSpanStyle(
                         SpanStyle(
                             color = Color.Red
                         )
                     )
-                },
-                isSelected = state.currentSpanStyle.color == Color.Red,
-                icon = drawables.fillCircleIcon,
-                tint = Color.Red
-            )
-        }
+                } else {
+                    state.removeSpanStyle(
+                        SpanStyle(
+                            color = Color.Red
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentSpanStyle.color == Color.Red,
+            icon = drawables.fillCircleIcon,
+            tint = Color.Red
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
+        RichTextStyleButton(
+            onClick = {
+                if (state.currentSpanStyle.background != Color.Yellow) {
                     state.toggleSpanStyle(
                         SpanStyle(
                             background = Color.Yellow
                         )
                     )
-                },
-                isSelected = state.currentSpanStyle.background == Color.Yellow,
-                icon = drawables.recordCircleIcon,
-                tint = Color.Yellow
-            )
-        }
+                }else{
+                    state.removeSpanStyle(
+                        SpanStyle(
+                            background = Color.Yellow
+                        )
+                    )
+                }
+            },
+            isSelected = state.currentSpanStyle.background == Color.Yellow,
+            icon = drawables.recordCircleIcon,
+            tint = Color.Yellow
+        )
 
-        item {
-            Box(
-                Modifier
-                    .height(24.dp)
-                    .width(1.dp)
-                    .background(Color(0xFF393B3D))
-            )
-        }
+        RichTextStyleButton(
+            onClick = {
+                state.toggleUnorderedList()
+            },
+            isSelected = state.isUnorderedList,
+            icon = drawables.listCheckIcon,
+        )
 
-        item {
-            RichTextStyleButton(
-                onClick = {
-                    state.toggleUnorderedList()
-                },
-                isSelected = state.isUnorderedList,
-                icon = drawables.listCheckIcon,
-            )
-        }
-
-        item {
-            RichTextStyleButton(
-                onClick = {
-                    state.toggleOrderedList()
-                },
-                isSelected = state.isOrderedList,
-                icon = drawables.listOrderedIcon,
-            )
-        }
-
-        item {
-            RichTextStyleButton(
-                onClick = {
-                    state.addRichSpan(SpellCheck)
-                },
-                isSelected = false,
-                icon = drawables.sortByAlphabetIcon,
-            )
-        }
-
-        item {
-            Box(
-                Modifier
-                    .height(24.dp)
-                    .width(1.dp)
-                    .background(Color(0xFF393B3D))
-            )
-        }
-
-        item {
-            RichTextStyleButton(
-                onClick = {
-                    state.toggleCodeSpan()
-                },
-                isSelected = state.isCodeSpan,
-                icon = drawables.codeIcon,
-            )
-        }
+        RichTextStyleButton(
+            onClick = {
+                state.toggleOrderedList()
+            },
+            isSelected = state.isOrderedList,
+            icon = drawables.listOrderedIcon,
+        )
     }
 }

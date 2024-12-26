@@ -3,7 +3,6 @@ package market.engine.common
 import android.content.Context
 import market.engine.core.network.ServerResponse
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Environment
 import coil3.imageLoader
 import coil3.request.ImageRequest
@@ -13,15 +12,14 @@ import coil3.toBitmap
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.PartData
-import io.ktor.utils.io.jvm.nio.toByteReadChannel
-import io.ktor.utils.io.streams.asInput
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import kotlinx.io.asByteChannel
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
+import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.deserializePayload
@@ -36,11 +34,11 @@ class FileUpload {
 
     private val context = appContext!!
 
-    suspend fun uploadFile(uri: Uri?, fileName: String, mimeType: String, url: String? = ""): ServerResponse<String> {
+    suspend fun uploadFile(photoTemp: PhotoTemp): ServerResponse<String> {
         return coroutineScope {
             async {
                 try {
-                    val part = createMultipartBodyPart(uri, fileName, mimeType, url.toString())
+                    val part = createMultipartBodyPart(photoTemp)
 
                     val response = apiService.uploadFile(part)
                     try {
@@ -61,54 +59,39 @@ class FileUpload {
         }
     }
 
-    private suspend fun createMultipartBodyPart(uri: Uri?, fileName: String, mimeType: String, url: String): List<PartData> {
-        val contentResolver = context.contentResolver
-        if (uri != null) {
-            val inputStream = contentResolver.openInputStream(uri)
-            val file = File(context.cacheDir, fileName)
-            file.outputStream().use { outputStream ->
-                inputStream?.copyTo(outputStream)
+    private suspend fun createMultipartBodyPart(
+        photoTemp: PhotoTemp
+    ): List<PartData> {
+        val file: File = if (photoTemp.file?.uri != null) {
+            photoTemp.uri = photoTemp.file?.uri.toString()
+            val contentResolver = context.contentResolver
+            val tempFile = File(context.cacheDir, photoTemp.file?.name ?: "")
+            contentResolver.openInputStream(photoTemp.file?.uri!!)?.use { inputStream ->
+                tempFile.outputStream().use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
             }
-
-            val filePart = PartData.FileItem(
-                { file.inputStream().asInput().asByteChannel().toByteReadChannel() },
-                {},
-                Headers.build {
-                    append(
-                        HttpHeaders.ContentDisposition,
-                        "form-data; name=\"file\"; filename=\"$fileName\""
-                    )
-                    append(HttpHeaders.ContentType, mimeType)
-                }
-            )
-
-
-            val typePart = createPartFromString()
-
-            return listOf(filePart, typePart)
-        }else{
-
-            val file = downloadImageAndSaveAsFile(url)
-
-            val filePart = PartData.FileItem(
-                { file.inputStream().asInput().asByteChannel().toByteReadChannel() },
-                {},
-                Headers.build {
-                    append(
-                        HttpHeaders.ContentDisposition,
-                        "form-data; name=\"file\"; filename=\"$fileName\""
-                    )
-                    append(HttpHeaders.ContentType, mimeType)
-                }
-            )
-
-
-            val typePart = createPartFromString()
-
-            return listOf(filePart, typePart)
+            tempFile
+        } else {
+            downloadImageAndSaveAsFile(photoTemp.url ?: "")
         }
-    }
 
+        val filePart = PartData.FileItem(
+            { file.inputStream().toByteReadChannel() },
+            {},
+            Headers.build {
+                append(
+                    HttpHeaders.ContentDisposition,
+                    "form-data; name=\"file\"; filename=\"${photoTemp.file?.name}\""
+                )
+                append(HttpHeaders.ContentType, "image/jpeg")
+            }
+        )
+
+        val typePart = createPartFromString()
+
+        return listOf(filePart, typePart)
+    }
     private suspend fun downloadImageAndSaveAsFile(imageUrl: String): File {
         try {
 

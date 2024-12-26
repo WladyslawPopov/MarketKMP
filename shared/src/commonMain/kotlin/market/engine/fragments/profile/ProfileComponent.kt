@@ -105,9 +105,9 @@ class DefaultProfileComponent(
             initialPages = {
                 Pages(
                     listOf(
-                        MyOfferConfig(type = LotsType.MYLOT_ACTIVE),
-                        MyOfferConfig(type = LotsType.MYLOT_UNACTIVE),
-                        MyOfferConfig(type = LotsType.MYLOT_FUTURE)
+                        MyOfferConfig(lotsType = LotsType.MYLOT_ACTIVE),
+                        MyOfferConfig(lotsType = LotsType.MYLOT_UNACTIVE),
+                        MyOfferConfig(lotsType = LotsType.MYLOT_FUTURE)
                     ),
                     selectedIndex = 0,
                 )

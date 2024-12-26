@@ -1,5 +1,6 @@
 package market.engine.fragments.createOffer
 
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,13 +9,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import market.engine.common.getPhotoPicker
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.DynamicPayload
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
@@ -24,10 +25,10 @@ import kotlin.uuid.Uuid
 class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel() {
 
     private var _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    val responseGetPage : StateFlow<DynamicPayload<OperationResult>?> = _responseGetPage.asStateFlow()
+    val responseDynamicPayload : StateFlow<DynamicPayload<OperationResult>?> = _responseGetPage.asStateFlow()
 
     private var _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    val responsePostPage : StateFlow<DynamicPayload<OperationResult>?> = _responsePostPage.asStateFlow()
+    val responseCreateOffer : StateFlow<DynamicPayload<OperationResult>?> = _responsePostPage.asStateFlow()
 
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
     val responseImages: StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
@@ -35,21 +36,14 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
-    @OptIn(ExperimentalUuidApi::class)
-    fun getImages() {
-        val photoPicker = getPhotoPicker()
-        viewModelScope.launch {
-            val images = withContext(Dispatchers.IO){
-                photoPicker.pickImagesRaw()
-            }
+    val positionList = mutableStateOf(0)
 
+    fun getImages(pickImagesRaw : List<PhotoTemp>) {
+        viewModelScope.launch {
             _responseImages.value = buildList {
                 addAll(_responseImages.value)
-                images.forEach {
+                pickImagesRaw.forEach {
                     if (size < MAX_IMAGE_COUNT) {
-                        if (it.id == null){
-                            it.id = Uuid.random().toString()
-                        }
                         add(it)
                     }
                 }
@@ -145,7 +139,15 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
                         try {
                             val serializer = DynamicPayload.serializer(OperationResult.serializer())
                             val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            _responsePostPage.value = payload
+                            if (payload.status == "operation_success"){
+                                _responsePostPage.value = payload
+                            }else{
+                                _responseGetPage.value = _responseGetPage.value?.let { currentPayload ->
+                                    val updatedFields = arrayListOf<Fields>()
+                                    updatedFields.addAll(payload.recipe?.fields ?: currentPayload.fields)
+                                    currentPayload.copy(fields = updatedFields)
+                                }
+                            }
                         }catch (e: Exception){
                             throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                         }

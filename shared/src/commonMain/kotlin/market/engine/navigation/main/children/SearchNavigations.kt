@@ -49,7 +49,7 @@ sealed class SearchConfig {
     data class CreateOfferScreen(
         val catPath: List<Long>?,
         val offerId: Long? = null,
-        val type : CreateOfferType,
+        val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : SearchConfig()
 }
@@ -145,7 +145,7 @@ fun createSearchChild(
                     searchNavigation.pushNew(
                         SearchConfig.CreateOfferScreen(
                             catPath = catPath,
-                            type = type,
+                            createOfferType = type,
                             externalImages = externalImages,
                             offerId = offerId
                         )
@@ -183,7 +183,7 @@ fun createSearchChild(
                 componentContext = componentContext,
                 catPath = config.catPath,
                 offerId = config.offerId,
-                type = config.type,
+                type = config.createOfferType,
                 externalImages = config.externalImages,
                 navigateBack = {
                     searchNavigation.pop()

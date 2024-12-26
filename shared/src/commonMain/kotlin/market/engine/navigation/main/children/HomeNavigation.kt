@@ -56,7 +56,7 @@ sealed class HomeConfig {
     data class CreateOfferScreen(
         val catPath: List<Long>? = null,
         val offerId: Long? = null,
-        val type : CreateOfferType,
+        val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : HomeConfig()
 }
@@ -207,7 +207,7 @@ fun createHomeChild(
             componentContext = componentContext,
             catPath = config.catPath,
             offerId = config.offerId,
-            type = config.type,
+            type = config.createOfferType,
             externalImages = config.externalImages,
             navigateBack = {
                 homeNavigation.pop()

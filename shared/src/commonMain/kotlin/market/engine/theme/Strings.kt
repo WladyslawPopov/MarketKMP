@@ -311,4 +311,6 @@ interface Strings {
     val offerStartInFutureLabel : StringResource
     val selectTimeActiveLabel : StringResource
     val actionChangeLabel :  StringResource
+
+    val descriptionPlaceholderLabel : StringResource
 }

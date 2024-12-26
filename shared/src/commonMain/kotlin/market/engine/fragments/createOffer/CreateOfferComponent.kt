@@ -14,7 +14,7 @@ interface CreateOfferComponent {
     data class Model(
         var catPath : List<Long>?,
         val offerId : Long?,
-        val type : CreateOfferType,
+        val createOfferType : CreateOfferType,
         val externalImages : List<String>?,
         val createOfferViewModel: CreateOfferViewModel
     )
@@ -37,7 +37,7 @@ class DefaultCreateOfferComponent(
         CreateOfferComponent.Model(
             catPath = catPath,
             offerId = offerId,
-            type = type,
+            createOfferType = type,
             externalImages = externalImages,
             createOfferViewModel = createOfferViewModel
         )

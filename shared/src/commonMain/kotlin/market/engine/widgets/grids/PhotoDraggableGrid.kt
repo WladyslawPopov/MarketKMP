@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -25,7 +25,7 @@ import market.engine.fragments.createOffer.CreateOfferViewModel
 import market.engine.widgets.items.PhotoCard
 import org.jetbrains.compose.resources.stringResource
 import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyStaggeredGridState
+import sh.calvin.reorderable.rememberReorderableLazyGridState
 
 @Composable
 fun PhotoDraggableGrid(
@@ -34,8 +34,8 @@ fun PhotoDraggableGrid(
     deletePhoto: (PhotoTemp) -> Unit = {}
 ) {
     val listState = rememberUpdatedState(photoList)
-    val lazyStaggeredGridState = rememberLazyStaggeredGridState()
-    val reorderableState = rememberReorderableLazyStaggeredGridState(lazyStaggeredGridState) { from, to ->
+    val lazyStaggeredGridState = rememberLazyGridState()
+    val reorderableState = rememberReorderableLazyGridState(lazyStaggeredGridState) { from, to ->
         val newList = listState.value.toMutableList()
         newList.add(to.index, newList.removeAt(from.index))
         viewModel.setImages(newList)
@@ -43,13 +43,13 @@ fun PhotoDraggableGrid(
 
     val error = stringResource(strings.failureUploadPhoto)
 
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Adaptive(minSize = 150.dp),
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 150.dp),
         modifier = Modifier.fillMaxWidth().heightIn(max = (200 * photoList.size).dp),
         state = lazyStaggeredGridState,
         contentPadding = PaddingValues(dimens.mediumPadding),
-        verticalItemSpacing = dimens.mediumPadding,
         horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
     ) {
         items(listState.value, key = { it.id ?: it.tempId ?: it.uri ?: it.url ?: "" }) { item ->
             ReorderableItem(reorderableState, key = item.id ?: item.tempId ?: item.uri ?: item.url ?: "") {
@@ -75,7 +75,7 @@ fun PhotoDraggableGrid(
                     updatePhoto = {
                         val tempId = uploadFile(item)
                         if (tempId != null){
-                           tempId
+                           return@PhotoCard tempId
                         }else{
                             viewModel.showToast(
                                 ToastItem(
@@ -84,7 +84,7 @@ fun PhotoDraggableGrid(
                                     message = "$error $tempId"
                                 )
                             )
-                            tempId
+                           return@PhotoCard tempId
                         }
                     },
                     deletePhoto = deletePhoto

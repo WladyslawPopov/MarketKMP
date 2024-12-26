@@ -40,7 +40,6 @@ class FileUpload {
 
             println("Prepared multipart body for: URI=${photoTemp.uri}, URL=${photoTemp.url}")
 
-            // Отправляем на сервер
             val response = apiService.uploadFile(parts)
             if (response.payload == null) {
                 throw ServerErrorException("No response payload", "Server returned empty response")
@@ -63,13 +62,13 @@ class FileUpload {
     private suspend fun createMultipartBodyPart(photoTemp: PhotoTemp): List<PartData>? {
         return withContext(Dispatchers.IO) {
             try {
-                val (nsData, fileName) = if (!photoTemp.uri.isNullOrBlank()) {
-                    val uri = photoTemp.uri!!
+                val (nsData, fileName) = if (photoTemp.file?.nsUrl != null) {
+                    val uri = photoTemp.file?.nsUrl!!
+                    photoTemp.uri = uri.path
                     println("Creating multipart part from local URI: $uri")
 
                     val fileName = "image_${photoTemp.tempId ?: getCurrentDate()}.jpg"
-                    val nsUrl = NSURL.fileURLWithPath(uri.removePrefix("file://"))
-                    val data = NSData.dataWithContentsOfURL(nsUrl)
+                    val data = NSData.dataWithContentsOfURL(uri)
                         ?: throw Exception("Failed to load data from URI: $uri")
 
                     data to fileName
@@ -97,9 +96,7 @@ class FileUpload {
                     }
                 }
 
-
                 val byteReadChannel = byteArrayFlow.toByteReadChannel(Dispatchers.IO)
-
 
                 val filePart = PartData.FileItem(
                     { byteReadChannel },

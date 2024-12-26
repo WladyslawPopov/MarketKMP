@@ -7,6 +7,7 @@ android-targetSdk = "35"
 androidx-activityCompose = "1.9.3"
 coilCompose = "3.0.4"
 compose-plugin = "1.7.3"
+filekitCore = "0.8.8"
 kotlin = "2.1.0"
 kotlinx-coroutines = "1.10.0"
 koin = "4.0.0"
@@ -21,6 +22,7 @@ kotlinx-datetime = "0.6.0"
 decompose-version = "3.2.2"
 jetbrainsKotlinJvm = "2.0.0"
 googleServices = "4.4.2"
+slf4jSimple = "2.0.9"
 sqlDelight = "2.0.2"
 pagingCommonVersion = "3.3.0-alpha02-0.4.0"
 sqliteDriver = "2.0.2"
@@ -34,6 +36,8 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCo
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coilCompose" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coilCompose" }
 
+filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCore" }
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekitCore" }
 ksoup-entities = { module = "com.mohamedrejeb.ksoup:ksoup-entities", version.ref = "version" }
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "version" }
 
@@ -52,6 +56,7 @@ android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = 
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
 multiplatform-settings-datastore = { module = "com.russhwolf:multiplatform-settings-datastore", version.ref = "multiplatformSettings" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqliteDriver" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
 sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqliteDriver" }
 
 system-ui-controller = {module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist-version"}

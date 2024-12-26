@@ -63,7 +63,7 @@ sealed class FavoritesConfig {
     data class CreateOfferScreen(
         val catPath: List<Long>?,
         val offerId: Long? = null,
-        val type : CreateOfferType,
+        val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : FavoritesConfig()
 }
@@ -144,7 +144,7 @@ fun createFavoritesChild(
                     favoritesNavigation.pushNew(
                         FavoritesConfig.CreateOfferScreen(
                             catPath = catPath,
-                            type = type,
+                            createOfferType = type,
                             externalImages = externalImages,
                             offerId = offerId
                         )
@@ -206,7 +206,7 @@ fun createFavoritesChild(
                 componentContext = componentContext,
                 catPath = config.catPath,
                 offerId = config.offerId,
-                type = config.type,
+                type = config.createOfferType,
                 externalImages = config.externalImages,
                 navigateBack = {
                     favoritesNavigation.pop()
