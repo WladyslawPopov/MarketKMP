@@ -44,10 +44,6 @@ fun DescriptionOfferTextField(
         stringResource(strings.description)
     )
 
-    val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
-
-    val counter = remember { mutableStateOf(maxSymbols) }
-
     val errorState = rememberUpdatedState(field.errors)
 
     val isMandatory = remember {
@@ -55,7 +51,6 @@ fun DescriptionOfferTextField(
             (field.validators?.find { it.type == "mandatory" }) != null
         )
     }
-
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -103,7 +98,8 @@ fun DescriptionOfferTextField(
             placeholder = {
                 Text(
                     stringResource(strings.descriptionPlaceholderLabel),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.grayText
                 )
             },
             colors = RichTextEditorDefaults.richTextEditorColors(

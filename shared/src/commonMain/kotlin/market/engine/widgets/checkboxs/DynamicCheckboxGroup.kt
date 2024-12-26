@@ -1,12 +1,10 @@
 package market.engine.widgets.checkboxs
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,22 +13,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.processInput
-import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
 import market.engine.widgets.texts.ErrorText
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun DynamicCheckboxGroup(
@@ -43,14 +36,8 @@ fun DynamicCheckboxGroup(
 
     val initialSelected = remember {
         val selectedCodes = mutableListOf<Int>()
-        if (field.hasData) {
-            field.data?.jsonArray?.forEach { item ->
-                try {
-                    item.jsonPrimitive.intOrNull?.let { selectedCodes.add(it) }
-                } catch (_ : Exception){
-                    item.jsonObject["code"]?.jsonPrimitive?.intOrNull?.let { selectedCodes.add(it) }
-                }
-            }
+        field.data?.jsonArray?.forEach { item ->
+            item.jsonPrimitive.intOrNull?.let { selectedCodes.add(it) }
         }
         selectedCodes.toList()
     }
@@ -68,7 +55,6 @@ fun DynamicCheckboxGroup(
         }
 
         selectedItems.value = currentSet.toList()
-
         field.data = buildJsonArray {
             selectedItems.value.forEach {
                 add(JsonPrimitive(it))
@@ -113,64 +99,6 @@ fun DynamicCheckboxGroup(
                         color = colors.black,
                         modifier = Modifier.padding(start = dimens.smallPadding)
                     )
-                }
-
-                AnimatedVisibility(selectedItems.value.contains(choiceCode) && choice.extendedFields != null) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(dimens.smallPadding),
-                        verticalArrangement = Arrangement.SpaceAround,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ){
-                        choice.extendedFields?.forEach {
-                            when (it.key) {
-                                "delivery_price_city" -> {
-                                    DynamicInputField(
-                                        it,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding),
-                                        sufix = stringResource(strings.currencyCode),
-                                        label = stringResource(strings.deliveryCityParameterLabel)
-                                    )
-                                }
-                                "delivery_price_country" -> {
-                                    DynamicInputField(
-                                        it,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding),
-                                        sufix = stringResource(strings.currencyCode),
-                                        label = stringResource(strings.deliveryCountryParameterLabel)
-                                    )
-                                }
-                                "delivery_price_world" -> {
-                                    DynamicInputField(
-                                        it,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding),
-                                        sufix = stringResource(strings.currencyCode),
-                                        label = stringResource(strings.deliveryWorldParameterLabel)
-                                    )
-                                }
-                                "delivery_comment" -> {
-                                    DynamicInputField(
-                                        it,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .heightIn(min = 120.dp, max = 400.dp)
-                                            .padding(dimens.smallPadding),
-                                        label = stringResource(strings.commentLabel),
-                                        singleLine = false,
-                                    )
-                                }
-                                else -> {
-                                    DynamicInputField(
-                                        it,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding)
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }

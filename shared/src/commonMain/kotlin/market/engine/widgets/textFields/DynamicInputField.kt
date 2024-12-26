@@ -16,12 +16,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.checkNumberKeyBoard
+import market.engine.core.utils.checkValidation
 import market.engine.core.utils.processInput
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.stringResource
@@ -70,7 +70,7 @@ fun DynamicInputField(
                         textState.value = it
                     }
                 }else{
-                    field.data = JsonPrimitive(it)
+                    field.data = checkValidation(field, it)
                     textState.value = it
                 }
 

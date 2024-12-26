@@ -20,6 +20,10 @@ interface CreateOfferComponent {
     )
 
     fun onBackClicked()
+
+    fun createNewOffer(offerId: Long? = null, catPath: List<Long>? = null, type: CreateOfferType)
+
+    fun goToOffer(id : Long)
 }
 
 class DefaultCreateOfferComponent(
@@ -28,7 +32,9 @@ class DefaultCreateOfferComponent(
     type : CreateOfferType,
     externalImages : List<String>?,
     componentContext: ComponentContext,
-    val navigateBack: () -> Unit
+    val navigateBack: () -> Unit,
+    val navigateToOffer: (Long) -> Unit,
+    val navigateToCreateOffer: (Long?, List<Long>?, CreateOfferType) -> Unit
 ) : CreateOfferComponent, ComponentContext by componentContext {
 
     private val createOfferViewModel : CreateOfferViewModel = getKoin().get()
@@ -61,5 +67,13 @@ class DefaultCreateOfferComponent(
 
     override fun onBackClicked() {
         navigateBack()
+    }
+
+    override fun createNewOffer(offerId: Long?, catPath: List<Long>?, type: CreateOfferType) {
+        navigateToCreateOffer(offerId, catPath, type)
+    }
+
+    override fun goToOffer(id: Long) {
+        navigateToOffer(id)
     }
 }

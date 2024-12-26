@@ -31,6 +31,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -62,6 +63,9 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -678,64 +682,62 @@ fun OfferContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DescriptionHtmlOffer(
     offer: Offer
 ){
+    val state = rememberRichTextState()
+    val sst = stringResource(strings.standardDescriptionParameterName)
+    val ast = stringResource(strings.additionalDescriptionsParameterName)
+
+
     val descriptionsDecodeHtmlString : MutableState<AnnotatedString> = remember {
         mutableStateOf(
             buildAnnotatedString {
 
+                offer.standardDescriptions?.forEach { standard ->
+                    if ( standard.description != null) {
+                        val formattedDate =
+                            standard.timestamp.toString().convertDateWithMinutes()
+
+                        append("\n")
+                        if (standard.deleted == false && standard.active == true) {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(sst)
+                            }
+                            append("\n")
+                            append(standard.description.parseHtmlToAnnotatedString())
+                            append("\n")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("$sst $formattedDate")
+                            }
+                        } else {
+                            append("\n")
+                            append(standard.description)
+                        }
+                    }
+                }
+
+                offer.addedDescriptions?.forEach { added ->
+                    if ( added.text != null) {
+                        val formattedDate =
+                            added.timestamp.toString().convertDateWithMinutes()
+
+                        append("\n")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("$ast $formattedDate")
+                        }
+                        append("\n")
+                        append("${added.text}\n")
+
+                    }
+                }
             }
         )
     }
 
     SeparatorLabel(stringResource(strings.description))
-
-    val descriptionHtml = offer.description ?: ""
-    descriptionsDecodeHtmlString.value = descriptionHtml.parseHtmlToAnnotatedString()
-
-    offer.addedDescriptions?.forEach { added ->
-        if ( added.text != null) {
-            val formattedDate =
-                added.timestamp.toString().convertDateWithMinutes()
-            descriptionsDecodeHtmlString.value = buildAnnotatedString {
-                append(descriptionsDecodeHtmlString.value)
-
-                append("\n")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append("${stringResource(strings.additionalDescriptionsParameterName)} $formattedDate")
-                }
-                append("\n")
-                append("${added.text}\n")
-            }
-        }
-    }
-
-    offer.standardDescriptions?.forEach { standard ->
-        if ( standard.description != null) {
-            val formattedDate =
-                standard.timestamp.toString().convertDateWithMinutes()
-            descriptionsDecodeHtmlString.value = buildAnnotatedString {
-                append(descriptionsDecodeHtmlString.value)
-                append("\n")
-                if (!standard.deleted && standard.active) {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(stringResource(strings.standardDescriptionParameterName))
-                    }
-                    append("\n")
-                    append(standard.description.parseHtmlToAnnotatedString())
-                    append("\n")
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("${stringResource(strings.editedStandardDescriptionParameterName)} $formattedDate")
-                    }
-                } else {
-                    append("\n")
-                    append(standard.description.parseHtmlToAnnotatedString())
-                }
-            }
-        }
-    }
 
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -743,10 +745,21 @@ fun DescriptionHtmlOffer(
             .background(colors.white)
             .padding(dimens.smallPadding)
     ) {
-        Text(
-            text = descriptionsDecodeHtmlString.value,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal)
-        )
+        state.setHtml(offer.description ?: "")
+
+        Column {
+            Text(
+                text = state.annotatedString,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                modifier = Modifier.padding(dimens.smallPadding)
+            )
+
+            Text(
+                text = descriptionsDecodeHtmlString.value,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                modifier = Modifier.padding(dimens.smallPadding)
+            )
+        }
     }
 }
 

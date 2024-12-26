@@ -313,4 +313,8 @@ interface Strings {
     val actionChangeLabel :  StringResource
 
     val descriptionPlaceholderLabel : StringResource
+
+    val createSimilarOfferLabel : StringResource
+    val congratulationsLabel : StringResource
+    val congratulationsCreateOfferInFutureLabel : StringResource
 }

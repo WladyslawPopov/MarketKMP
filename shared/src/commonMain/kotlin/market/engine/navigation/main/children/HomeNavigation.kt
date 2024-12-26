@@ -13,6 +13,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
@@ -209,6 +210,20 @@ fun createHomeChild(
             offerId = config.offerId,
             type = config.createOfferType,
             externalImages = config.externalImages,
+            navigateOffer = { id ->
+                homeNavigation.pushNew(
+                    HomeConfig.OfferScreen(id, getCurrentDate())
+                )
+            },
+            navigateCreateOffer = { id, path, t ->
+                homeNavigation.replaceCurrent(
+                    HomeConfig.CreateOfferScreen(
+                        catPath = path,
+                        offerId = id,
+                        createOfferType = t,
+                    )
+                )
+            },
             navigateBack = {
                 homeNavigation.pop()
             }

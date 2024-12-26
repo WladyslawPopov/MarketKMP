@@ -3,19 +3,25 @@ package market.engine.fragments.createOffer
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.Card
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.DatePicker
@@ -42,22 +48,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import market.engine.common.getPermissionHandler
@@ -72,20 +89,24 @@ import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateOnlyYear
+import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.checkboxs.DeliveryMethods
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.checkboxs.RadioGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.widgets.exceptions.DynamicPayloadContent
+import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.textFields.DescriptionOfferTextField
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.SeparatorLabel
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.uuid.ExperimentalUuidApi
@@ -115,12 +136,17 @@ fun CreateOfferContent(
     val parentID : MutableState<Long?> = remember { mutableStateOf(model.value.catPath?.get(0) ?: 1L) }
     val isLeaf = remember { mutableStateOf(true) }
     val isRefreshingFromFilters = remember { mutableStateOf(true) }
+    val choiceCodeSaleType = remember { mutableStateOf<Int?>(null) }
+
     val catPath = remember { mutableStateOf(arrayListOf<Long>()) }
     val selectedDate = remember { mutableStateOf<String?>(null) }
     val richTextState = rememberRichTextState()
     val columnState = rememberLazyListState(
          initialFirstVisibleItemIndex = viewModel.positionList.value
     )
+
+    val newOfferId = remember { mutableStateOf<Long?>(null) }
+
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
             initialValue = if (categoryID.value == 1L)
@@ -140,7 +166,6 @@ fun CreateOfferContent(
             }else{
                 viewModel.getCategoriesHistory(catPath.value)
             }
-
 
            url.value = when (type) {
                 CreateOfferType.CREATE -> "categories/${categoryID.value}/operations/create_offer"
@@ -175,9 +200,49 @@ fun CreateOfferContent(
     val isLoading = viewModel.isShowProgress.collectAsState()
     val error : (@Composable () -> Unit)? = null
 
-    LaunchedEffect(Unit){
-        if (dynamicPayloadState.value?.fields?.find { it.key == "description" }?.hasData == true || dynamicPayloadState.value?.fields?.find { it.key == "description" }?.data != null){
-            richTextState.setHtml(dynamicPayloadState.value?.fields?.find { it.key == "description" }?.data ?.jsonPrimitive?.content ?: "")
+    LaunchedEffect(dynamicPayloadState.value){
+        if (dynamicPayloadState.value?.fields?.find { it.key == "description" }?.hasData == true ||
+            dynamicPayloadState.value?.fields?.find { it.key == "description" }?.data != null){
+            richTextState.setHtml(dynamicPayloadState.value?.fields?.find { it.key == "description"
+            }?.data ?.jsonPrimitive?.content ?: "")
+        }
+
+        val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
+
+        if (images.value.isEmpty()) {
+            when (type) {
+                CreateOfferType.EDIT, CreateOfferType.COPY -> {
+                    val photos =
+                        dynamicPayloadState.value?.fields?.filter { it.key?.contains("photo_") == true }
+                            ?: emptyList()
+
+                    photos.forEach { field ->
+                        if (field.links != null) {
+                            tempPhotos.add(
+                                PhotoTemp(
+                                    id = field.key,
+                                    url = field.links.mid?.jsonPrimitive?.content
+                                )
+                            )
+                        }
+                    }
+
+                    viewModel.setImages(tempPhotos.toList())
+                }
+
+                else -> {
+                    if (model.value.externalImages != null) {
+                        model.value.externalImages?.forEach {
+                            tempPhotos.add(
+                                PhotoTemp(
+                                    url = it
+                                )
+                            )
+                        }
+                        viewModel.setImages(tempPhotos.toList())
+                    }
+                }
+            }
         }
     }
 
@@ -211,7 +276,8 @@ fun CreateOfferContent(
         snapshotFlow{
             richTextState.annotatedString
         }.collectLatest { _ ->
-            dynamicPayloadState.value?.fields?.find { it.key == "description" }?.data = JsonPrimitive(richTextState.toHtml())
+            val text = KsoupEntities.decodeHtml(richTextState.toHtml())
+            dynamicPayloadState.value?.fields?.find { it.key == "description" }?.data = JsonPrimitive(text)
         }
     }
 
@@ -227,7 +293,7 @@ fun CreateOfferContent(
         snapshotFlow{
             selectedDate.value
         }.collectLatest { date ->
-            dynamicPayloadState.value?.fields?.find { it.key == "session_start" }?.data = JsonPrimitive(date)
+            dynamicPayloadState.value?.fields?.find { it.key == "future_time" }?.data = JsonPrimitive(date)
         }
     }
 
@@ -235,7 +301,6 @@ fun CreateOfferContent(
         topBar = {
             CreateOfferAppBar(
                         type,
-                dynamicPayloadState.value?.description,
                 onBackClick = {
                     component.onBackClicked()
                 }
@@ -285,15 +350,28 @@ fun CreateOfferContent(
             },
         ) {
             if (createOfferResponse.value?.status == "operation_success") {
+
+                newOfferId.value = createOfferResponse.value?.body?.jsonPrimitive?.longOrNull
+
                 if (type == CreateOfferType.EDIT) {
                     component.onBackClicked()
                 } else {
-                    val id = dynamicPayloadState.value?.operationResult?.message?.split(' ')
-                    AnimatedVisibility(id != null){
+                    AnimatedVisibility(newOfferId.value != null){
                         //success offer
-                        Row {
-
-                        }
+                        SuccessContent(
+                            images.value,
+                            dynamicPayloadState.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: "",
+                            futureTime = selectedDate.value,
+                            goToOffer = {
+                                component.goToOffer(newOfferId.value!!)
+                            },
+                            addSimilarOffer = {
+                                component.createNewOffer(offerId= newOfferId.value, type = CreateOfferType.COPY, catPath = catPath.value)
+                            },
+                            createNewOffer = {
+                                component.createNewOffer(type=CreateOfferType.CREATE)
+                            }
+                        )
                     }
                 }
             }else {
@@ -371,34 +449,6 @@ fun CreateOfferContent(
                         item {
                             SeparatorLabel(stringResource(strings.photoLabel))
 
-                            val photos =
-                                dynamicPayloadState.value?.fields?.filter { it.key?.contains("photo_") == true }
-                                    ?: emptyList()
-                            val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
-                            photos.forEach { field ->
-                                if (field.links != null) {
-                                    tempPhotos.add(
-                                        PhotoTemp(
-                                            url = field.links.mid?.jsonPrimitive?.content
-                                        )
-                                    )
-                                }
-                            }
-                            if (tempPhotos.isNotEmpty()) {
-                                viewModel.setImages(tempPhotos.toList())
-                            } else {
-                                if (model.value.externalImages != null) {
-                                    model.value.externalImages?.forEach {
-                                        tempPhotos.add(
-                                            PhotoTemp(
-                                                url = it
-                                            )
-                                        )
-                                    }
-                                    viewModel.setImages(tempPhotos.toList())
-                                }
-                            }
-
                             Row(
                                 modifier = Modifier.fillMaxWidth()
                                     .padding(dimens.mediumPadding),
@@ -448,8 +498,8 @@ fun CreateOfferContent(
                             ) {
                                 PhotoDraggableGrid(images.value, viewModel) {
                                     if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY){
-                                        if (it.tempId != null && it.url != null) {
-                                            deleteImages.value.add(JsonPrimitive(it.tempId))
+                                        if (it.url != null && it.id != null) {
+                                            deleteImages.value.add(JsonPrimitive(it.id!!.last().toString()))
                                         }
                                     }
                                     val newList = images.value.toMutableList()
@@ -476,6 +526,8 @@ fun CreateOfferContent(
                         val sortList = listOf(
                             "category_id",
                             "saletype",
+                            "startingprice",
+                            "buynowprice",
                             "priceproposaltype",
                             "length_in_days",
                             "quantity",
@@ -496,7 +548,7 @@ fun CreateOfferContent(
                                     when (field.key) {
                                         "category_id" -> {
                                             field.data?.jsonPrimitive?.longOrNull?.let {
-
+                                                categoryID.value = it
                                             }
                                         }
 
@@ -506,81 +558,52 @@ fun CreateOfferContent(
                                                     stringResource(strings.saleTypeLabel)
                                                 )
 
-                                                val choiceCode =
-                                                    remember { mutableStateOf<Int?>(null) }
                                                 DynamicSelect(
                                                     field,
                                                     Modifier.fillMaxWidth()
                                                         .padding(dimens.smallPadding)
                                                 ) { choice ->
-                                                    choiceCode.value = choice?.code?.int
+                                                    choiceCodeSaleType.value = choice?.code?.int
                                                 }
+                                            }
+                                        }
 
+                                        "startingprice" ->{
+                                            item {
                                                 AnimatedVisibility(
-                                                    choiceCode.value != null,
+                                                    choiceCodeSaleType.value == 0 || choiceCodeSaleType.value == 1,
                                                     enter = fadeIn(),
                                                     exit = fadeOut()
                                                 ) {
-                                                    Column {
-                                                        when (choiceCode.value) {
-                                                            1 -> {
-                                                                dynamicPayloadState.value?.fields?.find { it.key == "buynowprice" }
-                                                                    ?.let {
-                                                                        DynamicInputField(
-                                                                            it,
-                                                                            Modifier.fillMaxWidth()
-                                                                                .padding(dimens.smallPadding),
-                                                                            sufix = stringResource(
-                                                                                strings.currencySign
-                                                                            ),
-                                                                            mandatory = true
-                                                                        )
-                                                                    }
-                                                                dynamicPayloadState.value?.fields?.find { it.key == "startingprice" }
-                                                                    ?.let {
-                                                                        DynamicInputField(
-                                                                            it,
-                                                                            Modifier.fillMaxWidth()
-                                                                                .padding(dimens.smallPadding),
-                                                                            sufix = stringResource(
-                                                                                strings.currencySign
-                                                                            ),
-                                                                            mandatory = true
-                                                                        )
-                                                                    }
-                                                            }
+                                                    DynamicInputField(
+                                                        field,
+                                                        Modifier.fillMaxWidth()
+                                                            .padding(dimens.smallPadding),
+                                                        sufix = stringResource(
+                                                            strings.currencySign
+                                                        ),
+                                                        mandatory = true
+                                                    )
+                                                }
+                                            }
+                                        }
 
-                                                            2 -> {
-                                                                dynamicPayloadState.value?.fields?.find { it.key == "buynowprice" }
-                                                                    ?.let {
-                                                                        DynamicInputField(
-                                                                            it,
-                                                                            Modifier.fillMaxWidth()
-                                                                                .padding(dimens.smallPadding),
-                                                                            sufix = stringResource(
-                                                                                strings.currencySign
-                                                                            ),
-                                                                            mandatory = true
-                                                                        )
-                                                                    }
-                                                            }
-
-                                                            0 -> {
-                                                                dynamicPayloadState.value?.fields?.find { it.key == "startingprice" }
-                                                                    ?.let {
-                                                                        DynamicInputField(
-                                                                            it,
-                                                                            Modifier.fillMaxWidth()
-                                                                                .padding(dimens.smallPadding),
-                                                                            sufix = stringResource(
-                                                                                strings.currencySign
-                                                                            ),
-                                                                            mandatory = true
-                                                                        )
-                                                                    }
-                                                            }
-                                                        }
-                                                    }
+                                        "buynowprice" ->{
+                                            item {
+                                                AnimatedVisibility(
+                                                    choiceCodeSaleType.value == 2 || choiceCodeSaleType.value == 1,
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
+                                                ) {
+                                                    DynamicInputField(
+                                                        field,
+                                                        Modifier.fillMaxWidth()
+                                                            .padding(dimens.smallPadding),
+                                                        sufix = stringResource(
+                                                            strings.currencySign
+                                                        ),
+                                                        mandatory = true
+                                                    )
                                                 }
                                             }
                                         }
@@ -606,13 +629,25 @@ fun CreateOfferContent(
                                         }
 
                                         "quantity" -> {
-                                            item {
-                                                DynamicInputField(
-                                                    field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding),
-                                                    mandatory = true
-                                                )
+                                            when (choiceCodeSaleType.value) {
+                                                1 -> {
+                                                    field.data = JsonPrimitive(1)
+                                                }
+                                                //buynow
+                                                2 -> {
+                                                    item {
+                                                        DynamicInputField(
+                                                            field,
+                                                            Modifier.fillMaxWidth()
+                                                                .padding(dimens.smallPadding),
+                                                            mandatory = true
+                                                        )
+                                                    }
+                                                }
+
+                                                0 -> {
+                                                    field.data = JsonPrimitive(1)
+                                                }
                                             }
                                         }
 
@@ -685,7 +720,7 @@ fun CreateOfferContent(
                                                     stringResource(strings.deliveryMethodLabel)
                                                 )
 
-                                                DynamicCheckboxGroup(
+                                                DeliveryMethods(
                                                     field,
                                                     Modifier.fillMaxWidth()
                                                         .padding(dimens.smallPadding)
@@ -725,8 +760,48 @@ fun CreateOfferContent(
                                     dynamicPayloadState.value?.fields?.filter { it.data != null }
 
                                 val jsonBody = buildJsonObject {
-                                    dataFields?.forEach {
-                                        put(it.key ?: "", it.data!!)
+                                    dataFields?.forEach { data ->
+                                        when (data.key) {
+                                            "deliverymethods" -> {
+                                                val valuesDelivery = arrayListOf<JsonObject>()
+                                                data.data?.jsonArray?.forEach { choices ->
+                                                    val deliveryPart = buildJsonObject {
+                                                        put("code", JsonPrimitive(choices.jsonObject["code"]?.jsonPrimitive?.intOrNull))
+
+                                                        data.choices?.find { it.code?.jsonPrimitive?.intOrNull ==
+                                                                choices.jsonObject["code"]?.jsonPrimitive?.intOrNull
+                                                        }?.extendedFields?.forEach { field ->
+                                                            if (field.data != null) {
+                                                                put(
+                                                                    field.key.toString(),
+                                                                    field.data!!.jsonPrimitive
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                    valuesDelivery.add(deliveryPart)
+                                                }
+                                                put(data.key, JsonArray(valuesDelivery))
+                                            }
+
+                                            "category_id" -> {
+                                                put(data.key, JsonPrimitive(categoryID.value))
+                                            }
+                                            "session_start" -> {
+                                                if (selectedDate.value == null) {
+                                                    put(data.key, data.data!!)
+                                                }
+
+                                            }
+                                            "future_time" ->{
+                                                if (selectedDate.value != null) {
+                                                    put(data.key, JsonPrimitive(selectedDate.value))
+                                                }
+                                            }
+                                            else -> {
+                                                put(data.key ?: "", data.data!!)
+                                            }
+                                        }
                                     }
 
                                     when(type){
@@ -739,7 +814,7 @@ fun CreateOfferContent(
                                     val positionArray = buildJsonArray {
                                         images.value.forEach { photo ->
                                             val listIndex = images.value.indexOf(photo) + 1
-                                            if (photo.id != null && photo.url != null) {
+                                            if (photo.tempId != null && photo.url != null) {
                                                 add(buildJsonObject {
                                                     put("key", JsonPrimitive(photo.id))
                                                     put("position", JsonPrimitive(listIndex))
@@ -751,7 +826,7 @@ fun CreateOfferContent(
                                     val tempImagesArray = buildJsonArray {
                                         images.value.forEach { photo ->
                                             val listIndex = images.value.indexOf(photo) + 1
-                                            if (photo.tempId != null) {
+                                            if (photo.tempId != null && photo.uri != null) {
                                                 add(buildJsonObject {
                                                     put("id", JsonPrimitive(photo.tempId))
                                                     put("rotation", JsonPrimitive(photo.rotate))
@@ -780,7 +855,7 @@ fun CreateOfferContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSerializationApi::class)
 @Composable
 fun SessionStartContent(
     selectedDate : MutableState<String?>,
@@ -809,7 +884,7 @@ fun SessionStartContent(
             field.data = JsonPrimitive(choice)
         }else{
             selectedFilterKey.value = 0
-            field.data = JsonPrimitive(0)
+            field.data = JsonPrimitive(null)
         }
     }
 
@@ -818,15 +893,23 @@ fun SessionStartContent(
         exit = fadeOut()
     ){
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(dimens.mediumPadding),
+            modifier = Modifier.fillMaxWidth(0.85f),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                stringResource(strings.selectTimeActiveLabel),
-                style = MaterialTheme.typography.bodyMedium
-            )
+            if(selectedDate.value == null) {
+                Text(
+                    stringResource(strings.selectTimeActiveLabel),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.black
+                )
+            }else{
+                Text(
+                    selectedDate.value?.convertDateWithMinutes() ?: "",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.titleTextColor
+                )
+            }
 
             ActionButton(
                 strings.actionChangeLabel,
@@ -875,9 +958,27 @@ fun SessionStartContent(
                         text = stringResource(strings.acceptAction),
                         backgroundColor = colors.inactiveBottomNavIconColor,
                         onClick = {
-                            val selectedDateMillis = datePickerState.selectedDateMillis
-                            if (selectedDateMillis != null) {
-                                selectedDate.value = (selectedDateMillis/1000L).toString()
+                            if (selectedDate.value == null) {
+                                val selectedDateMillis = datePickerState.selectedDateMillis
+                                if (selectedDateMillis != null) {
+                                    selectedDate.value = selectedDateMillis.toString()
+                                }
+                            } else {
+                                val selectedDateMillis = selectedDate.value?.toLongOrNull() ?: 0L
+                                val selectedHour = timePickerState.hour
+                                val selectedMinute = timePickerState.minute
+
+                                val localDateTime = Instant
+                                    .fromEpochMilliseconds(selectedDateMillis)
+                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                    .date
+                                    .atTime(selectedHour, selectedMinute)
+
+                                selectedDate.value = localDateTime
+                                    .toInstant(TimeZone.currentSystemDefault())
+                                    .epochSeconds.toString()
+
+                                showActivateOfferForFutureDialog.value = false
                             }
                         },
                         modifier = Modifier.padding(dimens.smallPadding),
@@ -916,6 +1017,82 @@ fun SessionStartContent(
                         layoutType = TimePickerLayoutType.Vertical
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun SuccessContent(
+    images: List<PhotoTemp>,
+    title : String,
+    futureTime : String? = null,
+    goToOffer : () -> Unit,
+    createNewOffer : () -> Unit,
+    addSimilarOffer : () -> Unit,
+){
+    Column(
+        modifier = Modifier.fillMaxWidth().wrapContentHeight()
+            .padding(dimens.mediumPadding)
+            .background(colors.white, MaterialTheme.shapes.medium),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        val header = if (futureTime != null) {
+            stringResource(strings.congratulationsCreateOfferInFutureLabel) + " ${futureTime.convertDateWithMinutes()}"
+        } else{
+            stringResource(strings.congratulationsLabel)
+        }
+
+        SeparatorLabel(header)
+
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(dimens.mediumPadding).clickable {
+                    goToOffer()
+                }.clip(MaterialTheme.shapes.medium)
+            ,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Card(
+                shape = MaterialTheme.shapes.medium
+            ) {
+                LoadImage(
+                    images.firstOrNull()?.uri ?: images.firstOrNull()?.url ?: "",
+                    size = 100.dp,
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+
+            Spacer(Modifier.width(dimens.mediumSpacer))
+
+            TitleText(
+                title,
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(dimens.smallPadding),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // add similar
+            AcceptedPageButton(
+                strings.createSimilarOfferLabel,
+                Modifier.weight(1f)
+                    .padding(dimens.smallPadding),
+                containerColor = colors.brightGreen
+            ) {
+                addSimilarOffer()
+            }
+            // create New
+            AcceptedPageButton(
+                strings.createNewOfferTitle,
+                Modifier.weight(1f)
+                    .padding(dimens.smallPadding)
+            ) {
+                createNewOffer()
             }
         }
     }

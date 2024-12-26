@@ -207,6 +207,20 @@ fun createProfileChild(
                 offerId = config.offerId,
                 type = config.createOfferType,
                 externalImages = config.externalImages,
+                navigateOffer = { id ->
+                    profileNavigation.pushNew(
+                        ProfileConfig.OfferScreen(id, getCurrentDate())
+                    )
+                },
+                navigateCreateOffer = { id, path, t ->
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.CreateOfferScreen(
+                            catPath = path,
+                            offerId = id,
+                            createOfferType = t,
+                        )
+                    )
+                },
             ) {
                 profileNavigation.pop()
             }

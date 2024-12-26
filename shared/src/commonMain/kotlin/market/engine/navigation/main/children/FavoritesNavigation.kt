@@ -14,6 +14,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
@@ -208,6 +209,20 @@ fun createFavoritesChild(
                 offerId = config.offerId,
                 type = config.createOfferType,
                 externalImages = config.externalImages,
+                navigateOffer = { id ->
+                    favoritesNavigation.pushNew(
+                        FavoritesConfig.OfferScreen(id, getCurrentDate())
+                    )
+                },
+                navigateCreateOffer = { id, path, t ->
+                    favoritesNavigation.replaceCurrent(
+                        FavoritesConfig.CreateOfferScreen(
+                            catPath = path,
+                            offerId = id,
+                            createOfferType = t,
+                        )
+                    )
+                },
                 navigateBack = {
                     favoritesNavigation.pop()
                 }

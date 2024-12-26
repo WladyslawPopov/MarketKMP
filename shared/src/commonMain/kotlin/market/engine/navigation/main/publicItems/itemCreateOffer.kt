@@ -11,6 +11,8 @@ fun itemCreateOffer(
     offerId: Long?,
     type : CreateOfferType,
     externalImages : List<String>?,
+    navigateOffer: (Long) -> Unit,
+    navigateCreateOffer: (Long?, List<Long>?, CreateOfferType) -> Unit,
     navigateBack: () -> Unit
     ): CreateOfferComponent {
         return DefaultCreateOfferComponent(
@@ -19,6 +21,12 @@ fun itemCreateOffer(
             type = type,
             externalImages = externalImages,
             componentContext,
+            navigateToOffer = { id->
+                navigateOffer(id)
+            },
+            navigateToCreateOffer = { id, path, t ->
+                navigateCreateOffer(id, path, t)
+            },
             navigateBack = {
                 navigateBack()
             }

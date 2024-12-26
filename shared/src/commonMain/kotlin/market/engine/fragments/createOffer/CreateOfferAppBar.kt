@@ -16,16 +16,12 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CreateOfferAppBar(
     type: CreateOfferType,
-    titleField : String?,
     onBackClick: () -> Unit = {},
 ) {
     val title = when(type){
         CreateOfferType.EDIT -> stringResource(strings.editOfferLabel)
-        CreateOfferType.CREATE -> {
-            stringResource(strings.createNewOfferTitle)
-        }
         else -> {
-            titleField ?: stringResource(strings.createNewOfferTitle)
+            stringResource(strings.createNewOfferTitle)
         }
     }
 

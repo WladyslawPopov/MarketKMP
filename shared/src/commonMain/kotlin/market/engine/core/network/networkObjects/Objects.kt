@@ -200,10 +200,10 @@ data class Offer(
 
 @Serializable
 data class StandardDescriptions(
-    @SerialName("deleted") val deleted: Boolean = false,
-    @SerialName("active") val active: Boolean = false,
+    @SerialName("deleted") val deleted: Boolean? = null,
+    @SerialName("active") val active: Boolean? = null,
     @SerialName("description") val description: String? = null,
-    @SerialName("timestamp") val timestamp: Long = 0
+    @SerialName("timestamp") val timestamp: Long? = null
 )
 
 @Serializable
@@ -211,7 +211,7 @@ data class AddedDescriptions(
     @SerialName("text")
     val text: String? = null,
     @SerialName("timestamp")
-    val timestamp: Long,
+    val timestamp: Long?=null,
 )
 
 @Serializable
