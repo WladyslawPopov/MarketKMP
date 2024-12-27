@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -23,10 +22,11 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 fun <T : Any>RadioGroup(
     options:  List<Pair<T, String>>,
     selectedOption: T?,
+    modifier: Modifier = Modifier,
     onOptionSelected: (Boolean, T) -> Unit
 ) {
     Column(
-        modifier = Modifier.padding(dimens.mediumPadding)
+        modifier = modifier
     ) {
         options.forEach { filter ->
             val (filterKey, filterText) = filter

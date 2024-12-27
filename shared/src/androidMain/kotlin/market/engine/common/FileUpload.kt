@@ -82,7 +82,7 @@ class FileUpload {
             Headers.build {
                 append(
                     HttpHeaders.ContentDisposition,
-                    "form-data; name=\"file\"; filename=\"${photoTemp.file?.name}\""
+                    "form-data; name=\"file\"; filename=\"${file.name}\""
                 )
                 append(HttpHeaders.ContentType, "image/jpeg")
             }

@@ -166,6 +166,8 @@ fun CategoryContent(
                     ) {
                         searchCategoryId.value = 1L
                         searchCategoryName.value = catDef
+                        searchParentID.value = null
+                        searchIsLeaf.value = false
                         refresh()
                     }
                 }

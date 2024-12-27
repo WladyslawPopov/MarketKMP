@@ -73,18 +73,18 @@ fun PhotoDraggableGrid(
                         interactionSource = interactionSource,
                     ).sizeIn(maxWidth = 600.dp, maxHeight = 150.dp),
                     updatePhoto = {
-                        val tempId = uploadFile(item)
-                        if (tempId != null){
-                           return@PhotoCard tempId
+                        val res = uploadFile(item)
+                        if (res.success != null){
+                           return@PhotoCard res.success
                         }else{
                             viewModel.showToast(
                                 ToastItem(
                                     type = ToastType.ERROR,
                                     isVisible = true,
-                                    message = "$error $tempId"
+                                    message = "$error ${res.error?.errorCode}"
                                 )
                             )
-                           return@PhotoCard tempId
+                           return@PhotoCard null
                         }
                     },
                     deletePhoto = deletePhoto

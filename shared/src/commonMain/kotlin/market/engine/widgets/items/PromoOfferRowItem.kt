@@ -32,7 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
 
     val images = when {
-        offer.images?.isNotEmpty() == true -> offer.images.firstOrNull()?.urls?.small?.content ?: ""
+        offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content ?: ""
         offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull() ?: ""
         else -> ""
     }

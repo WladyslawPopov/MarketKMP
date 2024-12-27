@@ -31,7 +31,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -64,8 +63,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
-import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -178,9 +175,10 @@ fun OfferContent(
 
     LaunchedEffect(lotState.value){
         lotState.value?.let { offer ->
+            images.clear()
             images.addAll(
                 when {
-                    offer.images?.isNotEmpty() == true -> offer.images.map { it.urls?.big?.content.orEmpty() }
+                    offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() } ?: emptyList()
                     offer.externalImages?.isNotEmpty() == true -> offer.externalImages
                     else -> emptyList()
                 }
@@ -265,21 +263,23 @@ fun OfferContent(
                                     .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  },
                                 contentAlignment = Alignment.Center
                             ) {
-                                HorizontalImageViewer(
-                                    images = images,
-                                    pagerState = pagerState,
-                                )
+                                if(imageSize.value > 0) {
+                                    HorizontalImageViewer(
+                                        images = images,
+                                        pagerState = pagerState,
+                                    )
 
-                                if (offer.videoUrls?.isNotEmpty() == true) {
-                                    SmallImageButton(
-                                        drawables.iconYouTubeSmall,
-                                        modifierIconSize = Modifier.size(dimens.largeIconSize),
-                                        modifier = Modifier
-                                            .size(90.dp)
-                                            .align(Alignment.TopEnd)
-                                            .zIndex(1f), // Higher priority
-                                    ) {
-                                        // Open web view YouTube
+                                    if (offer.videoUrls?.isNotEmpty() == true) {
+                                        SmallImageButton(
+                                            drawables.iconYouTubeSmall,
+                                            modifierIconSize = Modifier.size(dimens.largeIconSize),
+                                            modifier = Modifier
+                                                .size(90.dp)
+                                                .align(Alignment.TopEnd)
+                                                .zIndex(1f), // Higher priority
+                                        ) {
+                                            // Open web view YouTube
+                                        }
                                     }
                                 }
                             }
@@ -425,6 +425,9 @@ fun OfferContent(
                                             },
                                             onClose = {
                                                 isShowOptions.value = false
+                                            },
+                                            onBack = {
+                                                component.onBeakClick()
                                             }
                                         )
                                     }
@@ -682,7 +685,6 @@ fun OfferContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DescriptionHtmlOffer(
     offer: Offer
@@ -766,27 +768,28 @@ fun DescriptionHtmlOffer(
 @Composable
 fun getCountString(offerState: OfferStates, offer: Offer, isMyOffer: Boolean): String {
     val saleType = offer.saleType
-    val isCompletedOrInactive = offerState == OfferStates.COMPLETED || offerState == OfferStates.INACTIVE
+    val isCompleted = offerState == OfferStates.COMPLETED
+    val isCompletedOrInActive = isCompleted || offerState == OfferStates.INACTIVE
+
+    val quantityInfo = "${stringResource(strings.quantityParameterName)}: ${offer.estimatedActiveOffersCount}"
+
+    val qFullInfo = "${stringResource(strings.quantityParameterName)}: ${offer.currentQuantity} ${stringResource(strings.fromParameterName)} ${offer.originalQuantity}"
 
     return when {
         saleType == "buy_now" -> {
-            val quantityInfo = "${stringResource(strings.quantityParameterName)}: ${offer.estimatedActiveOffersCount}"
-            if (isCompletedOrInactive) {
-                if (isMyOffer)
-                    "${stringResource(strings.boughtParameterName)}: ${offer.estimatedActiveOffersCount} ${stringResource(strings.fromParameterName)} ${offer.originalQuantity}"
-                else quantityInfo
+
+            if (isCompletedOrInActive) {
+                quantityInfo
             } else {
-                "${stringResource(strings.quantityParameterName)}: ${offer.currentQuantity} ${stringResource(strings.fromParameterName)} ${offer.originalQuantity}"
+                qFullInfo
             }
         }
 
         saleType == "auction_with_buy_now" && offer.originalQuantity > 1 -> {
-            if (isCompletedOrInactive) {
-                if (isMyOffer)
-                    "${stringResource(strings.boughtParameterName)}: ${offer.estimatedActiveOffersCount} ${stringResource(strings.fromParameterName)} ${offer.originalQuantity}"
-                else "${stringResource(strings.quantityParameterName)}: ${offer.estimatedActiveOffersCount}"
+            if (isCompletedOrInActive) {
+                quantityInfo
             } else {
-                "${stringResource(strings.quantityParameterName)}: ${offer.currentQuantity} ${stringResource(strings.fromParameterName)} ${offer.originalQuantity}"
+                qFullInfo
             }
         }
 
@@ -1215,7 +1218,7 @@ fun LocationOffer(
                 if (offer.region?.name  != null){
                     append(", ")
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.actionTextColor)) {
-                        append(offer.region.name)
+                        append(offer.region!!.name)
                     }
                 }
             },
@@ -1311,8 +1314,14 @@ fun TimeOfferSession(
             Text(
                 text = buildAnnotatedString {
                     append(remainingTime)
-                    if (offer.session?.end != null) {
-                        append("\n(${offer.session?.end?.convertDateWithMinutes()})")
+                    if (state != OfferStates.FUTURE) {
+                        if (offer.session?.end != null) {
+                            append("\n(${offer.session?.end?.convertDateWithMinutes()})")
+                        }
+                    }else{
+                        if (offer.session?.start != null) {
+                            append("\n(${offer.session?.start?.convertDateWithMinutes()})")
+                        }
                     }
                 },
                 style = MaterialTheme.typography.bodyMedium,

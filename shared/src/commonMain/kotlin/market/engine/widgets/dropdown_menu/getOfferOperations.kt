@@ -71,6 +71,7 @@ fun getOfferOperations(
     onUpdateMenuItem: (Offer) -> Unit,
     goToCreateOffer: (CreateOfferType) -> Unit,
     onClose: () -> Unit,
+    onBack: () -> Unit = {},
 ) {
     val scope = baseViewModel.viewModelScope
     val errorMes = remember { mutableStateOf("") }
@@ -400,6 +401,7 @@ fun getOfferOperations(
                                                 eventParameters = eventParam
                                             )
                                             onUpdateMenuItem(offer)
+                                            onBack()
                                             onClose()
                                         }else{
                                             errorMes.value = r.humanMessage.toString()

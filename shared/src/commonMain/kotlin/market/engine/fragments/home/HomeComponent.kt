@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.common.getPermissionHandler
@@ -67,9 +68,11 @@ class DefaultHomeComponent(
     }
 
     private fun updateModel() {
-        homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true)
-        homeViewModel.getOffersPromotedOnMainPage(0, 16)
-        homeViewModel.getOffersPromotedOnMainPage(1, 16)
+        lifecycle.doOnResume {
+            homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true)
+            homeViewModel.getOffersPromotedOnMainPage(0, 16)
+            homeViewModel.getOffersPromotedOnMainPage(1, 16)
+        }
     }
 
     override fun onRefresh() {

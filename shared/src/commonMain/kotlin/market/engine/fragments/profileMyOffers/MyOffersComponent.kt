@@ -114,5 +114,9 @@ class DefaultMyOffersComponent(
 
     override fun goToCreateOffer(type: CreateOfferType, offerId: Long?, catPath : List<Long>?) {
         navigateToCreateOffer(type, offerId, catPath)
+
+        lifecycle.doOnResume {
+            model.value.viewModel.updateItem.value = offerId
+        }
     }
 }

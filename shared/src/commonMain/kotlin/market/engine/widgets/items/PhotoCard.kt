@@ -44,7 +44,7 @@ fun PhotoCard(
 
     LaunchedEffect(item.tempId){
         if (item.tempId == null){
-            item.tempId = updatePhoto(item)
+            updatePhoto(item)
             isLoading.value = false
         }
     }

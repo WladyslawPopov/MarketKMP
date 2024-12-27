@@ -29,11 +29,11 @@ fun checkValidation(field : Fields, value : String): JsonPrimitive {
     if (field.validators?.isNotEmpty() == true) {
         return when(field.validators[0].type){
             "positive_integer","integer" -> {
-                JsonPrimitive(value.toLongOrNull())
+                JsonPrimitive(value.toLongOrNull() ?: 1)
             }
 
             "positive_float", "float" -> {
-                JsonPrimitive(value.toFloatOrNull())
+                JsonPrimitive(value.toFloatOrNull() ?: 0f)
             }
 
             else -> {

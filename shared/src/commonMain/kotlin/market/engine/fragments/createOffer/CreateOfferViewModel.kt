@@ -10,7 +10,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.items.ToastItem
+import market.engine.core.data.types.ToastType
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
@@ -19,6 +22,7 @@ import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
+import org.jetbrains.compose.resources.getString
 
 class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel() {
 
@@ -138,8 +142,22 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
                             val serializer = DynamicPayload.serializer(OperationResult.serializer())
                             val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                             if (payload.status == "operation_success"){
+                                showToast(
+                                    ToastItem(
+                                        isVisible = true,
+                                        message = payload.operationResult?.message ?: getString(strings.operationSuccess),
+                                        type = ToastType.SUCCESS
+                                    )
+                                )
                                 _responsePostPage.value = payload
                             }else{
+                                showToast(
+                                    ToastItem(
+                                        isVisible = true,
+                                        message = payload.operationResult?.message ?: getString(strings.operationFailed),
+                                        type = ToastType.ERROR
+                                    )
+                                )
                                 _responseGetPage.value = _responseGetPage.value?.let { currentPayload ->
                                     val updatedFields = arrayListOf<Fields>()
                                     updatedFields.addAll(payload.recipe?.fields ?: currentPayload.fields)
@@ -159,15 +177,26 @@ class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel()
         }
     }
 
-    fun getCategoriesHistory(catPath: List<Long>) {
+    fun getCategoriesHistory(catId: Long?) {
         viewModelScope.launch {
             try {
                 val categories = withContext(Dispatchers.IO) {
-                    catPath.reversed().mapNotNull { id ->
-                        categoryOperations.getCategoryInfo(id).success
+                    val catHistory = arrayListOf<Category>()
+                    var cats = categoryOperations.getCategoryInfo(catId).success
+                    if (cats != null){
+                        catHistory.add(cats)
+                        while (cats?.id != 1L){
+                            cats = categoryOperations.getCategoryInfo(cats?.parentId).success
+                            if (cats != null){
+                                catHistory.add(cats)
+                            }
+                        }
                     }
+                    catHistory
                 }
-                _responseCatHistory.value = categories
+                if (categories.isNotEmpty()) {
+                    _responseCatHistory.value = categories
+                }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
             }

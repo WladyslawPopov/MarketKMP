@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -31,10 +32,16 @@ fun DynamicInputField(
     field: Fields,
     modifier: Modifier = Modifier,
     label : String? = null,
-    sufix : String? = null,
+    suffix : String? = null,
     mandatory: Boolean? = null,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
 ) {
+
+    LaunchedEffect(Unit){
+        if (field.data != null) {
+            field.data = checkValidation(field, field.data?.jsonPrimitive?.content ?: "")
+        }
+    }
 
     val textState = remember {
         mutableStateOf(field.data?.jsonPrimitive?.content ?: "")
@@ -88,9 +95,9 @@ fun DynamicInputField(
                 }
             },
             suffix = {
-                if (sufix != null) {
+                if (suffix != null) {
                     Text(
-                        text = sufix,
+                        text = suffix,
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.black
                     )
@@ -130,8 +137,5 @@ fun DynamicInputField(
             }
         )
     }
-
-
-
 }
 

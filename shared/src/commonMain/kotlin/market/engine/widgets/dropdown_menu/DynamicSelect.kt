@@ -34,7 +34,13 @@ fun DynamicSelect(
     }
 
     val textSelect = remember {
-        val data = field.data?.jsonPrimitive?.int
+        val data = field.data?.jsonPrimitive?.intOrNull
+        if (data != null){
+            if (itemClick != null) {
+                itemClick(field.choices?.find { it.code?.intOrNull == data })
+            }
+        }
+
         val name = field.choices?.find { choice->
             (choice.code?.intOrNull) == data
         }?.name ?: selectDef

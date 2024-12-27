@@ -160,7 +160,7 @@ fun OfferItem(
                 Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                 Text(
-                    offer.relistingMode.name ?: "",
+                    offer.relistingMode?.name ?: "",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -177,7 +177,7 @@ fun contentStructure(
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
 ){
     val imageUrl = when {
-        offer.images?.isNotEmpty() == true -> offer.images.firstOrNull()?.urls?.small?.content
+        offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
         offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
         else -> null
     }

@@ -111,6 +111,16 @@ fun MyOffersContent(
                         val item = data.itemSnapshotList.items.find { it.id == offer.id }
                         item?.state = offer.state
                         item?.session = offer.session
+                        item?.buyNowPrice = offer.buyNowPrice
+                        item?.images = offer.images
+                        item?.freeLocation = offer.freeLocation
+                        item?.currentPricePerItem = offer.currentPricePerItem
+                        item?.title = offer.title
+                        item?.region = offer.region
+                        item?.relistingMode = offer.relistingMode
+                    }else{
+                        val item = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
+                        item?.session = null
                     }
 
                     viewModel.updateItem.value = null
@@ -216,9 +226,10 @@ fun MyOffersContent(
                                 )
                             )
                         },
-                    ) {
-                        component.goToOffer(offer)
-                    }
+                        onItemClick = {
+                            component.goToOffer(offer)
+                        }
+                    )
                 }
             }
         )

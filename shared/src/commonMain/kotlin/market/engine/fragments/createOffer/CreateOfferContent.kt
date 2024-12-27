@@ -50,7 +50,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -59,7 +62,9 @@ import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
@@ -121,6 +126,8 @@ fun CreateOfferContent(
     val viewModel = model.value.createOfferViewModel
     val offerId = model.value.offerId
     val type = model.value.createOfferType
+
+
     val createOfferResponse = viewModel.responseCreateOffer.collectAsState()
     val dynamicPayloadState = viewModel.responseDynamicPayload.collectAsState()
     val catHistory = viewModel.responseCatHistory.collectAsState()
@@ -133,13 +140,14 @@ fun CreateOfferContent(
     val isEditCat = remember { mutableStateOf(false) }
     val categoryName = remember { mutableStateOf("") }
     val categoryID = remember { mutableStateOf(model.value.catPath?.get(0) ?: 1L) }
-    val parentID : MutableState<Long?> = remember { mutableStateOf(model.value.catPath?.get(0) ?: 1L) }
+    val parentID : MutableState<Long?> = remember { mutableStateOf(model.value.catPath?.get(1) ?: 1L) }
     val isLeaf = remember { mutableStateOf(true) }
     val isRefreshingFromFilters = remember { mutableStateOf(true) }
     val choiceCodeSaleType = remember { mutableStateOf<Int?>(null) }
 
-    val catPath = remember { mutableStateOf(arrayListOf<Long>()) }
-    val selectedDate = remember { mutableStateOf<String?>(null) }
+
+    val futureTime = remember { mutableStateOf(dynamicPayloadState.value?.fields?.find { it.key == "future_time" }) }
+    val selectedDate = remember { mutableStateOf(futureTime.value?.data?.jsonPrimitive?.content) }
     val richTextState = rememberRichTextState()
     val columnState = rememberLazyListState(
          initialFirstVisibleItemIndex = viewModel.positionList.value
@@ -153,28 +161,25 @@ fun CreateOfferContent(
                 BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
-    val url = remember { mutableStateOf("") }
 
     val refresh = {
+        viewModel.getCategoriesHistory(categoryID.value)
         if (isEditCat.value){
             // update params
             viewModel.updateParams(categoryID.value)
             isEditCat.value = false
         }else {
-            if (catPath.value.isEmpty()){
-                viewModel.getCategoriesHistory(model.value.catPath ?: emptyList())
-            }else{
-                viewModel.getCategoriesHistory(catPath.value)
-            }
-
-           url.value = when (type) {
+            val url = when (type) {
                 CreateOfferType.CREATE -> "categories/${categoryID.value}/operations/create_offer"
                 CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
                 CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
                 CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
                 CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
-           }
-           viewModel.getPage(url.value)
+            }
+            if(type != CreateOfferType.CREATE){
+                viewModel.updateParams(categoryID.value)
+            }
+            viewModel.getPage(url)
         }
     }
 
@@ -244,30 +249,19 @@ fun CreateOfferContent(
                 }
             }
         }
+
+        futureTime.value = dynamicPayloadState.value?.fields?.find { it.key == "future_time" }
     }
 
     LaunchedEffect(viewModel.activeFiltersType){
         snapshotFlow{
             viewModel.activeFiltersType.value
-        }.collectLatest { filter ->
+        }.collect { filter ->
             if (filter == "") {
                 scaffoldState.bottomSheetState.collapse()
                 refresh()
             } else {
                 scaffoldState.bottomSheetState.expand()
-                catPath.value.removeLast()
-            }
-        }
-    }
-
-    LaunchedEffect(categoryID){
-        snapshotFlow{
-            categoryID.value
-        }.collectLatest { id ->
-            if (!catPath.value.contains(id)) {
-                catPath.value.add(id)
-            }else{
-                catPath.value.remove(id)
             }
         }
     }
@@ -354,19 +348,23 @@ fun CreateOfferContent(
                 newOfferId.value = createOfferResponse.value?.body?.jsonPrimitive?.longOrNull
 
                 if (type == CreateOfferType.EDIT) {
-                    component.onBackClicked()
+                    viewModel.viewModelScope.launch {
+                        delay(2000L)
+                        component.onBackClicked()
+                    }
                 } else {
                     AnimatedVisibility(newOfferId.value != null){
                         //success offer
                         SuccessContent(
                             images.value,
                             dynamicPayloadState.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: "",
-                            futureTime = selectedDate.value,
+                            dynamicPayloadState.value?.fields?.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
+                            futureTime = selectedDate.value ?: getCurrentDate(),
                             goToOffer = {
                                 component.goToOffer(newOfferId.value!!)
                             },
                             addSimilarOffer = {
-                                component.createNewOffer(offerId= newOfferId.value, type = CreateOfferType.COPY, catPath = catPath.value)
+                                component.createNewOffer(offerId= newOfferId.value, type = CreateOfferType.COPY)
                             },
                             createNewOffer = {
                                 component.createNewOffer(type=CreateOfferType.CREATE)
@@ -389,6 +387,7 @@ fun CreateOfferContent(
                                 })
                             },
                     ) {
+                        //categories
                         item {
                             Row(
                                 modifier = Modifier.fillMaxWidth()
@@ -396,27 +395,29 @@ fun CreateOfferContent(
                                 verticalAlignment = Alignment.Bottom,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                if (catHistory.value.isNotEmpty()) {
-                                    FlowRow(
-                                        horizontalArrangement = Arrangement.Start,
-                                        verticalArrangement = Arrangement.SpaceAround,
-                                        modifier = Modifier.weight(3f)
-                                    ) {
-                                        catHistory.value.reversed().forEachIndexed { index, cat ->
-                                            Text(
-                                                text = if (catHistory.value.size - 1 == index)
-                                                    cat.name ?: ""
-                                                else (cat.name ?: "") + "->",
-                                                style = MaterialTheme.typography.bodySmall.copy(
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
-                                                modifier = Modifier.padding(dimens.extraSmallPadding)
-                                            )
+                                if (type != CreateOfferType.EDIT && type != CreateOfferType.COPY_PROTOTYPE) {
+                                    if (catHistory.value.isNotEmpty()) {
+                                        FlowRow(
+                                            horizontalArrangement = Arrangement.Start,
+                                            verticalArrangement = Arrangement.SpaceAround,
+                                            modifier = Modifier.weight(3f)
+                                        ) {
+                                            catHistory.value.reversed()
+                                                .forEachIndexed { index, cat ->
+                                                    Text(
+                                                        text = if (catHistory.value.size - 1 == index)
+                                                            cat.name ?: ""
+                                                        else (cat.name ?: "") + "->",
+                                                        style = MaterialTheme.typography.bodySmall.copy(
+                                                            fontWeight = FontWeight.Bold
+                                                        ),
+                                                        color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
+                                                        modifier = Modifier.padding(dimens.extraSmallPadding)
+                                                    )
+                                                }
                                         }
                                     }
-                                }
-                                if (type != CreateOfferType.EDIT) {
+
                                     ActionButton(
                                         strings.changeCategory,
                                         fontSize = MaterialTheme.typography.labelMedium.fontSize,
@@ -548,7 +549,9 @@ fun CreateOfferContent(
                                     when (field.key) {
                                         "category_id" -> {
                                             field.data?.jsonPrimitive?.longOrNull?.let {
-                                                categoryID.value = it
+                                                if (categoryID.value == 1L) {
+                                                    categoryID.value = it
+                                                }
                                             }
                                         }
 
@@ -579,7 +582,7 @@ fun CreateOfferContent(
                                                         field,
                                                         Modifier.fillMaxWidth()
                                                             .padding(dimens.smallPadding),
-                                                        sufix = stringResource(
+                                                        suffix = stringResource(
                                                             strings.currencySign
                                                         ),
                                                         mandatory = true
@@ -599,7 +602,7 @@ fun CreateOfferContent(
                                                         field,
                                                         Modifier.fillMaxWidth()
                                                             .padding(dimens.smallPadding),
-                                                        sufix = stringResource(
+                                                        suffix = stringResource(
                                                             strings.currencySign
                                                         ),
                                                         mandatory = true
@@ -733,10 +736,17 @@ fun CreateOfferContent(
                                                 SeparatorLabel(
                                                     stringResource(strings.offersGroupStartTSTile)
                                                 )
+
+                                               if (selectedDate.value != null && field.data == null){
+                                                   field.data = JsonPrimitive(2)
+                                                   selectedDate.value = futureTime.value?.data?.jsonPrimitive?.content
+                                               }else{
+                                                   field.data = JsonPrimitive(0)
+                                               }
+
                                                 SessionStartContent(selectedDate, field)
                                             }
                                         }
-
                                         "description" -> {
                                             item {
                                                 DescriptionOfferTextField(field, richTextState)
@@ -745,7 +755,7 @@ fun CreateOfferContent(
                                     }
                                 }
                         }
-
+                        //create btn
                         item {
                             val label = when (type) {
                                 CreateOfferType.EDIT -> strings.actionSaveLabel
@@ -758,94 +768,26 @@ fun CreateOfferContent(
                             ) {
                                 val dataFields =
                                     dynamicPayloadState.value?.fields?.filter { it.data != null }
+                                if (dataFields != null) {
+                                    val jsonBody = createJsonBody(
+                                        dataFields,
+                                        categoryID.value,
+                                        selectedDate.value,
+                                        deleteImages.value,
+                                        images.value,
+                                        type
+                                    )
 
-                                val jsonBody = buildJsonObject {
-                                    dataFields?.forEach { data ->
-                                        when (data.key) {
-                                            "deliverymethods" -> {
-                                                val valuesDelivery = arrayListOf<JsonObject>()
-                                                data.data?.jsonArray?.forEach { choices ->
-                                                    val deliveryPart = buildJsonObject {
-                                                        put("code", JsonPrimitive(choices.jsonObject["code"]?.jsonPrimitive?.intOrNull))
-
-                                                        data.choices?.find { it.code?.jsonPrimitive?.intOrNull ==
-                                                                choices.jsonObject["code"]?.jsonPrimitive?.intOrNull
-                                                        }?.extendedFields?.forEach { field ->
-                                                            if (field.data != null) {
-                                                                put(
-                                                                    field.key.toString(),
-                                                                    field.data!!.jsonPrimitive
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                    valuesDelivery.add(deliveryPart)
-                                                }
-                                                put(data.key, JsonArray(valuesDelivery))
-                                            }
-
-                                            "category_id" -> {
-                                                put(data.key, JsonPrimitive(categoryID.value))
-                                            }
-                                            "session_start" -> {
-                                                if (selectedDate.value == null) {
-                                                    put(data.key, data.data!!)
-                                                }
-
-                                            }
-                                            "future_time" ->{
-                                                if (selectedDate.value != null) {
-                                                    put(data.key, JsonPrimitive(selectedDate.value))
-                                                }
-                                            }
-                                            else -> {
-                                                put(data.key ?: "", data.data!!)
-                                            }
-                                        }
+                                    val url = when (type) {
+                                        CreateOfferType.CREATE -> "categories/${categoryID.value}/operations/create_offer"
+                                        CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
+                                        CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
+                                        CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
+                                        CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
                                     }
 
-                                    when(type){
-                                        CreateOfferType.EDIT, CreateOfferType.COPY ->{
-                                            put("delete_images", JsonArray(deleteImages.value))
-                                        }
-                                        else -> {}
-                                    }
-
-                                    val positionArray = buildJsonArray {
-                                        images.value.forEach { photo ->
-                                            val listIndex = images.value.indexOf(photo) + 1
-                                            if (photo.tempId != null && photo.url != null) {
-                                                add(buildJsonObject {
-                                                    put("key", JsonPrimitive(photo.id))
-                                                    put("position", JsonPrimitive(listIndex))
-                                                })
-                                            }
-                                        }
-                                    }
-
-                                    val tempImagesArray = buildJsonArray {
-                                        images.value.forEach { photo ->
-                                            val listIndex = images.value.indexOf(photo) + 1
-                                            if (photo.tempId != null && photo.uri != null) {
-                                                add(buildJsonObject {
-                                                    put("id", JsonPrimitive(photo.tempId))
-                                                    put("rotation", JsonPrimitive(photo.rotate))
-                                                    put("position", JsonPrimitive(listIndex))
-                                                })
-                                            }
-                                        }
-                                    }
-
-                                    if (tempImagesArray.isNotEmpty()) {
-                                        put("temp_images", tempImagesArray)
-                                    }
-
-                                    if (positionArray.isNotEmpty()) {
-                                        put("position_images", positionArray)
-                                    }
+                                    viewModel.postPage(url, jsonBody)
                                 }
-
-                                viewModel.postPage(url.value, jsonBody)
                             }
                         }
                     }
@@ -854,6 +796,7 @@ fun CreateOfferContent(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSerializationApi::class)
 @Composable
@@ -874,150 +817,264 @@ fun SessionStartContent(
     }
 
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .padding(dimens.mediumPadding),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        RadioGroup(
+            saleTypeFilters,
+            selectedFilterKey.value
+        ){ isChecked, choice ->
+            if(!isChecked) {
+                selectedFilterKey.value = choice
+                field.data = JsonPrimitive(choice)
+            }else{
+                selectedFilterKey.value = 0
+                field.data = JsonPrimitive(null)
+            }
+        }
 
-    RadioGroup(
-        saleTypeFilters,
-        selectedFilterKey.value
-    ){ isChecked, choice ->
-        if(!isChecked) {
-            selectedFilterKey.value = choice
-            field.data = JsonPrimitive(choice)
-        }else{
-            selectedFilterKey.value = 0
-            field.data = JsonPrimitive(null)
+        AnimatedVisibility(selectedFilterKey.value == 2,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ){
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                if(selectedDate.value == null) {
+                    Text(
+                        stringResource(strings.selectTimeActiveLabel),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.black
+                    )
+                }else{
+                    Text(
+                        selectedDate.value?.convertDateWithMinutes() ?: "",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.titleTextColor
+                    )
+                }
+
+                ActionButton(
+                    strings.actionChangeLabel,
+                    fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                    alignment = Alignment.TopEnd,
+                ){
+                    showActivateOfferForFutureDialog.value = true
+                }
+            }
+
+            AnimatedVisibility(showActivateOfferForFutureDialog.value,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                val currentDate = getCurrentDate()
+
+                val year = currentDate.convertDateOnlyYear().toInt()
+
+                val pickDate = remember { mutableStateOf<String?>(null) }
+
+                val selectableDates = object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                        return utcTimeMillis > currentDate.toLong() * 1000
+                    }
+                }
+                val oneDayInMillis = 24 * 60 * 60 * 1000
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = currentDate.toLong() * 1000 + oneDayInMillis,
+                    yearRange = year..(year + 100),
+                    selectableDates = selectableDates
+                )
+
+                val timePickerState = rememberTimePickerState(
+                    is24Hour = true
+                )
+
+                DatePickerDialog(
+                    colors = DatePickerDefaults.colors(
+                        containerColor = colors.white
+                    ),
+                    tonalElevation = 0.dp,
+                    properties = DialogProperties(usePlatformDefaultWidth = true),
+                    onDismissRequest = {
+                        showActivateOfferForFutureDialog.value = false
+                    },
+                    confirmButton = {
+                        SimpleTextButton(
+                            text = stringResource(strings.acceptAction),
+                            backgroundColor = colors.inactiveBottomNavIconColor,
+                            onClick = {
+                                if (pickDate.value == null) {
+                                    val selectedDateMillis = datePickerState.selectedDateMillis
+                                    if (selectedDateMillis != null) {
+                                        pickDate.value = selectedDateMillis.toString()
+                                        selectedDate.value = selectedDateMillis.toString()
+                                    }
+                                } else {
+                                    val selectedDateMillis = selectedDate.value?.toLongOrNull() ?: 0L
+                                    val selectedHour = timePickerState.hour
+                                    val selectedMinute = timePickerState.minute
+
+                                    val localDateTime = Instant
+                                        .fromEpochMilliseconds(selectedDateMillis)
+                                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                                        .date
+                                        .atTime(selectedHour, selectedMinute)
+
+                                    selectedDate.value = localDateTime
+                                        .toInstant(TimeZone.currentSystemDefault())
+                                        .epochSeconds.toString()
+
+                                    showActivateOfferForFutureDialog.value = false
+                                    pickDate.value = null
+                                }
+                            },
+                            modifier = Modifier.padding(dimens.smallPadding),
+                        )
+                    },
+                    dismissButton = {
+                        SimpleTextButton(
+                            text = stringResource(strings.closeWindow),
+                            backgroundColor = colors.grayLayout,
+                            onClick = {
+                                showActivateOfferForFutureDialog.value = false
+                            },
+                            modifier = Modifier.padding(dimens.smallPadding),
+                        )
+                    }
+                ) {
+                    if (pickDate.value == null) {
+                        DatePicker(
+                            state = datePickerState,
+                            showModeToggle = false,
+                            title = null,
+                            colors = DatePickerDefaults.colors(
+                                containerColor = colors.white,
+                            ),
+                            modifier = Modifier.padding(dimens.smallPadding)
+                                .clip(MaterialTheme.shapes.medium)
+                        )
+                    } else {
+                        TimePicker(
+                            state = timePickerState,
+                            colors = TimePickerDefaults.colors(
+                                containerColor = colors.white,
+                            ),
+                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
+                                .clip(MaterialTheme.shapes.medium),
+                            layoutType = TimePickerLayoutType.Vertical
+                        )
+                    }
+                }
+            }
         }
     }
 
-    AnimatedVisibility(selectedFilterKey.value == 2,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ){
-        Row(
-            modifier = Modifier.fillMaxWidth(0.85f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            if(selectedDate.value == null) {
-                Text(
-                    stringResource(strings.selectTimeActiveLabel),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.black
-                )
-            }else{
-                Text(
-                    selectedDate.value?.convertDateWithMinutes() ?: "",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.titleTextColor
-                )
-            }
+}
 
-            ActionButton(
-                strings.actionChangeLabel,
-                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                alignment = Alignment.TopEnd,
-            ){
-                showActivateOfferForFutureDialog.value = true
+
+fun createJsonBody(
+    fields: List<Fields>,
+    categoryID: Long,
+    selectedDate: String?,
+    deleteImages: List<JsonPrimitive>,
+    images: List<PhotoTemp>,
+    type: CreateOfferType,
+) : JsonObject {
+    return buildJsonObject {
+        fields.forEach { data ->
+            when (data.key) {
+                "deliverymethods" -> {
+                    val valuesDelivery = arrayListOf<JsonObject>()
+                    data.data?.jsonArray?.forEach { choices ->
+                        val deliveryPart = buildJsonObject {
+                            put(
+                                "code",
+                                JsonPrimitive(choices.jsonObject["code"]?.jsonPrimitive?.intOrNull)
+                            )
+
+                            data.choices?.find {
+                                it.code?.jsonPrimitive?.intOrNull ==
+                                        choices.jsonObject["code"]?.jsonPrimitive?.intOrNull
+                            }?.extendedFields?.forEach { field ->
+                                if (field.data != null) {
+                                    put(
+                                        field.key.toString(),
+                                        field.data!!.jsonPrimitive
+                                    )
+                                }
+                            }
+                        }
+                        valuesDelivery.add(deliveryPart)
+                    }
+                    put(data.key, JsonArray(valuesDelivery))
+                }
+
+                "category_id" -> {
+                    put(data.key, JsonPrimitive(categoryID))
+                }
+
+                "session_start" -> {
+                    if (selectedDate == null) {
+                        put(data.key, data.data!!)
+                    }
+
+                }
+                "future_time" ->{
+                    if (selectedDate != null) {
+                        put(data.key, data.data!!)
+                    }
+                }
+
+                else -> {
+                    put(data.key ?: "", data.data!!)
+                }
             }
         }
 
-        AnimatedVisibility(showActivateOfferForFutureDialog.value,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            val currentDate = getCurrentDate()
+        when (type) {
+            CreateOfferType.EDIT, CreateOfferType.COPY -> {
+                put("delete_images", JsonArray(deleteImages))
+            }
 
-            val year = currentDate.convertDateOnlyYear().toInt()
+            else -> {}
+        }
 
-            val selectableDates = object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    return utcTimeMillis > currentDate.toLong() * 1000
+        val positionArray = buildJsonArray {
+            images.forEach { photo ->
+                val listIndex = images.indexOf(photo) + 1
+                if (photo.tempId == null) {
+                    add(buildJsonObject {
+                        put("key", JsonPrimitive(photo.id))
+                        put("position", JsonPrimitive(listIndex))
+                    })
                 }
             }
-            val oneDayInMillis = 24 * 60 * 60 * 1000
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = currentDate.toLong() * 1000 + oneDayInMillis,
-                yearRange = year..(year + 100),
-                selectableDates = selectableDates
-            )
+        }
 
-            val timePickerState = rememberTimePickerState(
-                is24Hour = true
-            )
-
-            DatePickerDialog(
-                colors = DatePickerDefaults.colors(
-                    containerColor = colors.white
-                ),
-                tonalElevation = 0.dp,
-                properties = DialogProperties(usePlatformDefaultWidth = true),
-                onDismissRequest = {
-                    showActivateOfferForFutureDialog.value = false
-                },
-                confirmButton = {
-                    SimpleTextButton(
-                        text = stringResource(strings.acceptAction),
-                        backgroundColor = colors.inactiveBottomNavIconColor,
-                        onClick = {
-                            if (selectedDate.value == null) {
-                                val selectedDateMillis = datePickerState.selectedDateMillis
-                                if (selectedDateMillis != null) {
-                                    selectedDate.value = selectedDateMillis.toString()
-                                }
-                            } else {
-                                val selectedDateMillis = selectedDate.value?.toLongOrNull() ?: 0L
-                                val selectedHour = timePickerState.hour
-                                val selectedMinute = timePickerState.minute
-
-                                val localDateTime = Instant
-                                    .fromEpochMilliseconds(selectedDateMillis)
-                                    .toLocalDateTime(TimeZone.currentSystemDefault())
-                                    .date
-                                    .atTime(selectedHour, selectedMinute)
-
-                                selectedDate.value = localDateTime
-                                    .toInstant(TimeZone.currentSystemDefault())
-                                    .epochSeconds.toString()
-
-                                showActivateOfferForFutureDialog.value = false
-                            }
-                        },
-                        modifier = Modifier.padding(dimens.smallPadding),
-                    )
-                },
-                dismissButton = {
-                    SimpleTextButton(
-                        text = stringResource(strings.closeWindow),
-                        backgroundColor = colors.grayLayout,
-                        onClick = {
-                            showActivateOfferForFutureDialog.value = false
-                        },
-                        modifier = Modifier.padding(dimens.smallPadding),
-                    )
-                }
-            ) {
-                if (selectedDate.value == null) {
-                    DatePicker(
-                        state = datePickerState,
-                        showModeToggle = false,
-                        title = null,
-                        colors = DatePickerDefaults.colors(
-                            containerColor = colors.white,
-                        ),
-                        modifier = Modifier.padding(dimens.smallPadding)
-                            .clip(MaterialTheme.shapes.medium)
-                    )
-                } else {
-                    TimePicker(
-                        state = timePickerState,
-                        colors = TimePickerDefaults.colors(
-                            containerColor = colors.white,
-                        ),
-                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
-                            .clip(MaterialTheme.shapes.medium),
-                        layoutType = TimePickerLayoutType.Vertical
-                    )
+        val tempImagesArray = buildJsonArray {
+            images.forEach { photo ->
+                val listIndex = images.indexOf(photo) + 1
+                if (photo.tempId != null) {
+                    add(buildJsonObject {
+                        put("id", JsonPrimitive(photo.tempId))
+                        put("rotation", JsonPrimitive(photo.rotate))
+                        put("position", JsonPrimitive(listIndex))
+                    })
                 }
             }
+        }
+
+        if (tempImagesArray.isNotEmpty()) {
+            put("temp_images", tempImagesArray)
+        }
+
+        if (positionArray.isNotEmpty()) {
+            put("position_images", positionArray)
         }
     }
 }
@@ -1026,7 +1083,8 @@ fun SessionStartContent(
 fun SuccessContent(
     images: List<PhotoTemp>,
     title : String,
-    futureTime : String? = null,
+    isActive : Boolean = true,
+    futureTime : String,
     goToOffer : () -> Unit,
     createNewOffer : () -> Unit,
     addSimilarOffer : () -> Unit,
@@ -1039,13 +1097,20 @@ fun SuccessContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        val header = if (futureTime != null) {
-            stringResource(strings.congratulationsCreateOfferInFutureLabel) + " ${futureTime.convertDateWithMinutes()}"
-        } else{
-            stringResource(strings.congratulationsLabel)
+        val header = buildAnnotatedString {
+            if (isActive) {
+                append(stringResource(strings.congratulationsCreateOfferInFutureLabel))
+                 withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = colors.yellowSun)) {
+                     append(" ${futureTime.convertDateWithMinutes()}")
+                 }
+            } else{
+                append(
+                    stringResource(strings.congratulationsLabel)
+                )
+            }
         }
 
-        SeparatorLabel(header)
+        SeparatorLabel("", annotatedString = header )
 
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -1097,3 +1162,6 @@ fun SuccessContent(
         }
     }
 }
+
+
+

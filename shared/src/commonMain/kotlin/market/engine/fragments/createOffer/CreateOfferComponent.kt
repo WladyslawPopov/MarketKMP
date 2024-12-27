@@ -21,7 +21,7 @@ interface CreateOfferComponent {
 
     fun onBackClicked()
 
-    fun createNewOffer(offerId: Long? = null, catPath: List<Long>? = null, type: CreateOfferType)
+    fun createNewOffer(offerId: Long? = null, type: CreateOfferType)
 
     fun goToOffer(id : Long)
 }
@@ -69,8 +69,8 @@ class DefaultCreateOfferComponent(
         navigateBack()
     }
 
-    override fun createNewOffer(offerId: Long?, catPath: List<Long>?, type: CreateOfferType) {
-        navigateToCreateOffer(offerId, catPath, type)
+    override fun createNewOffer(offerId: Long?, type: CreateOfferType) {
+        navigateToCreateOffer(offerId, model.value.catPath, type)
     }
 
     override fun goToOffer(id: Long) {

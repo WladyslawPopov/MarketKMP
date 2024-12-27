@@ -116,38 +116,65 @@ fun DeliveryMethods(
                         verticalArrangement = Arrangement.SpaceAround,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ){
-                        choice.extendedFields?.forEach {
-                            when (it.key) {
+                        choice.extendedFields?.forEach { extendField ->
+                            when (extendField.key) {
                                 "delivery_price_city" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_price_city")?.jsonPrimitive
+                                    }
+
                                     DynamicInputField(
-                                        it,
+                                        extendField,
                                         Modifier.fillMaxWidth(0.7f)
                                             .padding(dimens.smallPadding),
-                                        sufix = stringResource(strings.currencyCode),
-                                        label = stringResource(strings.deliveryCityParameterLabel)
+                                        suffix = stringResource(strings.currencyCode),
+                                        label = stringResource(strings.deliveryCityParameterLabel),
                                     )
                                 }
                                 "delivery_price_country" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_price_country")?.jsonPrimitive
+                                    }
+
                                     DynamicInputField(
-                                        it,
+                                        extendField,
                                         Modifier.fillMaxWidth(0.7f)
                                             .padding(dimens.smallPadding),
-                                        sufix = stringResource(strings.currencyCode),
-                                        label = stringResource(strings.deliveryCountryParameterLabel)
+                                        suffix = stringResource(strings.currencyCode),
+                                        label = stringResource(strings.deliveryCountryParameterLabel),
                                     )
                                 }
                                 "delivery_price_world" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_price_world")?.jsonPrimitive
+                                    }
                                     DynamicInputField(
-                                        it,
+                                        extendField,
                                         Modifier.fillMaxWidth(0.7f)
                                             .padding(dimens.smallPadding),
-                                        sufix = stringResource(strings.currencyCode),
-                                        label = stringResource(strings.deliveryWorldParameterLabel)
+                                        suffix = stringResource(strings.currencyCode),
+                                        label = stringResource(strings.deliveryWorldParameterLabel),
                                     )
                                 }
                                 "delivery_comment" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_comment")?.jsonPrimitive
+                                    }
+
                                     DynamicInputField(
-                                        it,
+                                        extendField,
                                         Modifier.fillMaxWidth(0.7f)
                                             .heightIn(min = 120.dp, max = 400.dp)
                                             .padding(dimens.smallPadding),
@@ -157,7 +184,7 @@ fun DeliveryMethods(
                                 }
                                 else -> {
                                     DynamicInputField(
-                                        it,
+                                        extendField,
                                         Modifier.fillMaxWidth(0.7f)
                                             .padding(dimens.smallPadding)
                                     )

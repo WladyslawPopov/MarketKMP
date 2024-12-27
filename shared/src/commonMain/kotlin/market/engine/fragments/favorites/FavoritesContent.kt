@@ -230,19 +230,20 @@ fun FavoritesContent(
                                 )
                             )
                         },
-                    ) {
-                        if (favViewModel.selectItems.isNotEmpty()) {
-                            if (favViewModel.selectItems.contains(offer.id)) {
-                                favViewModel.selectItems.remove(offer.id)
+                        onItemClick = {
+                            if (favViewModel.selectItems.isNotEmpty()) {
+                                if (favViewModel.selectItems.contains(offer.id)) {
+                                    favViewModel.selectItems.remove(offer.id)
+                                } else {
+                                    favViewModel.selectItems.add(offer.id)
+                                }
                             } else {
-                                favViewModel.selectItems.add(offer.id)
+                                component.goToOffer(offer)
+                                // set item for update
+                                favViewModel.updateItem.value = offer.id
                             }
-                        } else {
-                            component.goToOffer(offer)
-                            // set item for update
-                            favViewModel.updateItem.value = offer.id
                         }
-                    }
+                    )
                 }
             }
         )
