@@ -1,32 +1,38 @@
 package market.engine.core.network.paging
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import market.engine.core.network.APIService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
+import market.engine.core.data.constants.PAGES_MAX_SIZE
+import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.items.ListingData
 
 
 class PagingRepository<T : Any>{
-    private var genericPagingSource: GenericPagingSource<T>? = null
+    private var genericPagingSource: MutableState<GenericPagingSource<T>>? = null
 
     fun getListing(listingData: ListingData, apiService: APIService, serializer: KSerializer<T>): Flow<PagingData<T>> = Pager(
         config = PagingConfig(
-            pageSize = listingData.data.value.pageCountItems,
-            initialLoadSize = listingData.data.value.pageCountItems,
+            pageSize = PAGE_SIZE,
+            initialLoadSize = PAGE_SIZE,
+            maxSize = PAGES_MAX_SIZE,
             enablePlaceholders = false,
-            prefetchDistance = listingData.data.value.pageCountItems * 3
+            prefetchDistance = PAGE_SIZE * 3
+
         ),
         pagingSourceFactory = {
             GenericPagingSource(apiService, listingData, serializer).also {
-                genericPagingSource = it
+                genericPagingSource = mutableStateOf(it)
             }
         }
     ).flow
 
     fun refresh() {
-        genericPagingSource?.invalidate()
+        genericPagingSource?.value?.invalidate()
     }
 }

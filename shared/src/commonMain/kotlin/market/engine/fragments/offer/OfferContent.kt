@@ -777,7 +777,6 @@ fun getCountString(offerState: OfferStates, offer: Offer, isMyOffer: Boolean): S
 
     return when {
         saleType == "buy_now" -> {
-
             if (isCompletedOrInActive) {
                 quantityInfo
             } else {

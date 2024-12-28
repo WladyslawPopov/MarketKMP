@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
+import app.cash.paging.compose.itemKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -42,7 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun <T : Any> PagingList(
     data: LazyPagingItems<T>,
-    state: LazyListState = rememberLazyListState(),
+    state: LazyListState,
     columns : Int = 1,
     listingData: LD,
     searchData: SD? = null,
@@ -65,7 +66,7 @@ fun <T : Any> PagingList(
     }
 
     LaunchedEffect(state.firstVisibleItemIndex){
-        showUpButton = 1 < (state.firstVisibleItemIndex / listingData.pageCountItems)
+        showUpButton = 1 < (state.firstVisibleItemIndex / PAGE_SIZE)
         showDownButton = listingData.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
     }
@@ -117,7 +118,9 @@ fun <T : Any> PagingList(
                 }
             }
 
-            items(data.itemCount) { index ->
+            items(data.itemCount, key = data.itemKey{
+                (it as? Offer)?.id ?: it
+            }) { index ->
                 if (promoContent != null && searchData?.userSearch == false && searchData.searchString.isEmpty()) {
                     if (index > 0) {
                         val item = data[index] as? Offer

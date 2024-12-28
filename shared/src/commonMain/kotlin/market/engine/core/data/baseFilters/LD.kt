@@ -1,6 +1,7 @@
 package market.engine.core.data.baseFilters
 
 import kotlinx.serialization.Serializable
+import market.engine.core.data.constants.PAGE_SIZE
 
 @Serializable
 data class LD(
@@ -11,9 +12,8 @@ data class LD(
     //pagination data
     var methodServer : String = "",
     var objServer : String = "",
-    val pageCountItems: Int = 60,
     var totalCount: Int = 0,
-    var totalPages: Int = totalCount / pageCountItems,
+    var totalPages: Int = totalCount / PAGE_SIZE,
 
     //scroll data
     var firstVisibleItemIndex : Int = 0,

@@ -224,7 +224,6 @@ fun ListingContent(
     }
     //update item when we back
     LaunchedEffect(Unit){
-
         if (listingViewModel.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val updateItem = listingViewModel.updateItem.value
