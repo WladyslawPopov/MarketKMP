@@ -36,7 +36,9 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.WindowType
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.rows.HeaderOfferItem
 import market.engine.widgets.badges.DiscountBadge
@@ -97,8 +99,6 @@ fun OfferItem(
                 onItemClick()
             }
     ) {
-
-
         if (onUpdateOfferItem != null) {
             Row {
                 HeaderOfferItem(
@@ -182,6 +182,21 @@ fun contentStructure(
         else -> null
     }
 
+    val imageSize =
+        if (isGrid){
+            if (getWindowType() == WindowType.Big){
+                300.dp
+            } else {
+                200.dp
+            }
+        } else {
+            if (getWindowType() == WindowType.Big){
+                300.dp
+            } else {
+                200.dp
+            }
+        }
+
     Box(
         modifier = Modifier
             .padding(dimens.smallPadding)
@@ -190,7 +205,7 @@ fun contentStructure(
     ) {
         LoadImage(
             url = imageUrl ?: "",
-            size = if(isGrid) 200.dp else 160.dp
+            size = imageSize
         )
 
         if (offer.videoUrls?.isNotEmpty() == true) {

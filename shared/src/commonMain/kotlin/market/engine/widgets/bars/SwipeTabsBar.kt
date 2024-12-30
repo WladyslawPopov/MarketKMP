@@ -28,6 +28,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.items.Tab
 import market.engine.core.data.types.TabTypeListing
 import org.jetbrains.compose.resources.stringResource
@@ -39,14 +40,11 @@ fun SwipeTabsBar(
     scrollState: LazyListState,
     onRefresh: () -> Unit
 ) {
-    val itemsPerPage = listingData.pageCountItems
-    val totalPages = listingData.totalPages
-
     var previousIndex by remember { mutableStateOf(3) }
 
     val currentPage by remember {
         derivedStateOf {
-            (scrollState.firstVisibleItemIndex / itemsPerPage) + 1
+            (scrollState.firstVisibleItemIndex / PAGE_SIZE) + 1
         }
     }
 

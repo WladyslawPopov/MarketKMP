@@ -34,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.filtersObjects.ReportFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -132,7 +133,7 @@ fun FeedbacksContent(
     }
 
     LaunchedEffect(state.firstVisibleItemIndex){
-        showUpButton = 2 < (state.firstVisibleItemIndex / listingData.value.pageCountItems)
+        showUpButton = 2 < (state.firstVisibleItemIndex / PAGE_SIZE)
         showDownButton = listingData.value.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.value.prevIndex ?: 0)
     }

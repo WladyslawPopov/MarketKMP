@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -279,6 +280,7 @@ fun OfferContent(
                                                 .zIndex(1f), // Higher priority
                                         ) {
                                             // Open web view YouTube
+                                            openUrl(offer.videoUrls[0])
                                         }
                                     }
                                 }
