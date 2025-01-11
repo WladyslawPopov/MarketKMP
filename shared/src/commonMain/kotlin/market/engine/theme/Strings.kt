@@ -324,4 +324,8 @@ interface Strings {
     val manyOffersLabel : StringResource
     val exManyOffersLabel : StringResource
     val oneOfferLabel : StringResource
+
+    val cardIsEmptyLabel : StringResource
+    val startShoppingLabel : StringResource
+    val offerAddedToBasketLabel : StringResource
 }

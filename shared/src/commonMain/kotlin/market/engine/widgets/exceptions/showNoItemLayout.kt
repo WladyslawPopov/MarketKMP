@@ -1,6 +1,7 @@
 package market.engine.widgets.exceptions
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -30,7 +32,7 @@ fun showNoItemLayout(
     image : DrawableResource = drawables.notFoundListingIcon,
     title: String = stringResource(strings.notFoundListingTitle),
     textButton: String = stringResource(strings.refreshButton),
-    modifier: Modifier = Modifier.fillMaxSize(),
+    modifier: Modifier = Modifier.fillMaxSize().zIndex(5f).background(colors.primaryColor),
     onRefresh: () -> Unit
 ) {
     Box(

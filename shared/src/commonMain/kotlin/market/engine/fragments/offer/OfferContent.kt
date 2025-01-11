@@ -63,7 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import kotlinx.coroutines.launch
 import market.engine.common.openUrl
+import market.engine.core.data.constants.errorToastItem
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -356,7 +359,7 @@ fun OfferContent(
                             )
                         }
                         //simple Price
-                        if (offerState.value != OfferStates.ACTIVE || isMyOffer.value) {
+                        if ((offerState.value != OfferStates.ACTIVE && offerState.value != OfferStates.PROTOTYPE) || isMyOffer.value ) {
                             item {
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
@@ -462,7 +465,9 @@ fun OfferContent(
 
                                     },
                                     onAddToCartClick = {
-
+                                        offerViewModel.viewModelScope.launch {
+                                            offerViewModel.addToBasket(offer.id)
+                                        }
                                     },
                                     onSaleClick = {
                                         component.goToCreateOffer(
@@ -473,6 +478,7 @@ fun OfferContent(
                                         )
                                     }
                                 )
+
                             }
                         }
                         // actions and other status
@@ -1011,11 +1017,12 @@ fun BuyNowPriceLayout(
                         Box(
                             modifier = Modifier
                                 .clip(MaterialTheme.shapes.small)
-                                .background(colors.brightGreen)
-                                .padding(dimens.smallPadding)
                                 .clickable {
                                     onAddToCartClick()
                                 }
+                                .background(colors.brightGreen)
+                                .padding(dimens.smallPadding)
+
                         ) {
                             Icon(
                                 painter = painterResource(drawables.addToCartIcon),

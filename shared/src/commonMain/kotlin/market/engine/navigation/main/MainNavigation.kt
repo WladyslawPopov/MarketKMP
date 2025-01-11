@@ -75,7 +75,7 @@ fun MainNavigation(
             icon = drawables.basketIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = userInfo?.countOffersInCart,
+            badgeCount = if((userInfo?.countOffersInCart ?: 0) > 0) userInfo?.countOffersInCart else null,
             onClick = {
                 component.navigateToBottomItem(MainConfig.Basket)
             }

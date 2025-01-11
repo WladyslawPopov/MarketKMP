@@ -241,6 +241,9 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLogin()
                 }else{
+                    if(activeCurrent == "Basket"){
+                        modelNavigation.value.basketNavigation.popToFirst()
+                    }
                     activeCurrent = "Basket"
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
                 }

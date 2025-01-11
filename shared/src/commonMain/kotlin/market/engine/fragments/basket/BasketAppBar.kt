@@ -1,6 +1,8 @@
 package market.engine.fragments.basket
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -70,62 +72,77 @@ fun BasketAppBar(
         ),
     )
 
-    TopAppBar(
-        modifier = modifier
-            .fillMaxWidth(),
-        title = {
-            Column(
-                modifier = modifier.fillMaxWidth(),
-            ) {
-                TextAppBar(title)
+    Column(
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        TopAppBar(
+            modifier = modifier
+                .fillMaxWidth(),
+            title = {
+                Column(
+                    modifier = modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    TextAppBar(title)
 
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.titleTextColor
-                    )
+                    if (subtitle != null) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.titleTextColor
+                        )
+                    }
                 }
-            }
-        },
-        actions = {
-            Row(
-                modifier = modifier.padding(end = dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                listItems.forEachIndexed{ _, item ->
-                    if(item.isVisible){
-                        IconButton(
-                            modifier = modifier.size(dimens.smallIconSize),
-                            onClick = { item.onClick() }
-                        ) {
-                            getBadgedBox(modifier = modifier, item)
+            },
+            actions = {
+                Row(
+                    modifier = modifier.padding(end = dimens.smallPadding),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    listItems.forEachIndexed{ _, item ->
+                        if(item.isVisible){
+                            IconButton(
+                                modifier = modifier.size(dimens.smallIconSize),
+                                onClick = { item.onClick() }
+                            ) {
+                                getBadgedBox(modifier = modifier, item)
+                            }
                         }
                     }
                 }
             }
-        }
-    )
+        )
 
-    AnimatedVisibility(showMenu.value) {
-        DropdownMenu(
-            modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp),
-            expanded = showMenu.value,
-            onDismissRequest = { showMenu.value = false },
-            containerColor = colors.white,
+        AnimatedVisibility(
+            showMenu.value,
+            modifier = modifier.align(Alignment.End),
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
-            val s = stringResource(strings.actionClearBasket)
+            DropdownMenu(
+                modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp).align(Alignment.End),
+                expanded = showMenu.value,
+                onDismissRequest = { showMenu.value = false },
+                containerColor = colors.white,
+            ) {
+                val s = stringResource(strings.actionClearBasket)
 
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text = s,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black
-                    )
-                },
-                onClick = clearBasket
-            )
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = s,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.black
+                        )
+                    },
+                    onClick = {
+                        showMenu.value = false
+                        clearBasket()
+                    }
+                )
+            }
         }
     }
+
 }

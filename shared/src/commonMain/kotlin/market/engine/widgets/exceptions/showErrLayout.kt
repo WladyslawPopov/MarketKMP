@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.zIndex
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -24,7 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun showErrLayout(err: String, onRefresh: () -> Unit) {
     Box(
-        modifier = Modifier.fillMaxSize().background(color = colors.white),
+        modifier = Modifier.fillMaxSize().zIndex(50f).background(color = colors.primaryColor),
         contentAlignment = Alignment.Center
     ){
         Column {

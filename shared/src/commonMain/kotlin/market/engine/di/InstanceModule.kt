@@ -14,6 +14,7 @@ import market.engine.common.getKtorClient
 import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
+import market.engine.fragments.basket.BasketViewModel
 import market.engine.fragments.createOffer.CreateOfferViewModel
 import market.engine.fragments.favorites.FavViewModel
 import market.engine.fragments.home.HomeViewModel
@@ -22,7 +23,6 @@ import market.engine.fragments.login.LoginViewModel
 import market.engine.fragments.offer.OfferViewModel
 import market.engine.fragments.listing.search.SearchViewModel
 import market.engine.fragments.profile.ProfileViewModel
-import market.engine.fragments.profileMyOffers.ProfileMyOffersViewModel
 import market.engine.fragments.subscriptions.SubViewModel
 import market.engine.fragments.user.UserViewModel
 import market.engine.fragments.user.feedbacks.FeedbacksViewModel
@@ -53,6 +53,7 @@ val viewModelModule = module {
     viewModelOf(::ProfileViewModel)
     viewModelOf(::FeedbacksViewModel)
     viewModelOf(::CreateOfferViewModel)
+    viewModelOf(::BasketViewModel)
 }
 
 val networkModule = module {

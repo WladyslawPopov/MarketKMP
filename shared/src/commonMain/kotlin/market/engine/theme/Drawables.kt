@@ -133,4 +133,6 @@ interface Drawables {
    val textItalicIcon: DrawableResource
    val textUnderlineIcon: DrawableResource
    val fillCircleIcon: DrawableResource
+
+   val cartEmptyIcon : DrawableResource
 }

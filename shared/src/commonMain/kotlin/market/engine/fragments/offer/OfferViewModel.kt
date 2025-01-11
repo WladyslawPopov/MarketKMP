@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonPrimitive
+import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
@@ -22,6 +24,7 @@ import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
+import org.jetbrains.compose.resources.getString
 
 class OfferViewModel(
     private val apiService: APIService,
@@ -283,6 +286,35 @@ class OfferViewModel(
             }
         } catch (e: Exception) {
             onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
+        }
+    }
+
+    suspend fun addToBasket(offerId: Long): Boolean? {
+        try {
+            return withContext(Dispatchers.IO){
+                val bodyAddB = HashMap<String,String>()
+                bodyAddB["offer_id"] = offerId.toString()
+
+                val response = userOperations.postUsersOperationsAddItemToCart(UserData.login, bodyAddB)
+                if (response.success?.success == true){
+                    showToast(
+                        successToastItem.copy(message = getString(strings.offerAddedToBasketLabel))
+                    )
+                    updateUserInfo()
+                   return@withContext true
+                }else{
+                    throw ServerErrorException(
+                        errorCode = response.success?.errorCode ?: "",
+                        humanMessage = response.success?.humanMessage ?: ""
+                    )
+                }
+            }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+            return null
+        } catch (exception: Exception) {
+            onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            return null
         }
     }
 

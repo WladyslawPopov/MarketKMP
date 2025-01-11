@@ -36,7 +36,7 @@ fun BaseContent(
     ) { innerPadding ->
         SwipeRefreshContent(
             isRefreshing = isLoading,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().zIndex(100f)
                 .padding(top = if (topBar != null)
                                     innerPadding.calculateTopPadding()
                                 else 0.dp
@@ -52,17 +52,10 @@ fun BaseContent(
                 Box(
                     modifier = modifier,
                 ) {
-                    when {
-                        noFound != null -> {
-                            noFound()
-                        }
-                        error != null -> {
-                            error()
-                        }
-                        else -> {
-                            content()
-                        }
-                    }
+                    noFound?.invoke()
+                    error?.invoke()
+                    content()
+
                     if(toastItem != null) {
                         AnimatedVisibility(
                             toastItem.value.isVisible,
