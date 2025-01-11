@@ -16,6 +16,7 @@ class FavViewModel(
     private val apiService: APIService,
     private val userRepository : UserRepository
 ) : BaseViewModel() {
+
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
     fun init(listingData: ListingData): Flow<PagingData<Offer>> {

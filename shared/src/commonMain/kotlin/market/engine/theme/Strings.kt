@@ -317,4 +317,11 @@ interface Strings {
     val createSimilarOfferLabel : StringResource
     val congratulationsLabel : StringResource
     val congratulationsCreateOfferInFutureLabel : StringResource
+
+    val actionClearBasket : StringResource
+    val yourBasketTitle : StringResource
+
+    val manyOffersLabel : StringResource
+    val exManyOffersLabel : StringResource
+    val oneOfferLabel : StringResource
 }
