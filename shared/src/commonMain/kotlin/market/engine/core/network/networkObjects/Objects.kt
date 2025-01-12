@@ -186,7 +186,7 @@ data class Offer(
     @SerialName("description") val description: String? = null,
     @SerialName("minimal_acceptable_price") var minimalAcceptablePrice: String? = null,
     @SerialName("is_watched_by_me") var isWatchedByMe: Boolean = false,
-    @SerialName("quantity") val quantity: Int = 0,
+    @SerialName("quantity") var quantity: Int = 0,
     @SerialName("snapshot_id") val snapshotId: Long = 1L,
     @SerialName("price_per_item") val pricePerItem: String? = null,
     @SerialName("is_proposal_enabled") val isProposalEnabled: Boolean = false,

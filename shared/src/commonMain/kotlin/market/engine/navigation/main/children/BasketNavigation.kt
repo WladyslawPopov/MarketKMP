@@ -215,6 +215,12 @@ fun itemBasket(componentContext: ComponentContext, basketNavigation : StackNavig
         componentContext = componentContext,
         navigateToListing = {
             basketNavigation.pushNew(BasketConfig.ListingScreen(LD(), SD()))
+        },
+        navigateToUser = {
+            basketNavigation.pushNew(BasketConfig.UserScreen(it, getCurrentDate(), false))
+        },
+        navigateToOffer = {
+            basketNavigation.pushNew(BasketConfig.OfferScreen(it, getCurrentDate()))
         }
     )
 }

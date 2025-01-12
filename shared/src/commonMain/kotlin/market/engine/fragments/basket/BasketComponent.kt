@@ -16,11 +16,17 @@ interface BasketComponent {
     )
 
     fun goToListing()
+
+    fun goToOffer(offerId: Long)
+
+    fun goToUser(userId: Long)
 }
 
 class DefaultBasketComponent(
     componentContext: ComponentContext,
-    val navigateToListing: () -> Unit
+    val navigateToListing: () -> Unit,
+    val navigateToOffer: (Long) -> Unit,
+    val navigateToUser: (Long) -> Unit
 ) : BasketComponent, ComponentContext by componentContext {
 
     private val basketViewModel : BasketViewModel = getKoin().get()
@@ -36,13 +42,19 @@ class DefaultBasketComponent(
         navigateToListing()
     }
 
+    override fun goToOffer(offerId: Long) {
+        navigateToOffer(offerId)
+    }
+
+    override fun goToUser(userId: Long) {
+        navigateToUser(userId)
+    }
+
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
-        lifecycle.doOnResume {
-            analyticsHelper.reportEvent("view_cart", mapOf())
+        analyticsHelper.reportEvent("view_cart", mapOf())
 
-            basketViewModel.getUserCart()
-        }
+        basketViewModel.getUserCart()
     }
 }

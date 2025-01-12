@@ -133,7 +133,7 @@ fun DrawerContent(
                             confirmButton = {
                                 SimpleTextButton(
                                     text = stringResource(strings.logoutTitle),
-                                    backgroundColor = colors.grayLayout,
+                                    backgroundColor = colors.textA0AE,
                                     onClick = {
                                         analyticsHelper.reportEvent("logout_success", mapOf())
                                         isShowDialog.value = false
@@ -145,7 +145,7 @@ fun DrawerContent(
                             dismissButton = {
                                 SimpleTextButton(
                                     text = stringResource(strings.closeWindow),
-                                    backgroundColor = colors.grayLayout,
+                                    backgroundColor = colors.inactiveBottomNavIconColor,
                                     onClick = {
                                         isShowDialog.value = false
                                     }

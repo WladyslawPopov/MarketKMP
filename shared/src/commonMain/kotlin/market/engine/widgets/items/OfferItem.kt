@@ -179,23 +179,16 @@ fun contentStructure(
     val imageUrl = when {
         offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
         offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
+        offer.externalUrl != null -> offer.externalUrl
         else -> null
     }
 
-    val imageSize =
-        if (isGrid){
-            if (getWindowType() == WindowType.Big){
+    val imageSize = if (getWindowType() == WindowType.Big){
                 300.dp
             } else {
                 200.dp
             }
-        } else {
-            if (getWindowType() == WindowType.Big){
-                300.dp
-            } else {
-                200.dp
-            }
-        }
+
 
     Box(
         modifier = Modifier

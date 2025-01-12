@@ -328,4 +328,11 @@ interface Strings {
     val cardIsEmptyLabel : StringResource
     val startShoppingLabel : StringResource
     val offerAddedToBasketLabel : StringResource
+    val deleteSelectedOffersFromBasket : StringResource
+    val priceOfOneOfferLabel : StringResource
+    val totalLabel : StringResource
+    val actionBuy : StringResource
+    val inStockLabel : StringResource
+    val warningDeleteSelectedOfferFromBasket : StringResource
+    val warningDeleteOfferBasket : StringResource
 }

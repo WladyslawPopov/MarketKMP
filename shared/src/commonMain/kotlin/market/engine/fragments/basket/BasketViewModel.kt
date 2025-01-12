@@ -7,11 +7,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
+import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.BodyListPayload
+import market.engine.core.network.networkObjects.Offer
+import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.UserRepository
@@ -21,10 +26,15 @@ class BasketViewModel(
     private val apiService: APIService,
     private val userRepository : UserRepository,
     private val userOperations : UserOperations,
+    private val offerOperations : OfferOperations
 ) : BaseViewModel() {
 
     private var _responseGetUserCart = MutableStateFlow<BodyListPayload<UserBody>?>(null)
     val responseGetUserCart : StateFlow<BodyListPayload<UserBody>?> = _responseGetUserCart.asStateFlow()
+
+    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+
+    val firstVisibleItem = MutableStateFlow(0)
 
     fun getUserCart(){
         viewModelScope.launch {
@@ -47,9 +57,13 @@ class BasketViewModel(
             }  catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-            }
-            finally {
+                onError(
+                    ServerErrorException(
+                        errorCode = exception.message.toString(),
+                        humanMessage = exception.message.toString()
+                    )
+                )
+            } finally {
                 setLoading(false)
             }
         }
@@ -91,9 +105,141 @@ class BasketViewModel(
                 )
             )
             return null
-        }
-        finally {
+        } finally {
             setLoading(false)
+        }
+    }
+
+    suspend fun getUser(id : Long) : User? {
+        try {
+            val res = withContext(Dispatchers.IO){
+                userOperations.getUsers(id)
+            }
+
+            return withContext(Dispatchers.Main){
+                val user = res.success?.firstOrNull()
+                val error = res.error
+                if (user != null){
+                    return@withContext user
+                }else{
+                    error?.let { throw it }
+                }
+            }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+            return null
+        } catch (exception: Exception) {
+            onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            return null
+        }
+    }
+
+    suspend fun getOffer(id : Long) : Offer? {
+        try {
+            val res = withContext(Dispatchers.IO){
+                offerOperations.getOffer(id)
+            }
+
+            return withContext(Dispatchers.Main){
+                val offer = res.success
+                val error = res.error
+                if (offer != null){
+                    return@withContext offer
+                }else{
+                    error?.let { throw it }
+                }
+            }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+            return null
+        } catch (exception: Exception) {
+            onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            return null
+        }
+    }
+
+    suspend fun addOfferToBasket(body : HashMap<String, String>, offerId : Long) : Boolean? {
+        try {
+            val res = withContext(Dispatchers.Default) {
+                userOperations.postUsersOperationsAddItemToCart(UserData.login, body)
+            }
+            return withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val error = res.error
+                if (buffer != null) {
+                    userRepository.updateUserInfo()
+
+                    responseGetUserCart.value?.bodyList?.first { it.offerId == offerId }?.quantity = body["quantity"]?.toInt() ?: 0
+                    return@withContext true
+                } else {
+                    if (error != null) {
+                        onError(error)
+                    }
+                    return@withContext null
+                }
+            }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+            return null
+        } catch (exception: Exception) {
+            onError(
+                ServerErrorException(
+                    errorCode = exception.message.toString(),
+                    humanMessage = exception.message.toString()
+                )
+            )
+            return null
+        }
+    }
+
+    suspend fun deleteItem(bodyUIR : JsonObject, lotData: UserBody?, idSeller: Long) : Boolean? {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsRemoveManyItemsFromCart(
+                    UserData.login,
+                    bodyUIR
+                )
+            }
+
+            val buffer = res.success
+            val error = res.error
+            return withContext(Dispatchers.Main) {
+                if (buffer != null) {
+                    userRepository.updateUserInfo()
+
+                    val eventParameters = mapOf(
+                        "lot_id" to lotData?.offerId,
+                        "lot_name" to lotData?.offerTitle,
+                        "lot_city" to lotData?.freeLocation,
+                        "auc_delivery" to "false",
+                        "lot_category" to "-",
+                        "seller_id" to idSeller,
+                        "lot_price_start" to lotData?.offerPrice,
+                        "cart_id" to idSeller
+                    )
+                    analyticsHelper.reportEvent(
+                        "click_del_item",
+                        eventParameters
+                    )
+                    return@withContext true
+                } else {
+                    if (error != null) {
+                        onError(error)
+                    }
+                    return@withContext null
+                }
+            }
+        }catch (exception: ServerErrorException) {
+            onError(exception)
+            return null
+        } catch (exception: Exception) {
+            onError(
+                ServerErrorException(
+                    errorCode = exception.message.toString(),
+                    humanMessage = exception.message.toString()
+                )
+            )
+            return null
         }
     }
 }

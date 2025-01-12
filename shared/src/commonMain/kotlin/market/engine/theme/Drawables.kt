@@ -135,4 +135,6 @@ interface Drawables {
    val fillCircleIcon: DrawableResource
 
    val cartEmptyIcon : DrawableResource
+   val plusIcon : DrawableResource
+   val minusIcon : DrawableResource
 }
