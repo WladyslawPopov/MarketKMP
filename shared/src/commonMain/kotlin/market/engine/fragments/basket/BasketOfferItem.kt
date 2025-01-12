@@ -163,7 +163,8 @@ fun BasketOfferItem(
                         Text(
                             text = location,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(dimens.smallPadding)
+                            modifier = Modifier.padding(dimens.smallPadding),
+                            color = colors.black
                         )
                     }
                 }
@@ -183,7 +184,8 @@ fun BasketOfferItem(
                         Text(
                             text = stringResource(strings.inStockLabel) + " " + offer.currentQuantity,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(dimens.smallPadding)
+                            modifier = Modifier.padding(dimens.smallPadding),
+                            color = colors.black
                         )
                     }
                 }

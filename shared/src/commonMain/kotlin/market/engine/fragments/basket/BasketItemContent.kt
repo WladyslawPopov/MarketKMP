@@ -50,11 +50,12 @@ fun BasketItemContent(
     clearUserOffers: (List<Long>) -> Unit
 ) {
     val user = item.first
+    val maxNotExpandedItems = 2
 
-    val maxItems = remember { mutableStateOf(2) }
+    val maxItems = remember { mutableStateOf(maxNotExpandedItems) }
 
     val clickExpand = {
-        maxItems.value = if (maxItems.value == 2) item.second.size else 2
+        maxItems.value = if (maxItems.value == maxNotExpandedItems) item.second.size else maxNotExpandedItems
     }
 
     if (user != null) {
@@ -143,7 +144,7 @@ fun BasketItemContent(
                 }
             }
 
-            if (bodes.size > 2) {
+            if (bodes.size > maxNotExpandedItems) {
                 Row(
                     modifier = Modifier.clickable {
                         clickExpand()
@@ -152,7 +153,7 @@ fun BasketItemContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     SmallIconButton(
-                        if (maxItems.value == 2) drawables.iconArrowDown else drawables.iconArrowUp,
+                        if (maxItems.value == maxNotExpandedItems) drawables.iconArrowDown else drawables.iconArrowUp,
                         color = colors.inactiveBottomNavIconColor,
                         modifierIconSize = Modifier.size(dimens.mediumIconSize),
                     ) {
