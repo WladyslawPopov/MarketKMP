@@ -60,6 +60,30 @@ fun BasketContent(
     val state = rememberLazyListState(
         initialFirstVisibleItemIndex = viewModel.firstVisibleItem.value
     )
+    val subtitle : MutableState<String?> = remember {
+        mutableStateOf(null)
+    }
+
+    val oneOffer = stringResource(strings.oneOfferLabel)
+    val manyOffers = stringResource(strings.manyOffersLabel)
+    val exManyOffers = stringResource(strings.exManyOffersLabel)
+
+    val setUpSubtitle = {
+        val countOffers = UserData.userInfo?.countOffersInCart
+        subtitle.value = buildString {
+            if (countOffers.toString()
+                    .matches(Regex("""([^1]1)${'$'}""")) || countOffers == 1
+            ) {
+                append("$countOffers $oneOffer")
+            } else if (countOffers.toString()
+                    .matches(Regex("""([^1][234])${'$'}""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
+            ) {
+                append("$countOffers $exManyOffers")
+            } else {
+                append("$countOffers $manyOffers")
+            }
+        }
+    }
 
     LaunchedEffect(state){
         snapshotFlow {
@@ -95,15 +119,9 @@ fun BasketContent(
 
     val refresh = {
         viewModel.getUserCart()
+        setUpSubtitle()
     }
 
-    val subtitle : MutableState<String?> = remember {
-        mutableStateOf(null)
-    }
-
-    val oneOffer = stringResource(strings.oneOfferLabel)
-    val manyOffers = stringResource(strings.manyOffersLabel)
-    val exManyOffers = stringResource(strings.exManyOffersLabel)
 
     LaunchedEffect(userBasket){
         snapshotFlow {
@@ -111,21 +129,7 @@ fun BasketContent(
         }.collect { ub->
             if (ub?.bodyList?.isNotEmpty() == true){
                 viewModel.setLoading(true)
-                val countOffers = UserData.userInfo?.countOffersInCart
-                subtitle.value = buildString {
-                    if (countOffers.toString()
-                            .matches(Regex("""([^1]1)${'$'}""")) || countOffers == 1
-                    ) {
-                        append("$countOffers $oneOffer")
-                    } else if (countOffers.toString()
-                            .matches(Regex("""([^1][234])${'$'}""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
-                    ) {
-                        append("$countOffers $exManyOffers")
-                    } else {
-                        append("$countOffers $manyOffers")
-                    }
-                }
-
+                setUpSubtitle()
                 val groupedBySeller = ub.bodyList.groupBy { it.sellerId }
 
                 viewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -209,21 +213,7 @@ fun BasketContent(
                                 val res = viewModel.addOfferToBasket(bodyAddB, offerId)
 
                                 if (res != null){
-                                    val countOffers = UserData.userInfo?.countOffersInCart
-
-                                    subtitle.value = buildString {
-                                        if (countOffers.toString()
-                                                .matches(Regex("""([^1]1)${'$'}""")) || countOffers == 1
-                                        ) {
-                                            append("$countOffers $oneOffer")
-                                        } else if (countOffers.toString()
-                                                .matches(Regex("""([^1][234])${'$'}""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
-                                        ) {
-                                            append("$countOffers $exManyOffers")
-                                        } else {
-                                            append("$countOffers $manyOffers")
-                                        }
-                                    }
+                                    setUpSubtitle()
                                 }
                             }
                         },
