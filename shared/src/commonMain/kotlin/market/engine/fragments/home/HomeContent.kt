@@ -131,10 +131,10 @@ fun HomeContent(
     val scrollState = rememberScrollState()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val homeViewModel = model.homeViewModel
+    val isLoading = homeViewModel.isShowProgress.collectAsState()
 
     val err = homeViewModel.errorMessage.collectAsState()
 
@@ -165,7 +165,7 @@ fun HomeContent(
                     drawerState
                 )
             },
-            isLoading = promoOffer2.value.isEmpty() || promoOffer1.value.isEmpty(),
+            isLoading = isLoading.value,
             onRefresh = { component.onRefresh() },
             floatingActionButton = {
                 floatingCreateOfferButton {

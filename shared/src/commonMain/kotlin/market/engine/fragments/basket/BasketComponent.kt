@@ -3,7 +3,6 @@ package market.engine.fragments.basket
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -20,6 +19,8 @@ interface BasketComponent {
     fun goToOffer(offerId: Long)
 
     fun goToUser(userId: Long)
+
+    fun goToCreateOrder()
 }
 
 class DefaultBasketComponent(
@@ -48,6 +49,10 @@ class DefaultBasketComponent(
 
     override fun goToUser(userId: Long) {
         navigateToUser(userId)
+    }
+
+    override fun goToCreateOrder() {
+        TODO("Not yet implemented")
     }
 
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()

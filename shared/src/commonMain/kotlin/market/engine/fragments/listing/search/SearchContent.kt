@@ -46,8 +46,6 @@ fun SearchContent(
     goToListing : () -> Unit,
 ) {
     val searchViewModel : SearchViewModel = koinViewModel()
-
-    val isLoadingSearch = searchViewModel.isShowProgress.collectAsState()
     val isErrorSearch = searchViewModel.errorMessage.collectAsState()
 
     val focusManager = LocalFocusManager.current
@@ -90,12 +88,9 @@ fun SearchContent(
 
     BaseContent(
         error = errorSearch,
-        isLoading = isLoadingSearch.value,
+        isLoading = null,
         noFound = null,
         toastItem = searchViewModel.toastItem,
-        onRefresh = {
-            searchViewModel.getHistory(searchString.value)
-        },
         topBar = {
             SearchAppBar(
                 searchString,

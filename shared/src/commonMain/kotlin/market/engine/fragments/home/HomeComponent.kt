@@ -68,11 +68,9 @@ class DefaultHomeComponent(
     }
 
     private fun updateModel() {
-        lifecycle.doOnResume {
-            homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true)
-            homeViewModel.getOffersPromotedOnMainPage(0, 16)
-            homeViewModel.getOffersPromotedOnMainPage(1, 16)
-        }
+        homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true)
+        homeViewModel.getOffersPromotedOnMainPage(0, 16)
+        homeViewModel.getOffersPromotedOnMainPage(1, 16)
     }
 
     override fun onRefresh() {

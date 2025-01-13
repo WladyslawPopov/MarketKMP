@@ -54,6 +54,7 @@ val viewModelModule = module {
     viewModelOf(::FeedbacksViewModel)
     viewModelOf(::CreateOfferViewModel)
     viewModelOf(::BasketViewModel)
+    viewModelOf(::CreateOfferViewModel)
 }
 
 val networkModule = module {

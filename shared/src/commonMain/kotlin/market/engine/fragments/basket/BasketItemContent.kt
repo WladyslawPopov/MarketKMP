@@ -112,7 +112,6 @@ fun BasketItemContent(
                         modifier = Modifier
                     ) {
                         clearUserOffers(selectedOffers.value.map { it.offerId })
-                        selectedOffers.value = emptyList()
                     }
                 }
             }
@@ -207,7 +206,7 @@ fun BasketItemContent(
                         .fillMaxWidth(),
                     enabled = selectedOffers.value.isNotEmpty()
                 ) {
-                    // Navigate to order creation page, pass selectedOffersForUser.value if needed.
+
                 }
             }
         }

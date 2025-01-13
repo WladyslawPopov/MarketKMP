@@ -25,6 +25,7 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
     fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
         viewModelScope.launch {
             try {
+                setLoading(true)
                 val response = withContext(Dispatchers.IO) {
                     apiService.getOffersPromotedOnMainPage(page, ipp)
                 }
@@ -38,6 +39,8 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message ?: "Unknown error", "An error occurred"))
+            } finally {
+                setLoading(false)
             }
         }
     }

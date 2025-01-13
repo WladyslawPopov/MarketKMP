@@ -7,45 +7,67 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import market.engine.common.SwipeRefreshContent
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.ToastItem
 import market.engine.widgets.exceptions.ToastTypeMessage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaseContent(
     modifier: Modifier = Modifier,
     toastItem: MutableState<ToastItem>? = null,
-    isLoading : Boolean,
-    onRefresh: () -> Unit,
+    isLoading : Boolean? = null,
+    onRefresh: () -> Unit = {},
     topBar: (@Composable () -> Unit)? = null,
     error: (@Composable () -> Unit)? = null,
     noFound: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit) = {},
     content: @Composable BoxScope.() -> Unit,
 ){
+
+    val pullToRefreshState : PullToRefreshState = rememberPullToRefreshState()
+
     Scaffold(
         topBar = topBar ?: {},
         floatingActionButton = floatingActionButton
     ) { innerPadding ->
-        SwipeRefreshContent(
-            isRefreshing = isLoading,
-            modifier = Modifier.fillMaxSize().zIndex(100f)
-                .padding(top = if (topBar != null)
-                                    innerPadding.calculateTopPadding()
-                                else 0.dp
-                        ),
+        PullToRefreshBox(
+            modifier = Modifier.fillMaxSize().padding(top = if (topBar != null)
+                innerPadding.calculateTopPadding()
+            else 0.dp
+            ),
             onRefresh = onRefresh,
-        ) {
+            isRefreshing = isLoading ?: false,
+            state = pullToRefreshState,
+            indicator = {
+                if (isLoading != null){
+                    Indicator(
+                        modifier = Modifier.align(Alignment.TopCenter).size(dimens.mediumIconSize),
+                        isRefreshing = isLoading,
+                        state = pullToRefreshState,
+                        color = colors.notifyTextColor,
+                        containerColor = colors.white
+                    )
+                }
+            }
+        ){
             AnimatedVisibility(
                 modifier = modifier,
-                visible = !isLoading,
+                visible = !(isLoading ?: false),
                 enter = expandIn(),
                 exit = fadeOut()
             ) {
