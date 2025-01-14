@@ -76,9 +76,7 @@ fun BasketOfferItem(
         horizontalAlignment = Alignment.Start
     ) {
         Row(
-            modifier = Modifier.clickable {
-                goToOffer(offer.id)
-            }.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -116,104 +114,110 @@ fun BasketOfferItem(
                 },
                 modifier = Modifier
             )
-
-            Box(
-                modifier = Modifier
-                    .padding(dimens.smallPadding)
-                    .wrapContentSize(),
-                contentAlignment = Alignment.TopStart
+            Row(
+                modifier = Modifier.clickable {
+                    goToOffer(offer.id)
+                }.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                LoadImage(
-                    url = imageUrl ?: "",
-                    size = 90.dp
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    TitleText(
-                        text = offer.title ?: ""
-                    )
-                }
-
-
-                val location = buildString {
-                    offer.freeLocation?.let { append(it) }
-                    offer.region?.name?.let {
-                        if (isNotEmpty()) append(", ")
-                        append(it)
-                    }
-                }
-
-                if (location.isNotEmpty()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimens.extraSmallPadding)
-                    ) {
-                        Image(
-                            painter = painterResource(drawables.locationIcon),
-                            contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize),
-                        )
-                        Text(
-                            text = location,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(dimens.smallPadding),
-                            color = colors.black
-                        )
-                    }
-                }
-
-                if (offer.safeDeal) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimens.extraSmallPadding)
-                    ) {
-                        Image(
-                            painter = painterResource(drawables.iconCountBoxes),
-                            contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize),
-                        )
-                        Text(
-                            text = stringResource(strings.inStockLabel) + " " + offer.currentQuantity,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(dimens.smallPadding),
-                            color = colors.black
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
-
-                val priceText = buildAnnotatedString {
-                    append(offer.currentPricePerItem ?: "")
-                    append(" ${stringResource(strings.currencySign)}")
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .padding(dimens.smallPadding)
+                        .wrapContentSize(),
+                    contentAlignment = Alignment.TopStart
                 ) {
-                    Text(
-                        stringResource(strings.priceOfOneOfferLabel),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.black,
+                    LoadImage(
+                        url = imageUrl ?: "",
+                        size = 90.dp
                     )
-                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
-                    Text(
-                        text = priceText,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = colors.black,
-                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        TitleText(
+                            text = offer.title ?: ""
+                        )
+                    }
+
+
+                    val location = buildString {
+                        offer.freeLocation?.let { append(it) }
+                        offer.region?.name?.let {
+                            if (isNotEmpty()) append(", ")
+                            append(it)
+                        }
+                    }
+
+                    if (location.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(dimens.extraSmallPadding)
+                        ) {
+                            Image(
+                                painter = painterResource(drawables.locationIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.smallIconSize),
+                            )
+                            Text(
+                                text = location,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(dimens.smallPadding),
+                                color = colors.black
+                            )
+                        }
+                    }
+
+                    if (offer.safeDeal) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(dimens.extraSmallPadding)
+                        ) {
+                            Image(
+                                painter = painterResource(drawables.iconCountBoxes),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.smallIconSize),
+                            )
+                            Text(
+                                text = stringResource(strings.inStockLabel) + " " + offer.currentQuantity,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(dimens.smallPadding),
+                                color = colors.black
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
+
+                    val priceText = buildAnnotatedString {
+                        append(offer.currentPricePerItem ?: "")
+                        append(" ${stringResource(strings.currencySign)}")
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            stringResource(strings.priceOfOneOfferLabel),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.black,
+                        )
+                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
+                        Text(
+                            text = priceText,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = colors.black,
+                        )
+                    }
                 }
             }
         }

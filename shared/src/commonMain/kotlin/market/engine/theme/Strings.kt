@@ -10,6 +10,7 @@ interface Strings {
     val homeTitle: StringResource
     val searchTitle: StringResource
     val createNewOfferTitle: StringResource
+    val createNewOrderTitle: StringResource
     val searchUsersSearch: StringResource
     val notificationTitle: StringResource
     val messageTitle: StringResource
@@ -335,4 +336,10 @@ interface Strings {
     val inStockLabel : StringResource
     val warningDeleteSelectedOfferFromBasket : StringResource
     val warningDeleteOfferBasket : StringResource
+    val defaultCardLabel : StringResource
+    val addressCardsTitle : StringResource
+    val addNewDeliveryCard : StringResource
+    val actionDelete : StringResource
+    val editCardLabel : StringResource
+    val saveDataLabel : StringResource
 }

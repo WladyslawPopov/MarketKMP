@@ -20,6 +20,7 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.basket.BasketComponent
@@ -27,6 +28,8 @@ import market.engine.fragments.basket.BasketContent
 import market.engine.fragments.basket.DefaultBasketComponent
 import market.engine.fragments.createOffer.CreateOfferComponent
 import market.engine.fragments.createOffer.CreateOfferContent
+import market.engine.fragments.createOrder.CreateOrderComponent
+import market.engine.fragments.createOrder.CreateOrderContent
 import market.engine.fragments.listing.ListingComponent
 import market.engine.fragments.listing.ListingContent
 import market.engine.fragments.offer.OfferComponent
@@ -34,6 +37,7 @@ import market.engine.fragments.offer.OfferContent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
 import market.engine.navigation.main.publicItems.itemCreateOffer
+import market.engine.navigation.main.publicItems.itemCreateOrder
 import market.engine.navigation.main.publicItems.itemListing
 import market.engine.navigation.main.publicItems.itemOffer
 import market.engine.navigation.main.publicItems.itemUser
@@ -58,6 +62,11 @@ sealed class BasketConfig {
         val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : BasketConfig()
+
+    @Serializable
+    data class CreateOrderScreen(
+        val basketItem : Pair<Long, List<SelectedBasketItem>>,
+    ) : BasketConfig()
 }
 
 sealed class ChildBasket {
@@ -66,6 +75,7 @@ sealed class ChildBasket {
     class OfferChild(val component: OfferComponent) : ChildBasket()
     class UserChild(val component: UserComponent) : ChildBasket()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildBasket()
+    class CreateOrderChild(val component: CreateOrderComponent) : ChildBasket()
 }
 
 @Composable
@@ -86,6 +96,7 @@ fun BasketNavigation(
             is ChildBasket.OfferChild -> OfferContent(screen.component, modifier)
             is ChildBasket.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildBasket.UserChild -> UserContent(screen.component, modifier)
+            is ChildBasket.CreateOrderChild -> CreateOrderContent(screen.component)
         }
     }
 }
@@ -208,6 +219,26 @@ fun createBasketChild(
                 }
             )
         )
+
+        is BasketConfig.CreateOrderScreen -> ChildBasket.CreateOrderChild(
+            itemCreateOrder(
+                componentContext,
+                config.basketItem,
+                navigateBack = {
+                    basketNavigation.pop()
+                },
+                navigateOffer = { id ->
+                    basketNavigation.pushNew(
+                        BasketConfig.OfferScreen(id, getCurrentDate())
+                    )
+                },
+                navigateUser = { id ->
+                    basketNavigation.pushNew(
+                        BasketConfig.UserScreen(id, getCurrentDate(), false)
+                    )
+                }
+            )
+        )
     }
 
 fun itemBasket(componentContext: ComponentContext, basketNavigation : StackNavigation<BasketConfig>): BasketComponent {
@@ -221,6 +252,9 @@ fun itemBasket(componentContext: ComponentContext, basketNavigation : StackNavig
         },
         navigateToOffer = {
             basketNavigation.pushNew(BasketConfig.OfferScreen(it, getCurrentDate()))
+        },
+        navigateToCreateOrder = {
+            basketNavigation.pushNew(BasketConfig.CreateOrderScreen(it))
         }
     )
 }

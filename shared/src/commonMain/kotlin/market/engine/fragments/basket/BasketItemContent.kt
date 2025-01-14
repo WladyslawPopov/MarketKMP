@@ -45,6 +45,7 @@ fun BasketItemContent(
     item: Pair<User?, List<Offer?>>,
     goToUser : (Long) -> Unit,
     goToOffer: (Long) -> Unit,
+    goToCreateOrder: (Pair<Long, List<SelectedBasketItem>>) -> Unit,
     changeQuantity: (Long, Int) -> Unit,
     deleteOffer: (Long) -> Unit,
     clearUserOffers: (List<Long>) -> Unit
@@ -206,7 +207,7 @@ fun BasketItemContent(
                         .fillMaxWidth(),
                     enabled = selectedOffers.value.isNotEmpty()
                 ) {
-
+                    goToCreateOrder(Pair(user.id, selectedOffers.value))
                 }
             }
         }

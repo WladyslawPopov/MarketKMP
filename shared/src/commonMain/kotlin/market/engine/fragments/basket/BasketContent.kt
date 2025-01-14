@@ -19,8 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -32,8 +30,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.networkObjects.User
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.exceptions.onError
@@ -50,8 +46,6 @@ fun BasketContent(
     val userBasket = modelState.value.basketViewModel.responseGetUserCart.collectAsState()
     val isLoading = modelState.value.basketViewModel.isShowProgress.collectAsState()
     val isError = modelState.value.basketViewModel.errorMessage.collectAsState()
-
-    val basketData : MutableState<List<Pair<User?, List<Offer?>>>> = remember { mutableStateOf(emptyList()) }
 
     val listOffers = remember { mutableStateOf(emptyList<Long>()) }
 
@@ -94,7 +88,7 @@ fun BasketContent(
     }
 
     val noFound = @Composable {
-        if (userBasket.value?.bodyList?.isEmpty() == true){
+        if (userBasket.value.isEmpty()){
             showNoItemLayout(
                 image = drawables.cartEmptyIcon,
                 title = stringResource(strings.cardIsEmptyLabel),
@@ -122,39 +116,9 @@ fun BasketContent(
         setUpSubtitle()
     }
 
-
     LaunchedEffect(userBasket){
-        snapshotFlow {
-            userBasket.value
-        }.collect { ub->
-            if (ub?.bodyList?.isNotEmpty() == true){
-                viewModel.setLoading(true)
-                setUpSubtitle()
-                val groupedBySeller = ub.bodyList.groupBy { it.sellerId }
-
-                viewModel.viewModelScope.launch(Dispatchers.IO) {
-                    val result = groupedBySeller.map { (sellerId, items) ->
-                        val sellerUser: User? = viewModel.getUser(sellerId)
-                        val basketItems: List<Offer?> = items.map { item ->
-                            Offer(
-                                id = item.offerId,
-                                title = item.offerTitle,
-                                currentPricePerItem = item.offerPrice,
-                                currentQuantity = item.availableQuantity,
-                                quantity = item.quantity,
-                                sellerData = User(id = item.sellerId),
-                                freeLocation = item.freeLocation,
-                                externalUrl = item.offerImage,
-                                safeDeal = item.isBuyable ?: false
-                            )
-                        }
-
-                        sellerUser to basketItems
-                    }
-                    basketData.value = result
-                    viewModel.setLoading(false)
-                }
-            }
+        if (userBasket.value.isNotEmpty()) {
+            setUpSubtitle()
         }
     }
 
@@ -194,10 +158,10 @@ fun BasketContent(
                     .fillMaxSize()
                     .animateContentSize()
             ) {
-                items(basketData.value.size, key = { basketData.value[it].first?.id ?: it }) { index ->
+                items(userBasket.value.size, key = { userBasket.value[it].first?.id ?: it }) { index ->
                     Spacer(modifier = Modifier.height(dimens.smallSpacer))
                     BasketItemContent(
-                        basketData.value[index],
+                        userBasket.value[index],
                         goToUser = { userId ->
                             component.goToUser(userId)
                         },
@@ -226,6 +190,9 @@ fun BasketContent(
                             listOffers.value = buildList {
                                 addAll(offers)
                             }
+                        },
+                        goToCreateOrder = {
+                            component.goToCreateOrder(it)
                         }
                     )
                 }
@@ -265,18 +232,23 @@ fun BasketContent(
                                 viewModel.viewModelScope.launch {
                                     val res = viewModel.deleteItem(
                                         body,
-                                        userBasket.value?.bodyList?.first(),
-                                        userBasket.value?.bodyList?.first()?.sellerId ?: 1L
+                                        userBasket.value.find { pair ->
+                                            pair.second.find { it?.id == listOffers.value.first() } != null
+                                        }?.second?.find { it?.id == listOffers.value.first() },
+                                        userBasket.value.find { pair ->
+                                            pair.second.find { it?.id == listOffers.value.first() } != null
+                                        }?.first?.id ?: 1L
                                     )
+
                                     if (res != null){
                                         refresh()
+                                        listOffers.value = emptyList()
                                         viewModel.showToast(
                                             successToastItem.copy(message = successToast)
                                         )
                                     }
                                 }
 
-                                listOffers.value = emptyList()
                             }
                         )
                     },

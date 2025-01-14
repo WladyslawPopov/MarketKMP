@@ -16,7 +16,7 @@ import org.jetbrains.compose.resources.stringResource
 fun CreateOrderAppBar(
     onBackClick: () -> Unit = {},
 ) {
-    val title = stringResource(strings.createNewOfferTitle)
+    val title = stringResource(strings.createNewOrderTitle)
 
     TopAppBar(
         modifier = Modifier

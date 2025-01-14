@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.items.SelectedBasketItem
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -20,14 +21,15 @@ interface BasketComponent {
 
     fun goToUser(userId: Long)
 
-    fun goToCreateOrder()
+    fun goToCreateOrder(basketItem : Pair<Long, List<SelectedBasketItem>>)
 }
 
 class DefaultBasketComponent(
     componentContext: ComponentContext,
     val navigateToListing: () -> Unit,
     val navigateToOffer: (Long) -> Unit,
-    val navigateToUser: (Long) -> Unit
+    val navigateToUser: (Long) -> Unit,
+    val navigateToCreateOrder: (Pair<Long, List<SelectedBasketItem>>) -> Unit,
 ) : BasketComponent, ComponentContext by componentContext {
 
     private val basketViewModel : BasketViewModel = getKoin().get()
@@ -51,8 +53,8 @@ class DefaultBasketComponent(
         navigateToUser(userId)
     }
 
-    override fun goToCreateOrder() {
-        TODO("Not yet implemented")
+    override fun goToCreateOrder(basketItem : Pair<Long, List<SelectedBasketItem>>) {
+        navigateToCreateOrder(basketItem)
     }
 
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()

@@ -57,7 +57,7 @@ fun FeedbacksContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.feedbacksViewModel
-    val listingData = model.listingData.data
+    val listingData = viewModel.listingData.value.data
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
     val filters = listOf(
@@ -139,7 +139,7 @@ fun FeedbacksContent(
     }
 
     LaunchedEffect(Unit){
-        viewModel.currentFilter.value = if (listingData.value.filters.find { it.key == "evaluation" }?.value == "") {
+        viewModel.currentFilter.value = if (listingData.value.filters.find { it.key == "evaluation" }?.value == "" || listingData.value.filters.find { it.key == "evaluation" }?.value == null) {
             filters[0]
         }else{
             filters[(listingData.value.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
@@ -166,37 +166,33 @@ fun FeedbacksContent(
                         component.onRefresh()
                     },
                     onItemClick = { filter ->
-                        val newVal = listingData.value.filters.find { it.key == "evaluation" }
-                        val oldVal =
-                            listingData.value.filters.find { it.key == "evaluation" }?.value
 
                         viewModel.currentFilter.value = filter
 
                         when (filters.indexOf(filter)) {
                             0 -> {
-                                newVal?.value = ""
-                                newVal?.interpritation = null
+                                listingData.value.filters.find { it.key == "evaluation" }?.value = ""
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = null
                             }
 
                             1 -> {
-                                newVal?.value = "0"
-                                newVal?.interpritation = ""
+                                listingData.value.filters.find { it.key == "evaluation" }?.value = "0"
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = ""
                             }
 
                             2 -> {
-                                newVal?.value = "1"
-                                newVal?.interpritation = ""
+                                listingData.value.filters.find { it.key == "evaluation" }?.value = "1"
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = ""
                             }
 
                             3 -> {
-                                newVal?.value = "2"
-                                newVal?.interpritation = ""
+                                listingData.value.filters.find { it.key == "evaluation" }?.value = "2"
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = ""
                             }
                         }
-                        if (newVal?.value != oldVal) {
-                            listingData.value.resetScroll()
-                            component.onRefresh()
-                        }
+
+                        listingData.value.resetScroll()
+                        component.onRefresh()
                     }
                 )
             }

@@ -29,8 +29,10 @@ class BasketViewModel(
     private val offerOperations : OfferOperations
 ) : BaseViewModel() {
 
-    private var _responseGetUserCart = MutableStateFlow<BodyListPayload<UserBody>?>(null)
-    val responseGetUserCart : StateFlow<BodyListPayload<UserBody>?> = _responseGetUserCart.asStateFlow()
+    private var _responseGetUserCart = MutableStateFlow<
+            List<Pair<User?, List<Offer?>>>>(emptyList())
+    val responseGetUserCart : StateFlow<
+            List<Pair<User?, List<Offer?>>>> = _responseGetUserCart.asStateFlow()
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
@@ -43,16 +45,35 @@ class BasketViewModel(
                     setLoading(true)
                     userRepository.updateToken()
                     val response = apiService.postUserOperationsGetCartItems(UserData.login)
-                    withContext(Dispatchers.Main){
+
                         try {
                             val serializer = BodyListPayload.serializer(UserBody.serializer())
                             val payload : BodyListPayload<UserBody> = deserializePayload(response.payload, serializer)
-                            _responseGetUserCart.value = payload
+
+                            val groupedBySeller = payload.bodyList.groupBy { it.sellerId }
+                                val result = groupedBySeller.map { (sellerId, items) ->
+                                    val sellerUser: User? = getUser(sellerId)
+                                    val basketItems: List<Offer?> = items.map { item ->
+                                        Offer(
+                                            id = item.offerId,
+                                            title = item.offerTitle,
+                                            currentPricePerItem = item.offerPrice,
+                                            currentQuantity = item.availableQuantity,
+                                            quantity = item.quantity,
+                                            sellerData = User(id = item.sellerId),
+                                            freeLocation = item.freeLocation,
+                                            externalUrl = item.offerImage,
+                                            safeDeal = item.isBuyable ?: false
+                                        )
+                                    }
+                                    sellerUser to basketItems
+                                }
+                            _responseGetUserCart.value = result
                             userRepository.updateUserInfo()
                         }catch (e : Exception){
                             throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                         }
-                    }
+
                 }
             }  catch (exception: ServerErrorException) {
                 onError(exception)
@@ -167,9 +188,14 @@ class BasketViewModel(
                 val buffer = res.success
                 val error = res.error
                 if (buffer != null) {
+
                     userRepository.updateUserInfo()
 
-                    responseGetUserCart.value?.bodyList?.first { it.offerId == offerId }?.quantity = body["quantity"]?.toInt() ?: 0
+                    responseGetUserCart.value?.find { pair ->
+                        pair.second.find { it?.id == offerId } != null
+                    }?.second?.find { it?.id == offerId }
+                        ?.quantity = body["quantity"]?.toInt() ?: 0
+
                     return@withContext true
                 } else {
                     if (error != null) {
@@ -192,7 +218,7 @@ class BasketViewModel(
         }
     }
 
-    suspend fun deleteItem(bodyUIR : JsonObject, lotData: UserBody?, idSeller: Long) : Boolean? {
+    suspend fun deleteItem(bodyUIR : JsonObject, lotData: Offer?, idSeller: Long) : Boolean? {
         try {
             val res = withContext(Dispatchers.IO) {
                 userOperations.postUsersOperationsRemoveManyItemsFromCart(
@@ -208,13 +234,13 @@ class BasketViewModel(
                     userRepository.updateUserInfo()
 
                     val eventParameters = mapOf(
-                        "lot_id" to lotData?.offerId,
-                        "lot_name" to lotData?.offerTitle,
+                        "lot_id" to lotData?.id,
+                        "lot_name" to lotData?.title,
                         "lot_city" to lotData?.freeLocation,
                         "auc_delivery" to "false",
                         "lot_category" to "-",
                         "seller_id" to idSeller,
-                        "lot_price_start" to lotData?.offerPrice,
+                        "lot_price_start" to lotData?.currentPricePerItem,
                         "cart_id" to idSeller
                     )
                     analyticsHelper.reportEvent(

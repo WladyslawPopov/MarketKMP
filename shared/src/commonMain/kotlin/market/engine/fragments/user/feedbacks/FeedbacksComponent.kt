@@ -16,7 +16,6 @@ interface FeedbacksComponent {
     data class Model(
         val userId : Long,
         var type : ReportPageType,
-        val listingData : ListingData,
         val feedbacksViewModel: FeedbacksViewModel,
         var pagingDataFlow : Flow<PagingData<Reports>>
     )
@@ -39,15 +38,12 @@ class DefaultFeedbacksComponent(
     private val navigateToUser : (Long) -> Unit
 ) : FeedbacksComponent, ComponentContext by componentContext {
 
-    private val listingData = ListingData()
-
     private  val feedbacksViewModel : FeedbacksViewModel = getKoin().get()
 
     private val _model = MutableValue(
         FeedbacksComponent.Model(
             userId = userId,
             type = type,
-            listingData = listingData,
             feedbacksViewModel = feedbacksViewModel,
             pagingDataFlow = feedbacksViewModel.init(type, userId)
         )

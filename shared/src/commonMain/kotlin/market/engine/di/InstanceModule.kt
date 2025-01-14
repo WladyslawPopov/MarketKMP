@@ -16,6 +16,7 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.basket.BasketViewModel
 import market.engine.fragments.createOffer.CreateOfferViewModel
+import market.engine.fragments.createOrder.CreateOrderViewModel
 import market.engine.fragments.favorites.FavViewModel
 import market.engine.fragments.home.HomeViewModel
 import market.engine.fragments.listing.ListingViewModel
@@ -54,7 +55,7 @@ val viewModelModule = module {
     viewModelOf(::FeedbacksViewModel)
     viewModelOf(::CreateOfferViewModel)
     viewModelOf(::BasketViewModel)
-    viewModelOf(::CreateOfferViewModel)
+    viewModelOf(::CreateOrderViewModel)
 }
 
 val networkModule = module {
