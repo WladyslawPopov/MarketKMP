@@ -37,7 +37,7 @@ fun DynamicInputField(
     singleLine: Boolean = true,
 ) {
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         if (field.data != null) {
             field.data = checkValidation(field, field.data?.jsonPrimitive?.content ?: "")
         }

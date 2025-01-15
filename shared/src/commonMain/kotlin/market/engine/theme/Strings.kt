@@ -342,4 +342,7 @@ interface Strings {
     val actionDelete : StringResource
     val editCardLabel : StringResource
     val saveDataLabel : StringResource
+    val countryDefault : StringResource
+    val actionCancel : StringResource
+    val actionComplete : StringResource
 }

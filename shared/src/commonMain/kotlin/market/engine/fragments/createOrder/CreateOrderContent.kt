@@ -17,10 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -29,16 +26,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.networkObjects.DeliveryAddress
-import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseContent
-import market.engine.widgets.rows.DeliveryCardsContent
-import market.engine.widgets.rows.DeliveryCardsRow
+import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.exceptions.DeliveryCardsContent
 import market.engine.widgets.rows.UserSimpleRow
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.stringResource
@@ -50,12 +43,9 @@ fun CreateOrderContent(
     val model = component.model.subscribeAsState()
     val viewModel = model.value.createOrderViewModel
 
-    val createOrderResponse = viewModel.responseCreateOrder.collectAsState()
     val offers = viewModel.responseGetOffers.collectAsState()
-    val deliveryCards = viewModel.responseGetLoadCards.collectAsState()
+    val deliveryCards = viewModel.responseGetLoadCards
     val additionalFields = viewModel.responseGetAdditionalData.collectAsState()
-
-    val activeCard = remember { mutableStateOf(1L) }
 
     val focusManager = LocalFocusManager.current
 
@@ -76,11 +66,6 @@ fun CreateOrderContent(
 
     val state = rememberScrollState()
 
-    LaunchedEffect(deliveryCards.value) {
-        if(deliveryCards.value.isNotEmpty()){
-            activeCard.value = deliveryCards.value.find { it.isDefault }?.id ?: 1L
-        }
-    }
 
     BaseContent(
         topBar = {
@@ -208,41 +193,36 @@ fun CreateOrderContent(
             }
 
             // delivery cards
-            if (activeCard.value != 1L) {
-                DeliveryCardsContent(
-                    activeCard.value,
-                    deliveryCards.value,
-                    setActiveCard = {
+            DeliveryCardsContent(
+                deliveryCards.value,
+                viewModel.deliveryFields.value,
+                addNewCard = {
+                    viewModel.saveDeliveryCard(it)
+                },
+                setDefaultCard = { card ->
+                    viewModel.updateDefaultCard(card)
+                },
+                deleteCard = { card ->
+                    viewModel.updateDeleteCard(card)
+                }
+            )
 
-                    },
-                    addNewCard = {
-
-                    }
-                )
-            }
             // additional fields
 
             //create order button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AcceptedPageButton(
+                    strings.actionComplete,
+                    modifier = Modifier.fillMaxWidth(0.6f)
+                        .padding(dimens.mediumPadding),
+                ){
 
-        }
-    }
-}
-
-fun createJsonBody(
-    fields: List<Fields>,
-) : JsonObject {
-    return buildJsonObject {
-        fields.forEach { data ->
-            when (data.key) {
-                else -> {
-                    put(data.key ?: "", data.data!!)
                 }
             }
         }
     }
 }
-
-
-
-
-

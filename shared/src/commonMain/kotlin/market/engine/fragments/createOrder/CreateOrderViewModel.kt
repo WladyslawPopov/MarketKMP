@@ -1,5 +1,6 @@
 package market.engine.fragments.createOrder
 
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +12,9 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import market.engine.common.AnalyticsFactory
+import market.engine.core.data.constants.errorToastItem
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ToastItem
@@ -22,6 +26,7 @@ import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.DynamicPayload
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.deserializePayload
@@ -41,11 +46,18 @@ class CreateOrderViewModel(
     private var _responseGetOffers = MutableStateFlow<List<Offer>>(emptyList())
     val responseGetOffers : StateFlow<List<Offer>> = _responseGetOffers.asStateFlow()
 
-    private var _responseGetLoadCards = MutableStateFlow<List<DeliveryAddress>>(emptyList())
-    val responseGetLoadCards : StateFlow<List<DeliveryAddress>> = _responseGetLoadCards.asStateFlow()
+    val responseGetLoadCards = mutableStateOf(emptyList<DeliveryAddress>())
 
     private var _responseGetAdditionalData = MutableStateFlow<AdditionalDataForNewOrder?>(null)
     val responseGetAdditionalData  : StateFlow<AdditionalDataForNewOrder?> = _responseGetAdditionalData.asStateFlow()
+
+    val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
+
+    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+
+    init {
+        loadFields()
+    }
 
     fun getOffers(listOffersId : List<Long>) {
         viewModelScope.launch {
@@ -82,7 +94,7 @@ class CreateOrderViewModel(
                     val err = response.error
 
                     if (payload?.body?.addressCards != null) {
-                        _responseGetLoadCards.value = payload.body.addressCards
+                        responseGetLoadCards.value = payload.body.addressCards
                     }else{
                         throw err ?: ServerErrorException(errorCode = "Error", humanMessage = "")
                     }
@@ -143,6 +155,181 @@ class CreateOrderViewModel(
         }
     }
 
+    private fun loadFields() {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                userOperations.getUsersOperationsSetAddressCards(UserData.login)
+            }
+            withContext(Dispatchers.Main){
+                val payload = res.success
+                val err = res.error
+
+                if (payload != null) {
+                    deliveryFields.value = payload.fields
+                } else {
+                    if (err != null)
+                        onError(err)
+                }
+            }
+        }
+    }
+
+    fun updateDefaultCard(card: DeliveryAddress) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                val b = HashMap<String, Long>()
+                b["id_as_ts"] = card.id
+                userOperations.postUsersOperationsSetAddressCardsDefault(UserData.login, b)
+            }
+
+            withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val err = res.error
+
+                if (buffer != null) {
+                    if (buffer.success) {
+                        responseGetLoadCards.value = buildList {
+                            responseGetLoadCards.value.forEach {
+                                if (it.id != card.id && !it.isDefault){
+                                    add(it)
+                                }else{
+                                    if (it.isDefault){
+                                        add(it.copy(isDefault = false))
+                                    }else{
+                                        add(it.copy(isDefault = true))
+                                    }
+                                }
+                            }
+                        }
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = buffer.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                    }
+                } else {
+                    err?.let { onError(it) }
+                }
+            }
+        }
+    }
+
+    fun updateDeleteCard(card: DeliveryAddress) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                val b = HashMap<String, Long>()
+                b["id_as_ts"] = card.id
+                userOperations.postUsersOperationsDeleteAddressCards(UserData.login, b)
+            }
+            withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val err = res.error
+
+                if (buffer != null) {
+                    if (buffer.success) {
+                        responseGetLoadCards.value = buildList {
+                            addAll(responseGetLoadCards.value)
+                            remove(card)
+                        }
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = buffer.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                    }
+                } else {
+                    err?.let { onError(it) }
+                }
+            }
+        }
+    }
+
+    suspend fun saveDeliveryCard(cardId: Long?) : Boolean{
+        val jsonBody = buildJsonObject {
+            deliveryFields.value.forEach { field ->
+                when (field.widgetType) {
+                    "input" -> {
+                        if(field.data != null) {
+                            put(field.key.toString(), field.data!!)
+                        }
+                    }
+                    "hidden" -> {
+                        if (cardId != null) {
+                            put(field.key.toString(), JsonPrimitive(cardId))
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
+
+        val res =  withContext(Dispatchers.IO) {
+            userOperations.postUsersOperationsSetAddressCards(UserData.login, jsonBody)
+        }
+
+        return withContext(Dispatchers.Main) {
+            val payload = res.success
+            val err = res.error
+            if (payload != null) {
+                if (payload.status == "operation_success") {
+
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                        "body" to jsonBody
+                    )
+                    analyticsHelper.reportEvent(
+                        "save_address_cards_success",
+                        eventParameters
+                    )
+
+                    loadFields()
+                    loadDeliveryCards()
+
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+
+                    return@withContext true
+                } else {
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                        "body" to jsonBody
+                    )
+                    analyticsHelper.reportEvent(
+                        "save_address_cards_failed",
+                        eventParameters
+                    )
+                    payload.recipe?.fields?.let { deliveryFields.value = it }
+
+                    showToast(errorToastItem.copy(
+                        message = getString(strings.operationFailed)
+                    ))
+                    return@withContext false
+                }
+            } else {
+                err?.let { onError(it) }
+                return@withContext false
+            }
+        }
+    }
 
     fun postPage(idUser: Long, body: JsonObject) {
         viewModelScope.launch {
