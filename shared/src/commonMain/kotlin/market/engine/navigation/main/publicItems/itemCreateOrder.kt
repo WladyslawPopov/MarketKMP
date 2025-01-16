@@ -7,14 +7,14 @@ import market.engine.fragments.createOrder.DefaultCreateOrderComponent
 
 fun itemCreateOrder(
     componentContext: ComponentContext,
-    basketItem : Pair<Long, List<SelectedBasketItem>>,
+    selectedItems : Pair<Long, List<SelectedBasketItem>>,
     navigateOffer: (Long) -> Unit,
     navigateUser: (Long) -> Unit,
     navigateBack: () -> Unit
     ): CreateOrderComponent {
         return DefaultCreateOrderComponent(
             componentContext,
-            basketItem,
+            selectedItems,
             navigateToOffer = { id->
                 navigateOffer(id)
             },

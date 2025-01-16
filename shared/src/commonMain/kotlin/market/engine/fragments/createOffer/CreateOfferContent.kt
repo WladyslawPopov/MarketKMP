@@ -106,6 +106,7 @@ import market.engine.widgets.checkboxs.RadioGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.widgets.exceptions.DynamicPayloadContent
 import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.exceptions.onError
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.textFields.DescriptionOfferTextField
@@ -127,11 +128,12 @@ fun CreateOfferContent(
     val offerId = model.value.offerId
     val type = model.value.createOfferType
 
+    val isLoading = viewModel.isShowProgress.collectAsState()
+    val err = viewModel.errorMessage.collectAsState()
 
     val createOfferResponse = viewModel.responseCreateOffer.collectAsState()
     val dynamicPayloadState = viewModel.responseDynamicPayload.collectAsState()
     val catHistory = viewModel.responseCatHistory.collectAsState()
-
     val images = viewModel.responseImages.collectAsState()
     val deleteImages = remember { mutableStateOf(arrayListOf<JsonPrimitive>()) }
 
@@ -201,9 +203,11 @@ fun CreateOfferContent(
         )
     }
 
-
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val error : (@Composable () -> Unit)? = null
+    val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
+        { onError(err.value) { refresh() } }
+    } else {
+        null
+    }
 
     LaunchedEffect(dynamicPayloadState.value){
         if (dynamicPayloadState.value?.fields?.find { it.key == "description" }?.hasData == true ||

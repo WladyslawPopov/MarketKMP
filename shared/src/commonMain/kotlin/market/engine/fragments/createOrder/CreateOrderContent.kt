@@ -17,7 +17,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -26,14 +28,18 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.delay
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.exceptions.DeliveryCardsContent
+import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.UserSimpleRow
 import market.engine.widgets.texts.DynamicLabel
+import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -42,10 +48,17 @@ fun CreateOrderContent(
 ) {
     val model = component.model.subscribeAsState()
     val viewModel = model.value.createOrderViewModel
+    val selectDeliveryMethod = rememberUpdatedState(viewModel.selectDeliveryMethod.value)
+    val selectDealType = rememberUpdatedState(viewModel.selectDealType.value)
+    val selectPaymentType = rememberUpdatedState(viewModel.selectPaymentType.value)
 
     val offers = viewModel.responseGetOffers.collectAsState()
     val deliveryCards = viewModel.responseGetLoadCards
     val additionalFields = viewModel.responseGetAdditionalData.collectAsState()
+    val createOrderResponse = viewModel.responseCreateOrder.collectAsState()
+
+    val isLoading = viewModel.isShowProgress.collectAsState()
+    val err = viewModel.errorMessage.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
@@ -61,11 +74,20 @@ fun CreateOrderContent(
         )
     }
 
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val error : (@Composable () -> Unit)? = null
+    val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
+        { onError(err.value) { refresh() } }
+    } else {
+        null
+    }
 
     val state = rememberScrollState()
 
+    LaunchedEffect(createOrderResponse.value){
+        if (createOrderResponse.value?.status == "operation_success"){
+            delay(2000)
+            component.onBackClicked()
+        }
+    }
 
     BaseContent(
         topBar = {
@@ -208,6 +230,69 @@ fun CreateOrderContent(
             )
 
             // additional fields
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(dimens.mediumPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                horizontalAlignment = Alignment.Start
+            ) {
+                if (additionalFields.value?.deliveryMethods != null) {
+                    SeparatorLabel(
+                        stringResource(strings.deliveryMethodLabel),
+                    )
+
+                    getDropdownMenu(
+                        selectedText = additionalFields.value?.deliveryMethods?.find {
+                            selectDeliveryMethod.value == it.code
+                        }?.name ?: "",
+                        selectedTextDef = additionalFields.value?.deliveryMethods?.firstOrNull()?.name ?: "",
+                        selects = additionalFields.value?.deliveryMethods?.map { it.name ?: "" }
+                            ?: emptyList(),
+                        onItemClick = { select ->
+                            viewModel.selectDeliveryMethod.value =
+                                additionalFields.value?.deliveryMethods?.find { it.name == select }?.code
+                                    ?: 0
+                        },
+                        onClearItem = null
+                    )
+                }
+                if (additionalFields.value?.dealTypes != null) {
+                    SeparatorLabel(
+                        stringResource(strings.dealTypeLabel),
+                    )
+                    getDropdownMenu(
+                        selectedText = additionalFields.value?.dealTypes?.find {
+                            selectDealType.value == it.code
+                        }?.name ?: "",
+                        selectedTextDef = additionalFields.value?.dealTypes?.firstOrNull()?.name ?: "",
+                        selects = additionalFields.value?.dealTypes?.map { it.name ?: "" } ?: emptyList(),
+                        onItemClick = { select ->
+                            viewModel.selectDealType.value =
+                                additionalFields.value?.dealTypes?.find { it.name == select }?.code
+                                    ?: 0
+                        },
+                        onClearItem = null
+                    )
+                }
+                if (additionalFields.value?.paymentMethods != null) {
+                    SeparatorLabel(
+                        stringResource(strings.paymentMethodLabel),
+                    )
+                    getDropdownMenu(
+                        selectedText = additionalFields.value?.paymentMethods?.find {
+                            selectPaymentType.value == it.code
+                        }?.name ?: "",
+                        selectedTextDef = additionalFields.value?.paymentMethods?.firstOrNull()?.name ?: "",
+                        selects = additionalFields.value?.paymentMethods?.map { it.name ?: "" } ?: emptyList(),
+                        onItemClick = { select ->
+                            viewModel.selectPaymentType.value =
+                                additionalFields.value?.paymentMethods?.find { it.name == select }?.code
+                                    ?: 0
+                        },
+                        onClearItem = null
+                    )
+                }
+            }
 
             //create order button
             Row(
@@ -220,7 +305,7 @@ fun CreateOrderContent(
                     modifier = Modifier.fillMaxWidth(0.6f)
                         .padding(dimens.mediumPadding),
                 ){
-
+                    viewModel.postPage(basketItem)
                 }
             }
         }

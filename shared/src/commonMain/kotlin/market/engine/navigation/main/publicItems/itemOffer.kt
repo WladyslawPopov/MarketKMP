@@ -2,6 +2,7 @@ package market.engine.navigation.main.publicItems
 
 import com.arkivanov.decompose.ComponentContext
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.fragments.offer.DefaultOfferComponent
 import market.engine.fragments.offer.OfferComponent
@@ -19,7 +20,8 @@ fun itemOffer(
         catPath : List<Long>?,
         offerId: Long,
         externalImages : List<String>?
-    ) -> Unit
+    ) -> Unit,
+    navigateToCreateOrder: (item : Pair<Long, List<SelectedBasketItem>>) -> Unit
 ): OfferComponent {
         return DefaultOfferComponent(
             id,
@@ -39,6 +41,9 @@ fun itemOffer(
             },
             navigationCreateOffer = { type, catPath, offerId, externalImages ->
                 navigateToCreateOffer(type, catPath, offerId, externalImages)
+            },
+            navigateToCreateOrder = { item ->
+                navigateToCreateOrder(item)
             }
         )
     }

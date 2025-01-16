@@ -3,6 +3,7 @@ package market.engine.fragments.basket
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.items.SelectedBasketItem
 import org.koin.mp.KoinPlatform.getKoin
@@ -62,6 +63,8 @@ class DefaultBasketComponent(
     init {
         analyticsHelper.reportEvent("view_cart", mapOf())
 
-        basketViewModel.getUserCart()
+        lifecycle.doOnResume {
+            basketViewModel.getUserCart()
+        }
     }
 }

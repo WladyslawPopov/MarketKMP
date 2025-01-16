@@ -20,6 +20,7 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.navigation.main.publicItems.itemCreateOffer
 import market.engine.navigation.main.publicItems.itemListing
 import market.engine.navigation.main.publicItems.itemOffer
@@ -28,12 +29,15 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.createOffer.CreateOfferComponent
 import market.engine.fragments.createOffer.CreateOfferContent
+import market.engine.fragments.createOrder.CreateOrderComponent
+import market.engine.fragments.createOrder.CreateOrderContent
 import market.engine.fragments.listing.ListingComponent
 import market.engine.fragments.offer.OfferContent
 import market.engine.fragments.listing.ListingContent
 import market.engine.fragments.offer.OfferComponent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
+import market.engine.navigation.main.publicItems.itemCreateOrder
 
 @Serializable
 sealed class SearchConfig {
@@ -53,6 +57,11 @@ sealed class SearchConfig {
         val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : SearchConfig()
+
+    @Serializable
+    data class CreateOrderScreen(
+        val basketItem : Pair<Long, List<SelectedBasketItem>>,
+    ) : SearchConfig()
 }
 
 sealed class ChildSearch {
@@ -60,6 +69,7 @@ sealed class ChildSearch {
     class OfferChild(val component: OfferComponent) : ChildSearch()
     class UserChild(val component: UserComponent) : ChildSearch()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildSearch()
+    class CreateOrderChild(val component: CreateOrderComponent) : ChildSearch()
 }
 
 @Composable
@@ -80,6 +90,7 @@ fun SearchNavigation(
             is ChildSearch.OfferChild -> OfferContent(screen.component, modifier)
             is ChildSearch.UserChild -> UserContent(screen.component, modifier)
             is ChildSearch.CreateOfferChild -> CreateOfferContent(screen.component)
+            is ChildSearch.CreateOrderChild -> CreateOrderContent(screen.component)
         }
     }
 }
@@ -151,6 +162,11 @@ fun createSearchChild(
                             offerId = offerId
                         )
                     )
+                },
+                navigateToCreateOrder = {
+                    searchNavigation.pushNew(
+                        SearchConfig.CreateOrderScreen(it)
+                    )
                 }
             )
         )
@@ -198,6 +214,26 @@ fun createSearchChild(
                             offerId = id,
                             createOfferType = t,
                         )
+                    )
+                },
+                navigateBack = {
+                    searchNavigation.pop()
+                }
+            )
+        )
+
+        is SearchConfig.CreateOrderScreen -> ChildSearch.CreateOrderChild(
+            component = itemCreateOrder(
+                componentContext = componentContext,
+                selectedItems = config.basketItem,
+                navigateUser = {
+                    searchNavigation.pushNew(
+                        SearchConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateOffer = {
+                    searchNavigation.pushNew(
+                        SearchConfig.OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateBack = {

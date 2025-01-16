@@ -25,6 +25,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.navigation.main.publicItems.itemCreateOffer
 import market.engine.navigation.main.publicItems.itemListing
 import market.engine.navigation.main.publicItems.itemOffer
@@ -33,6 +34,8 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.createOffer.CreateOfferComponent
 import market.engine.fragments.createOffer.CreateOfferContent
+import market.engine.fragments.createOrder.CreateOrderComponent
+import market.engine.fragments.createOrder.CreateOrderContent
 import market.engine.fragments.listing.ListingComponent
 import market.engine.fragments.listing.ListingContent
 import market.engine.fragments.offer.OfferComponent
@@ -42,6 +45,7 @@ import market.engine.fragments.profile.ProfileComponent
 import market.engine.fragments.profile.ProfileContent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
+import market.engine.navigation.main.publicItems.itemCreateOrder
 
 @Serializable
 sealed class ProfileConfig {
@@ -66,6 +70,11 @@ sealed class ProfileConfig {
         val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : ProfileConfig()
+
+    @Serializable
+    data class CreateOrderScreen(
+        val basketItem : Pair<Long, List<SelectedBasketItem>>,
+    ) : ProfileConfig()
 }
 
 sealed class ChildProfile {
@@ -75,6 +84,7 @@ sealed class ChildProfile {
     class ListingChild(val component: ListingComponent) : ChildProfile()
     class UserChild(val component: UserComponent) : ChildProfile()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildProfile()
+    class CreateOrderChild(val component: CreateOrderComponent) : ChildProfile()
 }
 
 @Composable
@@ -97,6 +107,7 @@ fun ProfileNavigation(
             is ChildProfile.ListingChild -> ListingContent(screen.component, modifier)
             is ChildProfile.UserChild -> UserContent(screen.component, modifier)
             is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
+            is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
         }
     }
 }
@@ -145,6 +156,11 @@ fun createProfileChild(
                             externalImages = externalImages,
                             offerId = offerId
                         )
+                    )
+                },
+                navigateToCreateOrder = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.CreateOrderScreen(it)
                     )
                 }
             )
@@ -224,6 +240,26 @@ fun createProfileChild(
             ) {
                 profileNavigation.pop()
             }
+        )
+
+        is ProfileConfig.CreateOrderScreen -> ChildProfile.CreateOrderChild(
+            component = itemCreateOrder(
+                componentContext = componentContext,
+                selectedItems = config.basketItem,
+                navigateUser = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateOffer = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateBack = {
+                    profileNavigation.pop()
+                }
+            )
         )
     }
 

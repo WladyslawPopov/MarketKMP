@@ -142,7 +142,7 @@ fun HomeContent(
     val promoOffer1 = homeViewModel.responseOffersPromotedOnMainPage1.collectAsState()
     val promoOffer2 = homeViewModel.responseOffersPromotedOnMainPage2.collectAsState()
 
-    val errorContent: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+    val errorContent: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
                 { onError(err.value) { component.onRefresh() } }
             } else {
                 null

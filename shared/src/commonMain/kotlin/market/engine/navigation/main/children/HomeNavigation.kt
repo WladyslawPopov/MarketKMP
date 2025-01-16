@@ -21,6 +21,7 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.navigation.main.publicItems.itemCreateOffer
 import market.engine.navigation.main.publicItems.itemListing
 import market.engine.navigation.main.publicItems.itemOffer
@@ -29,6 +30,8 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.createOffer.CreateOfferComponent
 import market.engine.fragments.createOffer.CreateOfferContent
+import market.engine.fragments.createOrder.CreateOrderComponent
+import market.engine.fragments.createOrder.CreateOrderContent
 import market.engine.fragments.home.DefaultHomeComponent
 import market.engine.fragments.home.HomeComponent
 import market.engine.fragments.home.HomeContent
@@ -38,6 +41,7 @@ import market.engine.fragments.offer.OfferComponent
 import market.engine.fragments.offer.OfferContent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
+import market.engine.navigation.main.publicItems.itemCreateOrder
 
 @Serializable
 sealed class HomeConfig {
@@ -60,6 +64,11 @@ sealed class HomeConfig {
         val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : HomeConfig()
+
+    @Serializable
+    data class CreateOrderScreen(
+        val basketItem : Pair<Long, List<SelectedBasketItem>>,
+    ) : HomeConfig()
 }
 
 sealed class ChildHome {
@@ -68,6 +77,7 @@ sealed class ChildHome {
     class ListingChild(val component: ListingComponent) : ChildHome()
     class UserChild(val component: UserComponent) : ChildHome()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildHome()
+    class CreateOrderChild(val component: CreateOrderComponent) : ChildHome()
 }
 
 @Composable
@@ -98,6 +108,9 @@ fun HomeNavigation(
             }
             is ChildHome.CreateOfferChild ->{
                 CreateOfferContent(screen.component)
+            }
+            is ChildHome.CreateOrderChild -> {
+                CreateOrderContent(screen.component)
             }
         }
     }
@@ -152,6 +165,11 @@ fun createHomeChild(
                 }else{
                     goToLogin()
                 }
+            },
+            navigateToCreateOrder = {
+                homeNavigation.pushNew(
+                    HomeConfig.CreateOrderScreen(it)
+                )
             }
         )
     )
@@ -222,6 +240,26 @@ fun createHomeChild(
                         offerId = id,
                         createOfferType = t,
                     )
+                )
+            },
+            navigateBack = {
+                homeNavigation.pop()
+            }
+        )
+    )
+
+    is HomeConfig.CreateOrderScreen -> ChildHome.CreateOrderChild(
+        component = itemCreateOrder(
+            componentContext = componentContext,
+            selectedItems = config.basketItem,
+            navigateUser = {
+                homeNavigation.pushNew(
+                    HomeConfig.UserScreen(it, getCurrentDate(), false)
+                )
+            },
+            navigateOffer = {
+                homeNavigation.pushNew(
+                    HomeConfig.OfferScreen(it, getCurrentDate())
                 )
             },
             navigateBack = {

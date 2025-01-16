@@ -131,7 +131,7 @@ class BasketViewModel(
         }
     }
 
-    suspend fun getUser(id : Long) : User? {
+    private suspend fun getUser(id : Long) : User? {
         try {
             val res = withContext(Dispatchers.IO){
                 userOperations.getUsers(id)
@@ -191,7 +191,7 @@ class BasketViewModel(
 
                     userRepository.updateUserInfo()
 
-                    responseGetUserCart.value?.find { pair ->
+                    responseGetUserCart.value.find { pair ->
                         pair.second.find { it?.id == offerId } != null
                     }?.second?.find { it?.id == offerId }
                         ?.quantity = body["quantity"]?.toInt() ?: 0

@@ -154,7 +154,8 @@ fun CategoryContent(
                     Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                     TextAppBar(
-                        searchCategoryName.value
+                        searchCategoryName.value,
+                        modifier = Modifier.fillMaxWidth(0.7f),
                     )
                 }
 

@@ -345,4 +345,5 @@ interface Strings {
     val countryDefault : StringResource
     val actionCancel : StringResource
     val actionComplete : StringResource
+    val chooseAmountLabel : StringResource
 }

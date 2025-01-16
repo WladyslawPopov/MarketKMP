@@ -2,6 +2,7 @@ package market.engine.fragments.offer
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +30,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
@@ -65,13 +67,12 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.launch
 import market.engine.common.openUrl
-import market.engine.core.data.constants.errorToastItem
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.DealType
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.Offer
@@ -89,6 +90,8 @@ import market.engine.widgets.buttons.PopupActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
+import market.engine.widgets.dialogs.ListPicker
+import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.HorizontalImageViewer
 import market.engine.widgets.dropdown_menu.getOfferOperations
@@ -458,11 +461,22 @@ fun OfferContent(
                         //buy now price
                         if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
                             item {
+                                val showDialog = remember { mutableStateOf(false) }
+
                                 BuyNowPriceLayout(
                                     offer = offer,
                                     offerState.value,
                                     onBuyNowClick = {
-
+                                        if(offer.originalQuantity > 1){
+                                            showDialog.value = true
+                                        }else{
+                                            val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
+                                                offerId = offer.id,
+                                                pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
+                                                selectedQuantity = 1
+                                            )))
+                                            component.goToCreateOrder(item)
+                                        }
                                     },
                                     onAddToCartClick = {
                                         offerViewModel.viewModelScope.launch {
@@ -479,6 +493,71 @@ fun OfferContent(
                                     }
                                 )
 
+                                AnimatedVisibility(
+                                    showDialog.value,
+                                    enter = fadeIn(),
+                                    exit = fadeOut()
+                                ){
+                                    val values = remember { (1..offer.originalQuantity).map { it.toString() } }
+                                    val valuesPickerState = rememberPickerState()
+
+                                    AlertDialog(
+                                        onDismissRequest = {
+                                            showDialog.value = false
+                                        },
+                                        title = {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                SeparatorLabel(
+                                                    stringResource(strings.chooseAmountLabel)
+                                                )
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                        .padding(dimens.mediumPadding),
+                                                    horizontalArrangement = Arrangement.Center,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    ListPicker(
+                                                        state = valuesPickerState,
+                                                        items = values,
+                                                        visibleItemsCount = 3,
+                                                        modifier = Modifier.fillMaxWidth(0.5f),
+                                                        textModifier = Modifier.padding(dimens.smallPadding),
+                                                        textStyle = MaterialTheme.typography.titleLarge,
+                                                        dividerColor = colors.textA0AE
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        confirmButton = {
+                                            SimpleTextButton(
+                                                text = stringResource(strings.acceptAction),
+                                                backgroundColor = colors.inactiveBottomNavIconColor,
+                                                onClick = {
+                                                    val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
+                                                        offerId = offer.id,
+                                                        pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
+                                                        selectedQuantity = valuesPickerState.selectedItem.toIntOrNull() ?: 1
+                                                    )))
+                                                    component.goToCreateOrder(item)
+                                                    showDialog.value = false
+                                                }
+                                            )
+                                        },
+                                        dismissButton = {
+                                            SimpleTextButton(
+                                                text = stringResource(strings.closeWindow),
+                                                backgroundColor = colors.textA0AE,
+                                                onClick = {
+                                                    showDialog.value = false
+                                                }
+                                            )
+                                        },
+                                    )
+                                }
                             }
                         }
                         // actions and other status

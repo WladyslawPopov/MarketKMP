@@ -45,10 +45,9 @@ fun getDropdownMenu(
     selectedTextDef : String = stringResource(strings.chooseAction),
     selects: List<String>,
     onItemClick: (String) -> Unit,
-    onClearItem: () -> Unit,
+    onClearItem: (() -> Unit)?,
 ) {
     var expanded by remember { mutableStateOf(false) }
-
     val rotationAngle by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f
     )
@@ -77,6 +76,7 @@ fun getDropdownMenu(
                 selectedText,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(dimens.mediumPadding)
+                    .fillMaxWidth(0.7f)
             )
             Row {
                 AnimatedVisibility(
@@ -84,7 +84,7 @@ fun getDropdownMenu(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    if (selectedText != selectedTextDef) {
+                    if (selectedText != selectedTextDef && onClearItem != null) {
                         SmallIconButton(
                             drawables.cancelIcon,
                             colors.black,

@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.navigation.main.publicItems.itemCreateOffer
 import market.engine.navigation.main.publicItems.itemListing
 import market.engine.navigation.main.publicItems.itemOffer
@@ -30,6 +31,8 @@ import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.createOffer.CreateOfferComponent
 import market.engine.fragments.createOffer.CreateOfferContent
+import market.engine.fragments.createOrder.CreateOrderComponent
+import market.engine.fragments.createOrder.CreateOrderContent
 import market.engine.fragments.favorites.DefaultFavoritesComponent
 import market.engine.fragments.favorites.FavoritesComponent
 import market.engine.fragments.favorites.FavoritesContent
@@ -42,6 +45,7 @@ import market.engine.fragments.subscriptions.SubscribesComponent
 import market.engine.fragments.subscriptions.SubscribesContent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
+import market.engine.navigation.main.publicItems.itemCreateOrder
 
 @Serializable
 sealed class FavoritesConfig {
@@ -67,6 +71,11 @@ sealed class FavoritesConfig {
         val createOfferType : CreateOfferType,
         val externalImages : List<String>? = null
     ) : FavoritesConfig()
+
+    @Serializable
+    data class CreateOrderScreen(
+        val basketItem : Pair<Long, List<SelectedBasketItem>>,
+    ) : FavoritesConfig()
 }
 
 
@@ -77,6 +86,7 @@ sealed class ChildFavorites {
     class ListingChild(val component: ListingComponent) : ChildFavorites()
     class UserChild(val component: UserComponent) : ChildFavorites()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildFavorites()
+    class CreateOrderChild(val component: CreateOrderComponent) : ChildFavorites()
 }
 
 @Composable
@@ -99,6 +109,7 @@ fun FavoritesNavigation(
             is ChildFavorites.ListingChild -> ListingContent(screen.component, modifier)
             is ChildFavorites.UserChild -> UserContent(screen.component, modifier)
             is ChildFavorites.CreateOfferChild -> CreateOfferContent(screen.component)
+            is ChildFavorites.CreateOrderChild -> CreateOrderContent(screen.component)
         }
     }
 }
@@ -150,7 +161,12 @@ fun createFavoritesChild(
                             offerId = offerId
                         )
                     )
-                }
+                },
+                navigateToCreateOrder = { item ->
+                    favoritesNavigation.pushNew(
+                        FavoritesConfig.CreateOrderScreen(item)
+                    )
+                },
             )
         )
 
@@ -221,6 +237,26 @@ fun createFavoritesChild(
                             offerId = id,
                             createOfferType = t,
                         )
+                    )
+                },
+                navigateBack = {
+                    favoritesNavigation.pop()
+                }
+            )
+        )
+
+        is FavoritesConfig.CreateOrderScreen -> ChildFavorites.CreateOrderChild(
+            component = itemCreateOrder(
+                componentContext = componentContext,
+                selectedItems = config.basketItem,
+                navigateUser = {
+                    favoritesNavigation.pushNew(
+                        FavoritesConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateOffer = {
+                    favoritesNavigation.pushNew(
+                        FavoritesConfig.OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateBack = {

@@ -5,6 +5,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Region
 import market.engine.core.network.networkObjects.User
@@ -28,6 +29,7 @@ interface OfferComponent {
     fun goToRegion(region : Region?)
     fun goToUser(userId: Long, aboutMe: Boolean)
     fun goToCreateOffer(type: CreateOfferType,catPath: List<Long>?, offerId: Long, externalImages : List<String>?)
+    fun goToCreateOrder(item : Pair<Long, List<SelectedBasketItem>>)
 }
 
 class DefaultOfferComponent(
@@ -43,7 +45,8 @@ class DefaultOfferComponent(
         catPath : List<Long>?,
         offerId: Long,
         externalImages : List<String>?
-    ) -> Unit
+    ) -> Unit,
+    val navigateToCreateOrder: (item : Pair<Long, List<SelectedBasketItem>>) -> Unit
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -115,5 +118,9 @@ class DefaultOfferComponent(
         externalImages: List<String>?
     ) {
         navigationCreateOffer(type, catPath, offerId, externalImages)
+    }
+
+    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
+        navigateToCreateOrder(item)
     }
 }

@@ -17,6 +17,7 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.APIService
@@ -54,6 +55,10 @@ class CreateOrderViewModel(
     val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+
+    val selectDeliveryMethod = mutableStateOf(0)
+    val selectDealType = mutableStateOf(0)
+    val selectPaymentType = mutableStateOf(0)
 
     init {
         loadFields()
@@ -139,6 +144,9 @@ class CreateOrderViewModel(
                         if (addData.operationResult?.result == "ok") {
                             addData.operationResult.additionalData?.let { data ->
                                 _responseGetAdditionalData.value = data
+                                selectDealType.value = data.dealTypes.firstOrNull()?.code ?: 0
+                                selectPaymentType.value = data.paymentMethods.firstOrNull()?.code ?: 0
+                                selectDeliveryMethod.value = data.deliveryMethods.firstOrNull()?.code ?: 0
                             }
                         }
                     }else{
@@ -258,7 +266,7 @@ class CreateOrderViewModel(
         }
     }
 
-    suspend fun saveDeliveryCard(cardId: Long?) : Boolean{
+    suspend fun saveDeliveryCard(cardId: Long?) : Boolean {
         val jsonBody = buildJsonObject {
             deliveryFields.value.forEach { field ->
                 when (field.widgetType) {
@@ -331,14 +339,61 @@ class CreateOrderViewModel(
         }
     }
 
-    fun postPage(idUser: Long, body: JsonObject) {
+    fun postPage(basketItem:  Pair<Long, List<SelectedBasketItem>>) {
+        val items = basketItem.second
+
+        val jsonBody = buildJsonObject {
+            put("seller_id", JsonPrimitive(basketItem.first))
+
+            val cartItems = arrayListOf<JsonObject>()
+            items.forEach { item ->
+                val offer = buildJsonObject {
+                    put("offer_id", JsonPrimitive(item.offerId))
+                    put("quantity", JsonPrimitive(item.selectedQuantity))
+                }
+                cartItems.add(offer)
+            }
+
+            deliveryFields.value.forEach { field ->
+                when (field.widgetType) {
+                    "input" -> {
+                        if (field.data != null)
+                            put(field.key.toString(), field.data!!)
+                    }
+                }
+            }
+
+            put("internal_cart", JsonArray(cartItems))
+
+            put(
+                "delivery_method",
+                JsonPrimitive(selectDeliveryMethod.value)
+            )
+
+            put(
+                "deal_type",
+                JsonPrimitive(selectDealType.value)
+            )
+
+            put(
+                "payment_method",
+                JsonPrimitive(selectPaymentType.value)
+            )
+        }
+
+        val eventParameters = mapOf(
+            "user_id" to UserData.login,
+            "profile_source" to "settings",
+            "body" to jsonBody
+        )
+        analyticsHelper.reportEvent("click_submit_order", eventParameters)
+
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     setLoading(true)
-                    val response = apiService.postCrateOrder(idUser, body)
+                    val response = apiService.postCrateOrder(UserData.login, jsonBody)
                     withContext(Dispatchers.Main) {
-                        setLoading(false)
                         try {
                             val serializer = DynamicPayload.serializer(OperationResult.serializer())
                             val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
@@ -372,6 +427,8 @@ class CreateOrderViewModel(
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            } finally {
+                setLoading(false)
             }
         }
     }

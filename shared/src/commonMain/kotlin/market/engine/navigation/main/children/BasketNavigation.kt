@@ -164,6 +164,11 @@ fun createBasketChild(
                             offerId = offerId
                         )
                     )
+                },
+                navigateToCreateOrder = { item ->
+                    basketNavigation.pushNew(
+                        BasketConfig.CreateOrderScreen(item)
+                    )
                 }
             )
         )
