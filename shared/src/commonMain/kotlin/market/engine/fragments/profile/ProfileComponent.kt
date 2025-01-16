@@ -13,18 +13,25 @@ import com.arkivanov.decompose.value.Value
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.types.DealType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.navigation.main.children.profile.MyOfferConfig
 import market.engine.navigation.main.children.profile.ProfileConfig
 import market.engine.navigation.main.children.profile.itemMyOffers
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.profileMyOffers.MyOffersComponent
+import market.engine.fragments.profileMyOrders.MyOrdersComponent
+import market.engine.navigation.main.children.profile.MyOrderConfig
+import market.engine.navigation.main.children.profile.itemMyOrders
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ProfileComponent {
     val model : Value<Model>
 
     val myOffersPages: Value<ChildPages<*, MyOffersComponent>>
+
+    val myOrdersPages: Value<ChildPages<*, MyOrdersComponent>>
 
     data class Model(
         val navigationItems: List<NavigationItem>,
@@ -43,6 +50,8 @@ class DefaultProfileComponent(
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
+
+    private val navigationMyOrders = PagesNavigation<MyOrderConfig>()
 
     private val _model = MutableValue(
         ProfileComponent.Model(
@@ -117,6 +126,43 @@ class DefaultProfileComponent(
                 itemMyOffers(config, componentContext, navigationProfile, selectMyOfferPage = { type ->
                     selectMyOfferPage(type)
                 })
+            }
+        )
+    }
+    override val myOrdersPages: Value<ChildPages<*, MyOrdersComponent>> by lazy {
+        childPages(
+            source = navigationMyOrders,
+            serializer = MyOrderConfig.serializer(),
+            handleBackButton = true,
+            initialPages = {
+                Pages(
+                    listOf(
+                        MyOrderConfig(dealType = DealType.SELL_ALL, groupType = DealTypeGroup.SELL),
+                        MyOrderConfig(
+                            dealType = DealType.SELL_IN_WORK,
+                            groupType = DealTypeGroup.SELL
+                        ),
+                        MyOrderConfig(
+                            dealType = DealType.SELL_ARCHIVE,
+                            groupType = DealTypeGroup.SELL
+                        ),
+                        MyOrderConfig(
+                            dealType = DealType.BUY_IN_WORK,
+                            groupType = DealTypeGroup.BUY
+                        ),
+                        MyOrderConfig(
+                            dealType = DealType.BUY_ARCHIVE,
+                            groupType = DealTypeGroup.BUY
+                        ),
+                    ),
+                    selectedIndex = 0,
+                )
+            },
+            key = "ProfileMyOrdersStack",
+            childFactory = { config, componentContext ->
+                itemMyOrders(
+                    config, componentContext, navigationProfile
+                )
             }
         )
     }

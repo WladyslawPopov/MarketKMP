@@ -30,7 +30,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.AlertDialog
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
@@ -556,6 +556,8 @@ fun OfferContent(
                                                 }
                                             )
                                         },
+                                        containerColor = colors.white,
+                                        tonalElevation = 0.dp
                                     )
                                 }
                             }

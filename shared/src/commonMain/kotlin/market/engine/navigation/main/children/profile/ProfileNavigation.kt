@@ -31,6 +31,7 @@ import market.engine.navigation.main.publicItems.itemListing
 import market.engine.navigation.main.publicItems.itemOffer
 import market.engine.navigation.main.publicItems.itemUser
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.createOffer.CreateOfferComponent
 import market.engine.fragments.createOffer.CreateOfferContent
@@ -64,6 +65,11 @@ sealed class ProfileConfig {
     data class UserScreen(val userId: Long, val ts: String, val aboutMe: Boolean) : ProfileConfig()
 
     @Serializable
+    data class MyOrdersScreen(
+        val type : DealTypeGroup
+    ) : ProfileConfig()
+
+    @Serializable
     data class CreateOfferScreen(
         val catPath: List<Long>?,
         val offerId: Long? = null,
@@ -85,6 +91,7 @@ sealed class ChildProfile {
     class UserChild(val component: UserComponent) : ChildProfile()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildProfile()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildProfile()
+    class MyOrdersChild(val component: ProfileComponent) : ChildProfile()
 }
 
 @Composable
@@ -108,6 +115,7 @@ fun ProfileNavigation(
             is ChildProfile.UserChild -> UserContent(screen.component, modifier)
             is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
+            is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.component, modifier)
         }
     }
 }
@@ -261,6 +269,10 @@ fun createProfileChild(
                 }
             )
         )
+
+        is ProfileConfig.MyOrdersScreen -> ChildProfile.MyOrdersChild(
+            component = itemProfile(componentContext, profileNavigation)
+        )
     }
 
 fun itemProfile(
@@ -306,7 +318,15 @@ fun itemProfile(
             icon = drawables.purchasesIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
+                    )
+                } catch (_: Exception) {
+                }
+            }
         ),
         NavigationItem(
             title = strings.myOffersTitle,
@@ -329,7 +349,14 @@ fun itemProfile(
             icon = drawables.salesIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
+                    )
+                } catch ( _ : Exception){}
+            }
         ),
         NavigationItem(
             title = strings.messageTitle,
