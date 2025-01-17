@@ -33,7 +33,7 @@ import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
-import market.engine.widgets.filterContents.SortingListingContent
+import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.OfferItem
 import org.jetbrains.compose.resources.stringResource
 
@@ -179,7 +179,7 @@ fun MyOffersContent(
                         model.type,
                         onClose
                     )
-                    "sorting" -> SortingListingContent(
+                    "sorting" -> SortingOffersContent(
                         isRefreshingFromFilters,
                         listingData.value,
                         onClose

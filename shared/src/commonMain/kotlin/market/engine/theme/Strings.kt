@@ -346,4 +346,14 @@ interface Strings {
     val actionCancel : StringResource
     val actionComplete : StringResource
     val chooseAmountLabel : StringResource
+    val tabAllLabel : StringResource
+    val tabInWorkLabel : StringResource
+    val tabArchiveLabel : StringResource
+    val sortCreationDate : StringResource
+    val searchOfferNameParameterName: StringResource
+    val orderIdParameterName: StringResource
+    val buyerLoginParameterName: StringResource
+    val buyerIdParameterName: StringResource
+    val sellerIdParameterName: StringResource
+    val dateCreatedLabel : StringResource
 }

@@ -118,9 +118,7 @@ fun <T : Any> PagingList(
                 }
             }
 
-            items(data.itemCount, key = data.itemKey{
-                (it as? Offer)?.id ?: it
-            }) { index ->
+            items(data.itemCount, key = data.itemKey()) { index ->
                 if (promoContent != null && searchData?.userSearch == false && searchData.searchString.isEmpty()) {
                     if (index > 0) {
                         val item = data[index] as? Offer

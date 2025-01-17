@@ -39,7 +39,7 @@ import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterListingContent
-import market.engine.widgets.filterContents.SortingListingContent
+import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.OfferItem
 import market.engine.widgets.items.PromoOfferRowItem
 import org.jetbrains.compose.resources.stringResource
@@ -329,7 +329,7 @@ fun ListingContent(
                             )
                         }
                         "sorting" -> {
-                            SortingListingContent(
+                            SortingOffersContent(
                                 isRefreshingFromFilters,
                                 listingData.value,
                                 onClose

@@ -15,7 +15,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
-import market.engine.core.data.types.LotsType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.widgets.buttons.MenuHamburgerButton
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
@@ -24,13 +24,26 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ProfileMyOrdersAppBar(
     currentTab : DealType,
+    typeGroup : DealTypeGroup,
     modifier: Modifier = Modifier,
     drawerState: DrawerState,
-    navigationClick : (LotsType) -> Unit,
+    navigationClick : (DealType) -> Unit,
 ) {
-    val active = stringResource(strings.activeTab)
-    val inactive = stringResource(strings.inactiveTab)
-    val future = stringResource(strings.futureTab)
+    val tabs = when (typeGroup){
+        DealTypeGroup.BUY -> {
+            listOf(
+                DealType.BUY_IN_WORK to strings.tabInWorkLabel,
+                DealType.BUY_ARCHIVE to strings.tabArchiveLabel
+            )
+        }
+        DealTypeGroup.SELL -> {
+            listOf(
+                DealType.SELL_ALL to strings.tabAllLabel,
+                DealType.SELL_IN_WORK to strings.tabInWorkLabel,
+                DealType.SELL_ARCHIVE to strings.tabArchiveLabel,
+            )
+        }
+    }
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -49,33 +62,18 @@ fun ProfileMyOrdersAppBar(
         title = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ){
-
-//                SimpleTextButton(
-//                    active,
-//                    backgroundColor = if (currentTab == LotsType.MYLOT_ACTIVE) colors.rippleColor else colors.white,
-//                    textStyle = MaterialTheme.typography.bodySmall
-//                ){
-//                    navigationClick(LotsType.MYLOT_ACTIVE)
-//                }
-//
-//                SimpleTextButton(
-//                    inactive,
-//                    if (currentTab == LotsType.MYLOT_UNACTIVE) colors.rippleColor else colors.white,
-//                    textStyle = MaterialTheme.typography.bodySmall
-//                ){
-//                    navigationClick(LotsType.MYLOT_UNACTIVE)
-//                }
-//
-//                SimpleTextButton(
-//                    future,
-//                    if (currentTab == LotsType.MYLOT_FUTURE) colors.rippleColor else colors.white,
-//                    textStyle = MaterialTheme.typography.bodySmall
-//                ){
-//                    navigationClick(LotsType.MYLOT_FUTURE)
-//                }
+                tabs.forEach { tab ->
+                    SimpleTextButton(
+                        stringResource(tab.second),
+                        backgroundColor = if (currentTab == tab.first) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                    ) {
+                        navigationClick(tab.first)
+                    }
+                }
             }
         }
     )

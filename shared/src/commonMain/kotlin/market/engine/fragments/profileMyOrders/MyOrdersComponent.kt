@@ -7,6 +7,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealType
@@ -26,13 +27,15 @@ interface MyOrdersComponent {
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
+    fun selectMyOrderPage(select : DealType)
 }
 
 class DefaultMyOrdersComponent(
     componentContext: ComponentContext,
     val type: DealType,
     val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit,
-    val offerSelected: (Long) -> Unit
+    val offerSelected: (Long) -> Unit,
+    val navigateToMyOrder: (DealType) -> Unit,
 ) : MyOrdersComponent, ComponentContext by componentContext {
 
     private val viewModel : ProfileMyOrdersViewModel = ProfileMyOrdersViewModel(
@@ -41,12 +44,12 @@ class DefaultMyOrdersComponent(
         getKoin().get()
     )
 
-    private val listingData = ListingData()
+    val listingData = viewModel.listingData.value
 
     private val _model = MutableValue(
         MyOrdersComponent.Model(
             listingData = listingData,
-            pagingDataFlow = viewModel.init(listingData),
+            pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             type = type
         )
@@ -56,7 +59,11 @@ class DefaultMyOrdersComponent(
 
     init {
         viewModel.updateUserInfo()
-        analyticsHelper.reportEvent("open_my_offers", mapOf())
+        val eventParameters = mapOf(
+            "user_id" to UserData.login.toString(),
+            "profile_source" to "deals"
+        )
+        analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
@@ -113,5 +120,9 @@ class DefaultMyOrdersComponent(
         lifecycle.doOnResume {
             model.value.viewModel.updateItem.value = offerId
         }
+    }
+
+    override fun selectMyOrderPage(select: DealType) {
+        navigateToMyOrder(select)
     }
 }

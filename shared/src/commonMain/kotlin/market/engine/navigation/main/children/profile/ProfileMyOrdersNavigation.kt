@@ -17,14 +17,9 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.profile.ProfileComponent
-import market.engine.fragments.profileMyOffers.DefaultMyOffersComponent
-import market.engine.fragments.profileMyOffers.MyOffersComponent
 import market.engine.widgets.exceptions.ProfileDrawer
-import market.engine.fragments.profileMyOffers.MyOffersContent
-import market.engine.fragments.profileMyOffers.ProfileMyOffersAppBar
 import market.engine.fragments.profileMyOrders.DefaultMyOrdersComponent
 import market.engine.fragments.profileMyOrders.MyOrdersComponent
 import market.engine.fragments.profileMyOrders.MyOrdersContent
@@ -35,12 +30,11 @@ import market.engine.fragments.profileMyOrders.ProfileMyOrdersAppBar
 data class MyOrderConfig(
     @Serializable
     val dealType: DealType,
-    @Serializable
-    val groupType : DealTypeGroup
 )
 
 @Composable
 fun ProfileMyOrdersNavigation(
+    typeGroup: DealTypeGroup,
     component: ProfileComponent,
     modifier: Modifier
 ) {
@@ -50,20 +44,26 @@ fun ProfileMyOrdersNavigation(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(strings.myPurchasesSubTitle, component.model.value.navigationItems)
+            ProfileDrawer(
+                if(typeGroup == DealTypeGroup.SELL)
+                    strings.mySalesTitle
+                else
+                    strings.myPurchasesTitle,
+                component.model.value.navigationItems
+            )
         },
         gesturesEnabled = drawerState.isOpen,
     ) {
         val select = remember {
-            mutableStateOf(DealType.SELL_ALL)
+            mutableStateOf(if(typeGroup == DealTypeGroup.SELL) DealType.SELL_ALL else DealType.BUY_IN_WORK)
         }
         Column {
-
             ProfileMyOrdersAppBar(
                 select.value,
+                typeGroup,
                 drawerState = drawerState,
                 navigationClick = { newType->
-                    component.selectMyOfferPage(newType)
+                    component.selectMyOrderPage(newType)
                 }
             )
 
@@ -71,15 +71,24 @@ fun ProfileMyOrdersNavigation(
                 pages = component.myOrdersPages,
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
-//                    select.value = when(it){
-//                        0 -> LotsType.MYLOT_ACTIVE
-//                        1 -> LotsType.MYLOT_UNACTIVE
-//                        2 -> LotsType.MYLOT_FUTURE
-//                        else -> {
-//                            LotsType.MYLOT_ACTIVE
-//                        }
-//                    }
-//                    component.selectMyOfferPage(select.value)
+                    when(typeGroup){
+                        DealTypeGroup.BUY -> {
+                            select.value = when(it){
+                                0 -> DealType.BUY_IN_WORK
+                                1 -> DealType.BUY_ARCHIVE
+                                else -> DealType.BUY_IN_WORK
+                            }
+                        }
+                        DealTypeGroup.SELL -> {
+                            select.value = when(it){
+                                0 -> DealType.SELL_ALL
+                                1 -> DealType.SELL_IN_WORK
+                                2 -> DealType.SELL_ARCHIVE
+                                else -> DealType.SELL_ALL
+                            }
+                        }
+                    }
+                    component.selectMyOrderPage(select.value)
                 }
             ) { _, page ->
                 MyOrdersContent(
@@ -95,6 +104,7 @@ fun itemMyOrders(
     config: MyOrderConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
+    selectMyOrderPage: (DealType) -> Unit
 ): MyOrdersComponent {
     return DefaultMyOrdersComponent(
         componentContext = componentContext,
@@ -110,6 +120,9 @@ fun itemMyOrders(
                     offerId = offerId,
                 )
             )
+        },
+        navigateToMyOrder = {
+            selectMyOrderPage(it)
         }
     )
 }

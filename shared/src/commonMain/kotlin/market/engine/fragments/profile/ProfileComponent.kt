@@ -37,21 +37,25 @@ interface ProfileComponent {
         val navigationItems: List<NavigationItem>,
         val profileViewModel: ProfileViewModel
     )
+
     fun updateProfile()
     fun goToAllMyOfferListing()
     fun goToAboutMe()
     fun selectMyOfferPage(type: LotsType)
+    fun selectMyOrderPage(type: DealType)
 }
 
 class DefaultProfileComponent(
     componentContext: ComponentContext,
     val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
+    val selectedOrderPage : DealTypeGroup,
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
 
     private val navigationMyOrders = PagesNavigation<MyOrderConfig>()
+
 
     private val _model = MutableValue(
         ProfileComponent.Model(
@@ -85,6 +89,26 @@ class DefaultProfileComponent(
         navigationProfile.pushNew(
             ProfileConfig.UserScreen(UserData.login, getCurrentDate(), true)
         )
+    }
+
+    override fun selectMyOrderPage(type: DealType) {
+        when (type){
+            DealType.SELL_ALL -> {
+                navigationMyOrders.select(0)
+            }
+            DealType.SELL_ARCHIVE -> {
+                navigationMyOrders.select(2)
+            }
+            DealType.SELL_IN_WORK -> {
+                navigationMyOrders.select(1)
+            }
+            DealType.BUY_ARCHIVE -> {
+                navigationMyOrders.select(1)
+            }
+            DealType.BUY_IN_WORK -> {
+                navigationMyOrders.select(0)
+            }
+        }
     }
 
     override fun selectMyOfferPage(type: LotsType) {
@@ -136,25 +160,31 @@ class DefaultProfileComponent(
             handleBackButton = true,
             initialPages = {
                 Pages(
-                    listOf(
-                        MyOrderConfig(dealType = DealType.SELL_ALL, groupType = DealTypeGroup.SELL),
-                        MyOrderConfig(
-                            dealType = DealType.SELL_IN_WORK,
-                            groupType = DealTypeGroup.SELL
-                        ),
-                        MyOrderConfig(
-                            dealType = DealType.SELL_ARCHIVE,
-                            groupType = DealTypeGroup.SELL
-                        ),
-                        MyOrderConfig(
-                            dealType = DealType.BUY_IN_WORK,
-                            groupType = DealTypeGroup.BUY
-                        ),
-                        MyOrderConfig(
-                            dealType = DealType.BUY_ARCHIVE,
-                            groupType = DealTypeGroup.BUY
-                        ),
-                    ),
+                    when (selectedOrderPage){
+                        DealTypeGroup.BUY -> {
+                            listOf(
+                                MyOrderConfig(
+                                    dealType = DealType.BUY_IN_WORK
+                                ),
+                                MyOrderConfig(
+                                    dealType = DealType.BUY_ARCHIVE
+                                )
+                            )
+                        }
+                        DealTypeGroup.SELL -> {
+                            listOf(
+                                MyOrderConfig(
+                                    dealType = DealType.SELL_ALL
+                                ),
+                                MyOrderConfig(
+                                    dealType = DealType.SELL_IN_WORK
+                                ),
+                                MyOrderConfig(
+                                    dealType = DealType.SELL_ARCHIVE
+                                )
+                            )
+                        }
+                    },
                     selectedIndex = 0,
                 )
             },
@@ -162,7 +192,9 @@ class DefaultProfileComponent(
             childFactory = { config, componentContext ->
                 itemMyOrders(
                     config, componentContext, navigationProfile
-                )
+                ){
+                    selectMyOrderPage(it)
+                }
             }
         )
     }

@@ -123,4 +123,28 @@ object DealFilters {
             }
         }
     }
+
+    fun addByTypeFilter(type: DealType): List<Filter> {
+        when (type) {
+            DealType.BUY_IN_WORK -> {
+                return filtersBuysInWork
+            }
+
+            DealType.BUY_ARCHIVE -> {
+                return filtersBuysArchive
+            }
+
+            DealType.SELL_ALL -> {
+                return filtersSalesAll
+            }
+
+            DealType.SELL_ARCHIVE -> {
+                return filtersSalesArchive
+            }
+
+            DealType.SELL_IN_WORK -> {
+                return filtersSalesInWork
+            }
+        }
+    }
 }

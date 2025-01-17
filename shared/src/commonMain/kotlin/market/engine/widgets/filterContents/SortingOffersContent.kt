@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun SortingListingContent(
+fun SortingOffersContent(
     isRefreshing: MutableState<Boolean>,
     listingData: LD,
     onClose: () -> Unit,

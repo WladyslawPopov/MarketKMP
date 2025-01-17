@@ -91,7 +91,7 @@ sealed class ChildProfile {
     class UserChild(val component: UserComponent) : ChildProfile()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildProfile()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildProfile()
-    class MyOrdersChild(val component: ProfileComponent) : ChildProfile()
+    class MyOrdersChild(val type : DealTypeGroup, val component: ProfileComponent) : ChildProfile()
 }
 
 @Composable
@@ -115,7 +115,7 @@ fun ProfileNavigation(
             is ChildProfile.UserChild -> UserContent(screen.component, modifier)
             is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
-            is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.component, modifier)
+            is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.type, screen.component, modifier)
         }
     }
 }
@@ -271,13 +271,15 @@ fun createProfileChild(
         )
 
         is ProfileConfig.MyOrdersScreen -> ChildProfile.MyOrdersChild(
-            component = itemProfile(componentContext, profileNavigation)
+            config.type,
+            component = itemProfile(componentContext, profileNavigation, config.type)
         )
     }
 
 fun itemProfile(
     componentContext: ComponentContext,
-    profileNavigation: StackNavigation<ProfileConfig>
+    profileNavigation: StackNavigation<ProfileConfig>,
+    selectedOrderPage : DealTypeGroup = DealTypeGroup.SELL
 ): ProfileComponent {
 
     val userInfo = UserData.userInfo
@@ -322,7 +324,7 @@ fun itemProfile(
             onClick = {
                 try {
                     profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
+                        ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
                     )
                 } catch (_: Exception) {
                 }
@@ -413,9 +415,11 @@ fun itemProfile(
         ),
     ))
 
+
     return DefaultProfileComponent(
         componentContext = componentContext,
         navigationItems = profilePublicNavigationList.value,
-        profileNavigation
+        profileNavigation,
+        selectedOrderPage
     )
 }

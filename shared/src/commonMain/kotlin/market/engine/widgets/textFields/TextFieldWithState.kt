@@ -22,7 +22,9 @@ fun TextFieldWithState(
     modifier: Modifier,
     isNumber: Boolean = false,
     textStyle: TextStyle = MaterialTheme.typography.bodySmall,
-    onTextChange: (String) -> Unit
+    onTextChange: (String) -> Unit,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    readOnly: Boolean = false
 ) {
     TextField(
         value = textState.value,
@@ -34,6 +36,7 @@ fun TextFieldWithState(
         modifier = modifier.wrapContentSize().padding(dimens.smallPadding),
         singleLine = true,
         maxLines = 1,
+        readOnly = readOnly,
         shape = MaterialTheme.shapes.medium,
         colors = TextFieldDefaults.colors(
             focusedTextColor = colors.black,
@@ -51,6 +54,7 @@ fun TextFieldWithState(
             unfocusedPlaceholderColor = colors.steelBlue,
             disabledPlaceholderColor = colors.transparent
         ),
+        leadingIcon = leadingIcon,
         textStyle = textStyle,
         keyboardOptions = KeyboardOptions(
             keyboardType = if(isNumber) KeyboardType.Number else KeyboardType.Text

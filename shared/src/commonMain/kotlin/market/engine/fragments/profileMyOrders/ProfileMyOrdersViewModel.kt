@@ -1,9 +1,11 @@
 package market.engine.fragments.profileMyOrders
 
+import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.DealType
 import market.engine.core.network.APIService
@@ -20,30 +22,47 @@ class ProfileMyOrdersViewModel(
 
     private val orderPagingRepository: PagingRepository<Order> = PagingRepository()
 
-    fun init(listingData : ListingData): Flow<PagingData<Order>> {
-//        when(type){
-//            LotsType.MYLOT_ACTIVE -> {
-//                listingData.data.value.filters.clear()
-//                listingData.data.value.filters.addAll( OfferFilters.filtersMyLotsActive.toList())
-//            }
-//            LotsType.MYLOT_UNACTIVE -> {
-//                listingData.data.value.filters.clear()
-//                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
-//            }
-//            LotsType.MYLOT_FUTURE -> {
-//                listingData.data.value.filters.clear()
-//                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
-//            }
-//            else -> {
-//                listingData.data.value.filters.clear()
-//                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
-//            }
-//        }
+    val listingData = mutableStateOf(ListingData())
 
-        listingData.data.value.methodServer = "get_cabinet_listing"
-        listingData.data.value.objServer = "orders"
+    fun init(): Flow<PagingData<Order>> {
 
-        return orderPagingRepository.getListing(listingData, apiService, Order.serializer()).cachedIn(viewModelScope)
+        when (type) {
+            DealType.BUY_IN_WORK -> {
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(DealFilters.filtersBuysInWork.toList())
+            }
+
+            DealType.BUY_ARCHIVE -> {
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(DealFilters.filtersBuysArchive)
+            }
+
+            DealType.SELL_ALL -> {
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(DealFilters.filtersSalesAll)
+            }
+
+            DealType.SELL_IN_WORK -> {
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(DealFilters.filtersSalesInWork)
+            }
+
+            DealType.SELL_ARCHIVE -> {
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(DealFilters.filtersSalesArchive)
+            }
+        }
+
+        val method = if (type in arrayOf(
+                DealType.BUY_ARCHIVE,
+                DealType.BUY_IN_WORK
+            )
+        ) "purchases" else "sales"
+        listingData.value.data.value.objServer = "orders"
+
+        listingData.value.data.value.methodServer = "get_cabinet_listing_$method"
+
+        return orderPagingRepository.getListing(listingData.value, apiService, Order.serializer()).cachedIn(viewModelScope)
     }
 
     fun onRefresh(){

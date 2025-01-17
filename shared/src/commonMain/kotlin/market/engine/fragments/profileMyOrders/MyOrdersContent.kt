@@ -16,15 +16,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
-import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.widgets.exceptions.showNoItemLayout
-import market.engine.widgets.filterContents.SortingListingContent
+import market.engine.widgets.filterContents.OrderFilterContent
+import market.engine.widgets.filterContents.SortingOrdersContent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -37,8 +36,6 @@ fun MyOrdersContent(
     val listingData = model.listingData.data
     val searchData = model.listingData.searchData
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
-
-
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
@@ -57,27 +54,7 @@ fun MyOrdersContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-//                when(component.model.value.type){
-//                    LotsType.MYLOT_ACTIVE ->{
-//                        OfferFilters.clearTypeFilter(LotsType.MYLOT_ACTIVE)
-//                        listingData.value.filters.clear()
-//                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
-//                    }
-//                    LotsType.MYLOT_UNACTIVE ->{
-//                        OfferFilters.clearTypeFilter(LotsType.MYLOT_UNACTIVE)
-//                        listingData.value.filters.clear()
-//                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
-//                    }
-//                    LotsType.MYLOT_FUTURE ->{
-//                        OfferFilters.clearTypeFilter(LotsType.MYLOT_FUTURE)
-//                        listingData.value.filters.clear()
-//                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
-//                    }
-//                    else ->{
-//                        listingData.value.filters.clear()
-//                    }
-//                }
-                viewModel.onRefresh()
+                viewModel.init()
             }
         }else {
             showNoItemLayout(
@@ -103,6 +80,7 @@ fun MyOrdersContent(
             }
         }
     }
+
     BaseContent(
         topBar = null,
         onRefresh = {
@@ -112,11 +90,6 @@ fun MyOrdersContent(
         noFound = null,
         isLoading = isLoading.value,
         toastItem = viewModel.toastItem,
-        floatingActionButton = {
-            floatingCreateOfferButton {
-                component.goToCreateOffer(CreateOfferType.CREATE, null, null)
-            }
-        },
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
@@ -147,39 +120,25 @@ fun MyOrdersContent(
             },
             filtersContent = { isRefreshingFromFilters, onClose ->
                 when(viewModel.activeFiltersType.value){
-                    "filters" -> {}
-                    "sorting" -> SortingListingContent(
-                        isRefreshingFromFilters,
-                        listingData.value,
-                        onClose
-                    )
+                    "filters" -> {
+                        OrderFilterContent(
+                            isRefreshing = isRefreshingFromFilters,
+                            filters = listingData.value.filters,
+                            typeFilters = model.type,
+                            onClose = onClose
+                        )
+                    }
+                    "sorting" -> {
+                        SortingOrdersContent(
+                            isRefreshing = isRefreshingFromFilters,
+                            listingData.value,
+                            onClose = onClose
+                        )
+                    }
                 }
             },
-            item = { offer ->
-                //var checkItemSession = true
-                when (model.type) {
-//                    LotsType.MYLOT_ACTIVE -> {
-//                        checkItemSession = offer.state == "active" && offer.session != null
-//                    }
-//
-//                    LotsType.MYLOT_UNACTIVE -> {
-//                        checkItemSession = offer.state != "active"
-//                    }
-//
-//                    LotsType.MYLOT_FUTURE -> {
-//                        val currentDate: Long? = getCurrentDate().toLongOrNull()
-//                        if (currentDate != null) {
-//                            val initD = (offer.session?.start?.toLongOrNull() ?: 1L) - currentDate
-//                            checkItemSession =
-//                                offer.state == "active" && initD > 0
-//                        }
-//                    }
+            item = { order ->
 
-                    else -> {}
-                }
-//                AnimatedVisibility(checkItemSession, enter = fadeIn(), exit = fadeOut()) {
-//
-//                }
             }
         )
     }

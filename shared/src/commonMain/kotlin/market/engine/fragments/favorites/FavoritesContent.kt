@@ -36,7 +36,7 @@ import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
-import market.engine.widgets.filterContents.SortingListingContent
+import market.engine.widgets.filterContents.SortingOffersContent
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -151,7 +151,7 @@ fun FavoritesContent(
                         LotsType.FAVORITES,
                         onClose
                     )
-                    "sorting" -> SortingListingContent(
+                    "sorting" -> SortingOffersContent(
                         isRefreshingFromFilters,
                         ld.value,
                         onClose
