@@ -3,11 +3,11 @@ package market.engine.widgets.filterContents
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.clickable
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,24 +15,41 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Icon
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.TimePickerLayoutType
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -40,13 +57,17 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
+import market.engine.core.utils.convertDateOnlyYear
+import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.AcceptedPageButton
-import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.textFields.TextFieldWithState
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderFilterContent(
     isRefreshing: MutableState<Boolean>,
@@ -57,7 +78,6 @@ fun OrderFilterContent(
     val listingData by remember { mutableStateOf(filters) }
 
     val focusManager: FocusManager = LocalFocusManager.current
-
 
     val sellerLoginTextState = remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
     val sellerIdTextState = remember { mutableStateOf(filters.find { it.key == "seller_id" }?.value ?: "") }
@@ -70,9 +90,13 @@ fun OrderFilterContent(
     val idOfferTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
     val nameOfferTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
 
-    val fromThisDateTextState = remember { mutableStateOf(filters.find { it.key == "buyer_id" }?.value ?: "") }
-    val toThisDateTextState = remember { mutableStateOf(filters.find { it.key == "buyer_login" }?.value ?: "") }
+    val from = stringResource(strings.fromAboutTimeLabel)
+    val to = stringResource(strings.toAboutTimeLabel)
 
+    val showDateDialog : MutableState<String?> = remember { mutableStateOf(null) }
+
+    val fromThisDateTextState = remember { mutableStateOf(filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpritation ?: from) }
+    val toThisDateTextState = remember { mutableStateOf(filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpritation ?: to) }
 
     Box(
         modifier = Modifier.fillMaxSize().pointerInput(Unit) {
@@ -324,7 +348,7 @@ fun OrderFilterContent(
                                 label = offerTitle,
                                 textState = nameOfferTextState,
                                 onTextChange = { text ->
-                                    if (idOfferTextState.value.isNotBlank()) {
+                                    if (nameOfferTextState.value.isNotBlank()) {
                                         filters.find { filter -> filter.key == "search" }?.apply {
                                             value = text
                                             interpritation = "$offerTitle: $text"
@@ -335,110 +359,184 @@ fun OrderFilterContent(
                                             it?.interpritation = null
                                         }
                                     }
-                                    buyerIdTextState.value = text
+                                    nameOfferTextState.value = text
                                     isRefreshing.value = true
                                 },
                                 modifier = Modifier.widthIn(max = 250.dp).weight(1f),
                                 leadingIcon = {
-                                    SmallIconButton(
-                                        drawables.searchIcon,
-                                        colors.black,
-                                        modifier = Modifier.size(dimens.smallIconSize),
-                                        modifierIconSize = Modifier.size(dimens.smallIconSize),
-                                    ){
-
-                                    }
+                                    Icon(
+                                        painterResource(drawables.searchIcon),
+                                        "",
+                                        tint = colors.black,
+                                        modifier = Modifier.size(dimens.smallIconSize)
+                                    )
                                 }
                             )
                         }
                     }
                 }
                 item {
-                    DynamicLabel(
-                        stringResource(strings.dateCreatedLabel),
-                        false,
-                    )
-
-                    Row(
-                        modifier = Modifier.wrapContentWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        val from = stringResource(strings.fromAboutParameterName)
-                        val to = stringResource(strings.toAboutParameterName)
+                        DynamicLabel(
+                            stringResource(strings.dateCreatedLabel),
+                            false,
+                        )
 
-                        if (filters.find { it.key == "created_ts" && it.operation == "gte" }?.value != null) {
-                            TextFieldWithState(
-                                label = from,
-                                textState = fromThisDateTextState,
-                                readOnly = true,
-                                onTextChange = { text ->
-                                    if (fromThisDateTextState.value.isNotBlank()) {
-                                        filters.find { filter -> filter.key == "created_ts" && filter.operation == "gte" }?.apply {
-                                            value = text
-                                            interpritation = "$from: $text"
-                                        }
-                                    } else {
-                                        filters.find { it.key == "created_ts" && it.operation == "gte" }.let {
-                                            it?.value = ""
-                                            it?.interpritation = null
-                                        }
-                                    }
-                                    fromThisDateTextState.value = text
-                                    isRefreshing.value = true
-                                },
-                                leadingIcon = {
-                                    SmallIconButton(
-                                        drawables.calendarIcon,
-                                        colors.black,
-                                        modifier = Modifier.size(dimens.smallIconSize),
-                                        modifierIconSize = Modifier.size(dimens.smallIconSize),
-                                    ){
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (filters.find { it.key == "created_ts" && it.operation == "gte" }?.value != null) {
+                                SimpleTextButton(
+                                    text = fromThisDateTextState.value,
+                                    leadIcon = {
+                                        Icon(
+                                            painterResource(drawables.calendarIcon),
+                                            "",
+                                            tint = colors.steelBlue,
+                                            modifier = Modifier.size(dimens.smallIconSize)
+                                        )
+                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                    },
+                                    textStyle = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.widthIn(150.dp, 200.dp)
+                                ){
+                                    showDateDialog.value = "from"
+                                }
+                            }
 
-                                    }
-                                },
-                                modifier = Modifier.clickable {
+                            if (filters.find { it.key == "created_ts" && it.operation == "lte" }?.value != null) {
+                                SimpleTextButton(
+                                    text = toThisDateTextState.value,
+                                    leadIcon = {
+                                        Icon(
+                                            painterResource(drawables.calendarIcon),
+                                            "",
+                                            tint = colors.steelBlue,
+                                            modifier = Modifier.size(dimens.smallIconSize)
+                                        )
 
-                                }.widthIn(max = 250.dp).weight(1f)
-                            )
-                        }
-
-                        if (filters.find { it.key == "created_ts" && it.operation == "lte" }?.value != null) {
-                            TextFieldWithState(
-                                label = to,
-                                textState = toThisDateTextState,
-                                readOnly = true,
-                                onTextChange = { text ->
-                                    if (toThisDateTextState.value.isNotBlank()) {
-                                        filters.find { filter -> filter.key == "created_ts" && filter.operation == "lte"}?.apply {
-                                            value = text
-                                            interpritation = "$from: $text"
-                                        }
-                                    } else {
-                                        filters.find { it.key == "created_ts" && it.operation == "lte" }.let {
-                                            it?.value = ""
-                                            it?.interpritation = null
-                                        }
-                                    }
-                                    toThisDateTextState.value = text
-                                    isRefreshing.value = true
-                                },
-                                leadingIcon = {
-                                    SmallIconButton(
-                                        drawables.calendarIcon,
-                                        colors.black,
-                                        modifier = Modifier.size(dimens.smallIconSize),
-                                        modifierIconSize = Modifier.size(dimens.smallIconSize),
-                                    ){
-
-                                    }
-                                },
-                                modifier = Modifier.clickable {
-
-                                }.widthIn(max = 250.dp).weight(1f)
-                            )
+                                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+                                    },
+                                    textStyle = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.widthIn(150.dp, 200.dp)
+                                ){
+                                    showDateDialog.value = "to"
+                                }
+                            }
                         }
                     }
+                }
+            }
+        }
+
+        if (showDateDialog.value != null) {
+            val selectedDate = remember { mutableStateOf<String?>(null) }
+            val currentDate = getCurrentDate()
+
+            val year = currentDate.convertDateOnlyYear().toInt()
+
+
+            val oneDayInMillis = 24 * 60 * 60 * 1000
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = currentDate.toLong()*1000 + oneDayInMillis,
+                yearRange = year..(year + 100),
+            )
+
+            val timePickerState  = rememberTimePickerState(
+                is24Hour = true
+            )
+
+            DatePickerDialog(
+                colors = DatePickerDefaults.colors(
+                    containerColor = colors.white
+                ),
+                tonalElevation = 0.dp,
+                properties = DialogProperties(usePlatformDefaultWidth = true),
+                onDismissRequest = {
+                    showDateDialog.value = null
+                },
+                confirmButton = {
+                    SimpleTextButton(
+                        text = stringResource(strings.acceptAction),
+                        backgroundColor = colors.inactiveBottomNavIconColor,
+                        onClick = {
+                            if (selectedDate.value == null) {
+                                val selectedDateMillis = datePickerState.selectedDateMillis
+                                if (selectedDateMillis != null) {
+                                    selectedDate.value = selectedDateMillis.toString()
+                                }
+                            } else {
+                                val selectedDateMillis = selectedDate.value?.toLongOrNull() ?: 0L
+                                val selectedHour = timePickerState.hour
+                                val selectedMinute = timePickerState.minute
+
+                                val localDateTime = Instant
+                                    .fromEpochMilliseconds(selectedDateMillis)
+                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                    .date
+                                    .atTime(selectedHour, selectedMinute)
+
+                                val futureTimeInSeconds = localDateTime
+                                    .toInstant(TimeZone.currentSystemDefault())
+                                    .epochSeconds
+
+                                if (showDateDialog.value == "from"){
+                                    fromThisDateTextState.value = "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                                    filters.find { it.key == "created_ts" && it.operation == "gte" }?.value = futureTimeInSeconds.toString()
+                                    filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpritation = fromThisDateTextState.value
+
+                                }else{
+                                    toThisDateTextState.value = "$to: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                                    filters.find { it.key == "created_ts" && it.operation == "lte" }?.value = futureTimeInSeconds.toString()
+                                    filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpritation = toThisDateTextState.value
+                                }
+
+                                isRefreshing.value = true
+                                showDateDialog.value = null
+                            }
+                        },
+                        modifier = Modifier.padding(dimens.smallPadding),
+                    )
+                },
+                dismissButton = {
+                    SimpleTextButton(
+                        text = stringResource(strings.closeWindow),
+                        backgroundColor = colors.grayLayout,
+                        onClick = {
+                            showDateDialog.value = null
+                            onClose()
+                        },
+                        modifier = Modifier.padding(dimens.smallPadding),
+                    )
+                }
+            ){
+                if (selectedDate.value == null) {
+                    DatePicker(
+                        state = datePickerState,
+                        showModeToggle = false,
+                        title = null,
+                        colors = DatePickerDefaults.colors(
+                            containerColor = colors.white,
+                        ),
+                        modifier = Modifier.padding(dimens.smallPadding)
+                            .clip(MaterialTheme.shapes.medium)
+                    )
+                } else {
+                    TimePicker(
+                        state = timePickerState,
+                        colors = TimePickerDefaults.colors(
+                            containerColor = colors.white,
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
+                            .clip(MaterialTheme.shapes.medium),
+                        layoutType = TimePickerLayoutType.Vertical
+                    )
                 }
             }
         }
@@ -449,8 +547,6 @@ fun OrderFilterContent(
                 .wrapContentWidth()
                 .padding(dimens.mediumPadding)
         ){
-            filters.clear()
-            filters.addAll(listingData)
             onClose()
         }
         Spacer(modifier = Modifier.height(dimens.mediumSpacer))

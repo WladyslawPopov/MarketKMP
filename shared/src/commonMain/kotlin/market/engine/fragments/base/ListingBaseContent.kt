@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
@@ -150,6 +151,7 @@ fun <T : Any>ListingBaseContent(
                     }
                 }
             },
+            modifier = Modifier.zIndex(1200f)
         ) {
             when {
                 error != null -> error?.invoke()

@@ -32,7 +32,7 @@ fun showNoItemLayout(
     image : DrawableResource = drawables.notFoundListingIcon,
     title: String = stringResource(strings.notFoundListingTitle),
     textButton: String = stringResource(strings.refreshButton),
-    modifier: Modifier = Modifier.fillMaxSize().zIndex(5f).background(colors.primaryColor),
+    modifier: Modifier = Modifier.fillMaxSize().background(colors.primaryColor),
     onRefresh: () -> Unit
 ) {
     Box(

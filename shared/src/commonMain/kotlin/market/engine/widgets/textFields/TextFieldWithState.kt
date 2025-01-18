@@ -10,6 +10,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -17,14 +18,15 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 
 @Composable
 fun TextFieldWithState(
-    label: String,
+    label: String? = null,
     textState: MutableState<String>,
     modifier: Modifier,
     isNumber: Boolean = false,
-    textStyle: TextStyle = MaterialTheme.typography.bodySmall,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
     onTextChange: (String) -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    placeholder: String? = null
 ) {
     TextField(
         value = textState.value,
@@ -32,7 +34,7 @@ fun TextFieldWithState(
             textState.value = it
             onTextChange(it)
         },
-        label = { Text(label, style = textStyle) },
+        label = { Text(label ?: "", style = MaterialTheme.typography.bodySmall) },
         modifier = modifier.wrapContentSize().padding(dimens.smallPadding),
         singleLine = true,
         maxLines = 1,
@@ -54,6 +56,7 @@ fun TextFieldWithState(
             unfocusedPlaceholderColor = colors.steelBlue,
             disabledPlaceholderColor = colors.transparent
         ),
+        placeholder =  { Text(placeholder ?: "", style = MaterialTheme.typography.bodyMedium) },
         leadingIcon = leadingIcon,
         textStyle = textStyle,
         keyboardOptions = KeyboardOptions(

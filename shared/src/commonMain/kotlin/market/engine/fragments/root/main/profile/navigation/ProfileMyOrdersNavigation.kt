@@ -110,19 +110,13 @@ fun itemMyOrders(
         componentContext = componentContext,
         type = config.dealType,
         offerSelected = { id ->
-            profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
-        },
-        navigateToCreateOffer = { type, offerId, catPath ->
-            profileNavigation.pushNew(
-                ProfileConfig.CreateOfferScreen(
-                    catPath = catPath,
-                    createOfferType = type,
-                    offerId = offerId,
-                )
-            )
+            profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate(), true))
         },
         navigateToMyOrder = {
             selectMyOrderPage(it)
+        },
+        navigateToUser = {
+            profileNavigation.pushNew(ProfileConfig.UserScreen(it, getCurrentDate(), false))
         }
     )
 }

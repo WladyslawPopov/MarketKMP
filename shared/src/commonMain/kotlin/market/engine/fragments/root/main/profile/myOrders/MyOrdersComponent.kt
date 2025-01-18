@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
-import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
@@ -24,18 +23,17 @@ interface MyOrdersComponent {
         val viewModel: ProfileMyOrdersViewModel,
         var type : DealType
     )
-
-    fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
-    fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
+    fun goToUser(id : Long)
+    fun goToOffer(offer: Offer)
     fun selectMyOrderPage(select : DealType)
 }
 
 class DefaultMyOrdersComponent(
     componentContext: ComponentContext,
     val type: DealType,
-    val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit,
     val offerSelected: (Long) -> Unit,
     val navigateToMyOrder: (DealType) -> Unit,
+    val navigateToUser: (Long) -> Unit
 ) : MyOrdersComponent, ComponentContext by componentContext {
 
     private val viewModel : ProfileMyOrdersViewModel = ProfileMyOrdersViewModel(
@@ -55,6 +53,8 @@ class DefaultMyOrdersComponent(
         )
     )
     override val model: Value<MyOrdersComponent.Model> = _model
+
+
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
@@ -66,18 +66,7 @@ class DefaultMyOrdersComponent(
         analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
 
-    override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
-        if (isTopPromo){
-            val eventParameters = mapOf(
-                "lot_category" to offer.catpath.lastOrNull(),
-                "lot_id" to offer.id,
-            )
-
-            analyticsHelper.reportEvent(
-                "click_super_top_lots",
-                eventParameters
-            )
-        }
+    override fun goToOffer(offer: Offer) {
         if (listingData.searchData.value.userSearch || listingData.searchData.value.searchString.isNotEmpty()){
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
@@ -107,19 +96,15 @@ class DefaultMyOrdersComponent(
                 eventParameters
             )
         }
-        offerSelected(offer.id)
+        offerSelected(offer.snapshotId)
 
         lifecycle.doOnResume {
-            model.value.viewModel.updateItem.value = offer.id
+            model.value.viewModel.updateItem.value = offer.snapshotId
         }
     }
 
-    override fun goToCreateOffer(type: CreateOfferType, offerId: Long?, catPath : List<Long>?) {
-        navigateToCreateOffer(type, offerId, catPath)
-
-        lifecycle.doOnResume {
-            model.value.viewModel.updateItem.value = offerId
-        }
+    override fun goToUser(id: Long) {
+        navigateToUser(id)
     }
 
     override fun selectMyOrderPage(select: DealType) {

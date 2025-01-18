@@ -16,7 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.types.DealType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.WindowType
+import market.engine.core.network.functions.OrderOperations
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
@@ -25,6 +28,7 @@ import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OrderFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun MyOrdersContent(
@@ -33,12 +37,15 @@ fun MyOrdersContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
+    val dealType = model.type
     val listingData = model.listingData.data
     val searchData = model.listingData.searchData
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
+
+    val orderOperations : OrderOperations = koinInject()
 
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
@@ -54,7 +61,9 @@ fun MyOrdersContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                viewModel.init()
+                listingData.value.clearFilters()
+                listingData.value.resetScroll()
+                viewModel.onRefresh()
             }
         }else {
             showNoItemLayout(
@@ -70,13 +79,27 @@ fun MyOrdersContent(
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
-            withContext(Dispatchers.Default) {
-
-                withContext(Dispatchers.Main) {
-
-
-                    viewModel.updateItem.value = null
+            val res = withContext(Dispatchers.Default) {
+                orderOperations.getOrder(viewModel.updateItem.value!!)
+            }
+            val buf = res.success
+            val err = res.error
+            withContext(Dispatchers.Main) {
+                if (buf != null) {
+                    val oldOrder = data.itemSnapshotList.items.find { it.id == buf.id }
+                    oldOrder?.trackId = buf.trackId
+                    oldOrder?.marks = buf.marks
+                    oldOrder?.feedbacks = buf.feedbacks
+                    oldOrder?.comment = buf.comment
+                    oldOrder?.paymentMethod = buf.paymentMethod
+                    oldOrder?.deliveryMethod = buf.deliveryMethod
+                    oldOrder?.deliveryAddress = buf.deliveryAddress
+                    oldOrder?.dealType = buf.dealType
+                    oldOrder?.lastUpdatedTs = buf.lastUpdatedTs
+                }else if (err != null) {
+                    viewModel.onError(err)
                 }
+                viewModel.updateItem.value = null
             }
         }
     }
@@ -138,7 +161,24 @@ fun MyOrdersContent(
                 }
             },
             item = { order ->
-
+                MyOrderItem(
+                    order = order,
+                    typeGroup = if (dealType in arrayOf(
+                            DealType.BUY_ARCHIVE,
+                            DealType.BUY_IN_WORK
+                        )
+                    ) DealTypeGroup.SELL else DealTypeGroup.BUY,
+                    goToUser = { id ->
+                        component.goToUser(id)
+                    },
+                    goToOffer = { offer ->
+                        component.goToOffer(offer)
+                    },
+                    onUpdateItem = {
+                        viewModel.updateItem.value = order.id
+                    },
+                    baseViewModel = viewModel
+                )
             }
         )
     }

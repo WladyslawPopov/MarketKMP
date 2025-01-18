@@ -356,4 +356,18 @@ interface Strings {
     val buyerIdParameterName: StringResource
     val sellerIdParameterName: StringResource
     val dateCreatedLabel : StringResource
+    val totalCostLabel : StringResource
+    val feeOrderLabel : StringResource
+    val feeWasRefund : StringResource
+    val offersParticipantsLabel : StringResource
+    val costLabel : StringResource
+    val myFeedbacksLabel : StringResource
+    val toMeFeedbacksLabel : StringResource
+    val tagsLabel : StringResource
+    val trackIdLabel : StringResource
+    val infoDeliveryLabel : StringResource
+    val writeSellerLabel : StringResource
+    val writeBuyerLabel : StringResource
+    val fromAboutTimeLabel : StringResource
+    val toAboutTimeLabel : StringResource
 }

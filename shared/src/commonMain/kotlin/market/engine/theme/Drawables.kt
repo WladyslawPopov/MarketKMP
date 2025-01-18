@@ -137,4 +137,5 @@ interface Drawables {
    val cartEmptyIcon : DrawableResource
    val plusIcon : DrawableResource
    val minusIcon : DrawableResource
+   val trackIcon : DrawableResource
 }

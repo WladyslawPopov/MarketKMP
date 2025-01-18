@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.MutableState
 import market.engine.core.data.baseFilters.LD
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,15 +17,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +36,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import kotlinx.serialization.json.JsonPrimitive
+import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -128,7 +123,7 @@ fun FilterListingContent(
         mutableStateOf(
             checkActiveSaleType(
                 saleTypeFilters,
-                listingData
+                listingData.filters
             ) != null
         )
     }
@@ -136,7 +131,7 @@ fun FilterListingContent(
         mutableStateOf(
             checkActiveSaleType(
                 specialFilters,
-                listingData
+                listingData.filters
             ) != null
         )
     }
@@ -220,7 +215,7 @@ fun FilterListingContent(
                                 mutableStateOf(
                                     checkActiveSaleType(
                                         saleTypeFilters,
-                                        listingData
+                                        listingData.filters
                                     )
                                 )
                             }
@@ -604,8 +599,7 @@ fun applyFilterLogic(filterKey: String, filterName: String, listingData: LD) {
     }
 }
 
-fun checkActiveSaleType(listFilters: List<Pair<String, String>>, listingData: LD): String? {
-    val filters = listingData.filters
+fun checkActiveSaleType(listFilters: List<Pair<String, String>>, filters: ArrayList<Filter>): String? {
     var res : String? = null
 
     listFilters.forEach { filter ->

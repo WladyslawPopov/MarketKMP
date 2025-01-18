@@ -129,10 +129,8 @@ fun BasketItemContent(
                     .wrapContentHeight()
                     .animateContentSize()
             ) {
-                var i = 0
-                bodes.forEach { body ->
-                    if (i < maxItems.value){
-                        i++
+                bodes.forEachIndexed { index,  body ->
+                    if (index < maxItems.value){
                         BasketOfferItem(
                             offer = body,
                             selectedOffers = selectedOffers,
