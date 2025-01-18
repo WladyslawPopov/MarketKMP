@@ -195,6 +195,7 @@ interface Strings {
     val buyerParameterName : StringResource
     val winnerParameterName : StringResource
     val copyOfferId : StringResource
+    val copyOrderId : StringResource
     val messageAboutError : StringResource
     val deleteSelectedLot : StringResource
     val acceptAction : StringResource

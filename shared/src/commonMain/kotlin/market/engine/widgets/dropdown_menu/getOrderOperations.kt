@@ -97,7 +97,7 @@ fun getOrderOperations(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = idString,
+                        text = stringResource(strings.copyOrderId),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.black
                     )

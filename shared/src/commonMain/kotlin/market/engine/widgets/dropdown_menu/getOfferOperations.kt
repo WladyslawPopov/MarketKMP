@@ -135,7 +135,7 @@ fun getOfferOperations(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = idString,
+                        text = stringResource(strings.copyOfferId),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.black
                     )
