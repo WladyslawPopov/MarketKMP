@@ -371,4 +371,25 @@ interface Strings {
     val writeBuyerLabel : StringResource
     val fromAboutTimeLabel : StringResource
     val toAboutTimeLabel : StringResource
+    val commentForYouLabel : StringResource
+    val setReportBuyersLabel : StringResource
+    val setReportSellersLabel : StringResource
+    val setTrackIdLabel : StringResource
+    val feedbackTypePositiveLabel : StringResource
+    val feedbackTypeNeutralLabel : StringResource
+    val feedbackTypeNegativeLabel : StringResource
+    val messageLabel : StringResource
+    val defaultCommentReport : StringResource
+    val createConversationLabel : StringResource
+    val aboutOrderLabel : StringResource
+
+    val dialogPhone : StringResource
+    val dialogZip : StringResource
+    val dialogCity : StringResource
+    val dialogCountry : StringResource
+    val dialogComment : StringResource
+    val dialogFio : StringResource
+    val dialogAddress : StringResource
+
+    val additionalDeliveryInfo : StringResource
 }

@@ -21,6 +21,7 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.EmptyFilters
@@ -52,9 +53,10 @@ fun ListingContent(
     modifier: Modifier = Modifier
 ) {
     val modelState = component.model.subscribeAsState()
-    val listingViewModel = modelState.value.listingViewModel
-    val searchData = modelState.value.listingData.searchData.subscribeAsState()
-    val listingData = modelState.value.listingData.data.subscribeAsState()
+    val model = modelState.value
+    val listingViewModel = model.listingViewModel
+    val searchData = listingViewModel.listingData.value.searchData.subscribeAsState()
+    val listingData = listingViewModel.listingData.value.data.subscribeAsState()
 
     val data = remember { component.model.value.pagingDataFlow }.collectAsLazyPagingItems()
 
@@ -223,21 +225,20 @@ fun ListingContent(
         }
     }
     //update item when we back
-    LaunchedEffect(Unit){
+    LaunchedEffect(listingViewModel.updateItem.value){
         if (listingViewModel.updateItem.value != null) {
-            withContext(Dispatchers.Default) {
-                val updateItem = listingViewModel.updateItem.value
-                val offer =
-                    listingViewModel.getUpdatedOfferById(updateItem ?: 1L)
-                withContext(Dispatchers.Main) {
-                    if (offer != null) {
-                        val item =
-                            data.itemSnapshotList.items.find { it.id == offer.id }
-                        item?.isWatchedByMe = offer.isWatchedByMe
-                    }
+            val offer = withContext(Dispatchers.IO) {
+                listingViewModel.getUpdatedOfferById(listingViewModel.updateItem.value ?: 1L)
+            }
 
-                    listingViewModel.updateItem.value = null
+            withContext(Dispatchers.Main) {
+                if (offer != null) {
+                    val item =
+                        data.itemSnapshotList.items.find { it.id == offer.id }
+                    item?.isWatchedByMe = offer.isWatchedByMe
                 }
+                listingViewModel.updateItemTrigger.value++
+                listingViewModel.updateItem.value = null
             }
         }
     }
@@ -396,6 +397,7 @@ fun ListingContent(
                         offer,
                         isGrid = listingData.value.listingType == 1,
                         baseViewModel = listingViewModel,
+                        updateTrigger = listingViewModel.updateItemTrigger.value,
                         onFavouriteClick = {
                             val currentOffer =
                                 data[data.itemSnapshotList.items.indexOf(

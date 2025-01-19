@@ -1,5 +1,8 @@
 package market.engine.fragments.root.main.profile.myOrders
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,13 +16,14 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.WindowType
-import market.engine.core.network.functions.OrderOperations
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
@@ -28,7 +32,6 @@ import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OrderFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 @Composable
 fun MyOrdersContent(
@@ -38,14 +41,12 @@ fun MyOrdersContent(
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
     val dealType = model.type
-    val listingData = model.listingData.data
-    val searchData = model.listingData.searchData
+    val listingData = viewModel.listingData.value.data
+    val searchData = viewModel.listingData.value.searchData
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
-
-    val orderOperations : OrderOperations = koinInject()
 
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
@@ -79,14 +80,13 @@ fun MyOrdersContent(
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
-            val res = withContext(Dispatchers.Default) {
-                orderOperations.getOrder(viewModel.updateItem.value!!)
+            val buf = withContext(Dispatchers.IO) {
+                viewModel.updateItem(viewModel.updateItem.value)
             }
-            val buf = res.success
-            val err = res.error
+            val oldOrder = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
             withContext(Dispatchers.Main) {
                 if (buf != null) {
-                    val oldOrder = data.itemSnapshotList.items.find { it.id == buf.id }
+                    oldOrder?.owner = buf.owner
                     oldOrder?.trackId = buf.trackId
                     oldOrder?.marks = buf.marks
                     oldOrder?.feedbacks = buf.feedbacks
@@ -96,10 +96,13 @@ fun MyOrdersContent(
                     oldOrder?.deliveryAddress = buf.deliveryAddress
                     oldOrder?.dealType = buf.dealType
                     oldOrder?.lastUpdatedTs = buf.lastUpdatedTs
-                }else if (err != null) {
-                    viewModel.onError(err)
+                    viewModel.updateItem.value = null
+                    viewModel.updateItemTrigger.value++
+                }else {
+                    oldOrder?.owner = 1L
+                    viewModel.updateItem.value = null
+                    viewModel.updateItemTrigger.value++
                 }
-                viewModel.updateItem.value = null
             }
         }
     }
@@ -161,24 +164,39 @@ fun MyOrdersContent(
                 }
             },
             item = { order ->
-                MyOrderItem(
-                    order = order,
-                    typeGroup = if (dealType in arrayOf(
-                            DealType.BUY_ARCHIVE,
-                            DealType.BUY_IN_WORK
-                        )
-                    ) DealTypeGroup.SELL else DealTypeGroup.BUY,
-                    goToUser = { id ->
-                        component.goToUser(id)
-                    },
-                    goToOffer = { offer ->
-                        component.goToOffer(offer)
-                    },
-                    onUpdateItem = {
-                        viewModel.updateItem.value = order.id
-                    },
-                    baseViewModel = viewModel
-                )
+                val dataItem = data.itemSnapshotList.items.find { it.id == order.id }
+                val isClearItem = if(viewModel.updateItemTrigger.value >= 0) dataItem?.owner == 1L else false
+
+                AnimatedVisibility(!isClearItem, enter = fadeIn(), exit = fadeOut()) {
+                    MyOrderItem(
+                        order = order,
+                        typeGroup = if (dealType in arrayOf(
+                                DealType.BUY_ARCHIVE,
+                                DealType.BUY_IN_WORK
+                            )
+                        ) DealTypeGroup.SELL else DealTypeGroup.BUY,
+                        goToUser = { id ->
+                            component.goToUser(id)
+                        },
+                        goToOffer = { offer ->
+                            component.goToOffer(offer)
+                        },
+                        onUpdateItem = {
+                            viewModel.updateItem.value = order.id
+
+                            viewModel.showToast(
+                                successToastItem.copy(
+                                    message = successToast
+                                )
+                            )
+                        },
+                        baseViewModel = viewModel,
+                        trigger = viewModel.updateItemTrigger.value,
+                        goToMessenger = {
+                            component.goToMessenger()
+                        }
+                    )
+                }
             }
         )
     }

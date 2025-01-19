@@ -8,7 +8,6 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.DealType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
@@ -18,14 +17,14 @@ import org.koin.mp.KoinPlatform.getKoin
 interface MyOrdersComponent {
     val model : Value<Model>
     data class Model(
-        val listingData: ListingData,
         val pagingDataFlow : Flow<PagingData<Order>>,
-        val viewModel: ProfileMyOrdersViewModel,
+        val viewModel: MyOrdersViewModel,
         var type : DealType
     )
     fun goToUser(id : Long)
     fun goToOffer(offer: Offer)
     fun selectMyOrderPage(select : DealType)
+    fun goToMessenger()
 }
 
 class DefaultMyOrdersComponent(
@@ -33,10 +32,11 @@ class DefaultMyOrdersComponent(
     val type: DealType,
     val offerSelected: (Long) -> Unit,
     val navigateToMyOrder: (DealType) -> Unit,
-    val navigateToUser: (Long) -> Unit
+    val navigateToUser: (Long) -> Unit,
+    val navigateToMessenger: () -> Unit
 ) : MyOrdersComponent, ComponentContext by componentContext {
 
-    private val viewModel : ProfileMyOrdersViewModel = ProfileMyOrdersViewModel(
+    private val viewModel : MyOrdersViewModel = MyOrdersViewModel(
         type,
         getKoin().get(),
         getKoin().get()
@@ -46,7 +46,6 @@ class DefaultMyOrdersComponent(
 
     private val _model = MutableValue(
         MyOrdersComponent.Model(
-            listingData = listingData,
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             type = type
@@ -99,7 +98,7 @@ class DefaultMyOrdersComponent(
         offerSelected(offer.snapshotId)
 
         lifecycle.doOnResume {
-            model.value.viewModel.updateItem.value = offer.snapshotId
+            viewModel.updateItem.value = offer.snapshotId
         }
     }
 
@@ -109,5 +108,9 @@ class DefaultMyOrdersComponent(
 
     override fun selectMyOrderPage(select: DealType) {
         navigateToMyOrder(select)
+    }
+
+    override fun goToMessenger() {
+        navigateToMessenger()
     }
 }

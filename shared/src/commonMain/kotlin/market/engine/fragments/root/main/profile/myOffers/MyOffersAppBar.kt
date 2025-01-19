@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileMyOffersAppBar(
+fun MyOffersAppBar(
     currentTab : LotsType,
     modifier: Modifier = Modifier,
     drawerState: DrawerState,

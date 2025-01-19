@@ -427,7 +427,7 @@ data class FeedbackTotal(
 @Serializable
 data class Order(
     @SerialName("id") val id: Long = 1L,
-    @SerialName("owner") val owner: Long = 1L,
+    @SerialName("owner") var owner: Long = 1L,
     @SerialName("remoteparty") val remoteparty: Long = 1L,
     @SerialName("created_ts") val createdTs: Long = 1,
     @SerialName("lastupdated_ts") var lastUpdatedTs: Long = 1,

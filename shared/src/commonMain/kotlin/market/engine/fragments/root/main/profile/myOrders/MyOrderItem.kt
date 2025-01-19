@@ -13,13 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -39,6 +39,9 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.dialogs.CreateOrderDialog
+import market.engine.widgets.dialogs.OrderDetailsDialog
+import market.engine.widgets.dialogs.ReportDialog
 import market.engine.widgets.dropdown_menu.getOrderOperations
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
@@ -48,14 +51,18 @@ import org.jetbrains.compose.resources.stringResource
 fun MyOrderItem(
     typeGroup: DealTypeGroup,
     order: Order,
+    trigger : Int,
     onUpdateItem: () -> Unit,
     goToUser: (Long) -> Unit,
     goToOffer: (Offer) -> Unit,
+    goToMessenger: () -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val typeDef = DealTypeGroup.BUY
     val maxNotExpandedItems = 2
     val idString = stringResource(strings.idCopied)
+
+    val recomposeTrigger = rememberUpdatedState(trigger)
 
     val maxItems = remember { mutableStateOf(maxNotExpandedItems) }
     val clickExpand = {
@@ -115,6 +122,7 @@ fun MyOrderItem(
                 ){
                     showMenu.value = true
                 }
+
                 AnimatedVisibility(
                     showMenu.value,
                     enter = fadeIn(),
@@ -284,22 +292,18 @@ fun MyOrderItem(
         }
 
         //feedbacks
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val myFeedback = if (typeGroup != typeDef) {
-                order.feedbacks?.b2s
-            } else {
-                order.feedbacks?.s2b
-            }
-            val feedbackToMe = if (typeGroup != typeDef) {
-                order.feedbacks?.s2b
-            } else {
-                order.feedbacks?.b2s
-            }
+        val myFeedback = if (typeGroup != typeDef) {
+            order.feedbacks?.b2s
+        } else {
+            order.feedbacks?.s2b
+        }
+        val feedbackToMe = if (typeGroup != typeDef) {
+            order.feedbacks?.s2b
+        } else {
+            order.feedbacks?.b2s
+        }
 
+        if(myFeedback != null || feedbackToMe != null) {
             val myFeedbackLabel = if (typeGroup != typeDef) {
                 stringResource(strings.myFeedbacksLabel)
             } else {
@@ -313,109 +317,147 @@ fun MyOrderItem(
             }
 
             Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (myFeedback != null) {
-                    SimpleTextButton(
-                        myFeedbackLabel,
-                        trailingIcon = {
-                            SmallIconButton(
-                                icon = when (myFeedback.type) {
-                                    "positive" -> {
-                                        drawables.likeIcon
-                                    }
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (myFeedback != null) {
+                        val showReportDialog = remember { mutableStateOf(false) }
 
-                                    "neutral" -> {
-                                        drawables.likeIcon
-                                    }
+                        SimpleTextButton(
+                            myFeedbackLabel,
+                            trailingIcon = {
+                                Icon(
+                                    painterResource(
+                                        when (myFeedback.type) {
+                                            "positive" -> {
+                                                drawables.likeIcon
+                                            }
 
-                                    "negative" -> {
-                                        drawables.dislikeIcon
-                                    }
+                                            "neutral" -> {
+                                                drawables.likeIcon
+                                            }
 
-                                    else -> {
-                                        drawables.likeIcon
-                                    }
-                                },
-                                color = when (myFeedback.type) {
-                                    "positive" -> {
-                                        colors.positiveGreen
-                                    }
+                                            "negative" -> {
+                                                drawables.dislikeIcon
+                                            }
 
-                                    "neutral" -> {
-                                        colors.grayText
-                                    }
+                                            else -> {
+                                                drawables.likeIcon
+                                            }
+                                        }
+                                    ),
+                                    "",
+                                    tint = when (myFeedback.type) {
+                                        "positive" -> {
+                                            colors.positiveGreen
+                                        }
 
-                                    "negative" -> {
-                                        colors.negativeRed
-                                    }
+                                        "neutral" -> {
+                                            colors.grayText
+                                        }
 
-                                    else -> {
-                                        colors.positiveGreen
-                                    }
-                                },
-                            ) {
+                                        "negative" -> {
+                                            colors.negativeRed
+                                        }
 
+                                        else -> {
+                                            colors.positiveGreen
+                                        }
+                                    },
+                                    modifier = Modifier.size(dimens.smallIconSize)
+                                )
+                            },
+                            modifier = Modifier.padding(dimens.smallPadding)
+                        ) {
+                            showReportDialog.value = true
+                        }
+
+                        ReportDialog(
+                            isDialogOpen = showReportDialog.value,
+                            order = order,
+                            mood = myFeedback.type ?: "",
+                            text = myFeedback.comment ?: "",
+                            type = myFeedbackLabel,
+                            onDismiss = {
+                                showReportDialog.value = false
                             }
-                        },
-                    ) {
-
+                        )
                     }
                 }
-            }
 
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (feedbackToMe != null) {
-                    SimpleTextButton(
-                        toMeFeedbackLabel,
-                        trailingIcon = {
-                            SmallIconButton(
-                                icon = when (feedbackToMe.type) {
-                                    "positive" -> {
-                                        drawables.likeIcon
-                                    }
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (feedbackToMe != null) {
+                        val showReportDialog = remember { mutableStateOf(false) }
 
-                                    "neutral" -> {
-                                        drawables.likeIcon
-                                    }
+                        SimpleTextButton(
+                            toMeFeedbackLabel,
+                            trailingIcon = {
+                                Icon(
+                                    painterResource(
+                                        when (feedbackToMe.type) {
+                                            "positive" -> {
+                                                drawables.likeIcon
+                                            }
 
-                                    "negative" -> {
-                                        drawables.dislikeIcon
-                                    }
+                                            "neutral" -> {
+                                                drawables.likeIcon
+                                            }
 
-                                    else -> {
-                                        drawables.likeIcon
-                                    }
-                                },
-                                color = when (feedbackToMe.type) {
-                                    "positive" -> {
-                                        colors.positiveGreen
-                                    }
+                                            "negative" -> {
+                                                drawables.dislikeIcon
+                                            }
 
-                                    "neutral" -> {
-                                        colors.grayText
-                                    }
+                                            else -> {
+                                                drawables.likeIcon
+                                            }
+                                        }
+                                    ),
+                                    "",
+                                    tint = when (feedbackToMe.type) {
+                                        "positive" -> {
+                                            colors.positiveGreen
+                                        }
 
-                                    "negative" -> {
-                                        colors.negativeRed
-                                    }
+                                        "neutral" -> {
+                                            colors.grayText
+                                        }
 
-                                    else -> {
-                                        colors.positiveGreen
-                                    }
-                                },
-                            ) {
+                                        "negative" -> {
+                                            colors.negativeRed
+                                        }
 
+                                        else -> {
+                                            colors.positiveGreen
+                                        }
+                                    },
+                                    modifier = Modifier.size(dimens.smallIconSize)
+                                )
+                            },
+                            modifier = Modifier.padding(dimens.smallPadding)
+                        ) {
+                            showReportDialog.value = true
+                        }
+
+                        ReportDialog(
+                            isDialogOpen = showReportDialog.value,
+                            order = order,
+                            mood = feedbackToMe.type ?: "",
+                            text = feedbackToMe.comment ?: "",
+                            type = toMeFeedbackLabel,
+                            onDismiss = {
+                                showReportDialog.value = false
                             }
-                        },
-                    ) {
-
+                        )
                     }
                 }
             }
@@ -514,6 +556,7 @@ fun MyOrderItem(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val showDialog = remember { mutableStateOf(false) }
                 SimpleTextButton(
                     mes,
                     leadIcon = {
@@ -523,14 +566,32 @@ fun MyOrderItem(
                             tint = colors.alwaysWhite,
                             modifier = Modifier.size(dimens.extraSmallIconSize)
                         )
-                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
                     },
-                    textStyle = MaterialTheme.typography.bodySmall,
+                    textStyle = MaterialTheme.typography.labelSmall,
                     backgroundColor = colors.steelBlue,
                     textColor = colors.alwaysWhite
                 ) {
-
+                    showDialog.value = true
                 }
+
+                CreateOrderDialog(
+                    showDialog.value,
+                    order,
+                    type = typeGroup,
+                    onDismiss = {
+                        showDialog.value = false
+                    },
+                    onSuccess = {
+                        //go to messenger
+                        showDialog.value = false
+                        goToMessenger()
+                    },
+                    onError = { err ->
+                        err?.let { baseViewModel.onError(it) }
+                        showDialog.value = false
+                    },
+                    baseViewModel = baseViewModel
+                )
             }
 
             Row(
@@ -538,6 +599,7 @@ fun MyOrderItem(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val showDialog = remember { mutableStateOf(false) }
                 SimpleTextButton(
                     stringResource(strings.infoDeliveryLabel),
                     leadIcon = {
@@ -547,15 +609,21 @@ fun MyOrderItem(
                             tint = colors.alwaysWhite,
                             modifier = Modifier.size(dimens.extraSmallIconSize)
                         )
-
-                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
                     },
                     backgroundColor = colors.steelBlue,
                     textStyle = MaterialTheme.typography.bodySmall,
                     textColor = colors.alwaysWhite
                 ) {
-
+                    showDialog.value = true
                 }
+
+                OrderDetailsDialog(
+                    isDialogOpen = showDialog.value,
+                    order = order,
+                    onDismiss = {
+                        showDialog.value = false
+                    }
+                )
             }
         }
     }

@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.favorites
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -46,9 +47,10 @@ fun FavoritesContent(
     component: FavoritesComponent,
 ) {
     val modelState = component.model.subscribeAsState()
-    val favViewModel = modelState.value.favViewModel
-    val listingData = modelState.value.listingData
-    val data = modelState.value.pagingDataFlow.collectAsLazyPagingItems()
+    val model = modelState.value
+    val favViewModel = model.favViewModel
+    val listingData = favViewModel.listingData.value
+    val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
     val ld = listingData.data.subscribeAsState()
     val sd = listingData.searchData.subscribeAsState()
@@ -96,16 +98,17 @@ fun FavoritesContent(
     //update item when we back
     LaunchedEffect(favViewModel.updateItem.value) {
         if (favViewModel.updateItem.value != null) {
-            withContext(Dispatchers.Default) {
-                val offer =
+            val offer = withContext(Dispatchers.IO) {
                     favViewModel.getUpdatedOfferById(favViewModel.updateItem.value!!)
-                withContext(Dispatchers.Main) {
-                    if (offer != null) {
-                        data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
-                            offer.isWatchedByMe
-                    }
-                    favViewModel.updateItem.value = null
+            }
+
+            withContext(Dispatchers.Main) {
+                if (offer != null) {
+                    data.itemSnapshotList.items.find { it.id == offer.id }?.isWatchedByMe =
+                        offer.isWatchedByMe
                 }
+                favViewModel.updateItemTrigger.value++
+                favViewModel.updateItem.value = null
             }
         }
     }
@@ -203,14 +206,17 @@ fun FavoritesContent(
             },
             item = { offer ->
                 val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
-                AnimatedVisibility(offer.isWatchedByMe, exit = fadeOut()) {
+                var fav = if(favViewModel.updateItemTrigger.value>=0) offer.isWatchedByMe else offer.isWatchedByMe
+
+                AnimatedVisibility(fav, enter = fadeIn(), exit = fadeOut()) {
                     OfferItem(
                         offer,
                         isGrid = (columns.value > 1),
                         baseViewModel = favViewModel,
+                        updateTrigger = favViewModel.updateItemTrigger.value,
                         isSelection = isSelect.value,
-                        onSelectionChange = { isSelect ->
-                            if (isSelect) {
+                        onSelectionChange = { select ->
+                            if (select) {
                                 favViewModel.selectItems.add(offer.id)
                             } else {
                                 favViewModel.selectItems.remove(offer.id)
@@ -219,9 +225,10 @@ fun FavoritesContent(
                         onUpdateOfferItem = { selectedOffer ->
                             data.itemSnapshotList.find { it?.id == selectedOffer.id }?.isWatchedByMe =
                                 false
+                            fav = false
+                            favViewModel.updateItemTrigger.value++
                             favViewModel.updateUserInfo()
-                            favViewModel.updateItem.value = selectedOffer.id
-                            favViewModel.updateItem.value = null // update item immediately
+
                             favViewModel.showToast(
                                 ToastItem(
                                     isVisible = true,

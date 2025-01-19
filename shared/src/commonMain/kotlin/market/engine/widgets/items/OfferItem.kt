@@ -19,8 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,6 +56,7 @@ fun OfferItem(
     offer: Offer,
     isGrid : Boolean,
     baseViewModel: BaseViewModel,
+    updateTrigger : Int,
     isSelection : Boolean = false,
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
@@ -64,6 +64,7 @@ fun OfferItem(
     goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
     onItemClick: () -> Unit = {}
 ) {
+
     var isPromo = false
 
     val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
@@ -87,7 +88,7 @@ fun OfferItem(
         shape = RoundedCornerShape(dimens.smallCornerRadius),
         modifier = Modifier
             .clickable {
-                if (isPromo){
+                if (isPromo) {
                     val eventParameters = mapOf(
                         "catalog_category" to offer.catpath.lastOrNull(),
                         "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
@@ -112,23 +113,24 @@ fun OfferItem(
             }
         }
 
-        if (isGrid){
+        if (isGrid) {
             Column(
                 modifier = Modifier
                     .padding(dimens.smallPadding)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
 
-            ) {
+                ) {
                 contentStructure(
                     offer,
                     isGrid,
                     onUpdateOfferItem != null,
                     baseViewModel,
+                    updateTrigger,
                     onFavouriteClick,
                 )
             }
-        }else{
+        } else {
             Row(
                 modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -139,6 +141,7 @@ fun OfferItem(
                     isGrid,
                     onUpdateOfferItem != null,
                     baseViewModel,
+                    updateTrigger,
                     onFavouriteClick,
                 )
             }
@@ -174,6 +177,7 @@ fun contentStructure(
     isGrid : Boolean,
     isShowPromo : Boolean = false,
     baseViewModel: BaseViewModel,
+    updateTrigger : Int = 0,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
 ){
     val imageUrl = when {
@@ -223,10 +227,10 @@ fun contentStructure(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            content(offer, baseViewModel, isShowPromo, onFavouriteClick)
+            content(offer, baseViewModel,updateTrigger, isShowPromo, onFavouriteClick)
         }
     }else{
-        content(offer, baseViewModel, isShowPromo, onFavouriteClick)
+        content(offer, baseViewModel, updateTrigger, isShowPromo, onFavouriteClick)
     }
 }
 
@@ -235,11 +239,11 @@ fun contentStructure(
 fun content(
     offer: Offer,
     baseViewModel : BaseViewModel,
+    updateTrigger : Int = 0,
     isShowPromo : Boolean = false,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null
 ){
-    val isFavorites = remember { mutableStateOf(offer.isWatchedByMe) }
-
+    val trigger = rememberUpdatedState(updateTrigger)
     Row(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -247,14 +251,15 @@ fun content(
 
         if (onFavouriteClick != null) {
             SmallIconButton(
-                icon = if (isFavorites.value) drawables.favoritesIconSelected
+                icon = if (offer.isWatchedByMe) drawables.favoritesIconSelected
                 else drawables.favoritesIcon,
                 color = colors.inactiveBottomNavIconColor,
                 modifierIconSize = Modifier.size(dimens.smallIconSize),
                 modifier = Modifier.align(Alignment.Top).weight(0.2f)
             ){
                 baseViewModel.viewModelScope.launch {
-                    isFavorites.value = onFavouriteClick(offer)
+                    offer.isWatchedByMe = onFavouriteClick(offer)
+                    baseViewModel.updateItemTrigger.value++
                 }
             }
         }

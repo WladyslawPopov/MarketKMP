@@ -7,7 +7,6 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
@@ -17,9 +16,8 @@ import org.koin.mp.KoinPlatform.getKoin
 interface MyOffersComponent {
     val model : Value<Model>
     data class Model(
-        val listingData: ListingData,
         val pagingDataFlow : Flow<PagingData<Offer>>,
-        val viewModel: ProfileMyOffersViewModel,
+        val viewModel: MyOffersViewModel,
         var type : LotsType
     )
 
@@ -36,18 +34,17 @@ class DefaultMyOffersComponent(
     val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
 
-    private val viewModel : ProfileMyOffersViewModel = ProfileMyOffersViewModel(
+    private val viewModel : MyOffersViewModel = MyOffersViewModel(
         type,
         getKoin().get(),
         getKoin().get()
     )
 
-    private val listingData = ListingData()
+    private val listingData = viewModel.listingData.value
 
     private val _model = MutableValue(
         MyOffersComponent.Model(
-            listingData = listingData,
-            pagingDataFlow = viewModel.init(listingData),
+            pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             type = type
         )
@@ -104,7 +101,7 @@ class DefaultMyOffersComponent(
         offerSelected(offer.id)
 
         lifecycle.doOnResume {
-            model.value.viewModel.updateItem.value = offer.id
+            viewModel.updateItem.value = offer.id
         }
     }
 
@@ -116,7 +113,7 @@ class DefaultMyOffersComponent(
         navigateToCreateOffer(type, offerId, catPath)
 
         lifecycle.doOnResume {
-            model.value.viewModel.updateItem.value = offerId
+            viewModel.updateItem.value = offerId
         }
     }
 }

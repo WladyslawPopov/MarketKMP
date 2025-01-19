@@ -34,7 +34,8 @@ import org.koin.mp.KoinPlatform.getKoin
 open class BaseViewModel: ViewModel() {
     //select items and updateItem
     var selectItems : MutableList<Long> = mutableStateListOf()
-    var updateItem : MutableState<Long?> = mutableStateOf(null)
+    val updateItemTrigger = mutableStateOf(0)
+    val updateItem : MutableState<Long?> = mutableStateOf(null)
 
     //filters params
     val isOpenSearch : MutableState<Boolean> = mutableStateOf(false) // first open search

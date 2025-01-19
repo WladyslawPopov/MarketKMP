@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.favorites
 
+
 import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -7,7 +8,6 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.items.ListingData
 import market.engine.core.network.networkObjects.Offer
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -15,9 +15,8 @@ import org.koin.mp.KoinPlatform.getKoin
 interface FavoritesComponent {
     val model : Value<Model>
     data class Model(
-        val listingData: ListingData,
         val pagingDataFlow : Flow<PagingData<Offer>>,
-        val favViewModel: FavViewModel
+        val favViewModel: FavViewModel,
     )
 
     fun goToSubscribes()
@@ -32,13 +31,12 @@ class DefaultFavoritesComponent(
 
     private val favViewModel : FavViewModel = getKoin().get()
 
-    private val listingData = ListingData()
+    val listingData = favViewModel.listingData.value
 
     private val _model = MutableValue(
         FavoritesComponent.Model(
             favViewModel = favViewModel,
-            listingData = listingData,
-            pagingDataFlow = favViewModel.init(listingData)
+            pagingDataFlow = favViewModel.init()
         )
     )
 
@@ -54,7 +52,7 @@ class DefaultFavoritesComponent(
         analyticsHelper.reportEvent("open_favorites", mapOf())
     }
 
-    private val searchData = model.value.listingData.searchData
+    private val searchData = listingData.searchData
     //private val listingData = model.value.listingData.data
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
@@ -100,7 +98,7 @@ class DefaultFavoritesComponent(
         }
         goToOffer(offer.id)
         lifecycle.doOnResume {
-            model.value.favViewModel.updateItem.value = offer.id
+            favViewModel.updateItem.value = offer.id
         }
     }
 }

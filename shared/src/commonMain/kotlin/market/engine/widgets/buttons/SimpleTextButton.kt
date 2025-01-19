@@ -12,7 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 
 
 @Composable
@@ -33,14 +35,16 @@ fun SimpleTextButton(
             onClick()
         },
         colors = ButtonDefaults.textButtonColors(
-            containerColor = backgroundColor
+            containerColor = backgroundColor,
+            disabledContainerColor = colors.rippleColor,
+            disabledContentColor = colors.grayText
         ),
         shape = shape,
         modifier = modifier,
         enabled = enabled
     ) {
         Row(
-            horizontalArrangement = Arrangement.SpaceAround,
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             leadIcon?.invoke()
@@ -49,6 +53,7 @@ fun SimpleTextButton(
                 text = text,
                 color = textColor,
                 style = textStyle,
+                textAlign = TextAlign.Center,
             )
 
             trailingIcon?.invoke()

@@ -13,6 +13,7 @@ import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
@@ -21,9 +22,9 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.ProfileComponent
 import market.engine.widgets.exceptions.ProfileDrawer
 import market.engine.fragments.root.main.profile.myOrders.DefaultMyOrdersComponent
+import market.engine.fragments.root.main.profile.myOrders.MyOrderAppBar
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersContent
-import market.engine.fragments.root.main.profile.myOrders.ProfileMyOrdersAppBar
 
 
 @Serializable
@@ -58,7 +59,7 @@ fun ProfileMyOrdersNavigation(
             mutableStateOf(if(typeGroup == DealTypeGroup.SELL) DealType.SELL_ALL else DealType.BUY_IN_WORK)
         }
         Column {
-            ProfileMyOrdersAppBar(
+            MyOrderAppBar(
                 select.value,
                 typeGroup,
                 drawerState = drawerState,
@@ -104,7 +105,7 @@ fun itemMyOrders(
     config: MyOrderConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
-    selectMyOrderPage: (DealType) -> Unit
+    selectMyOrderPage: (DealType) -> Unit,
 ): MyOrdersComponent {
     return DefaultMyOrdersComponent(
         componentContext = componentContext,
@@ -117,6 +118,9 @@ fun itemMyOrders(
         },
         navigateToUser = {
             profileNavigation.pushNew(ProfileConfig.UserScreen(it, getCurrentDate(), false))
+        },
+        navigateToMessenger = {
+            profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen)
         }
     )
 }

@@ -7,8 +7,6 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.baseFilters.LD
-import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.printLogD
@@ -17,7 +15,6 @@ import org.koin.mp.KoinPlatform.getKoin
 interface ListingComponent {
     val model : Value<Model>
     data class Model(
-        val listingData : ListingData,
         var pagingDataFlow : Flow<PagingData<Offer>>,
         val listingViewModel: ListingViewModel,
     )
@@ -39,7 +36,6 @@ class DefaultListingComponent(
 
     private val _model = MutableValue(
         ListingComponent.Model(
-            listingData = listingData,
             pagingDataFlow = listingViewModel.init(listingData),
             listingViewModel = listingViewModel
         )

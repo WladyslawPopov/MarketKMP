@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.profile.myOffers
 
+import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,7 @@ import market.engine.core.network.paging.PagingRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
-class ProfileMyOffersViewModel(
+class MyOffersViewModel(
     val type: LotsType,
     val apiService: APIService,
     val userRepository: UserRepository
@@ -21,30 +22,32 @@ class ProfileMyOffersViewModel(
 
     private val offerPagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    fun init(listingData : ListingData): Flow<PagingData<Offer>> {
+    val listingData = mutableStateOf(ListingData())
+
+    fun init(): Flow<PagingData<Offer>> {
         when(type){
             LotsType.MYLOT_ACTIVE -> {
-                listingData.data.value.filters.clear()
-                listingData.data.value.filters.addAll( OfferFilters.filtersMyLotsActive.toList())
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll( OfferFilters.filtersMyLotsActive.toList())
             }
             LotsType.MYLOT_UNACTIVE -> {
-                listingData.data.value.filters.clear()
-                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
             }
             LotsType.MYLOT_FUTURE -> {
-                listingData.data.value.filters.clear()
-                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
             }
             else -> {
-                listingData.data.value.filters.clear()
-                listingData.data.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
+                listingData.value.data.value.filters.clear()
+                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
             }
         }
 
-        listingData.data.value.methodServer = "get_cabinet_listing"
-        listingData.data.value.objServer = "offers"
+        listingData.value.data.value.methodServer = "get_cabinet_listing"
+        listingData.value.data.value.objServer = "offers"
 
-        return offerPagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
+        return offerPagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
     }
 
     fun onRefresh(){

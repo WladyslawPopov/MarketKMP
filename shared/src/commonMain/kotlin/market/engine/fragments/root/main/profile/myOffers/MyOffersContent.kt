@@ -44,8 +44,8 @@ fun MyOffersContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
-    val listingData = model.listingData.data
-    val searchData = model.listingData.searchData
+    val listingData = viewModel.listingData.value.data
+    val searchData = viewModel.listingData.value.searchData
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
 
@@ -124,6 +124,7 @@ fun MyOffersContent(
                     }
 
                     viewModel.updateItem.value = null
+                    viewModel.updateItemTrigger.value++
                 }
             }
         }
@@ -226,6 +227,7 @@ fun MyOffersContent(
                                 )
                             )
                         },
+                        updateTrigger = viewModel.updateItemTrigger.value,
                         onItemClick = {
                             component.goToOffer(offer)
                         }

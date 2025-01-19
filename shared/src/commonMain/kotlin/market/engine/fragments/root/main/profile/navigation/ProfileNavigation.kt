@@ -47,6 +47,9 @@ import market.engine.fragments.root.main.profile.ProfileContent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
 import market.engine.fragments.createOrder.createOrderFactory
+import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
+import market.engine.fragments.root.main.profile.conversations.ConversationsContent
+import market.engine.fragments.root.main.profile.conversations.conversationsFactory
 
 @Serializable
 sealed class ProfileConfig {
@@ -54,6 +57,9 @@ sealed class ProfileConfig {
     data object ProfileScreen : ProfileConfig()
     @Serializable
     data object MyOffersScreen : ProfileConfig()
+
+    @Serializable
+    data object ConversationsScreen : ProfileConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : ProfileConfig()
@@ -92,6 +98,7 @@ sealed class ChildProfile {
     class CreateOfferChild(val component: CreateOfferComponent) : ChildProfile()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildProfile()
     class MyOrdersChild(val type : DealTypeGroup, val component: ProfileComponent) : ChildProfile()
+    class ConversationsChild(val component: ConversationsComponent) : ChildProfile()
 }
 
 @Composable
@@ -116,6 +123,7 @@ fun ProfileNavigation(
             is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.type, screen.component, modifier)
+            is ChildProfile.ConversationsChild -> ConversationsContent(screen.component, modifier)
         }
     }
 }
@@ -124,14 +132,156 @@ fun createProfileChild(
     config: ProfileConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>
-): ChildProfile =
-    when (config) {
+): ChildProfile {
+
+    val userInfo = UserData.userInfo
+
+    val profilePublicNavigationList = MutableValue(listOf(
+        NavigationItem(
+            title = strings.createNewOfferTitle,
+            icon = drawables.newLotIcon,
+            tint = colors.inactiveBottomNavIconColor,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                profileNavigation.pushNew(
+                    ProfileConfig.CreateOfferScreen(null, null, CreateOfferType.CREATE, null)
+                )
+            }
+        ),
+        NavigationItem(
+            title = strings.myBidsTitle,
+            subtitle = strings.myBidsSubTitle,
+            icon = drawables.bidsIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.proposalTitle,
+            subtitle = strings.proposalPriceSubTitle,
+            icon = drawables.proposalIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
+                userInfo?.countUnreadPriceProposals else null
+        ),
+        NavigationItem(
+            title = strings.myPurchasesTitle,
+            subtitle = strings.myPurchasesSubTitle,
+            icon = drawables.purchasesIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
+                    )
+                } catch (_: Exception) {
+                }
+            }
+        ),
+        NavigationItem(
+            title = strings.myOffersTitle,
+            subtitle = strings.myOffersSubTitle,
+            icon = drawables.tagIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.MyOffersScreen
+                    )
+                } catch ( _ : Exception){}
+            }
+        ),
+        NavigationItem(
+            title = strings.mySalesTitle,
+            subtitle = strings.mySalesSubTitle,
+            icon = drawables.salesIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
+                    )
+                } catch ( _ : Exception){}
+            }
+        ),
+        NavigationItem(
+            title = strings.messageTitle,
+            subtitle = strings.messageSubTitle,
+            icon = drawables.dialogIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = userInfo?.countUnreadMessages,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.ConversationsScreen
+                    )
+                } catch ( _ : Exception){
+                }
+            }
+        ),
+        NavigationItem(
+            title = strings.myProfileTitle,
+            subtitle = strings.myProfileSubTitle,
+            icon = drawables.profileIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.pushNew(
+                        ProfileConfig.UserScreen(
+                            UserData.login,
+                            getCurrentDate(),
+                            false
+                        )
+                    )
+                } catch ( _ : Exception){}
+            }
+        ),
+        NavigationItem(
+            title = strings.settingsProfileTitle,
+            subtitle = strings.profileSettingsSubTitle,
+            icon = drawables.settingsIcon,
+            tint = colors.black,
+            hasNews = true,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.myBalanceTitle,
+            subtitle = strings.myBalanceSubTitle,
+            icon = drawables.balanceIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null
+        ),
+        NavigationItem(
+            title = strings.logoutTitle,
+            icon = drawables.logoutIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+
+            }
+        ),
+    ))
+
+    return when (config) {
         ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
-            itemProfile(componentContext, profileNavigation)
+            itemProfile(componentContext, profileNavigation, profilePublicNavigationList.value)
         )
 
         ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
-            component = itemProfile(componentContext, profileNavigation)
+            component = itemProfile(componentContext, profileNavigation, profilePublicNavigationList.value)
         )
 
         is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
@@ -272,153 +422,27 @@ fun createProfileChild(
 
         is ProfileConfig.MyOrdersScreen -> ChildProfile.MyOrdersChild(
             config.type,
-            component = itemProfile(componentContext, profileNavigation, config.type)
+            component = itemProfile(componentContext, profileNavigation,profilePublicNavigationList.value, config.type)
+        )
+
+        ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(
+            component = conversationsFactory(
+                componentContext,
+                profilePublicNavigationList.value
+            )
         )
     }
+}
 
 fun itemProfile(
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
+    navigationItems : List<NavigationItem>,
     selectedOrderPage : DealTypeGroup = DealTypeGroup.SELL
 ): ProfileComponent {
-
-    val userInfo = UserData.userInfo
-
-    val profilePublicNavigationList = MutableValue(listOf(
-        NavigationItem(
-            title = strings.createNewOfferTitle,
-            icon = drawables.newLotIcon,
-            tint = colors.inactiveBottomNavIconColor,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                profileNavigation.pushNew(
-                    ProfileConfig.CreateOfferScreen(null, null, CreateOfferType.CREATE, null)
-                )
-            }
-        ),
-        NavigationItem(
-            title = strings.myBidsTitle,
-            subtitle = strings.myBidsSubTitle,
-            icon = drawables.bidsIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = strings.proposalTitle,
-            subtitle = strings.proposalPriceSubTitle,
-            icon = drawables.proposalIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
-                userInfo?.countUnreadPriceProposals else null
-        ),
-        NavigationItem(
-            title = strings.myPurchasesTitle,
-            subtitle = strings.myPurchasesSubTitle,
-            icon = drawables.purchasesIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
-                    )
-                } catch (_: Exception) {
-                }
-            }
-        ),
-        NavigationItem(
-            title = strings.myOffersTitle,
-            subtitle = strings.myOffersSubTitle,
-            icon = drawables.tagIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOffersScreen
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = strings.mySalesTitle,
-            subtitle = strings.mySalesSubTitle,
-            icon = drawables.salesIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = strings.messageTitle,
-            subtitle = strings.messageSubTitle,
-            icon = drawables.dialogIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = userInfo?.countUnreadMessages
-        ),
-        NavigationItem(
-            title = strings.myProfileTitle,
-            subtitle = strings.myProfileSubTitle,
-            icon = drawables.profileIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                   profileNavigation.pushNew(
-                       ProfileConfig.UserScreen(
-                           UserData.login,
-                           getCurrentDate(),
-                           false
-                       )
-                   )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = strings.settingsProfileTitle,
-            subtitle = strings.profileSettingsSubTitle,
-            icon = drawables.settingsIcon,
-            tint = colors.black,
-            hasNews = true,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = strings.myBalanceTitle,
-            subtitle = strings.myBalanceSubTitle,
-            icon = drawables.balanceIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = strings.logoutTitle,
-            icon = drawables.logoutIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-
-            }
-        ),
-    ))
-
-
     return DefaultProfileComponent(
         componentContext = componentContext,
-        navigationItems = profilePublicNavigationList.value,
+        navigationItems = navigationItems,
         profileNavigation,
         selectedOrderPage
     )

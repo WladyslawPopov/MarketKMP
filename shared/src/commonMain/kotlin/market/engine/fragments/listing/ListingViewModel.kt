@@ -32,10 +32,14 @@ class ListingViewModel(
 
     val regionOptions = mutableStateOf(arrayListOf<Options>())
 
+    val listingData = mutableStateOf(ListingData())
+
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
      fun init(listingData: ListingData) : Flow<PagingData<Offer>> {
+         this.listingData.value = listingData
+
          listingData.data.value.methodServer = "get_public_listing"
          listingData.data.value.objServer = "offers"
 

@@ -157,29 +157,23 @@ fun <T : Any>ListingBaseContent(
                 error != null -> error?.invoke()
                 noItem != null -> noItem?.invoke()
                 else -> {
-                    AnimatedVisibility(
-                        baseViewModel.updateItem.value == null, // update Paging Item(without refresh Paginator because it lost scroll position after refresh)
-                        enter = fadeIn(),
-                        exit = fadeOut()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .animateContentSize()
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .animateContentSize()
-                        ) {
-                            PagingList(
-                                state = scrollState,
-                                data = data,
-                                listingData = listingData,
-                                searchData = searchData,
-                                columns = columns.value,
-                                content = {
-                                    item(it)
-                                },
-                                promoList = promoList,
-                                promoContent = promoContent,
-                            )
-                        }
+                        PagingList(
+                            state = scrollState,
+                            data = data,
+                            listingData = listingData,
+                            searchData = searchData,
+                            columns = columns.value,
+                            content = {
+                                item(it)
+                            },
+                            promoList = promoList,
+                            promoContent = promoContent,
+                        )
                     }
                 }
             }

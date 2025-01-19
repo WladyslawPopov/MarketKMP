@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.favorites
 
+import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
@@ -19,15 +20,17 @@ class FavViewModel(
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    fun init(listingData: ListingData): Flow<PagingData<Offer>> {
-        if (listingData.data.value.filters.isEmpty()) {
-            listingData.data.value.filters.clear()
-            listingData.data.value.filters.addAll(OfferFilters.filtersFav)
-        }
-        listingData.data.value.methodServer = "get_cabinet_listing_watched_by_me"
-        listingData.data.value.objServer = "offers"
+    val listingData = mutableStateOf(ListingData())
 
-        return pagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
+    fun init(): Flow<PagingData<Offer>> {
+        if (listingData.value.data.value.filters.isEmpty()) {
+            listingData.value.data.value.filters.clear()
+            listingData.value.data.value.filters.addAll(OfferFilters.filtersFav)
+        }
+        listingData.value.data.value.methodServer = "get_cabinet_listing_watched_by_me"
+        listingData.value.data.value.objServer = "offers"
+
+        return pagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
     }
 
     fun refresh(){

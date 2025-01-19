@@ -19,10 +19,10 @@ import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.ProfileComponent
 import market.engine.fragments.root.main.profile.myOffers.DefaultMyOffersComponent
+import market.engine.fragments.root.main.profile.myOffers.MyOffersAppBar
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.widgets.exceptions.ProfileDrawer
 import market.engine.fragments.root.main.profile.myOffers.MyOffersContent
-import market.engine.fragments.root.main.profile.myOffers.ProfileMyOffersAppBar
 
 
 @Serializable
@@ -51,7 +51,7 @@ fun ProfileMyOffersNavigation(
         }
         Column {
 
-            ProfileMyOffersAppBar(
+            MyOffersAppBar(
                 select.value,
                 drawerState = drawerState,
                 navigationClick = { newType->

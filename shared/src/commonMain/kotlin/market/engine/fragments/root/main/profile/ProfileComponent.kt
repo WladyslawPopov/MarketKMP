@@ -191,10 +191,13 @@ class DefaultProfileComponent(
             key = "ProfileMyOrdersStack",
             childFactory = { config, componentContext ->
                 itemMyOrders(
-                    config, componentContext, navigationProfile
-                ){
-                    selectMyOrderPage(it)
-                }
+                    config,
+                    componentContext,
+                    navigationProfile,
+                    selectMyOrderPage = { type ->
+                        selectMyOrderPage(type)
+                    }
+                )
             }
         )
     }
