@@ -114,15 +114,15 @@ fun OfferFilterContent(
     val selectedCategoryID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
     val selectedCategoryParentID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull()) }
     val selectedCategoryIsLeaf = remember { mutableStateOf(listingData.find { it.key == "category" }?.operation?.toBoolean() ?: false) }
-    val isRefreshingFromFilters = remember { mutableStateOf(false) }
     val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpritation ?: offersType[0].second) }
+    val isRefreshingFromFilters = remember { mutableStateOf(false) }
+
 
     val selectedFilterKey = remember {
         mutableStateOf(
             listingData.find { it.key == "state" }?.value
         )
     }
-
 
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
@@ -156,7 +156,6 @@ fun OfferFilterContent(
                 listingData.find { it.key == "category" }?.operation = null
             }
             selectedCategory.value = selectedCategory.value
-            isRefreshing.value = true
         }
     }
 
@@ -230,7 +229,7 @@ fun OfferFilterContent(
                     )
                 }
 
-                if (isRefreshing.value || listingData.find { it.interpritation != null && it.interpritation != "" && it.key !in listOf("state", "with_sales", "without_sales") } != null) {
+                if (isRefreshing.value) {
                     Button(
                         onClick = {
                             listingData.clear()
@@ -276,6 +275,12 @@ fun OfferFilterContent(
                                             val (filterKey, filterText) = filter
                                             val isChecked = selectedFilterKey.value == filterKey
 
+                                            val onClick = {
+                                                listingData.find { it.key == "state" }?.value = filterKey
+                                                selectedFilterKey.value = filterKey
+                                                isRefreshing.value = true
+                                            }
+
                                             Row(
                                                 horizontalArrangement = Arrangement.Start,
                                                 verticalAlignment = Alignment.CenterVertically,
@@ -283,15 +288,13 @@ fun OfferFilterContent(
                                                     .fillMaxWidth()
                                                     .clip(MaterialTheme.shapes.medium)
                                                     .clickable {
-                                                        listingData.find { it.key == "state" }?.value = filterKey
-                                                        selectedFilterKey.value = filterKey
+                                                        onClick()
                                                     }
                                             ) {
                                                 RadioButton(
                                                     isChecked,
                                                     {
-                                                        listingData.find { it.key == "state" }?.value = filterKey
-                                                        selectedFilterKey.value = filterKey
+                                                        onClick()
                                                     },
                                                     colors = RadioButtonDefaults.colors(
                                                         selectedColor = colors.inactiveBottomNavIconColor,
@@ -332,6 +335,22 @@ fun OfferFilterContent(
                                             val isChecked = remember { mutableStateOf( listingData.find { it.key == filterKey }?.interpritation != null) }
                                             val isChecked1 = remember { mutableStateOf( listingData.find { it.key == filterKey1 }?.interpritation != null) }
 
+                                            val onClick = {
+                                                isChecked.value = !isChecked.value
+                                                if (isChecked.value) {
+                                                    isChecked1.value = false
+                                                    listingData.find { it.key == filterKey1 }?.interpritation = null
+
+                                                    listingData.find { it.key == filterKey }?.interpritation =
+                                                        filterText
+                                                }else {
+                                                    listingData.find { it.key == filterKey }?.interpritation =
+                                                        null
+                                                }
+
+                                                isRefreshing.value = true
+                                            }
+
                                             Row(
                                                 horizontalArrangement = Arrangement.Start,
                                                 verticalAlignment = Alignment.CenterVertically,
@@ -339,37 +358,13 @@ fun OfferFilterContent(
                                                     .fillMaxWidth()
                                                     .clip(MaterialTheme.shapes.medium)
                                                     .clickable {
-                                                        isChecked.value = !isChecked.value
-                                                        if (isChecked.value) {
-                                                            isChecked1.value = false
-                                                            listingData.find { it.key == filterKey1 }?.interpritation = null
-
-                                                            listingData.find { it.key == filterKey }?.interpritation =
-                                                                filterText
-                                                        }else {
-                                                            listingData.find { it.key == filterKey }?.interpritation =
-                                                                null
-                                                        }
-
-                                                        isRefreshing.value = true
+                                                        onClick()
                                                     }
                                             ) {
                                                 RadioButton(
                                                     isChecked.value,
                                                     {
-                                                        isChecked.value = !isChecked.value
-                                                        if (isChecked.value) {
-                                                            isChecked1.value = false
-                                                            listingData.find { it.key == filterKey1 }?.interpritation = null
-
-                                                            listingData.find { it.key == filterKey }?.interpritation =
-                                                                filterText
-                                                        }else {
-                                                            listingData.find { it.key == filterKey }?.interpritation =
-                                                                null
-                                                        }
-
-                                                        isRefreshing.value = true
+                                                        onClick()
                                                     },
                                                     colors = RadioButtonDefaults.colors(
                                                         selectedColor = colors.inactiveBottomNavIconColor,

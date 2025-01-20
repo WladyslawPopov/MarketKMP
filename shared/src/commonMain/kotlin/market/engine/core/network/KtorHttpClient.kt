@@ -45,6 +45,5 @@ object KtorHttpClient {
                 header(key, value)
             }
         }
-
     }
 }

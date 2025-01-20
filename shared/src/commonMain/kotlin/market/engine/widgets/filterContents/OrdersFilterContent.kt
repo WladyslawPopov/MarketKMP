@@ -87,7 +87,7 @@ fun OrderFilterContent(
 
     val idOrderTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
 
-    val idOfferTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
+    val idOfferTextState = remember { mutableStateOf(filters.find { it.key == "offer_id"}?.value ?: "") }
     val nameOfferTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
 
     val from = stringResource(strings.fromAboutTimeLabel)

@@ -54,7 +54,7 @@ import market.engine.fragments.root.main.profile.conversations.conversationsFact
 @Serializable
 sealed class ProfileConfig {
     @Serializable
-    data object ProfileScreen : ProfileConfig()
+    data class ProfileScreen(val openPage : String? = null) : ProfileConfig()
     @Serializable
     data object MyOffersScreen : ProfileConfig()
 
@@ -131,7 +131,8 @@ fun ProfileNavigation(
 fun createProfileChild(
     config: ProfileConfig,
     componentContext: ComponentContext,
-    profileNavigation: StackNavigation<ProfileConfig>
+    profileNavigation: StackNavigation<ProfileConfig>,
+    navigateToMyOrders: () -> Unit
 ): ChildProfile {
 
     val userInfo = UserData.userInfo
@@ -163,6 +164,7 @@ fun createProfileChild(
             icon = drawables.proposalIcon,
             tint = colors.black,
             hasNews = false,
+            isVisible = false,
             badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
                 userInfo?.countUnreadPriceProposals else null
         ),
@@ -276,8 +278,13 @@ fun createProfileChild(
     ))
 
     return when (config) {
-        ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
-            itemProfile(componentContext, profileNavigation, profilePublicNavigationList.value)
+        is ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
+            itemProfile(
+                componentContext,
+                profileNavigation,
+                profilePublicNavigationList.value,
+                selectedPage = config.openPage
+            )
         )
 
         ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
@@ -416,6 +423,9 @@ fun createProfileChild(
                 },
                 navigateBack = {
                     profileNavigation.pop()
+                },
+                navigateToMyOrders = {
+                    navigateToMyOrders()
                 }
             )
         )
@@ -438,12 +448,14 @@ fun itemProfile(
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigationItems : List<NavigationItem>,
-    selectedOrderPage : DealTypeGroup = DealTypeGroup.SELL
+    selectedOrderPage : DealTypeGroup = DealTypeGroup.SELL,
+    selectedPage : String? = null
 ): ProfileComponent {
     return DefaultProfileComponent(
         componentContext = componentContext,
         navigationItems = navigationItems,
         profileNavigation,
-        selectedOrderPage
+        selectedOrderPage,
+        selectedPage = selectedPage
     )
 }

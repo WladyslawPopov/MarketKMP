@@ -1,4 +1,4 @@
-package market.engine.core.network.paging
+package market.engine.core.repositories
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +11,7 @@ import kotlinx.serialization.KSerializer
 import market.engine.core.data.constants.PAGES_MAX_SIZE
 import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.items.ListingData
+import market.engine.core.network.paging.GenericPagingSource
 
 
 class PagingRepository<T : Any>{

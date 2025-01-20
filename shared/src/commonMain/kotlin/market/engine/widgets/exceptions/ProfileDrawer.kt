@@ -50,70 +50,72 @@ fun ProfileDrawer(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 list.forEachIndexed { _, item ->
-                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
+                    if (item.isVisible) {
+                        Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
-                    NavigationDrawerItem(
-                        label = {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.Start
-                                ){
-                                    Text(
-                                        stringResource(item.title),
-                                        color = colors.black,
-                                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                        lineHeight = dimens.largeText,
-                                    )
-                                    if (item.subtitle != null) {
+                        NavigationDrawerItem(
+                            label = {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
                                         Text(
-                                            stringResource(item.subtitle),
-                                            color = colors.steelBlue,
-                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                            lineHeight = dimens.largeText
+                                            stringResource(item.title),
+                                            color = colors.black,
+                                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                            lineHeight = dimens.largeText,
                                         )
+                                        if (item.subtitle != null) {
+                                            Text(
+                                                stringResource(item.subtitle),
+                                                color = colors.steelBlue,
+                                                fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                                lineHeight = dimens.largeText
+                                            )
+                                        }
+                                    }
+
+                                }
+                            },
+                            onClick = item.onClick,
+                            icon = {
+                                Icon(
+                                    painter = painterResource(item.icon),
+                                    contentDescription = stringResource(item.title),
+                                    modifier = Modifier.size(dimens.smallIconSize),
+                                    tint = item.tint
+                                )
+                            },
+                            badge = {
+                                if (item.badgeCount != null) {
+                                    Badge {
+                                        Text(text = item.badgeCount.toString())
                                     }
                                 }
 
-                            }
-                        },
-                        onClick = item.onClick,
-                        icon = {
-                            Icon(
-                                painter = painterResource(item.icon),
-                                contentDescription = stringResource(item.title),
-                                modifier = Modifier.size(dimens.smallIconSize),
-                                tint = item.tint
-                            )
-                        },
-                        badge = {
-                            if (item.badgeCount != null) {
-                                Badge {
-                                    Text(text = item.badgeCount.toString())
+                                if (item.hasNews) {
+                                    Badge { }
                                 }
-                            }
-
-                            if (item.hasNews) {
-                                Badge {  }
-                            }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.outgoingBubble,
-                            unselectedContainerColor = colors.white,
-                            selectedIconColor = colors.textA0AE,
-                            unselectedIconColor = colors.textA0AE,
-                            selectedTextColor = colors.black,
-                            selectedBadgeColor = colors.black,
-                            unselectedTextColor = colors.black,
-                            unselectedBadgeColor = colors.black
-                        ),
-                        shape = MaterialTheme.shapes.small,
-                        selected = item.title == activeTitle
-                    )
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                            colors = NavigationDrawerItemDefaults.colors(
+                                selectedContainerColor = colors.outgoingBubble,
+                                unselectedContainerColor = colors.white,
+                                selectedIconColor = colors.textA0AE,
+                                unselectedIconColor = colors.textA0AE,
+                                selectedTextColor = colors.black,
+                                selectedBadgeColor = colors.black,
+                                unselectedTextColor = colors.black,
+                                unselectedBadgeColor = colors.black
+                            ),
+                            shape = MaterialTheme.shapes.small,
+                            selected = item.title == activeTitle
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(dimens.mediumSpacer))
             }

@@ -70,70 +70,72 @@ fun ProfileContent(
                )
            }
            itemsIndexed(list) { _, item ->
-               NavigationDrawerItem(
-                   label = {
-                       Box(
-                           modifier = Modifier.fillMaxWidth(),
-                           contentAlignment = Alignment.CenterStart
-                       ) {
-                           Column(
-                               verticalArrangement = Arrangement.Center,
-                               horizontalAlignment = Alignment.Start
+               if (item.isVisible) {
+                   NavigationDrawerItem(
+                       label = {
+                           Box(
+                               modifier = Modifier.fillMaxWidth(),
+                               contentAlignment = Alignment.CenterStart
                            ) {
-                               Text(
-                                   stringResource(item.title),
-                                   color = colors.black,
-                                   fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                   lineHeight = dimens.largeText,
-                               )
-                               if (item.subtitle != null) {
+                               Column(
+                                   verticalArrangement = Arrangement.Center,
+                                   horizontalAlignment = Alignment.Start
+                               ) {
                                    Text(
-                                       stringResource(item.subtitle),
-                                       color = colors.steelBlue,
-                                       fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                       lineHeight = dimens.largeText
+                                       stringResource(item.title),
+                                       color = colors.black,
+                                       fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                       lineHeight = dimens.largeText,
                                    )
+                                   if (item.subtitle != null) {
+                                       Text(
+                                           stringResource(item.subtitle),
+                                           color = colors.steelBlue,
+                                           fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                           lineHeight = dimens.largeText
+                                       )
+                                   }
+                               }
+
+                           }
+                       },
+                       onClick = item.onClick,
+                       icon = {
+                           Icon(
+                               painter = painterResource(item.icon),
+                               contentDescription = stringResource(item.title),
+                               modifier = Modifier.size(dimens.smallIconSize),
+                               tint = item.tint
+                           )
+                       },
+                       badge = {
+                           if (item.badgeCount != null) {
+                               Badge {
+                                   Text(text = item.badgeCount.toString())
                                }
                            }
 
-                       }
-                   },
-                   onClick = item.onClick,
-                   icon = {
-                       Icon(
-                           painter = painterResource(item.icon),
-                           contentDescription = stringResource(item.title),
-                           modifier = Modifier.size(dimens.smallIconSize),
-                           tint = item.tint
-                       )
-                   },
-                   badge = {
-                       if (item.badgeCount != null) {
-                           Badge {
-                               Text(text = item.badgeCount.toString())
+                           if (item.hasNews) {
+                               Badge { }
                            }
-                       }
+                       },
+                       modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                       colors = NavigationDrawerItemDefaults.colors(
+                           selectedContainerColor = colors.white,
+                           unselectedContainerColor = colors.white,
+                           selectedIconColor = colors.textA0AE,
+                           unselectedIconColor = colors.textA0AE,
+                           selectedTextColor = colors.black,
+                           selectedBadgeColor = colors.black,
+                           unselectedTextColor = colors.black,
+                           unselectedBadgeColor = colors.black
+                       ),
+                       shape = MaterialTheme.shapes.small,
+                       selected = true
+                   )
 
-                       if (item.hasNews) {
-                           Badge { }
-                       }
-                   },
-                   modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                   colors = NavigationDrawerItemDefaults.colors(
-                       selectedContainerColor = colors.white,
-                       unselectedContainerColor = colors.white,
-                       selectedIconColor = colors.textA0AE,
-                       unselectedIconColor = colors.textA0AE,
-                       selectedTextColor = colors.black,
-                       selectedBadgeColor = colors.black,
-                       unselectedTextColor = colors.black,
-                       unselectedBadgeColor = colors.black
-                   ),
-                   shape = MaterialTheme.shapes.small,
-                   selected = true
-               )
-
-               Spacer(modifier = Modifier.height(dimens.smallPadding))
+                   Spacer(modifier = Modifier.height(dimens.smallPadding))
+               }
            }
        }
    }

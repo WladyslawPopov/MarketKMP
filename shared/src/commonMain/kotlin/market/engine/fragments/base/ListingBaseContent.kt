@@ -146,6 +146,8 @@ fun <T : Any>ListingBaseContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 if (baseViewModel.activeFiltersType.value != "") {
+                    val isClear = remember { mutableStateOf(listingData.filters.find { it.interpritation?.isNotBlank() == true } != null) }
+                    isRefreshingFromFilters.value = isClear.value
                     filtersContent(isRefreshingFromFilters) {
                         baseViewModel.activeFiltersType.value = ""
                     }

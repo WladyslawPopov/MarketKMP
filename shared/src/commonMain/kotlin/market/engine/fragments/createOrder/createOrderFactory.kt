@@ -8,7 +8,8 @@ fun createOrderFactory(
     selectedItems : Pair<Long, List<SelectedBasketItem>>,
     navigateOffer: (Long) -> Unit,
     navigateUser: (Long) -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    navigateToMyOrders: () -> Unit
     ): CreateOrderComponent {
         return DefaultCreateOrderComponent(
             componentContext,
@@ -21,6 +22,10 @@ fun createOrderFactory(
             },
             navigateToUser = { id->
                 navigateUser(id)
+            },
+            navigateToMyOrders = {
+                navigateBack()
+                navigateToMyOrders()
             }
         )
     }

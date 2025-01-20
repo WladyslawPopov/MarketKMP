@@ -25,7 +25,6 @@ import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.ToastItem
-import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ToastType
 import market.engine.core.data.types.WindowType
@@ -115,14 +114,14 @@ fun FavoritesContent(
 
     BaseContent(
         topBar = {
-            FavoritesAppBar(
-                FavScreenType.FAVORITES,
-                modifier
-            ) { type ->
-                if (type == FavScreenType.SUBSCRIBED) {
-                    component.goToSubscribes()
-                }
-            }
+//            FavoritesAppBar(
+//                FavScreenType.FAVORITES,
+//                modifier
+//            ) { type ->
+//                if (type == FavScreenType.SUBSCRIBED) {
+//                    component.goToSubscribes()
+//                }
+//            }
         },
         onRefresh = {
             refresh()

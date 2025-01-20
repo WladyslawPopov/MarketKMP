@@ -99,6 +99,7 @@ fun createSearchChild(
     config: SearchConfig,
     componentContext: ComponentContext,
     searchNavigation: StackNavigation<SearchConfig>,
+    navigateToMyOrders: () -> Unit
 ): ChildSearch =
     when (config) {
         is SearchConfig.ListingScreen -> {
@@ -238,6 +239,9 @@ fun createSearchChild(
                 },
                 navigateBack = {
                     searchNavigation.pop()
+                },
+                navigateToMyOrders = {
+                    navigateToMyOrders()
                 }
             )
         )

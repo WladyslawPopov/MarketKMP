@@ -162,7 +162,10 @@ fun HomeContent(
             topBar = {
                 HomeAppBar(
                     modifier,
-                    drawerState
+                    drawerState,
+                    goToMessenger = {
+                        component.goToMessenger()
+                    }
                 )
             },
             isLoading = isLoading.value,

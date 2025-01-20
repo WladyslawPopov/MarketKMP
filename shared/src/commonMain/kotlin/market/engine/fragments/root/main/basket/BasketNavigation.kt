@@ -102,7 +102,8 @@ fun BasketNavigation(
 fun createBasketChild(
     config: BasketConfig,
     componentContext: ComponentContext,
-    basketNavigation : StackNavigation<BasketConfig>
+    basketNavigation : StackNavigation<BasketConfig>,
+    navigateToMyOrders: () -> Unit
 ): ChildBasket =
     when (config) {
         BasketConfig.BasketScreen -> ChildBasket.BasketChild(
@@ -238,6 +239,9 @@ fun createBasketChild(
                     basketNavigation.pushNew(
                         BasketConfig.UserScreen(id, getCurrentDate(), false)
                     )
+                },
+                navigateToMyOrders = {
+                    navigateToMyOrders()
                 }
             )
         )

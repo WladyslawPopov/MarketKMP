@@ -48,7 +48,7 @@ fun CreateOrderDialog(
 
 
     val userName = remember(order.id) {
-        if (type != DealTypeGroup.SELL) {
+        if (type != DealTypeGroup.BUY) {
             order.sellerData?.login ?: ""
         } else {
             order.buyerData?.login ?: ""

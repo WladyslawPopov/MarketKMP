@@ -33,6 +33,7 @@ interface HomeComponent {
     fun goToCategory(category: TopCategory)
     fun goToAllPromo()
     fun goToCreateOffer()
+    fun goToMessenger()
 }
 
 class DefaultHomeComponent(
@@ -41,7 +42,8 @@ class DefaultHomeComponent(
     private val navigateToListingSelected: (ListingData, Boolean) -> Unit,
     val navigateToLoginSelected: () -> Unit,
     val navigateToOfferSelected: (id: Long) -> Unit,
-    val navigateToCreateOfferSelected: () -> Unit
+    val navigateToCreateOfferSelected: () -> Unit,
+    val navigateToMessengerSelected: () -> Unit,
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = getKoin().get()
@@ -120,5 +122,9 @@ class DefaultHomeComponent(
 
     override fun goToCreateOffer() {
         navigateToCreateOfferSelected()
+    }
+
+    override fun goToMessenger() {
+        navigateToMessengerSelected()
     }
 }

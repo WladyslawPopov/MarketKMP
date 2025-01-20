@@ -18,6 +18,7 @@ interface CreateOrderComponent {
 
     fun goToOffer(id : Long)
     fun goToSeller(id : Long)
+    fun goToMyOrders()
 }
 
 class DefaultCreateOrderComponent(
@@ -25,7 +26,8 @@ class DefaultCreateOrderComponent(
     val basketItem : Pair<Long, List<SelectedBasketItem>>,
     val navigateBack: () -> Unit,
     val navigateToOffer: (Long) -> Unit,
-    val navigateToUser: (Long) -> Unit
+    val navigateToUser: (Long) -> Unit,
+    val navigateToMyOrders: () -> Unit
 ) : CreateOrderComponent, ComponentContext by componentContext {
 
     private val createOrderViewModel : CreateOrderViewModel = getKoin().get()
@@ -59,5 +61,8 @@ class DefaultCreateOrderComponent(
 
     override fun goToSeller(id: Long) {
         navigateToUser(id)
+    }
+    override fun goToMyOrders() {
+        navigateToMyOrders()
     }
 }

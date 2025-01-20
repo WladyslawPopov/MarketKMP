@@ -4,16 +4,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import market.engine.core.data.filtersObjects.ReportFilters
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.ReportPageType
 import market.engine.core.network.APIService
 import market.engine.core.network.networkObjects.Reports
-import market.engine.core.network.paging.PagingRepository
+import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
-import org.jetbrains.compose.resources.getString
 
 class FeedbacksViewModel(
     val apiService: APIService

@@ -10,7 +10,7 @@ import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.APIService
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.paging.PagingRepository
+import market.engine.core.repositories.PagingRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 

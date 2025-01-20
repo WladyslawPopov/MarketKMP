@@ -30,6 +30,7 @@ import org.jetbrains.compose.resources.stringResource
 fun HomeAppBar(
     modifier: Modifier = Modifier,
     drawerState: DrawerState,
+    goToMessenger: () -> Unit
 ) {
     val userInfo = UserData.userInfo
 
@@ -48,11 +49,15 @@ fun HomeAppBar(
             tint = colors.brightBlue,
             hasNews = false,
             badgeCount = if ((userInfo?.countUnreadMessages?:0) > 0) (userInfo?.countUnreadMessages?:0) else null,
+            onClick = {
+                goToMessenger()
+            }
         ),
         NavigationItem(
             title = strings.notificationTitle,
             icon = drawables.notification,
             tint = colors.titleTextColor,
+            isVisible = false,
             hasNews = false,
             badgeCount = null
         ),
@@ -88,9 +93,8 @@ fun HomeAppBar(
                         }
                         IconButton(
                             modifier = modIB,
-                            onClick = {
+                            onClick = item.onClick
 
-                            }
                         ) {
                             getBadgedBox(modifier = modifier, item)
                         }

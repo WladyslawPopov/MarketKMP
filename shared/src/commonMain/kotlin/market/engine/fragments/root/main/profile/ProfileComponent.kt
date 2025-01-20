@@ -8,6 +8,7 @@ import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.data.globalData.UserData
@@ -49,7 +50,8 @@ class DefaultProfileComponent(
     componentContext: ComponentContext,
     val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
-    val selectedOrderPage : DealTypeGroup,
+    private val selectedOrderPage : DealTypeGroup,
+    selectedPage : String?
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
@@ -68,6 +70,17 @@ class DefaultProfileComponent(
 
     init {
         updateProfile()
+
+        if(selectedPage != null){
+            when(selectedPage) {
+                "messenger" -> {
+                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen)
+                }
+                "purchases" -> {
+                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
+                }
+            }
+        }
     }
 
     override fun updateProfile() {

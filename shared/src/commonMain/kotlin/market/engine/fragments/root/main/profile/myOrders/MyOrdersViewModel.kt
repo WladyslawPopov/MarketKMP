@@ -16,7 +16,7 @@ import market.engine.core.network.UrlBuilder
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.network.paging.PagingRepository
+import market.engine.core.repositories.PagingRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
@@ -89,27 +89,27 @@ class MyOrdersViewModel(
             when (type) {
                 DealType.BUY_IN_WORK -> {
                     ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersBuysInWork.toList())
+                    ld.data.value.filters.addAll(DealFilters.filtersBuysInWork.toMutableList())
                 }
 
                 DealType.BUY_ARCHIVE -> {
                     ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersBuysArchive.toList())
+                    ld.data.value.filters.addAll(DealFilters.filtersBuysArchive.toMutableList())
                 }
 
                 DealType.SELL_ALL -> {
                     ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersSalesAll.toList())
+                    ld.data.value.filters.addAll(DealFilters.filtersSalesAll.toMutableList())
                 }
 
                 DealType.SELL_IN_WORK -> {
                     ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersSalesInWork.toList())
+                    ld.data.value.filters.addAll(DealFilters.filtersSalesInWork.toMutableList())
                 }
 
                 DealType.SELL_ARCHIVE -> {
                     ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersSalesArchive.toList())
+                    ld.data.value.filters.addAll(DealFilters.filtersSalesArchive.toMutableList())
                 }
             }
 
@@ -135,6 +135,9 @@ class MyOrdersViewModel(
                 apiService.getPage(url)
             }
             return withContext(Dispatchers.Main) {
+                ld.data.value.filters.find { it.key == "id" }?.value = ""
+                ld.data.value.filters.find { it.key == "id" }?.interpritation = null
+
                 if (res.success) {
                     val serializer = Payload.serializer(Order.serializer())
                     val payload = deserializePayload(res.payload, serializer)

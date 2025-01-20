@@ -89,6 +89,7 @@ fun DeliveryCardsContent(
                             JsonPrimitive(if (card.country == countryDef) 0 else 1)
                     }
                 }
+                field.errors = null
             }
         }
     }
@@ -104,7 +105,6 @@ fun DeliveryCardsContent(
            setUpFields()
         }
     }
-
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),

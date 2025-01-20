@@ -56,7 +56,7 @@ interface MainComponent {
         val profileNavigation : StackNavigation<ProfileConfig>,
     )
 
-    fun navigateToBottomItem(config: MainConfig)
+    fun navigateToBottomItem(config: MainConfig, openPage: String? = null)
     fun goToLogin()
 }
 
@@ -76,6 +76,8 @@ class DefaultMainComponent(
         )
     )
     override val modelNavigation = _modelNavigation
+
+    private var openPage: String? = null
     
     // Stacks
     override val childHomeStack: Value<ChildStack<*, ChildHome>> by lazy {
@@ -84,7 +86,18 @@ class DefaultMainComponent(
             initialConfiguration = HomeConfig.HomeScreen,
             serializer = HomeConfig.serializer(),
             childFactory = { config, componentContext ->
-                createHomeChild(config, componentContext, modelNavigation.value.homeNavigation, goToLoginSelected)
+                createHomeChild(
+                    config,
+                    componentContext,
+                    modelNavigation.value.homeNavigation,
+                    goToMessenger = {
+                        navigateToBottomItem(MainConfig.Profile, "messenger")
+                    },
+                    goToLoginSelected,
+                    navigateToMyOrders = {
+                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    }
+                )
             },
             key = "HomeStack"
         )
@@ -101,7 +114,14 @@ class DefaultMainComponent(
             ),
             serializer = SearchConfig.serializer(),
             childFactory = { config, componentContext ->
-                createSearchChild(config, componentContext, modelNavigation.value.searchNavigation)
+                createSearchChild(
+                    config,
+                    componentContext,
+                    modelNavigation.value.searchNavigation,
+                    navigateToMyOrders = {
+                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    }
+                )
             },
             key = "CategoryStack"
         )
@@ -113,7 +133,14 @@ class DefaultMainComponent(
             initialConfiguration = BasketConfig.BasketScreen,
             serializer = BasketConfig.serializer(),
             childFactory = { config, componentContext ->
-                createBasketChild(config, componentContext, modelNavigation.value.basketNavigation)
+                createBasketChild(
+                    config,
+                    componentContext,
+                    modelNavigation.value.basketNavigation,
+                    navigateToMyOrders = {
+                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    }
+                )
             },
             key = "BasketStack"
         )
@@ -125,7 +152,14 @@ class DefaultMainComponent(
             initialConfiguration = FavoritesConfig.FavoritesScreen,
             serializer = FavoritesConfig.serializer(),
             childFactory = { config, componentContext ->
-                createFavoritesChild(config, componentContext, modelNavigation.value.favoritesNavigation)
+                createFavoritesChild(
+                    config,
+                    componentContext,
+                    modelNavigation.value.favoritesNavigation,
+                    navigateToMyOrders = {
+                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    }
+                )
             },
             key = "FavoritesStack"
         )
@@ -134,10 +168,17 @@ class DefaultMainComponent(
     override val childProfileStack: Value<ChildStack<*, ChildProfile>> by lazy {
         childStack(
             source = modelNavigation.value.profileNavigation,
-            initialConfiguration = ProfileConfig.ProfileScreen,
+            initialConfiguration = ProfileConfig.ProfileScreen(openPage =openPage),
             serializer = ProfileConfig.serializer(),
             childFactory = { config, componentContext ->
-                createProfileChild(config, componentContext, modelNavigation.value.profileNavigation)
+                createProfileChild(
+                    config,
+                    componentContext,
+                    modelNavigation.value.profileNavigation,
+                    navigateToMyOrders = {
+                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    }
+                )
             },
             key = "ProfileStack"
         )
@@ -176,9 +217,7 @@ class DefaultMainComponent(
     private fun handleDeepLink(deepLink: DeepLink) {
         when (deepLink) {
             is DeepLink.User -> {
-                navigateToBottomItem(
-                    MainConfig.Profile
-                )
+
             }
             is DeepLink.Listing -> {
                 val categoryData = ListingData()
@@ -213,8 +252,10 @@ class DefaultMainComponent(
 
     private var activeCurrent = "Home"
     override fun navigateToBottomItem(
-        config: MainConfig
+        config: MainConfig,
+        openPage: String?
     ) {
+        this.openPage = openPage
         when(config){
             is MainConfig.Home -> {
                 if(activeCurrent == "Home"){
@@ -267,7 +308,7 @@ class DefaultMainComponent(
                 }else{
                     if(activeCurrent == "Profile"){
                         modelNavigation.value.profileNavigation.replaceAll(
-                            ProfileConfig.ProfileScreen
+                            ProfileConfig.ProfileScreen(openPage)
                         )
                     }
                     activeCurrent = "Profile"

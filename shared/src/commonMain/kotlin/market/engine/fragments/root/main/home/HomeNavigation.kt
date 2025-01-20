@@ -117,13 +117,16 @@ fun createHomeChild(
     config: HomeConfig,
     componentContext: ComponentContext,
     homeNavigation: StackNavigation<HomeConfig>,
-    goToLogin: () -> Unit
+    goToMessenger: () -> Unit,
+    goToLogin: () -> Unit,
+    navigateToMyOrders: () -> Unit
 ): ChildHome = when (config) {
     HomeConfig.HomeScreen -> ChildHome.HomeChild(
         itemHome(
             componentContext,
             homeNavigation,
-            goToLogin = { goToLogin() }
+            goToLogin = { goToLogin() },
+            navigateToMessenger = { goToMessenger() }
         )
     )
 
@@ -261,6 +264,9 @@ fun createHomeChild(
             },
             navigateBack = {
                 homeNavigation.pop()
+            },
+            navigateToMyOrders = {
+                navigateToMyOrders()
             }
         )
     )
@@ -269,7 +275,8 @@ fun createHomeChild(
 fun itemHome(
     componentContext: ComponentContext,
     homeNavigation : StackNavigation<HomeConfig>,
-    goToLogin: () -> Unit
+    goToLogin: () -> Unit,
+    navigateToMessenger: () -> Unit
 ): HomeComponent {
     return DefaultHomeComponent(
         componentContext = componentContext,
@@ -302,6 +309,9 @@ fun itemHome(
             }else{
                 goToLogin()
             }
+        },
+        navigateToMessengerSelected = {
+            navigateToMessenger()
         }
     )
 }

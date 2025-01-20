@@ -330,7 +330,7 @@ fun OfferContent(
                         //count and views label
                         item {
                             val countString =
-                                getCountString(offerState.value, offer, isMyOffer.value)
+                                getCountString(offerState.value, offer)
 
                             FlowRow(
                                 horizontalArrangement = Arrangement.Start,
@@ -376,20 +376,8 @@ fun OfferContent(
                                 }
                             }
                         }
-                        // active promo options
-                        if (isMyOffer.value) {
-                            item {
-                                PromoRow(
-                                    offer,
-                                    showName = true,
-                                    modifier = Modifier.padding(dimens.mediumPadding)
-                                ) {
-
-                                }
-                            }
-                        }
-                        //action seller mode
-                        if (isMyOffer.value) {
+                        //action seller mode and active promo options
+                        if (isMyOffer.value && offerState.value != OfferStates.SNAPSHOT) {
                             item {
                                 Column {
                                     Row(
@@ -439,6 +427,16 @@ fun OfferContent(
                                             }
                                         )
                                     }
+                                }
+                            }
+
+                            item {
+                                PromoRow(
+                                    offer,
+                                    showName = true,
+                                    modifier = Modifier.padding(dimens.mediumPadding)
+                                ) {
+
                                 }
                             }
                         }
@@ -577,11 +575,11 @@ fun OfferContent(
                                     }
 
                                     //make proposal to seller
-                                    if (offer.isProposalEnabled) {
-                                        ProposalToSeller(
-                                            if (UserData.login == offer.sellerData?.id) "act_on_proposal" else "make_proposal",
-                                        )
-                                    }
+//                                    if (offer.isProposalEnabled) {
+//                                        ProposalToSeller(
+//                                            if (UserData.login == offer.sellerData?.id) "act_on_proposal" else "make_proposal",
+//                                        )
+//                                    }
                                     // who pays for delivery
                                     Row(
                                         modifier = Modifier
@@ -716,7 +714,7 @@ fun OfferContent(
                             if (offerState.value == OfferStates.ACTIVE) {
                                 AuctionBidsSection(
                                     offer,
-                                    onRebidClick = { id ->
+                                    onRebidClick = {
                                         // The same what and click to bids btn
                                     }
                                 )
@@ -855,7 +853,7 @@ fun DescriptionHtmlOffer(
 }
 
 @Composable
-fun getCountString(offerState: OfferStates, offer: Offer, isMyOffer: Boolean): String {
+fun getCountString(offerState: OfferStates, offer: Offer): String {
     val saleType = offer.saleType
     val isCompleted = offerState == OfferStates.COMPLETED
     val isCompletedOrInActive = isCompleted || offerState == OfferStates.INACTIVE

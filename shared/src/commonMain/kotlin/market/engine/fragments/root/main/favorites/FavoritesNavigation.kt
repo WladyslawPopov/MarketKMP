@@ -115,7 +115,8 @@ fun FavoritesNavigation(
 fun createFavoritesChild(
     config: FavoritesConfig,
     componentContext: ComponentContext,
-    favoritesNavigation : StackNavigation<FavoritesConfig>
+    favoritesNavigation : StackNavigation<FavoritesConfig>,
+    navigateToMyOrders: () -> Unit
 ): ChildFavorites =
     when (config) {
         FavoritesConfig.FavoritesScreen -> ChildFavorites.FavoritesChild(
@@ -258,6 +259,9 @@ fun createFavoritesChild(
                 },
                 navigateBack = {
                     favoritesNavigation.pop()
+                },
+                navigateToMyOrders = {
+                    navigateToMyOrders()
                 }
             )
         )

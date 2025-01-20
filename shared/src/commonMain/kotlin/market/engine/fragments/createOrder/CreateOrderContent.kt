@@ -85,7 +85,7 @@ fun CreateOrderContent(
     LaunchedEffect(createOrderResponse.value){
         if (createOrderResponse.value?.status == "operation_success"){
             delay(2000)
-            component.onBackClicked()
+            component.goToMyOrders()
         }
     }
 
