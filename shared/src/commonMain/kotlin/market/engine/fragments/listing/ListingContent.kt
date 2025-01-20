@@ -107,7 +107,7 @@ fun ListingContent(
     val refreshSearch = {
         listingData.value.resetScroll()
         columns.value =
-            if (listingData.value.listingType == 0) 1 else if (isBigScreen) 4 else 2
+            if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2
 
         if (!searchData.value.isRefreshing) {
             searchData.value.searchCategoryID = selectedCategoryID.value
