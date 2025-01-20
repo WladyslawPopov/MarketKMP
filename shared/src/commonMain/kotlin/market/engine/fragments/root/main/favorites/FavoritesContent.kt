@@ -28,6 +28,7 @@ import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ToastType
 import market.engine.core.data.types.WindowType
+import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
@@ -89,6 +90,7 @@ fun FavoritesContent(
     }
 
     val refresh = {
+        favViewModel.onError(ServerErrorException())
         favViewModel.updateUserInfo()
         ld.value.resetScroll()
         favViewModel.refresh()

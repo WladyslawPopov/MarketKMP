@@ -202,6 +202,7 @@ fun FeedbacksContent(
             modifier = Modifier.fillMaxSize(),
             isLoading = if (model.type == ReportPageType.ABOUT_ME) false else isLoading.value,
             onRefresh = {
+                viewModel.onError(ServerErrorException())
                 viewModel.refresh()
             },
         ) {

@@ -29,6 +29,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.operations.operationFavorites
 import market.engine.core.data.types.WindowType
+import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
@@ -99,6 +100,7 @@ fun ListingContent(
     val title = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
 
     val refresh = {
+        listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()
     }
 

@@ -72,7 +72,7 @@ sealed class ProfileConfig {
 
     @Serializable
     data class MyOrdersScreen(
-        val type : DealTypeGroup
+        val typeGroup : DealTypeGroup
     ) : ProfileConfig()
 
     @Serializable
@@ -431,8 +431,8 @@ fun createProfileChild(
         )
 
         is ProfileConfig.MyOrdersScreen -> ChildProfile.MyOrdersChild(
-            config.type,
-            component = itemProfile(componentContext, profileNavigation,profilePublicNavigationList.value, config.type)
+            config.typeGroup,
+            component = itemProfile(componentContext, profileNavigation,profilePublicNavigationList.value, config.typeGroup)
         )
 
         ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(

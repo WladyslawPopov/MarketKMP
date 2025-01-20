@@ -32,6 +32,7 @@ import kotlinx.coroutines.delay
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
@@ -65,6 +66,7 @@ fun CreateOrderContent(
     val basketItem = model.value.basketItem
 
     val refresh = {
+        viewModel.onError(ServerErrorException())
         viewModel.loadDeliveryCards()
         viewModel.getOffers(basketItem.second.map { it.offerId })
         viewModel.getAdditionalFields(

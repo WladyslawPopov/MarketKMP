@@ -1,0 +1,62 @@
+
+CREATE TABLE notificationsHistory (
+  id TEXT NOT NULL PRIMARY KEY,
+  idObject INTEGER NOT NULL,
+  idOwner  INTEGER NOT NULL,
+  title    TEXT NOT NULL,
+  body     TEXT NOT NULL,
+  type     TEXT NOT NULL,
+  timestemp INTEGER NOT NULL,
+  data     TEXT NOT NULL,
+  isRead   INTEGER NOT NULL,
+  UNIQUE(idObject, idOwner)
+);
+
+-- Select all search history entries
+selectAll:
+SELECT * FROM notificationsHistory WHERE(idOwner=? OR idObject=?);
+
+-- insert All
+insertNotification:
+INSERT INTO notificationsHistory (
+  id,
+  idObject,
+  idOwner,
+  title,
+  body,
+  type,
+  timestemp,
+  data,
+  isRead
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Delete a specific entry by ID
+deleteById:
+DELETE FROM notificationsHistory WHERE(idObject = ? AND idOwner = ?);
+
+-- Выбрать по id (аналог getByField, если поле = id)
+selectNotificationById:
+SELECT *
+FROM notificationsHistory
+WHERE id = ?;
+
+-- Удалить по id (аналог deleteByObj / deleteById)
+deleteNotificationById:
+DELETE
+FROM notificationsHistory
+WHERE id = ?;
+
+-- Обновить все поля (аналог updateAllFields)
+updateNotification:
+UPDATE notificationsHistory
+SET
+  idObject = ?,
+  idOwner  = ?,
+  title    = ?,
+  body     = ?,
+  type     = ?,
+  timestemp= ?,
+  data     = ?,
+  isRead   = ?
+WHERE (idObject = ? AND idOwner  = ?);

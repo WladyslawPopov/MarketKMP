@@ -152,7 +152,7 @@ fun HomeContent(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            DrawerContent(drawerState, homeViewModel.viewModelScope, modifier) {
+            DrawerContent(drawerState, modifier) {
                 component.goToLogin()
             }
         },

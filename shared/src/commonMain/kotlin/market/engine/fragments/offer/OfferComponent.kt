@@ -10,6 +10,7 @@ import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Region
 import market.engine.core.network.networkObjects.User
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.network.ServerErrorException
 import org.koin.mp.KoinPlatform.getKoin
 
 interface OfferComponent {
@@ -65,6 +66,7 @@ class DefaultOfferComponent(
     }
 
     override fun updateOffer(id: Long, isSnapshot: Boolean) {
+        offerViewModel.onError(ServerErrorException())
         offerViewModel.getOffer(id, isSnapshot)
     }
 

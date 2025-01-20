@@ -26,6 +26,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import market.engine.common.clipBoardEvent
+import market.engine.common.openEmail
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -180,16 +181,19 @@ fun MyOrderItem(
                 }
             )
             // email
+            val email = if (typeGroup == typeDef)
+                order.buyerData?.email ?: ""
+            else order.sellerData?.email ?: ""
+
             Text(
-                if (typeGroup == typeDef)
-                    order.buyerData?.email ?: ""
-                else order.sellerData?.email ?: "",
+                email,
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.actionTextColor,
                 modifier = Modifier.clickable {
-
+                    openEmail(email)
                 }
             )
+
             //price
             val textPrice = buildAnnotatedString {
                 append(stringResource(strings.totalCostLabel))

@@ -112,6 +112,7 @@ fun BasketContent(
     }
 
     val refresh = {
+        viewModel.onError(ServerErrorException())
         viewModel.getUserCart()
         setUpSubtitle()
     }

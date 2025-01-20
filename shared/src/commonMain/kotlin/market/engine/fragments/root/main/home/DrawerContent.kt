@@ -25,12 +25,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
+import market.engine.common.openUrl
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -48,10 +49,11 @@ import org.koin.compose.koinInject
 @Composable
 fun DrawerContent(
     drawerState: DrawerState,
-    scope: CoroutineScope,
     mod: Modifier = Modifier,
     goToLogin: () -> Unit = {}
 ) {
+    val scope = rememberCoroutineScope()
+
     val list = listOf(
         NavigationItem(
             title = strings.top100Title,
@@ -59,7 +61,13 @@ fun DrawerContent(
             icon = drawables.top100Icon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                scope.launch {
+                    openUrl("${SAPI.SERVER_BASE}rating_game")
+                    drawerState.close()
+                }
+            }
         ),
         NavigationItem(
             title = strings.helpTitle,
@@ -67,7 +75,13 @@ fun DrawerContent(
             icon = drawables.helpIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                scope.launch {
+                    openUrl("${SAPI.SERVER_BASE}help/general")
+                    drawerState.close()
+                }
+            }
         ),
         NavigationItem(
             title = strings.contactUsTitle,
@@ -75,7 +89,13 @@ fun DrawerContent(
             icon = drawables.contactUsIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                scope.launch {
+
+                    drawerState.close()
+                }
+            }
         ),
         NavigationItem(
             title = strings.aboutUsTitle,
@@ -83,7 +103,13 @@ fun DrawerContent(
             icon = drawables.infoIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                scope.launch {
+                    openUrl("${SAPI.SERVER_BASE}staticpage/doc/about_us")
+                    drawerState.close()
+                }
+            }
         ),
         NavigationItem(
             title = strings.reviewsTitle,
@@ -91,7 +117,8 @@ fun DrawerContent(
             icon = drawables.starIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            isVisible = false
         ),
         NavigationItem(
             title = strings.settingsTitleApp,
@@ -99,7 +126,13 @@ fun DrawerContent(
             icon = drawables.settingsIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                scope.launch {
+
+                    drawerState.close()
+                }
+            }
         ),
     )
 
@@ -187,70 +220,69 @@ fun DrawerContent(
             }
 
             list.forEachIndexed { _, item ->
-                Spacer(modifier = Modifier.height(dimens.mediumSpacer))
+                if (item.isVisible) {
+                    Spacer(modifier = Modifier.height(dimens.mediumSpacer))
 
-                NavigationDrawerItem(
-                    label = {
-                        Box(
-                            modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Column{
-                                Text(
-                                    stringResource(item.title),
-                                    color = colors.black,
-                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                    lineHeight = dimens.largeText
-                                )
-                                if (item.subtitle != null) {
+                    NavigationDrawerItem(
+                        label = {
+                            Box(
+                                modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Column {
                                     Text(
-                                        stringResource(item.subtitle),
-                                        color = colors.steelBlue,
-                                        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                                        stringResource(item.title),
+                                        color = colors.black,
+                                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                         lineHeight = dimens.largeText
                                     )
+                                    if (item.subtitle != null) {
+                                        Text(
+                                            stringResource(item.subtitle),
+                                            color = colors.steelBlue,
+                                            fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                                            lineHeight = dimens.largeText
+                                        )
+                                    }
                                 }
+
+                            }
+                        },
+                        onClick = {
+                            item.onClick()
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(item.icon),
+                                contentDescription = stringResource(item.title),
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                        },
+                        badge = {
+                            if (item.badgeCount != null) {
+                                Text(text = item.badgeCount.toString())
                             }
 
-                        }
-                    },
-                    onClick = {
-                        scope.launch {
-                            drawerState.close()
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(item.icon),
-                            contentDescription = stringResource(item.title),
-                            modifier = Modifier.size(dimens.smallIconSize)
-                        )
-                    },
-                    badge = {
-                        if (item.badgeCount != null) {
-                            Text(text = item.badgeCount.toString())
-                        }
+                            if (item.hasNews) {
+                                Badge { }
+                            }
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                            .wrapContentWidth(),
+                        colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = colors.white,
+                            unselectedContainerColor = colors.white,
+                            selectedIconColor = colors.lightGray,
+                            unselectedIconColor = colors.lightGray,
+                            selectedTextColor = colors.lightGray,
+                            selectedBadgeColor = colors.lightGray,
+                            unselectedTextColor = colors.lightGray,
+                            unselectedBadgeColor = colors.lightGray
 
-                        if (item.hasNews) {
-                            Badge {  }
-                        }
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                        .wrapContentWidth(),
-                    colors = NavigationDrawerItemDefaults.colors(
-                        selectedContainerColor = colors.white,
-                        unselectedContainerColor = colors.white,
-                        selectedIconColor = colors.lightGray,
-                        unselectedIconColor = colors.lightGray,
-                        selectedTextColor = colors.lightGray,
-                        selectedBadgeColor = colors.lightGray,
-                        unselectedTextColor = colors.lightGray,
-                        unselectedBadgeColor = colors.lightGray
-
-                    ),
-
-                    selected = true
-                )
+                        ),
+                        selected = true
+                    )
+                }
             }
 
             Box(

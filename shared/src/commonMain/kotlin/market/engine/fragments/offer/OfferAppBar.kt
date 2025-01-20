@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import market.engine.common.clipBoardEvent
+import market.engine.common.openCalendarEvent
+import market.engine.common.openShare
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -178,10 +180,10 @@ fun OfferAppBar(
                                         onClose()
                                     }
                                     "share" -> {
-
+                                        offer.publicUrl?.let { openShare(it) }
                                     }
                                     "calendar" -> {
-
+                                        offer.publicUrl?.let { openCalendarEvent(it) }
                                     }
                                 }
                             }
@@ -191,5 +193,4 @@ fun OfferAppBar(
             }
         }
     )
-
 }

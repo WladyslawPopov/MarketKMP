@@ -14,6 +14,7 @@ import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.TopCategory
+import market.engine.core.network.ServerErrorException
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -68,6 +69,7 @@ class DefaultHomeComponent(
     }
 
     private fun updateModel() {
+        homeViewModel.onError(ServerErrorException())
         homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true)
         homeViewModel.getOffersPromotedOnMainPage(0, 16)
         homeViewModel.getOffersPromotedOnMainPage(1, 16)

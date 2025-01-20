@@ -92,6 +92,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateOnlyYear
 import market.engine.core.utils.convertDateWithMinutes
@@ -165,6 +166,7 @@ fun CreateOfferContent(
     )
 
     val refresh = {
+        viewModel.onError(ServerErrorException())
         viewModel.getCategoriesHistory(categoryID.value)
         if (isEditCat.value){
             // update params
