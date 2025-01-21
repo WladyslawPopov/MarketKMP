@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -27,6 +28,9 @@ fun ToastTypeMessage(
     message: String,
     toastType: ToastType = ToastType.SUCCESS
 ) {
+    val state = rememberRichTextState()
+    state.setHtml(message)
+
     val icon = when (toastType) {
         ToastType.SUCCESS -> painterResource(drawables.successIcon)
         ToastType.ERROR -> painterResource(drawables.closeBtn)
@@ -64,7 +68,7 @@ fun ToastTypeMessage(
                 tint = color
             )
             Text(
-                text = message,
+                text = state.annotatedString,
                 color = colors.black,
                 style = MaterialTheme.typography.bodyMedium
             )

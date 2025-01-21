@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
@@ -58,6 +59,8 @@ class DefaultRootComponent(
     override fun navigateToLogin() {
         navigation.pushNew(RootConfig.Login)
     }
+
+    val userRepository = getKoin().get<UserRepository>()
 
     init {
         val isFirstLaunch = settingsHelper.getSettingValue("isFirstLaunch", true)

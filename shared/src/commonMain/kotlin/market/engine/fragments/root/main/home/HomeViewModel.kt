@@ -12,9 +12,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
-class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
+class HomeViewModel(
+    private val apiService: APIService,
+    val userRepository: UserRepository
+) : BaseViewModel() {
 
     private val _responseOffersPromotedOnMainPage1 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage1: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage1.asStateFlow()
@@ -42,6 +46,13 @@ class HomeViewModel(private val apiService: APIService) : BaseViewModel() {
             } finally {
                 setLoading(false)
             }
+        }
+    }
+
+    fun updateUserInfo() {
+        viewModelScope.launch {
+            userRepository.updateToken()
+            userRepository.updateUserInfo()
         }
     }
 }

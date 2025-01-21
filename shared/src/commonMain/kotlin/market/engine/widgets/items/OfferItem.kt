@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -86,31 +85,28 @@ fun OfferItem(
     Card(
         colors = if (!isPromo) colors.cardColors else colors.cardColorsPromo,
         shape = RoundedCornerShape(dimens.smallCornerRadius),
-        modifier = Modifier
-            .clickable {
-                if (isPromo) {
-                    val eventParameters = mapOf(
-                        "catalog_category" to offer.catpath.lastOrNull(),
-                        "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
-                        "offer_id" to offer.id,
-                    )
-                    analyticsHelper.reportEvent("click_top_lots", eventParameters)
-                }
-
-                onItemClick()
+        onClick = {
+            if (isPromo) {
+                val eventParameters = mapOf(
+                    "catalog_category" to offer.catpath.lastOrNull(),
+                    "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
+                    "offer_id" to offer.id,
+                )
+                analyticsHelper.reportEvent("click_top_lots", eventParameters)
             }
+
+            onItemClick()
+        }
     ) {
         if (onUpdateOfferItem != null) {
-            Row {
-                HeaderOfferItem(
-                    offer = offer,
-                    isSelected = isSelection,
-                    onSelectionChange = onSelectionChange,
-                    onUpdateOfferItem = onUpdateOfferItem,
-                    goToCreateOffer = goToCreateOffer,
-                    baseViewModel = baseViewModel
-                )
-            }
+            HeaderOfferItem(
+                offer = offer,
+                isSelected = isSelection,
+                onSelectionChange = onSelectionChange,
+                onUpdateOfferItem = onUpdateOfferItem,
+                goToCreateOffer = goToCreateOffer,
+                baseViewModel = baseViewModel
+            )
         }
 
         if (isGrid) {
@@ -244,7 +240,7 @@ fun content(
     isShowPromo : Boolean = false,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null
 ){
-    val trigger = rememberUpdatedState(updateTrigger)
+    if (updateTrigger < 0) return
     Row(
         modifier = Modifier.fillMaxWidth(),
     ) {

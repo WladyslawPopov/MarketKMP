@@ -590,10 +590,6 @@ fun MyOrderItem(
                         showDialog.value = false
                         goToMessenger()
                     },
-                    onError = { err ->
-                        err?.let { baseViewModel.onError(it) }
-                        showDialog.value = false
-                    },
                     baseViewModel = baseViewModel
                 )
             }

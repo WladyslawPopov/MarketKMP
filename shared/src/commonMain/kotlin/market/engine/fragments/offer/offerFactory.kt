@@ -19,7 +19,8 @@ fun offerFactory(
         offerId: Long,
         externalImages : List<String>?
     ) -> Unit,
-    navigateToCreateOrder: (item : Pair<Long, List<SelectedBasketItem>>) -> Unit
+    navigateToCreateOrder: (item : Pair<Long, List<SelectedBasketItem>>) -> Unit,
+    navigateToLogin: () -> Unit
 ): OfferComponent {
         return DefaultOfferComponent(
             id,
@@ -42,6 +43,9 @@ fun offerFactory(
             },
             navigateToCreateOrder = { item ->
                 navigateToCreateOrder(item)
+            },
+            navigateToLogin = {
+                navigateToLogin()
             }
         )
     }

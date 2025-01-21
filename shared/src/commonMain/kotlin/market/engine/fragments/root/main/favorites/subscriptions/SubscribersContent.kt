@@ -38,7 +38,7 @@ fun SubscribesContent(
             }
         },
         onRefresh = {
-            listingData.value.resetScroll()
+            subViewModel.resetScroll()
             data.refresh()
         },
         error = null,
@@ -53,7 +53,7 @@ fun SubscribesContent(
             searchData = searchData.value,
             baseViewModel = subViewModel,
             onRefresh = {
-                listingData.value.resetScroll()
+                subViewModel.resetScroll()
                 data.refresh()
             },
             filtersContent = { _, _ ->

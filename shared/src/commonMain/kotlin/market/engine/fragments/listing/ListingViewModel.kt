@@ -1,5 +1,6 @@
 package market.engine.fragments.listing
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
@@ -33,6 +34,8 @@ class ListingViewModel(
     val regionOptions = mutableStateOf(arrayListOf<Options>())
 
     val listingData = mutableStateOf(ListingData())
+
+    val isOpenSearch : MutableState<Boolean> = mutableStateOf(false) // first open search
 
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()

@@ -58,7 +58,7 @@ fun MyOffersContent(
     val successToast = stringResource(strings.operationSuccess)
 
     val refresh = {
-        listingData.value.resetScroll()
+        viewModel.resetScroll()
         viewModel.onRefresh()
     }
 
@@ -94,7 +94,7 @@ fun MyOffersContent(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.emptyOffersIcon
             ) {
-                listingData.value.resetScroll()
+                viewModel.resetScroll()
                 viewModel.onRefresh()
             }
         }

@@ -52,8 +52,8 @@ fun <T : Any>ListingBaseContent(
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
     val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = listingData.firstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset = listingData.firstVisibleItemScrollOffset
+        initialFirstVisibleItemIndex = baseViewModel.scrollItem.value,
+        initialFirstVisibleItemScrollOffset = baseViewModel.offsetScrollItem.value
     )
 
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -95,7 +95,7 @@ fun <T : Any>ListingBaseContent(
                 baseViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
-                        listingData.resetScroll()
+                        baseViewModel.resetScroll()
                         onRefresh()
                         isRefreshingFromFilters.value = false
                     }
@@ -107,8 +107,8 @@ fun <T : Any>ListingBaseContent(
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            listingData.firstVisibleItemIndex = index
-            listingData.firstVisibleItemScrollOffset = offset
+            baseViewModel.scrollItem.value = index
+            baseViewModel.offsetScrollItem.value = offset
         }
     }
 

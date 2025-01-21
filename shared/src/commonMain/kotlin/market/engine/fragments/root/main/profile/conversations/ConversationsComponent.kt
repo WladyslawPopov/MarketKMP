@@ -6,6 +6,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.network.networkObjects.Conversations
 import org.koin.mp.KoinPlatform.getKoin
@@ -39,7 +40,10 @@ class DefaultConversationsComponent(
 
     init {
         viewModel.updateUserInfo()
-        analyticsHelper.reportEvent("open_conversations", mapOf())
+        val eventParameters = mapOf(
+            "user_id" to UserData.login.toString(),
+            "profile_source" to "messages"
+        )
+        analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
-
 }

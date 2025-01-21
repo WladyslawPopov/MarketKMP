@@ -57,7 +57,7 @@ interface MainComponent {
     )
 
     fun navigateToBottomItem(config: MainConfig, openPage: String? = null)
-    fun goToLogin()
+    fun goToLogin(reset: Boolean = false)
 }
 
 class DefaultMainComponent(
@@ -120,6 +120,9 @@ class DefaultMainComponent(
                     modelNavigation.value.searchNavigation,
                     navigateToMyOrders = {
                         navigateToBottomItem(MainConfig.Profile, "purchases")
+                    },
+                    navigateToLogin = {
+                        goToLogin()
                     }
                 )
             },
@@ -139,6 +142,9 @@ class DefaultMainComponent(
                     modelNavigation.value.basketNavigation,
                     navigateToMyOrders = {
                         navigateToBottomItem(MainConfig.Profile, "purchases")
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
                     }
                 )
             },
@@ -158,6 +164,9 @@ class DefaultMainComponent(
                     modelNavigation.value.favoritesNavigation,
                     navigateToMyOrders = {
                         navigateToBottomItem(MainConfig.Profile, "purchases")
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
                     }
                 )
             },
@@ -177,6 +186,9 @@ class DefaultMainComponent(
                     modelNavigation.value.profileNavigation,
                     navigateToMyOrders = {
                         navigateToBottomItem(MainConfig.Profile, "purchases")
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
                     }
                 )
             },
@@ -246,8 +258,11 @@ class DefaultMainComponent(
             is DeepLink.Unknown -> {}
         }
     }
-    override fun goToLogin() {
-        goToLoginSelected() 
+    override fun goToLogin(reset: Boolean) {
+        goToLoginSelected()
+        if (reset) {
+            navigateToBottomItem(MainConfig.Home)
+        }
     }
 
     private var activeCurrent = "Home"

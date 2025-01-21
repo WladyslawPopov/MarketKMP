@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.common.getPermissionHandler
@@ -66,6 +67,10 @@ class DefaultHomeComponent(
         updateModel()
         analyticsHelper.reportEvent("view_main_page", mapOf())
         getPermissionHandler().askPermissionNotification()
+
+        lifecycle.doOnResume {
+            homeViewModel.updateUserInfo()
+        }
     }
 
     private fun updateModel() {

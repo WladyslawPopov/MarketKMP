@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
@@ -30,9 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import market.engine.common.AnalyticsFactory
 import market.engine.common.openUrl
-import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -40,11 +37,9 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.repositories.UserRepository
-import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.dialogs.LogoutDialog
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 @Composable
 fun DrawerContent(
@@ -136,9 +131,6 @@ fun DrawerContent(
         ),
     )
 
-    val userRepository : UserRepository = koinInject()
-    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
-
     val isShowDialog = remember { mutableStateOf(false) }
 
     ModalDrawerSheet(
@@ -158,35 +150,6 @@ fun DrawerContent(
                 horizontalArrangement = Arrangement.End
             ) {
                 if (UserData.token != "") {
-                    if (isShowDialog.value) {
-                        AlertDialog(
-                            onDismissRequest = { isShowDialog.value = false },
-                            title = {  },
-                            text = { Text(stringResource(strings.checkForLogoutTitle)) },
-                            confirmButton = {
-                                SimpleTextButton(
-                                    text = stringResource(strings.logoutTitle),
-                                    backgroundColor = colors.textA0AE,
-                                    onClick = {
-                                        analyticsHelper.reportEvent("logout_success", mapOf())
-                                        isShowDialog.value = false
-                                        userRepository.delete()
-                                        goToLogin()
-                                    }
-                                )
-                            },
-                            dismissButton = {
-                                SimpleTextButton(
-                                    text = stringResource(strings.closeWindow),
-                                    backgroundColor = colors.inactiveBottomNavIconColor,
-                                    onClick = {
-                                        isShowDialog.value = false
-                                    }
-                                )
-                            }
-                        )
-                    }
-
                     TextButton(
                         onClick = {
                             isShowDialog.value = true
@@ -201,6 +164,14 @@ fun DrawerContent(
                             contentDescription = stringResource(strings.logoutTitle)
                         )
                     }
+
+                    LogoutDialog(
+                        isShowDialog.value,
+                        onDismiss = {
+                            isShowDialog.value = false
+                        },
+                        goToLogin
+                    )
                 } else {
                     TextButton(
                         onClick = {

@@ -57,6 +57,8 @@ sealed class ProfileConfig {
     data class ProfileScreen(val openPage : String? = null) : ProfileConfig()
     @Serializable
     data object MyOffersScreen : ProfileConfig()
+    @Serializable
+    data object MyBidsScreen : ProfileConfig()
 
     @Serializable
     data object ConversationsScreen : ProfileConfig()
@@ -99,6 +101,7 @@ sealed class ChildProfile {
     class CreateOrderChild(val component: CreateOrderComponent) : ChildProfile()
     class MyOrdersChild(val type : DealTypeGroup, val component: ProfileComponent) : ChildProfile()
     class ConversationsChild(val component: ConversationsComponent) : ChildProfile()
+    class MyBidsChild(val component: ProfileComponent) : ChildProfile()
 }
 
 @Composable
@@ -124,6 +127,7 @@ fun ProfileNavigation(
             is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.type, screen.component, modifier)
             is ChildProfile.ConversationsChild -> ConversationsContent(screen.component, modifier)
+            is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier)
         }
     }
 }
@@ -132,11 +136,11 @@ fun createProfileChild(
     config: ProfileConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
-    navigateToMyOrders: () -> Unit
+    navigateToMyOrders: () -> Unit,
+    navigateToLogin: () -> Unit
 ): ChildProfile {
 
     val userInfo = UserData.userInfo
-
     val profilePublicNavigationList = MutableValue(listOf(
         NavigationItem(
             title = strings.createNewOfferTitle,
@@ -156,7 +160,14 @@ fun createProfileChild(
             icon = drawables.bidsIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.MyBidsScreen
+                    )
+                } catch ( _ : Exception){}
+            }
         ),
         NavigationItem(
             title = strings.proposalTitle,
@@ -272,7 +283,7 @@ fun createProfileChild(
             hasNews = false,
             badgeCount = null,
             onClick = {
-
+                navigateToLogin()
             }
         ),
     ))
@@ -327,6 +338,9 @@ fun createProfileChild(
                     profileNavigation.pushNew(
                         ProfileConfig.CreateOrderScreen(it)
                     )
+                },
+                navigateToLogin = {
+                    navigateToLogin()
                 }
             )
         )
@@ -439,6 +453,14 @@ fun createProfileChild(
             component = conversationsFactory(
                 componentContext,
                 profilePublicNavigationList.value
+            )
+        )
+
+        ProfileConfig.MyBidsScreen -> ChildProfile.MyBidsChild(
+            itemProfile(
+                componentContext,
+                profileNavigation,
+                profilePublicNavigationList.value,
             )
         )
     }

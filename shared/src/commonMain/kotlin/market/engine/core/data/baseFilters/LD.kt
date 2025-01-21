@@ -14,18 +14,9 @@ data class LD(
     var objServer : String = "",
     var totalCount: Int = 0,
     var totalPages: Int = totalCount / PAGE_SIZE,
-
-    //scroll data
-    var firstVisibleItemIndex : Int = 0,
-    var firstVisibleItemScrollOffset : Int = 0,
     var prevIndex : Int? = null,
-) {
-    fun resetScroll(){
-        firstVisibleItemIndex = 0
-        firstVisibleItemScrollOffset = 0
-        prevIndex = null
-    }
 
+) {
     fun clearFilters(){
         filters = arrayListOf()
         sort = null

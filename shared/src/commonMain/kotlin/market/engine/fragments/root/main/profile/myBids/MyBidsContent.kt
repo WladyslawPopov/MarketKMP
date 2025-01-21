@@ -1,9 +1,6 @@
-package market.engine.fragments.root.main.profile.conversations
+package market.engine.fragments.root.main.profile.myBids
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -17,21 +14,23 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
-import market.engine.widgets.exceptions.ProfileDrawer
 import market.engine.widgets.exceptions.showNoItemLayout
+import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun ConversationsContent(
-    component: ConversationsComponent,
+fun MyBidsContent(
+    component: MyBidsComponent,
     modifier: Modifier,
 ) {
     val model by component.model.subscribeAsState()
@@ -59,12 +58,27 @@ fun ConversationsContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
+                when(component.model.value.type){
+                    LotsType.MYBIDLOTS_ACTIVE ->{
+                        OfferFilters.clearTypeFilter(LotsType.MYBIDLOTS_ACTIVE)
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(OfferFilters.filtersMyBidsActive.toList())
+                    }
+                    LotsType.MYBIDLOTS_UNACTIVE ->{
+                        OfferFilters.clearTypeFilter(LotsType.MYBIDLOTS_UNACTIVE)
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(OfferFilters.filtersMyBidsUnactive.toList())
+                    }
+                    else ->{
+                        listingData.value.filters.clear()
+                    }
+                }
                 viewModel.onRefresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
-                icon = drawables.emptyOffersIcon
+                icon = drawables.bidsIcon
             ) {
                 viewModel.resetScroll()
                 viewModel.onRefresh()
@@ -76,83 +90,72 @@ fun ConversationsContent(
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
             withContext(Dispatchers.Default) {
-
+                val offer =
+                    viewModel.getUpdatedOfferById(viewModel.updateItem.value!!)
                 withContext(Dispatchers.Main) {
 
                     viewModel.updateItem.value = null
+                    viewModel.updateItemTrigger.value++
                 }
             }
         }
     }
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            ProfileDrawer(strings.messageTitle, model.navigationItems)
+    BaseContent(
+        topBar = null,
+        onRefresh = {
+            refresh()
         },
-        gesturesEnabled = drawerState.isOpen,
+        error = null,
+        noFound = null,
+        isLoading = isLoading.value,
+        toastItem = viewModel.toastItem,
+        modifier = modifier.fillMaxSize()
     ) {
-        BaseContent(
-            topBar = {
-                ConversationsAppBar(
-                    drawerState = drawerState,
-                    modifier = modifier
-                )
-            },
+        ListingBaseContent(
+            columns = columns,
+            listingData = listingData.value,
+            searchData = searchData.value,
+            data = data,
+            baseViewModel = viewModel,
             onRefresh = {
                 refresh()
             },
-            error = null,
-            noFound = null,
-            isLoading = isLoading.value,
-            toastItem = viewModel.toastItem,
-            modifier = modifier.fillMaxSize()
-        ) {
-            ListingBaseContent(
-                columns = columns,
-                listingData = listingData.value,
-                searchData = searchData.value,
-                data = data,
-                baseViewModel = viewModel,
-                onRefresh = {
-                    refresh()
-                },
-                noFound = noFound,
-                additionalBar = {
-                    FiltersBar(
-                        searchData.value,
-                        listingData.value,
-                        isShowGrid = false,
-                        onFilterClick = {
-                            viewModel.activeFiltersType.value = "filters"
-                        },
-                        onSortClick = {
-                            viewModel.activeFiltersType.value = "sorting"
-                        },
-                        onRefresh = {
-                            refresh()
-                        }
-                    )
-                },
-                filtersContent = { isRefreshingFromFilters, onClose ->
-                    when (viewModel.activeFiltersType.value) {
-                        "filters" -> {
-
-                        }
-
-                        "sorting" -> SortingOffersContent(
-                            isRefreshingFromFilters,
-                            listingData.value,
-                            onClose
-                        )
+            noFound = noFound,
+            additionalBar = {
+                FiltersBar(
+                    searchData.value,
+                    listingData.value,
+                    isShowGrid = false,
+                    onFilterClick = {
+                        viewModel.activeFiltersType.value = "filters"
+                    },
+                    onSortClick = {
+                        viewModel.activeFiltersType.value = "sorting"
+                    },
+                    onRefresh = {
+                        refresh()
                     }
-                },
-                item = { conversation ->
-
+                )
+            },
+            filtersContent = { isRefreshingFromFilters, onClose ->
+                when(viewModel.activeFiltersType.value){
+                    "filters" -> OfferFilterContent(
+                        isRefreshingFromFilters,
+                        listingData.value,
+                        viewModel,
+                        model.type,
+                        onClose
+                    )
+                    "sorting" -> SortingOffersContent(
+                        isRefreshingFromFilters,
+                        listingData.value,
+                        onClose
+                    )
                 }
-            )
-        }
+            },
+            item = { offer ->
+
+            }
+        )
     }
 }

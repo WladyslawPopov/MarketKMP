@@ -151,21 +151,21 @@ fun LoginContent(
             contentAlignment = Alignment.TopCenter,
             modifier = modifier
                 .background(color = colors.white)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            focusManager.clearFocus()
+                        }
+                    )
+                },
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(dimens.mediumPadding)
                     .verticalScroll(scrollState)
-                    .imePadding()
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = {
-                                focusManager.clearFocus()
-                            }
-                        )
-                    },
+                    .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

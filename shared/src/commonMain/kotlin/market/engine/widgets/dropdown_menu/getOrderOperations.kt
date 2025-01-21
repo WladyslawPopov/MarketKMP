@@ -464,11 +464,6 @@ fun getOrderOperations(
             showCommentDialog.value = false
             onClose()
         },
-        onError = { err->
-            err?.let { baseViewModel.onError(it) }
-            showCommentDialog.value = false
-            onClose()
-        },
         baseViewModel = baseViewModel
     )
 }

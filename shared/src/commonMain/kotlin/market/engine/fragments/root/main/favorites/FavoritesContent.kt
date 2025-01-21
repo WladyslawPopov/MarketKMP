@@ -83,7 +83,7 @@ fun FavoritesContent(
                 image = drawables.emptyFavoritesImage
             ) {
                 favViewModel.updateUserInfo()
-                ld.value.resetScroll()
+                favViewModel.resetScroll()
                 favViewModel.refresh()
             }
         }
@@ -92,7 +92,7 @@ fun FavoritesContent(
     val refresh = {
         favViewModel.onError(ServerErrorException())
         favViewModel.updateUserInfo()
-        ld.value.resetScroll()
+        favViewModel.resetScroll()
         favViewModel.refresh()
     }
 
@@ -143,7 +143,7 @@ fun FavoritesContent(
             noFound = noFound,
             onRefresh = {
                 favViewModel.updateUserInfo()
-                ld.value.resetScroll()
+                favViewModel.resetScroll()
                 data.refresh()
             },
             filtersContent = { isRefreshingFromFilters, onClose ->

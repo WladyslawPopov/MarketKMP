@@ -1,10 +1,9 @@
 package market.engine.fragments.user
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -90,15 +89,12 @@ fun UserContent(
         Column {
             AnimatedVisibility(
                 isVisibleUserPanel.value,
-                enter = expandIn(),
+                enter = fadeIn(),
                 exit = fadeOut(),
             ) {
                 UserPanel(
                     modifier = Modifier.background(colors.white)
-                        .fillMaxWidth()
-                        .clickable {
-                            isVisibleUserPanel.value = !isVisibleUserPanel.value
-                        },
+                        .fillMaxWidth(),
                     user = user.value,
                     goToUser = null,
                     goToAllLots = {

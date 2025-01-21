@@ -22,13 +22,6 @@ fun RootNavigation(
 ) {
     val childStack by component.childStack.subscribeAsState()
 
-    val userRepository = koinInject<UserRepository>()
-
-    LaunchedEffect(Unit) {
-        userRepository.updateToken()
-        userRepository.updateUserInfo()
-    }
-
     Surface(
         modifier = modifier.fillMaxSize(),
     ) {

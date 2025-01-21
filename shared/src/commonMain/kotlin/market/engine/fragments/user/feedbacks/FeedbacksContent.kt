@@ -68,8 +68,8 @@ fun FeedbacksContent(
     )
 
     val state = rememberLazyListState(
-        initialFirstVisibleItemIndex = listingData.value.firstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset = listingData.value.firstVisibleItemScrollOffset
+        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
+        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
     )
 
     var showUpButton by remember { mutableStateOf(false) }
@@ -191,7 +191,7 @@ fun FeedbacksContent(
                             }
                         }
 
-                        listingData.value.resetScroll()
+                        viewModel.resetScroll()
                         component.onRefresh()
                     }
                 )

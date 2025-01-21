@@ -18,12 +18,16 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.UserData
 import market.engine.fragments.base.BaseContent
+import market.engine.widgets.dialogs.LogoutDialog
 import market.engine.widgets.rows.UserPanel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -70,6 +74,7 @@ fun ProfileContent(
                )
            }
            itemsIndexed(list) { _, item ->
+               val showLogoutDialog = remember { mutableStateOf(false) }
                if (item.isVisible) {
                    NavigationDrawerItem(
                        label = {
@@ -99,7 +104,13 @@ fun ProfileContent(
 
                            }
                        },
-                       onClick = item.onClick,
+                       onClick = {
+                           if(item.icon == drawables.logoutIcon){
+                               showLogoutDialog.value = true
+                           }else{
+                               item.onClick()
+                           }
+                       },
                        icon = {
                            Icon(
                                painter = painterResource(item.icon),
@@ -133,6 +144,17 @@ fun ProfileContent(
                        shape = MaterialTheme.shapes.small,
                        selected = true
                    )
+                   if(showLogoutDialog.value) {
+                       LogoutDialog(
+                           showLogoutDialog.value,
+                           onDismiss = {
+                               showLogoutDialog.value = false
+                           },
+                           goToLogin = {
+                               item.onClick()
+                           }
+                       )
+                   }
 
                    Spacer(modifier = Modifier.height(dimens.smallPadding))
                }

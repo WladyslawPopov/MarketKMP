@@ -392,4 +392,7 @@ interface Strings {
     val dialogAddress : StringResource
 
     val additionalDeliveryInfo : StringResource
+
+    val placeBetOnTheAmount : StringResource
+    val acceptAddBidsAction : StringResource
 }

@@ -105,7 +105,7 @@ fun ListingContent(
     }
 
     val refreshSearch = {
-        listingData.value.resetScroll()
+        searchViewModel.resetScroll()
         columns.value =
             if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2
 

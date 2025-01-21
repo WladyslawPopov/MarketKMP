@@ -30,7 +30,6 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OrderOperations
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
@@ -45,7 +44,6 @@ fun CommentDialog(
     commentTextDefault: String,
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
-    onError: (ServerErrorException?) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val orderOperations: OrderOperations = koinInject()
@@ -219,7 +217,7 @@ fun CommentDialog(
                                                 )
                                             )
                                         } else {
-                                            onError(error)
+                                            error?.let { baseViewModel.onError(it) }
                                         }
                                     }
                                 }
@@ -243,7 +241,7 @@ fun CommentDialog(
                                                 )
                                             )
                                         } else {
-                                            onError(error)
+                                            error?.let { baseViewModel.onError(it) }
                                         }
                                     }
                                 }
@@ -284,14 +282,14 @@ fun CommentDialog(
                                     analyticsHelper.reportEvent(eventName, eventMap)
 
                                     onSuccess()
+                                    onDismiss()
                                 } else {
-                                    onError(err)
+                                    err?.let { baseViewModel.onError(it) }
+                                    onDismiss()
                                 }
                             }
                         }
                     }
-
-                    onDismiss()
                 }
             },
             dismissButton = {

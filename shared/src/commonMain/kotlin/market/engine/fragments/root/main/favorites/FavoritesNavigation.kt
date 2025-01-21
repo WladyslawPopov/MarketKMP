@@ -116,7 +116,8 @@ fun createFavoritesChild(
     config: FavoritesConfig,
     componentContext: ComponentContext,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
-    navigateToMyOrders: () -> Unit
+    navigateToMyOrders: () -> Unit,
+    navigateToLogin: () -> Unit
 ): ChildFavorites =
     when (config) {
         FavoritesConfig.FavoritesScreen -> ChildFavorites.FavoritesChild(
@@ -165,6 +166,9 @@ fun createFavoritesChild(
                         FavoritesConfig.CreateOrderScreen(item)
                     )
                 },
+                navigateToLogin = {
+                   navigateToLogin()
+                }
             )
         )
 

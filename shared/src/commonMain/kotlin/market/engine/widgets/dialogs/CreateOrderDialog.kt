@@ -22,7 +22,6 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.networkObjects.Order
 import market.engine.fragments.base.BaseViewModel
@@ -37,7 +36,6 @@ fun CreateOrderDialog(
     type: DealTypeGroup,
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
-    onError: (ServerErrorException?) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val orderOperations: OrderOperations = koinInject()
@@ -152,7 +150,7 @@ fun CreateOrderDialog(
                                     onDismiss()
                                 }
                             } else {
-                                onError(error)
+                                error?.let { baseViewModel.onError(it) }
                             }
                         }
                     }

@@ -44,6 +44,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.buttons.idButton
 import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -85,16 +86,16 @@ fun UserPanel(
             FlowRow(
                 modifier = userMod,
                 verticalArrangement = Arrangement.Center,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
                 Row(
-                    modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
+                    modifier = Modifier.wrapContentSize().padding(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val image = user.avatar?.thumb?.content
                     if (image != null && image != "${SAPI.SERVER_BASE}images/no_avatar.svg") {
                         Card(
-                            modifier = Modifier.padding(dimens.smallPadding),
+                            modifier = Modifier.padding(dimens.extraSmallPadding),
                             shape = MaterialTheme.shapes.extraLarge
                         ) {
                             LoadImage(
@@ -108,6 +109,7 @@ fun UserPanel(
                     }
 
                     Column(
+                        modifier = Modifier.fillMaxWidth(0.6f),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -120,16 +122,19 @@ fun UserPanel(
 
                         Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                        FlowRow(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalArrangement = Arrangement.spacedBy(
+                                dimens.extraSmallPadding,
+                                alignment = Alignment.CenterHorizontally
+                            )
                         ) {
                             if (user.rating > 0) {
                                 Box(
                                     modifier = Modifier
                                         .background(
                                             colors.ratingBlue,
-                                            shape = MaterialTheme.shapes.medium
+                                            shape = MaterialTheme.shapes.small
                                         )
                                         .padding(dimens.smallPadding)
                                 ) {
@@ -141,7 +146,6 @@ fun UserPanel(
                                     )
                                 }
                             }
-                            Spacer(modifier = Modifier.width(dimens.smallSpacer))
                             // user rating badge
                             if (user.ratingBadge?.imageUrl != null) {
                                 LoadImage(
@@ -150,9 +154,7 @@ fun UserPanel(
                                     isShowEmpty = false,
                                     size = dimens.mediumIconSize
                                 )
-                                Spacer(modifier = Modifier.width(dimens.smallPadding))
                             }
-                            Spacer(modifier = Modifier.width(dimens.smallSpacer))
                             // Verified user icon
                             if (user.isVerified) {
                                 Image(
@@ -160,8 +162,9 @@ fun UserPanel(
                                     contentDescription = null,
                                     modifier = Modifier.size(dimens.mediumIconSize)
                                 )
-                                Spacer(modifier = Modifier.width(dimens.smallPadding))
                             }
+
+                            idButton(user.id.toString())
                         }
                     }
                 }
@@ -218,92 +221,92 @@ fun UserPanel(
                         }
                     }
                 }
+            }
 
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = dimens.smallPadding)
-                        .align(Alignment.CenterVertically),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    // Button: "All Offers"
-                    SimpleTextButton(
-                        text = stringResource(strings.allOffers),
-                        backgroundColor = colors.inactiveBottomNavIconColor,
-                        shape = MaterialTheme.shapes.medium,
-                        onClick = goToAllLots
-                    )
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = dimens.smallPadding)
+                    .align(Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // Button: "All Offers"
+                SimpleTextButton(
+                    text = stringResource(strings.allOffers),
+                    backgroundColor = colors.inactiveBottomNavIconColor,
+                    shape = MaterialTheme.shapes.medium,
+                    onClick = goToAllLots
+                )
 
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+                Spacer(modifier = Modifier.width(dimens.smallPadding))
 
-                    // Button: "About Me"
-                    SimpleTextButton(
-                        text = stringResource(strings.aboutMeLabel),
-                        backgroundColor = colors.textA0AE,
-                        shape = MaterialTheme.shapes.medium,
-                        onClick = goToAboutMe
-                    )
+                // Button: "About Me"
+                SimpleTextButton(
+                    text = stringResource(strings.aboutMeLabel),
+                    backgroundColor = colors.textA0AE,
+                    shape = MaterialTheme.shapes.medium,
+                    onClick = goToAboutMe
+                )
 
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                    // Button: "Subscriptions"
+                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                // Button: "Subscriptions"
 
-                    if (user.followersCount != null) {
-                        val subLabel = if (UserData.login == user.id){
-                            stringResource(strings.subscribersLabel)
-                        }else{
-                            stringResource(strings.subscriptionsLabel)
-                        }
-
-                        FlowRow(
-                            modifier = Modifier.wrapContentSize()
-                                .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
-                                .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
-                                .clickable {
-                                    if (UserData.login == user.id){
-                                        goToSubscriptions()
-                                    }else {
-                                        addToSubscriptions()
-                                    }
-                                }
-                                .padding(dimens.extraSmallPadding),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = subLabel,
-                                color = colors.black,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(dimens.smallPadding),
-                            )
-                            Row(
-                                modifier = Modifier.wrapContentSize()
-                                    .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
-                                    .padding(dimens.extraSmallPadding)
-                                    .align(Alignment.CenterVertically),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                Icon(
-                                    painterResource(drawables.vectorManSubscriptionIcon),
-                                    contentDescription = null,
-                                    tint = colors.alwaysWhite,
-                                    modifier = Modifier.size(dimens.extraSmallIconSize)
-                                )
-                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                Text(
-                                    text = user.followersCount.toString(),
-                                    color = colors.alwaysWhite,
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
-                            }
-                        }
+                if (user.followersCount != null) {
+                    val subLabel = if (UserData.login == user.id){
+                        stringResource(strings.subscribersLabel)
                     }else{
-                        SmallIconButton(
-                            drawables.subscriptionIcon,
-                            color = colors.brightGreen
-                        ){
-                            addToSubscriptions()
+                        stringResource(strings.subscriptionsLabel)
+                    }
+
+                    FlowRow(
+                        modifier = Modifier.wrapContentSize()
+                            .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
+                            .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
+                            .clickable {
+                                if (UserData.login == user.id){
+                                    goToSubscriptions()
+                                }else {
+                                    addToSubscriptions()
+                                }
+                            }
+                            .padding(dimens.extraSmallPadding),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = subLabel,
+                            color = colors.black,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(dimens.smallPadding),
+                        )
+                        Row(
+                            modifier = Modifier.wrapContentSize()
+                                .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
+                                .padding(dimens.extraSmallPadding)
+                                .align(Alignment.CenterVertically),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Icon(
+                                painterResource(drawables.vectorManSubscriptionIcon),
+                                contentDescription = null,
+                                tint = colors.alwaysWhite,
+                                modifier = Modifier.size(dimens.extraSmallIconSize)
+                            )
+                            Spacer(modifier = Modifier.width(dimens.smallPadding))
+                            Text(
+                                text = user.followersCount.toString(),
+                                color = colors.alwaysWhite,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
                         }
+                    }
+                }else{
+                    SmallIconButton(
+                        drawables.subscriptionIcon,
+                        color = colors.brightGreen
+                    ){
+                        addToSubscriptions()
                     }
                 }
             }

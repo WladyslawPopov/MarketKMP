@@ -53,7 +53,7 @@ fun MyOrdersContent(
     val successToast = stringResource(strings.operationSuccess)
 
     val refresh = {
-        listingData.value.resetScroll()
+        viewModel.resetScroll()
         viewModel.onRefresh()
     }
 
@@ -63,16 +63,14 @@ fun MyOrdersContent(
                 textButton = stringResource(strings.resetLabel)
             ) {
                 listingData.value.clearFilters()
-                listingData.value.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.emptyOffersIcon
             ) {
-                listingData.value.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             }
         }
     }

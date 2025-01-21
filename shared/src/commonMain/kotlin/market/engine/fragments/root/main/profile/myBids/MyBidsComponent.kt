@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.myOffers
+package market.engine.fragments.root.main.profile.myBids
 
 import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
@@ -14,28 +14,28 @@ import market.engine.core.data.types.LotsType
 import org.koin.mp.KoinPlatform.getKoin
 
 
-interface MyOffersComponent {
+interface MyBidsComponent {
     val model : Value<Model>
     data class Model(
         val pagingDataFlow : Flow<PagingData<Offer>>,
-        val viewModel: MyOffersViewModel,
+        val viewModel: MyBidsViewModel,
         var type : LotsType
     )
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
-    fun selectMyOfferPage(select : LotsType)
+    fun selectMyBidsPage(select : LotsType)
     fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
 }
 
-class DefaultMyOffersComponent(
+class DefaultMyBidsComponent(
     componentContext: ComponentContext,
-    val type: LotsType = LotsType.MYLOT_ACTIVE,
+    val type: LotsType = LotsType.MYBIDLOTS_ACTIVE,
     val offerSelected: (Long) -> Unit,
-    val selectedMyOfferPage: (LotsType) -> Unit,
+    val selectedMyBidsPage: (LotsType) -> Unit,
     val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit
-) : MyOffersComponent, ComponentContext by componentContext {
+) : MyBidsComponent, ComponentContext by componentContext {
 
-    private val viewModel : MyOffersViewModel = MyOffersViewModel(
+    private val viewModel : MyBidsViewModel = MyBidsViewModel(
         type,
         getKoin().get(),
         getKoin().get()
@@ -44,20 +44,20 @@ class DefaultMyOffersComponent(
     private val listingData = viewModel.listingData.value
 
     private val _model = MutableValue(
-        MyOffersComponent.Model(
+        MyBidsComponent.Model(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             type = type
         )
     )
-    override val model: Value<MyOffersComponent.Model> = _model
+    override val model: Value<MyBidsComponent.Model> = _model
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
         viewModel.updateUserInfo()
         val eventParameters = mapOf(
             "user_id" to UserData.login.toString(),
-            "profile_source" to "offers"
+            "profile_source" to "bids"
         )
         analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
@@ -110,8 +110,8 @@ class DefaultMyOffersComponent(
         }
     }
 
-    override fun selectMyOfferPage(select: LotsType) {
-        selectedMyOfferPage(select)
+    override fun selectMyBidsPage(select: LotsType) {
+        selectedMyBidsPage(select)
     }
 
     override fun goToCreateOffer(type: CreateOfferType, offerId: Long?, catPath : List<Long>?) {

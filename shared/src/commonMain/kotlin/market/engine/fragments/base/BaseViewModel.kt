@@ -38,9 +38,10 @@ open class BaseViewModel: ViewModel() {
     val updateItem : MutableState<Long?> = mutableStateOf(null)
 
     //filters params
-    val isOpenSearch : MutableState<Boolean> = mutableStateOf(false) // first open search
     var activeFiltersType : MutableState<String> = mutableStateOf("")
     var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed)
+    var scrollItem : MutableState<Int> = mutableStateOf(0)
+    var offsetScrollItem : MutableState<Int> = mutableStateOf(0)
 
     private val apiService = getKoin().get<APIService>()
     private val offersOperations : OfferOperations = getKoin().get()
@@ -48,17 +49,6 @@ open class BaseViewModel: ViewModel() {
 
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
     val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
-
-    suspend fun getUpdatedOfferById(offerId: Long) : Offer? {
-        return try {
-            val response = offersOperations.getOffer(offerId)
-            response.success?.let {
-                return it
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
 
     private val _errorMessage = MutableStateFlow(ServerErrorException())
     val errorMessage: StateFlow<ServerErrorException> = _errorMessage.asStateFlow()
@@ -156,5 +146,21 @@ open class BaseViewModel: ViewModel() {
             )
         }
         return response.success
+    }
+
+    suspend fun getUpdatedOfferById(offerId: Long) : Offer? {
+        return try {
+            val response = offersOperations.getOffer(offerId)
+            response.success?.let {
+                return it
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun resetScroll() {
+        scrollItem.value = 0
+        offsetScrollItem.value = 0
     }
 }

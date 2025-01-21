@@ -61,8 +61,8 @@ class OfferViewModel(
 
     fun getOffer(id: Long, isSnapshot: Boolean = false) {
         viewModelScope.launch {
-            setLoading(true)
             try {
+                setLoading(true)
                 getHistory(id)
                 getOurChoice(id)
 
@@ -128,19 +128,18 @@ class OfferViewModel(
                             offer.isPrototype -> OfferStates.PROTOTYPE
                             offer.state == "active" -> {
                                 when {
-                                    offer.session == null -> OfferStates.COMPLETED
                                     (offer.session?.start?.toLongOrNull()
                                         ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
 
                                     (offer.session?.end?.toLongOrNull()
                                         ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
 
-                                    else -> OfferStates.INACTIVE
+                                    else -> OfferStates.COMPLETED
                                 }
                             }
 
                             offer.state == "sleeping" -> {
-                                if (offer.session == null) OfferStates.COMPLETED else OfferStates.INACTIVE
+                                if (offer.session == null || offer.buyerData!=null) OfferStates.COMPLETED else OfferStates.INACTIVE
                             }
 
                             else -> offerState.value
@@ -282,6 +281,7 @@ class OfferViewModel(
                         minimalAcceptablePrice = body.minimalAcceptablePrice
                     }
                     _responseOffer.value = offer
+                    updateItemTrigger.value++
                 }
             }
         } catch (e: Exception) {

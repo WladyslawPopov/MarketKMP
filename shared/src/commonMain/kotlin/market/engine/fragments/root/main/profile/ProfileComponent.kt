@@ -21,9 +21,12 @@ import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyOffers
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
+import market.engine.fragments.root.main.profile.navigation.MyBidsConfig
 import market.engine.fragments.root.main.profile.navigation.MyOrderConfig
+import market.engine.fragments.root.main.profile.navigation.itemMyBids
 import market.engine.fragments.root.main.profile.navigation.itemMyOrders
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -34,6 +37,8 @@ interface ProfileComponent {
 
     val myOrdersPages: Value<ChildPages<*, MyOrdersComponent>>
 
+    val myBidsPages: Value<ChildPages<*, MyBidsComponent>>
+
     data class Model(
         val navigationItems: List<NavigationItem>,
         val profileViewModel: ProfileViewModel
@@ -43,6 +48,7 @@ interface ProfileComponent {
     fun goToAllMyOfferListing()
     fun goToAboutMe()
     fun selectMyOfferPage(type: LotsType)
+    fun selectMyBidsPage(type: LotsType)
     fun selectMyOrderPage(type: DealType)
 }
 
@@ -51,11 +57,11 @@ class DefaultProfileComponent(
     val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
     private val selectedOrderPage : DealTypeGroup,
-    selectedPage : String?
+    selectedPage : String?,
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
-
+    private val navigationMyBids = PagesNavigation<MyBidsConfig>()
     private val navigationMyOrders = PagesNavigation<MyOrderConfig>()
 
 
@@ -143,6 +149,22 @@ class DefaultProfileComponent(
         }
     }
 
+    override fun selectMyBidsPage(type: LotsType) {
+        when (type) {
+            LotsType.MYBIDLOTS_ACTIVE -> {
+                navigationMyBids.select(0)
+            }
+
+            LotsType.MYBIDLOTS_UNACTIVE -> {
+                navigationMyBids.select(1)
+            }
+
+            else -> {
+                navigationMyBids.select(0)
+            }
+        }
+    }
+
     override val myOffersPages: Value<ChildPages<*, MyOffersComponent>> by lazy {
         childPages(
             source = navigationMyOffers,
@@ -166,6 +188,28 @@ class DefaultProfileComponent(
             }
         )
     }
+
+    override val myBidsPages: Value<ChildPages<*, MyBidsComponent>> by lazy {
+        childPages(
+            source = navigationMyBids,
+            serializer = MyBidsConfig.serializer(),
+            handleBackButton = true,
+            initialPages = {
+                Pages(
+                    listOf(
+                        MyBidsConfig(lotsType = LotsType.MYBIDLOTS_ACTIVE),
+                        MyBidsConfig(lotsType = LotsType.MYBIDLOTS_UNACTIVE),
+                    ),
+                    selectedIndex = 0,
+                )
+            },
+            key = "ProfileMyBidsStack",
+            childFactory = { config, componentContext ->
+                itemMyBids(config, componentContext, navigationProfile, ::selectMyBidsPage)
+            }
+        )
+    }
+
     override val myOrdersPages: Value<ChildPages<*, MyOrdersComponent>> by lazy {
         childPages(
             source = navigationMyOrders,

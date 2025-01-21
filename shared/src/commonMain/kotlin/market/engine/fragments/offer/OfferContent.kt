@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,6 +47,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -90,6 +93,7 @@ import market.engine.widgets.buttons.PopupActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
+import market.engine.widgets.dialogs.AddBidDialog
 import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.exceptions.FullScreenImageViewer
@@ -132,12 +136,26 @@ fun OfferContent(
 
     val isImageViewerVisible = remember { mutableStateOf(false) }
     val isShowOptions = remember { mutableStateOf(false) }
-    val myMaximalBid = remember { mutableStateOf("") }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
 
+    val goToBids = 11
+
     val focusManager = LocalFocusManager.current
 
+    val stateColumn = rememberLazyListState(
+        initialFirstVisibleItemIndex = offerViewModel.scrollItem.value,
+    )
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(stateColumn){
+        snapshotFlow {
+            stateColumn.firstVisibleItemIndex
+        }.collect { item->
+            offerViewModel.scrollItem.value = item
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -210,9 +228,14 @@ fun OfferContent(
                     offerViewModel,
                     isFavorite = offer.isWatchedByMe,
                     onFavClick = {
-                        val res = operationFavorites(offer, offerViewModel.viewModelScope)
-                        offerViewModel.updateUserInfo()
-                        return@OfferAppBar res
+                        if (UserData.token != "") {
+                            val res = operationFavorites(offer, offerViewModel.viewModelScope)
+                            offerViewModel.updateUserInfo()
+                            return@OfferAppBar res
+                        }else{
+                            component.goToLogin()
+                            return@OfferAppBar false
+                        }
                     },
                     onBeakClick = {
                         if (!isImageViewerVisible.value) {
@@ -250,6 +273,7 @@ fun OfferContent(
             ) {
                 Box(modifier.fillMaxSize()) {
                     LazyColumn(
+                        state = stateColumn,
                         modifier = Modifier.background(color = colors.primaryColor)
                             .fillMaxSize()
                             .pointerInput(Unit) {
@@ -444,15 +468,40 @@ fun OfferContent(
                         //bids price
                         if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
                             item {
+                                val showDialog = remember { mutableStateOf(false) }
+                                val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
+
                                 AuctionPriceLayout(
                                     offer = offer,
+                                    offerViewModel.updateItemTrigger.value,
                                     myMaximalBid = myMaximalBid.value,
                                     onBidChanged = { newBid ->
                                         myMaximalBid.value = newBid
                                     },
                                     onAddBidClick = {
-
+                                        if (UserData.token != "") {
+                                            showDialog.value = true
+                                        }else{
+                                            component.goToLogin()
+                                        }
                                     }
+                                )
+
+                                AddBidDialog(
+                                    showDialog.value,
+                                    myMaximalBid.value,
+                                    offer.id,
+                                    onDismiss = {
+                                        showDialog.value = false
+                                    },
+                                    onSuccess = {
+                                        component.updateOffer(offer.id, false)
+                                        showDialog.value = false
+                                        scope.launch {
+                                            stateColumn.animateScrollToItem(goToBids)
+                                        }
+                                    },
+                                    baseViewModel = offerViewModel
                                 )
                             }
                         }
@@ -465,20 +514,33 @@ fun OfferContent(
                                     offer = offer,
                                     offerState.value,
                                     onBuyNowClick = {
-                                        if(offer.originalQuantity > 1){
-                                            showDialog.value = true
+                                        if (UserData.token != "") {
+                                            if (offer.originalQuantity > 1) {
+                                                showDialog.value = true
+                                            } else {
+                                                val item = Pair(
+                                                    offer.sellerData?.id ?: 1L, listOf(
+                                                        SelectedBasketItem(
+                                                            offerId = offer.id,
+                                                            pricePerItem = offer.currentPricePerItem?.toDouble()
+                                                                ?: 0.0,
+                                                            selectedQuantity = 1
+                                                        )
+                                                    )
+                                                )
+                                                component.goToCreateOrder(item)
+                                            }
                                         }else{
-                                            val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
-                                                offerId = offer.id,
-                                                pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
-                                                selectedQuantity = 1
-                                            )))
-                                            component.goToCreateOrder(item)
+                                            component.goToLogin()
                                         }
                                     },
                                     onAddToCartClick = {
-                                        offerViewModel.viewModelScope.launch {
-                                            offerViewModel.addToBasket(offer.id)
+                                        if (UserData.token != "") {
+                                            offerViewModel.viewModelScope.launch {
+                                                offerViewModel.addToBasket(offer.id)
+                                            }
+                                        }else{
+                                            component.goToLogin()
                                         }
                                     },
                                     onSaleClick = {
@@ -571,15 +633,24 @@ fun OfferContent(
                                 Column {
                                     //mail to seller
                                     if (offer.sellerData != null && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
-                                        MessageToSeller(offer)
+                                        MessageToSeller(
+                                            offer,
+                                            onClick = {
+                                                if (UserData.token != "") {
+
+                                                }else{
+                                                    component.goToLogin()
+                                                }
+                                            }
+                                        )
                                     }
 
                                     //make proposal to seller
-//                                    if (offer.isProposalEnabled) {
-//                                        ProposalToSeller(
-//                                            if (UserData.login == offer.sellerData?.id) "act_on_proposal" else "make_proposal",
-//                                        )
-//                                    }
+                                    if (false) {
+                                        ProposalToSeller(
+                                            if (UserData.login == offer.sellerData?.id) "act_on_proposal" else "make_proposal",
+                                        )
+                                    }
                                     // who pays for delivery
                                     Row(
                                         modifier = Modifier
@@ -646,7 +717,11 @@ fun OfferContent(
                             ) {
                                 Column {
                                     //bids winner or last bid
-                                    BidsWinnerOrLastBid(offer, offerState.value)
+                                    BidsWinnerOrLastBid(offer, offerState.value){
+                                        scope.launch {
+                                            stateColumn.animateScrollToItem(goToBids)
+                                        }
+                                    }
 
                                     TimeOfferSession(
                                         offer,
@@ -712,11 +787,33 @@ fun OfferContent(
                         //bids list
                         item {
                             if (offerState.value == OfferStates.ACTIVE) {
+                                val showDialog = remember { mutableStateOf(false) }
+                                val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
+
                                 AuctionBidsSection(
                                     offer,
+                                    offerViewModel.updateItemTrigger.value,
                                     onRebidClick = {
-                                        // The same what and click to bids btn
+                                        if (UserData.token != "") {
+                                            showDialog.value = true
+                                        }else{
+                                            component.goToLogin()
+                                        }
                                     }
+                                )
+
+                                AddBidDialog(
+                                    showDialog.value,
+                                    myMaximalBid.value,
+                                    offer.id,
+                                    onDismiss = {
+                                        showDialog.value = false
+                                    },
+                                    onSuccess = {
+                                        component.updateOffer(offer.id, false)
+                                        showDialog.value = false
+                                    },
+                                    baseViewModel = offerViewModel
                                 )
                             }
                         }
@@ -886,10 +983,12 @@ fun getCountString(offerState: OfferStates, offer: Offer): String {
 @Composable
 fun AuctionPriceLayout(
     offer: Offer,
+    updateTrigger : Int,
     myMaximalBid: String,
     onBidChanged: (String) -> Unit,
     onAddBidClick: () -> Unit
 ) {
+    if (updateTrigger < 0) return
     val focusManager = LocalFocusManager.current
     Column(
         modifier = Modifier
@@ -1119,14 +1218,15 @@ fun BuyNowPriceLayout(
 
 @Composable
 fun MessageToSeller(
-    offer: Offer
+    offer: Offer,
+    onClick: () -> Unit
 ){
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(dimens.smallPadding)
             .clickable {
-
+                onClick()
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
@@ -1190,7 +1290,8 @@ fun ProposalToSeller(
 @Composable
 fun BidsWinnerOrLastBid(
     offer: Offer,
-    offerState: OfferStates
+    offerState: OfferStates,
+    onClick: () -> Unit
 ){
     val bids = offer.bids
 
@@ -1254,7 +1355,7 @@ fun BidsWinnerOrLastBid(
                 .fillMaxWidth()
                 .padding(dimens.smallPadding)
                 .clickable {
-
+                    onClick()
                 },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
@@ -1558,7 +1659,6 @@ fun formatDeliveryMethods(deliveryMethods: List<DeliveryMethod>?): String {
     } ?: ""
 }
 
-
 @Composable
 fun ParametersSection(
     parameters: List<Param>?
@@ -1601,11 +1701,15 @@ fun formatParameterValue(value: Value?): String {
 @Composable
 fun AuctionBidsSection(
     offer: Offer,
+    updateTrigger : Int,
     onRebidClick: (id: Long) -> Unit
 ) {
-   val bids =  offer.bids
+    if (updateTrigger < 0) return
+    val bids = offer.bids
     if (bids != null) {
         SeparatorLabel(stringResource(strings.bidsLabel))
+        var isRebidShown = false
+        var isYourBidShown = false
 
         LazyColumn(
             modifier = Modifier
@@ -1667,19 +1771,28 @@ fun AuctionBidsSection(
                         )
 
                         // Rebid Button logic
-                        if (i == 0 || bid.moverId == UserData.login) {
+                        if (!isRebidShown && i == 0 && bid.moverId != UserData.login) {
+                            isRebidShown = true
                             SimpleTextButton(
-                                text = if (bid.moverId == UserData.login)
-                                    stringResource(strings.yourBidLabel)
-                                else stringResource(strings.rebidLabel),
-                                textColor = colors.black,
+                                text = stringResource(strings.rebidLabel),
+                                backgroundColor = colors.notifyTextColor,
+                                textColor = colors.alwaysWhite,
                                 textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                backgroundColor = if (bid.moverId == UserData.login)
-                                    colors.grayText
-                                else colors.notifyTextColor,
                                 modifier = Modifier.heightIn(max = 35.dp),
                             ) {
                                 onRebidClick(offer.id)
+                            }
+                        }
+
+                        if (!isYourBidShown && bid.moverId == UserData.login) {
+                            isYourBidShown = true
+                            SimpleTextButton(
+                                text = stringResource(strings.yourBidLabel),
+                                backgroundColor = colors.textA0AE,
+                                textColor = colors.alwaysWhite,
+                                textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                modifier = Modifier.heightIn(max = 35.dp),
+                            ) {
                             }
                         }
                     }

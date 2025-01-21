@@ -170,6 +170,9 @@ fun createHomeChild(
                 homeNavigation.pushNew(
                     HomeConfig.CreateOrderScreen(it)
                 )
+            },
+            navigateToLogin = {
+                goToLogin()
             }
         )
     )
