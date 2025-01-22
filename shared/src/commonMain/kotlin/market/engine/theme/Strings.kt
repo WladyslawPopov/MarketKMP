@@ -382,6 +382,7 @@ interface Strings {
     val defaultCommentReport : StringResource
     val createConversationLabel : StringResource
     val aboutOrderLabel : StringResource
+    val aboutOfferLabel : StringResource
 
     val dialogPhone : StringResource
     val dialogZip : StringResource

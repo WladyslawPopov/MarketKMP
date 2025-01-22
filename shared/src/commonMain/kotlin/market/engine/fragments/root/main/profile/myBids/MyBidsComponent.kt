@@ -8,7 +8,6 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
 import org.koin.mp.KoinPlatform.getKoin
@@ -22,9 +21,11 @@ interface MyBidsComponent {
         var type : LotsType
     )
 
+    fun goToUser(userId : Long)
+    fun goToPurchases()
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun selectMyBidsPage(select : LotsType)
-    fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
+    fun goToDialog(dialogId : Long?)
 }
 
 class DefaultMyBidsComponent(
@@ -32,7 +33,9 @@ class DefaultMyBidsComponent(
     val type: LotsType = LotsType.MYBIDLOTS_ACTIVE,
     val offerSelected: (Long) -> Unit,
     val selectedMyBidsPage: (LotsType) -> Unit,
-    val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit
+    val navigateToUser: (Long) -> Unit,
+    val navigateToPurchases: () -> Unit,
+    val navigateToDialog: (Long?) -> Unit,
 ) : MyBidsComponent, ComponentContext by componentContext {
 
     private val viewModel : MyBidsViewModel = MyBidsViewModel(
@@ -51,6 +54,7 @@ class DefaultMyBidsComponent(
         )
     )
     override val model: Value<MyBidsComponent.Model> = _model
+
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
@@ -114,11 +118,16 @@ class DefaultMyBidsComponent(
         selectedMyBidsPage(select)
     }
 
-    override fun goToCreateOffer(type: CreateOfferType, offerId: Long?, catPath : List<Long>?) {
-        navigateToCreateOffer(type, offerId, catPath)
+    override fun goToDialog(dialogId: Long?) {
+        navigateToDialog(dialogId)
+    }
 
-        lifecycle.doOnResume {
-            viewModel.updateItem.value = offerId
-        }
+
+    override fun goToUser(userId: Long) {
+        navigateToUser(userId)
+    }
+
+    override fun goToPurchases() {
+        navigateToPurchases()
     }
 }

@@ -17,13 +17,15 @@ interface ConversationsComponent {
     data class Model(
         val pagingDataFlow : Flow<PagingData<Conversations>>,
         val viewModel: ConversationsViewModel,
-        val navigationItems : List<NavigationItem>
+        val navigationItems : List<NavigationItem>,
+        val selectedId : Long?
     )
 }
 
 class DefaultConversationsComponent(
     componentContext: ComponentContext,
     navigationItems : List<NavigationItem>,
+    selectedId : Long? = null
 ) : ConversationsComponent, ComponentContext by componentContext {
 
     private val viewModel : ConversationsViewModel = getKoin().get()
@@ -32,7 +34,8 @@ class DefaultConversationsComponent(
         ConversationsComponent.Model(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
-            navigationItems = navigationItems
+            navigationItems = navigationItems,
+            selectedId = selectedId
         )
     )
     override val model: Value<ConversationsComponent.Model> = _model

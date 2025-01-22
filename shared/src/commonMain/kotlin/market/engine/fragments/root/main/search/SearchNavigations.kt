@@ -100,7 +100,8 @@ fun createSearchChild(
     componentContext: ComponentContext,
     searchNavigation: StackNavigation<SearchConfig>,
     navigateToMyOrders: () -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
+    navigateToDialog: (dialogId: Long?) -> Unit
 ): ChildSearch =
     when (config) {
         is SearchConfig.ListingScreen -> {
@@ -172,6 +173,9 @@ fun createSearchChild(
                 },
                 navigateToLogin = {
                     navigateToLogin()
+                },
+                navigateToDialog = { dialogId ->
+                    navigateToDialog(dialogId)
                 }
             )
         )

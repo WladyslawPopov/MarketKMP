@@ -13,6 +13,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -61,7 +62,7 @@ sealed class ProfileConfig {
     data object MyBidsScreen : ProfileConfig()
 
     @Serializable
-    data object ConversationsScreen : ProfileConfig()
+    data class ConversationsScreen(val selectedDialogId : Long? = null) : ProfileConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : ProfileConfig()
@@ -235,7 +236,7 @@ fun createProfileChild(
             onClick = {
                 try {
                     profileNavigation.replaceCurrent(
-                        ProfileConfig.ConversationsScreen
+                        ProfileConfig.ConversationsScreen(null)
                     )
                 } catch ( _ : Exception){
                 }
@@ -341,6 +342,11 @@ fun createProfileChild(
                 },
                 navigateToLogin = {
                     navigateToLogin()
+                },
+                navigateToDialog = { dialogId ->
+                    profileNavigation.replaceAll(
+                        ProfileConfig.ConversationsScreen(dialogId)
+                    )
                 }
             )
         )
@@ -449,10 +455,11 @@ fun createProfileChild(
             component = itemProfile(componentContext, profileNavigation,profilePublicNavigationList.value, config.typeGroup)
         )
 
-        ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(
+        is ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(
             component = conversationsFactory(
                 componentContext,
-                profilePublicNavigationList.value
+                profilePublicNavigationList.value,
+                config.selectedDialogId
             )
         )
 

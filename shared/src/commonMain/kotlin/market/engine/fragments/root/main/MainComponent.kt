@@ -96,6 +96,9 @@ class DefaultMainComponent(
                     goToLoginSelected,
                     navigateToMyOrders = {
                         navigateToBottomItem(MainConfig.Profile, "purchases")
+                    },
+                    navigateToDialog = { dialogId ->
+                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
                     }
                 )
             },
@@ -123,6 +126,9 @@ class DefaultMainComponent(
                     },
                     navigateToLogin = {
                         goToLogin()
+                    },
+                    navigateToDialog = { dialogId ->
+                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
                     }
                 )
             },
@@ -145,6 +151,9 @@ class DefaultMainComponent(
                     },
                     navigateToLogin = {
                         goToLogin(true)
+                    },
+                    navigateToDialog = { dialogId ->
+                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
                     }
                 )
             },
@@ -167,6 +176,9 @@ class DefaultMainComponent(
                     },
                     navigateToLogin = {
                         goToLogin(true)
+                    },
+                    navigateToDialog = { dialogId ->
+                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
                     }
                 )
             },

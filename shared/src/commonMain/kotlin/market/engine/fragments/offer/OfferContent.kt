@@ -94,6 +94,7 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.dialogs.AddBidDialog
+import market.engine.widgets.dialogs.CreateOfferDialog
 import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.exceptions.FullScreenImageViewer
@@ -136,6 +137,7 @@ fun OfferContent(
 
     val isImageViewerVisible = remember { mutableStateOf(false) }
     val isShowOptions = remember { mutableStateOf(false) }
+    val isShowMesDialog = remember { mutableStateOf(false) }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
 
@@ -637,12 +639,27 @@ fun OfferContent(
                                             offer,
                                             onClick = {
                                                 if (UserData.token != "") {
-
+                                                    isShowMesDialog.value = true
                                                 }else{
                                                     component.goToLogin()
                                                 }
                                             }
                                         )
+
+                                        if (isShowMesDialog.value){
+                                            CreateOfferDialog(
+                                                isShowMesDialog.value,
+                                                offer,
+                                                onSuccess = { dialogId ->
+                                                    component.goToDialog(dialogId)
+                                                    isShowMesDialog.value = false
+                                                },
+                                                onDismiss = {
+                                                    isShowMesDialog.value = false
+                                                },
+                                                baseViewModel = offerViewModel
+                                            )
+                                        }
                                     }
 
                                     //make proposal to seller

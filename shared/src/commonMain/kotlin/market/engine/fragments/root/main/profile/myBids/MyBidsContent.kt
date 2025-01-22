@@ -173,10 +173,13 @@ fun MyBidsContent(
                         component.goToOffer(offer, true)
                     },
                     goToMyPurchases = {
-
+                        component.goToPurchases()
                     },
                     goToUser = {
-
+                        component.goToUser(it)
+                    },
+                    goToDialog = {
+                        component.goToDialog(it)
                     },
                     baseViewModel = viewModel,
                 )

@@ -120,7 +120,7 @@ fun itemMyOrders(
             profileNavigation.pushNew(ProfileConfig.UserScreen(it, getCurrentDate(), false))
         },
         navigateToMessenger = {
-            profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen)
+            profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen())
         }
     )
 }

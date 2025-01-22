@@ -104,7 +104,8 @@ fun createBasketChild(
     componentContext: ComponentContext,
     basketNavigation : StackNavigation<BasketConfig>,
     navigateToMyOrders: () -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
+    navigateToDialog: (dialogId: Long?) -> Unit
 ): ChildBasket =
     when (config) {
         BasketConfig.BasketScreen -> ChildBasket.BasketChild(
@@ -171,6 +172,9 @@ fun createBasketChild(
                 },
                 navigateToLogin = {
                     navigateToLogin()
+                },
+                navigateToDialog = { dialogId ->
+                    navigateToDialog(dialogId)
                 }
             )
         )

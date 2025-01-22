@@ -119,7 +119,8 @@ fun createHomeChild(
     homeNavigation: StackNavigation<HomeConfig>,
     goToMessenger: () -> Unit,
     goToLogin: () -> Unit,
-    navigateToMyOrders: () -> Unit
+    navigateToMyOrders: () -> Unit,
+    navigateToDialog: (dialogId: Long?) -> Unit
 ): ChildHome = when (config) {
     HomeConfig.HomeScreen -> ChildHome.HomeChild(
         itemHome(
@@ -173,6 +174,9 @@ fun createHomeChild(
             },
             navigateToLogin = {
                 goToLogin()
+            },
+            navigateToDialog = { dialogId ->
+               navigateToDialog(dialogId)
             }
         )
     )

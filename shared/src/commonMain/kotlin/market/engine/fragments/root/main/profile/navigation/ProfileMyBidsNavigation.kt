@@ -13,8 +13,10 @@ import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.ProfileComponent
@@ -97,14 +99,14 @@ fun itemMyBids(
         selectedMyBidsPage = { type ->
             selectMyBidsPage(type)
         },
-        navigateToCreateOffer = { type, offerId, catPath ->
-            profileNavigation.pushNew(
-                ProfileConfig.CreateOfferScreen(
-                    catPath = catPath,
-                    createOfferType = type,
-                    offerId = offerId,
-                )
-            )
+        navigateToUser = { userId ->
+            profileNavigation.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
+        },
+        navigateToPurchases = {
+            profileNavigation.replaceCurrent(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
+        },
+        navigateToDialog = { dialogId ->
+            profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen(dialogId))
         }
     )
 }

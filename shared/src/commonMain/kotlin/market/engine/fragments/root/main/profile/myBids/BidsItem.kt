@@ -15,6 +15,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -29,6 +31,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.dialogs.CreateOfferDialog
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.rows.HeaderOfferItem
 import market.engine.widgets.rows.UserSimpleRow
@@ -43,9 +46,12 @@ fun BidsItem(
     updateTrigger : Int,
     goToUser: (Long) -> Unit,
     goToOffer: (Long) -> Unit,
-    goToMyPurchases: () -> Unit
+    goToMyPurchases: () -> Unit,
+    goToDialog: (Long?) -> Unit
 ) {
     if(updateTrigger < 0) return
+
+    val showMesDialog = remember { mutableStateOf(false) }
 
     val currentDate = getCurrentDate().toLongOrNull() ?: 1L
     val isActive = ((offer.session?.end?.toLongOrNull() ?: 1L) > currentDate)
@@ -78,7 +84,10 @@ fun BidsItem(
             offer.sellerData?.let {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.smallPadding,
+                        Alignment.CenterHorizontally
+                    ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -162,7 +171,8 @@ fun BidsItem(
                         }
                     }
 
-                    val deliveryMethods = offer.deliveryMethods?.joinToString { it.name ?: "" } ?: ""
+                    val deliveryMethods =
+                        offer.deliveryMethods?.joinToString { it.name ?: "" } ?: ""
                     if (deliveryMethods.isNotEmpty()) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -212,7 +222,7 @@ fun BidsItem(
                             modifier = Modifier.size(dimens.smallIconSize)
                         )
                         var date = d3
-                        if(offer.session == null){
+                        if (offer.session == null) {
                             date = stringResource(strings.offerSessionCompletedLabel)
                         }
                         Text(
@@ -258,8 +268,21 @@ fun BidsItem(
                         backgroundColor = colors.steelBlue,
                         textColor = colors.alwaysWhite
                     ) {
-
+                        showMesDialog.value = true
                     }
+
+                    CreateOfferDialog(
+                        showMesDialog.value,
+                        offer,
+                        onSuccess = { dialogId ->
+                            goToDialog(dialogId)
+                            showMesDialog.value = false
+                        },
+                        onDismiss = {
+                            showMesDialog.value = false
+                        },
+                        baseViewModel = baseViewModel
+                    )
                 }
             }
 
@@ -267,7 +290,7 @@ fun BidsItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ){
+            ) {
                 Text(
                     stringResource(strings.currentPriceParameterName),
                     style = MaterialTheme.typography.titleSmall,
@@ -275,7 +298,8 @@ fun BidsItem(
                 )
 
                 Text(
-                    offer.currentPricePerItem + " " + stringResource(strings.currencySign),
+                    (offer.minimalAcceptablePrice
+                        ?: offer.currentPricePerItem) + " " + stringResource(strings.currencySign),
                     style = MaterialTheme.typography.titleMedium,
                     color = colors.titleTextColor
                 )
@@ -285,7 +309,7 @@ fun BidsItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ){
+            ) {
                 Text(
                     stringResource(strings.yourBidLabel),
                     style = MaterialTheme.typography.titleSmall,
@@ -303,7 +327,7 @@ fun BidsItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ){
+            ) {
                 val title = if (isActive)
                     stringResource(strings.leadingBidsNowLabel)
                 else

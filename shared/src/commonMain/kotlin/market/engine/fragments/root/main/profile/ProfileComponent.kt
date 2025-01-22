@@ -77,10 +77,12 @@ class DefaultProfileComponent(
     init {
         updateProfile()
 
+        val id = selectedPage?.split("/")?.firstOrNull()?.toLongOrNull()
+
         if(selectedPage != null){
             when(selectedPage) {
                 "messenger" -> {
-                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen)
+                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(id))
                 }
                 "purchases" -> {
                     navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
