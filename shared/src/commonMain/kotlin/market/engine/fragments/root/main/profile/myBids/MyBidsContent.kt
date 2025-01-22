@@ -93,6 +93,14 @@ fun MyBidsContent(
                 val offer =
                     viewModel.getUpdatedOfferById(viewModel.updateItem.value!!)
                 withContext(Dispatchers.Main) {
+                    val oldItem = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
+                    oldItem?.buyerData = offer?.buyerData
+                    oldItem?.myMaximalBid = offer?.myMaximalBid.toString()
+                    oldItem?.bids = offer?.bids
+                    oldItem?.session = offer?.session
+                    oldItem?.currentPricePerItem = offer?.currentPricePerItem.toString()
+                    oldItem?.watchersCount = offer?.watchersCount ?: 0
+                    oldItem?.watchersCount = offer?.watchersCount ?: 0
 
                     viewModel.updateItem.value = null
                     viewModel.updateItemTrigger.value++
@@ -100,6 +108,7 @@ fun MyBidsContent(
             }
         }
     }
+
     BaseContent(
         topBar = null,
         onRefresh = {
@@ -154,7 +163,23 @@ fun MyBidsContent(
                 }
             },
             item = { offer ->
+                BidsItem(
+                    offer = offer,
+                    onUpdateOfferItem = {
+                        viewModel.updateItem.value = it.id
+                    },
+                    updateTrigger = viewModel.updateItemTrigger.value,
+                    goToOffer = {
+                        component.goToOffer(offer, true)
+                    },
+                    goToMyPurchases = {
 
+                    },
+                    goToUser = {
+
+                    },
+                    baseViewModel = viewModel,
+                )
             }
         )
     }

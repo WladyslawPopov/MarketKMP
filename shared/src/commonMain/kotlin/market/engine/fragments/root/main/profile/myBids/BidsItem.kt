@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Text
 import androidx.compose.material3.Card
@@ -19,12 +17,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
@@ -40,11 +41,18 @@ fun BidsItem(
     onUpdateOfferItem : (offer: Offer) -> Unit,
     baseViewModel: BaseViewModel,
     updateTrigger : Int,
+    goToUser: (Long) -> Unit,
     goToOffer: (Long) -> Unit,
     goToMyPurchases: () -> Unit
 ) {
+    if(updateTrigger < 0) return
+
     val currentDate = getCurrentDate().toLongOrNull() ?: 1L
     val isActive = ((offer.session?.end?.toLongOrNull() ?: 1L) > currentDate)
+
+    val date1 = offer.session?.start?.convertDateWithMinutes()
+    val date2 = offer.session?.end?.convertDateWithMinutes()
+    val d3 = "$date1 – $date2"
 
     Card(
         colors = colors.cardColors,
@@ -66,6 +74,29 @@ fun BidsItem(
                 baseViewModel = baseViewModel
             )
 
+
+            offer.sellerData?.let {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(strings.sellerLabel),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.black
+                    )
+
+                    UserSimpleRow(
+                        it,
+                        Modifier.clickable {
+                            goToUser(it.id)
+                        }.padding(dimens.smallPadding),
+                    )
+                }
+            }
+
+
             val imageUrl = when {
                 offer.image != null -> offer.image.small?.content
                 offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
@@ -77,7 +108,7 @@ fun BidsItem(
             Row(
                 modifier = Modifier.clickable {
                     goToOffer(offer.id)
-                }.fillMaxWidth(),
+                }.fillMaxWidth().padding(dimens.smallPadding),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -89,7 +120,7 @@ fun BidsItem(
                 ) {
                     LoadImage(
                         url = imageUrl ?: "",
-                        size = 60.dp
+                        size = 90.dp
                     )
                 }
 
@@ -105,27 +136,91 @@ fun BidsItem(
                         )
                     }
 
+                    val locationText = buildString {
+                        offer.freeLocation?.let { append(it) }
+                        offer.region?.name?.let {
+                            if (isNotEmpty()) append(", ")
+                            append(it)
+                        }
+                    }
+                    if (locationText.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
+                            Image(
+                                painter = painterResource(drawables.locationIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                            Text(
+                                locationText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.black
+                            )
+                        }
+                    }
+
+                    val deliveryMethods = offer.deliveryMethods?.joinToString { it.name ?: "" } ?: ""
+                    if (deliveryMethods.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
+                            Icon(
+                                painter = painterResource(drawables.trackIcon),
+                                contentDescription = "",
+                                tint = colors.textA0AE,
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                            Text(
+                                deliveryMethods,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.black
+                            )
+                        }
+                    }
+
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        Image(
-                            painter = painterResource(drawables.iconCountBoxes),
+                        Icon(
+                            painter = painterResource(drawables.bidsIcon),
                             contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize),
+                            tint = colors.textA0AE,
+                            modifier = Modifier.size(dimens.smallIconSize)
                         )
-
-                        Spacer(modifier = Modifier.width(dimens.mediumSpacer))
-
                         Text(
-                            text = offer.quantity.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(dimens.smallPadding),
-                            color = colors.black
+                            (offer.bids?.size ?: 0).toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.notifyTextColor
                         )
                     }
 
-                    offer.sellerData?.let { UserSimpleRow(it, Modifier.fillMaxWidth()) }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    ) {
+                        Image(
+                            painter = painterResource(drawables.iconClock),
+                            contentDescription = "",
+                            modifier = Modifier.size(dimens.smallIconSize)
+                        )
+                        var date = d3
+                        if(offer.session == null){
+                            date = stringResource(strings.offerSessionCompletedLabel)
+                        }
+                        Text(
+                            date,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.black
+                        )
+                    }
                 }
             }
 
@@ -133,14 +228,14 @@ fun BidsItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(dimens.smallPadding),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (!isActive) {
                     SimpleTextButton(
                         stringResource(strings.orderLabel),
                         backgroundColor = colors.solidGreen,
-                        textColor = colors.white,
+                        textColor = colors.alwaysWhite,
                     ) {
                         goToMyPurchases()
                     }
@@ -156,6 +251,7 @@ fun BidsItem(
                                 contentDescription = "",
                                 tint = colors.alwaysWhite,
                                 modifier = Modifier.size(dimens.extraSmallIconSize)
+
                             )
                         },
                         textStyle = MaterialTheme.typography.labelSmall,
@@ -167,54 +263,77 @@ fun BidsItem(
                 }
             }
 
-            val locationText = buildString {
-                offer.freeLocation?.let { append(it) }
-                offer.region?.name?.let {
-                    if (isNotEmpty()) append(", ")
-                    append(it)
-                }
-            }
-            if (locationText.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    Icon(
-                        painter = painterResource(drawables.locationIcon),
-                        contentDescription = "",
-                        tint = colors.textA0AE,
-                        modifier = Modifier.size(dimens.smallIconSize)
-                    )
-                    Text(
-                        locationText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black
-                    )
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            ){
+                Text(
+                    stringResource(strings.currentPriceParameterName),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.textA0AE
+                )
+
+                Text(
+                    offer.currentPricePerItem + " " + stringResource(strings.currencySign),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colors.titleTextColor
+                )
             }
 
-            val deliveryMethods = offer.deliveryMethods?.joinToString { it.name ?: "" } ?: ""
-            if (deliveryMethods.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    Icon(
-                        painter = painterResource(drawables.trackIcon),
-                        contentDescription = "",
-                        tint = colors.textA0AE,
-                        modifier = Modifier.size(dimens.smallIconSize)
-                    )
-                    Text(
-                        deliveryMethods,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black
-                    )
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            ){
+                Text(
+                    stringResource(strings.yourBidLabel),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.textA0AE
+                )
+
+                Text(
+                    offer.myMaximalBid + " " + stringResource(strings.currencySign),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.positiveGreen
+                )
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            ){
+                val title = if (isActive)
+                    stringResource(strings.leadingBidsNowLabel)
+                else
+                    stringResource(strings.winnerParameterName)
+
+
+                val body = buildAnnotatedString {
+                    if (offer.buyerData?.login == stringResource(strings.yourselfBidsLabel)) {
+                        append(UserData.userInfo?.login ?: offer.buyerData?.login)
+                    } else {
+                        offer.bids?.let {
+                            if (it.isNotEmpty()) {
+                                append(it[0].obfuscatedMoverLogin)
+                            }
+                        }
+                    }
+                }
+
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.textA0AE
+                )
+
+                Text(
+                    body,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.actionTextColor
+                )
+            }
         }
     }
 }

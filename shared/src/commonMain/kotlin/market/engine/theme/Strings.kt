@@ -395,4 +395,5 @@ interface Strings {
 
     val placeBetOnTheAmount : StringResource
     val acceptAddBidsAction : StringResource
+    val yourselfBidsLabel : StringResource
 }

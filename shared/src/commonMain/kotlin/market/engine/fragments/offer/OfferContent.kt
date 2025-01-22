@@ -1323,7 +1323,7 @@ fun BidsWinnerOrLastBid(
                     append("${stringResource(strings.buyerParameterName)} ")
 
                     withStyle(style = SpanStyle(color = colors.actionTextColor)) {
-                        append(offer.buyerData.login)
+                        append(offer.buyerData?.login)
                     }
                 }
             }else{

@@ -66,7 +66,7 @@ fun OfferItemStatuses(
                     if (!offer.isPrototype) {
                         if (offer.currentQuantity < 2) {
                             if (offer.buyerData?.login != "" && offer.buyerData?.login != null) {
-                                buyer = offer.buyerData.login
+                                buyer = offer.buyerData?.login ?: ""
                                 color = colors.ratingBlue
                             }
                         }
