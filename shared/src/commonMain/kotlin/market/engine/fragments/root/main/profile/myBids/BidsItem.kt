@@ -73,11 +73,14 @@ fun BidsItem(
         ) {
             HeaderOfferItem(
                 offer = offer,
-                onUpdateOfferItem = onUpdateOfferItem,
+                onUpdateOfferItem = {
+                    onUpdateOfferItem(it)
+                },
                 goToCreateOffer = {
 
                 },
-                baseViewModel = baseViewModel
+                baseViewModel = baseViewModel,
+                onUpdateTrigger = updateTrigger
             )
 
 

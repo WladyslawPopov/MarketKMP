@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -86,7 +85,7 @@ fun MainNavigation(
             icon = drawables.favoritesIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = userInfo?.countWatchedOffers,
+            badgeCount = if((userInfo?.countWatchedOffers?:0) > 0) userInfo?.countWatchedOffers else null,
             onClick = {
                 component.navigateToBottomItem(MainConfig.Favorites)
             }

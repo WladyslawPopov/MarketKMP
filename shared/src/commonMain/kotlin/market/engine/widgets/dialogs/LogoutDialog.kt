@@ -24,13 +24,13 @@ fun LogoutDialog (
     if(showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { onDismiss() },
-            title = { },
-            text = { Text(stringResource(strings.checkForLogoutTitle)) },
+            title = { Text(stringResource(strings.checkForLogoutTitle)) },
+            text = {  },
             containerColor = colors.white,
             confirmButton = {
                 SimpleTextButton(
                     text = stringResource(strings.logoutTitle),
-                    backgroundColor = colors.textA0AE,
+                    backgroundColor = colors.steelBlue,
                     onClick = {
                         analyticsHelper.reportEvent("logout_success", mapOf())
                         userRepository.delete()

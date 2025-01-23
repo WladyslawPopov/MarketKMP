@@ -232,7 +232,7 @@ fun createProfileChild(
             icon = drawables.dialogIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = userInfo?.countUnreadMessages,
+            badgeCount = if((userInfo?.countUnreadMessages ?:0) > 0) userInfo?.countUnreadMessages else null,
             onClick = {
                 try {
                     profileNavigation.replaceCurrent(
@@ -266,7 +266,7 @@ fun createProfileChild(
             subtitle = strings.profileSettingsSubTitle,
             icon = drawables.settingsIcon,
             tint = colors.black,
-            hasNews = true,
+            hasNews = false,
             badgeCount = null
         ),
         NavigationItem(

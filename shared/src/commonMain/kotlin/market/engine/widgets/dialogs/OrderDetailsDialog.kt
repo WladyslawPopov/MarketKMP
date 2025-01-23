@@ -2,12 +2,14 @@ package market.engine.widgets.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -29,7 +31,7 @@ fun OrderDetailsDialog(
                 Text(stringResource(strings.paymentAndDeliveryLabel))
             },
             text = {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth().heightIn(max = 800.dp)) {
                     val address = order.deliveryAddress?.address.orEmpty()
                     val city = order.deliveryAddress?.city?.jsonPrimitive?.content.orEmpty()
                     val comment = order.comment.orEmpty()

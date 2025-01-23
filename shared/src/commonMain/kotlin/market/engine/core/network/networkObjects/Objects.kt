@@ -173,7 +173,7 @@ data class Offer(
     @SerialName("promo_options") val promoOptions: List<PromoOption>? = null,
     @SerialName("params") val params: List<Param>? = null,
     @SerialName("video_urls") val videoUrls: List<String>? = null,
-    @SerialName("views_count") val viewsCount: Int = 1,
+    @SerialName("views_count") var viewsCount: Int = 1,
     @SerialName("my_maximal_bid") var myMaximalBid: String = "0",
     @SerialName("watchers_count") var watchersCount: Int = 1,
     @SerialName("public_url") val publicUrl: String? = null,

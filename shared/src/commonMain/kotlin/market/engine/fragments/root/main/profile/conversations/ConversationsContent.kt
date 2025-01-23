@@ -81,7 +81,7 @@ fun ConversationsContent(
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
-                icon = drawables.emptyOffersIcon
+                icon = drawables.dialogIcon
             ) {
                 viewModel.resetScroll()
                 viewModel.onRefresh()

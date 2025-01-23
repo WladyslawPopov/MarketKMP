@@ -33,6 +33,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchContent(
+    isShowNavigation : Boolean,
     focusRequester : FocusRequester,
     searchString : MutableState<String>,
     selectedCategory : MutableState<String>,
@@ -42,7 +43,7 @@ fun SearchContent(
     selectedUser : MutableState<Boolean>,
     selectedUserLogin : MutableState<String?>,
     selectedUserFinished : MutableState<Boolean>,
-    onClose : () -> Unit,
+    closeSearch : () -> Unit,
     goToListing : () -> Unit,
 ) {
     val searchViewModel : SearchViewModel = koinViewModel()
@@ -93,6 +94,7 @@ fun SearchContent(
         toastItem = searchViewModel.toastItem,
         topBar = {
             SearchAppBar(
+                isShowNavigation,
                 searchString,
                 focusRequester,
                 onSearchClick = {
@@ -102,10 +104,11 @@ fun SearchContent(
                 },
                 onUpdateHistory = {
                     searchViewModel.getHistory(searchString.value)
+                },
+                onBeakClick = {
+                    closeSearch()
                 }
-            ) {
-                onClose()
-            }
+            )
         },
         modifier = Modifier.fillMaxSize()
     ) {

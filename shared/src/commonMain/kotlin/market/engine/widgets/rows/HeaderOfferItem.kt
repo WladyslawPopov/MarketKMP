@@ -42,8 +42,11 @@ fun HeaderOfferItem(
     onUpdateOfferItem : (Offer) -> Unit,
     goToCreateOffer : (CreateOfferType) -> Unit,
     baseViewModel: BaseViewModel,
+    onUpdateTrigger: Int
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
+
+    if(onUpdateTrigger < 0) return
 
     Column {
         Row(
@@ -119,6 +122,7 @@ fun HeaderOfferItem(
                 offset = DpOffset(400.dp, 0.dp),
                 onUpdateMenuItem = { offer ->
                     onUpdateOfferItem(offer)
+                    isOpenPopup.value = false
                 },
                 goToCreateOffer = goToCreateOffer,
                 onClose = {

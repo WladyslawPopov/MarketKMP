@@ -48,6 +48,12 @@ fun MyOrdersContent(
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
 
+    val typeGroup = remember {  if (dealType in arrayOf(
+            DealType.BUY_ARCHIVE,
+            DealType.BUY_IN_WORK
+        )
+    ) DealTypeGroup.SELL else DealTypeGroup.BUY }
+
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
     val successToast = stringResource(strings.operationSuccess)
@@ -68,7 +74,7 @@ fun MyOrdersContent(
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
-                icon = drawables.emptyOffersIcon
+                icon = if(typeGroup == DealTypeGroup.SELL) drawables.purchasesIcon else drawables.salesIcon
             ) {
                 refresh()
             }
@@ -168,11 +174,7 @@ fun MyOrdersContent(
                 AnimatedVisibility(!isClearItem, enter = fadeIn(), exit = fadeOut()) {
                     MyOrderItem(
                         order = order,
-                        typeGroup = if (dealType in arrayOf(
-                                DealType.BUY_ARCHIVE,
-                                DealType.BUY_IN_WORK
-                            )
-                        ) DealTypeGroup.SELL else DealTypeGroup.BUY,
+                        typeGroup = typeGroup,
                         goToUser = { id ->
                             component.goToUser(id)
                         },

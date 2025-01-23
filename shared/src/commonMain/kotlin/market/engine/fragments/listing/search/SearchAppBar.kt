@@ -7,6 +7,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -22,11 +24,12 @@ import market.engine.widgets.textFields.SearchTextField
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchAppBar(
+    isShowNavigation: Boolean,
     searchString: MutableState<String>,
     focusRequester: FocusRequester,
     onSearchClick: () -> Unit,
     onUpdateHistory: (String) -> Unit,
-    onBeakClick: () -> Unit,
+    onBeakClick: () -> Unit
 ) {
     val searchItem = NavigationItem(
             title = strings.searchTitle,
@@ -45,8 +48,10 @@ fun SearchAppBar(
            )
         },
         navigationIcon = {
-            NavigationArrowButton {
-                onBeakClick()
+            if (isShowNavigation) {
+                NavigationArrowButton {
+                    onBeakClick()
+                }
             }
         },
         actions = {

@@ -51,7 +51,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ListingContent(
     component: ListingComponent,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isShowNavigation: Boolean = true,
 ) {
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -257,6 +258,7 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
+                isShowNavigation,
                 focusRequester,
                 searchString,
                 selectedCategory,
@@ -266,7 +268,7 @@ fun ListingContent(
                 selectedUser,
                 selectedUserLogin,
                 selectedUserFinished,
-                onClose = {
+                closeSearch = {
                     listingViewModel.isOpenSearch.value = false
                 },
                 goToListing = {
@@ -284,11 +286,11 @@ fun ListingContent(
                     isShowNav = backCountClick.value == 0,
                     isOpenCategory = listingViewModel.activeFiltersType.value != "categories",
                     onBackClick = {
-                        if(searchData.value.searchCategoryID == 1L){
-                            backCountClick.value = 1
+                        if(isShowNavigation){
+                            component.goBack()
+                        }else {
+                            listingViewModel.isOpenSearch.value = true
                         }
-                        component.goBack()
-                        listingViewModel.activeFiltersType.value = "categories"
                     },
                     closeCategory = {
                         if (listingViewModel.activeFiltersType.value == "categories"){

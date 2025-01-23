@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +22,7 @@ import org.jetbrains.compose.resources.painterResource
 fun dismissBackground() {
     Row(
         modifier = Modifier
-            .background(colors.errorLayoutBackground)
+            .background(colors.errorLayoutBackground, shape = MaterialTheme.shapes.medium)
             .fillMaxSize(),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically

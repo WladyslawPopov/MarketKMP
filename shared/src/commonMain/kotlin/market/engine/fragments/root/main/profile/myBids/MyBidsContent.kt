@@ -14,6 +14,7 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -100,10 +101,10 @@ fun MyBidsContent(
                     oldItem?.session = offer?.session
                     oldItem?.currentPricePerItem = offer?.currentPricePerItem.toString()
                     oldItem?.watchersCount = offer?.watchersCount ?: 0
-                    oldItem?.watchersCount = offer?.watchersCount ?: 0
+                    oldItem?.viewsCount = offer?.viewsCount ?: 0
 
-                    viewModel.updateItem.value = null
                     viewModel.updateItemTrigger.value++
+                    viewModel.updateItem.value = null
                 }
             }
         }
@@ -163,26 +164,34 @@ fun MyBidsContent(
                 }
             },
             item = { offer ->
-                BidsItem(
-                    offer = offer,
-                    onUpdateOfferItem = {
-                        viewModel.updateItem.value = it.id
-                    },
-                    updateTrigger = viewModel.updateItemTrigger.value,
-                    goToOffer = {
-                        component.goToOffer(offer, true)
-                    },
-                    goToMyPurchases = {
-                        component.goToPurchases()
-                    },
-                    goToUser = {
-                        component.goToUser(it)
-                    },
-                    goToDialog = {
-                        component.goToDialog(it)
-                    },
-                    baseViewModel = viewModel,
-                )
+                if(offer.bids?.isNotEmpty() == true) {
+                    BidsItem(
+                        offer = offer,
+                        onUpdateOfferItem = {
+                            viewModel.updateItem.value = it.id
+                            viewModel.showToast(
+                                successToastItem.copy(
+                                    message = successToast
+                                )
+                            )
+
+                        },
+                        updateTrigger = viewModel.updateItemTrigger.value,
+                        goToOffer = {
+                            component.goToOffer(offer, true)
+                        },
+                        goToMyPurchases = {
+                            component.goToPurchases()
+                        },
+                        goToUser = {
+                            component.goToUser(it)
+                        },
+                        goToDialog = {
+                            component.goToDialog(it)
+                        },
+                        baseViewModel = viewModel,
+                    )
+                }
             }
         )
     }

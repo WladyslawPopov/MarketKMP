@@ -5,8 +5,8 @@ import market.engine.common.AnalyticsFactory
 import market.engine.common.notificationIdentifier
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.UserData.clear
 import market.engine.core.data.globalData.UserData.login
-import market.engine.core.data.globalData.UserData.picUri
 import market.engine.core.data.globalData.UserData.token
 
 class UserRepository(
@@ -64,9 +64,4 @@ class UserRepository(
             }
     }
 
-    fun clear(){
-        picUri = null
-        login  = 0
-        token = ""
-    }
 }

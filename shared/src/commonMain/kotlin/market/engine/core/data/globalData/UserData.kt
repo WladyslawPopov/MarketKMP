@@ -9,7 +9,7 @@ import coil3.Uri
 
 object UserData {
     var login : Long = 0
-    var picUri : Uri? = null
+    private var picUri : Uri? = null
     var token : String = ""
 
     var userInfo by mutableStateOf<User?>(null)
@@ -17,5 +17,12 @@ object UserData {
 
     fun updateUserInfo(newInfo: User?) {
         userInfo = newInfo
+    }
+
+    fun clear() {
+        userInfo = null
+        picUri = null
+        login = 0
+        token = ""
     }
 }
