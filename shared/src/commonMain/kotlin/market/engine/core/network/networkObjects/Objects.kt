@@ -491,15 +491,15 @@ data class Conversations(
     @SerialName("id") val id: Long = 1L,
     @SerialName("created_ts") val createdTs: Long = 1L,
     @SerialName("lastupdated_ts") val lastUpdatedTs: Long = 1L,
-    @SerialName("interlocutor") val interlocutor: User? = null,
+    @SerialName("interlocutor") var interlocutor: User? = null,
     @SerialName("about_object_class") val aboutObjectClass: String? = null,
-    @SerialName("new_message") val newMessage: String? = null,
+    @SerialName("new_message") var newMessage: String? = null,
     @SerialName("quantity") val quantity: Int = 0,
     @SerialName("about_object_id") val aboutObjectId: Long = 1L,
-    @SerialName("new_message_ts") val newMessageTs: Long = 1L,
+    @SerialName("new_message_ts") var newMessageTs: Long = 1L,
     @SerialName("count_total_messages") val countTotalMessages: Int = 0,
-    @SerialName("count_unread_messages") val countUnreadMessages: Int = 0,
-    @SerialName("about_object_icon") val aboutObjectIcon: Urls? = null
+    @SerialName("count_unread_messages") var countUnreadMessages: Int = 0,
+    @SerialName("about_object_icon") var aboutObjectIcon: Urls? = null
 )
 
 @Serializable

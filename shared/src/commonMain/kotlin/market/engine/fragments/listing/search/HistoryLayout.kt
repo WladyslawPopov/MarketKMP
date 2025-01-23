@@ -24,8 +24,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FixedThreshold
-import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.rememberDismissState
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -121,12 +119,6 @@ fun HistoryLayout(
                     background = { dismissBackground() },
                     dismissContent = {
                         historyItem(historyItem, onItemClick, goToListing)
-                    },
-                    dismissThresholds = { direction ->
-                        when (direction) {
-                            DismissDirection.EndToStart -> FractionalThreshold(0.5f)
-                            else -> FixedThreshold(80.dp)
-                        }
                     }
                 )
             }

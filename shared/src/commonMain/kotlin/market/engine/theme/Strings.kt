@@ -397,4 +397,11 @@ interface Strings {
     val placeBetOnTheAmount : StringResource
     val acceptAddBidsAction : StringResource
     val yourselfBidsLabel : StringResource
+
+    val userLoginParameterName : StringResource
+    val userIdParameterName : StringResource
+    val offerOrderIdParameterName : StringResource
+    val conversationsLabel : StringResource
+    val selectedItemsLabel : StringResource
+    val deleteConversationLabel : StringResource
 }

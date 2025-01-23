@@ -32,7 +32,7 @@ fun DeletePanel(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "${stringResource(strings.deleteSelectOffers)} ($selectedCount)",
+            text = "${stringResource(strings.actionDelete)} ($selectedCount)",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = colors.black,

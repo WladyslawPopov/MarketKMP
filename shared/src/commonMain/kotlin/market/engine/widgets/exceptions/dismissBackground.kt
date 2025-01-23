@@ -1,9 +1,12 @@
 package market.engine.widgets.exceptions
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,18 +19,20 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun dismissBackground() {
-    Box(
+    Row(
         modifier = Modifier
-            .fillMaxSize()
             .background(colors.errorLayoutBackground)
-            .padding(start = dimens.largePadding),
-        contentAlignment = Alignment.CenterStart
+            .fillMaxSize(),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painterResource(drawables.cancelIcon),
+            painterResource(drawables.deleteIcon),
             contentDescription = null,
             tint = colors.inactiveBottomNavIconColor,
+            modifier = Modifier.size(dimens.smallIconSize)
         )
-    }
 
+        Spacer(Modifier.width(dimens.largeSpacer))
+    }
 }

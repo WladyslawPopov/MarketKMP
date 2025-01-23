@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -96,7 +97,7 @@ fun UserPanel(
                     if (image != null && image != "${SAPI.SERVER_BASE}images/no_avatar.svg") {
                         Card(
                             modifier = Modifier.padding(dimens.extraSmallPadding),
-                            shape = MaterialTheme.shapes.extraLarge
+                            shape = CircleShape
                         ) {
                             LoadImage(
                                 url = image,

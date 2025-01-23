@@ -196,6 +196,7 @@ fun OrderFilterContent(
                                     sellerIdTextState.value = text
                                     isRefreshing.value = true
                                 },
+                                isNumber = true,
                                 modifier = Modifier.widthIn(max = 250.dp).weight(1f)
                             )
                         }
@@ -252,6 +253,7 @@ fun OrderFilterContent(
                                     buyerIdTextState.value = text
                                     isRefreshing.value = true
                                 },
+                                isNumber = true,
                                 modifier = Modifier.widthIn(max = 250.dp).weight(1f)
                             )
                         }
@@ -308,6 +310,7 @@ fun OrderFilterContent(
                                     buyerIdTextState.value = text
                                     isRefreshing.value = true
                                 },
+                                isNumber = true,
                                 modifier = Modifier.widthIn(max = 250.dp).weight(1f)
                             )
                         }
@@ -331,6 +334,7 @@ fun OrderFilterContent(
                                     idOrderTextState.value = text
                                     isRefreshing.value = true
                                 },
+                                isNumber = true,
                                 modifier = Modifier.widthIn(max = 250.dp).weight(1f)
                             )
                         }

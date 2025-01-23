@@ -138,4 +138,5 @@ interface Drawables {
    val plusIcon : DrawableResource
    val minusIcon : DrawableResource
    val trackIcon : DrawableResource
+   val newMessageIcon : DrawableResource
 }

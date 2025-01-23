@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
@@ -20,6 +21,8 @@ interface ConversationsComponent {
         val navigationItems : List<NavigationItem>,
         val selectedId : Long?
     )
+
+    fun goToMessenger(conversation : Conversations)
 }
 
 class DefaultConversationsComponent(
@@ -39,6 +42,16 @@ class DefaultConversationsComponent(
         )
     )
     override val model: Value<ConversationsComponent.Model> = _model
+
+    override fun goToMessenger(conversation : Conversations){
+        if (conversation.countUnreadMessages > 0){
+            viewModel.markReadConversation(conversation.id)
+        }
+        lifecycle.doOnResume {
+            viewModel.updateItem.value = conversation.id
+        }
+    }
+
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {

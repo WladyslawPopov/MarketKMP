@@ -32,6 +32,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import org.jetbrains.compose.resources.stringResource
@@ -198,72 +199,53 @@ fun BasketContent(
                     )
                 }
             }
-            if (listOffers.value.isNotEmpty()) {
-                AlertDialog(
-                    onDismissRequest = { listOffers.value = emptyList() },
-                    title = { },
-                    text = {
-                        Text(
-                            if (listOffers.value.size == 1){
-                                stringResource(strings.warningDeleteOfferBasket)
-                            }else{
-                                stringResource(strings.warningDeleteSelectedOfferFromBasket)
-                            }
-                        )
-                    },
-                    confirmButton = {
-                        SimpleTextButton(
-                            text = stringResource(strings.acceptAction),
-                            backgroundColor = colors.textA0AE,
-                            onClick = {
-                                val offerIds = arrayListOf<JsonPrimitive>()
 
-                                listOffers.value.forEach {
-                                    offerIds.add(JsonPrimitive(it))
-                                }
+            AccessDialog(
+                listOffers.value.isNotEmpty(),
+                if (listOffers.value.size == 1){
+                    stringResource(strings.warningDeleteOfferBasket)
+                }else{
+                    stringResource(strings.warningDeleteSelectedOfferFromBasket)
+                },
+                onDismiss = {
+                    listOffers.value = emptyList()
+                },
+                onSuccess = {
+                    val offerIds = arrayListOf<JsonPrimitive>()
 
-                                val jsonArray = JsonArray(offerIds)
-
-                                val body = JsonObject(
-                                    mapOf(
-                                        "offer_ids" to jsonArray
-                                    )
-                                )
-
-                                viewModel.viewModelScope.launch {
-                                    val res = viewModel.deleteItem(
-                                        body,
-                                        userBasket.value.find { pair ->
-                                            pair.second.find { it?.id == listOffers.value.first() } != null
-                                        }?.second?.find { it?.id == listOffers.value.first() },
-                                        userBasket.value.find { pair ->
-                                            pair.second.find { it?.id == listOffers.value.first() } != null
-                                        }?.first?.id ?: 1L
-                                    )
-
-                                    if (res != null){
-                                        refresh()
-                                        listOffers.value = emptyList()
-                                        viewModel.showToast(
-                                            successToastItem.copy(message = successToast)
-                                        )
-                                    }
-                                }
-
-                            }
-                        )
-                    },
-                    dismissButton = {
-                        SimpleTextButton(
-                            text = stringResource(strings.closeWindow),
-                            backgroundColor = colors.inactiveBottomNavIconColor,
-                            onClick = {
-                                listOffers.value = emptyList()
-                            }
-                        )
+                    listOffers.value.forEach {
+                        offerIds.add(JsonPrimitive(it))
                     }
-                )
-            }
+
+                    val jsonArray = JsonArray(offerIds)
+
+                    val body = JsonObject(
+                        mapOf(
+                            "offer_ids" to jsonArray
+                        )
+                    )
+
+                    viewModel.viewModelScope.launch {
+                        val res = viewModel.deleteItem(
+                            body,
+                            userBasket.value.find { pair ->
+                                pair.second.find { it?.id == listOffers.value.first() } != null
+                            }?.second?.find { it?.id == listOffers.value.first() },
+                            userBasket.value.find { pair ->
+                                pair.second.find { it?.id == listOffers.value.first() } != null
+                            }?.first?.id ?: 1L
+                        )
+
+                        if (res != null){
+                            refresh()
+                            listOffers.value = emptyList()
+                            viewModel.showToast(
+                                successToastItem.copy(message = successToast)
+                            )
+                        }
+                    }
+                }
+            )
         }
     }
 }

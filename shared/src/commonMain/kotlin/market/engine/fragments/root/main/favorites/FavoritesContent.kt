@@ -165,7 +165,7 @@ fun FavoritesContent(
             additionalBar = {
                 AnimatedVisibility(
                     visible = selectedItems.isNotEmpty(),
-                    enter = expandIn(),
+                    enter = fadeIn(),
                     exit = fadeOut(),
                     modifier = Modifier.animateContentSize()
                 ) {
@@ -240,7 +240,7 @@ fun FavoritesContent(
                         },
                         onItemClick = {
                             if (favViewModel.selectItems.isNotEmpty()) {
-                                if (favViewModel.selectItems.contains(offer.id)) {
+                                if (isSelect.value) {
                                     favViewModel.selectItems.remove(offer.id)
                                 } else {
                                     favViewModel.selectItems.add(offer.id)
