@@ -522,7 +522,7 @@ data class Reports(
     @SerialName("type") val type: String? = null,
     @SerialName("comment") val comment: String? = null,
     @SerialName("order_id") val orderId: Long? = 1L,
-    @SerialName("feedback_ts") val feedbackTs: Long = 1L,
+    @SerialName("feedback_ts") val feedbackTs: Long? = null,
     @SerialName("to_user") val toUser: User? = null,
     @SerialName("from_user") val fromUser: User? = null,
     @SerialName("response_feedback") val responseFeedback: Report? = null,
