@@ -31,6 +31,9 @@ import market.engine.fragments.root.main.profile.myOrders.MyOrdersContent
 data class MyOrderConfig(
     @Serializable
     val dealType: DealType,
+
+    @Serializable
+    val id: Long? = null
 )
 
 @Composable
@@ -110,6 +113,7 @@ fun itemMyOrders(
     return DefaultMyOrdersComponent(
         componentContext = componentContext,
         type = config.dealType,
+        orderSelected = config.id,
         offerSelected = { id ->
             profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate(), true))
         },

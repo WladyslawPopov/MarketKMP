@@ -36,6 +36,7 @@ import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.DialogsData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.bars.PagingCounterBar
 import org.jetbrains.compose.resources.stringResource
@@ -48,6 +49,7 @@ fun <T : Any> PagingList(
     listingData: LD,
     searchData: SD? = null,
     promoList: ArrayList<Offer>? = null,
+    isReversingPaging : Boolean = false,
     promoContent: (@Composable (Offer) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
@@ -56,12 +58,17 @@ fun <T : Any> PagingList(
 
     val currentIndex by remember {
         derivedStateOf {
-            val pos = ((state.firstVisibleItemIndex * columns) / columns) + columns
-            if (pos < data.itemCount){
-                pos
-            }else{
-                data.itemCount
+            val allItems = data.itemSnapshotList.items
+            val lastIndex = state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            var count = 0
+            for (i in 0..lastIndex.coerceAtMost(allItems.lastIndex)) {
+                when {
+                    allItems[i] !is DialogsData.SeparatorItem -> {
+                        count++
+                    }
+                }
             }
+            count
         }
     }
 
@@ -71,17 +78,17 @@ fun <T : Any> PagingList(
                 state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
     }
 
-
+    val align = if (isReversingPaging) Alignment.BottomStart else Alignment.TopStart
     Box(modifier = Modifier.fillMaxSize()) {
-
         LazyColumn(
             state = state,
             verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+            reverseLayout = isReversingPaging,
             modifier = Modifier
-                .fillMaxSize()
+                .align(align)
                 .animateContentSize()
-        ) {
 
+        ) {
             if (!promoList.isNullOrEmpty() && promoContent != null) {
                 item {
                     LazyRow(

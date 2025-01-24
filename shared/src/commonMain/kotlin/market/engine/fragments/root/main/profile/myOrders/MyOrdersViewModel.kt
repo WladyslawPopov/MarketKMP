@@ -21,6 +21,7 @@ import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
 class MyOrdersViewModel(
+    private val orderSelected: Long?,
     val type: DealType,
     val apiService: APIService,
     val userRepository: UserRepository
@@ -57,6 +58,11 @@ class MyOrdersViewModel(
                 listingData.value.data.value.filters.clear()
                 listingData.value.data.value.filters.addAll(DealFilters.filtersSalesArchive)
             }
+        }
+        if (orderSelected != null) {
+            listingData.value.data.value.filters.find { it.key == "id" }?.value =
+                orderSelected.toString()
+            listingData.value.data.value.filters.find { it.key == "id" }?.interpritation = "id: $orderSelected"
         }
 
         val method = if (type in arrayOf(

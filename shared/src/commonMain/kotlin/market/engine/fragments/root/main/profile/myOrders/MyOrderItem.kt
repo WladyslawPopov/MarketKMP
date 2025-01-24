@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -31,7 +30,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ToastType
@@ -64,7 +62,7 @@ fun MyOrderItem(
     val maxNotExpandedItems = 2
     val idString = stringResource(strings.idCopied)
 
-    val recomposeTrigger = rememberUpdatedState(trigger)
+    if (trigger < 0) return
 
     val maxItems = remember { mutableStateOf(maxNotExpandedItems) }
     val clickExpand = {

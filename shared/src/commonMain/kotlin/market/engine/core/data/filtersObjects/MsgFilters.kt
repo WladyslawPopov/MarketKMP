@@ -22,6 +22,6 @@ object MsgFilters {
             Filter("interlocutor_id", "", null, null),
             Filter("interlocutor_login", "", null, null),
         )
-        messageSearchFilter = Filter("private_message", "", null, null)
+        messageSearchFilter = Filter("search", "", null, null)
     }
 }

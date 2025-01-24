@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.sp
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.network.networkObjects.Offer
 
 fun String.parseColorString(): Color {
     return try {
@@ -189,5 +190,15 @@ fun String.parseHtmlToAnnotatedString(): AnnotatedString {
 fun String.extractCssProperty(propertyName: String): String? {
     val regex = Regex("$propertyName:\\s*([^;]+);?")
     return regex.find(this)?.groupValues?.get(1)?.trim()
+}
+
+fun Offer.getOfferImagePreview(): String? {
+    return when {
+        images?.isNotEmpty() == true -> images?.firstOrNull()?.urls?.small?.content
+        externalImages?.isNotEmpty() == true -> externalImages.firstOrNull()
+        externalUrl != null -> externalUrl
+        image?.small?.content != null -> image.small.content
+        else -> null
+    }
 }
 

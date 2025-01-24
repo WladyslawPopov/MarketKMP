@@ -28,7 +28,8 @@ interface ConversationsComponent {
 class DefaultConversationsComponent(
     componentContext: ComponentContext,
     navigationItems : List<NavigationItem>,
-    selectedId : Long? = null
+    val navigateToMessenger : (Long) -> Unit,
+    private var selectedId : Long? = null
 ) : ConversationsComponent, ComponentContext by componentContext {
 
     private val viewModel : ConversationsViewModel = getKoin().get()
@@ -50,6 +51,7 @@ class DefaultConversationsComponent(
         lifecycle.doOnResume {
             viewModel.updateItem.value = conversation.id
         }
+        navigateToMessenger(conversation.id)
     }
 
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
@@ -61,5 +63,13 @@ class DefaultConversationsComponent(
             "profile_source" to "messages"
         )
         analyticsHelper.reportEvent("view_seller_profile", eventParameters)
+
+        if (selectedId != null) {
+            lifecycle.doOnResume {
+                viewModel.updateItem.value = selectedId
+            }
+            navigateToMessenger(selectedId!!)
+            selectedId = null
+        }
     }
 }

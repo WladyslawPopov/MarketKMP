@@ -36,6 +36,26 @@ fun String.convertDateWithMinutes(): String {
     }
 }
 
+fun String.convertHoursAndMinutes(): String {
+    try {
+        // Validate that the input date string is not empty
+        if (this.isEmpty()) {
+            return ""
+        }
+
+        val instant = Instant.fromEpochSeconds(this.toLongOrNull() ?: this.toDouble().toLong())
+        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        val hour = localDateTime.hour.toString().padStart(2, '0')
+        val minute = localDateTime.minute.toString().padStart(2, '0')
+
+        return "$hour:$minute"
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return ""
+    }
+}
+
 fun String.convertDateYear(): String{
     try {
         // Validate that the input date string is not empty

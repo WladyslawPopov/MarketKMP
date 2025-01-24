@@ -35,6 +35,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.rows.HeaderOfferItem
@@ -176,13 +177,7 @@ fun contentStructure(
     updateTrigger : Int = 0,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
 ){
-    val imageUrl = when {
-        offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
-        offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
-        offer.externalUrl != null -> offer.externalUrl
-        offer.image?.small?.content != null -> offer.image.small.content
-        else -> null
-    }
+
 
     val imageSize =
         if (getWindowType() == WindowType.Big){
@@ -198,7 +193,7 @@ fun contentStructure(
         contentAlignment = Alignment.TopStart
     ) {
         LoadImage(
-            url = imageUrl ?: "",
+            url = offer.getOfferImagePreview() ?: "",
             size = imageSize
         )
 

@@ -36,7 +36,11 @@ import market.engine.core.utils.printLogD
 fun HorizontalImageViewer(
     images: List<String>,
     pagerState: PagerState,
+    isUpdate: Boolean = false,
 ) {
+    if (isUpdate)
+        images.size
+
     Box(
         modifier = Modifier.background(colors.transparentGrayColor, MaterialTheme.shapes.small)
             .padding(dimens.smallPadding),

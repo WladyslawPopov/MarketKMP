@@ -404,4 +404,7 @@ interface Strings {
     val conversationsLabel : StringResource
     val selectedItemsLabel : StringResource
     val deleteConversationLabel : StringResource
+    val todayLabel : StringResource
+    val notReadMessagesLabel : StringResource
+    val yourMessagesLabel : StringResource
 }

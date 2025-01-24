@@ -23,6 +23,7 @@ import market.engine.fragments.listing.ListingViewModel
 import market.engine.fragments.root.login.LoginViewModel
 import market.engine.fragments.offer.OfferViewModel
 import market.engine.fragments.listing.search.SearchViewModel
+import market.engine.fragments.messenger.DialogsViewModel
 import market.engine.fragments.root.main.profile.ProfileViewModel
 import market.engine.fragments.root.main.favorites.subscriptions.SubViewModel
 import market.engine.fragments.root.main.profile.conversations.ConversationsViewModel
@@ -58,6 +59,7 @@ val viewModelModule = module {
     viewModelOf(::BasketViewModel)
     viewModelOf(::CreateOrderViewModel)
     viewModelOf(::ConversationsViewModel)
+    viewModelOf(::DialogsViewModel)
 }
 
 val networkModule = module {

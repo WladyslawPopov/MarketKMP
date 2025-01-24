@@ -13,6 +13,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 fun FullScreenImageViewer(
     pagerFullState: PagerState,
     images: List<String>,
+    isUpdate: Boolean = false,
 ) {
     Box(
         modifier = Modifier
@@ -22,7 +23,8 @@ fun FullScreenImageViewer(
     ) {
         HorizontalImageViewer(
             images = images,
-            pagerState = pagerFullState
+            pagerState = pagerFullState,
+            isUpdate
         )
     }
 }

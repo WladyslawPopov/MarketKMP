@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -36,12 +39,27 @@ fun UserSimpleRow(
         horizontalArrangement = Arrangement.Center,
         modifier = modifier
     ) {
-        Text(
-            text = user.login ?: "",
-            style = MaterialTheme.typography.titleSmall,
-            color = colors.brightBlue,
-            modifier = Modifier.padding(dimens.smallPadding).align(Alignment.CenterVertically)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
+        ) {
+            Card(
+                shape = CircleShape
+            ) {
+                LoadImage(
+                    url = user.avatar?.thumb?.content ?: "",
+                    size = 40.dp
+                )
+            }
+
+
+            Text(
+                text = user.login ?: "",
+                style = MaterialTheme.typography.titleSmall,
+                color = colors.brightBlue,
+                modifier = Modifier.padding(dimens.smallPadding).align(Alignment.CenterVertically)
+            )
+        }
 
         Spacer(modifier = Modifier.height(dimens.smallSpacer))
 

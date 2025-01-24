@@ -29,6 +29,7 @@ interface MyOrdersComponent {
 
 class DefaultMyOrdersComponent(
     componentContext: ComponentContext,
+    val orderSelected: Long? = null,
     val type: DealType,
     val offerSelected: (Long) -> Unit,
     val navigateToMyOrder: (DealType) -> Unit,
@@ -37,6 +38,7 @@ class DefaultMyOrdersComponent(
 ) : MyOrdersComponent, ComponentContext by componentContext {
 
     private val viewModel : MyOrdersViewModel = MyOrdersViewModel(
+        orderSelected,
         type,
         getKoin().get(),
         getKoin().get()

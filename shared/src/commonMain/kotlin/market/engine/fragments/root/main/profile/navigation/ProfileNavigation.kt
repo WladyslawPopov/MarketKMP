@@ -48,6 +48,9 @@ import market.engine.fragments.root.main.profile.ProfileContent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
 import market.engine.fragments.createOrder.createOrderFactory
+import market.engine.fragments.messenger.DialogsComponent
+import market.engine.fragments.messenger.DialogsContent
+import market.engine.fragments.messenger.messengerFactory
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
 import market.engine.fragments.root.main.profile.conversations.conversationsFactory
@@ -75,7 +78,8 @@ sealed class ProfileConfig {
 
     @Serializable
     data class MyOrdersScreen(
-        val typeGroup : DealTypeGroup
+        val typeGroup : DealTypeGroup,
+        val id: Long? = null
     ) : ProfileConfig()
 
     @Serializable
@@ -90,6 +94,9 @@ sealed class ProfileConfig {
     data class CreateOrderScreen(
         val basketItem : Pair<Long, List<SelectedBasketItem>>,
     ) : ProfileConfig()
+
+    @Serializable
+    data class DialogsScreen(val dialogId : Long) : ProfileConfig()
 }
 
 sealed class ChildProfile {
@@ -103,6 +110,7 @@ sealed class ChildProfile {
     class MyOrdersChild(val type : DealTypeGroup, val component: ProfileComponent) : ChildProfile()
     class ConversationsChild(val component: ConversationsComponent) : ChildProfile()
     class MyBidsChild(val component: ProfileComponent) : ChildProfile()
+    class DialogsChild(val component: DialogsComponent) : ChildProfile()
 }
 
 @Composable
@@ -129,6 +137,7 @@ fun ProfileNavigation(
             is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.type, screen.component, modifier)
             is ChildProfile.ConversationsChild -> ConversationsContent(screen.component, modifier)
             is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier)
+            is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
         }
     }
 }
@@ -459,6 +468,11 @@ fun createProfileChild(
             component = conversationsFactory(
                 componentContext,
                 profilePublicNavigationList.value,
+                navigateToMessenger = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.DialogsScreen(it)
+                    )
+                },
                 config.selectedDialogId
             )
         )
@@ -468,6 +482,33 @@ fun createProfileChild(
                 componentContext,
                 profileNavigation,
                 profilePublicNavigationList.value,
+            )
+        )
+
+        is ProfileConfig.DialogsScreen -> ChildProfile.DialogsChild(
+            messengerFactory(
+                componentContext,
+                config.dialogId,
+                navigateBack = {
+                    profileNavigation.pop()
+                },
+                navigateToOrder = { id, type ->
+                    profileNavigation.replaceAll(
+                        ProfileConfig.MyOrdersScreen(
+                            type, id
+                        )
+                    )
+                },
+                navigateToOffer = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateToUser = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                }
             )
         )
     }

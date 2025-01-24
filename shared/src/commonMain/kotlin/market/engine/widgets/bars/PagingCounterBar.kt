@@ -1,10 +1,13 @@
 package market.engine.widgets.bars
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,48 +32,56 @@ fun PagingCounterBar(
     showDownButton: Boolean,
     onClick: () -> Unit,
 ) {
-    Card(
+    AnimatedVisibility(
+        visible = currentPage != 1 || currentPage != totalPages,
+        enter = fadeIn(),
+        exit = fadeOut(),
         modifier = modifier
-            .padding(dimens.smallPadding)
-            .animateContentSize()
-    ) {
-        Row(
-            modifier = Modifier.wrapContentWidth()
-                .clickable {
-                    onClick()
-                }
-                .background(colors.grayLayout)
-                .padding(dimens.smallPadding),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "$currentPage",
-                modifier = Modifier.padding(start = dimens.smallPadding),
-                style = MaterialTheme.typography.labelSmall
-            )
-
-            Text(
-                text = "/",
-                modifier = Modifier.padding(start = dimens.smallPadding),
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.titleTextColor
-            )
-
-            Text(
-                text = "$totalPages",
-                modifier = Modifier.padding(start = dimens.smallPadding),
-                style = MaterialTheme.typography.labelSmall
-            )
-
-            Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
-            getFloatAnyButton(
-                showDownButton || showUpButton,
-                drawable = if (showDownButton) drawables.iconArrowDown else drawables.iconArrowUp,
-                modifier.size(dimens.mediumIconSize)
-            ) {
+    ){
+        Card(
+            modifier = modifier
+                .animateContentSize(),
+            onClick = {
                 onClick()
             }
+        ) {
+            Row(
+                modifier = Modifier.wrapContentWidth()
+                    .background(colors.grayLayout)
+                    .padding(dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "$currentPage",
+                    modifier = Modifier.padding(start = dimens.smallPadding),
+                    style = MaterialTheme.typography.labelSmall
+                )
+
+                Text(
+                    text = "/",
+                    modifier = Modifier.padding(start = dimens.smallPadding),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.titleTextColor
+                )
+
+                Text(
+                    text = "$totalPages",
+                    modifier = Modifier.padding(start = dimens.smallPadding),
+                    style = MaterialTheme.typography.labelSmall
+                )
+
+                Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
+                getFloatAnyButton(
+                    showDownButton || showUpButton,
+                    drawable = if (showDownButton) drawables.iconArrowDown else drawables.iconArrowUp,
+                    modifier.size(dimens.mediumIconSize)
+                ) {
+                    onClick()
+                }
+            }
         }
+
+        Spacer(modifier = Modifier.height(dimens.mediumSpacer))
     }
 }

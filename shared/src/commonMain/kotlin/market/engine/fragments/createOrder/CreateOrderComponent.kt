@@ -23,7 +23,7 @@ interface CreateOrderComponent {
 
 class DefaultCreateOrderComponent(
     componentContext: ComponentContext,
-    val basketItem : Pair<Long, List<SelectedBasketItem>>,
+    basketItem : Pair<Long, List<SelectedBasketItem>>,
     val navigateBack: () -> Unit,
     val navigateToOffer: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,

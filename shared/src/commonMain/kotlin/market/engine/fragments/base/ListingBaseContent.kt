@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.cash.paging.LoadStateError
@@ -44,10 +46,12 @@ fun <T : Any>ListingBaseContent(
     onRefresh : () -> Unit,
     item : @Composable (T) -> Unit,
     noFound : (@Composable () -> Unit)? = null,
-    filtersContent : @Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit,
+    filtersContent : (@Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit)? = null,
     additionalBar : @Composable (LazyListState) -> Unit = {},
     promoContent : (@Composable (Offer) -> Unit)? = null,
     promoList :  ArrayList<Offer>? = null,
+    isReversingPaging : Boolean = false,
+    backgroundColor : Color = colors.primaryColor,
 ){
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
@@ -148,7 +152,7 @@ fun <T : Any>ListingBaseContent(
                 if (baseViewModel.activeFiltersType.value != "") {
                     val isClear = remember { mutableStateOf(listingData.filters.find { it.interpritation?.isNotBlank() == true } != null) }
                     isRefreshingFromFilters.value = isClear.value
-                    filtersContent(isRefreshingFromFilters) {
+                    filtersContent?.invoke(isRefreshingFromFilters) {
                         baseViewModel.activeFiltersType.value = ""
                     }
                 }
@@ -161,6 +165,7 @@ fun <T : Any>ListingBaseContent(
                 else -> {
                     Box(
                         modifier = Modifier
+                            .background(backgroundColor)
                             .fillMaxSize()
                             .animateContentSize()
                     ) {
@@ -168,6 +173,7 @@ fun <T : Any>ListingBaseContent(
                             state = scrollState,
                             data = data,
                             listingData = listingData,
+                            isReversingPaging = isReversingPaging,
                             searchData = searchData,
                             columns = columns.value,
                             content = {
