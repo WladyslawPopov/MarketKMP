@@ -286,10 +286,14 @@ fun ListingContent(
                     isShowNav = backCountClick.value == 0,
                     isOpenCategory = listingViewModel.activeFiltersType.value != "categories",
                     onBackClick = {
-                        if(isShowNavigation){
-                            component.goBack()
-                        }else {
-                            listingViewModel.isOpenSearch.value = true
+                        if (listingViewModel.activeFiltersType.value.isEmpty()) {
+                            if (isShowNavigation) {
+                                component.goBack()
+                            } else {
+                                listingViewModel.isOpenSearch.value = true
+                            }
+                        }else{
+                            listingViewModel.activeFiltersType.value = ""
                         }
                     },
                     closeCategory = {

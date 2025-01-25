@@ -3,9 +3,7 @@ package market.engine.theme
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.NavigationBarItemColors
-import androidx.compose.material3.NavigationDrawerItemColors
 import androidx.compose.material3.NavigationRailItemColors
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.ui.graphics.Color
 
 interface Colors {
@@ -18,6 +16,7 @@ interface Colors {
     val buyNowColor: Color
     val auctionWithBuyNow: Color
     val outgoingBubble: Color
+    val incomingBubble: Color
     val actionTextColor: Color
     val black: Color
     val transparent: Color

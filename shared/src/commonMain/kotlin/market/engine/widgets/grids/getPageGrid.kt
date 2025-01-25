@@ -1,11 +1,10 @@
 package market.engine.widgets.grids
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,7 +41,7 @@ import market.engine.widgets.bars.PagingCounterBar
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun <T : Any> PagingList(
+fun <T : Any> BoxScope.PagingList(
     data: LazyPagingItems<T>,
     state: LazyListState,
     columns : Int = 1,
@@ -55,6 +54,8 @@ fun <T : Any> PagingList(
 ) {
     var showUpButton by remember { mutableStateOf(false) }
     var showDownButton by remember { mutableStateOf(false) }
+
+    val align = remember { if (isReversingPaging) Alignment.BottomStart else Alignment.TopStart }
 
     val currentIndex by remember {
         derivedStateOf {
@@ -73,127 +74,122 @@ fun <T : Any> PagingList(
     }
 
     LaunchedEffect(state.firstVisibleItemIndex){
-        showUpButton = 1 < (state.firstVisibleItemIndex / PAGE_SIZE)
+        showUpButton = (state.firstVisibleItemIndex >= PAGE_SIZE)
         showDownButton = listingData.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
     }
 
-    val align = if (isReversingPaging) Alignment.BottomStart else Alignment.TopStart
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            state = state,
-            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-            reverseLayout = isReversingPaging,
-            modifier = Modifier
-                .align(align)
-                .animateContentSize()
-
-        ) {
-            if (!promoList.isNullOrEmpty() && promoContent != null) {
-                item {
-                    LazyRow(
-                        modifier = Modifier.height(300.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
-                    ) {
-                        items(promoList) { offer ->
-                            promoContent(offer)
-                        }
-                    }
-                }
-
-                if ((data.itemSnapshotList.items.firstOrNull() as? Offer)?.promoOptions != null) {
-                    item {
-                        Text(
-                            text = stringResource(strings.topOffersTitle),
-                            color = colors.black,
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier
-                                .padding(dimens.smallPadding)
-                        )
-                    }
-                } else {
-                    item {
-                        Text(
-                            text = stringResource(strings.offersLabel),
-                            color = colors.black,
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier
-                                .padding(dimens.smallPadding)
-                        )
+    LazyColumn(
+        state = state,
+        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+        reverseLayout = isReversingPaging,
+        modifier = Modifier
+            .align(align)
+    ) {
+        if (!promoList.isNullOrEmpty() && promoContent != null) {
+            item {
+                LazyRow(
+                    modifier = Modifier.height(300.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
+                ) {
+                    items(promoList) { offer ->
+                        promoContent(offer)
                     }
                 }
             }
 
-            items(data.itemCount, key = data.itemKey()) { index ->
-                if (promoContent != null && searchData?.userSearch == false && searchData.searchString.isEmpty()) {
-                    if (index > 0) {
-                        val item = data[index] as? Offer
-                        if (item?.promoOptions == null) {
-                            val lastItem = data[index - 1] as? Offer
-                            if (lastItem != null) {
-                                val isLastItemPromo = lastItem.promoOptions?.any { it.id == "featured_in_listing" } == true
-                                if (isLastItemPromo) {
-                                    Text(
-                                        text = stringResource(strings.promoEndLabel),
-                                        color = colors.titleTextColor,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier
-                                            .padding(dimens.smallPadding)
-                                    )
-                                }
+            if ((data.itemSnapshotList.items.firstOrNull() as? Offer)?.promoOptions != null) {
+                item {
+                    Text(
+                        text = stringResource(strings.topOffersTitle),
+                        color = colors.black,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .padding(dimens.smallPadding)
+                    )
+                }
+            } else {
+                item {
+                    Text(
+                        text = stringResource(strings.offersLabel),
+                        color = colors.black,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .padding(dimens.smallPadding)
+                    )
+                }
+            }
+        }
+
+        items(data.itemCount, key = data.itemKey()) { index ->
+            if (promoContent != null && searchData?.userSearch == false && searchData.searchString.isEmpty()) {
+                if (index > 0) {
+                    val item = data[index] as? Offer
+                    if (item?.promoOptions == null) {
+                        val lastItem = data[index - 1] as? Offer
+                        if (lastItem != null) {
+                            val isLastItemPromo = lastItem.promoOptions?.any { it.id == "featured_in_listing" } == true
+                            if (isLastItemPromo) {
+                                Text(
+                                    text = stringResource(strings.promoEndLabel),
+                                    color = colors.titleTextColor,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier
+                                        .padding(dimens.smallPadding)
+                                )
                             }
                         }
                     }
                 }
+            }
 
-                if (index % columns == 0) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        for (columnIndex in 0 until columns) {
-                            val itemIndex = index + columnIndex
-                            if (itemIndex < data.itemCount) {
-                                val item = data[itemIndex]
-                                Box(modifier = Modifier.weight(1f)) {
-                                    item?.let { content(it) }
-                                }
-                            } else {
-                                Spacer(modifier = Modifier.weight(1f))
+            if (index % columns == 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    for (columnIndex in 0 until columns) {
+                        val itemIndex = index + columnIndex
+                        if (itemIndex < data.itemCount) {
+                            val item = data[itemIndex]
+                            Box(modifier = Modifier.weight(1f)) {
+                                item?.let { content(it) }
                             }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
             }
         }
+    }
 
-        PagingCounterBar(
-            currentPage = currentIndex,
-            totalPages = listingData.totalCount,
-            modifier = Modifier.align(Alignment.BottomStart),
-            showUpButton = showUpButton,
-            showDownButton = showDownButton,
-            onClick = {
-                when{
-                    showUpButton -> {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            listingData.prevIndex = currentIndex
-                            state.scrollToItem(0)
-                            showUpButton = false
-                            showDownButton = true
-                        }
+    PagingCounterBar(
+        currentPage = currentIndex,
+        totalPages = listingData.totalCount,
+        modifier = Modifier.align(Alignment.BottomStart),
+        showUpButton = showUpButton,
+        showDownButton = showDownButton,
+        onClick = {
+            when{
+                showUpButton -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        listingData.prevIndex = currentIndex
+                        state.scrollToItem(0)
+                        showUpButton = false
+                        showDownButton = true
                     }
-                    showDownButton -> {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            state.scrollToItem(listingData.prevIndex ?: 1)
-                            listingData.prevIndex = null
-                            showDownButton = false
-                            showUpButton = true
-                        }
+                }
+                showDownButton -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        state.scrollToItem(listingData.prevIndex ?: 1)
+                        listingData.prevIndex = null
+                        showDownButton = false
+                        showUpButton = true
                     }
                 }
             }
-        )
-    }
+        }
+    )
 }

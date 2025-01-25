@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -35,8 +33,8 @@ fun UserSimpleRow(
     modifier: Modifier = Modifier
 ) {
     FlowRow (
-        verticalArrangement = Arrangement.SpaceAround,
-        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
         modifier = modifier
     ) {
         Row(
@@ -44,14 +42,16 @@ fun UserSimpleRow(
             horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
         ) {
             Card(
+                modifier = Modifier.wrapContentSize(),
                 shape = CircleShape
             ) {
                 LoadImage(
                     url = user.avatar?.thumb?.content ?: "",
-                    size = 40.dp
+                    size = 40.dp,
+                    isShowLoading = false,
+                    isShowEmpty = false
                 )
             }
-
 
             Text(
                 text = user.login ?: "",
@@ -61,12 +61,10 @@ fun UserSimpleRow(
             )
         }
 
-        Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
         Row(
             modifier = Modifier.align(Alignment.CenterVertically),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             if (user.rating > 0) {
                 Box(
@@ -85,7 +83,7 @@ fun UserSimpleRow(
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
             // user rating badge
             if (user.ratingBadge?.imageUrl != null) {
                 LoadImage(
@@ -94,9 +92,8 @@ fun UserSimpleRow(
                     isShowEmpty = false,
                     size = dimens.smallIconSize
                 )
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
             }
-            Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
             // Verified user icon
             if (user.isVerified) {
                 Image(
@@ -104,7 +101,6 @@ fun UserSimpleRow(
                     contentDescription = null,
                     modifier = Modifier.size(dimens.smallIconSize)
                 )
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
             }
         }
     }

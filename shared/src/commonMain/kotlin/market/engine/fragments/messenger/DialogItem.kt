@@ -55,7 +55,7 @@ fun DialogItem(
     val alignment = if (isIncoming) Alignment.Start else Alignment.End
 
     val bubbleColor = if (isIncoming) {
-        colors.transparentGrayColor
+        colors.incomingBubble
     } else {
         colors.outgoingBubble
     }

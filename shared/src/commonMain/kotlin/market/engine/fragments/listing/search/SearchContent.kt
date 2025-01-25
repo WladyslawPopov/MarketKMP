@@ -106,7 +106,11 @@ fun SearchContent(
                     searchViewModel.getHistory(searchString.value)
                 },
                 onBeakClick = {
-                    closeSearch()
+                    if (openBottomSheet.value){
+                        openBottomSheet.value = false
+                    }else {
+                        closeSearch()
+                    }
                 }
             )
         },
