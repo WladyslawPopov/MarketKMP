@@ -31,8 +31,6 @@ import kotlinx.coroutines.withContext
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.types.WindowType
-import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
@@ -61,10 +59,7 @@ fun ConversationsContent(
     val selectedItems = remember { viewModel.selectItems }
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-    val windowClass = getWindowType()
-    val isBigScreen = windowClass == WindowType.Big
 
-    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
     val successToast = stringResource(strings.operationSuccess)
     val refresh = {
         viewModel.resetScroll()
@@ -139,7 +134,6 @@ fun ConversationsContent(
             modifier = modifier.fillMaxSize()
         ) {
             ListingBaseContent(
-                columns = columns,
                 listingData = listingData.value,
                 searchData = searchData.value,
                 data = data,
@@ -228,7 +222,7 @@ fun ConversationsContent(
                             }
                         }
                     )
-                    if (conversation.interlocutor != null && viewModel.updateItemTrigger.value >= 0) {
+                    if (conversation.interlocutor != null) {
                         AnimatedVisibility(
                             dismissState.currentValue != DismissValue.DismissedToStart,
                             enter = expandIn(),
@@ -242,6 +236,7 @@ fun ConversationsContent(
                                         conversation = conversation,
                                         isVisibleCBMode = isSelectedMode.value,
                                         isSelected = isSelect.value,
+                                        updateTrigger = viewModel.updateItemTrigger.value,
                                         onSelectionChange = {
                                             if (it) {
                                                 viewModel.selectItems.add(conversation.id)

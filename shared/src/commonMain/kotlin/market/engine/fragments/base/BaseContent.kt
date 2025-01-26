@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +31,8 @@ import market.engine.widgets.exceptions.ToastTypeMessage
 fun BaseContent(
     modifier: Modifier = Modifier,
     toastItem: MutableState<ToastItem>? = null,
-    isLoading : Boolean? = null,
+    isHideContent: Boolean = true,
+    isLoading : Boolean = false,
     onRefresh: () -> Unit = {},
     topBar: (@Composable () -> Unit)? = null,
     error: (@Composable () -> Unit)? = null,
@@ -38,7 +40,6 @@ fun BaseContent(
     floatingActionButton: (@Composable () -> Unit) = {},
     content: @Composable BoxScope.() -> Unit,
 ){
-
     val pullToRefreshState : PullToRefreshState = rememberPullToRefreshState()
 
     Scaffold(
@@ -46,28 +47,29 @@ fun BaseContent(
         floatingActionButton = floatingActionButton
     ) { innerPadding ->
         PullToRefreshBox(
-            modifier = Modifier.fillMaxSize().padding(top = if (topBar != null)
-                innerPadding.calculateTopPadding()
-            else 0.dp
-            ),
+            modifier = Modifier.fillMaxSize().padding(
+                    top = if (topBar != null)
+                        innerPadding.calculateTopPadding()
+                    else 0.dp
+                ),
             onRefresh = onRefresh,
-            isRefreshing = isLoading ?: false,
+            isRefreshing = isLoading,
             state = pullToRefreshState,
             indicator = {
-                if (isLoading != null){
-                    Indicator(
-                        modifier = Modifier.align(Alignment.TopCenter).size(dimens.mediumIconSize),
-                        isRefreshing = isLoading,
-                        state = pullToRefreshState,
-                        color = colors.notifyTextColor,
-                        containerColor = colors.white
-                    )
-                }
+                Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter)
+                        .size(dimens.mediumIconSize),
+                    isRefreshing = isLoading,
+                    state = pullToRefreshState,
+                    color = colors.notifyTextColor,
+                    containerColor = colors.white
+                )
+
             }
         ){
             AnimatedVisibility(
                 modifier = modifier,
-                visible = !(isLoading ?: false),
+                visible = if (isHideContent) !isLoading else true,
                 enter = expandIn(),
                 exit = fadeOut()
             ) {

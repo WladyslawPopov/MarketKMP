@@ -5,6 +5,7 @@ import androidx.paging.PagingData
 import androidx.paging.insertSeparators
 import app.cash.paging.cachedIn
 import app.cash.paging.map
+import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
@@ -17,10 +18,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import market.engine.common.AnalyticsFactory
+import market.engine.common.compressImage
+import market.engine.common.getImageUriFromPlatformFile
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.Sort
-import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.constants.errorToastItem
+import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.items.ListingData
@@ -31,6 +35,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OrderOperations
+import market.engine.core.network.functions.PrivateMessagesOperation
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.Dialog
 import market.engine.core.network.networkObjects.MesImage
@@ -38,13 +43,18 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.repositories.UserRepository
+import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.convertDateYear
 import market.engine.fragments.base.BaseViewModel
+import org.jetbrains.compose.resources.getString
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class DialogsViewModel(
     private val apiService: APIService,
     private val userRepository: UserRepository,
     private val conversationsOperations: ConversationsOperations,
+    private val privateMessagesOperation: PrivateMessagesOperation,
     private val offerOperations: OfferOperations,
     private val orderOperations: OrderOperations,
 ) : BaseViewModel() {
@@ -69,6 +79,7 @@ class DialogsViewModel(
     val messageTextState = mutableStateOf("")
 
     fun init(dialogId : Long): Flow<PagingData<DialogsData>> {
+        setLoading(true)
 
         getConversation(dialogId)
 
@@ -128,15 +139,24 @@ class DialogsViewModel(
         dialogsPagingRepository.refresh()
     }
 
-    fun getImages(pickImagesRaw : List<PhotoTemp>) {
+    @OptIn(ExperimentalUuidApi::class)
+    fun getImages(files: PlatformFiles) {
         viewModelScope.launch {
+            val newImages =  files.map { file ->
+                val barr = file.readBytes()
+                val resizeImage = compressImage(barr,40)
+
+                PhotoTemp(
+                    file = file,
+                    uri = getImageUriFromPlatformFile(file),
+                    id = Uuid.random().toString(),
+                    tempId = resizeImage.encodeToBase64()
+                )
+            }
+
             _responseImages.value = buildList {
                 addAll(_responseImages.value)
-                pickImagesRaw.forEach {
-                    if (size < MAX_IMAGE_COUNT) {
-                        add(it)
-                    }
-                }
+                addAll(newImages)
             }
         }
     }
@@ -152,6 +172,32 @@ class DialogsViewModel(
         viewModelScope.launch {
             userRepository.updateToken()
             userRepository.updateUserInfo()
+        }
+    }
+
+    suspend fun deleteMessage(id : Long) : Boolean{
+        val res = withContext(Dispatchers.IO) {
+            privateMessagesOperation.postDeleteForInterlocutor(id)
+        }
+        val buf = res.success
+        val err = res.error
+        return withContext(Dispatchers.Main) {
+            if (buf != null) {
+                showToast(
+                    successToastItem.copy(
+                        message = getString(strings.operationSuccess)
+                    )
+                )
+                return@withContext true
+            }else{
+                showToast(
+                    errorToastItem.copy(
+                        message = err?.humanMessage ?: getString(strings.operationFailed)
+                    )
+                )
+
+                return@withContext false
+            }
         }
     }
 
@@ -175,7 +221,6 @@ class DialogsViewModel(
             }
 
             withContext(Dispatchers.Main) {
-                setLoading(false)
                 if (res != null) {
                     if (res == "true") {
                         if (interlocutorRole == "buyer") {
@@ -247,6 +292,24 @@ class DialogsViewModel(
                     _responseGetOrderInfo.value = it
                 }
             }
+        }
+    }
+
+    suspend fun deleteConversation(id : Long) : Boolean {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                conversationsOperations.postDeleteForInterlocutor(id)
+            }
+
+            return withContext(Dispatchers.Main) {
+                return@withContext res != null
+            }
+        }catch (e : ServerErrorException){
+            onError(e)
+            return false
+        }catch (e : Exception){
+            onError(ServerErrorException(e.message ?: "", ""))
+            return false
         }
     }
 }

@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -38,23 +37,25 @@ fun ConversationItem(
     conversation: Conversations,
     isVisibleCBMode : Boolean = false,
     isSelected: Boolean = false,
+    updateTrigger: Int,
     onSelectionChange: (Boolean) -> Unit,
     goToMessenger: () -> Unit,
 ) {
+    if (updateTrigger < 0) return
+
     Card(
         colors = colors.cardColors,
         shape = MaterialTheme.shapes.small,
-        modifier = Modifier.combinedClickable(
-            onClick = {
-                goToMessenger()
-            },
-            onLongClick = {
-                onSelectionChange(!isSelected)
-            }
-        ),
     ){
         Row(
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+            modifier = Modifier.combinedClickable(
+                onClick = {
+                    goToMessenger()
+                },
+                onLongClick = {
+                    onSelectionChange(!isSelected)
+                }
+            ).fillMaxWidth().padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -99,8 +100,30 @@ fun ConversationItem(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+
+                    Text(
+                        text = conversation.interlocutor?.login ?: "",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.black,
+                    )
+
+                    Spacer(Modifier.width(dimens.mediumSpacer))
+
+                    Text(
+                        conversation.newMessageTs.toString().convertDateWithMinutes(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.black,
+                    )
+                }
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
                         if (conversation.countUnreadMessages > 0) {
                             Icon(
@@ -111,58 +134,32 @@ fun ConversationItem(
                         }
 
                         Text(
-                            text = conversation.interlocutor?.login ?: "",
-                            style = MaterialTheme.typography.titleSmall,
+                            text = conversation.newMessage ?: "...",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = colors.black,
+                            maxLines = 2,
+                            minLines = 2
                         )
                     }
 
-                    Spacer(Modifier.width(dimens.mediumSpacer))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (conversation.countUnreadMessages > 0) {
-                            Badge {
-                                Text(
-                                    text = conversation.countUnreadMessages.toString(),
-                                    fontSize = 9.sp
-                                )
-                            }
+                    if (conversation.countUnreadMessages > 0) {
+                        Badge {
+                            Text(
+                                text = conversation.countUnreadMessages.toString(),
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
-
-                        Text(
-                            conversation.newMessageTs.toString().convertDateWithMinutes(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.black,
-                        )
                     }
                 }
-
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Text(
-                        text = conversation.newMessage ?: "...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.black,
-                        maxLines = 2,
-                        minLines = 2
-                    )
-                }
             }
 
-            val imageOffer = conversation.aboutObjectIcon?.mid?.content
-            if (imageOffer != null) {
-                LoadImage(
-                    url = imageOffer,
-                    isShowLoading = false,
-                    isShowEmpty = true,
-                    size = 40.dp
-                )
-            }
+            LoadImage(
+                url = conversation.aboutObjectIcon?.small?.content ?: "",
+                isShowLoading = false,
+                isShowEmpty = true,
+                size = 40.dp
+            )
         }
     }
 }

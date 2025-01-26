@@ -2,18 +2,13 @@ package market.engine.fragments.messenger
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -24,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -35,36 +29,25 @@ import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import market.engine.common.compressImage
-import market.engine.common.getImageUriFromPlatformFile
-import market.engine.common.getPermissionHandler
-import market.engine.core.data.constants.MAX_IMAGE_COUNT
+import market.engine.common.clipBoardEvent
+import market.engine.core.data.constants.errorToastItem
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.items.MesHeaderItem
-import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.showNoItemLayout
-import market.engine.widgets.items.DialogsImgUploadItem
-import market.engine.widgets.textFields.TextFieldWithState
+import market.engine.widgets.items.SeparatorDialogItem
 import org.jetbrains.compose.resources.stringResource
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun DialogsContent(
     component: DialogsComponent,
@@ -86,7 +69,7 @@ fun DialogsContent(
 
     val isLoading = viewModel.isShowProgress.collectAsState()
 
-    LaunchedEffect(data.loadState.refresh is LoadStateLoading){
+    LaunchedEffect(data.loadState.refresh){
         viewModel.setLoading(data.loadState.refresh is LoadStateLoading)
     }
 
@@ -106,37 +89,16 @@ fun DialogsContent(
 
     val images = remember { mutableListOf<String>() }
 
-    val listState = rememberLazyListState()
-
     val pagerFullState = rememberPagerState(
         pageCount = { imageSize.value },
     )
 
     val scope = rememberCoroutineScope()
 
-    val launcher = rememberFilePickerLauncher(
-        type = PickerType.Image,
-        mode = PickerMode.Multiple(
-            maxItems = MAX_IMAGE_COUNT
-        ),
-        initialDirectory = "market/temp/"
-    ) { files ->
-        scope.launch {
-            viewModel.getImages(
-                files?.map { file ->
-                    val barr = file.readBytes()
-                    val resizeImage = compressImage(barr,40)
-
-                    PhotoTemp(
-                        file = file,
-                        uri = getImageUriFromPlatformFile(file),
-                        id = Uuid.random().toString(),
-                        tempId = resizeImage.encodeToBase64()
-                    )
-                } ?: emptyList()
-            )
-        }
-    }
+    val copyId = stringResource(strings.idCopied)
+    val textCopied = stringResource(strings.textCopied)
+    val successToast = stringResource(strings.operationSuccess)
+    val failedToast = stringResource(strings.operationFailed)
 
     val noFound = @Composable {
         if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
@@ -176,7 +138,7 @@ fun DialogsContent(
         BaseContent(
             topBar = {
                 DialogsAppBar(
-                    conversation.interlocutor,
+                    conversation,
                     modifier,
                     goToUser = {
                         component.goToUser(it)
@@ -187,12 +149,48 @@ fun DialogsContent(
                         }else{
                             isImageViewerVisible.value = false
                         }
+                    },
+                    onRefresh = {
+                        refresh()
+                    },
+                    onMenuClick = { key->
+                        when(key){
+                            "delete_dialog" -> {
+                                viewModel.viewModelScope.launch {
+                                    val res = viewModel.deleteConversation(conversation.id)
+                                    if (res) {
+                                        viewModel.showToast(
+                                            successToastItem.copy(
+                                                message = successToast
+                                            )
+                                        )
+                                        delay(2000)
+                                        component.onBackClicked()
+                                    }else{
+                                        viewModel.showToast(
+                                            errorToastItem.copy(
+                                                message = failedToast
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            "copyId" -> {
+                                clipBoardEvent(conversation.aboutObjectId.toString())
+                                viewModel.showToast(
+                                    successToastItem.copy(
+                                        message = copyId
+                                    )
+                                )
+                            }
+                        }
                     }
                 )
             },
             onRefresh = {
                 refresh()
             },
+            isHideContent = false,
             error = null,
             noFound = null,
             isLoading = isLoading.value,
@@ -263,13 +261,7 @@ fun DialogsContent(
                                         }
 
                                         val title = buildAnnotatedString {
-                                            withStyle(
-                                                SpanStyle(
-                                                    color = colors.actionTextColor
-                                                )
-                                            ) {
-                                                append(offer.title ?: "")
-                                            }
+                                            append(offer.title ?: "")
                                         }
 
                                         val s = buildAnnotatedString {
@@ -364,25 +356,52 @@ fun DialogsContent(
                             },
                             filtersContent = null,
                             item = { messageItem ->
+                                val isDeleteItem = remember { mutableStateOf(false) }
                                 when (messageItem) {
                                     is DialogsData.MessageItem -> {
-                                        DialogItem(
-                                            messageItem,
-                                            openImage = { index ->
-                                                scope.launch {
-                                                    images.clear()
-                                                    images.addAll(messageItem.images?.map {
-                                                        it.url ?: ""
-                                                    } ?: emptyList())
-                                                    imageSize.value = images.size
-                                                    pagerFullState.scrollToPage(index)
-                                                    isImageViewerVisible.value = true
-                                                }
-                                            },
-                                            onLongClick = {
+                                        Column {
+                                            AnimatedVisibility (
+                                                !isDeleteItem.value,
+                                                enter = fadeIn(),
+                                                exit = fadeOut()
+                                            ) {
+                                                DialogItem(
+                                                    messageItem,
+                                                    openImage = { index ->
+                                                        scope.launch {
+                                                            images.clear()
+                                                            images.addAll(messageItem.images?.map {
+                                                                it.url ?: ""
+                                                            } ?: emptyList())
+                                                            imageSize.value = images.size
+                                                            pagerFullState.scrollToPage(index)
+                                                            isImageViewerVisible.value = true
+                                                        }
+                                                    },
+                                                    onMenuClick = { key ->
+                                                        when (key) {
+                                                            "delete" -> {
+                                                                viewModel.viewModelScope.launch {
+                                                                    val res = viewModel.deleteMessage(messageItem.id)
+                                                                    if (res) {
+                                                                        isDeleteItem.value = true
+                                                                    }
+                                                                }
+                                                            }
 
+                                                            "copy" -> {
+                                                                clipBoardEvent(messageItem.message)
+                                                                viewModel.showToast(
+                                                                    successToastItem.copy(
+                                                                        message = textCopied
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                )
                                             }
-                                        )
+                                        }
                                     }
 
                                     is DialogsData.SeparatorItem -> {
@@ -398,74 +417,21 @@ fun DialogsContent(
                         )
                     }
 
-                    LazyRow(
-                        state = listState,
-                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                    ) {
-                        items(
-                            imagesUpload.value.size,
-                            key = {
-                                imagesUpload.value[it].id ?: it
-                            }
-                        ){
-                            val item = imagesUpload.value[it]
-                            DialogsImgUploadItem(
-                                item = item,
-                                delete = {
-                                    viewModel.deleteImage(item)
-                                }
-                            )
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        AnimatedVisibility(
-                            !isDisabledAddPhotos.value,
-                            enter = expandIn(),
-                            exit = fadeOut()
-                        ) {
-                            SmallIconButton(
-                                drawables.attachIcon,
-                                colors.black,
-                                modifierIconSize = Modifier.size(dimens.mediumIconSize)
-                            ) {
-                                if (!getPermissionHandler().checkImagePermissions()) {
-                                    getPermissionHandler().requestImagePermissions {
-                                        if (it) {
-                                            launcher.launch()
-                                        }
-                                    }
-                                } else {
-                                    launcher.launch()
-                                }
-                            }
-                        }
-
-                        TextFieldWithState(
-                            label = stringResource(strings.messageLabel),
-                            textState = messageTextState,
-                            modifier = Modifier,
-                            onTextChange = {
-                                messageTextState.value = it
-                            },
-                            readOnly = isDisabledSendMes.value,
-                        )
-
-                        SmallIconButton(
-                            drawables.sendMesIcon,
-                            colors.black,
-                            enabled = messageTextState.value.trim().isNotEmpty(),
-                            modifierIconSize = Modifier.size(dimens.mediumIconSize),
-                        ){
+                    MessengerBar(
+                        messageTextState = messageTextState,
+                        imagesUpload = imagesUpload.value,
+                        isDisabledSendMes = isDisabledSendMes.value,
+                        isDisabledAddPhotos = isDisabledAddPhotos.value,
+                        getImages = { files->
+                            viewModel.getImages(files)
+                        },
+                        deleteImage = {
+                            viewModel.deleteImage(it)
+                        },
+                        sendMessage = {
                             viewModel.sendMessage(model.dialogId, messageTextState.value)
                         }
-                    }
+                    )
                 }
             }
         }

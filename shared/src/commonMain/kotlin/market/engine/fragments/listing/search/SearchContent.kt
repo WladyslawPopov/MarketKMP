@@ -89,7 +89,6 @@ fun SearchContent(
 
     BaseContent(
         error = errorSearch,
-        isLoading = null,
         noFound = null,
         toastItem = searchViewModel.toastItem,
         topBar = {

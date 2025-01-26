@@ -77,19 +77,14 @@ interface Strings {
     val currencySign : StringResource
     val currencyCode : StringResource
     val homeTopCategory : StringResource
-
     val noInternetTitle : StringResource
     val noInternetSubtitle : StringResource
     val refreshButton : StringResource
-
     val numberOfItems : StringResource
     val numberOfBids : StringResource
-
     val oopsTitle : StringResource
     val notFoundListingTitle : StringResource
-
     val categoryEnter : StringResource
-
     val allOffers : StringResource
     val filter : StringResource
     val sort : StringResource
@@ -112,7 +107,6 @@ interface Strings {
     val offersFor : StringResource
     val newOffersWithoutRelistedFor : StringResource
     val endingWith : StringResource
-
     val oneHour : StringResource
     val twoHour : StringResource
     val threeHour : StringResource
@@ -126,7 +120,6 @@ interface Strings {
     val _5Days : StringResource
     val _6Days : StringResource
     val _7Days : StringResource
-
     val timeToEnd : StringResource
     val sortModeIncreasing : StringResource
     val sortModeDecreasing : StringResource
@@ -136,7 +129,6 @@ interface Strings {
     val offersGroupStartTSTile : StringResource
     val sortModeOldestFirst : StringResource
     val sortModeNewestFirst : StringResource
-
     val enterCaptcha : StringResource
     val promptEmail : StringResource
     val promptPassword : StringResource
@@ -263,26 +255,20 @@ interface Strings {
     val bidsUserLabel : StringResource
     val dateParameterName : StringResource
     val rebidLabel : StringResource
-
     val emptyFavoritesLabel : StringResource
     val simpleNotFoundLabel : StringResource
     val positiveFeedbackLabel : StringResource
-
     val subscriptionsLabel : StringResource
     val subscribersLabel : StringResource
     val createdUserLabel : StringResource
     val lastActiveUserLabel : StringResource
-
     val showAnswerLabel : StringResource
     val hideAnswerLabel : StringResource
-
     val orderLabel : StringResource
-
     val positiveFilterParams : StringResource
     val negativeFilterParams : StringResource
     val neutralFilterParams : StringResource
     val allFilterParams : StringResource
-
     val allFeedbackToUserLabel : StringResource
     val fromBuyerLabel : StringResource
     val fromSellerLabel : StringResource
@@ -294,7 +280,6 @@ interface Strings {
     val sellOfferLabel : StringResource
     val changeCategory : StringResource
     val inCategoryLabel : StringResource
-
     val charactersLeftLabel : StringResource
     val sizeLabel : StringResource
     val fileNotFound : StringResource
@@ -303,30 +288,23 @@ interface Strings {
     val actionAddPhoto : StringResource
     val photoLabel : StringResource
     val saleTypeLabel : StringResource
-
     val deliveryCityParameterLabel : StringResource
     val deliveryCountryParameterLabel : StringResource
     val deliveryWorldParameterLabel : StringResource
-
     val offerStartNowLabel : StringResource
     val offerStartInactiveLabel : StringResource
     val offerStartInFutureLabel : StringResource
     val selectTimeActiveLabel : StringResource
     val actionChangeLabel :  StringResource
-
     val descriptionPlaceholderLabel : StringResource
-
     val createSimilarOfferLabel : StringResource
     val congratulationsLabel : StringResource
     val congratulationsCreateOfferInFutureLabel : StringResource
-
     val actionClearBasket : StringResource
     val yourBasketTitle : StringResource
-
     val manyOffersLabel : StringResource
     val exManyOffersLabel : StringResource
     val oneOfferLabel : StringResource
-
     val cardIsEmptyLabel : StringResource
     val startShoppingLabel : StringResource
     val offerAddedToBasketLabel : StringResource
@@ -383,7 +361,6 @@ interface Strings {
     val createConversationLabel : StringResource
     val aboutOrderLabel : StringResource
     val aboutOfferLabel : StringResource
-
     val dialogPhone : StringResource
     val dialogZip : StringResource
     val dialogCity : StringResource
@@ -391,13 +368,10 @@ interface Strings {
     val dialogComment : StringResource
     val dialogFio : StringResource
     val dialogAddress : StringResource
-
     val additionalDeliveryInfo : StringResource
-
     val placeBetOnTheAmount : StringResource
     val acceptAddBidsAction : StringResource
     val yourselfBidsLabel : StringResource
-
     val userLoginParameterName : StringResource
     val userIdParameterName : StringResource
     val offerOrderIdParameterName : StringResource
@@ -407,4 +381,7 @@ interface Strings {
     val todayLabel : StringResource
     val notReadMessagesLabel : StringResource
     val yourMessagesLabel : StringResource
+    val deleteDialogLabel : StringResource
+    val textCopied: StringResource
+    val actionCopy: StringResource
 }

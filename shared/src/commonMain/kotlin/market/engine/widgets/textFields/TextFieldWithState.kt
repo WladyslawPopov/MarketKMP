@@ -26,7 +26,8 @@ fun TextFieldWithState(
     onTextChange: (String) -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
     readOnly: Boolean = false,
-    placeholder: String? = null
+    placeholder: String? = null,
+    maxLines: Int = 1
 ) {
     TextField(
         value = textState.value,
@@ -35,9 +36,9 @@ fun TextFieldWithState(
             onTextChange(it)
         },
         label = { Text(label ?: "", style = MaterialTheme.typography.bodySmall) },
-        modifier = modifier.wrapContentSize().padding(dimens.smallPadding),
+        modifier = modifier.padding(dimens.smallPadding),
         singleLine = true,
-        maxLines = 1,
+        maxLines = maxLines,
         readOnly = readOnly,
         shape = MaterialTheme.shapes.medium,
         colors = TextFieldDefaults.colors(
