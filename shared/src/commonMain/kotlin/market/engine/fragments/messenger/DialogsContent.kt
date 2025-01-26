@@ -3,7 +3,6 @@ package market.engine.fragments.messenger
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,21 +10,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -37,23 +35,36 @@ import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.launch
+import market.engine.common.compressImage
+import market.engine.common.getImageUriFromPlatformFile
+import market.engine.common.getPermissionHandler
+import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.items.MesHeaderItem
+import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.showNoItemLayout
+import market.engine.widgets.items.DialogsImgUploadItem
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun DialogsContent(
     component: DialogsComponent,
@@ -65,6 +76,7 @@ fun DialogsContent(
     val offerInfo = viewModel.responseGetOfferInfo.collectAsState()
     val orderInfo = viewModel.responseGetOrderInfo.collectAsState()
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
+    val imagesUpload = viewModel.responseImages.collectAsState()
     val listingData = viewModel.listingData.value.data
     val searchData = viewModel.listingData.value.searchData
 
@@ -72,11 +84,13 @@ fun DialogsContent(
     val isDisabledSendMes = remember { mutableStateOf(true) }
     val isDisabledAddPhotos = remember { mutableStateOf(true) }
 
-    val isLoading: State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+    val isLoading = viewModel.isShowProgress.collectAsState()
 
-    val successToast = stringResource(strings.operationSuccess)
+    LaunchedEffect(data.loadState.refresh is LoadStateLoading){
+        viewModel.setLoading(data.loadState.refresh is LoadStateLoading)
+    }
 
-    val messageTextState = remember { mutableStateOf("") }
+    val messageTextState = remember { viewModel.messageTextState }
 
     val focusManager = LocalFocusManager.current
 
@@ -92,11 +106,37 @@ fun DialogsContent(
 
     val images = remember { mutableListOf<String>() }
 
+    val listState = rememberLazyListState()
+
     val pagerFullState = rememberPagerState(
         pageCount = { imageSize.value },
     )
 
     val scope = rememberCoroutineScope()
+
+    val launcher = rememberFilePickerLauncher(
+        type = PickerType.Image,
+        mode = PickerMode.Multiple(
+            maxItems = MAX_IMAGE_COUNT
+        ),
+        initialDirectory = "market/temp/"
+    ) { files ->
+        scope.launch {
+            viewModel.getImages(
+                files?.map { file ->
+                    val barr = file.readBytes()
+                    val resizeImage = compressImage(barr,40)
+
+                    PhotoTemp(
+                        file = file,
+                        uri = getImageUriFromPlatformFile(file),
+                        id = Uuid.random().toString(),
+                        tempId = resizeImage.encodeToBase64()
+                    )
+                } ?: emptyList()
+            )
+        }
+    }
 
     val noFound = @Composable {
         if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
@@ -115,6 +155,7 @@ fun DialogsContent(
             }
         }
     }
+
     LaunchedEffect(isImageViewerVisible.value) {
         if (isImageViewerVisible.value) {
             scaffoldState.bottomSheetState.expand()
@@ -358,11 +399,25 @@ fun DialogsContent(
                     }
 
                     LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
+                        state = listState,
+                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-
+                        items(
+                            imagesUpload.value.size,
+                            key = {
+                                imagesUpload.value[it].id ?: it
+                            }
+                        ){
+                            val item = imagesUpload.value[it]
+                            DialogsImgUploadItem(
+                                item = item,
+                                delete = {
+                                    viewModel.deleteImage(item)
+                                }
+                            )
+                        }
                     }
 
                     Row(
@@ -380,7 +435,15 @@ fun DialogsContent(
                                 colors.black,
                                 modifierIconSize = Modifier.size(dimens.mediumIconSize)
                             ) {
-
+                                if (!getPermissionHandler().checkImagePermissions()) {
+                                    getPermissionHandler().requestImagePermissions {
+                                        if (it) {
+                                            launcher.launch()
+                                        }
+                                    }
+                                } else {
+                                    launcher.launch()
+                                }
                             }
                         }
 
@@ -400,7 +463,7 @@ fun DialogsContent(
                             enabled = messageTextState.value.trim().isNotEmpty(),
                             modifierIconSize = Modifier.size(dimens.mediumIconSize),
                         ){
-
+                            viewModel.sendMessage(model.dialogId, messageTextState.value)
                         }
                     }
                 }

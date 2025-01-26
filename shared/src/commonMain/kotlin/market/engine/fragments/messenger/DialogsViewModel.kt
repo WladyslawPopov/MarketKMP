@@ -14,11 +14,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.Sort
+import market.engine.core.data.constants.MAX_IMAGE_COUNT
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.MessageType
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
@@ -54,6 +60,13 @@ class DialogsViewModel(
 
     private val _responseGetOrderInfo = MutableStateFlow<Order?>(null)
     val responseGetOrderInfo : StateFlow<Order?> = _responseGetOrderInfo.asStateFlow()
+
+    private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
+    val responseImages: StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
+
+    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+
+    val messageTextState = mutableStateOf("")
 
     fun init(dialogId : Long): Flow<PagingData<DialogsData>> {
 
@@ -115,10 +128,85 @@ class DialogsViewModel(
         dialogsPagingRepository.refresh()
     }
 
+    fun getImages(pickImagesRaw : List<PhotoTemp>) {
+        viewModelScope.launch {
+            _responseImages.value = buildList {
+                addAll(_responseImages.value)
+                pickImagesRaw.forEach {
+                    if (size < MAX_IMAGE_COUNT) {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteImage(item : PhotoTemp){
+        _responseImages.value = buildList {
+            addAll(_responseImages.value)
+            remove(item)
+        }
+    }
+
     fun updateUserInfo(){
         viewModelScope.launch {
             userRepository.updateToken()
             userRepository.updateUserInfo()
+        }
+    }
+
+    fun sendMessage(dialogId: Long, message : String){
+        viewModelScope.launch {
+            setLoading(true)
+
+            val userId = responseGetConversation.value?.interlocutor?.id
+            val interlocutorRole = responseGetConversation.value?.interlocutor?.role
+            val idAboutDialog = responseGetConversation.value?.aboutObjectId
+            val aboutObject = responseGetConversation.value?.aboutObjectClass
+
+            val bodyMessage = buildJsonObject {
+                put("message", JsonPrimitive(message))
+                responseImages.value.forEachIndexed { index, photo ->
+                    put("image_${index + 1}", JsonPrimitive(photo.tempId))
+                }
+            }
+            val res = withContext(Dispatchers.IO){
+                conversationsOperations.postAddMessage(dialogId,bodyMessage)
+            }
+
+            withContext(Dispatchers.Main) {
+                setLoading(false)
+                if (res != null) {
+                    if (res == "true") {
+                        if (interlocutorRole == "buyer") {
+                            val eventParameters = mapOf(
+                                "buyer_id" to userId,
+                                "seller_id" to UserData.userInfo?.id,
+                                (if (aboutObject == "offer") "lot_id" else "order_id") to idAboutDialog,
+                                "message_type" to if (aboutObject == "offer") "lot" else "deal",
+                            )
+                            analyticsHelper.reportEvent("sent_message_to_buyer", eventParameters)
+                        } else {
+                            val eventParameters = mapOf(
+                                "seller_id" to userId,
+                                "buyer_id" to UserData.userInfo?.id,
+                                (if (aboutObject == "offer") "lot_id" else "order_id") to idAboutDialog,
+                                "message_type" to if (aboutObject == "offer") "lot" else "deal",
+                            )
+                            analyticsHelper.reportEvent("sent_message_to_buyer", eventParameters)
+                        }
+                        _responseImages.value = emptyList()
+                        messageTextState.value = ""
+                        onRefresh()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = res
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 
