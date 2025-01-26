@@ -216,6 +216,9 @@ class DialogsViewModel(
                     put("image_${index + 1}", JsonPrimitive(photo.tempId))
                 }
             }
+            _responseImages.value = emptyList()
+            messageTextState.value = ""
+
             val res = withContext(Dispatchers.IO){
                 conversationsOperations.postAddMessage(dialogId,bodyMessage)
             }
@@ -240,8 +243,7 @@ class DialogsViewModel(
                             )
                             analyticsHelper.reportEvent("sent_message_to_buyer", eventParameters)
                         }
-                        _responseImages.value = emptyList()
-                        messageTextState.value = ""
+
                         onRefresh()
                     } else {
                         showToast(
