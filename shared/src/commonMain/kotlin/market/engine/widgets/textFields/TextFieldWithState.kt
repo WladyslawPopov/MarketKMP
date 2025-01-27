@@ -27,7 +27,7 @@ fun TextFieldWithState(
     leadingIcon: @Composable (() -> Unit)? = null,
     readOnly: Boolean = false,
     placeholder: String? = null,
-    maxLines: Int = 1
+    maxLines: Int = 1,
 ) {
     TextField(
         value = textState.value,
@@ -37,7 +37,6 @@ fun TextFieldWithState(
         },
         label = { Text(label ?: "", style = MaterialTheme.typography.bodySmall) },
         modifier = modifier.padding(dimens.smallPadding),
-        singleLine = true,
         maxLines = maxLines,
         readOnly = readOnly,
         shape = MaterialTheme.shapes.medium,

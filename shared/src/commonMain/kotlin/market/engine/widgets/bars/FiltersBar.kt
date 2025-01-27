@@ -163,7 +163,7 @@ fun FiltersBar(
                     .clip(MaterialTheme.shapes.medium),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
-                items(filters.value) { filter ->
+                items(filters.value, key = { it.interpritation ?: it.value }) { filter ->
                     filter.interpritation?.let { text->
                         ActiveFilterListing(
                             text = text,
@@ -238,58 +238,38 @@ fun FiltersBar(
             }
 
             if (isShowFilters) {
-                FiltersIconButtons(
-                    itemFilter = itemFilter,
-                    itemSort = itemSort,
-                    itemGallery = itemGallery,
-                    onFilterClick = onFilterClick,
-                    onSortClick = onSortClick,
-                    onChangeTypeList = { newType ->
-                        onChangeTypeList(newType)
-                    },
-                    listingType = listingData.listingType
-                )
-            }
-        }
-    }
-}
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(
+                        modifier = Modifier.width(50.dp),
+                        onClick = onFilterClick
+                    ) {
+                        getBadgedBox(item = itemFilter)
+                    }
 
-@Composable
-fun FiltersIconButtons(
-    itemFilter: NavigationItem,
-    itemSort: NavigationItem,
-    itemGallery: NavigationItem?,
-    onFilterClick: () -> Unit,
-    onSortClick: () -> Unit,
-    onChangeTypeList: (Int) -> Unit,
-    listingType: Int
-) {
-    Row {
-        IconButton(
-            modifier = Modifier.width(50.dp),
-            onClick = onFilterClick
-        ) {
-            getBadgedBox(item = itemFilter)
-        }
+                    IconButton(
+                        modifier = Modifier.width(50.dp),
+                        onClick = onSortClick
+                    ) {
+                        getBadgedBox(item = itemSort)
+                    }
 
-        IconButton(
-            modifier = Modifier.width(50.dp),
-            onClick = onSortClick
-        ) {
-            getBadgedBox(item = itemSort)
-        }
-
-        itemGallery?.let { galleryItem ->
-            IconButton(
-                modifier = Modifier.width(30.dp),
-                onClick = {
-                    val newType = if (listingType == 0) 1 else 0
-                    onChangeTypeList(newType)
+                    itemGallery?.let { galleryItem ->
+                        IconButton(
+                            modifier = Modifier.width(30.dp),
+                            onClick = {
+                                val newType = if (listingData.listingType == 0) 1 else 0
+                                onChangeTypeList(newType)
+                            }
+                        ) {
+                            galleryItem.icon = if (listingData.listingType == 0) drawables.iconWidget else drawables.iconSliderHorizontal
+                            getBadgedBox(item = galleryItem)
+                        }
+                    }
                 }
-            ) {
-                galleryItem.icon = if (listingType == 0) drawables.iconWidget else drawables.iconSliderHorizontal
-                getBadgedBox(item = galleryItem)
             }
         }
     }
 }
+

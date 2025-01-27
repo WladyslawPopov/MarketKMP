@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.profile.conversations
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -143,12 +142,10 @@ fun ConversationsContent(
                 },
                 noFound = noFound,
                 additionalBar = {
-
                     AnimatedVisibility(
                         visible = selectedItems.isNotEmpty(),
                         enter = fadeIn(),
                         exit = fadeOut(),
-                        modifier = Modifier.animateContentSize()
                     ) {
                         DeletePanel(
                             selectedItems.size,

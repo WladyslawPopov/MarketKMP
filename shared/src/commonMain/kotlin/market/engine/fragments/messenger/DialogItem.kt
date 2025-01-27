@@ -72,7 +72,7 @@ fun DialogItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(0.6f),
+            modifier = Modifier.fillMaxWidth(0.8f),
             horizontalAlignment = alignment,
         ) {
             Surface(
@@ -106,7 +106,6 @@ fun DialogItem(
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.End
                     ) {

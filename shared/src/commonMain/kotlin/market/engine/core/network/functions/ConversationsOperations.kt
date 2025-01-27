@@ -10,14 +10,13 @@ import kotlinx.serialization.json.JsonObject
 
 class ConversationsOperations(private val apiService : APIService) {
 
-
     suspend fun getConversation(id: Long = 1L): Conversations? {
         return try {
             val response = apiService.getConversation(id)
             try {
                 val serializer = ListSerializer(Conversations.serializer())
                 val payload =
-                    deserializePayload<List<Conversations>>(
+                    deserializePayload(
                         response.payload, serializer
                     )
                 payload.firstOrNull()

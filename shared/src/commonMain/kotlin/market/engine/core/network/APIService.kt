@@ -333,12 +333,6 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsRACE(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/request_additional_confirmation") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
     suspend fun postUsersOperationsEditAboutMe(idUser: Long, body: Map<String, String>): AppResponse =
         client.post("users/$idUser/operations/edit_about_me") {
             contentType(ContentType.Application.Json)
@@ -356,12 +350,6 @@ class APIService(private val client: HttpClient) {
 
     suspend fun postUsersOperationsUnsetAvatar(idUser: Long): AppResponse =
         client.post("users/$idUser/operations/unset_avatar").body()
-
-    suspend fun postUsersOperationsAddItemToCartError(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/add_item_to_cart") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
 
     suspend fun postUsersOperationsRemoveItemFromCart(idUser: Long, body: Map<String, String>): AppResponse =
         client.post("users/$idUser/operations/remove_item_from_cart") {
@@ -390,19 +378,7 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUserOperationsGetAdditionalDataBeforeCreateOrderError(idUser: Long, body: JsonObject): AppResponse =
-        client.post("users/$idUser/operations/get_additional_data_before_create_order") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
     suspend fun postConversationOperationsAddMessage(dialogId: Long, body: JsonObject): AppResponse =
-        client.post("conversations/$dialogId/operations/add_message") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postConversationOperationsAddMessageError(dialogId: Long, body: JsonObject): AppResponse =
         client.post("conversations/$dialogId/operations/add_message") {
             contentType(ContentType.Application.Json)
             setBody(body)

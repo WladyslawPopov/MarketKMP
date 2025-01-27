@@ -461,7 +461,12 @@ fun createProfileChild(
 
         is ProfileConfig.MyOrdersScreen -> ChildProfile.MyOrdersChild(
             config.typeGroup,
-            component = itemProfile(componentContext, profileNavigation,profilePublicNavigationList.value, config.typeGroup)
+            component = itemProfile(
+                componentContext,
+                profileNavigation,
+                profilePublicNavigationList.value,
+                if(config.typeGroup == DealTypeGroup.BUY) "purchases/${config.id}" else "sales/${config.id}"
+            )
         )
 
         is ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(
@@ -518,14 +523,12 @@ fun itemProfile(
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigationItems : List<NavigationItem>,
-    selectedOrderPage : DealTypeGroup = DealTypeGroup.SELL,
     selectedPage : String? = null
 ): ProfileComponent {
     return DefaultProfileComponent(
         componentContext = componentContext,
         navigationItems = navigationItems,
         profileNavigation,
-        selectedOrderPage,
         selectedPage = selectedPage
     )
 }

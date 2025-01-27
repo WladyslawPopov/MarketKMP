@@ -60,8 +60,7 @@ class MyOrdersViewModel(
             }
         }
         if (orderSelected != null) {
-            listingData.value.data.value.filters.find { it.key == "id" }?.value =
-                orderSelected.toString()
+            listingData.value.data.value.filters.find { it.key == "id" }?.value = orderSelected.toString()
             listingData.value.data.value.filters.find { it.key == "id" }?.interpritation = "id: $orderSelected"
         }
 
@@ -70,6 +69,7 @@ class MyOrdersViewModel(
                 DealType.BUY_IN_WORK
             )
         ) "purchases" else "sales"
+
         listingData.value.data.value.objServer = "orders"
 
         listingData.value.data.value.methodServer = "get_cabinet_listing_$method"

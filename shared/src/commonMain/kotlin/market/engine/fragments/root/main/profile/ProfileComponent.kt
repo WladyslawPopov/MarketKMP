@@ -15,7 +15,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealType
-import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.MyOfferConfig
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyOffers
@@ -56,7 +55,6 @@ class DefaultProfileComponent(
     componentContext: ComponentContext,
     val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
-    private val selectedOrderPage : DealTypeGroup,
     selectedPage : String?,
 ) : ProfileComponent, ComponentContext by componentContext {
 
@@ -74,19 +72,19 @@ class DefaultProfileComponent(
     override val model = _model
 
 
+    private var currentPage = ""
+    private var searchID : Long? = null
+
+
     init {
         updateProfile()
 
-        val id = selectedPage?.split("/")?.firstOrNull()?.toLongOrNull()
+        searchID = selectedPage?.split("/")?.lastOrNull()?.toLongOrNull()
+        currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""
 
-        if(selectedPage != null){
-            when(selectedPage) {
-                "messenger" -> {
-                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(id))
-                }
-                "purchases" -> {
-                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
-                }
+        when(currentPage) {
+            "messenger" -> {
+                navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
             }
         }
     }
@@ -219,10 +217,11 @@ class DefaultProfileComponent(
             handleBackButton = true,
             initialPages = {
                 Pages(
-                    when (selectedOrderPage){
-                        DealTypeGroup.BUY -> {
+                    when (currentPage){
+                        "purchases" -> {
                             listOf(
                                 MyOrderConfig(
+                                    id = searchID,
                                     dealType = DealType.BUY_IN_WORK
                                 ),
                                 MyOrderConfig(
@@ -230,9 +229,10 @@ class DefaultProfileComponent(
                                 )
                             )
                         }
-                        DealTypeGroup.SELL -> {
+                        "sales" -> {
                             listOf(
                                 MyOrderConfig(
+                                    id = searchID,
                                     dealType = DealType.SELL_ALL
                                 ),
                                 MyOrderConfig(
@@ -242,6 +242,9 @@ class DefaultProfileComponent(
                                     dealType = DealType.SELL_ARCHIVE
                                 )
                             )
+                        }
+                        else -> {
+                            listOf()
                         }
                     },
                     selectedIndex = 0,

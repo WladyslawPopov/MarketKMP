@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -33,8 +35,8 @@ fun UserSimpleRow(
     modifier: Modifier = Modifier
 ) {
     FlowRow (
-        verticalArrangement = Arrangement.Center,
-        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.CenterVertically),
+        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.CenterHorizontally),
         modifier = modifier
     ) {
         Row(
@@ -62,7 +64,6 @@ fun UserSimpleRow(
         }
 
         Row(
-            modifier = Modifier.align(Alignment.CenterVertically),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {

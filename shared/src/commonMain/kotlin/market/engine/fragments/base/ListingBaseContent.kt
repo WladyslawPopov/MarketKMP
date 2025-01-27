@@ -1,8 +1,5 @@
 package market.engine.fragments.base
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -127,14 +124,8 @@ fun <T : Any>ListingBaseContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility (
-            (baseViewModel.activeFiltersType.value == "" || baseViewModel.activeFiltersType.value == "categories"),
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Column {
-                additionalBar(scrollState)
-            }
+        if(baseViewModel.activeFiltersType.value == "" || baseViewModel.activeFiltersType.value == "categories"){
+            additionalBar(scrollState)
         }
 
         BottomSheetScaffold(
