@@ -55,7 +55,7 @@ fun MyOrderItem(
     onUpdateItem: () -> Unit,
     goToUser: (Long) -> Unit,
     goToOffer: (Offer) -> Unit,
-    goToMessenger: () -> Unit,
+    goToMessenger: (Long?) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val typeDef = DealTypeGroup.BUY
@@ -584,10 +584,10 @@ fun MyOrderItem(
                     onDismiss = {
                         showDialog.value = false
                     },
-                    onSuccess = {
+                    onSuccess = { dialogId->
                         //go to messenger
                         showDialog.value = false
-                        goToMessenger()
+                        goToMessenger(dialogId)
                     },
                     baseViewModel = baseViewModel
                 )

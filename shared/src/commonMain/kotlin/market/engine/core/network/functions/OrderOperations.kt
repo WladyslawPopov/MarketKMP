@@ -35,6 +35,23 @@ class OrderOperations(private val apiService: APIService) {
         }
     }
 
+    suspend fun postCheckingConversationExistence(id: Long = 1L): ServerResponse<PayloadExistence<AdditionalData>> {
+        return try {
+            val response = apiService.postCheckingConversationExistenceOrder(id)
+            try {
+                val serializer = PayloadExistence.serializer(AdditionalData.serializer())
+                val payload = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
     suspend fun getOperationsOrder(id: Long = 1L): ServerResponse<List<Operations>> {
         return try {
             val response = apiService.getOrderOperations(id)

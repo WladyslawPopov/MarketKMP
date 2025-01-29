@@ -20,13 +20,15 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.flow.collectLatest
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.user.feedbacks.FeedbackTabs
 import market.engine.fragments.user.feedbacks.FeedbacksContent
+import market.engine.widgets.tabs.SimpleTabs
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.UserPanel
 import market.engine.widgets.rows.UserSimpleRow
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun UserContent(
@@ -54,6 +56,15 @@ fun UserContent(
     val selectedTabIndex = remember {
         mutableStateOf(0)
     }
+
+    val tabs = listOf(
+            stringResource(strings.allFeedbackToUserLabel),
+            stringResource(strings.fromBuyerLabel),
+            stringResource(strings.fromSellerLabel),
+            stringResource(strings.fromUsersLabel),
+            stringResource(strings.aboutMeLabel)
+        )
+
 
     LaunchedEffect(isVisibleUserPanel.value) {
         snapshotFlow {
@@ -115,7 +126,8 @@ fun UserContent(
                 )
             }
 
-            FeedbackTabs(
+            SimpleTabs(
+                tabs,
                 selectedTab = selectedTabIndex.value,
                 onTabSelected = { index ->
                     component.onTabSelect(index)

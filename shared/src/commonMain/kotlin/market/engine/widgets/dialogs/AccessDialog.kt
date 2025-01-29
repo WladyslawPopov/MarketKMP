@@ -16,6 +16,8 @@ import org.koin.compose.koinInject
 fun AccessDialog (
     showDialog : Boolean,
     title : String,
+    textAccept : String = stringResource(strings.acceptAction),
+    textDecline : String = stringResource(strings.closeWindow),
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
 ){
@@ -27,7 +29,7 @@ fun AccessDialog (
             containerColor = colors.white,
             confirmButton = {
                 SimpleTextButton(
-                    text = stringResource(strings.acceptAction),
+                    text = textAccept,
                     backgroundColor = colors.textA0AE,
                     onClick = {
                         onSuccess()
@@ -37,7 +39,7 @@ fun AccessDialog (
             },
             dismissButton = {
                 SimpleTextButton(
-                    text = stringResource(strings.closeWindow),
+                    text = textDecline,
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     onClick = {
                         onDismiss()

@@ -366,6 +366,9 @@ class APIService(private val client: HttpClient) {
     suspend fun postCheckingConversationExistenceOffer(idOffer: Long): AppResponse =
         client.post("offers/$idOffer/operations/checking_conversation_existence").body()
 
+    suspend fun postCheckingConversationExistenceOrder(idOrder: Long): AppResponse =
+        client.post("orders/$idOrder/operations/checking_conversation_existence").body()
+
     suspend fun postOfferOperationsGetLeaderAndPrice(idOffer: Long, body: HashMap<String, String>): AppResponse =
         client.post("offers/$idOffer/operations/get_leader_and_price") {
             contentType(ContentType.Application.Json)

@@ -384,4 +384,18 @@ interface Strings {
     val deleteDialogLabel : StringResource
     val textCopied: StringResource
     val actionCopy: StringResource
+    val profileSellerSettingsLabel : StringResource
+    val profileAdditionalSettingsLabel : StringResource
+    val profileGlobalSettingsLabel : StringResource
+    val genderParameterName : StringResource
+    val sexMaleParameterName : StringResource
+    val sexFemaleParameterName : StringResource
+    val notSetParameterName : StringResource
+    val phoneParameterName : StringResource
+    val pageAboutMeParameterName : StringResource
+    val dialogChooseActionLabel : StringResource
+    val deleteAvatarLabel : StringResource
+    val setLoginTitle : StringResource
+    val setNewLoginTitle : StringResource
+    val yourCurrentLogin : StringResource
 }

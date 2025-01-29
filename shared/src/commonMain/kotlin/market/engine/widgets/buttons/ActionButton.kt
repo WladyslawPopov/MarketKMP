@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.TextUnit
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -15,14 +16,14 @@ import org.jetbrains.compose.resources.stringResource
 fun ActionButton(
     text: StringResource,
     modifier: Modifier = Modifier,
-    fontSize: TextUnit,
-    alignment: Alignment,
+    fontSize: TextUnit = dimens.largeText,
+    alignment: Alignment? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Box(
         modifier = modifier,
-        contentAlignment = alignment
+        contentAlignment = alignment ?: Alignment.Center
     ) {
         TextButton(
             onClick = {

@@ -17,6 +17,7 @@ import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.main.basket.BasketViewModel
 import market.engine.fragments.createOffer.CreateOfferViewModel
 import market.engine.fragments.createOrder.CreateOrderViewModel
+import market.engine.fragments.dynamicSettings.DynamicSettingsViewModel
 import market.engine.fragments.root.main.favorites.FavViewModel
 import market.engine.fragments.root.main.home.HomeViewModel
 import market.engine.fragments.listing.ListingViewModel
@@ -60,6 +61,7 @@ val viewModelModule = module {
     viewModelOf(::CreateOrderViewModel)
     viewModelOf(::ConversationsViewModel)
     viewModelOf(::DialogsViewModel)
+    viewModelOf(::DynamicSettingsViewModel)
 }
 
 val networkModule = module {

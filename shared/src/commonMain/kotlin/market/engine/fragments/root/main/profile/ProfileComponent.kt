@@ -19,14 +19,18 @@ import market.engine.fragments.root.main.profile.navigation.MyOfferConfig
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyOffers
 import market.engine.core.data.types.LotsType
+import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.navigation.MyBidsConfig
 import market.engine.fragments.root.main.profile.navigation.MyOrderConfig
+import market.engine.fragments.root.main.profile.navigation.ProfileSettingsConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyBids
 import market.engine.fragments.root.main.profile.navigation.itemMyOrders
+import market.engine.fragments.root.main.profile.navigation.itemProfileSettings
+import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ProfileComponent {
@@ -38,6 +42,8 @@ interface ProfileComponent {
 
     val myBidsPages: Value<ChildPages<*, MyBidsComponent>>
 
+    val settingsPages: Value<ChildPages<*, ProfileSettingsComponent>>
+
     data class Model(
         val navigationItems: List<NavigationItem>,
         val profileViewModel: ProfileViewModel
@@ -46,6 +52,7 @@ interface ProfileComponent {
     fun updateProfile()
     fun goToAllMyOfferListing()
     fun goToAboutMe()
+    fun selectProfileSettingsPage(type: ProfileSettingsTypes)
     fun selectMyOfferPage(type: LotsType)
     fun selectMyBidsPage(type: LotsType)
     fun selectMyOrderPage(type: DealType)
@@ -61,6 +68,7 @@ class DefaultProfileComponent(
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
     private val navigationMyBids = PagesNavigation<MyBidsConfig>()
     private val navigationMyOrders = PagesNavigation<MyOrderConfig>()
+    private val navigationSettings = PagesNavigation<ProfileSettingsConfig>()
 
 
     private val _model = MutableValue(
@@ -163,6 +171,51 @@ class DefaultProfileComponent(
                 navigationMyBids.select(0)
             }
         }
+    }
+
+    override fun selectProfileSettingsPage(type: ProfileSettingsTypes) {
+        when (type) {
+            ProfileSettingsTypes.GLOBAL_SETTINGS -> {
+                navigationSettings.select(0)
+            }
+
+            ProfileSettingsTypes.SELLER_SETTINGS -> {
+                navigationSettings.select(1)
+            }
+
+            ProfileSettingsTypes.ADDITIONAL_SETTINGS -> {
+                navigationSettings.select(2)
+            }
+        }
+    }
+
+    override val settingsPages: Value<ChildPages<*, ProfileSettingsComponent>> by lazy {
+        childPages(
+            source = navigationSettings,
+            serializer = ProfileSettingsConfig.serializer(),
+            handleBackButton = true,
+            initialPages = {
+                Pages(
+                    listOf(
+                        ProfileSettingsConfig(ProfileSettingsTypes.GLOBAL_SETTINGS),
+//                        ProfileSettingsConfig(ProfileSettingsTypes.SELLER_SETTINGS),
+//                        ProfileSettingsConfig(ProfileSettingsTypes.ADDITIONAL_SETTINGS)
+                    ),
+                    selectedIndex = 0,
+                )
+            },
+            key = "ProfileSettingsStack",
+            childFactory = { config, componentContext ->
+                itemProfileSettings(
+                    config,
+                    componentContext,
+                    navigationProfile,
+                    selectProfileSettingsPage = { type ->
+                        selectProfileSettingsPage(type)
+                    }
+                )
+            }
+        )
     }
 
     override val myOffersPages: Value<ChildPages<*, MyOffersComponent>> by lazy {

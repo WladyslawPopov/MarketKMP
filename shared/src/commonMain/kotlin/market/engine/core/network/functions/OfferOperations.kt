@@ -193,7 +193,7 @@ class OfferOperations(private val apiService: APIService) {
             val response = apiService.postCheckingConversationExistenceOffer(id)
             try {
                 val serializer = PayloadExistence.serializer(AdditionalData.serializer())
-                val payload = deserializePayload<PayloadExistence<AdditionalData>>(response.payload, serializer)
+                val payload = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

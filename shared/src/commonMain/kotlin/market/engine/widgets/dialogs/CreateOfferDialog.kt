@@ -107,6 +107,7 @@ fun CreateOfferDialog(
     if (isShowDialog.value) {
         AlertDialog(
             onDismissRequest = {
+                isShowDialog.value = false
                 onDismiss()
             },
             title = {
@@ -166,12 +167,14 @@ fun CreateOfferDialog(
                                         eventParameters
                                     )
                                     onSuccess(buffer1.operationResult.additionalData?.conversationId)
+                                    isShowDialog.value = false
                                 } else {
                                     baseViewModel.showToast(
                                         errorToastItem.copy(
                                             message = ert
                                         )
                                     )
+                                    isShowDialog.value = false
                                     onDismiss()
                                 }
                             } else {
@@ -188,6 +191,7 @@ fun CreateOfferDialog(
                     backgroundColor = colors.steelBlue,
                     textColor = colors.alwaysWhite
                 ) {
+                    isShowDialog.value = false
                     onDismiss()
                 }
             }

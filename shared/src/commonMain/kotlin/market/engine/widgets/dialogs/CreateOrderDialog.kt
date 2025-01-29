@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -37,9 +38,11 @@ fun CreateOrderDialog(
     order: Order,
     type: DealTypeGroup,
     onDismiss: () -> Unit,
-    onSuccess: () -> Unit,
+    onSuccess: (Long?) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
+    val isShowDialog = remember { mutableStateOf(false) }
+
     val orderOperations: OrderOperations = koinInject()
 
     val messageText = remember { mutableStateOf("") }
@@ -93,10 +96,28 @@ fun CreateOrderDialog(
         }
     }
 
-    if (isDialogOpen) {
+    LaunchedEffect(isDialogOpen){
+        if (isDialogOpen) {
+            val scope = baseViewModel.viewModelScope
+            scope.launch(Dispatchers.IO) {
+                val res = orderOperations.postCheckingConversationExistence(order.id)
+                val dialogId = res.success?.operationResult?.additionalData?.conversationId
+                withContext(Dispatchers.Main) {
+                    if (dialogId != null) {
+                        onSuccess(dialogId)
+                    } else {
+                        isShowDialog.value = true
+                    }
+                }
+            }
+        }
+    }
+
+    if (isShowDialog.value) {
         AlertDialog(
             onDismissRequest = {
                 onDismiss()
+                isShowDialog.value = false
             },
             title = {
                 Text(titleText, style = MaterialTheme.typography.titleSmall)
@@ -151,13 +172,15 @@ fun CreateOrderDialog(
                                         "order_id" to order.id.toString()
                                     )
                                     analyticsHelper.reportEvent("start_message_to_seller", eventParameters)
-                                    onSuccess()
+                                    onSuccess(buffer1.operationResult.additionalData?.conversationId)
+                                    isShowDialog.value = false
                                 } else {
                                     baseViewModel.showToast(
                                         errorToastItem.copy(
                                             message = ert
                                         )
                                     )
+                                    isShowDialog.value = false
                                     onDismiss()
                                 }
                             } else {
@@ -174,6 +197,7 @@ fun CreateOrderDialog(
                     backgroundColor = colors.steelBlue,
                     textColor = colors.alwaysWhite
                 ) {
+                    isShowDialog.value = false
                     onDismiss()
                 }
             }

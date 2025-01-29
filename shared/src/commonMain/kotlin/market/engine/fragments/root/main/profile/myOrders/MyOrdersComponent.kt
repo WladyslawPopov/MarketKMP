@@ -24,7 +24,7 @@ interface MyOrdersComponent {
     fun goToUser(id : Long)
     fun goToOffer(offer: Offer)
     fun selectMyOrderPage(select : DealType)
-    fun goToMessenger()
+    fun goToMessenger(dialogId : Long?)
 }
 
 class DefaultMyOrdersComponent(
@@ -34,7 +34,7 @@ class DefaultMyOrdersComponent(
     val offerSelected: (Long) -> Unit,
     val navigateToMyOrder: (DealType) -> Unit,
     val navigateToUser: (Long) -> Unit,
-    val navigateToMessenger: () -> Unit
+    val navigateToMessenger: (Long?) -> Unit
 ) : MyOrdersComponent, ComponentContext by componentContext {
 
     private val viewModel : MyOrdersViewModel = MyOrdersViewModel(
@@ -112,7 +112,7 @@ class DefaultMyOrdersComponent(
         navigateToMyOrder(select)
     }
 
-    override fun goToMessenger() {
-        navigateToMessenger()
+    override fun goToMessenger(dialogId : Long?) {
+        navigateToMessenger(dialogId)
     }
 }

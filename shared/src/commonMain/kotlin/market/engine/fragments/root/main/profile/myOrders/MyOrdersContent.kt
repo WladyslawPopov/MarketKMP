@@ -192,8 +192,8 @@ fun MyOrdersContent(
                         },
                         baseViewModel = viewModel,
                         trigger = viewModel.updateItemTrigger.value,
-                        goToMessenger = {
-                            component.goToMessenger()
+                        goToMessenger = { dialogId ->
+                            component.goToMessenger(dialogId)
                         }
                     )
                 }

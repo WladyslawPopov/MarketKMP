@@ -219,7 +219,7 @@ fun ConversationsContent(
                             }
                         }
                     )
-                    if (conversation.interlocutor != null) {
+                    if (conversation.interlocutor != null && viewModel.updateItemTrigger.value >= 0) {
                         AnimatedVisibility(
                             dismissState.currentValue != DismissValue.DismissedToStart,
                             enter = expandIn(),

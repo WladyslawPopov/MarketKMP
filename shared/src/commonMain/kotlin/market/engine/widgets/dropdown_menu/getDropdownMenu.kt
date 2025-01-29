@@ -46,6 +46,7 @@ fun getDropdownMenu(
     selects: List<String>,
     onItemClick: (String) -> Unit,
     onClearItem: (() -> Unit)?,
+    modifier: Modifier = Modifier.fillMaxWidth()
 ) {
     var expanded by remember { mutableStateOf(false) }
     val rotationAngle by animateFloatAsState(
@@ -66,7 +67,7 @@ fun getDropdownMenu(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().clickable {
+            modifier = modifier.clickable {
                     expanded = !expanded
                 },
             verticalAlignment = Alignment.CenterVertically,
@@ -114,7 +115,7 @@ fun getDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = !expanded },
             containerColor = colors.white,
-            modifier = Modifier.widthIn(max = 350.dp).heightIn(max = 400.dp).fillMaxWidth()
+            modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp)
         ) {
             selects.forEach { option ->
                 DropdownMenuItem(

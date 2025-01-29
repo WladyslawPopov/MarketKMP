@@ -48,6 +48,9 @@ import market.engine.fragments.root.main.profile.ProfileContent
 import market.engine.fragments.user.UserComponent
 import market.engine.fragments.user.UserContent
 import market.engine.fragments.createOrder.createOrderFactory
+import market.engine.fragments.dynamicSettings.DynamicSettingsComponent
+import market.engine.fragments.dynamicSettings.DynamicSettingsContent
+import market.engine.fragments.dynamicSettings.dynamicSettingsFactory
 import market.engine.fragments.messenger.DialogsComponent
 import market.engine.fragments.messenger.DialogsContent
 import market.engine.fragments.messenger.messengerFactory
@@ -63,6 +66,9 @@ sealed class ProfileConfig {
     data object MyOffersScreen : ProfileConfig()
     @Serializable
     data object MyBidsScreen : ProfileConfig()
+
+    @Serializable
+    data object ProfileSettingsScreen : ProfileConfig()
 
     @Serializable
     data class ConversationsScreen(val selectedDialogId : Long? = null) : ProfileConfig()
@@ -97,11 +103,15 @@ sealed class ProfileConfig {
 
     @Serializable
     data class DialogsScreen(val dialogId : Long) : ProfileConfig()
+
+    @Serializable
+    data class DynamicSettingsScreen(val settingsType : String) : ProfileConfig()
 }
 
 sealed class ChildProfile {
     class ProfileChild(val component: ProfileComponent) : ChildProfile()
     class MyOffersChild(val component: ProfileComponent) : ChildProfile()
+    class ProfileSettingsChild(val component: ProfileComponent) : ChildProfile()
     class OfferChild(val component: OfferComponent) : ChildProfile()
     class ListingChild(val component: ListingComponent) : ChildProfile()
     class UserChild(val component: UserComponent) : ChildProfile()
@@ -111,6 +121,7 @@ sealed class ChildProfile {
     class ConversationsChild(val component: ConversationsComponent) : ChildProfile()
     class MyBidsChild(val component: ProfileComponent) : ChildProfile()
     class DialogsChild(val component: DialogsComponent) : ChildProfile()
+    class DynamicSettingsChild(val component: DynamicSettingsComponent) : ChildProfile()
 }
 
 @Composable
@@ -138,6 +149,8 @@ fun ProfileNavigation(
             is ChildProfile.ConversationsChild -> ConversationsContent(screen.component, modifier)
             is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier)
             is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
+            is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier)
+            is ChildProfile.DynamicSettingsChild -> DynamicSettingsContent(screen.component)
         }
     }
 }
@@ -276,7 +289,14 @@ fun createProfileChild(
             icon = drawables.settingsIcon,
             tint = colors.black,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                try {
+                    profileNavigation.pushNew(
+                        ProfileConfig.ProfileSettingsScreen
+                    )
+                } catch ( _ : Exception){}
+            }
         ),
         NavigationItem(
             title = strings.myBalanceTitle,
@@ -513,6 +533,24 @@ fun createProfileChild(
                     profileNavigation.pushNew(
                         ProfileConfig.UserScreen(it, getCurrentDate(), false)
                     )
+                }
+            )
+        )
+
+        ProfileConfig.ProfileSettingsScreen -> ChildProfile.ProfileSettingsChild(
+            itemProfile(
+                componentContext,
+                profileNavigation,
+                profilePublicNavigationList.value,
+            )
+        )
+
+        is ProfileConfig.DynamicSettingsScreen -> ChildProfile.DynamicSettingsChild(
+            component = dynamicSettingsFactory(
+                componentContext,
+                config.settingsType,
+                navigateBack = {
+                    profileNavigation.pop()
                 }
             )
         )
