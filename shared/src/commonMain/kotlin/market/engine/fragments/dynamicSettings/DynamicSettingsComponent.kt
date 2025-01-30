@@ -3,6 +3,7 @@ package market.engine.fragments.dynamicSettings
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -15,10 +16,12 @@ interface DynamicSettingsComponent {
     )
 
     fun onBack()
+    fun goToVerificationPage(method : String)
 }
 
 class DefaultDynamicSettingsComponent(
     val navigateBack : () -> Unit,
+    val navigateToVerification: (String) -> Unit,
     settingsType : String,
     componentContext: ComponentContext,
 ) : DynamicSettingsComponent, ComponentContext by componentContext
@@ -43,5 +46,12 @@ class DefaultDynamicSettingsComponent(
 
     override fun onBack() {
         navigateBack()
+    }
+
+    override fun goToVerificationPage(method: String) {
+        navigateToVerification(method)
+        lifecycle.doOnResume {
+            navigateBack()
+        }
     }
 }

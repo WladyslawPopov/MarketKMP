@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.dimens
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -33,8 +32,7 @@ fun AcceptedPageButton(
         Text(
             text = stringResource(text),
             color = colors.alwaysWhite,
-            fontSize = MaterialTheme.typography.titleSmall.fontSize,
-            lineHeight = dimens.largeText,
+            style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
     }

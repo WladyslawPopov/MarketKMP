@@ -30,6 +30,7 @@ import market.engine.fragments.root.main.favorites.subscriptions.SubViewModel
 import market.engine.fragments.root.main.profile.conversations.ConversationsViewModel
 import market.engine.fragments.user.UserViewModel
 import market.engine.fragments.user.feedbacks.FeedbacksViewModel
+import market.engine.fragments.verifyPage.VerificationViewModel
 import market.engine.shared.MarketDB
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -62,6 +63,7 @@ val viewModelModule = module {
     viewModelOf(::ConversationsViewModel)
     viewModelOf(::DialogsViewModel)
     viewModelOf(::DynamicSettingsViewModel)
+    viewModelOf(::VerificationViewModel)
 }
 
 val networkModule = module {

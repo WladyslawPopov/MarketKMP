@@ -22,6 +22,9 @@ import market.engine.fragments.root.main.favorites.FavoritesNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
 import market.engine.fragments.root.main.search.SearchNavigation
+import market.engine.fragments.verifyPage.VerificationComponent
+import market.engine.fragments.verifyPage.VerificationContent
+import market.engine.fragments.verifyPage.verificationFactory
 import market.engine.widgets.bars.getBottomNavBar
 
 
@@ -31,6 +34,7 @@ sealed class ChildMain {
     data object BasketChildMain : ChildMain()
     data object FavoritesChildMain : ChildMain()
     data object ProfileChildMain : ChildMain()
+    data class VerificationChildMain(val component: VerificationComponent) : ChildMain()
 }
 
 @Composable
@@ -46,6 +50,7 @@ fun MainNavigation(
         is ChildMain.BasketChildMain -> 2
         is ChildMain.FavoritesChildMain -> 3
         is ChildMain.ProfileChildMain -> 4
+        is ChildMain.VerificationChildMain -> 5
     }
 
     val userInfo = UserData.userInfo
@@ -118,7 +123,7 @@ fun MainNavigation(
                 .padding(bottom = innerPadding.calculateBottomPadding()),
             animation = stackAnimation(fade())
         ) { child ->
-            when (child.instance) {
+            when (val screen = child.instance) {
                 is ChildMain.HomeChildMain ->
                     HomeNavigation(modifier, component.childHomeStack)
 
@@ -133,6 +138,9 @@ fun MainNavigation(
 
                 is ChildMain.ProfileChildMain ->
                     ProfileNavigation(modifier, component.childProfileStack)
+
+                is ChildMain.VerificationChildMain ->
+                    VerificationContent(screen.component)
             }
         }
     }
@@ -150,4 +158,6 @@ sealed class MainConfig {
     data object Favorites : MainConfig()
     @Serializable
     data object Profile : MainConfig()
+    @Serializable
+    data class Verification(val settingsType : String) : MainConfig()
 }

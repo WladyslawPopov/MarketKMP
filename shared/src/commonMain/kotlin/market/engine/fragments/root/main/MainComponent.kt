@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
@@ -30,6 +31,7 @@ import market.engine.fragments.root.main.profile.navigation.createProfileChild
 import market.engine.fragments.root.main.search.ChildSearch
 import market.engine.fragments.root.main.search.SearchConfig
 import market.engine.fragments.root.main.search.createSearchChild
+import market.engine.fragments.verifyPage.verificationFactory
 
 interface MainComponent {
 
@@ -201,6 +203,9 @@ class DefaultMainComponent(
                     },
                     navigateToLogin = {
                         goToLogin(true)
+                    },
+                    navigateToVerification = { settingsType ->
+                        modelNavigation.value.mainNavigation.pushNew(MainConfig.Verification(settingsType))
                     }
                 )
             },
@@ -213,8 +218,8 @@ class DefaultMainComponent(
             source = modelNavigation.value.mainNavigation,
             serializer = MainConfig.serializer(),
             initialConfiguration = MainConfig.Home,
-            childFactory = {config, _ ->
-                createChild(config)
+            childFactory = {config, componentContext ->
+                createChild(config, componentContext)
             },
             key = "MainStack"
         )
@@ -228,7 +233,8 @@ class DefaultMainComponent(
     // createChild
 
     private fun createChild(
-        config: MainConfig
+        config: MainConfig,
+        componentContext: ComponentContext
     ): ChildMain =
         when (config) {
             is MainConfig.Home -> ChildMain.HomeChildMain
@@ -236,6 +242,15 @@ class DefaultMainComponent(
             is MainConfig.Basket -> ChildMain.BasketChildMain
             is MainConfig.Favorites -> ChildMain.FavoritesChildMain
             is MainConfig.Profile -> ChildMain.ProfileChildMain
+            is MainConfig.Verification -> ChildMain.VerificationChildMain(
+                component = verificationFactory(
+                    componentContext = componentContext,
+                    settingsType = config.settingsType,
+                    navigateBack = {
+                        modelNavigation.value.mainNavigation.pop()
+                    }
+                )
+            )
         }
     
     private fun handleDeepLink(deepLink: DeepLink) {
@@ -341,6 +356,10 @@ class DefaultMainComponent(
                     activeCurrent = "Profile"
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
                 }
+            }
+
+            is MainConfig.Verification -> {
+
             }
         }
     }

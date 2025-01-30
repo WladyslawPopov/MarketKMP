@@ -186,7 +186,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetLogin(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetLogin(id, body)
@@ -515,7 +515,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetPhone(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetPhone(id, body)
@@ -569,7 +569,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetPassword(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetPassword(id, body)
@@ -587,7 +587,7 @@ class UserOperations(val apiService: APIService) {
         }
     }
 
-    suspend fun postUsersOperationsResetPassword(body: HashMap<String, String>): ServerResponse<DynamicPayload<OperationResult>> {
+    suspend fun postUsersOperationsResetPassword(body: HashMap<String, JsonElement>): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsResetPassword(body)
             try {
@@ -606,7 +606,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetEmail(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetEmail(id, body)
@@ -663,7 +663,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetAboutMe(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsEditAboutMe(id, body)

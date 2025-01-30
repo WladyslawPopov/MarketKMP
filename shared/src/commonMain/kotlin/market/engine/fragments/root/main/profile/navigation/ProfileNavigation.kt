@@ -160,7 +160,8 @@ fun createProfileChild(
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigateToMyOrders: () -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
+    navigateToVerification: (String) -> Unit,
 ): ChildProfile {
 
     val userInfo = UserData.userInfo
@@ -551,6 +552,9 @@ fun createProfileChild(
                 config.settingsType,
                 navigateBack = {
                     profileNavigation.pop()
+                },
+                navigateToVerification = {
+                    navigateToVerification(it)
                 }
             )
         )

@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.profile.profileSettings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Divider
@@ -31,6 +33,7 @@ import io.github.vinceglb.filekit.core.PickerType
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProfileSettingsTypes
@@ -42,6 +45,7 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.exceptions.onError
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -335,11 +339,19 @@ fun globalSettings(
                     modifier = Modifier.fillMaxWidth(0.6f)
                 )
 
-                ActionButton(
-                    strings.actionChangeLabel,
-                    modifier = Modifier.wrapContentSize(),
-                ){
-                    component.navigateToDynamicSettings("set_phone")
+                if (user?.phone == null) {
+                    ActionButton(
+                        strings.actionChangeLabel,
+                        modifier = Modifier.wrapContentSize(),
+                    ) {
+                        component.navigateToDynamicSettings("set_phone")
+                    }
+                }else{
+                    Image(
+                        painterResource(drawables.verifySellersIcon),
+                        contentDescription = null,
+                        modifier = Modifier.size(dimens.mediumIconSize)
+                    )
                 }
             }
 

@@ -7,7 +7,11 @@ import market.engine.core.network.networkObjects.Fields
 
 
 fun checkNumberKeyBoard(field : Fields): KeyboardType {
-    if (field.key == "phone") return KeyboardType.Phone
+    if (field.key == "phone" || field.key == "phone_number" || field.key == "set_phone") return KeyboardType.Phone
+
+    if (field.widgetType == "password") return KeyboardType.Password
+
+    if (field.key == "email") return KeyboardType.Email
 
     if (field.validators?.isNotEmpty() == true) {
         return when(field.validators[0].type){

@@ -174,7 +174,7 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetLogin(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetLogin(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/set_login") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -258,7 +258,7 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetPhone(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetPhone(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/request_phone_verification") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -270,19 +270,19 @@ class APIService(private val client: HttpClient) {
     suspend fun getUsersOperationsResetPassword(): AppResponse =
         client.get("request_password_reset").body()
 
-    suspend fun postUsersOperationsResetPassword(body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsResetPassword(body: Map<String, JsonElement>): AppResponse =
         client.post("request_password_reset") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetPassword(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetPassword(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/set_password") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetEmail(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetEmail(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/request_email_change") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -333,7 +333,7 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsEditAboutMe(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsEditAboutMe(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/edit_about_me") {
             contentType(ContentType.Application.Json)
             setBody(body)

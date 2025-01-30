@@ -231,7 +231,6 @@ fun CreateOfferContent(
                         if (field.links != null) {
                             tempPhotos.add(
                                 PhotoTemp(
-                                    tempId = field.key,
                                     id = field.key,
                                     url = field.links.mid?.jsonPrimitive?.content
                                 )

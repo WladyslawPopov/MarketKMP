@@ -398,4 +398,10 @@ interface Strings {
     val setLoginTitle : StringResource
     val setNewLoginTitle : StringResource
     val yourCurrentLogin : StringResource
+    val editEmailTitle : StringResource
+    val checkOutEmailToast : StringResource
+    val htmlVerifyLabel : StringResource
+    val submitSmsLabel : StringResource
+    val acceptChangesLabel : StringResource
+    val verificationSmsLabel : StringResource
 }

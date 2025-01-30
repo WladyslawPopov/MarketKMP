@@ -36,7 +36,6 @@ class LoginViewModel(
                             val serializer = UserPayload.serializer()
                             val payload : UserPayload = deserializePayload(response.payload, serializer)
 
-                            setLoading(false)
                             if (payload.result == "success") {
                                 _responseAuth.value = payload
                             }else{
@@ -53,6 +52,9 @@ class LoginViewModel(
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            }
+            finally {
+                setLoading(false)
             }
         }
     }
