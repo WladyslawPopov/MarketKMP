@@ -45,7 +45,8 @@ import org.jetbrains.compose.resources.stringResource
 fun DrawerContent(
     drawerState: DrawerState,
     mod: Modifier = Modifier,
-    goToLogin: () -> Unit = {}
+    goToLogin: () -> Unit = {},
+    goToContactUs: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
 
@@ -87,7 +88,7 @@ fun DrawerContent(
             badgeCount = null,
             onClick = {
                 scope.launch {
-
+                    goToContactUs()
                     drawerState.close()
                 }
             }
@@ -270,5 +271,3 @@ fun DrawerContent(
         }
     }
 }
-
-

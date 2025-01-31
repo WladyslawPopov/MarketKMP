@@ -444,7 +444,7 @@ class APIService(private val client: HttpClient) {
     suspend fun getSupServViewModel(): AppResponse =
         client.get("send_message_to_support").body()
 
-    suspend fun postSupServViewModel(body: HashMap<String, String>): AppResponse =
+    suspend fun postSupServViewModel(body: HashMap<String, JsonElement>): AppResponse =
         client.post("send_message_to_support") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -477,7 +477,7 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postRegistration(body: HashMap<String, String>): AppResponse =
+    suspend fun postRegistration(body: HashMap<String, JsonElement>): AppResponse =
         client.post("registration") {
             contentType(ContentType.Application.Json)
             setBody(body)

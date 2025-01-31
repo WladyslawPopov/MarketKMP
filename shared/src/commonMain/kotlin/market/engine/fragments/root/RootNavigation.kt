@@ -9,8 +9,10 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import market.engine.fragments.root.contactUs.ContactUsContent
 import market.engine.fragments.root.login.LoginContent
 import market.engine.fragments.root.main.MainNavigation
+import market.engine.fragments.root.registration.RegistrationContent
 
 @Composable
 fun RootNavigation(
@@ -34,6 +36,14 @@ fun RootNavigation(
                 is RootComponent.Child.LoginChild -> {
                     LoginContent(instance.component)
                 }
+
+                is RootComponent.Child.RegistrationChild -> {
+                    RegistrationContent(instance.component)
+                }
+
+                is RootComponent.Child.ContactUsChild -> {
+                    ContactUsContent(instance.component)
+                }
             }
         }
     }
@@ -46,4 +56,10 @@ sealed class RootConfig {
 
     @Serializable
     data object Login : RootConfig()
+
+    @Serializable
+    data object Registration : RootConfig()
+
+    @Serializable
+    data object ContactUs : RootConfig()
 }

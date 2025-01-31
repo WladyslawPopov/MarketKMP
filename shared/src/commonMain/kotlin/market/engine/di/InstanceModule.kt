@@ -25,9 +25,11 @@ import market.engine.fragments.root.login.LoginViewModel
 import market.engine.fragments.offer.OfferViewModel
 import market.engine.fragments.listing.search.SearchViewModel
 import market.engine.fragments.messenger.DialogsViewModel
+import market.engine.fragments.root.contactUs.ContactUsViewModel
 import market.engine.fragments.root.main.profile.ProfileViewModel
 import market.engine.fragments.root.main.favorites.subscriptions.SubViewModel
 import market.engine.fragments.root.main.profile.conversations.ConversationsViewModel
+import market.engine.fragments.root.registration.RegViewModel
 import market.engine.fragments.user.UserViewModel
 import market.engine.fragments.user.feedbacks.FeedbacksViewModel
 import market.engine.fragments.verifyPage.VerificationViewModel
@@ -64,6 +66,8 @@ val viewModelModule = module {
     viewModelOf(::DialogsViewModel)
     viewModelOf(::DynamicSettingsViewModel)
     viewModelOf(::VerificationViewModel)
+    viewModelOf(::RegViewModel)
+    viewModelOf(::ContactUsViewModel)
 }
 
 val networkModule = module {

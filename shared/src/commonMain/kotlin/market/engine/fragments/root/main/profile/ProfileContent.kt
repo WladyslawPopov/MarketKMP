@@ -6,7 +6,6 @@ import androidx.compose.ui.Modifier
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.exceptions.ProfileNavContent
 
-
 @Composable
 fun ProfileContent(
     component: ProfileComponent,

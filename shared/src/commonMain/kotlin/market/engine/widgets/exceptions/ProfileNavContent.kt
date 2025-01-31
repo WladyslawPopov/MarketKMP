@@ -46,6 +46,7 @@ fun ProfileNavContent(
     goToSubscriptions: (() -> Unit)?=null,
 ) {
     val userInfo = UserData.userInfo
+
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,

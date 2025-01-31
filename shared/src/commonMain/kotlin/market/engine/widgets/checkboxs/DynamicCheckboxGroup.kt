@@ -97,7 +97,7 @@ fun DynamicCheckboxGroup(
                         text = choice.name.orEmpty(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.black,
-                        modifier = Modifier.padding(start = dimens.smallPadding)
+                        modifier = Modifier.padding(start = dimens.smallPadding).fillMaxWidth(0.5f)
                     )
                 }
             }

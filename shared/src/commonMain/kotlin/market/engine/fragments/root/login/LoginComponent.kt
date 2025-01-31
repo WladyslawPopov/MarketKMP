@@ -5,7 +5,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.SAPI
-import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
 
 interface LoginComponent {
@@ -17,13 +16,16 @@ interface LoginComponent {
 
     fun onLogin(email : String, password : String, captcha : String? = null)
 
+    fun goToRegistration()
+
     fun onBack()
 }
 
 class DefaultLoginComponent(
     componentContext: ComponentContext,
+    private val navigateToRegistration: () -> Unit,
     private val onBackSelected: () -> Unit
-) : LoginComponent {
+) : LoginComponent, ComponentContext by componentContext  {
 
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
@@ -52,6 +54,10 @@ class DefaultLoginComponent(
             }
         }
         model.value.loginViewModel.postAuth(body)
+    }
+
+    override fun goToRegistration() {
+        navigateToRegistration()
     }
 
     override fun onBack() {

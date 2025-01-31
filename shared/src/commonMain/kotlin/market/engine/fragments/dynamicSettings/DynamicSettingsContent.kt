@@ -1,6 +1,5 @@
 package market.engine.fragments.dynamicSettings
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +25,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
@@ -36,20 +33,18 @@ import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
-import io.ktor.util.decodeBase64Bytes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
-import market.engine.common.decodeToImageBitmap
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.exceptions.SetUpDynamicFields
 import market.engine.widgets.rows.RichTextStyleRow
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
@@ -331,43 +326,6 @@ fun DynamicSettingsContent(
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SetUpDynamicFields(
-    fields: List<Fields>
-){
-    fields.forEach { field ->
-        when(field.widgetType) {
-            "input" -> {
-                DynamicInputField(
-                    field = field
-                )
-            }
-
-            "password" -> {
-                DynamicInputField(
-                    field = field
-                )
-            }
-
-            "hidden" -> {
-                if (field.key == "captcha_image") {
-                    val captchaImage = field.data?.jsonPrimitive?.content ?: ""
-                    val bitmap = captchaImage.substring(24).decodeBase64Bytes()
-                    val imageBitmap = decodeToImageBitmap(bitmap)
-
-                    Image(
-                        BitmapPainter(imageBitmap),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(250.dp)
-                            .height(100.dp)
-                    )
                 }
             }
         }

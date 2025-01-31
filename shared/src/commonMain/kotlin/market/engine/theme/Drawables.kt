@@ -142,4 +142,5 @@ interface Drawables {
    val nextArrowIcon : DrawableResource
    val attachIcon : DrawableResource
    val sendMesIcon : DrawableResource
+   val documentIcon : DrawableResource
 }

@@ -66,6 +66,7 @@ class DefaultMainComponent(
     componentContext: ComponentContext,
     deepLink: DeepLink?,
     val goToLoginSelected: () -> Unit,
+    val contactUsSelected: () -> Unit
 ) : MainComponent, ComponentContext by componentContext {
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
@@ -101,6 +102,9 @@ class DefaultMainComponent(
                     },
                     navigateToDialog = { dialogId ->
                         navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
+                    },
+                    navigateToContactUs = {
+                        contactUsSelected()
                     }
                 )
             },

@@ -7,17 +7,20 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.items.DeepLink
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
+import market.engine.fragments.root.contactUs.ContactUsComponent
+import market.engine.fragments.root.contactUs.DefaultContactUsComponent
 import market.engine.fragments.root.login.DefaultLoginComponent
 import market.engine.fragments.root.login.LoginComponent
 import market.engine.fragments.root.main.DefaultMainComponent
 import market.engine.fragments.root.main.MainComponent
+import market.engine.fragments.root.registration.DefaultRegistrationComponent
+import market.engine.fragments.root.registration.RegistrationComponent
 import org.koin.mp.KoinPlatform.getKoin
 
 interface RootComponent {
@@ -26,6 +29,8 @@ interface RootComponent {
     sealed class Child {
         class MainChild(val component: MainComponent) : Child()
         class LoginChild(val component: LoginComponent) : Child()
+        class RegistrationChild(val component: RegistrationComponent) : Child()
+        class ContactUsChild(val component: ContactUsComponent) : Child()
     }
 
     fun backToMain()
@@ -90,13 +95,34 @@ class DefaultRootComponent(
                 DefaultMainComponent(
                     componentContext,
                     deepLink = deepLink,
-                    ::navigateToLogin
+                    goToLoginSelected =::navigateToLogin,
+                    contactUsSelected = {
+                        navigation.pushNew(RootConfig.ContactUs)
+                    },
+
                 )
             )
             RootConfig.Login -> RootComponent.Child.LoginChild(
                 DefaultLoginComponent(
                     componentContext,
+                    navigateToRegistration = {
+                        navigation.pushNew(RootConfig.Registration)
+                    },
                     ::backToMain
+                )
+            )
+
+            RootConfig.Registration -> RootComponent.Child.RegistrationChild(
+                DefaultRegistrationComponent(
+                    componentContext = componentContext,
+                    onBackSelected = ::backToMain
+                )
+            )
+
+            RootConfig.ContactUs -> RootComponent.Child.ContactUsChild(
+                DefaultContactUsComponent(
+                    componentContext = componentContext,
+                    onBackSelected = ::backToMain
                 )
             )
         }

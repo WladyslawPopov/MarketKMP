@@ -37,6 +37,7 @@ fun DynamicInputField(
     suffix : String? = null,
     mandatory: Boolean? = null,
     singleLine: Boolean = true,
+    enabled: Boolean = true
 ) {
 
     LaunchedEffect(Unit) {
@@ -107,6 +108,7 @@ fun DynamicInputField(
             },
             modifier = modifier,
             singleLine = singleLine,
+            enabled = enabled,
             shape = MaterialTheme.shapes.medium,
             colors = TextFieldDefaults.colors(
                 focusedTextColor = colors.black,
@@ -137,7 +139,8 @@ fun DynamicInputField(
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.notifyTextColor
                 )
-            }
+            },
+            maxLines = 4
         )
     }
 }

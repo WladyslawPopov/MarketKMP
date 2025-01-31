@@ -54,7 +54,7 @@ fun DynamicSelect(
         modifier = modifier
     ){
         DynamicLabel(
-            text = field.longDescription ?: field.shortDescription ?: "",
+            text = field.shortDescription ?: field.longDescription ?: "" ,
             isMandatory = isMandatory.value,
             modifier = Modifier.padding(dimens.smallPadding)
         )

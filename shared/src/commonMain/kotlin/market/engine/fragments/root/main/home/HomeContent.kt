@@ -152,9 +152,16 @@ fun HomeContent(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            DrawerContent(drawerState, modifier) {
-                component.goToLogin()
-            }
+            DrawerContent(
+                drawerState,
+                modifier,
+                goToContactUs = {
+                    component.goToContactUs()
+                },
+                goToLogin = {
+                    component.goToLogin()
+                }
+            )
         },
         gesturesEnabled = drawerState.isOpen,
     ) {

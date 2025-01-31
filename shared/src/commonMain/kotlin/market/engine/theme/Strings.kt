@@ -404,4 +404,9 @@ interface Strings {
     val submitSmsLabel : StringResource
     val acceptChangesLabel : StringResource
     val verificationSmsLabel : StringResource
+    val registrationDisclaimer : StringResource
+    val registrationSuccessLabel : StringResource
+    val goBackLabel : StringResource
+    val contactUsHeaderLabel : StringResource
+    val actionSend : StringResource
 }

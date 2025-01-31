@@ -5,17 +5,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -53,7 +52,7 @@ fun LoginContent(
     component: LoginComponent,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
+    val scrollState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
 
@@ -160,92 +159,98 @@ fun LoginContent(
                     )
                 },
         ) {
-            Column(
+            LazyColumn(
+                state = scrollState,
                 modifier = Modifier
                     .fillMaxHeight()
-                    .padding(dimens.mediumPadding)
-                    .verticalScroll(scrollState)
-                    .imePadding(),
+                    .padding(dimens.mediumPadding),
                 verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(drawables.logo),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(height = 100.dp, width = 300.dp)
-                        .padding(dimens.mediumPadding)
-                )
+                item {
+                    Image(
+                        painter = painterResource(drawables.logo),
+                        contentDescription = "",
+                        modifier = Modifier
+                            .size(height = 100.dp, width = 300.dp)
+                            .padding(dimens.mediumPadding)
+                    )
+                    Spacer(modifier.height(dimens.mediumSpacer))
+                }
 
-                Spacer(modifier.height(dimens.mediumSpacer))
+                item {
+                    CaptchaView(
+                        isVisible = isCaptchaVisible.value,
+                        captchaImage = postAuth.value?.captchaImage ?: "",
+                        captchaTextValue = captchaTextValue.value,
+                        focusRequester = focusRequester,
+                        onCaptchaTextChange = {
+                            captchaTextValue.value = it
+                        }
+                    )
+                }
+                 item {
+                     TextInputField(
+                         value = emailTextValue.value,
+                         onValueChange = {
+                             emailTextValue.value = it
+                         },
+                         label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
+                         keyboardType = KeyboardType.Email,
+                         focusRequester = focusRequester,
+                         isEmail = true
+                     )
 
-                CaptchaView(
-                    isVisible = isCaptchaVisible.value,
-                    captchaImage = postAuth.value?.captchaImage ?: "",
-                    captchaTextValue = captchaTextValue.value,
-                    focusRequester = focusRequester,
-                    onCaptchaTextChange = {
-                        captchaTextValue.value = it
-                    }
-                )
-
-                TextInputField(
-                    value = emailTextValue.value,
-                    onValueChange = {
-                        emailTextValue.value = it
-                    },
-                    label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
-                    keyboardType = KeyboardType.Email,
-                    focusRequester = focusRequester,
-                    isEmail = true
-                )
-
-                TextInputField(
-                    value = passwordTextValue.value,
-                    onValueChange = {
-                        passwordTextValue.value = it
-                    },
-                    label = stringResource(strings.promptPassword),
-                    keyboardType = KeyboardType.Password,
-                    isPassword = true,
-                    focusRequester = focusRequester
-                )
-
-                Row(
-                    modifier = Modifier.padding(dimens.smallPadding),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SimpleTextButton(
-                        text = stringResource(strings.enterLogin),
-                        textColor = colors.alwaysWhite,
-                        backgroundColor = colors.inactiveBottomNavIconColor,
+                     TextInputField(
+                         value = passwordTextValue.value,
+                         onValueChange = {
+                             passwordTextValue.value = it
+                         },
+                         label = stringResource(strings.promptPassword),
+                         keyboardType = KeyboardType.Password,
+                         isPassword = true,
+                         focusRequester = focusRequester
+                     )
+                 }
+                 item {
+                    Row(
+                        modifier = Modifier.padding(dimens.smallPadding),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (emailTextValue.value.text != "" && passwordTextValue.value.text != ""){
-                            isCaptchaVisible.value = false
-                            component.onLogin(
-                                emailTextValue.value.text,
-                                passwordTextValue.value.text,
-                                captchaTextValue.value.text
-                            )
-                        }else{
-                            model.showToast(
-                                ToastItem(
-                                    message = errorLogin,
-                                    type = ToastType.WARNING,
-                                    isVisible = true
+                        SimpleTextButton(
+                            text = stringResource(strings.enterLogin),
+                            textColor = colors.alwaysWhite,
+                            backgroundColor = colors.inactiveBottomNavIconColor,
+                            textStyle = MaterialTheme.typography.titleMedium
+                        ) {
+                            if (emailTextValue.value.text != "" && passwordTextValue.value.text != ""){
+                                isCaptchaVisible.value = false
+                                component.onLogin(
+                                    emailTextValue.value.text,
+                                    passwordTextValue.value.text,
+                                    captchaTextValue.value.text
                                 )
-                            )
+                            }else{
+                                model.showToast(
+                                    ToastItem(
+                                        message = errorLogin,
+                                        type = ToastType.WARNING,
+                                        isVisible = true
+                                    )
+                                )
+                            }
+                        }
+
+                        SimpleTextButton(
+                            text = stringResource(strings.registration),
+                            backgroundColor = colors.grayLayout,
+                            textStyle = MaterialTheme.typography.titleMedium
+                        ){
+                            component.goToRegistration()
                         }
                     }
-
-                    SimpleTextButton(
-                        text = stringResource(strings.registration),
-                        backgroundColor = colors.grayLayout,
-                    ){
-
-                    }
-                }
+                 }
             }
         }
     }
