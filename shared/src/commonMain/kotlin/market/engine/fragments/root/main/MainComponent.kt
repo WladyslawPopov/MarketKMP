@@ -66,7 +66,7 @@ interface MainComponent {
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
-    var deepLink: DeepLink?,
+    private var deepLink: DeepLink?,
     val goToLoginSelected: () -> Unit,
     val contactUsSelected: () -> Unit,
     val navigateToVerification: (String, Long?, String?) -> Unit,
@@ -235,9 +235,11 @@ class DefaultMainComponent(
     val userInfo = UserData.userInfo
 
     init {
-        lifecycle.doOnResume {
-            deepLink?.let { handleDeepLink(it) }
-            deepLink = null
+        if(deepLink != null) {
+            lifecycle.doOnResume {
+                deepLink?.let { handleDeepLink(it) }
+                deepLink = null
+            }
         }
     }
 
