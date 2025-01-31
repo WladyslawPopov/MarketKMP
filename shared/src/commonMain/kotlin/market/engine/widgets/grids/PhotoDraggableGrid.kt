@@ -21,7 +21,7 @@ import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.operations.uploadFile
-import market.engine.fragments.createOffer.CreateOfferViewModel
+import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
 import market.engine.widgets.items.PhotoCard
 import org.jetbrains.compose.resources.stringResource
 import sh.calvin.reorderable.ReorderableItem

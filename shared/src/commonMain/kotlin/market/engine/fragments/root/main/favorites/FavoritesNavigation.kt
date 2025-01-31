@@ -22,27 +22,27 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.fragments.createOffer.createOfferFactory
-import market.engine.fragments.listing.listingFactory
-import market.engine.fragments.offer.offerFactory
-import market.engine.fragments.user.userFactory
+import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.createOffer.CreateOfferComponent
-import market.engine.fragments.createOffer.CreateOfferContent
-import market.engine.fragments.createOrder.CreateOrderComponent
-import market.engine.fragments.createOrder.CreateOrderContent
-import market.engine.fragments.listing.ListingComponent
-import market.engine.fragments.listing.ListingContent
-import market.engine.fragments.offer.OfferComponent
-import market.engine.fragments.offer.OfferContent
+import market.engine.fragments.root.main.createOffer.CreateOfferComponent
+import market.engine.fragments.root.main.createOffer.CreateOfferContent
+import market.engine.fragments.root.main.createOffer.createOfferFactory
+import market.engine.fragments.root.main.createOrder.CreateOrderComponent
+import market.engine.fragments.root.main.createOrder.CreateOrderContent
+import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.favorites.subscriptions.DefaultSubscribesComponent
 import market.engine.fragments.root.main.favorites.subscriptions.SubscribesComponent
 import market.engine.fragments.root.main.favorites.subscriptions.SubscribesContent
-import market.engine.fragments.user.UserComponent
-import market.engine.fragments.user.UserContent
-import market.engine.fragments.createOrder.createOrderFactory
+import market.engine.fragments.root.main.listing.ListingComponent
+import market.engine.fragments.root.main.listing.ListingContent
+import market.engine.fragments.root.main.listing.listingFactory
+import market.engine.fragments.root.main.offer.OfferComponent
+import market.engine.fragments.root.main.offer.OfferContent
+import market.engine.fragments.root.main.offer.offerFactory
+import market.engine.fragments.root.main.user.UserComponent
+import market.engine.fragments.root.main.user.UserContent
 
 @Serializable
 sealed class FavoritesConfig {

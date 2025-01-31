@@ -27,36 +27,33 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.fragments.createOffer.createOfferFactory
-import market.engine.fragments.listing.listingFactory
-import market.engine.fragments.offer.offerFactory
-import market.engine.fragments.user.userFactory
+import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.createOffer.CreateOfferComponent
-import market.engine.fragments.createOffer.CreateOfferContent
-import market.engine.fragments.createOrder.CreateOrderComponent
-import market.engine.fragments.createOrder.CreateOrderContent
-import market.engine.fragments.listing.ListingComponent
-import market.engine.fragments.listing.ListingContent
-import market.engine.fragments.offer.OfferComponent
-import market.engine.fragments.offer.OfferContent
+import market.engine.fragments.root.main.createOffer.CreateOfferComponent
+import market.engine.fragments.root.main.createOffer.CreateOfferContent
+import market.engine.fragments.root.main.createOffer.createOfferFactory
+import market.engine.fragments.root.main.createOrder.CreateOrderComponent
+import market.engine.fragments.root.main.createOrder.CreateOrderContent
+import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.listing.ListingComponent
+import market.engine.fragments.root.main.listing.ListingContent
+import market.engine.fragments.root.main.listing.listingFactory
+import market.engine.fragments.root.main.messenger.DialogsComponent
+import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.messenger.messengerFactory
+import market.engine.fragments.root.main.offer.OfferComponent
+import market.engine.fragments.root.main.offer.OfferContent
+import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.profile.DefaultProfileComponent
 import market.engine.fragments.root.main.profile.ProfileComponent
 import market.engine.fragments.root.main.profile.ProfileContent
-import market.engine.fragments.user.UserComponent
-import market.engine.fragments.user.UserContent
-import market.engine.fragments.createOrder.createOrderFactory
-import market.engine.fragments.dynamicSettings.DynamicSettingsComponent
-import market.engine.fragments.dynamicSettings.DynamicSettingsContent
-import market.engine.fragments.dynamicSettings.dynamicSettingsFactory
-import market.engine.fragments.messenger.DialogsComponent
-import market.engine.fragments.messenger.DialogsContent
-import market.engine.fragments.messenger.messengerFactory
+import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
 import market.engine.fragments.root.main.profile.conversations.conversationsFactory
+import market.engine.fragments.root.main.user.UserContent
 
 @Serializable
 sealed class ProfileConfig {
@@ -103,9 +100,6 @@ sealed class ProfileConfig {
 
     @Serializable
     data class DialogsScreen(val dialogId : Long) : ProfileConfig()
-
-    @Serializable
-    data class DynamicSettingsScreen(val settingsType : String) : ProfileConfig()
 }
 
 sealed class ChildProfile {
@@ -121,7 +115,6 @@ sealed class ChildProfile {
     class ConversationsChild(val component: ConversationsComponent) : ChildProfile()
     class MyBidsChild(val component: ProfileComponent) : ChildProfile()
     class DialogsChild(val component: DialogsComponent) : ChildProfile()
-    class DynamicSettingsChild(val component: DynamicSettingsComponent) : ChildProfile()
 }
 
 @Composable
@@ -150,7 +143,6 @@ fun ProfileNavigation(
             is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier)
             is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
             is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier)
-            is ChildProfile.DynamicSettingsChild -> DynamicSettingsContent(screen.component)
         }
     }
 }
@@ -161,7 +153,7 @@ fun createProfileChild(
     profileNavigation: StackNavigation<ProfileConfig>,
     navigateToMyOrders: () -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToVerification: (String) -> Unit,
+    navigateToDynamicSettings: (String) -> Unit
 ): ChildProfile {
 
     val userInfo = UserData.userInfo
@@ -325,12 +317,13 @@ fun createProfileChild(
                 componentContext,
                 profileNavigation,
                 profilePublicNavigationList.value,
-                selectedPage = config.openPage
+                selectedPage = config.openPage,
+                navigateToDynamicSettings = navigateToDynamicSettings
             )
         )
 
         ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
-            component = itemProfile(componentContext, profileNavigation, profilePublicNavigationList.value)
+            component = itemProfile(componentContext, profileNavigation, profilePublicNavigationList.value, navigateToDynamicSettings)
         )
 
         is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
@@ -486,6 +479,7 @@ fun createProfileChild(
                 componentContext,
                 profileNavigation,
                 profilePublicNavigationList.value,
+                navigateToDynamicSettings,
                 if(config.typeGroup == DealTypeGroup.BUY) "purchases/${config.id}" else "sales/${config.id}"
             )
         )
@@ -508,6 +502,7 @@ fun createProfileChild(
                 componentContext,
                 profileNavigation,
                 profilePublicNavigationList.value,
+                navigateToDynamicSettings
             )
         )
 
@@ -543,19 +538,7 @@ fun createProfileChild(
                 componentContext,
                 profileNavigation,
                 profilePublicNavigationList.value,
-            )
-        )
-
-        is ProfileConfig.DynamicSettingsScreen -> ChildProfile.DynamicSettingsChild(
-            component = dynamicSettingsFactory(
-                componentContext,
-                config.settingsType,
-                navigateBack = {
-                    profileNavigation.pop()
-                },
-                navigateToVerification = {
-                    navigateToVerification(it)
-                }
+                navigateToDynamicSettings
             )
         )
     }
@@ -565,12 +548,14 @@ fun itemProfile(
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigationItems : List<NavigationItem>,
-    selectedPage : String? = null
+    navigateToDynamicSettings: (String) -> Unit,
+    selectedPage : String? = null,
 ): ProfileComponent {
     return DefaultProfileComponent(
         componentContext = componentContext,
         navigationItems = navigationItems,
         profileNavigation,
-        selectedPage = selectedPage
+        selectedPage = selectedPage,
+        navigateToDynamicSettings = navigateToDynamicSettings
     )
 }

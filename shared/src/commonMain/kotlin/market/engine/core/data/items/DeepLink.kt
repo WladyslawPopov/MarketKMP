@@ -1,10 +1,12 @@
 package market.engine.core.data.items
 
 sealed class DeepLink {
-    class User(val userId: Long) : DeepLink()
-    class Listing(val ownerId: Long) : DeepLink()
-    class Offer(val offerId: Long) : DeepLink()
-    class Auth(val clientId: String?=null, val redirectUri: String?=null) : DeepLink()
-    data object Registration : DeepLink()
+    class GoToUser(val userId: Long) : DeepLink()
+    class GoToListing(val ownerId: Long) : DeepLink()
+    class GoToOffer(val offerId: Long) : DeepLink()
+    class GoToDynamicSettings(val ownerId: Long?, val code: String?, val settingsType: String) : DeepLink()
+    class GoToVerification(val ownerId: Long?, val code: String?, val settingsType: String?) : DeepLink()
+    class GoToAuth(val clientId: String?=null, val redirectUri: String?=null) : DeepLink()
+    data object GoToRegistration : DeepLink()
     data class Unknown(val path: String) : DeepLink()
 }

@@ -42,13 +42,13 @@ open class GenericPagingSource<T : Any>(
                         val value = deserializePayload(data.payload, serializer)
                         listingData.data.value.totalCount = value.totalCount
 
-                        if (listingData.searchData.value.userSearch &&
-                            listingData.searchData.value.userID != 1L &&
+                        if (listingData.searchData.value.userID != 1L &&
                             listingData.searchData.value.userLogin.isNullOrEmpty()
                         ){
                             val firstObject = value.objects.firstOrNull()
                             if (firstObject is Offer) {
                                 listingData.searchData.value.userLogin = firstObject.sellerData?.login
+                                listingData.searchData = listingData.searchData
                             }
                         }
 

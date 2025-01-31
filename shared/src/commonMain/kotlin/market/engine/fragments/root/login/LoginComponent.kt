@@ -17,6 +17,7 @@ interface LoginComponent {
     fun onLogin(email : String, password : String, captcha : String? = null)
 
     fun goToRegistration()
+    fun goToForgotPassword()
 
     fun onBack()
 }
@@ -24,6 +25,7 @@ interface LoginComponent {
 class DefaultLoginComponent(
     componentContext: ComponentContext,
     private val navigateToRegistration: () -> Unit,
+    private val navigateToForgotPassword: () -> Unit,
     private val onBackSelected: () -> Unit
 ) : LoginComponent, ComponentContext by componentContext  {
 
@@ -58,6 +60,10 @@ class DefaultLoginComponent(
 
     override fun goToRegistration() {
         navigateToRegistration()
+    }
+
+    override fun goToForgotPassword() {
+        navigateToForgotPassword()
     }
 
     override fun onBack() {

@@ -93,11 +93,13 @@ fun itemProfileSettings(
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
     selectProfileSettingsPage: (ProfileSettingsTypes) -> Unit,
+    selectDynamicSettings: (String) -> Unit
 ): ProfileSettingsComponent {
     return DefaultProfileSettingsComponent(
         componentContext = componentContext,
         type = config.settingsType,
         selectedPage = selectProfileSettingsPage,
-        profileNavigation = profileNavigation
+        profileNavigation = profileNavigation,
+        goToDynamicSettings = selectDynamicSettings
     )
 }

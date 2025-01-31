@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -21,10 +20,7 @@ import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.favorites.FavoritesNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
-import market.engine.fragments.root.main.search.SearchNavigation
-import market.engine.fragments.verifyPage.VerificationComponent
-import market.engine.fragments.verifyPage.VerificationContent
-import market.engine.fragments.verifyPage.verificationFactory
+import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.widgets.bars.getBottomNavBar
 
 
@@ -34,7 +30,6 @@ sealed class ChildMain {
     data object BasketChildMain : ChildMain()
     data object FavoritesChildMain : ChildMain()
     data object ProfileChildMain : ChildMain()
-    data class VerificationChildMain(val component: VerificationComponent) : ChildMain()
 }
 
 @Composable
@@ -50,7 +45,6 @@ fun MainNavigation(
         is ChildMain.BasketChildMain -> 2
         is ChildMain.FavoritesChildMain -> 3
         is ChildMain.ProfileChildMain -> 4
-        is ChildMain.VerificationChildMain -> 5
     }
 
     val userInfo = UserData.userInfo
@@ -138,9 +132,6 @@ fun MainNavigation(
 
                 is ChildMain.ProfileChildMain ->
                     ProfileNavigation(modifier, component.childProfileStack)
-
-                is ChildMain.VerificationChildMain ->
-                    VerificationContent(screen.component)
             }
         }
     }
@@ -158,6 +149,4 @@ sealed class MainConfig {
     data object Favorites : MainConfig()
     @Serializable
     data object Profile : MainConfig()
-    @Serializable
-    data class Verification(val settingsType : String) : MainConfig()
 }

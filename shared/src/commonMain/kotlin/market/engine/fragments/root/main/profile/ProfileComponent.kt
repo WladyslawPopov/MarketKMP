@@ -62,6 +62,7 @@ class DefaultProfileComponent(
     componentContext: ComponentContext,
     val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
+    private val navigateToDynamicSettings : (String) -> Unit,
     selectedPage : String?,
 ) : ProfileComponent, ComponentContext by componentContext {
 
@@ -212,7 +213,8 @@ class DefaultProfileComponent(
                     navigationProfile,
                     selectProfileSettingsPage = { type ->
                         selectProfileSettingsPage(type)
-                    }
+                    },
+                    selectDynamicSettings = navigateToDynamicSettings
                 )
             }
         )

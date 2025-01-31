@@ -15,22 +15,28 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.contactUs.ContactUsComponent
 import market.engine.fragments.root.contactUs.DefaultContactUsComponent
+import market.engine.fragments.root.dynamicSettings.DynamicSettingsComponent
+import market.engine.fragments.root.dynamicSettings.dynamicSettingsFactory
 import market.engine.fragments.root.login.DefaultLoginComponent
 import market.engine.fragments.root.login.LoginComponent
 import market.engine.fragments.root.main.DefaultMainComponent
 import market.engine.fragments.root.main.MainComponent
 import market.engine.fragments.root.registration.DefaultRegistrationComponent
 import market.engine.fragments.root.registration.RegistrationComponent
+import market.engine.fragments.root.verifyPage.VerificationComponent
+import market.engine.fragments.root.verifyPage.verificationFactory
 import org.koin.mp.KoinPlatform.getKoin
 
 interface RootComponent {
     val childStack: Value<ChildStack<*, Child>>
 
     sealed class Child {
-        class MainChild(val component: MainComponent) : Child()
-        class LoginChild(val component: LoginComponent) : Child()
-        class RegistrationChild(val component: RegistrationComponent) : Child()
-        class ContactUsChild(val component: ContactUsComponent) : Child()
+        data class MainChild(val component: MainComponent) : Child()
+        data class LoginChild(val component: LoginComponent) : Child()
+        data class RegistrationChild(val component: RegistrationComponent) : Child()
+        data class ContactUsChild(val component: ContactUsComponent) : Child()
+        data class VerificationChildMain(val component: VerificationComponent) : Child()
+        data class DynamicSettingsChild(val component: DynamicSettingsComponent) : Child()
     }
 
     fun backToMain()
@@ -99,7 +105,12 @@ class DefaultRootComponent(
                     contactUsSelected = {
                         navigation.pushNew(RootConfig.ContactUs)
                     },
-
+                    navigateToDynamicSettings = { settingsType, ownerId, code ->
+                       navigation.pushNew(RootConfig.DynamicSettingsScreen(settingsType, ownerId, code))
+                    },
+                    navigateToVerification = { settingsType, ownerId, code ->
+                        navigation.pushNew(RootConfig.Verification(settingsType, ownerId, code))
+                    }
                 )
             )
             RootConfig.Login -> RootComponent.Child.LoginChild(
@@ -107,6 +118,9 @@ class DefaultRootComponent(
                     componentContext,
                     navigateToRegistration = {
                         navigation.pushNew(RootConfig.Registration)
+                    },
+                    navigateToForgotPassword = {
+                        navigation.pushNew(RootConfig.DynamicSettingsScreen("forgot_password"))
                     },
                     ::backToMain
                 )
@@ -123,6 +137,30 @@ class DefaultRootComponent(
                 DefaultContactUsComponent(
                     componentContext = componentContext,
                     onBackSelected = ::backToMain
+                )
+            )
+
+            is RootConfig.Verification -> RootComponent.Child.VerificationChildMain(
+                verificationFactory(
+                    componentContext = componentContext,
+                    owner = rootConfig.ownerId,
+                    code = rootConfig.code,
+                    settingsType = rootConfig.settingsType,
+                    navigateBack = ::backToMain,
+                    navigateLogin = ::navigateToLogin
+                )
+            )
+
+            is RootConfig.DynamicSettingsScreen ->RootComponent.Child.DynamicSettingsChild(
+                component = dynamicSettingsFactory(
+                    componentContext,
+                    owner = rootConfig.ownerId,
+                    code = rootConfig.code,
+                    settingsType = rootConfig.settingsType,
+                    navigateBack = ::backToMain,
+                    navigateToVerification = {
+                       navigation.pushNew(RootConfig.Verification(it))
+                    }
                 )
             )
         }

@@ -28,6 +28,7 @@ class DefaultProfileSettingsComponent(
     val type : ProfileSettingsTypes,
     val selectedPage : (ProfileSettingsTypes) -> Unit,
     val profileNavigation: StackNavigation<ProfileConfig>,
+    val goToDynamicSettings : (String) -> Unit,
     componentContext: ComponentContext,
 ) : ProfileSettingsComponent, ComponentContext by componentContext
 {
@@ -81,6 +82,6 @@ class DefaultProfileSettingsComponent(
     }
 
     override fun navigateToDynamicSettings(settingsType: String) {
-        profileNavigation.pushNew(ProfileConfig.DynamicSettingsScreen(settingsType))
+        goToDynamicSettings(settingsType)
     }
 }

@@ -4,17 +4,19 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.FavScreenType
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.basket.BasketConfig
 import market.engine.fragments.root.main.basket.ChildBasket
 import market.engine.fragments.root.main.home.ChildHome
@@ -28,10 +30,10 @@ import market.engine.fragments.root.main.favorites.pushFavStack
 import market.engine.fragments.root.main.profile.navigation.ChildProfile
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.fragments.root.main.profile.navigation.createProfileChild
-import market.engine.fragments.root.main.search.ChildSearch
-import market.engine.fragments.root.main.search.SearchConfig
-import market.engine.fragments.root.main.search.createSearchChild
-import market.engine.fragments.verifyPage.verificationFactory
+import market.engine.fragments.root.main.listing.ChildSearch
+import market.engine.fragments.root.main.listing.SearchConfig
+import market.engine.fragments.root.main.listing.createSearchChild
+import org.jetbrains.compose.resources.getString
 
 interface MainComponent {
 
@@ -64,9 +66,12 @@ interface MainComponent {
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
-    deepLink: DeepLink?,
+    var deepLink: DeepLink?,
     val goToLoginSelected: () -> Unit,
-    val contactUsSelected: () -> Unit
+    val contactUsSelected: () -> Unit,
+    val navigateToVerification: (String, Long?, String?) -> Unit,
+    val navigateToDynamicSettings: (String, Long?, String?) -> Unit,
+
 ) : MainComponent, ComponentContext by componentContext {
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
@@ -83,8 +88,7 @@ class DefaultMainComponent(
     private var openPage: String? = null
     
     // Stacks
-    override val childHomeStack: Value<ChildStack<*, ChildHome>> by lazy {
-        childStack(
+    override val childHomeStack: Value<ChildStack<*, ChildHome>> = childStack(
             source = modelNavigation.value.homeNavigation,
             initialConfiguration = HomeConfig.HomeScreen,
             serializer = HomeConfig.serializer(),
@@ -110,7 +114,7 @@ class DefaultMainComponent(
             },
             key = "HomeStack"
         )
-    }
+
 
     override val childSearchStack: Value<ChildStack<*, ChildSearch>> by lazy {
         val categoryData = ListingData()
@@ -208,8 +212,8 @@ class DefaultMainComponent(
                     navigateToLogin = {
                         goToLogin(true)
                     },
-                    navigateToVerification = { settingsType ->
-                        modelNavigation.value.mainNavigation.pushNew(MainConfig.Verification(settingsType))
+                    navigateToDynamicSettings = { settingsType ->
+                        navigateToDynamicSettings(settingsType, null, null)
                     }
                 )
             },
@@ -231,7 +235,10 @@ class DefaultMainComponent(
     val userInfo = UserData.userInfo
 
     init {
-        deepLink?.let { handleDeepLink(it) }
+        lifecycle.doOnResume {
+            deepLink?.let { handleDeepLink(it) }
+            deepLink = null
+        }
     }
 
     // createChild
@@ -246,45 +253,54 @@ class DefaultMainComponent(
             is MainConfig.Basket -> ChildMain.BasketChildMain
             is MainConfig.Favorites -> ChildMain.FavoritesChildMain
             is MainConfig.Profile -> ChildMain.ProfileChildMain
-            is MainConfig.Verification -> ChildMain.VerificationChildMain(
-                component = verificationFactory(
-                    componentContext = componentContext,
-                    settingsType = config.settingsType,
-                    navigateBack = {
-                        modelNavigation.value.mainNavigation.pop()
-                    }
-                )
-            )
         }
     
     private fun handleDeepLink(deepLink: DeepLink) {
         when (deepLink) {
-            is DeepLink.User -> {
-
-            }
-            is DeepLink.Listing -> {
-                val categoryData = ListingData()
-                categoryData.searchData.value.userSearch = true
-                categoryData.searchData.value.userID = deepLink.ownerId
-                modelNavigation.value.searchNavigation.pushNew(
-                    SearchConfig.ListingScreen(
-                        categoryData.data.value,
-                        categoryData.searchData.value,
+            is DeepLink.GoToUser -> {
+                modelNavigation.value.homeNavigation.pushNew(
+                    HomeConfig.UserScreen(
+                        deepLink.userId,
+                        getCurrentDate(),
                         false
                     )
                 )
-                navigateToBottomItem(
-                    MainConfig.Search
+            }
+            is DeepLink.GoToListing -> {
+                val categoryData = ListingData()
+                categoryData.searchData.value.userSearch = true
+                categoryData.searchData.value.userID = deepLink.ownerId
+                categoryData.searchData.value.userLogin = ""
+
+                modelNavigation.value.homeNavigation.pushNew(
+                    HomeConfig.ListingScreen(
+                        false,
+                        categoryData.data.value,
+                        categoryData.searchData.value,
+                    )
                 )
             }
-            is DeepLink.Offer -> {
-
+            is DeepLink.GoToOffer -> {
+                modelNavigation.value.homeNavigation.pushNew(
+                    HomeConfig.OfferScreen(
+                        deepLink.offerId,
+                        getCurrentDate()
+                    )
+                )
             }
-            is DeepLink.Auth -> {
-                goToLogin()
+            is DeepLink.GoToAuth -> {
+                if (UserData.token == "")
+                    goToLogin()
             }
-            is DeepLink.Registration -> {
-                goToLogin()
+            is DeepLink.GoToRegistration -> {
+                if (UserData.token == "")
+                    goToLogin()
+            }
+            is DeepLink.GoToDynamicSettings -> {
+                navigateToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
+            }
+            is DeepLink.GoToVerification -> {
+                navigateToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
             }
             is DeepLink.Unknown -> {}
         }
@@ -360,10 +376,6 @@ class DefaultMainComponent(
                     activeCurrent = "Profile"
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
                 }
-            }
-
-            is MainConfig.Verification -> {
-
             }
         }
     }

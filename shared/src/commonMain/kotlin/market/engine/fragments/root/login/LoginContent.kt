@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,6 +41,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseContent
+import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.exceptions.CaptchaView
 import market.engine.widgets.exceptions.onError
@@ -213,9 +215,22 @@ fun LoginContent(
                      )
                  }
                  item {
+                     Row(
+                         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
+                         verticalAlignment = Alignment.CenterVertically
+                     ) {
+                         ActionButton(
+                             strings.forgotPassword
+                         ){
+                             component.goToForgotPassword()
+                         }
+                     }
+                 }
+                 item {
                     Row(
-                        modifier = Modifier.padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
+                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacer, Alignment.End),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         SimpleTextButton(

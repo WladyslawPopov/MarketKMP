@@ -10,9 +10,11 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
 import market.engine.fragments.root.contactUs.ContactUsContent
+import market.engine.fragments.root.dynamicSettings.DynamicSettingsContent
 import market.engine.fragments.root.login.LoginContent
 import market.engine.fragments.root.main.MainNavigation
 import market.engine.fragments.root.registration.RegistrationContent
+import market.engine.fragments.root.verifyPage.VerificationContent
 
 @Composable
 fun RootNavigation(
@@ -44,6 +46,13 @@ fun RootNavigation(
                 is RootComponent.Child.ContactUsChild -> {
                     ContactUsContent(instance.component)
                 }
+                is RootComponent.Child.VerificationChildMain -> {
+                    VerificationContent(instance.component)
+                }
+
+                is RootComponent.Child.DynamicSettingsChild -> {
+                    DynamicSettingsContent(instance.component)
+                }
             }
         }
     }
@@ -62,4 +71,10 @@ sealed class RootConfig {
 
     @Serializable
     data object ContactUs : RootConfig()
+
+    @Serializable
+    data class Verification(val settingsType : String, val ownerId: Long? = null, val code: String? = null) : RootConfig()
+
+    @Serializable
+    data class DynamicSettingsScreen(val settingsType : String, val ownerId: Long? = null, val code: String? = null) : RootConfig()
 }

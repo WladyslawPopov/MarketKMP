@@ -1,37 +1,51 @@
 package market.engine.core.utils
 
 import coil3.Uri
+import coil3.pathSegments
 import market.engine.core.data.items.DeepLink
 
 
 fun parseDeepLink(uri: Uri): DeepLink? {
-    return when (uri.path) {
-        "/user" -> {
-            uri.pathLongId()?.let { DeepLink.User(it) }
+    val path = uri.pathSegments[0]
+    return when (path) {
+        "user" -> {
+            uri.pathLongId()?.let { DeepLink.GoToUser(it) }
         }
-        "/listing/offer" -> {
+        "listing" -> {
             uri.getQueryParam("flt_prp_owner")?.let {
                 if(it.toLongOrNull() != null){
-                    DeepLink.Listing(it.toLong())
+                    DeepLink.GoToListing(it.toLong())
                 }else{
                     null
                 }
             }
         }
-        "/offer" -> {
-            uri.pathLongId()?.let { DeepLink.Offer(it) }
+        "offer" -> {
+            uri.pathLongId()?.let { DeepLink.GoToOffer(it) }
         }
-        "/auth" -> {
+        "auth" -> {
             val queryParams = uri.parseQueryParameters()
             val clientId = queryParams["client_id"]
             val redirectUri = queryParams["redirect_uri"]
             if (clientId != null && redirectUri != null) {
-                DeepLink.Auth(clientId, redirectUri)
+                DeepLink.GoToAuth(clientId, redirectUri)
             } else {
-                DeepLink.Auth()
+                DeepLink.GoToAuth()
             }
         }
-        "/registration" -> DeepLink.Registration
+        "registration" -> DeepLink.GoToRegistration
+        "email" ->{
+            val queryParams = uri.parseQueryParameters()
+            val owner = queryParams["us_id"]?.toLongOrNull()
+            val code = queryParams["code"]
+            DeepLink.GoToVerification(owner,code, null)
+        }
+        "password" ->{
+            val queryParams = uri.parseQueryParameters()
+            val owner = queryParams["us_id"]?.toLongOrNull()
+            val code = queryParams["code"]
+            DeepLink.GoToDynamicSettings(owner,code,"set_password")
+        }
         else -> null
     }
 }
