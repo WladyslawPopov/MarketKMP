@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 @Suppress("UNCHECKED_CAST")
 class SettingsRepository(private val settings: Settings ) {
 
-    private val _themeMode = MutableStateFlow(getSettingValue("theme", "") ?: "")
+    private val _themeMode = MutableStateFlow(
+        getSettingValue("theme", "") ?: ""
+    )
     val themeMode: StateFlow<String> = _themeMode.asStateFlow()
 
     fun updateThemeMode(newMode: String) {

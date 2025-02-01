@@ -24,6 +24,7 @@ import market.engine.core.network.ServerResponse
 import market.engine.core.utils.getCurrentDate
 import org.koin.mp.KoinPlatform.getKoin
 import platform.Foundation.NSData
+import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.dataWithContentsOfURL
 import platform.Foundation.getBytes
@@ -65,17 +66,32 @@ class FileUpload {
                 val (nsData, fileName) = if (photoTemp.file?.nsUrl != null) {
                     val uri = photoTemp.file?.nsUrl!!
                     photoTemp.uri = uri.path
-                    println("Creating multipart part from local URI: $uri")
+                    println("Creating multipart part from local/cloud URI: $uri")
 
                     val fileName = "image_${photoTemp.tempId ?: getCurrentDate()}.jpg"
-                    val data = NSData.dataWithContentsOfURL(uri)
-                        ?: throw Exception("Failed to load data from URI: $uri")
 
+                    // If file founded in own place security scope not needed.
+                    val normalizedPath = uri.path?.removePrefix("/private")
+                    val data = if (normalizedPath?.startsWith(NSHomeDirectory()) == true) {
+                        NSData.dataWithContentsOfURL(uri)
+                            ?: throw Exception("Failed to load data from URI: $uri")
+                    } else {
+                        // If file from cloud or sth else palace - request security scoped access.
+                        if (!uri.startAccessingSecurityScopedResource()) {
+                            throw Exception("Unable to access security scoped resource: $uri")
+                        }
+                        try {
+                            NSData.dataWithContentsOfURL(uri)
+                                ?: throw Exception("Failed to load data from URI: $uri")
+                        } finally {
+                            uri.stopAccessingSecurityScopedResource()
+                        }
+                    }
                     data to fileName
                 } else if (!photoTemp.url.isNullOrBlank()) {
+                    // If needed - download file from URL.
                     val url = photoTemp.url!!
                     println("Creating multipart part by downloading from URL: $url")
-
                     val fileName = "image_${photoTemp.tempId ?: getCurrentDate()}.jpg"
                     val nsUrl = NSURL.URLWithString(url)
                         ?: throw Exception("Invalid URL string: $url")
@@ -86,7 +102,7 @@ class FileUpload {
                     throw IllegalArgumentException("No valid URI or URL specified in PhotoTemp")
                 }
 
-
+                // Convert NSData to (Flow<ByteArray>)
                 val byteArrayFlow: Flow<ByteArray> = flow {
                     memScoped {
                         val byteArray = ByteArray(nsData.length.toInt())

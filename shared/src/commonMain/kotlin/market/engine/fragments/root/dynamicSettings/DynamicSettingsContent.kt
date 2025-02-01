@@ -44,6 +44,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
+import market.engine.common.AnalyticsFactory
+import market.engine.common.navigateToAppSettings
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -77,7 +79,7 @@ fun DynamicSettingsContent(
     val settingsType = model.settingsType
     val owner = model.owner
 
-    val settings : SettingsRepository = koinInject()
+    val settings: SettingsRepository = koinInject()
 
     val titleText = remember { mutableStateOf("") }
 
@@ -85,13 +87,15 @@ fun DynamicSettingsContent(
 
     val richTextState = rememberRichTextState()
 
+    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
         { onError(err.value) { component.onBack() } }
     } else {
         null
     }
 
-    LaunchedEffect(builderDescription){
+    LaunchedEffect(builderDescription) {
         if (builderDescription != null) {
             richTextState.setHtml(
                 builderDescription?.fields?.find {
@@ -101,12 +105,13 @@ fun DynamicSettingsContent(
         }
     }
 
-    LaunchedEffect(richTextState){
-        snapshotFlow{
+    LaunchedEffect(richTextState) {
+        snapshotFlow {
             richTextState.annotatedString
         }.collectLatest { _ ->
             val text = KsoupEntities.decodeHtml(richTextState.toHtml())
-            builderDescription?.fields?.find { it.widgetType == "text_area" }?.data = JsonPrimitive(text)
+            builderDescription?.fields?.find { it.widgetType == "text_area" }?.data =
+                JsonPrimitive(text)
         }
     }
 
@@ -128,7 +133,7 @@ fun DynamicSettingsContent(
         toastItem = viewModel.toastItem
     ) {
         LazyColumn(
-            modifier = Modifier.pointerInput(Unit){
+            modifier = Modifier.pointerInput(Unit) {
                 detectTapGestures {
                     focusManager.clearFocus()
                 }
@@ -137,7 +142,7 @@ fun DynamicSettingsContent(
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             item {
-                when(settingsType) {
+                when (settingsType) {
                     "set_login" -> {
                         titleText.value = stringResource(strings.setLoginTitle)
 
@@ -154,18 +159,18 @@ fun DynamicSettingsContent(
                             }
                             AcceptedPageButton(
                                 strings.actionChangeLabel
-                            ){
+                            ) {
                                 viewModel.viewModelScope.launch {
                                     val res = viewModel.postSubmit(settingsType, owner)
                                     delay(2000)
-                                    withContext(Dispatchers.Main){
-                                        if (res){
+                                    withContext(Dispatchers.Main) {
+                                        if (res) {
                                             component.onBack()
                                         }
                                     }
                                 }
                             }
-                        }else{
+                        } else {
                             if (errorSettings != null) {
                                 Text(
                                     errorSettings?.first!!,
@@ -181,8 +186,11 @@ fun DynamicSettingsContent(
                             }
                         }
                     }
+
                     "set_email" -> {
-                        titleText.value = builderDescription?.title ?: builderDescription?.description ?: stringResource(strings.editEmailTitle)
+                        titleText.value =
+                            builderDescription?.title ?: builderDescription?.description
+                                    ?: stringResource(strings.editEmailTitle)
                         if (builderDescription?.fields?.isNotEmpty() == true) {
                             DynamicLabel(
                                 builderDescription?.description ?: "",
@@ -194,7 +202,7 @@ fun DynamicSettingsContent(
                             }
                             AcceptedPageButton(
                                 strings.actionChangeLabel
-                            ){
+                            ) {
                                 viewModel.viewModelScope.launch {
                                     val res = viewModel.postSubmit(settingsType, owner)
                                     delay(2000)
@@ -208,8 +216,10 @@ fun DynamicSettingsContent(
                             }
                         }
                     }
-                    "set_password","forgot_password","reset_password" -> {
-                        titleText.value = builderDescription?.title ?: builderDescription?.description ?: ""
+
+                    "set_password", "forgot_password", "reset_password" -> {
+                        titleText.value =
+                            builderDescription?.title ?: builderDescription?.description ?: ""
                         if (builderDescription?.fields?.isNotEmpty() == true) {
                             DynamicLabel(
                                 builderDescription?.description ?: "",
@@ -221,7 +231,7 @@ fun DynamicSettingsContent(
                             }
                             AcceptedPageButton(
                                 strings.actionChangeLabel
-                            ){
+                            ) {
                                 viewModel.viewModelScope.launch {
                                     val res = viewModel.postSubmit(settingsType, owner)
                                     delay(2000)
@@ -238,8 +248,10 @@ fun DynamicSettingsContent(
                             }
                         }
                     }
+
                     "set_phone" -> {
-                        titleText.value = builderDescription?.title ?: builderDescription?.description ?: ""
+                        titleText.value =
+                            builderDescription?.title ?: builderDescription?.description ?: ""
                         if (builderDescription?.fields?.isNotEmpty() == true) {
                             val htmTextState = rememberRichTextState()
 
@@ -263,14 +275,14 @@ fun DynamicSettingsContent(
 
                             AcceptedPageButton(
                                 strings.submitSmsLabel
-                            ){
+                            ) {
                                 viewModel.viewModelScope.launch {
                                     val res = viewModel.postSubmit("set_phone", owner)
 
                                     delay(2000)
 
-                                    withContext(Dispatchers.Main){
-                                        if (res){
+                                    withContext(Dispatchers.Main) {
+                                        if (res) {
                                             component.goToVerificationPage("set_phone")
                                         }
                                     }
@@ -278,8 +290,10 @@ fun DynamicSettingsContent(
                             }
                         }
                     }
+
                     "set_about_me" -> {
-                        titleText.value = builderDescription?.title ?: builderDescription?.description ?: ""
+                        titleText.value =
+                            builderDescription?.title ?: builderDescription?.description ?: ""
 
                         builderDescription?.fields?.find { it.widgetType == "text_area" }?.let {
                             Column(
@@ -326,7 +340,8 @@ fun DynamicSettingsContent(
                                             )
                                         }
                                     },
-                                    maxLength = it.validators?.firstOrNull()?.parameters?.max ?: 2000,
+                                    maxLength = it.validators?.firstOrNull()?.parameters?.max
+                                        ?: 2000,
                                     placeholder = {
                                         Text(
                                             stringResource(strings.descriptionPlaceholderLabel),
@@ -346,22 +361,24 @@ fun DynamicSettingsContent(
 
                         AcceptedPageButton(
                             strings.actionChangeLabel
-                        ){
+                        ) {
                             viewModel.viewModelScope.launch {
                                 val res = viewModel.postSubmit(settingsType, owner)
                                 delay(2000)
-                                withContext(Dispatchers.Main){
-                                    if (res){
+                                withContext(Dispatchers.Main) {
+                                    if (res) {
                                         component.onBack()
                                     }
                                 }
                             }
                         }
                     }
-                    "app_settings" ->{
+
+                    "app_settings" -> {
                         titleText.value = stringResource(strings.settingsTitleApp)
 
-                        val isLightMode = remember { mutableStateOf(settings.themeMode.value == "day") }
+                        val isLightMode =
+                            remember { mutableStateOf(settings.themeMode.value == "day") }
 
                         Column(
                             modifier = Modifier.fillMaxSize(),
@@ -379,8 +396,8 @@ fun DynamicSettingsContent(
 
                                 ActionButton(
                                     strings.actionGoToNotificationsSettingsLabel,
-                                ){
-
+                                ) {
+                                    navigateToAppSettings()
                                 }
                             }
 
@@ -414,6 +431,13 @@ fun DynamicSettingsContent(
                                         onCheckedChange = {
                                             isLightMode.value = !isLightMode.value
                                             settings.updateThemeMode(if (isLightMode.value) "day" else "night")
+
+                                            val eventParameters =
+                                                mapOf("mode_theme" to if (isLightMode.value) "day" else "night")
+                                            analyticsHelper.reportEvent(
+                                                "change_theme",
+                                                eventParameters
+                                            )
                                         },
                                         colors = SwitchDefaults.colors(
                                             checkedBorderColor = colors.transparent,
