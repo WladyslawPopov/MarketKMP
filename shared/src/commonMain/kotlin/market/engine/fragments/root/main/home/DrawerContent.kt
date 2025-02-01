@@ -46,7 +46,8 @@ fun DrawerContent(
     drawerState: DrawerState,
     mod: Modifier = Modifier,
     goToLogin: () -> Unit = {},
-    goToContactUs: () -> Unit = {}
+    goToContactUs: () -> Unit = {},
+    goToSettings: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
 
@@ -125,7 +126,7 @@ fun DrawerContent(
             badgeCount = null,
             onClick = {
                 scope.launch {
-
+                    goToSettings()
                     drawerState.close()
                 }
             }

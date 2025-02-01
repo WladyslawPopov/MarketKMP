@@ -11,9 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,16 +46,22 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
+import market.engine.core.repositories.SettingsRepository
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.exceptions.SetUpDynamicFields
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.RichTextStyleRow
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
+import market.engine.widgets.texts.SeparatorLabel
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +76,8 @@ fun DynamicSettingsContent(
     val errorSettings by viewModel.errorSettings.collectAsState()
     val settingsType = model.settingsType
     val owner = model.owner
+
+    val settings : SettingsRepository = koinInject()
 
     val titleText = remember { mutableStateOf("") }
 
@@ -342,6 +354,87 @@ fun DynamicSettingsContent(
                                     if (res){
                                         component.onBack()
                                     }
+                                }
+                            }
+                        }
+                    }
+                    "app_settings" ->{
+                        titleText.value = stringResource(strings.settingsTitleApp)
+
+                        val isLightMode = remember { mutableStateOf(settings.themeMode.value == "day") }
+
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(dimens.largePadding),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                SeparatorLabel(
+                                    stringResource(strings.notificationSettingsLabel)
+                                )
+
+                                ActionButton(
+                                    strings.actionGoToNotificationsSettingsLabel,
+                                ){
+
+                                }
+                            }
+
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                SeparatorLabel(
+                                    stringResource(strings.settingsThemeLabel)
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    Text(
+                                        stringResource(strings.themeDarkLabel),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = colors.grayText
+                                    )
+                                    Icon(
+                                        painterResource(drawables.modeNightIcon),
+                                        contentDescription = null,
+                                        tint = colors.textA0AE,
+                                        modifier = Modifier.size(dimens.mediumIconSize)
+                                    )
+                                    Switch(
+                                        checked = isLightMode.value,
+                                        onCheckedChange = {
+                                            isLightMode.value = !isLightMode.value
+                                            settings.updateThemeMode(if (isLightMode.value) "day" else "night")
+                                        },
+                                        colors = SwitchDefaults.colors(
+                                            checkedBorderColor = colors.transparent,
+                                            checkedThumbColor = colors.yellowSun,
+                                            checkedTrackColor = colors.transparentGrayColor,
+                                            uncheckedBorderColor = colors.transparent,
+                                            uncheckedThumbColor = colors.textA0AE,
+                                            uncheckedTrackColor = colors.transparentGrayColor,
+                                        ),
+                                    )
+                                    Icon(
+                                        painterResource(drawables.modeDayIcon),
+                                        contentDescription = null,
+                                        tint = colors.yellowSun,
+                                        modifier = Modifier.size(dimens.mediumIconSize)
+                                    )
+                                    Text(
+                                        stringResource(strings.themeLightLabel),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = colors.grayText
+                                    )
                                 }
                             }
                         }

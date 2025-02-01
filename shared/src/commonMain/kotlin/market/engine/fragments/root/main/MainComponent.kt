@@ -11,7 +11,6 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.ListingData
@@ -33,7 +32,6 @@ import market.engine.fragments.root.main.profile.navigation.createProfileChild
 import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.listing.SearchConfig
 import market.engine.fragments.root.main.listing.createSearchChild
-import org.jetbrains.compose.resources.getString
 
 interface MainComponent {
 
@@ -86,35 +84,57 @@ class DefaultMainComponent(
     override val modelNavigation = _modelNavigation
 
     private var openPage: String? = null
-    
+
+    init {
+        if(deepLink != null) {
+            lifecycle.doOnResume {
+                deepLink?.let { handleDeepLink(it) }
+                deepLink = null
+            }
+        }
+    }
+
     // Stacks
-    override val childHomeStack: Value<ChildStack<*, ChildHome>> = childStack(
-            source = modelNavigation.value.homeNavigation,
-            initialConfiguration = HomeConfig.HomeScreen,
-            serializer = HomeConfig.serializer(),
-            childFactory = { config, componentContext ->
-                createHomeChild(
-                    config,
-                    componentContext,
-                    modelNavigation.value.homeNavigation,
-                    goToMessenger = {
-                        navigateToBottomItem(MainConfig.Profile, "messenger")
-                    },
-                    goToLoginSelected,
-                    navigateToMyOrders = {
-                        navigateToBottomItem(MainConfig.Profile, "purchases")
-                    },
-                    navigateToDialog = { dialogId ->
-                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
-                    },
-                    navigateToContactUs = {
-                        contactUsSelected()
-                    }
-                )
+    override val childMainStack: Value<ChildStack<*, ChildMain>> =
+        childStack(
+            source = modelNavigation.value.mainNavigation,
+            serializer = MainConfig.serializer(),
+            initialConfiguration = MainConfig.Home,
+            childFactory = {config, _ ->
+                createChild(config)
             },
-            key = "HomeStack"
+            key = "MainStack"
         )
 
+    override val childHomeStack: Value<ChildStack<*, ChildHome>> = childStack(
+        source = modelNavigation.value.homeNavigation,
+        initialConfiguration = HomeConfig.HomeScreen,
+        serializer = HomeConfig.serializer(),
+        childFactory = { config, componentContext ->
+            createHomeChild(
+                config,
+                componentContext,
+                modelNavigation.value.homeNavigation,
+                goToMessenger = {
+                    navigateToBottomItem(MainConfig.Profile, "messenger")
+                },
+                goToLoginSelected,
+                navigateToMyOrders = {
+                    navigateToBottomItem(MainConfig.Profile, "purchases")
+                },
+                navigateToDialog = { dialogId ->
+                    navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
+                },
+                navigateToContactUs = {
+                    contactUsSelected()
+                },
+                navigateToAppSettings = {
+                    navigateToDynamicSettings("app_settings", null, null)
+                }
+            )
+        },
+        key = "HomeStack"
+    )
 
     override val childSearchStack: Value<ChildStack<*, ChildSearch>> by lazy {
         val categoryData = ListingData()
@@ -221,33 +241,12 @@ class DefaultMainComponent(
         )
     }
 
-    override val childMainStack: Value<ChildStack<*, ChildMain>> =
-        childStack(
-            source = modelNavigation.value.mainNavigation,
-            serializer = MainConfig.serializer(),
-            initialConfiguration = MainConfig.Home,
-            childFactory = {config, componentContext ->
-                createChild(config, componentContext)
-            },
-            key = "MainStack"
-        )
-
     val userInfo = UserData.userInfo
 
-    init {
-        if(deepLink != null) {
-            lifecycle.doOnResume {
-                deepLink?.let { handleDeepLink(it) }
-                deepLink = null
-            }
-        }
-    }
-
     // createChild
-
     private fun createChild(
         config: MainConfig,
-        componentContext: ComponentContext
+        //componentContext: ComponentContext
     ): ChildMain =
         when (config) {
             is MainConfig.Home -> ChildMain.HomeChildMain
@@ -307,6 +306,7 @@ class DefaultMainComponent(
             is DeepLink.Unknown -> {}
         }
     }
+
     override fun goToLogin(reset: Boolean) {
         goToLoginSelected()
         if (reset) {

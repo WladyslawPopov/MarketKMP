@@ -143,4 +143,6 @@ interface Drawables {
    val attachIcon : DrawableResource
    val sendMesIcon : DrawableResource
    val documentIcon : DrawableResource
+   val modeDayIcon : DrawableResource
+   val modeNightIcon : DrawableResource
 }

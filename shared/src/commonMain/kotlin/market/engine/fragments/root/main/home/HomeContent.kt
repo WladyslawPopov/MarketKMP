@@ -160,6 +160,9 @@ fun HomeContent(
                 },
                 goToLogin = {
                     component.goToLogin()
+                },
+                goToSettings = {
+                    component.goToAppSettings()
                 }
             )
         },

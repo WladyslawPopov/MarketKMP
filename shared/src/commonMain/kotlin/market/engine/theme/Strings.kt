@@ -409,4 +409,9 @@ interface Strings {
     val goBackLabel : StringResource
     val contactUsHeaderLabel : StringResource
     val actionSend : StringResource
+    val notificationSettingsLabel : StringResource
+    val actionGoToNotificationsSettingsLabel : StringResource
+    val settingsThemeLabel : StringResource
+    val themeLightLabel : StringResource
+    val themeDarkLabel : StringResource
 }

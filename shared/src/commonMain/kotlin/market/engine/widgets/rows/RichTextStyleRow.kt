@@ -31,7 +31,7 @@ fun RichTextStyleRow(
     ) {
         RichTextStyleButton(
             onClick = {
-                if (state.currentParagraphStyle.textAlign != TextAlign.Center) {
+                if (state.currentParagraphStyle.textAlign != TextAlign.Left) {
                     state.addParagraphStyle(
                         ParagraphStyle(
                             textAlign = TextAlign.Left

@@ -3,9 +3,21 @@ package market.engine.core.repositories
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.get
 import com.russhwolf.settings.set
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 @Suppress("UNCHECKED_CAST")
 class SettingsRepository(private val settings: Settings ) {
+
+    private val _themeMode = MutableStateFlow(getSettingValue("theme", "") ?: "")
+    val themeMode: StateFlow<String> = _themeMode.asStateFlow()
+
+    fun updateThemeMode(newMode: String) {
+        setSettingValue("theme", newMode)
+        _themeMode.value = newMode
+    }
+
     fun <T>setSettingValue(key: String, value: T) {
         when (value) {
             is String -> settings[key] = value
