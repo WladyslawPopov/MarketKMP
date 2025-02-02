@@ -114,6 +114,7 @@ class DefaultMainComponent(
         childStack(
             source = modelNavigation.value.mainNavigation,
             serializer = MainConfig.serializer(),
+            handleBackButton = true,
             initialConfiguration = MainConfig.Home,
             childFactory = {config, _ ->
                 createChild(config)

@@ -22,7 +22,6 @@ import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.widgets.bars.getBottomNavBar
-import market.engine.widgets.exceptions.BackHandler
 
 
 sealed class ChildMain {
@@ -106,10 +105,6 @@ fun MainNavigation(
             }
         )
     )
-
-    BackHandler(component.model.value.backHandler){
-
-    }
 
 
     Scaffold(
