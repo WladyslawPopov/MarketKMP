@@ -8,6 +8,7 @@ import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import kotlinx.serialization.Serializable
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.networkObjects.User
@@ -22,7 +23,8 @@ interface UserComponent {
     data class Model(
         val userId: Long,
         var isClickedAboutMe: Boolean,
-        val userViewModel: UserViewModel
+        val userViewModel: UserViewModel,
+        val backHandler: BackHandler
     )
 
     val feedbacksPages: Value<ChildPages<*, FeedbacksComponent>>
@@ -53,7 +55,8 @@ class DefaultUserComponent(
         UserComponent.Model(
             userId = userId,
             isClickedAboutMe = isClickedAboutMe,
-            userViewModel = getKoin().get()
+            userViewModel = getKoin().get(),
+            backHandler = backHandler
         )
     )
 

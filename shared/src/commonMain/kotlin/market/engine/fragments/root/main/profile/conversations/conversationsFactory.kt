@@ -8,12 +8,14 @@ fun conversationsFactory(
     componentContext: ComponentContext,
     navigationItems : List<NavigationItem>,
     navigateToMessenger : (Long) -> Unit,
+    navigateBack : () -> Unit,
     selectedId : Long? = null
     ): ConversationsComponent {
         return DefaultConversationsComponent(
             componentContext = componentContext,
             navigationItems = navigationItems,
             selectedId = selectedId,
-            navigateToMessenger = navigateToMessenger
+            navigateToMessenger = navigateToMessenger,
+            navigateBack = navigateBack
         )
     }

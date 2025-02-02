@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
@@ -19,15 +20,18 @@ interface ConversationsComponent {
         val pagingDataFlow : Flow<PagingData<Conversations>>,
         val viewModel: ConversationsViewModel,
         val navigationItems : List<NavigationItem>,
-        val selectedId : Long?
+        val selectedId : Long?,
+        val backHandler: BackHandler
     )
 
     fun goToMessenger(conversation : Conversations)
+    fun onBack()
 }
 
 class DefaultConversationsComponent(
     componentContext: ComponentContext,
     navigationItems : List<NavigationItem>,
+    val navigateBack : () -> Unit,
     val navigateToMessenger : (Long) -> Unit,
     private var selectedId : Long? = null
 ) : ConversationsComponent, ComponentContext by componentContext {
@@ -39,7 +43,8 @@ class DefaultConversationsComponent(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             navigationItems = navigationItems,
-            selectedId = selectedId
+            selectedId = selectedId,
+            backHandler = backHandler
         )
     )
     override val model: Value<ConversationsComponent.Model> = _model
@@ -52,6 +57,10 @@ class DefaultConversationsComponent(
             viewModel.updateItem.value = conversation.id
         }
         navigateToMessenger(conversation.id)
+    }
+
+    override fun onBack() {
+        navigateBack()
     }
 
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()

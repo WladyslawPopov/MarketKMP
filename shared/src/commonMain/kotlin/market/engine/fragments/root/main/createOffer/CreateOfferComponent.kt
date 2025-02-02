@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.createOffer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.types.CreateOfferType
@@ -16,7 +17,8 @@ interface CreateOfferComponent {
         val offerId : Long?,
         val createOfferType : CreateOfferType,
         val externalImages : List<String>?,
-        val createOfferViewModel: CreateOfferViewModel
+        val createOfferViewModel: CreateOfferViewModel,
+        val backHandler: BackHandler
     )
 
     fun onBackClicked()
@@ -45,7 +47,8 @@ class DefaultCreateOfferComponent(
             offerId = offerId,
             createOfferType = type,
             externalImages = externalImages,
-            createOfferViewModel = createOfferViewModel
+            createOfferViewModel = createOfferViewModel,
+            backHandler = backHandler
         )
     )
 

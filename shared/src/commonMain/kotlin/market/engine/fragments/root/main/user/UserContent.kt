@@ -24,6 +24,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.tabs.SimpleTabs
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.UserPanel
@@ -49,6 +50,10 @@ fun UserContent(
         { onError(isError.value) { component.updateUserInfo() } }
     }else{
         null
+    }
+
+    BackHandler(modelState.value.backHandler){
+        component.onBack()
     }
 
     val isVisibleUserPanel = remember { mutableStateOf(userViewModel.isVisibleUserPanel.value) }

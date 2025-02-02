@@ -488,12 +488,15 @@ fun createProfileChild(
             component = conversationsFactory(
                 componentContext,
                 profilePublicNavigationList.value,
+                navigateBack = {
+                    profileNavigation.pop()
+                },
                 navigateToMessenger = {
                     profileNavigation.pushNew(
                         ProfileConfig.DialogsScreen(it)
                     )
                 },
-                config.selectedDialogId
+                selectedId = config.selectedDialogId,
             )
         )
 

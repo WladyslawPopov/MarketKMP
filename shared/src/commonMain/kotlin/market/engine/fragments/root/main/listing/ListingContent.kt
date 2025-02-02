@@ -23,7 +23,10 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -38,6 +41,7 @@ import market.engine.fragments.root.main.listing.search.SearchViewModel
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.FilterListingContent
@@ -51,8 +55,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ListingContent(
     component: ListingComponent,
-    modifier: Modifier = Modifier,
-    isShowNavigation: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -70,6 +73,8 @@ fun ListingContent(
     val isErrorCategory = listingViewModel.errorMessage.value
 
     val searchViewModel : SearchViewModel = koinViewModel()
+
+    val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
 
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
@@ -89,14 +94,14 @@ fun ListingContent(
 
     val catDef = stringResource(strings.categoryMain)
 
-    val searchString =  mutableStateOf(searchData.value.searchString)
-    val selectedCategory =  mutableStateOf(searchData.value.searchCategoryName ?: catDef)
-    val selectedCategoryID = mutableStateOf(searchData.value.searchCategoryID)
-    val selectedCategoryParentID = mutableStateOf(searchData.value.searchParentID)
-    val selectedCategoryIsLeaf = mutableStateOf(searchData.value.searchIsLeaf)
-    val selectedUserLogin = mutableStateOf(searchData.value.userLogin)
-    val selectedUser = mutableStateOf(searchData.value.userSearch)
-    val selectedUserFinished = mutableStateOf(searchData.value.searchFinished)
+    val searchString = remember { mutableStateOf(searchData.value.searchString) }
+    val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
+    val selectedCategoryID = remember { mutableStateOf(searchData.value.searchCategoryID) }
+    val selectedCategoryParentID = remember { mutableStateOf(searchData.value.searchParentID) }
+    val selectedCategoryIsLeaf = remember { mutableStateOf(searchData.value.searchIsLeaf) }
+    val selectedUserLogin = remember { mutableStateOf(searchData.value.userLogin) }
+    val selectedUser = remember { mutableStateOf(searchData.value.userSearch) }
+    val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
 
     val title = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
 
@@ -159,6 +164,71 @@ fun ListingContent(
             }
         }
     }
+
+    BackHandler(model.backHandler){
+        when{
+            listingViewModel.activeFiltersType.value == "categories" -> {
+                listingViewModel.viewModelScope.launch {
+                    val newCat = listingViewModel.onCatBack(selectedCategoryParentID.value ?: 1L)
+                    if (newCat != null) {
+                        selectedCategoryID.value = newCat.id
+                        selectedCategory.value = newCat.name ?: catDef
+                        selectedCategoryParentID.value = newCat.parentId
+                        selectedCategoryIsLeaf.value = newCat.isLeaf
+                        val sd = searchData.value.copy(
+                            searchCategoryID = selectedCategoryID.value,
+                            searchCategoryName = selectedCategory.value,
+                            searchParentID = selectedCategoryParentID.value,
+                            searchIsLeaf = selectedCategoryIsLeaf.value
+                        )
+                        listingViewModel.getCategories(
+                            sd,
+                            listingData.value,
+                            false
+                        )
+                    }else{
+                        listingViewModel.activeFiltersType.value = ""
+                    }
+                }
+            }
+            listingViewModel.isOpenSearch.value -> {
+                if (openSearchCategoryBottomSheet.value){
+                    searchViewModel.viewModelScope.launch {
+                        val newCat =
+                            searchViewModel.onCatBack(selectedCategoryParentID.value ?: 1L)
+                        if (newCat != null) {
+                            selectedCategoryID.value = newCat.id
+                            selectedCategory.value = newCat.name ?: catDef
+                            selectedCategoryParentID.value = newCat.parentId
+                            selectedCategoryIsLeaf.value = newCat.isLeaf
+                            val sd = SD(
+                                searchCategoryID = selectedCategoryID.value,
+                                searchCategoryName = selectedCategory.value,
+                                searchParentID = selectedCategoryParentID.value,
+                                searchIsLeaf = selectedCategoryIsLeaf.value
+                            )
+                            searchViewModel.getCategories(
+                                sd,
+                                LD(),
+                                true
+                            )
+                        }else{
+                            openSearchCategoryBottomSheet.value = false
+                        }
+                    }
+                }else{
+                    listingViewModel.isOpenSearch.value = false
+                }
+            }
+            listingViewModel.activeFiltersType.value != "" ->{
+                listingViewModel.activeFiltersType.value = ""
+            }
+            else -> {
+                component.goBack()
+            }
+        }
+    }
+
 
     val error : (@Composable () -> Unit)? = if (isErrorCategory.humanMessage != "") {
         { onError(isErrorCategory) { refresh() } }
@@ -258,7 +328,6 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
-                isShowNavigation,
                 focusRequester,
                 searchString,
                 selectedCategory,
@@ -268,6 +337,7 @@ fun ListingContent(
                 selectedUser,
                 selectedUserLogin,
                 selectedUserFinished,
+                openSearchCategoryBottomSheet,
                 closeSearch = {
                     listingViewModel.isOpenSearch.value = false
                 },
@@ -287,11 +357,8 @@ fun ListingContent(
                     isOpenCategory = listingViewModel.activeFiltersType.value != "categories",
                     onBackClick = {
                         if (listingViewModel.activeFiltersType.value.isEmpty()) {
-                            if (isShowNavigation) {
                                 component.goBack()
-                            } else {
                                 listingViewModel.isOpenSearch.value = true
-                            }
                         }else{
                             listingViewModel.activeFiltersType.value = ""
                         }

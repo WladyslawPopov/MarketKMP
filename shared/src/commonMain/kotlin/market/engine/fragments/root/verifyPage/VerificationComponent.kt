@@ -3,6 +3,7 @@ package market.engine.fragments.root.verifyPage
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
@@ -16,6 +17,7 @@ interface VerificationComponent {
         val code : String?,
         var settingsType : String,
         val verificationViewModel: VerificationViewModel,
+        val backHandler: BackHandler
     )
 
     fun onBack()
@@ -40,7 +42,8 @@ class DefaultVerificationComponent(
             owner = owner,
             code = code,
             settingsType = settingsType,
-            verificationViewModel = verificationViewModel
+            verificationViewModel = verificationViewModel,
+            backHandler = backHandler
         )
     )
 

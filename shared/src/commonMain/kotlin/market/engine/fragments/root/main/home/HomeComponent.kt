@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
@@ -24,7 +25,8 @@ interface HomeComponent {
     val model: Value<Model>
     data class Model(
         val listingData: ListingData,
-        val homeViewModel: HomeViewModel
+        val homeViewModel: HomeViewModel,
+        val backHandler: BackHandler
     )
 
     fun onRefresh()
@@ -64,7 +66,8 @@ class DefaultHomeComponent(
     private val _model = MutableValue(
         HomeComponent.Model(
             listingData,
-            homeViewModel
+            homeViewModel,
+            backHandler
         )
     )
 

@@ -6,7 +6,9 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
@@ -29,6 +31,11 @@ import org.koin.mp.KoinPlatform.getKoin
 
 interface RootComponent {
     val childStack: Value<ChildStack<*, Child>>
+
+    val model : Value<Model>
+    data class Model(
+        val backHandler: BackHandler
+    )
 
     sealed class Child {
         data class MainChild(val component: MainComponent) : Child()
@@ -63,6 +70,13 @@ class DefaultRootComponent(
         )
     }
 
+    private val _model = MutableValue(
+        RootComponent.Model(
+            backHandler = backHandler
+        )
+    )
+    override val model = _model
+
     override fun backToMain() {
         navigation.pop()
     }
@@ -74,6 +88,7 @@ class DefaultRootComponent(
     val userRepository = getKoin().get<UserRepository>()
 
     init {
+
         val isFirstLaunch = settingsHelper.getSettingValue("isFirstLaunch", true)
         if (isFirstLaunch == true) {
             settingsHelper.setSettingValue("isFirstLaunch", false)

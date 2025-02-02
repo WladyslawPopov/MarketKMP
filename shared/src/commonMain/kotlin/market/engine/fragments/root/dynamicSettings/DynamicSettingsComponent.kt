@@ -3,6 +3,7 @@ package market.engine.fragments.root.dynamicSettings
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import org.koin.mp.KoinPlatform.getKoin
@@ -15,6 +16,7 @@ interface DynamicSettingsComponent {
         val code : String?,
         var settingsType : String,
         val dynamicSettingsViewModel: DynamicSettingsViewModel,
+        val backHandler: BackHandler
     )
 
     fun onBack()
@@ -40,7 +42,8 @@ class DefaultDynamicSettingsComponent(
             owner = owner,
             code = code,
             settingsType = settingsType,
-            dynamicSettingsViewModel = dynamicSettingsViewModel
+            dynamicSettingsViewModel = dynamicSettingsViewModel,
+            backHandler = backHandler
         )
     )
 

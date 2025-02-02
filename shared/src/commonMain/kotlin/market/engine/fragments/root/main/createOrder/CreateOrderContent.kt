@@ -36,6 +36,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.DeliveryCardsContent
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.UserSimpleRow
@@ -64,6 +65,10 @@ fun CreateOrderContent(
     val focusManager = LocalFocusManager.current
 
     val basketItem = model.value.basketItem
+
+    BackHandler(model.value.backHandler){
+        component.onBackClicked()
+    }
 
     val refresh = {
         viewModel.onError(ServerErrorException())

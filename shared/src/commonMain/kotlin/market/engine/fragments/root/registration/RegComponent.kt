@@ -3,6 +3,7 @@ package market.engine.fragments.root.registration
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -11,6 +12,7 @@ interface RegistrationComponent {
 
     data class Model(
         val regViewModel: RegViewModel,
+        val backHandler: BackHandler
     )
 
     fun onBack()
@@ -27,7 +29,8 @@ class DefaultRegistrationComponent(
 
     private val _model = MutableValue(
         RegistrationComponent.Model(
-            regViewModel = regViewModel
+            regViewModel = regViewModel,
+            backHandler = backHandler
         )
     )
 

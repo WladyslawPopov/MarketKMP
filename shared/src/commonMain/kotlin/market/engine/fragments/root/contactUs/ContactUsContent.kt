@@ -54,6 +54,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.DynamicSelect
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
@@ -84,6 +85,10 @@ fun ContactUsContent(
         { onError(err.value) {  } }
     } else {
         null
+    }
+
+    BackHandler(modelState.value.backHandler){
+        component.onBack()
     }
 
     val dataImage = remember { mutableStateOf("") }

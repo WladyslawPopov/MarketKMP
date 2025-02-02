@@ -3,6 +3,7 @@ package market.engine.fragments.root.login
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.SAPI
 import org.koin.mp.KoinPlatform.getKoin
@@ -12,6 +13,7 @@ interface LoginComponent {
 
     data class Model(
         val loginViewModel: LoginViewModel,
+        val backHandler: BackHandler
     )
 
     fun onLogin(email : String, password : String, captcha : String? = null)
@@ -34,7 +36,8 @@ class DefaultLoginComponent(
 
     private val _model = MutableValue(
         LoginComponent.Model(
-            loginViewModel = getKoin().get()
+            loginViewModel = getKoin().get(),
+            backHandler = backHandler
         )
     )
 

@@ -26,6 +26,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.SetUpDynamicFields
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -46,6 +47,10 @@ fun RegistrationContent(
 
     val isLoading = model.isShowProgress.collectAsState()
     val err = model.errorMessage.collectAsState()
+
+    BackHandler(modelState.value.backHandler){
+        component.onBack()
+    }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(err.value) {  } }

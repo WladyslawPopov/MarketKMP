@@ -43,6 +43,7 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.exceptions.onError
 import org.jetbrains.compose.resources.painterResource
@@ -61,6 +62,17 @@ fun ProfileSettingsContent(
     val refresh = {
         viewModel.onError(ServerErrorException())
         viewModel.refresh()
+    }
+
+    BackHandler(model.backHandler){
+        when{
+            viewModel.activeFiltersType.value != "" ->{
+                viewModel.activeFiltersType.value = ""
+            }
+            else -> {
+                component.goToBack()
+            }
+        }
     }
 
     val error : @Composable () -> Unit = {

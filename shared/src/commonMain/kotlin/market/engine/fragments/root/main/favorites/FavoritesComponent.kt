@@ -5,6 +5,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
@@ -17,6 +18,7 @@ interface FavoritesComponent {
     data class Model(
         val pagingDataFlow : Flow<PagingData<Offer>>,
         val favViewModel: FavViewModel,
+        val backHandler: BackHandler
     )
 
     fun goToSubscribes()
@@ -36,7 +38,8 @@ class DefaultFavoritesComponent(
     private val _model = MutableValue(
         FavoritesComponent.Model(
             favViewModel = favViewModel,
-            pagingDataFlow = favViewModel.init()
+            pagingDataFlow = favViewModel.init(),
+            backHandler = backHandler
         )
     )
 

@@ -12,6 +12,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
@@ -125,6 +126,9 @@ fun itemMyOrders(
         },
         navigateToMessenger = { dialogId ->
             profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen(dialogId))
+        },
+        navigateToBack = {
+            profileNavigation.pop()
         }
     )
 }

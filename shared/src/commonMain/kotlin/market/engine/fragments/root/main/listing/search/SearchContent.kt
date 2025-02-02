@@ -33,7 +33,6 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchContent(
-    isShowNavigation : Boolean,
     focusRequester : FocusRequester,
     searchString : MutableState<String>,
     selectedCategory : MutableState<String>,
@@ -43,24 +42,25 @@ fun SearchContent(
     selectedUser : MutableState<Boolean>,
     selectedUserLogin : MutableState<String?>,
     selectedUserFinished : MutableState<Boolean>,
+    openBottomSheet : MutableState<Boolean>,
     closeSearch : () -> Unit,
     goToListing : () -> Unit,
 ) {
-    val searchViewModel : SearchViewModel = koinViewModel()
+    val searchViewModel: SearchViewModel = koinViewModel()
     val isErrorSearch = searchViewModel.errorMessage.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
     val history = searchViewModel.responseHistory.collectAsState()
 
-    val errorSearch : (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
+    val errorSearch: (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
         { onError(isErrorSearch.value) { } }
-    }else{
+    } else {
         null
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
-    val openBottomSheet = remember { mutableStateOf(false) }
+
 
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
 
@@ -75,12 +75,12 @@ fun SearchContent(
         searchIsLeaf = selectedCategoryIsLeaf.value
     )
 
-    LaunchedEffect(openBottomSheet.value){
+    LaunchedEffect(openBottomSheet.value) {
         if (openBottomSheet.value) {
             searchViewModel.getCategories(searchData, LD(), true)
             focusManager.clearFocus()
             scaffoldState.bottomSheetState.expand()
-        }else{
+        } else {
             searchViewModel.activeFiltersType.value = ""
             scaffoldState.bottomSheetState.collapse()
             selectedCategory.value = selectedCategory.value
@@ -93,7 +93,6 @@ fun SearchContent(
         toastItem = searchViewModel.toastItem,
         topBar = {
             SearchAppBar(
-                isShowNavigation,
                 searchString,
                 focusRequester,
                 onSearchClick = {

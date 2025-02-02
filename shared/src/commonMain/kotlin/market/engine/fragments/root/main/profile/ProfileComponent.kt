@@ -11,6 +11,7 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.NavigationItem
@@ -46,7 +47,8 @@ interface ProfileComponent {
 
     data class Model(
         val navigationItems: List<NavigationItem>,
-        val profileViewModel: ProfileViewModel
+        val profileViewModel: ProfileViewModel,
+        val backHandler: BackHandler
     )
 
     fun updateProfile()
@@ -75,7 +77,8 @@ class DefaultProfileComponent(
     private val _model = MutableValue(
         ProfileComponent.Model(
             navigationItems = navigationItems,
-            profileViewModel = getKoin().get()
+            profileViewModel = getKoin().get(),
+            backHandler = backHandler
         )
     )
     override val model = _model

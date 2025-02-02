@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
@@ -17,6 +18,7 @@ interface ListingComponent {
     data class Model(
         var pagingDataFlow : Flow<PagingData<Offer>>,
         val listingViewModel: ListingViewModel,
+        val backHandler: BackHandler
     )
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
@@ -32,12 +34,14 @@ class DefaultListingComponent(
     private val selectedBack: () -> Unit
 ) : ListingComponent, ComponentContext by componentContext {
 
+
     private val listingViewModel : ListingViewModel = getKoin().get()
 
     private val _model = MutableValue(
         ListingComponent.Model(
             pagingDataFlow = listingViewModel.init(listingData),
-            listingViewModel = listingViewModel
+            listingViewModel = listingViewModel,
+            backHandler = backHandler
         )
     )
 
@@ -56,6 +60,7 @@ class DefaultListingComponent(
         if(isOpenCategory)
             listingViewModel.activeFiltersType.value = "categories"
         listingViewModel.isOpenSearch.value = isOpenSearch
+//        backHandler.register(model.value.backCallback)
     }
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {

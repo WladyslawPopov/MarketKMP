@@ -31,6 +31,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
@@ -60,6 +61,17 @@ fun MyOffersContent(
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+    }
+
+    BackHandler(model.backHandler){
+        when{
+            viewModel.activeFiltersType.value != "" ->{
+                viewModel.activeFiltersType.value = ""
+            }
+            else -> {
+                component.goToBack()
+            }
+        }
     }
 
     val noFound = @Composable {

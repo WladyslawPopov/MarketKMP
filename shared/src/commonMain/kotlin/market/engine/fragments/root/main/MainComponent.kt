@@ -10,12 +10,14 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.RootComponent
 import market.engine.fragments.root.main.basket.BasketConfig
 import market.engine.fragments.root.main.basket.ChildBasket
 import market.engine.fragments.root.main.home.ChildHome
@@ -58,6 +60,11 @@ interface MainComponent {
         val profileNavigation : StackNavigation<ProfileConfig>,
     )
 
+    val model : Value<Model>
+    data class Model(
+        val backHandler: BackHandler
+    )
+
     fun navigateToBottomItem(config: MainConfig, openPage: String? = null)
     fun goToLogin(reset: Boolean = false)
 }
@@ -81,6 +88,14 @@ class DefaultMainComponent(
             profileNavigation = StackNavigation(),
         )
     )
+
+    private val _model = MutableValue(
+        MainComponent.Model(
+            backHandler = backHandler
+        )
+    )
+    override val model = _model
+
     override val modelNavigation = _modelNavigation
 
     private var openPage: String? = null
@@ -110,6 +125,7 @@ class DefaultMainComponent(
         source = modelNavigation.value.homeNavigation,
         initialConfiguration = HomeConfig.HomeScreen,
         serializer = HomeConfig.serializer(),
+        handleBackButton = true,
         childFactory = { config, componentContext ->
             createHomeChild(
                 config,
@@ -146,6 +162,7 @@ class DefaultMainComponent(
                 true
             ),
             serializer = SearchConfig.serializer(),
+            handleBackButton = true,
             childFactory = { config, componentContext ->
                 createSearchChild(
                     config,
@@ -162,7 +179,7 @@ class DefaultMainComponent(
                     }
                 )
             },
-            key = "CategoryStack"
+            key = "SearchStack"
         )
     }
 
@@ -171,6 +188,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.basketNavigation,
             initialConfiguration = BasketConfig.BasketScreen,
             serializer = BasketConfig.serializer(),
+            handleBackButton = true,
             childFactory = { config, componentContext ->
                 createBasketChild(
                     config,
@@ -196,6 +214,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.favoritesNavigation,
             initialConfiguration = FavoritesConfig.FavoritesScreen,
             serializer = FavoritesConfig.serializer(),
+            handleBackButton = true,
             childFactory = { config, componentContext ->
                 createFavoritesChild(
                     config,
@@ -221,6 +240,7 @@ class DefaultMainComponent(
             source = modelNavigation.value.profileNavigation,
             initialConfiguration = ProfileConfig.ProfileScreen(openPage =openPage),
             serializer = ProfileConfig.serializer(),
+            handleBackButton = true,
             childFactory = { config, componentContext ->
                 createProfileChild(
                     config,

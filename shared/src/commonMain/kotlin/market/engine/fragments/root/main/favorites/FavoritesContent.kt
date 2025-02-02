@@ -2,7 +2,6 @@ package market.engine.fragments.root.main.favorites
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +34,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
@@ -85,6 +85,17 @@ fun FavoritesContent(
                 favViewModel.updateUserInfo()
                 favViewModel.resetScroll()
                 favViewModel.refresh()
+            }
+        }
+    }
+
+    BackHandler(model.backHandler){
+        when{
+            favViewModel.activeFiltersType.value != "" ->{
+                favViewModel.activeFiltersType.value = ""
+            }
+            else -> {
+
             }
         }
     }

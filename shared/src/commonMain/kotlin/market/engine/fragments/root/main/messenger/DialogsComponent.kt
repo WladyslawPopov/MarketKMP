@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import kotlinx.coroutines.flow.Flow
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.types.DealTypeGroup
@@ -16,7 +17,8 @@ interface DialogsComponent{
     data class Model(
         val dialogId : Long,
         val pagingDataFlow : Flow<PagingData<DialogsData>>,
-        val dialogsViewModel: DialogsViewModel
+        val dialogsViewModel: DialogsViewModel,
+        val backHandler: BackHandler
     )
 
     fun onBackClicked()
@@ -40,7 +42,8 @@ class DefaultDialogsComponent(
         DialogsComponent.Model(
             dialogId = dialogId,
             dialogsViewModel = dialogsViewModel,
-            pagingDataFlow = dialogsViewModel.init(dialogId)
+            pagingDataFlow = dialogsViewModel.init(dialogId),
+            backHandler = backHandler
         )
     )
 

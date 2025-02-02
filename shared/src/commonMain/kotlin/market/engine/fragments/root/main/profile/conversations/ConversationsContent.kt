@@ -35,6 +35,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.dialogs.AccessDialog
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.ProfileDrawer
 import market.engine.widgets.exceptions.dismissBackground
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -104,6 +105,10 @@ fun ConversationsContent(
                 }
             }
         }
+    }
+
+    BackHandler(model.backHandler){
+        component.onBack()
     }
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)

@@ -43,6 +43,7 @@ import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.CaptchaView
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.textFields.TextInputField
@@ -82,6 +83,9 @@ fun LoginContent(
     val successLogin = stringResource(strings.operationSuccess)
     val errorLogin = stringResource(strings.errorLogin)
 
+    BackHandler(modelState.value.backHandler){
+        component.onBack()
+    }
 
     LaunchedEffect(postAuth.value) {
         val res = postAuth.value?.result

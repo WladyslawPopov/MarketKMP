@@ -2,9 +2,11 @@ package market.engine.fragments.root.main.profile.profileSettings
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProfileSettingsTypes
@@ -17,11 +19,14 @@ interface ProfileSettingsComponent {
     data class Model(
         var type : ProfileSettingsTypes,
         val profileSettingsViewModel: ProfileSettingsViewModel,
+        val backHandler: BackHandler
     )
 
     fun selectProfileSettingsPage(type: ProfileSettingsTypes)
 
     fun navigateToDynamicSettings(settingsType : String)
+
+    fun goToBack()
 }
 
 class DefaultProfileSettingsComponent(
@@ -44,7 +49,8 @@ class DefaultProfileSettingsComponent(
     private val _model = MutableValue(
         ProfileSettingsComponent.Model(
             type = type,
-            profileSettingsViewModel = profileSettingsViewModel
+            profileSettingsViewModel = profileSettingsViewModel,
+            backHandler = backHandler
         )
     )
 
@@ -83,5 +89,9 @@ class DefaultProfileSettingsComponent(
 
     override fun navigateToDynamicSettings(settingsType: String) {
         goToDynamicSettings(settingsType)
+    }
+
+    override fun goToBack() {
+        profileNavigation.pop()
     }
 }

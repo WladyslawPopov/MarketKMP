@@ -15,6 +15,7 @@ import market.engine.fragments.root.login.LoginContent
 import market.engine.fragments.root.main.MainNavigation
 import market.engine.fragments.root.registration.RegistrationContent
 import market.engine.fragments.root.verifyPage.VerificationContent
+import market.engine.widgets.exceptions.BackHandler
 
 @Composable
 fun RootNavigation(
@@ -22,6 +23,10 @@ fun RootNavigation(
     modifier: Modifier = Modifier
 ) {
     val childStack by component.childStack.subscribeAsState()
+
+    BackHandler(component.model.value.backHandler){
+
+    }
 
     Surface(
         modifier = modifier.fillMaxSize().imePadding(),

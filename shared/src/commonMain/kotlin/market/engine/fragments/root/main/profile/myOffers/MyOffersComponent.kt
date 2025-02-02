@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
@@ -19,12 +20,14 @@ interface MyOffersComponent {
     data class Model(
         val pagingDataFlow : Flow<PagingData<Offer>>,
         val viewModel: MyOffersViewModel,
-        var type : LotsType
+        var type : LotsType,
+        val backHandler: BackHandler
     )
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun selectMyOfferPage(select : LotsType)
     fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
+    fun goToBack()
 }
 
 class DefaultMyOffersComponent(
@@ -32,7 +35,8 @@ class DefaultMyOffersComponent(
     val type: LotsType = LotsType.MYLOT_ACTIVE,
     val offerSelected: (Long) -> Unit,
     val selectedMyOfferPage: (LotsType) -> Unit,
-    val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit
+    val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit,
+    val navigateToBack: () -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
 
     private val viewModel : MyOffersViewModel = MyOffersViewModel(
@@ -47,7 +51,8 @@ class DefaultMyOffersComponent(
         MyOffersComponent.Model(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
-            type = type
+            type = type,
+            backHandler = backHandler
         )
     )
     override val model: Value<MyOffersComponent.Model> = _model
@@ -120,5 +125,9 @@ class DefaultMyOffersComponent(
         lifecycle.doOnResume {
             viewModel.updateItem.value = offerId
         }
+    }
+
+    override fun goToBack() {
+        navigateToBack()
     }
 }

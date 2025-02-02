@@ -100,6 +100,7 @@ import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.HorizontalImageViewer
 import market.engine.widgets.dropdown_menu.getOfferOperations
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
@@ -150,6 +151,10 @@ fun OfferContent(
     )
 
     val scope = rememberCoroutineScope()
+
+    BackHandler(model.backHandler){
+        component.onBeakClick()
+    }
 
     LaunchedEffect(stateColumn){
         snapshotFlow {

@@ -55,6 +55,7 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.SetUpDynamicFields
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.RichTextStyleRow
@@ -93,6 +94,10 @@ fun DynamicSettingsContent(
         { onError(err.value) { component.onBack() } }
     } else {
         null
+    }
+
+    BackHandler(model.backHandler){
+        component.onBack()
     }
 
     LaunchedEffect(builderDescription) {

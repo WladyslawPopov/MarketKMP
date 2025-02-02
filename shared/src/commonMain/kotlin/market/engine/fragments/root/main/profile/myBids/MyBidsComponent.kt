@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
@@ -18,7 +19,8 @@ interface MyBidsComponent {
     data class Model(
         val pagingDataFlow : Flow<PagingData<Offer>>,
         val viewModel: MyBidsViewModel,
-        var type : LotsType
+        var type : LotsType,
+        val backHandler: BackHandler
     )
 
     fun goToUser(userId : Long)
@@ -26,6 +28,7 @@ interface MyBidsComponent {
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun selectMyBidsPage(select : LotsType)
     fun goToDialog(dialogId : Long?)
+    fun goToBack()
 }
 
 class DefaultMyBidsComponent(
@@ -36,6 +39,7 @@ class DefaultMyBidsComponent(
     val navigateToUser: (Long) -> Unit,
     val navigateToPurchases: () -> Unit,
     val navigateToDialog: (Long?) -> Unit,
+    val navigateBack: () -> Unit
 ) : MyBidsComponent, ComponentContext by componentContext {
 
     private val viewModel : MyBidsViewModel = MyBidsViewModel(
@@ -50,7 +54,8 @@ class DefaultMyBidsComponent(
         MyBidsComponent.Model(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
-            type = type
+            type = type,
+            backHandler = backHandler
         )
     )
     override val model: Value<MyBidsComponent.Model> = _model
@@ -120,6 +125,10 @@ class DefaultMyBidsComponent(
 
     override fun goToDialog(dialogId: Long?) {
         navigateToDialog(dialogId)
+    }
+
+    override fun goToBack() {
+        navigateBack()
     }
 
 

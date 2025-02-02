@@ -105,6 +105,7 @@ import market.engine.widgets.checkboxs.DeliveryMethods
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.checkboxs.RadioGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.DynamicPayloadContent
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.exceptions.onError
@@ -164,6 +165,36 @@ fun CreateOfferContent(
                 BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
+
+    BackHandler(model.value.backHandler){
+        if (viewModel.activeFiltersType.value == "") {
+            component.onBackClicked()
+        }else{
+            viewModel.viewModelScope.launch {
+                val newCat =
+                    viewModel.onCatBack(parentID.value ?: 1L)
+                if (newCat != null) {
+                    categoryID.value = newCat.id
+                    categoryName.value = newCat.name ?: ""
+                    parentID.value = newCat.parentId
+                    isLeaf.value = newCat.isLeaf
+                    val sd = SD(
+                        searchCategoryID = categoryID.value,
+                        searchCategoryName = categoryName.value,
+                        searchParentID = parentID.value,
+                        searchIsLeaf = isLeaf.value
+                    )
+                    viewModel.getCategories(
+                        sd,
+                        LD(),
+                        true
+                    )
+                }else{
+                    component.onBackClicked()
+                }
+            }
+        }
+    }
 
     val refresh = {
         viewModel.onError(ServerErrorException())

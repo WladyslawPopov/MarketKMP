@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.offer
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
@@ -20,7 +21,8 @@ interface OfferComponent {
     data class Model(
         val id: Long,
         val isSnapshot: Boolean,
-        val offerViewModel: OfferViewModel
+        val offerViewModel: OfferViewModel,
+        val backHandler: BackHandler
     )
     fun updateOffer(id: Long, isSnapshot: Boolean)
     fun navigateToOffers(id: Long)
@@ -58,7 +60,8 @@ class DefaultOfferComponent(
         OfferComponent.Model(
             id = id,
             isSnapshot = isSnapshot,
-            offerViewModel = getKoin().get()
+            offerViewModel = getKoin().get(),
+            backHandler = backHandler
         )
     )
     override val model: Value<OfferComponent.Model> = _model

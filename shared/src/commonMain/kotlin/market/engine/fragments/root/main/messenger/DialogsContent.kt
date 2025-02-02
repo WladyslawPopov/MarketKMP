@@ -43,6 +43,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
+import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.items.SeparatorDialogItem
@@ -71,6 +72,10 @@ fun DialogsContent(
 
     LaunchedEffect(data.loadState.refresh){
         viewModel.setLoading(data.loadState.refresh is LoadStateLoading)
+    }
+
+    BackHandler(model.backHandler){
+        component.onBackClicked()
     }
 
     val messageTextState = remember { viewModel.messageTextState }

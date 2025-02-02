@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.createOrder
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.items.SelectedBasketItem
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -11,7 +12,8 @@ interface CreateOrderComponent {
 
     data class Model(
         val basketItem : Pair<Long, List<SelectedBasketItem>>,
-        val createOrderViewModel: CreateOrderViewModel
+        val createOrderViewModel: CreateOrderViewModel,
+        val backHandler: BackHandler
     )
 
     fun onBackClicked()
@@ -35,7 +37,8 @@ class DefaultCreateOrderComponent(
     private val _model = MutableValue(
         CreateOrderComponent.Model(
             basketItem = basketItem,
-            createOrderViewModel = createOrderViewModel
+            createOrderViewModel = createOrderViewModel,
+            backHandler = backHandler
         )
     )
 

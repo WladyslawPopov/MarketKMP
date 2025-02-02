@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
@@ -19,12 +20,14 @@ interface MyOrdersComponent {
     data class Model(
         val pagingDataFlow : Flow<PagingData<Order>>,
         val viewModel: MyOrdersViewModel,
-        var type : DealType
+        var type : DealType,
+        val backHandler: BackHandler
     )
     fun goToUser(id : Long)
     fun goToOffer(offer: Offer)
     fun selectMyOrderPage(select : DealType)
     fun goToMessenger(dialogId : Long?)
+    fun goToBack()
 }
 
 class DefaultMyOrdersComponent(
@@ -34,7 +37,8 @@ class DefaultMyOrdersComponent(
     val offerSelected: (Long) -> Unit,
     val navigateToMyOrder: (DealType) -> Unit,
     val navigateToUser: (Long) -> Unit,
-    val navigateToMessenger: (Long?) -> Unit
+    val navigateToMessenger: (Long?) -> Unit,
+    val navigateToBack: () -> Unit
 ) : MyOrdersComponent, ComponentContext by componentContext {
 
     private val viewModel : MyOrdersViewModel = MyOrdersViewModel(
@@ -50,7 +54,8 @@ class DefaultMyOrdersComponent(
         MyOrdersComponent.Model(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
-            type = type
+            type = type,
+            backHandler = backHandler
         )
     )
     override val model: Value<MyOrdersComponent.Model> = _model
@@ -114,5 +119,9 @@ class DefaultMyOrdersComponent(
 
     override fun goToMessenger(dialogId : Long?) {
         navigateToMessenger(dialogId)
+    }
+
+    override fun goToBack() {
+        navigateToBack()
     }
 }
