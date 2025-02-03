@@ -58,7 +58,6 @@ import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
-import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.uuid.ExperimentalUuidApi
@@ -131,7 +130,6 @@ fun ContactUsContent(
         modifier = modifier,
         topBar = {
             ContactUsAppBar(
-                title = "",
                 modifier = modifier,
                 onBeakClick = {
                     component.onBack()
@@ -163,12 +161,6 @@ fun ContactUsContent(
                 verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                 item {
-                     SeparatorLabel(
-                         stringResource(strings.contactUsHeaderLabel)
-                     )
-                 }
-
                  item {
                      responseGetFields.value?.fields?.forEach { field ->
                          when(field.widgetType) {

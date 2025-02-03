@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,6 +84,7 @@ fun BaseContent(
                             toastItem.value.isVisible,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
+                                .padding(bottom = dimens.mediumPadding)
                                 .zIndex(100f),
                             enter = expandIn(),
                             exit = fadeOut()

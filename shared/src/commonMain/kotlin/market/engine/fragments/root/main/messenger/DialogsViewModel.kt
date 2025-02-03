@@ -110,14 +110,14 @@ class DialogsViewModel(
                     DialogsData.MessageItem(
                         id = dialog.id,
                         message = dialog.message.orEmpty(),
-                        dateTime = dialog.createdTs,
+                        dateTime = dialog.createdTs ?: 1L,
                         user = if (isIncoming)
                             responseGetConversation.value?.interlocutor?.login.orEmpty()
                         else
                             UserData.userInfo?.login.toString(),
                         messageType = type,
                         images = dialog.images?.mapTo(ArrayList()) { MesImage(it.thumbUrl, it.url) },
-                        readByReceiver = dialog.readByReceiver
+                        readByReceiver = dialog.readByReceiver ?: false
                     )
                 }.insertSeparators { before: DialogsData.MessageItem?, after: DialogsData.MessageItem? ->
                     val beforeDate = before?.dateTime.toString().convertDateYear()

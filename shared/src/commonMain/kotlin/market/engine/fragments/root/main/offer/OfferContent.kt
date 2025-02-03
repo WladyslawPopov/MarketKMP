@@ -86,7 +86,6 @@ import market.engine.core.network.operations.operationFavorites
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.parseHtmlToAnnotatedString
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.PopupActionButton
@@ -219,13 +218,11 @@ fun OfferContent(
         }
     }
 
-
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
         { onError(isError.value) { component.updateOffer(lotState.value?.id ?: 1L, model.isSnapshot) } }
     }else{
         null
     }
-
 
     lotState.value?.let { offer ->
         BaseContent(
@@ -896,6 +893,7 @@ fun DescriptionHtmlOffer(
     offer: Offer
 ){
     val state = rememberRichTextState()
+    val standardState = rememberRichTextState()
     val sst = stringResource(strings.standardDescriptionParameterName)
     val ast = stringResource(strings.additionalDescriptionsParameterName)
 
@@ -915,7 +913,7 @@ fun DescriptionHtmlOffer(
                                 append(sst)
                             }
                             append("\n")
-                            append(standard.description.parseHtmlToAnnotatedString())
+                            append(standardState.setHtml(standard.description).annotatedString)
                             append("\n")
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("$sst $formattedDate")

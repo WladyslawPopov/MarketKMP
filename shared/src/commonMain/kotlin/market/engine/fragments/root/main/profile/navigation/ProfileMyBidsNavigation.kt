@@ -110,7 +110,7 @@ fun itemMyBids(
             profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen(dialogId))
         },
         navigateBack = {
-            profileNavigation.pop()
+            profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
         }
     )
 }

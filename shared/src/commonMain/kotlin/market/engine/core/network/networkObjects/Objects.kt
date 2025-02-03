@@ -505,15 +505,15 @@ data class Conversations(
 @Serializable
 data class Dialog(
     @SerialName("id") val id: Long = 1L,
-    @SerialName("created_ts") val createdTs: Long = 1L,
-    @SerialName("lastupdated_ts") val lastUpdatedTs: Long = 1L,
+    @SerialName("created_ts") val createdTs: Long? = 1L,
+    @SerialName("lastupdated_ts") val lastUpdatedTs: Long? = 1L,
     @SerialName("about_object_class") val aboutObjectClass: String? = null,
-    @SerialName("about_object_id") val aboutObjectId: Long = 1L,
-    @SerialName("sender") val sender: Long = 1L,
-    @SerialName("receiver") val receiver: Long = 1L,
-    @SerialName("dialog_id") val dialogId: Long = 1L,
+    @SerialName("about_object_id") val aboutObjectId: Long? = 1L,
+    @SerialName("sender") val sender: Long? = 1L,
+    @SerialName("receiver") val receiver: Long? = 1L,
+    @SerialName("dialog_id") val dialogId: Long? = 1L,
     @SerialName("message") val message: String? = null,
-    @SerialName("read_by_receiver") val readByReceiver: Boolean = false,
+    @SerialName("read_by_receiver") val readByReceiver: Boolean? = false,
     @SerialName("images") val images: List<MesImage>? = null
 )
 

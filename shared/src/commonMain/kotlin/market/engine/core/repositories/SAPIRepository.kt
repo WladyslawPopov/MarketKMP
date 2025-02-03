@@ -12,10 +12,6 @@ class SAPIRepository {
         SAPI.secret = secret
     }
 
-    fun setWorkStation(workStation: String) {
-        SAPI.workstationData = workStation
-    }
-
     fun addHeader(key: String, value: String) {
         SAPI.headers[key] = value
     }

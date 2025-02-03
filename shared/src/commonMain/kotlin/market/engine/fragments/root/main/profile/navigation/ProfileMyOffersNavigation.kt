@@ -14,6 +14,7 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.LotsType
@@ -109,7 +110,7 @@ fun itemMyOffers(
             )
         },
         navigateToBack = {
-            profileNavigation.pop()
+            profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
         }
     )
 }

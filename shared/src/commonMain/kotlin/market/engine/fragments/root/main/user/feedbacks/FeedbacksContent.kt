@@ -24,12 +24,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.buildAnnotatedString
 import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,7 +42,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
-import market.engine.core.utils.parseHtmlToAnnotatedString
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.bars.PagingCounterBar
 import market.engine.widgets.exceptions.onError
@@ -59,6 +58,8 @@ fun FeedbacksContent(
     val viewModel = model.feedbacksViewModel
     val listingData = viewModel.listingData.value.data
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
+
+    val htmlText = rememberRichTextState()
 
     val filters = listOf(
         stringResource(strings.allFilterParams),
@@ -219,8 +220,12 @@ fun FeedbacksContent(
                         noItem != null -> item { noItem?.invoke() }
                         model.type == ReportPageType.ABOUT_ME -> {
                             item {
-                                val aboutLabel = aboutMe?.parseHtmlToAnnotatedString() ?:
-                                buildAnnotatedString { append(stringResource(strings.emptyAboutMeLabel)) }
+
+                                if (aboutMe != null) {
+                                    htmlText.setHtml(aboutMe)
+                                } else {
+                                    htmlText.setHtml(stringResource(strings.emptyAboutMeLabel))
+                                }
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
@@ -228,7 +233,7 @@ fun FeedbacksContent(
                                     horizontalArrangement = Arrangement.Center
                                 ) {
                                     Text(
-                                        aboutLabel,
+                                        text = htmlText.annotatedString,
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = colors.darkBodyTextColor
                                     )

@@ -285,7 +285,7 @@ fun createProfileChild(
             badgeCount = null,
             onClick = {
                 try {
-                    profileNavigation.pushNew(
+                    profileNavigation.replaceCurrent(
                         ProfileConfig.ProfileSettingsScreen
                     )
                 } catch ( _ : Exception){}
