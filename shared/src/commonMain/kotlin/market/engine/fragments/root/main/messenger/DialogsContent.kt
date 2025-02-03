@@ -257,11 +257,11 @@ fun DialogsContent(
                                             isDisabledSendMes.value = false
 
                                             if (offer.sellerData?.id == conversation.interlocutor?.id) {
-                                                userRole.value = "seller"
-                                                isDisabledAddPhotos.value = false
-                                            } else {
                                                 userRole.value = "buyer"
                                                 isDisabledAddPhotos.value = true
+                                            } else {
+                                                userRole.value = "seller"
+                                                isDisabledAddPhotos.value = false
                                             }
                                         }
 
@@ -302,9 +302,9 @@ fun DialogsContent(
                                             isDisabledAddPhotos.value = false
 
                                             if (order.sellerData?.id == conversation.interlocutor?.id) {
-                                                userRole.value = "seller"
-                                            } else {
                                                 userRole.value = "buyer"
+                                            } else {
+                                                userRole.value = "seller"
                                             }
                                         }
                                         val title = buildAnnotatedString {

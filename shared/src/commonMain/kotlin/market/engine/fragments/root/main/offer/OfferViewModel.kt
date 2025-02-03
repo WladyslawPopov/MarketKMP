@@ -162,6 +162,8 @@ class OfferViewModel(
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Initialization error", ""))
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -204,8 +206,6 @@ class OfferViewModel(
                 _responseOurChoice.value = ourChoice
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))
-            } finally {
-                setLoading(false)
             }
         }
     }

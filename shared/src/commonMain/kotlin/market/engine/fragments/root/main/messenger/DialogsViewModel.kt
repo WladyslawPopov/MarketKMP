@@ -104,7 +104,7 @@ class DialogsViewModel(
         return dialogsPagingRepository.getListing(listingData.value, apiService, Dialog.serializer())
             .map { pagingData ->
                 pagingData.map { dialog ->
-                    val isIncoming = (responseGetConversation.value?.interlocutor?.id == dialog.sender)
+                    val isIncoming = (UserData.login != dialog.sender)
                     val type = if (isIncoming) MessageType.INCOMING else MessageType.OUTGOING
 
                     DialogsData.MessageItem(
