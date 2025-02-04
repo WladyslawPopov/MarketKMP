@@ -138,23 +138,25 @@ fun SubscriptionsContent(
                     horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (listingData.value.sort != null){
-                        ActiveFilterListing(
-                            text = listingData.value.sort?.sortText ?: "",
-                            removeFilter = {
-                                listingData.value.sort = null
-                                refresh()
-                            },
-                        ){
-                            subViewModel.activeFiltersType.value = "sorting"
-                        }
-                    }
-
                     SmallIconButton(
                         drawables.newLotIcon,
                         color = colors.inactiveBottomNavIconColor
                     ){
+                        component.goToCreateNewSubscription()
+                    }
 
+                    if (listingData.value.sort != null){
+                        if (listingData.value.sort != null){
+                            ActiveFilterListing(
+                                text = listingData.value.sort?.interpritation ?: "",
+                                removeFilter = {
+                                    listingData.value.sort = null
+                                    refresh()
+                                },
+                            ){
+                                subViewModel.activeFiltersType.value = "sorting"
+                            }
+                        }
                     }
 
                     SmallIconButton(

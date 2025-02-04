@@ -8,9 +8,7 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.types.FavScreenType
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Subscription
-import market.engine.fragments.root.main.favPages.favorites.FavViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -24,12 +22,15 @@ interface SubscriptionsComponent {
     )
 
     fun goToFavScreen()
+
+    fun goToCreateNewSubscription(editId : Long? = null)
 }
 
 class DefaultSubscriptionsComponent(
     componentContext: ComponentContext,
     favType : FavScreenType,
     val selectedFavScreen : (FavScreenType) -> Unit,
+    val navigateToCreateNewSubscription : (Long?) -> Unit,
 ) : SubscriptionsComponent, ComponentContext by componentContext {
 
     private val subViewModel : SubViewModel = getKoin().get()
@@ -53,5 +54,9 @@ class DefaultSubscriptionsComponent(
 
     override fun goToFavScreen() {
         selectedFavScreen(model.value.favType)
+    }
+
+    override fun goToCreateNewSubscription(editId: Long?) {
+        navigateToCreateNewSubscription(editId)
     }
 }

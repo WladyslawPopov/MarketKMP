@@ -94,13 +94,17 @@ fun itemSubscriptions(
     componentContext: ComponentContext,
     selectedType : FavScreenType,
     selectedFavScreen : (FavScreenType) -> Unit,
+    navigateToCreateNewSubscription : (Long?) -> Unit,
 ): SubscriptionsComponent {
     return DefaultSubscriptionsComponent(
         componentContext = componentContext,
         selectedFavScreen = {
             selectedFavScreen(it)
         },
-        favType = selectedType
+        favType = selectedType,
+        navigateToCreateNewSubscription = {
+            navigateToCreateNewSubscription(it)
+        }
     )
 }
 

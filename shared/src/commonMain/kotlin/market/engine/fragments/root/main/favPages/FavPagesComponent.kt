@@ -82,7 +82,12 @@ class DefaultFavPagesComponent(
                                 selectedFavScreen = {
                                     selectPage(it)
                                 },
-                                selectedType = config.favType
+                                selectedType = config.favType,
+                                navigateToCreateNewSubscription = {
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.CreateSubscriptionScreen(it)
+                                    )
+                                }
                             )
                         )
                     }
