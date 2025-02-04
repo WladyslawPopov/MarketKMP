@@ -7,12 +7,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
+import market.engine.core.repositories.UserRepository
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.buttons.SimpleTextButton
+import org.koin.compose.koinInject
 
 @Composable
-fun onError(error : ServerErrorException, onRefresh: () -> Unit) {
+fun onError(
+    error : ServerErrorException,
+    onRefresh: () -> Unit,
+) {
     val humanMessage = error.humanMessage
     val errorCode = error.errorCode
+
+    val userRepository : UserRepository = koinInject()
 
     val showDialog = remember { mutableStateOf(false) }
 
@@ -22,10 +31,8 @@ fun onError(error : ServerErrorException, onRefresh: () -> Unit) {
                 showNoInternetLayout(onRefresh)
             }
             it == "MISSING_OR_INVALID_TOKEN" -> {
-//                globalMethods.removeShortcuts(requireContext())
-//                userRepository.delete()
-//                activityLauncher.launchMainActivity("", true)
-//                requireActivity().finish()
+                userRepository.delete()
+                goToLogin()
             }
             it.contains(" timeout ") -> {
                 showNoInternetLayout(onRefresh)
@@ -43,7 +50,7 @@ fun onError(error : ServerErrorException, onRefresh: () -> Unit) {
                 showErrLayout(it,onRefresh)
             }
             it == "NEEDS_PASSWORD_RESET" ->{
-//                (activity as BaseActivity).callResetPassword(exception.humanMessage)
+                goToDynamicSettings(humanMessage)
             }
             else -> {
                 if(humanMessage != "" && (humanMessage != "null" && humanMessage != "Unknown error" && humanMessage != "")){
@@ -66,7 +73,11 @@ fun onError(error : ServerErrorException, onRefresh: () -> Unit) {
                                 )
                             }
                         )
+                    } else {
+
                     }
+                } else {
+
                 }
             }
         }

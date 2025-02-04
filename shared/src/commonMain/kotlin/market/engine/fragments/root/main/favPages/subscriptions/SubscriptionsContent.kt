@@ -27,6 +27,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.bars.ActiveFilterListing
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.exceptions.BackHandler

@@ -58,8 +58,6 @@ class DefaultRootComponent(
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
     private val settingsHelper : SettingsRepository = getKoin().get()
 
-    private val navigation = StackNavigation<RootConfig>()
-
     override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {
         childStack(
             source = navigation,
@@ -179,6 +177,18 @@ class DefaultRootComponent(
                 )
             )
         }
+
+    companion object {
+        private val navigation = StackNavigation<RootConfig>()
+
+        val goToLogin = {
+            navigation.pushNew(RootConfig.Login)
+        }
+
+        val goToDynamicSettings : (String) -> Unit = {
+            navigation.pushNew(RootConfig.DynamicSettingsScreen(it))
+        }
+    }
 }
 
 
