@@ -190,6 +190,7 @@ interface Strings {
     val copyOrderId : StringResource
     val messageAboutError : StringResource
     val deleteSelectedLot : StringResource
+    val warningDeleteSubscription : StringResource
     val acceptAction : StringResource
     val idCopied : StringResource
     val defaultOfferTitle : StringResource
@@ -414,4 +415,5 @@ interface Strings {
     val settingsThemeLabel : StringResource
     val themeLightLabel : StringResource
     val themeDarkLabel : StringResource
+    val emptySubscriptionsLabel : StringResource
 }

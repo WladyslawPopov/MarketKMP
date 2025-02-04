@@ -16,14 +16,14 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.main.basket.BasketViewModel
 import market.engine.fragments.root.dynamicSettings.DynamicSettingsViewModel
-import market.engine.fragments.root.main.favorites.FavViewModel
+import market.engine.fragments.root.main.favPages.favorites.FavViewModel
 import market.engine.fragments.root.main.home.HomeViewModel
 import market.engine.fragments.root.login.LoginViewModel
 import market.engine.fragments.root.contactUs.ContactUsViewModel
 import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
 import market.engine.fragments.root.main.createOrder.CreateOrderViewModel
+import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
 import market.engine.fragments.root.main.profile.ProfileViewModel
-import market.engine.fragments.root.main.favorites.subscriptions.SubViewModel
 import market.engine.fragments.root.main.listing.ListingViewModel
 import market.engine.fragments.root.main.listing.search.SearchViewModel
 import market.engine.fragments.root.main.messenger.DialogsViewModel

@@ -17,10 +17,10 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.root.main.basket.BasketNavigation
-import market.engine.fragments.root.main.favorites.FavoritesNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
+import market.engine.fragments.root.main.favPages.FavoritesNavigation
 import market.engine.widgets.bars.getBottomNavBar
 
 

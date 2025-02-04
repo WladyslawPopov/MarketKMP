@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.favorites
+package market.engine.fragments.root.main.favPages.favorites
 
 import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData

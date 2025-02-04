@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.favorites
+package market.engine.fragments.root.main.favPages.favorites
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -43,8 +43,8 @@ import org.koin.compose.koinInject
 
 @Composable
 fun FavoritesContent(
-    modifier: Modifier,
     component: FavoritesComponent,
+    modifier: Modifier,
 ) {
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -126,16 +126,7 @@ fun FavoritesContent(
     }
 
     BaseContent(
-        topBar = {
-//            FavoritesAppBar(
-//                FavScreenType.FAVORITES,
-//                modifier
-//            ) { type ->
-//                if (type == FavScreenType.SUBSCRIBED) {
-//                    component.goToSubscribes()
-//                }
-//            }
-        },
+        topBar = null,
         onRefresh = {
             refresh()
         },

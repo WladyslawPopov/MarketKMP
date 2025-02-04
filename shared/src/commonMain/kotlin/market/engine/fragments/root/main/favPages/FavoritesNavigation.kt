@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.favorites
+package market.engine.fragments.root.main.favPages
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -13,7 +13,6 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -32,9 +31,6 @@ import market.engine.fragments.root.main.createOffer.createOfferFactory
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
-import market.engine.fragments.root.main.favorites.subscriptions.DefaultSubscribesComponent
-import market.engine.fragments.root.main.favorites.subscriptions.SubscribesComponent
-import market.engine.fragments.root.main.favorites.subscriptions.SubscribesContent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
@@ -47,10 +43,7 @@ import market.engine.fragments.root.main.user.UserContent
 @Serializable
 sealed class FavoritesConfig {
     @Serializable
-    data object FavoritesScreen : FavoritesConfig()
-
-    @Serializable
-    data object SubscriptionsScreen : FavoritesConfig()
+    data class FavPagesScreen(val favScreenType: FavScreenType) : FavoritesConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnap: Boolean = false) : FavoritesConfig()
@@ -75,10 +68,8 @@ sealed class FavoritesConfig {
     ) : FavoritesConfig()
 }
 
-
 sealed class ChildFavorites {
-    class FavoritesChild(val component: FavoritesComponent) : ChildFavorites()
-    class SubChild(val component: SubscribesComponent) : ChildFavorites()
+    class FavPagesChild(val component: FavPagesComponent) : ChildFavorites()
     class OfferChild(val component: OfferComponent) : ChildFavorites()
     class ListingChild(val component: ListingComponent) : ChildFavorites()
     class UserChild(val component: UserComponent) : ChildFavorites()
@@ -100,8 +91,7 @@ fun FavoritesNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildFavorites.FavoritesChild -> FavoritesContent(modifier, screen.component)
-            is ChildFavorites.SubChild -> SubscribesContent(modifier, screen.component)
+            is ChildFavorites.FavPagesChild -> FavPagesNavigation(screen.component, modifier)
             is ChildFavorites.OfferChild -> OfferContent(screen.component, modifier)
             is ChildFavorites.ListingChild -> ListingContent(screen.component, modifier)
             is ChildFavorites.UserChild -> UserContent(screen.component, modifier)
@@ -111,7 +101,6 @@ fun FavoritesNavigation(
     }
 }
 
-
 fun createFavoritesChild(
     config: FavoritesConfig,
     componentContext: ComponentContext,
@@ -119,14 +108,9 @@ fun createFavoritesChild(
     navigateToMyOrders: () -> Unit,
     navigateToLogin: () -> Unit,
     navigateToDialog: (dialogId: Long?) -> Unit
-): ChildFavorites =
-    when (config) {
-        FavoritesConfig.FavoritesScreen -> ChildFavorites.FavoritesChild(
-            itemFavorites(componentContext, favoritesNavigation)
-        )
-
-        FavoritesConfig.SubscriptionsScreen -> ChildFavorites.SubChild(
-            itemSubscriptions(componentContext, favoritesNavigation)
+): ChildFavorites = when (config) {
+        is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
+            itemFavPages(componentContext, favoritesNavigation)
         )
 
         is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
@@ -168,7 +152,7 @@ fun createFavoritesChild(
                     )
                 },
                 navigateToLogin = {
-                   navigateToLogin()
+                    navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
                     navigateToDialog(dialogId)
@@ -275,36 +259,12 @@ fun createFavoritesChild(
         )
     }
 
-fun itemSubscriptions(componentContext: ComponentContext, favoritesNavigation : StackNavigation<FavoritesConfig>): SubscribesComponent {
-    return DefaultSubscribesComponent(
+fun itemFavPages(
+    componentContext: ComponentContext,
+    favoritesNavigation : StackNavigation<FavoritesConfig>,
+): FavPagesComponent {
+    return DefaultFavPagesComponent(
+        favoritesNavigation = favoritesNavigation,
         componentContext = componentContext,
-    ) {
-        pushFavStack(FavScreenType.FAVORITES, favoritesNavigation = favoritesNavigation)
-    }
-}
-
-fun itemFavorites(componentContext: ComponentContext, favoritesNavigation : StackNavigation<FavoritesConfig>): FavoritesComponent {
-    return DefaultFavoritesComponent(
-        componentContext = componentContext,
-        goToOffer = { id ->
-            pushFavStack(FavScreenType.OFFER, id, favoritesNavigation)
-        },
-        selectedSubscribes = {
-            pushFavStack(FavScreenType.SUBSCRIBED, favoritesNavigation = favoritesNavigation)
-        }
     )
-}
-
-fun pushFavStack(screenType: FavScreenType, id: Long = 1L, favoritesNavigation : StackNavigation<FavoritesConfig>){
-    when(screenType){
-        FavScreenType.FAVORITES -> {
-            favoritesNavigation.replaceAll(FavoritesConfig.FavoritesScreen)
-        }
-        FavScreenType.SUBSCRIBED -> {
-            favoritesNavigation.replaceAll(FavoritesConfig.SubscriptionsScreen)
-        }
-        FavScreenType.OFFER -> {
-            favoritesNavigation.pushNew(FavoritesConfig.OfferScreen(id, getCurrentDate()))
-        }
-    }
 }

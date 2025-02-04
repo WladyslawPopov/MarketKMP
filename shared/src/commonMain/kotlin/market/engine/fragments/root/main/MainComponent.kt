@@ -17,17 +17,15 @@ import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.RootComponent
 import market.engine.fragments.root.main.basket.BasketConfig
 import market.engine.fragments.root.main.basket.ChildBasket
 import market.engine.fragments.root.main.home.ChildHome
 import market.engine.fragments.root.main.home.HomeConfig
 import market.engine.fragments.root.main.home.createHomeChild
-import market.engine.fragments.root.main.favorites.ChildFavorites
-import market.engine.fragments.root.main.favorites.FavoritesConfig
+import market.engine.fragments.root.main.favPages.ChildFavorites
+import market.engine.fragments.root.main.favPages.FavoritesConfig
 import market.engine.fragments.root.main.basket.createBasketChild
-import market.engine.fragments.root.main.favorites.createFavoritesChild
-import market.engine.fragments.root.main.favorites.pushFavStack
+import market.engine.fragments.root.main.favPages.createFavoritesChild
 import market.engine.fragments.root.main.profile.navigation.ChildProfile
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.fragments.root.main.profile.navigation.createProfileChild
@@ -213,7 +211,7 @@ class DefaultMainComponent(
     override val childFavoritesStack: Value<ChildStack<*, ChildFavorites>> by lazy {
         childStack(
             source = modelNavigation.value.favoritesNavigation,
-            initialConfiguration = FavoritesConfig.FavoritesScreen,
+            initialConfiguration = FavoritesConfig.FavPagesScreen(FavScreenType.FAVORITES),
             serializer = FavoritesConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
@@ -379,9 +377,7 @@ class DefaultMainComponent(
                     goToLogin()
                 }else{
                     if(activeCurrent == "Favorites"){
-                        pushFavStack(
-                            FavScreenType.FAVORITES,
-                            favoritesNavigation = modelNavigation.value.favoritesNavigation)
+                        modelNavigation.value.favoritesNavigation.popToFirst()
                     }
                     activeCurrent = "Favorites"
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
