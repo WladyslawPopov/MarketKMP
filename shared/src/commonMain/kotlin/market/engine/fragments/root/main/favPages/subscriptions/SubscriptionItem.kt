@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,12 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Subscription
-import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.getSubscriptionOperations
 import market.engine.widgets.exceptions.LoadImage
@@ -43,13 +42,15 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SubscriptionItem(
     subscription: Subscription,
-    baseViewModel: BaseViewModel,
+    viewModel: SubViewModel,
     goToEditSubscription: (Long) -> Unit,
     onItemClick: () -> Unit
 ) {
     val user = subscription.sellerData
     val showMenu = remember { mutableStateOf(false) }
-    val isEnabled = remember { mutableStateOf(subscription.isEnabled) }
+    val isEnabled = mutableStateOf(subscription.isEnabled)
+
+    if (viewModel.updateItemTrigger.value >= 0)
 
     Card(
         colors = colors.cardColors,
@@ -105,13 +106,13 @@ fun SubscriptionItem(
                     ) {
                         subscription.catpath?.toList()?.reversed()?.forEachIndexed { index, cat ->
                             Text(
-                                text = if (subscription.catpath.size - 1 == index)
+                                text = if ((subscription.catpath?.size ?: 0) - 1 == index)
                                     cat.second
                                 else cat.second + "->",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = if (subscription.catpath.size - 1 == index) colors.black else colors.steelBlue,
+                                color = if ((subscription.catpath?.size ?: 0) - 1 == index) colors.black else colors.steelBlue,
                             )
                         }
                     }
@@ -128,7 +129,7 @@ fun SubscriptionItem(
                     if (showMenu.value){
                         getSubscriptionOperations(
                             subscription,
-                            baseViewModel,
+                            viewModel,
                             goToEditSubscription = goToEditSubscription
                         ){
                             showMenu.value = false
@@ -139,7 +140,7 @@ fun SubscriptionItem(
             //body
             Column(
                 modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
             ) {
                 //search param
@@ -156,7 +157,7 @@ fun SubscriptionItem(
                         )
 
                         Text(
-                            subscription.searchQuery,
+                            subscription.searchQuery ?: "",
                             style = MaterialTheme.typography.titleSmall,
                             color = colors.black
                         )
@@ -176,7 +177,7 @@ fun SubscriptionItem(
                         )
 
                         Text(
-                            subscription.region.name ?: "",
+                            subscription.region?.name ?: "",
                             style = MaterialTheme.typography.titleSmall,
                             color = colors.black
                         )
@@ -186,10 +187,10 @@ fun SubscriptionItem(
                 if (subscription.priceTo != null || subscription.priceFrom != null) {
                     val price = buildString {
                         if (subscription.priceFrom != null) append("${stringResource(strings.fromAboutParameterName)} ${subscription.priceFrom} ${stringResource(
-                            strings.currencyCode)}")
+                            strings.currencySign)}")
                         if (subscription.priceFrom != null && subscription.priceTo != null) append(" - ")
                         if (subscription.priceTo != null) append("${stringResource(strings.toAboutParameterName)}  ${subscription.priceTo} ${stringResource(
-                            strings.currencyCode)}")
+                            strings.currencySign)}")
                     }
 
                     Row(
@@ -262,7 +263,7 @@ fun SubscriptionItem(
 
                 Text(
                     text = stringResource(
-                        if (subscription.isEnabled)
+                        if (isEnabled.value)
                             strings.subscriptionOnLabel
                         else strings.subscriptionOffLabel
                     ),
@@ -273,7 +274,17 @@ fun SubscriptionItem(
                 Switch(
                     checked = isEnabled.value,
                     onCheckedChange = {
-                        isEnabled.value = !isEnabled.value
+                        viewModel.viewModelScope.launch {
+                            val res = if (isEnabled.value)
+                                viewModel.disableSubscription(subscription.id)
+                            else
+                                viewModel.enableSubscription(subscription.id)
+
+                            if (res) {
+                                subscription.isEnabled = !subscription.isEnabled
+                                isEnabled.value = !isEnabled.value
+                            }
+                        }
                     },
                     colors = SwitchDefaults.colors(
                         checkedBorderColor = colors.transparent,

@@ -21,7 +21,7 @@ import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class CreateNewSubscriptionViewModel(
+class CreateSubscriptionViewModel(
     private val userOperations: UserOperations,
     private val subOperations: SubscriptionOperations,
 ) : BaseViewModel() {

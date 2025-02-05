@@ -52,11 +52,11 @@ import market.engine.widgets.textFields.DynamicInputField
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun CreateNewSubscriptionContent(
-    component : CreateNewSubscriptionComponent,
+fun CreateSubscriptionContent(
+    component : CreateSubscriptionComponent,
 ) {
     val model = component.model.subscribeAsState()
-    val viewModel = model.value.createNewSubscriptionViewModel
+    val viewModel = model.value.createSubscriptionViewModel
 
     val isLoading = viewModel.isShowProgress.collectAsState()
     val err = viewModel.errorMessage.collectAsState()
@@ -117,9 +117,16 @@ fun CreateNewSubscriptionContent(
         }
     }
 
+    val title = stringResource(
+        if (model.value.editId == null)
+            strings.createNewSubscriptionTitle
+        else strings.editLabel
+    )
+
     BaseContent(
         topBar = {
-            CreateNewSubscriptionAppBar(
+            CreateSubscriptionAppBar(
+                title,
                 onBackClick = {
                     component.onBackClicked()
                 }
@@ -243,7 +250,10 @@ fun CreateNewSubscriptionContent(
 
                     item {
                         AcceptedPageButton(
-                            strings.createNewSubscriptionTitle,
+                            if (model.value.editId == null)
+                                strings.createNewSubscriptionTitle
+                            else
+                                strings.editLabel,
                             Modifier.align(Alignment.BottomCenter)
                                 .wrapContentWidth()
                                 .padding(dimens.mediumPadding)

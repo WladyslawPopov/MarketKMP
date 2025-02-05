@@ -31,9 +31,9 @@ import market.engine.fragments.root.main.createOffer.createOfferFactory
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
-import market.engine.fragments.root.main.createSubscription.CreateNewSubscriptionComponent
-import market.engine.fragments.root.main.createSubscription.CreateNewSubscriptionContent
-import market.engine.fragments.root.main.createSubscription.createNewSubscriptionFactory
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
+import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
@@ -83,7 +83,7 @@ sealed class ChildFavorites {
     class UserChild(val component: UserComponent) : ChildFavorites()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildFavorites()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildFavorites()
-    class CreateSubscriptionChild(val component: CreateNewSubscriptionComponent) : ChildFavorites()
+    class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildFavorites()
 }
 
 @Composable
@@ -106,7 +106,7 @@ fun FavoritesNavigation(
             is ChildFavorites.UserChild -> UserContent(screen.component, modifier)
             is ChildFavorites.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildFavorites.CreateOrderChild -> CreateOrderContent(screen.component)
-            is ChildFavorites.CreateSubscriptionChild -> CreateNewSubscriptionContent(screen.component)
+            is ChildFavorites.CreateSubscriptionChild -> CreateSubscriptionContent(screen.component)
         }
     }
 }
@@ -269,7 +269,7 @@ fun createFavoritesChild(
         )
 
     is FavoritesConfig.CreateSubscriptionScreen -> ChildFavorites.CreateSubscriptionChild(
-        createNewSubscriptionFactory(
+        createSubscriptionFactory(
             componentContext = componentContext,
             editId = config.editId,
             navigateBack = {

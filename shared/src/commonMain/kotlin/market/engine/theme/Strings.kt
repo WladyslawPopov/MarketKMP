@@ -419,4 +419,5 @@ interface Strings {
     val createNewSubscriptionTitle : StringResource
     val subscriptionOnLabel : StringResource
     val subscriptionOffLabel : StringResource
+    val editLabel : StringResource
 }

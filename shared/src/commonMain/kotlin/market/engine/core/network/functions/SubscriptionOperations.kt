@@ -10,10 +10,26 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonElement
-import market.engine.core.network.networkObjects.AdditionalData
-import market.engine.core.network.networkObjects.PayloadExistence
+import market.engine.core.network.networkObjects.Subscription
 
 class SubscriptionOperations(private val apiService: APIService) {
+
+    suspend fun getSubscription(id: Long): ServerResponse<Subscription?> {
+        return try {
+            val response = apiService.getSubscription(id)
+            try {
+                val serializer = ListSerializer(Subscription.serializer())
+                val payload : List<Subscription> = deserializePayload(response.payload, serializer)
+                ServerResponse(payload.firstOrNull())
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
 
     suspend fun postSubOperationsEnable(id: Long?): ServerResponse<Boolean> {
         return try {

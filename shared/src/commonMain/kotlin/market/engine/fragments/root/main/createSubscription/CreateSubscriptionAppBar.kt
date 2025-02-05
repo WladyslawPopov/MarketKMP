@@ -7,17 +7,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.NavigationArrowButton
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateNewSubscriptionAppBar(
+fun CreateSubscriptionAppBar(
+    title : String,
     onBackClick: () -> Unit = {},
 ) {
-    val title = stringResource(strings.createNewSubscriptionTitle)
-
     TopAppBar(
         modifier = Modifier
             .fillMaxWidth(),

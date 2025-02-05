@@ -22,8 +22,7 @@ import market.engine.fragments.root.login.LoginViewModel
 import market.engine.fragments.root.contactUs.ContactUsViewModel
 import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
 import market.engine.fragments.root.main.createOrder.CreateOrderViewModel
-import market.engine.fragments.root.main.createSubscription.CreateNewSubscriptionContent
-import market.engine.fragments.root.main.createSubscription.CreateNewSubscriptionViewModel
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionViewModel
 import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
 import market.engine.fragments.root.main.profile.ProfileViewModel
 import market.engine.fragments.root.main.listing.ListingViewModel
@@ -70,7 +69,7 @@ val viewModelModule = module {
     viewModelOf(::VerificationViewModel)
     viewModelOf(::RegViewModel)
     viewModelOf(::ContactUsViewModel)
-    viewModelOf(::CreateNewSubscriptionViewModel)
+    viewModelOf(::CreateSubscriptionViewModel)
 }
 
 val networkModule = module {

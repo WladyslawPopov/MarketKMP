@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
@@ -26,7 +25,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Subscription
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -35,13 +34,13 @@ import org.koin.compose.koinInject
 @Composable
 fun getSubscriptionOperations(
     subscription: Subscription,
-    baseViewModel: BaseViewModel,
+    viewModel: SubViewModel,
     modifier: Modifier = Modifier,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
     goToEditSubscription: (Long) -> Unit,
     onClose: () -> Unit,
 ) {
-    val scope = baseViewModel.viewModelScope
+    val scope = viewModel.viewModelScope
     val subOperations : SubscriptionOperations = koinInject()
     val listItemMenu : MutableList<Operations> = remember { mutableListOf() }
     val showMenu = remember { mutableStateOf(false) }
@@ -94,55 +93,24 @@ fun getSubscriptionOperations(
                     when (operation.id)  {
                         "enable_subscription" ->{
                             scope.launch {
-                                withContext(Dispatchers.IO) {
-                                    val buf = subOperations.postSubOperationsEnable(
-                                        subscription.id
-                                    )
-                                    val r = buf.success
-                                    val e = buf.error
-                                    withContext(Dispatchers.Main) {
-                                        if (r != null) {
-                                            baseViewModel.updateItem.value = subscription.id
-                                            baseViewModel.showToast(
-                                                successToastItem.copy(
-                                                    message = operationString
-                                                )
-                                            )
-                                            onClose()
-                                        } else {
-                                            if (e != null) {
-                                               baseViewModel.onError(e)
-                                            }
-                                            onClose()
-                                        }
+                                val res = viewModel.enableSubscription(subscription.id)
+                                withContext(Dispatchers.Main) {
+                                    if (res) {
+                                        subscription.isEnabled = true
+                                        viewModel.updateItemTrigger.value++
+                                        onClose()
                                     }
                                 }
                             }
                         }
                         "disable_subscription" ->{
                             scope.launch {
-                                withContext(Dispatchers.IO) {
-                                    val buf  =
-                                        subOperations.postSubOperationsDisable(
-                                            subscription.id
-                                        )
-                                    val r = buf.success
-                                    val e = buf.error
-                                    withContext(Dispatchers.Main) {
-                                        if (r != null) {
-                                            baseViewModel.updateItem.value = subscription.id
-                                            baseViewModel.showToast(
-                                                successToastItem.copy(
-                                                    message = operationString
-                                                )
-                                            )
-                                            onClose()
-                                        } else {
-                                            if (e != null) {
-                                                baseViewModel.onError(e)
-                                            }
-                                            onClose()
-                                        }
+                                val res = viewModel.disableSubscription(subscription.id)
+                                withContext(Dispatchers.Main) {
+                                    if (res) {
+                                        subscription.isEnabled = false
+                                        viewModel.updateItemTrigger.value++
+                                        onClose()
                                     }
                                 }
                             }
@@ -172,36 +140,25 @@ fun getSubscriptionOperations(
                     backgroundColor = colors.grayLayout,
                     onClick = {
                         scope.launch {
-                            withContext(Dispatchers.IO) {
-                                val buf = subOperations.postSubOperationsDelete(
-                                    subscription.id
-                                )
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        val eventParameters = mapOf(
-                                            "buyer_id" to UserData.login,
-                                            "item_id" to subscription.id
+                            val res = viewModel.deleteSubscription(subscription.id)
+                            withContext(Dispatchers.Main) {
+                                if (res) {
+                                    val eventParameters = mapOf(
+                                        "buyer_id" to UserData.login,
+                                        "item_id" to subscription.id
+                                    )
+                                    analyticsHelper.reportEvent(
+                                        "delete_subscription",
+                                        eventParameters
+                                    )
+                                    subscription.id = 1L
+                                    viewModel.updateItemTrigger.value++
+                                    viewModel.showToast(
+                                        successToastItem.copy(
+                                            message = operationString
                                         )
-                                        analyticsHelper.reportEvent(
-                                            "delete_subscription",
-                                            eventParameters
-                                        )
-
-                                        baseViewModel.updateItem.value = subscription.id
-                                        baseViewModel.showToast(
-                                            successToastItem.copy(
-                                                message = operationString
-                                            )
-                                        )
-                                        onClose()
-                                    } else {
-                                        if (e != null) {
-                                            baseViewModel.onError(e)
-                                        }
-                                        onClose()
-                                    }
+                                    )
+                                    onClose()
                                 }
                             }
                         }

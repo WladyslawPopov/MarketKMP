@@ -2,12 +2,12 @@ package market.engine.fragments.root.main.createSubscription
 
 import com.arkivanov.decompose.ComponentContext
 
-fun createNewSubscriptionFactory(
+fun createSubscriptionFactory(
     componentContext: ComponentContext,
     editId : Long?,
     navigateBack: () -> Unit,
-    ): CreateNewSubscriptionComponent {
-        return DefaultCreateNewSubscriptionComponent(
+    ): CreateSubscriptionComponent {
+        return DefaultCreateSubscriptionComponent(
             componentContext,
             editId,
             navigateBack = {

@@ -5,6 +5,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.types.FavScreenType
@@ -58,5 +59,8 @@ class DefaultSubscriptionsComponent(
 
     override fun goToCreateNewSubscription(editId: Long?) {
         navigateToCreateNewSubscription(editId)
+        lifecycle.doOnResume {
+            subViewModel.updateItem.value = editId
+        }
     }
 }

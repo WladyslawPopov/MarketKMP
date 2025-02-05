@@ -35,7 +35,6 @@ import market.engine.widgets.filterContents.SortingOrdersContent
 import org.jetbrains.compose.resources.stringResource
 
 
-
 @Composable
 fun SubscriptionsContent(
     component: SubscriptionsComponent,
@@ -93,8 +92,23 @@ fun SubscriptionsContent(
     //update item when we back
     LaunchedEffect(subViewModel.updateItem.value) {
         if (subViewModel.updateItem.value != null) {
+            val item = subViewModel.getSubscription(subViewModel.updateItem.value!!)
             withContext(Dispatchers.Main) {
-
+                if (item != null) {
+                    val oldItem = data.itemSnapshotList.find { it?.id == item.id }
+                    if (oldItem != null) {
+                        oldItem.catpath = item.catpath
+                        oldItem.isEnabled = item.isEnabled
+                        oldItem.name = item.name
+                        oldItem.priceFrom = item.priceFrom
+                        oldItem.priceTo = item.priceTo
+                        oldItem.region = item.region
+                        oldItem.searchQuery = item.searchQuery
+                        oldItem.saleType = item.saleType
+                        subViewModel.updateItemTrigger.value++
+                    }
+                }
+                subViewModel.updateItem.value = null
             }
         }
     }
@@ -166,16 +180,18 @@ fun SubscriptionsContent(
                 }
             },
             item = { subscription ->
-                SubscriptionItem(
-                    subscription,
-                    subViewModel,
-                    goToEditSubscription = {
-                        component.goToCreateNewSubscription(it)
-                    },
-                    onItemClick = {
+                if (subscription.id != 1L && subViewModel.updateItemTrigger.value >= 0) {
+                    SubscriptionItem(
+                        subscription,
+                        subViewModel,
+                        goToEditSubscription = {
+                            component.goToCreateNewSubscription(it)
+                        },
+                        onItemClick = {
 
-                    }
-                )
+                        }
+                    )
+                }
             }
         )
     }

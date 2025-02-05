@@ -471,6 +471,9 @@ class APIService(private val client: HttpClient) {
     suspend fun getUsers(idUser: Long): AppResponse =
         client.get("users/$idUser").body()
 
+    suspend fun getSubscription(idSub: Long): AppResponse =
+        client.get("subscriptions/$idSub").body()
+
     suspend fun postChangeTokenGoogleAuth(body: HashMap<String, String>): GoogleAuthResponse =
         client.post("https://www.googleapis.com/oauth2/v4/token") {
             contentType(ContentType.Application.Json)

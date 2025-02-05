@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Fields
@@ -28,13 +28,14 @@ fun DynamicCheckbox(
         mutableStateOf(field.validators?.any { it.type == "mandatory" } == true)
     }
 
-    val initialSelected = remember { mutableStateOf(field.data?.jsonPrimitive?.intOrNull ?: 0) }
+    val initialSelected = remember {
+        mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull ?: false) }
 
     val error = remember { mutableStateOf(processInput(field.errors)) }
 
     val onClickListener : (Boolean) -> Unit = {
-        initialSelected.value = if (it) 1 else 0
-        field.data = JsonPrimitive(if (it) 1 else 0)
+        initialSelected.value = it
+        field.data = JsonPrimitive(it)
     }
 
     Column(modifier = modifier) {
@@ -44,11 +45,11 @@ fun DynamicCheckbox(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    onClickListener(initialSelected.value != 0)
+                    onClickListener(initialSelected.value)
                 }
         ) {
             ThemeCheckBox(
-                isSelected = initialSelected.value != 0,
+                isSelected = initialSelected.value,
                 onSelectionChange = {
                     onClickListener(it)
                 },

@@ -556,17 +556,17 @@ data class Proposal(
 
 @Serializable
 data class Subscription(
-    @SerialName("id") val id: Long = 0L,
-    @SerialName("name") val name: String? = null,
+    @SerialName("id") var id: Long = 0L,
+    @SerialName("name") var name: String? = null,
     @SerialName("offer_scope") val offerScope: Long = 0L,
     @SerialName("is_enabled") var isEnabled: Boolean = false,
     @SerialName("created_ts") val createdTs: Long = 0L,
-    @SerialName("price_from") val priceFrom: String? = null,
-    @SerialName("price_to") val priceTo: String? = null,
-    @SerialName("search_query") val searchQuery: String? = null,
-    @SerialName("catpath") val catpath: Map<Long, String>? = null,
-    @SerialName("region") val region: Region? = null,
-    @SerialName("sale_type") val saleType: String? = null,
+    @SerialName("price_from") var priceFrom: String? = null,
+    @SerialName("price_to") var priceTo: String? = null,
+    @SerialName("search_query") var searchQuery: String? = null,
+    @SerialName("catpath") var catpath: Map<Long, String>? = null,
+    @SerialName("region") var region: Region? = null,
+    @SerialName("sale_type") var saleType: String? = null,
     @SerialName("seller_data") val sellerData: User? = null,
     @SerialName("notification_schedule") val notificationSchedule: NotificationSchedule? = null
 )
