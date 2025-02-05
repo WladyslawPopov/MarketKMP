@@ -390,37 +390,38 @@ class CreateOrderViewModel(
 
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    setLoading(true)
-                    val response = apiService.postCrateOrder(UserData.login, jsonBody)
-                    withContext(Dispatchers.Main) {
-                        try {
-                            val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                            val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            if (payload.status == "operation_success"){
-                                showToast(
-                                    ToastItem(
-                                        isVisible = true,
-                                        message = payload.operationResult?.message ?: getString(
-                                            strings.operationSuccess),
-                                        type = ToastType.SUCCESS
-                                    )
+                setLoading(true)
+                val response = withContext(Dispatchers.IO) {
+                   apiService.postCrateOrder(UserData.login, jsonBody)
+                }
+
+                withContext(Dispatchers.Main) {
+                    try {
+                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                        val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                        if (payload.status == "operation_success"){
+                            showToast(
+                                ToastItem(
+                                    isVisible = true,
+                                    message = payload.operationResult?.message ?: getString(
+                                        strings.operationSuccess),
+                                    type = ToastType.SUCCESS
                                 )
-                                _responsePostPage.value = payload
-                            }else{
-                                showToast(
-                                    ToastItem(
-                                        isVisible = true,
-                                        message = payload.operationResult?.message ?: getString(
-                                            strings.operationFailed),
-                                        type = ToastType.ERROR
-                                    )
+                            )
+                            _responsePostPage.value = payload
+                        }else{
+                            showToast(
+                                ToastItem(
+                                    isVisible = true,
+                                    message = payload.operationResult?.message ?: getString(
+                                        strings.operationFailed),
+                                    type = ToastType.ERROR
                                 )
-                                _responsePostPage.value = payload
-                            }
-                        }catch (e: Exception){
-                            throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
+                            )
+                            _responsePostPage.value = payload
                         }
+                    }catch (e: Exception){
+                        throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                     }
                 }
             } catch (exception: ServerErrorException) {

@@ -417,4 +417,6 @@ interface Strings {
     val themeDarkLabel : StringResource
     val emptySubscriptionsLabel : StringResource
     val createNewSubscriptionTitle : StringResource
+    val subscriptionOnLabel : StringResource
+    val subscriptionOffLabel : StringResource
 }

@@ -177,8 +177,6 @@ fun contentStructure(
     updateTrigger : Int = 0,
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
 ){
-
-
     val imageSize =
         if (getWindowType() == WindowType.Big){
             if (isGrid) 300.dp else 400.dp

@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import market.engine.common.AnalyticsFactory
 import org.koin.mp.KoinPlatform.getKoin
 
 interface CreateNewSubscriptionComponent {
@@ -34,10 +35,13 @@ class DefaultCreateNewSubscriptionComponent(
         )
     )
 
+    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+
     override val model = _model
 
     init {
-
+        createNewSubscriptionViewModel.getPage(editId)
+        analyticsHelper.reportEvent("view_create_subscription", mapOf())
     }
 
     override fun onBackClicked() {

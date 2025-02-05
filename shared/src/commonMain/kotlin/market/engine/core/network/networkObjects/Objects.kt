@@ -41,7 +41,7 @@ data class AdditionalDataForNewOrder(
 data class Fields(
     @SerialName("widget_type") val widgetType: String? = null,
     @SerialName("key") val key: String? = null,
-    @SerialName("short_description") val shortDescription: String? = null,
+    @SerialName("short_description") var shortDescription: String? = null,
     @SerialName("long_description") val longDescription: String? = null,
     @SerialName("errors") var errors: JsonElement? = null,
     @SerialName("data") var data: JsonElement? = null,

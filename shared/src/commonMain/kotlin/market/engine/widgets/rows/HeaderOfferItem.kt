@@ -20,8 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -48,57 +46,57 @@ fun HeaderOfferItem(
 
     if(onUpdateTrigger < 0) return
 
-    Column {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .padding(dimens.smallPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.wrapContentSize()
                 .padding(dimens.smallPadding),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.wrapContentSize()
-                    .padding(dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
 
-                if (onSelectionChange != null) {
-                   ThemeCheckBox(
-                       isSelected = isSelected,
-                       onSelectionChange = onSelectionChange,
-                       modifier = Modifier.size(dimens.smallIconSize)
-                   )
-                   Spacer(modifier = Modifier.width(dimens.mediumSpacer))
-                }
-
-                // Favorites Icon and Count
-                Icon(
-                    painter = painterResource(drawables.favoritesIcon),
-                    contentDescription = "",
-                    modifier = Modifier.size(dimens.smallIconSize),
-                    tint = colors.textA0AE
-                )
-                Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-                Text(
-                    text = offer.watchersCount.toString(),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-
-                // Views Icon and Count
-                Icon(
-                    painter = painterResource(drawables.eyeOpen),
-                    contentDescription = "",
-                    modifier = Modifier.size(dimens.smallIconSize),
-                    tint = colors.textA0AE
-                )
-                Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-                Text(
-                    text = offer.viewsCount.toString(),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            if (onSelectionChange != null) {
+               ThemeCheckBox(
+                   isSelected = isSelected,
+                   onSelectionChange = onSelectionChange,
+                   modifier = Modifier.size(dimens.smallIconSize)
+               )
+               Spacer(modifier = Modifier.width(dimens.mediumSpacer))
             }
 
+            // Favorites Icon and Count
+            Icon(
+                painter = painterResource(drawables.favoritesIcon),
+                contentDescription = "",
+                modifier = Modifier.size(dimens.smallIconSize),
+                tint = colors.textA0AE
+            )
+            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+            Text(
+                text = offer.watchersCount.toString(),
+                style = MaterialTheme.typography.bodySmall,
+            )
+
+            Spacer(modifier = Modifier.width(dimens.smallPadding))
+
+            // Views Icon and Count
+            Icon(
+                painter = painterResource(drawables.eyeOpen),
+                contentDescription = "",
+                modifier = Modifier.size(dimens.smallIconSize),
+                tint = colors.textA0AE
+            )
+            Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+            Text(
+                text = offer.viewsCount.toString(),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
+        Column {
             AnimatedVisibility(
                 !isSelected,
                 enter = fadeIn(),
@@ -113,22 +111,21 @@ fun HeaderOfferItem(
                     isOpenPopup.value = !isOpenPopup.value
                 }
             }
-        }
 
-        if (isOpenPopup.value) {
-            getOfferOperations(
-                offer = offer,
-                baseViewModel = baseViewModel,
-                offset = DpOffset(400.dp, 0.dp),
-                onUpdateMenuItem = { offer ->
-                    onUpdateOfferItem(offer)
-                    isOpenPopup.value = false
-                },
-                goToCreateOffer = goToCreateOffer,
-                onClose = {
-                    isOpenPopup.value = false
-                }
-            )
+            if (isOpenPopup.value) {
+                getOfferOperations(
+                    offer = offer,
+                    baseViewModel = baseViewModel,
+                    onUpdateMenuItem = { offer ->
+                        onUpdateOfferItem(offer)
+                        isOpenPopup.value = false
+                    },
+                    goToCreateOffer = goToCreateOffer,
+                    onClose = {
+                        isOpenPopup.value = false
+                    }
+                )
+            }
         }
     }
 }

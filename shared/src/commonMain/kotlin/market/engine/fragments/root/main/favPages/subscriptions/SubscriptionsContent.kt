@@ -27,7 +27,6 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.bars.ActiveFilterListing
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.exceptions.BackHandler
@@ -52,8 +51,6 @@ fun SubscriptionsContent(
 
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
-
-    val successToast = stringResource(strings.operationSuccess)
 
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
@@ -169,7 +166,16 @@ fun SubscriptionsContent(
                 }
             },
             item = { subscription ->
-                SubscriptionItem(subscription, listingData.value, searchData.value, subViewModel)
+                SubscriptionItem(
+                    subscription,
+                    subViewModel,
+                    goToEditSubscription = {
+                        component.goToCreateNewSubscription(it)
+                    },
+                    onItemClick = {
+
+                    }
+                )
             }
         )
     }

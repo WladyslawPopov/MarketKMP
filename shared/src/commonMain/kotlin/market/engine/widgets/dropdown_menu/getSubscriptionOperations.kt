@@ -38,6 +38,7 @@ fun getSubscriptionOperations(
     baseViewModel: BaseViewModel,
     modifier: Modifier = Modifier,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
+    goToEditSubscription: (Long) -> Unit,
     onClose: () -> Unit,
 ) {
     val scope = baseViewModel.viewModelScope
@@ -147,7 +148,7 @@ fun getSubscriptionOperations(
                             }
                         }
                         "edit_subscription" ->{
-                            baseViewModel.activeFiltersType.value = "create_new_subscription/$subscription.id"
+                            goToEditSubscription(subscription.id)
                         }
                         "delete_subscription" ->{
                             showDeleteOfferDialog.value = true
