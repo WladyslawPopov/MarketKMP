@@ -296,26 +296,28 @@ fun SubscriptionItem(
                     ),
                 )
 
-                Row(
-                    modifier = Modifier.wrapContentSize()
-                        .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
-                        .padding(dimens.extraSmallPadding)
-                        .align(Alignment.CenterVertically),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Icon(
-                        painterResource(drawables.vectorManSubscriptionIcon),
-                        contentDescription = null,
-                        tint = colors.alwaysWhite,
-                        modifier = Modifier.size(dimens.extraSmallIconSize)
-                    )
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                    Text(
-                        text = (user?.followersCount ?:0).toString(),
-                        color = colors.alwaysWhite,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                if (user != null) {
+                    Row(
+                        modifier = Modifier.wrapContentSize()
+                            .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
+                            .padding(dimens.extraSmallPadding)
+                            .align(Alignment.CenterVertically),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Icon(
+                            painterResource(drawables.vectorManSubscriptionIcon),
+                            contentDescription = null,
+                            tint = colors.alwaysWhite,
+                            modifier = Modifier.size(dimens.extraSmallIconSize)
+                        )
+                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+                        Text(
+                            text = (user.followersCount ?: 0).toString(),
+                            color = colors.alwaysWhite,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                 }
             }
         }

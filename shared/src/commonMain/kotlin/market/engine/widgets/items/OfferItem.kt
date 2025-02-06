@@ -4,14 +4,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
@@ -43,7 +44,6 @@ import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.bars.OfferItemStatuses
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.rows.UserSimpleRow
 import market.engine.widgets.texts.TitleText
@@ -130,7 +130,7 @@ fun OfferItem(
         } else {
             Row(
                 modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.Start
             ) {
                 contentStructure(
@@ -185,10 +185,7 @@ fun contentStructure(
         }
 
     Box(
-        modifier = Modifier
-            .padding(dimens.smallPadding)
-            .wrapContentSize(),
-        contentAlignment = Alignment.TopStart
+        modifier = Modifier.padding(dimens.extraSmallPadding),
     ) {
         LoadImage(
             url = offer.getOfferImagePreview() ?: "",
@@ -217,14 +214,15 @@ fun contentStructure(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            content(offer, baseViewModel,updateTrigger, isShowPromo, onFavouriteClick)
+            content(offer, baseViewModel,updateTrigger,isShowPromo, onFavouriteClick)
         }
     }else{
-        content(offer, baseViewModel, updateTrigger, isShowPromo, onFavouriteClick)
+        content(offer, baseViewModel, updateTrigger,isShowPromo, onFavouriteClick)
     }
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun content(
     offer: Offer,
@@ -234,8 +232,9 @@ fun content(
     onFavouriteClick: (suspend (Offer) -> Boolean)? = null
 ){
     if (updateTrigger < 0) return
+
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(dimens.extraSmallPadding),
     ) {
         TitleText(text = offer.title ?: "", modifier = Modifier.weight(if (onFavouriteClick != null) 0.8f else 1f))
 
@@ -303,29 +302,139 @@ fun content(
         }
     }
 
-    OfferItemStatuses(offer)
+    Column(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        modifier = Modifier.fillMaxWidth().padding(dimens.extraSmallPadding),
+    ) {
 
+        var typeString = ""
+        var colorType = colors.titleTextColor
+
+        FlowRow(
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            when (offer.saleType) {
+                "buy_now" -> {
+                    typeString = stringResource(strings.buyNow)
+                    colorType = colors.buyNowColor
+
+                    Image(
+                        painter = painterResource(drawables.iconCountBoxes),
+                        contentDescription = stringResource(strings.numberOfItems),
+                        modifier = Modifier.size(dimens.smallIconSize),
+                    )
+
+                    Text(
+                        text = offer.currentQuantity.toString(),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+
+                    var buyer = offer.buyerData?.login ?: stringResource(strings.noBuyer)
+                    var color = colors.grayText
+                    if (!offer.isPrototype) {
+                        if (offer.currentQuantity < 2) {
+                            if (offer.buyerData?.login != "" && offer.buyerData?.login != null) {
+                                buyer = offer.buyerData?.login ?: ""
+                                color = colors.ratingBlue
+                            }
+                        }
+                        Text(
+                            text = buyer,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = color
+                        )
+                    }
+                }
+
+                "ordinary_auction" -> {
+                    typeString = stringResource(strings.ordinaryAuction)
+
+                    Image(
+                        painter = painterResource(drawables.iconGroup),
+                        contentDescription = stringResource(strings.numberOfBids),
+                        modifier = Modifier.size(dimens.smallIconSize),
+                    )
+
+                    Text(
+                        text = offer.numParticipants.toString(),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+
+                    var bids = stringResource(strings.noBids)
+                    var color = colors.grayText
+                    if (offer.bids?.isNotEmpty() == true) {
+                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                        color = colors.ratingBlue
+                    }
+                    Text(
+                        text = bids,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = color
+                    )
+                }
+
+                "auction_with_buy_now" -> {
+                    typeString = stringResource(strings.blitzAuction)
+                    colorType = colors.auctionWithBuyNow
+
+                    Image(
+                        painter = painterResource(drawables.iconGroup),
+                        contentDescription = stringResource(strings.numberOfBids),
+                        modifier = Modifier.size(dimens.smallIconSize),
+                    )
+
+                    Text(
+                        text = offer.numParticipants.toString(),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+
+                    var bids = stringResource(strings.noBids)
+                    var color = colors.grayText
+                    if (offer.bids?.isNotEmpty() == true) {
+                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                        color = colors.ratingBlue
+                    }
+                    Text(
+                        text = bids,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = color
+                    )
+                }
+            }
+
+            if (offer.safeDeal) {
+                Image(
+                    painter = painterResource(drawables.safeDealIcon),
+                    contentDescription = "",
+                    modifier = Modifier.size(dimens.smallIconSize)
+                )
+            }
+        }
+
+        offer.sellerData?.let {
+            UserSimpleRow(
+                it,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Text(
+            text = typeString,
+            style = MaterialTheme.typography.titleSmall,
+            color = colorType,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+    }
 
     if (offer.sellerData?.id == UserData.login && isShowPromo) {
         PromoRow(offer, false){
 
         }
     }
-
-    Spacer(modifier = Modifier.height(dimens.smallSpacer))
-    Row(
-        Modifier.padding(dimens.smallPadding).fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        offer.sellerData?.let {
-            UserSimpleRow(
-                it,
-            )
-        }
-    }
-
-    Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
     val priceText = buildAnnotatedString {
         append(offer.currentPricePerItem ?: "")
@@ -334,7 +443,7 @@ fun content(
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

@@ -307,7 +307,7 @@ fun OrderFilterContent(
                                             it?.interpritation = null
                                         }
                                     }
-                                    buyerIdTextState.value = text
+                                    idOfferTextState.value = text
                                     isRefreshing.value = true
                                 },
                                 isNumber = true,

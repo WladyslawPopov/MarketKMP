@@ -44,7 +44,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
     ) {
         Column(
             modifier = Modifier.padding(dimens.smallPadding)
-                .size(300.dp),
+                .size(200.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -55,7 +55,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
             ) {
                 LoadImage(
                     url = images,
-                    size = 160.dp
+                    size = 120.dp
                 )
 
                 if (offer.videoUrls?.isNotEmpty() == true) {
@@ -85,7 +85,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
                 color = colors.black,
                 style = MaterialTheme.typography.titleSmall,
-                maxLines = 3
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(dimens.smallSpacer))

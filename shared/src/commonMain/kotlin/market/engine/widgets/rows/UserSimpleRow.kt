@@ -4,9 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -26,20 +26,20 @@ import market.engine.core.network.networkObjects.User
 import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UserSimpleRow(
     user: User,
     modifier: Modifier = Modifier
 ) {
-    FlowRow (
+    Column (
         verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.CenterVertically),
-        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.CenterHorizontally),
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             Card(
                 modifier = Modifier.wrapContentSize(),
@@ -57,13 +57,13 @@ fun UserSimpleRow(
                 text = user.login ?: "",
                 style = MaterialTheme.typography.titleSmall,
                 color = colors.brightBlue,
-                modifier = Modifier.padding(dimens.smallPadding).align(Alignment.CenterVertically)
             )
         }
 
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally)
         ) {
             if (user.rating > 0) {
                 Box(

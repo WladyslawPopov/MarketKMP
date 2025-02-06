@@ -8,6 +8,7 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.Subscription
 import org.koin.mp.KoinPlatform.getKoin
@@ -25,6 +26,8 @@ interface SubscriptionsComponent {
     fun goToFavScreen()
 
     fun goToCreateNewSubscription(editId : Long? = null)
+
+    fun goToListing(listingData: ListingData)
 }
 
 class DefaultSubscriptionsComponent(
@@ -32,6 +35,7 @@ class DefaultSubscriptionsComponent(
     favType : FavScreenType,
     val selectedFavScreen : (FavScreenType) -> Unit,
     val navigateToCreateNewSubscription : (Long?) -> Unit,
+    val navigateToListing : (ListingData) -> Unit,
 ) : SubscriptionsComponent, ComponentContext by componentContext {
 
     private val subViewModel : SubViewModel = getKoin().get()
@@ -62,5 +66,9 @@ class DefaultSubscriptionsComponent(
         lifecycle.doOnResume {
             subViewModel.updateItem.value = editId
         }
+    }
+
+    override fun goToListing(listingData: ListingData) {
+        navigateToListing(listingData)
     }
 }

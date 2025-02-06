@@ -87,6 +87,11 @@ class DefaultFavPagesComponent(
                                     favoritesNavigation.pushNew(
                                         FavoritesConfig.CreateSubscriptionScreen(it)
                                     )
+                                },
+                                navigateToListing = {
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
+                                    )
                                 }
                             )
                         )

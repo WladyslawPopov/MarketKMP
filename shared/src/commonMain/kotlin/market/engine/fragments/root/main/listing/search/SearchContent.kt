@@ -143,14 +143,13 @@ fun SearchContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = dimens.mediumPadding)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = {
                             focusManager.clearFocus()
                         })
-                    },
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start
+                    }.padding(dimens.smallPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 FiltersSearchBar(
                     selectedCategory = selectedCategory,
@@ -158,7 +157,7 @@ fun SearchContent(
                     selectedUser = selectedUser,
                     selectedUserLogin = selectedUserLogin,
                     selectedUserFinished = selectedUserFinished,
-                    modifier = Modifier,
+                    modifier = Modifier.padding(dimens.extraSmallPadding),
                     goToCategory = {
                         searchViewModel.activeFiltersType.value = "categories"
                         openBottomSheet.value = true
@@ -167,7 +166,7 @@ fun SearchContent(
 
                 HistoryLayout(
                     historyItems = history.value,
-                    modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                    modifier = Modifier.clip(MaterialTheme.shapes.medium).fillMaxWidth(),
                     onItemClick = {
                         searchString.value = it
                     },

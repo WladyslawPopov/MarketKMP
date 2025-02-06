@@ -9,6 +9,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import kotlinx.serialization.Serializable
+import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.FavScreenType
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
@@ -95,6 +96,7 @@ fun itemSubscriptions(
     selectedType : FavScreenType,
     selectedFavScreen : (FavScreenType) -> Unit,
     navigateToCreateNewSubscription : (Long?) -> Unit,
+    navigateToListing : (ListingData) -> Unit
 ): SubscriptionsComponent {
     return DefaultSubscriptionsComponent(
         componentContext = componentContext,
@@ -104,6 +106,9 @@ fun itemSubscriptions(
         favType = selectedType,
         navigateToCreateNewSubscription = {
             navigateToCreateNewSubscription(it)
+        },
+        navigateToListing = {
+            navigateToListing(it)
         }
     )
 }

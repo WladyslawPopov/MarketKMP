@@ -34,7 +34,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -93,21 +92,20 @@ fun UserPanel(
                     modifier = Modifier.wrapContentSize().padding(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val image = user.avatar?.thumb?.content
-                    if (image != null && image != "${SAPI.SERVER_BASE}images/no_avatar.svg") {
-                        Card(
-                            modifier = Modifier.padding(dimens.extraSmallPadding),
-                            shape = CircleShape
-                        ) {
-                            LoadImage(
-                                url = image,
-                                isShowLoading = false,
-                                isShowEmpty = false,
-                                size = 60.dp
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
+                    val image = user.avatar?.thumb?.content ?: ""
+                    Card(
+                        modifier = Modifier.padding(dimens.extraSmallPadding),
+                        shape = CircleShape
+                    ) {
+                        LoadImage(
+                            url = image,
+                            isShowLoading = false,
+                            isShowEmpty = true,
+                            size = 60.dp
+                        )
                     }
+                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
 
                     Column(
                         modifier = Modifier.fillMaxWidth(0.6f),

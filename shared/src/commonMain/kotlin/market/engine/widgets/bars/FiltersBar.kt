@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -93,7 +92,7 @@ fun FiltersBar(
     onSortClick: () -> Unit = {},
     onRefresh: () -> Unit = {},
 ) {
-    val filters = rememberUpdatedState(filterListingFilters(listingData.filters))
+    val filters = filterListingFilters(listingData.filters)
     val filterString = stringResource(strings.filter)
     val sortTitle = stringResource(strings.sort)
     val searchTitle = stringResource(strings.searchTitle)
@@ -101,17 +100,17 @@ fun FiltersBar(
 
     // Construct active filters title
     val activeFiltersTitle = remember {
-        mutableStateOf(constructActiveFiltersTitle(filters.value, searchData, listingData.sort, filterString, searchTitle, sortTitle))
+        mutableStateOf(constructActiveFiltersTitle(filters, searchData, listingData.sort, filterString, searchTitle, sortTitle))
     }
 
-    val itemFilter = remember(filters.value) {
+    val itemFilter = remember(filters) {
         NavigationItem(
             title = strings.filter,
             string = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
-            hasNews = filters.value.find { it.interpritation?.isNotEmpty() == true } != null,
-            badgeCount = if(filters.value.isNotEmpty()) filters.value.size else null,
+            hasNews = filters.find { it.interpritation?.isNotEmpty() == true } != null,
+            badgeCount = if(filters.isNotEmpty()) filters.size else null,
         )
     }
 
@@ -163,13 +162,13 @@ fun FiltersBar(
                     .clip(MaterialTheme.shapes.medium),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
-                items(filters.value, key = { it.interpritation ?: it.value }) { filter ->
+                items(filters, key = { it.interpritation ?: it.value }) { filter ->
                     filter.interpritation?.let { text->
                         ActiveFilterListing(
                             text = text,
                             removeFilter = {
-                                filters.value.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
-                                filters.value.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
+                                filters.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
+                                filters.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
                                 onRefresh()
                             },
                         ){
