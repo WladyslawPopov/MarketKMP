@@ -150,7 +150,7 @@ fun SubscriptionsContent(
                 ) {
                     SmallIconButton(
                         drawables.newLotIcon,
-                        color = colors.inactiveBottomNavIconColor
+                        color = colors.positiveGreen
                     ){
                         component.goToCreateNewSubscription()
                     }

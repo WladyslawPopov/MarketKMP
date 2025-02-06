@@ -432,7 +432,7 @@ fun CreateOfferContent(
                                 verticalAlignment = Alignment.Bottom,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                if (type != CreateOfferType.EDIT && type != CreateOfferType.COPY_PROTOTYPE) {
+                                if (type != CreateOfferType.COPY_PROTOTYPE) {
                                     if (catHistory.value.isNotEmpty()) {
                                         FlowRow(
                                             horizontalArrangement = Arrangement.Start,

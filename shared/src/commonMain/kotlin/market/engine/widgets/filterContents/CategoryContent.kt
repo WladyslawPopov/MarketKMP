@@ -23,7 +23,6 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -33,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import com.arkivanov.essenty.backhandler.BackHandler
 import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
@@ -45,7 +43,6 @@ import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.texts.TextAppBar
@@ -247,7 +244,7 @@ fun CategoryContent(
                                 },
                                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                                 colors = NavigationDrawerItemDefaults.colors(
-                                    selectedContainerColor = colors.selected,
+                                    selectedContainerColor = colors.rippleColor,
                                     unselectedContainerColor = colors.white,
                                     selectedIconColor = colors.grayLayout,
                                     unselectedIconColor = colors.white,

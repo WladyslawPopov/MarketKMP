@@ -34,9 +34,20 @@ fun ListingAppBar(
     closeCategory: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
+    onSubscribesClick: () -> Unit = {},
 ) {
     val isVisible = rememberUpdatedState(isOpenCategory)
     val listItems = listOf(
+        NavigationItem(
+            title = strings.subscribersLabel,
+            icon = drawables.newLotIcon,
+            tint = colors.positiveGreen,
+            hasNews = false,
+            badgeCount = null,
+            onClick = {
+                onSubscribesClick()
+            }
+        ),
         NavigationItem(
             title = strings.searchTitle,
             icon = drawables.searchIcon,
@@ -59,7 +70,7 @@ fun ListingAppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                TextAppBar(title)
+                TextAppBar(title, modifier = Modifier.fillMaxWidth(0.9f))
 
                 SmallIconButton(
                     if (isVisible.value)
@@ -84,7 +95,8 @@ fun ListingAppBar(
         actions = {
             Row(
                 modifier = modifier.padding(end = dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
             ) {
                 listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){

@@ -1,16 +1,13 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
@@ -66,7 +63,7 @@ fun SubscriptionItem(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ){
                 Card(
                     modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
@@ -100,20 +97,24 @@ fun SubscriptionItem(
                         style = MaterialTheme.typography.titleSmall,
                         color = if (user != null) colors.brightBlue else colors.black,
                     )
-
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        subscription.catpath?.toList()?.reversed()?.forEachIndexed { index, cat ->
-                            Text(
-                                text = if ((subscription.catpath?.size ?: 0) - 1 == index)
-                                    cat.second
-                                else cat.second + "->",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                color = if ((subscription.catpath?.size ?: 0) - 1 == index) colors.black else colors.steelBlue,
-                            )
+                    if(subscription.catpath != null) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            subscription.catpath?.toList()?.reversed()
+                                ?.forEachIndexed { index, cat ->
+                                    Text(
+                                        text = if ((subscription.catpath?.size ?: 0) - 1 == index)
+                                            cat.second
+                                        else cat.second + "->",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        color = if ((subscription.catpath?.size
+                                                ?: 0) - 1 == index
+                                        ) colors.black else colors.steelBlue,
+                                    )
+                                }
                         }
                     }
                 }
@@ -139,21 +140,20 @@ fun SubscriptionItem(
             }
             //body
             Column(
-                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.mediumPadding),
+                horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
             ) {
                 //search param
                 if (subscription.searchQuery != null) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             stringResource(strings.searchTitle),
                             style = MaterialTheme.typography.labelMedium,
-                            color = colors.textA0AE
+                            color = colors.grayText
                         )
 
                         Text(
@@ -166,14 +166,13 @@ fun SubscriptionItem(
                 //region param
                 if (subscription.region != null) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             stringResource(strings.searchTitle),
                             style = MaterialTheme.typography.labelMedium,
-                            color = colors.textA0AE
+                            color = colors.grayText
                         )
 
                         Text(
@@ -194,14 +193,13 @@ fun SubscriptionItem(
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             stringResource(strings.priceParameterName),
                             style = MaterialTheme.typography.labelMedium,
-                            color = colors.textA0AE
+                            color = colors.grayText
                         )
 
                         Text(
@@ -230,14 +228,13 @@ fun SubscriptionItem(
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             stringResource(strings.saleTypeParameterName),
                             style = MaterialTheme.typography.labelMedium,
-                            color = colors.textA0AE
+                            color = colors.grayText
                         )
 
                         Text(
@@ -296,29 +293,29 @@ fun SubscriptionItem(
                     ),
                 )
 
-                if (user != null) {
-                    Row(
-                        modifier = Modifier.wrapContentSize()
-                            .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
-                            .padding(dimens.extraSmallPadding)
-                            .align(Alignment.CenterVertically),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Icon(
-                            painterResource(drawables.vectorManSubscriptionIcon),
-                            contentDescription = null,
-                            tint = colors.alwaysWhite,
-                            modifier = Modifier.size(dimens.extraSmallIconSize)
-                        )
-                        Spacer(modifier = Modifier.width(dimens.smallPadding))
-                        Text(
-                            text = (user.followersCount ?: 0).toString(),
-                            color = colors.alwaysWhite,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
+//                if (user != null) {
+//                    Row(
+//                        modifier = Modifier.wrapContentSize()
+//                            .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
+//                            .padding(dimens.extraSmallPadding)
+//                            .align(Alignment.CenterVertically),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.Start
+//                    ) {
+//                        Icon(
+//                            painterResource(drawables.vectorManSubscriptionIcon),
+//                            contentDescription = null,
+//                            tint = colors.alwaysWhite,
+//                            modifier = Modifier.size(dimens.extraSmallIconSize)
+//                        )
+//                        Spacer(modifier = Modifier.width(dimens.smallPadding))
+//                        Text(
+//                            text = (user.followersCount ?: 0).toString(),
+//                            color = colors.alwaysWhite,
+//                            style = MaterialTheme.typography.bodySmall,
+//                        )
+//                    }
+//                }
             }
         }
     }

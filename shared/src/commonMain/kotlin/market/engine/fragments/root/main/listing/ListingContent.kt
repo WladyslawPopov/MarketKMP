@@ -372,6 +372,9 @@ fun ListingContent(
                     },
                     onSearchClick = {
                         listingViewModel.isOpenSearch.value = true
+                    },
+                    onSubscribesClick = {
+
                     }
                 )
             },
