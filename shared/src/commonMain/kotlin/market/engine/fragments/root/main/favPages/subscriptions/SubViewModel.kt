@@ -8,14 +8,12 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import market.engine.core.data.items.ListingData
-import market.engine.core.network.APIService
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
 
 class SubViewModel(
-    val apiService: APIService,
     private val subscriptionOperations: SubscriptionOperations
 ) : BaseViewModel() {
 

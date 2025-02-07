@@ -7,16 +7,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.items.ListingData
-import market.engine.core.network.APIService
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
-class FavViewModel(
-    private val apiService: APIService,
-    private val userRepository : UserRepository
-) : BaseViewModel() {
+class FavViewModel : BaseViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 

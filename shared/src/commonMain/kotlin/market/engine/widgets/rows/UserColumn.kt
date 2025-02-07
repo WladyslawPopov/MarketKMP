@@ -27,7 +27,7 @@ import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun UserSimpleRow(
+fun UserColumn(
     user: User,
     modifier: Modifier = Modifier
 ) {

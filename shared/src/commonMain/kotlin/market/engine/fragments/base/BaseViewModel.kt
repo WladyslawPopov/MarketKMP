@@ -17,8 +17,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ToastItem
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
@@ -29,6 +32,9 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
+import market.engine.core.network.functions.UserOperations
+import market.engine.core.network.networkObjects.AppResponse
+import market.engine.core.repositories.UserRepository
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
@@ -43,9 +49,12 @@ open class BaseViewModel: ViewModel() {
     var scrollItem : MutableState<Int> = mutableStateOf(0)
     var offsetScrollItem : MutableState<Int> = mutableStateOf(0)
 
-    private val apiService = getKoin().get<APIService>()
-    private val offersOperations : OfferOperations = getKoin().get()
+    val apiService = getKoin().get<APIService>()
+    val userRepository: UserRepository = getKoin().get()
+    val offersOperations : OfferOperations = getKoin().get()
     val categoryOperations : CategoryOperations = getKoin().get()
+
+    val userOperations : UserOperations = getKoin().get()
 
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
     val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
@@ -156,6 +165,82 @@ open class BaseViewModel: ViewModel() {
             }
         } catch (_: Exception) {
             null
+        }
+    }
+
+    suspend fun addNewSubscribe(listingData : LD, searchData : SD) : AppResponse? {
+        try {
+            val response = withContext(Dispatchers.IO) {
+                userOperations.getUserOperationsCreateSubscription(UserData.login)
+            }
+
+            val body = HashMap<String, JsonElement>()
+            response.success?.fields?.forEach { field ->
+                when(field.key) {
+                    "category_id" -> {
+                        if (searchData.searchCategoryID != 1L)
+                            body["category_id"] = JsonPrimitive(searchData.searchCategoryID)
+                    }
+                    "offer_scope" -> {
+                        body["offer_scope"] = JsonPrimitive(1)
+                    }
+                    "search_query" -> {
+                        if(searchData.searchString != "") {
+                            body["search_query"] = JsonPrimitive(searchData.searchString)
+                        }
+                    }
+                    "seller" -> {
+                        if(searchData.userSearch) {
+                            body["seller"] = JsonPrimitive(searchData.userLogin)
+                        }
+                    }
+                    "saletype" -> {
+                        when (listingData.filters.find { it.key == "sale_type" }?.value) {
+                            "buynow" -> {
+                                body["saletype"] = JsonPrimitive(0)
+                            }
+                            "auction" -> {
+                                body["saletype"] = JsonPrimitive(1)
+                            }
+                        }
+                    }
+                    "region" -> {
+                        listingData.filters.find { it.key == "region" }?.value?.let {
+                            if (it != "")
+                                body["region"] = JsonPrimitive(it)
+                        }
+                    }
+                    "price_from" -> {
+                        listingData.filters.find { it.key == "current_price" && it.operation == "gte" }?.value?.let {
+                            if (it != "")
+                                body["price_from"] = JsonPrimitive(it)
+                        }
+                    }
+                    "price_to" -> {
+                        listingData.filters.find { it.key == "current_price" && it.operation == "lte" }?.value?.let {
+                            if (it != "")
+                                body["price_to"] = JsonPrimitive(it)
+                        }
+                    }
+                    else ->{
+                        if (field.data != null){
+                            body[field.key ?: ""] = field.data!!
+                        }
+                    }
+                }
+            }
+
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUserOperationsCreateSubscription(UserData.login, body)
+            }
+
+            return res.success
+        }catch (e : ServerErrorException){
+            onError(e)
+            return null
+        }catch (e : Exception){
+            onError(ServerErrorException(e.message ?: "Unknown error", ""))
+            return null
         }
     }
 

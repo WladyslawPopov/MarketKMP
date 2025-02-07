@@ -14,20 +14,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.items.ListingData
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
-class ListingViewModel(
-    private val apiService: APIService,
-    val userRepository: UserRepository
-) : BaseViewModel() {
+class ListingViewModel : BaseViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 

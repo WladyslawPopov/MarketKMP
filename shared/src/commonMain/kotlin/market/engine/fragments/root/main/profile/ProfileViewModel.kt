@@ -8,13 +8,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.User
 import market.engine.fragments.base.BaseViewModel
 
-class ProfileViewModel(
-    private val userOperations: UserOperations
-) : BaseViewModel() {
+class ProfileViewModel : BaseViewModel() {
 
     private val _userInfo = MutableStateFlow<User?>(null)
     val userInfo : StateFlow<User?> = _userInfo.asStateFlow()

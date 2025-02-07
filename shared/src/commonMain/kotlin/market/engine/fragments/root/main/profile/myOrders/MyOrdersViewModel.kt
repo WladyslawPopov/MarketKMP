@@ -10,21 +10,17 @@ import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.DealType
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.UrlBuilder
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
 class MyOrdersViewModel(
     private val orderSelected: Long?,
-    val type: DealType,
-    val apiService: APIService,
-    val userRepository: UserRepository
+    val type: DealType
 ) : BaseViewModel() {
 
     private val orderPagingRepository: PagingRepository<Order> = PagingRepository()

@@ -10,22 +10,16 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OfferOperations
-import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
 class BasketViewModel(
-    private val apiService: APIService,
-    private val userRepository : UserRepository,
-    private val userOperations : UserOperations,
     private val offerOperations : OfferOperations
 ) : BaseViewModel() {
 

@@ -145,6 +145,9 @@ class DefaultMainComponent(
                 },
                 navigateToAppSettings = {
                     navigateToDynamicSettings("app_settings", null, null)
+                },
+                navigateToSubscribe = {
+                    navigateToBottomItem(MainConfig.Favorites, "subscribe")
                 }
             )
         },
@@ -175,6 +178,9 @@ class DefaultMainComponent(
                     },
                     navigateToDialog = { dialogId ->
                         navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
+                    },
+                    navigateToSubscribe = {
+                        navigateToBottomItem(MainConfig.Favorites, "subscribe")
                     }
                 )
             },
@@ -201,6 +207,9 @@ class DefaultMainComponent(
                     },
                     navigateToDialog = { dialogId ->
                         navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
+                    },
+                    navigateToSubscribe = {
+                        navigateToBottomItem(MainConfig.Favorites, "subscribe")
                     }
                 )
             },
@@ -253,6 +262,9 @@ class DefaultMainComponent(
                     },
                     navigateToDynamicSettings = { settingsType ->
                         navigateToDynamicSettings(settingsType, null, null)
+                    },
+                    navigateToSubscribe = {
+                        navigateToBottomItem(MainConfig.Favorites, "subscribe")
                     }
                 )
             },
@@ -376,6 +388,11 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLogin()
                 }else{
+                    if(openPage == "subscribe"){
+                        modelNavigation.value.favoritesNavigation.pushNew(
+                            FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED)
+                        )
+                    }
                     if(activeCurrent == "Favorites"){
                         modelNavigation.value.favoritesNavigation.popToFirst()
                     }

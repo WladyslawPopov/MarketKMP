@@ -13,19 +13,12 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.network.APIService
-import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Choices
-import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class ProfileSettingsViewModel(
-    val apiService: APIService,
-    private val userOperations: UserOperations,
-    val userRepository : UserRepository
-) : BaseViewModel() {
+class ProfileSettingsViewModel : BaseViewModel() {
 
     private val _genderSelects = MutableStateFlow<List<Choices>>(emptyList())
     val genderSelects : StateFlow<List<Choices>> = _genderSelects.asStateFlow()

@@ -39,7 +39,7 @@ import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.DeliveryCardsContent
 import market.engine.widgets.exceptions.onError
-import market.engine.widgets.rows.UserSimpleRow
+import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.DynamicLabel
 import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.stringResource
@@ -142,7 +142,7 @@ fun CreateOrderContent(
                             style = MaterialTheme.typography.titleSmall
                         )
                         Spacer(modifier = Modifier.width(dimens.smallSpacer))
-                        UserSimpleRow(it, modifier = Modifier.clickable {
+                        UserRow(it, modifier = Modifier.clickable {
                             component.goToSeller(it.id)
                         })
                     }

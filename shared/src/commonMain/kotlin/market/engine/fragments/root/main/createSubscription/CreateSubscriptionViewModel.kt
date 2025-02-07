@@ -14,7 +14,6 @@ import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.SubscriptionOperations
-import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.deserializePayload
@@ -22,7 +21,6 @@ import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
 class CreateSubscriptionViewModel(
-    private val userOperations: UserOperations,
     private val subOperations: SubscriptionOperations,
 ) : BaseViewModel() {
 

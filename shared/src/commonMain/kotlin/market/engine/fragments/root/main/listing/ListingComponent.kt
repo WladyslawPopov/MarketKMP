@@ -23,6 +23,7 @@ interface ListingComponent {
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun goBack()
+    fun goToSubscribe()
 }
 
 class DefaultListingComponent(
@@ -31,7 +32,8 @@ class DefaultListingComponent(
     componentContext: ComponentContext,
     listingData: ListingData,
     private val selectOffer: (Long) -> Unit,
-    private val selectedBack: () -> Unit
+    private val selectedBack: () -> Unit,
+    private val navigateToSubscribe: () -> Unit,
 ) : ListingComponent, ComponentContext by componentContext {
 
 
@@ -116,5 +118,9 @@ class DefaultListingComponent(
 
     override fun goBack() {
         selectedBack()
+    }
+
+    override fun goToSubscribe() {
+        navigateToSubscribe()
     }
 }

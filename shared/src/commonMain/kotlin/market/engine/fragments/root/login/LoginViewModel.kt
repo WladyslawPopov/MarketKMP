@@ -2,7 +2,6 @@ package market.engine.fragments.root.login
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.network.APIService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,13 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.network.networkObjects.UserPayload
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
-class LoginViewModel(
-    private val apiService: APIService,
-    val userRepository: UserRepository
-) : BaseViewModel() {
+class LoginViewModel : BaseViewModel() {
 
 //    var postChangeGoogleAuth = MutableLiveData<GoogleAuthResponse?>()
 

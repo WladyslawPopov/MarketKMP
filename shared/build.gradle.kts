@@ -41,8 +41,6 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
-           // implementation(project.dependencies.platform(libs.kotlinx.coroutines.bom))
-
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.datastore)
 

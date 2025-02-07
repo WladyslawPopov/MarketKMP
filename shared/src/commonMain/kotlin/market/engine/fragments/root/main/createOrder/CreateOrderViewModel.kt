@@ -20,10 +20,8 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OfferOperations
-import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.DynamicPayload
@@ -36,9 +34,7 @@ import org.jetbrains.compose.resources.getString
 
 
 class CreateOrderViewModel(
-    private val apiService: APIService,
     private val offerOperations: OfferOperations,
-    private val userOperations: UserOperations
 ) : BaseViewModel() {
 
     private var _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)

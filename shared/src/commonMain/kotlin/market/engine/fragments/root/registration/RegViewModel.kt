@@ -2,7 +2,6 @@ package market.engine.fragments.root.registration
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.network.APIService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,14 +16,10 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class RegViewModel(
-    private val apiService: APIService,
-    val userRepository: UserRepository
-) : BaseViewModel() {
+class RegViewModel : BaseViewModel() {
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 

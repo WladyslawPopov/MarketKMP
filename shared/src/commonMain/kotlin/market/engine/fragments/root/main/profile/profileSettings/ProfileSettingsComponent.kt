@@ -2,8 +2,6 @@ package market.engine.fragments.root.main.profile.profileSettings
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.pop
-import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -12,7 +10,6 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
-import org.koin.mp.KoinPlatform.getKoin
 
 interface ProfileSettingsComponent {
     val model : Value<Model>
@@ -41,11 +38,7 @@ class DefaultProfileSettingsComponent(
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
-    private  val profileSettingsViewModel = ProfileSettingsViewModel(
-        apiService = getKoin().get(),
-        userOperations = getKoin().get(),
-        userRepository = getKoin().get()
-    )
+    private  val profileSettingsViewModel = ProfileSettingsViewModel()
 
     private val _model = MutableValue(
         ProfileSettingsComponent.Model(

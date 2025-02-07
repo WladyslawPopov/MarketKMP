@@ -7,6 +7,7 @@ fun listingFactory(
     componentContext: ComponentContext,
     listingData: ListingData,
     selectOffer: (Long) -> Unit,
+    navigateToSubscribe: () -> Unit,
     onBack : () -> Unit,
     isOpenSearch : Boolean = false,
     isOpenCategory : Boolean
@@ -22,5 +23,8 @@ fun listingFactory(
             selectedBack = {
                 onBack()
             },
+            navigateToSubscribe = {
+                navigateToSubscribe()
+            }
         )
     }

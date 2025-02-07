@@ -30,7 +30,6 @@ import market.engine.core.data.items.DialogsData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.MessageType
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OfferOperations
@@ -42,7 +41,6 @@ import market.engine.core.network.networkObjects.MesImage
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.convertDateYear
 import market.engine.fragments.base.BaseViewModel
@@ -51,8 +49,6 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class DialogsViewModel(
-    private val apiService: APIService,
-    private val userRepository: UserRepository,
     private val conversationsOperations: ConversationsOperations,
     private val privateMessagesOperation: PrivateMessagesOperation,
     private val offerOperations: OfferOperations,

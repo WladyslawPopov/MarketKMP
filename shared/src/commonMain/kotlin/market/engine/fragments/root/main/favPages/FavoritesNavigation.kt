@@ -187,7 +187,10 @@ fun createFavoritesChild(
                     onBack = {
                         favoritesNavigation.pop()
                     },
-                    isOpenCategory = false
+                    isOpenCategory = false,
+                    navigateToSubscribe = {
+                        favoritesNavigation.replaceCurrent(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
+                    }
                 )
             )
         }

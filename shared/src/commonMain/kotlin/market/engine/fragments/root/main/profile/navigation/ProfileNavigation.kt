@@ -153,7 +153,8 @@ fun createProfileChild(
     profileNavigation: StackNavigation<ProfileConfig>,
     navigateToMyOrders: () -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToDynamicSettings: (String) -> Unit
+    navigateToDynamicSettings: (String) -> Unit,
+    navigateToSubscribe: () -> Unit
 ): ChildProfile {
 
     val userInfo = UserData.userInfo
@@ -392,6 +393,9 @@ fun createProfileChild(
                         profileNavigation.pop()
                     },
                     isOpenCategory = false,
+                    navigateToSubscribe = {
+                        navigateToSubscribe()
+                    }
                 )
             )
         }

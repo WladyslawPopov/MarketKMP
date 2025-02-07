@@ -34,7 +34,7 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.CreateOfferDialog
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.rows.HeaderOfferItem
-import market.engine.widgets.rows.UserSimpleRow
+import market.engine.widgets.rows.UserColumn
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -99,7 +99,7 @@ fun BidsItem(
                         color = colors.black
                     )
 
-                    UserSimpleRow(
+                    UserColumn(
                         it,
                         Modifier.clickable {
                             goToUser(it.id)
@@ -107,7 +107,6 @@ fun BidsItem(
                     )
                 }
             }
-
 
             val imageUrl = when {
                 offer.image != null -> offer.image.small?.content

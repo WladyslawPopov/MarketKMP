@@ -98,7 +98,8 @@ fun createSearchChild(
     searchNavigation: StackNavigation<SearchConfig>,
     navigateToMyOrders: () -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToDialog: (dialogId: Long?) -> Unit
+    navigateToDialog: (dialogId: Long?) -> Unit,
+    navigateToSubscribe: () -> Unit
 ): ChildSearch =
     when (config) {
         is SearchConfig.ListingScreen -> {
@@ -123,7 +124,10 @@ fun createSearchChild(
                         searchNavigation.pop()
                     },
                     isOpenCategory = false,
-                    isOpenSearch = config.isOpenSearch
+                    isOpenSearch = config.isOpenSearch,
+                    navigateToSubscribe = {
+                        navigateToSubscribe()
+                    }
                 ),
             )
         }

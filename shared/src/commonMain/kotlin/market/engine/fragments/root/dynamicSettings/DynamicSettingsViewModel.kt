@@ -19,19 +19,12 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.network.APIService
-import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class DynamicSettingsViewModel(
-    val apiService: APIService,
-    private val userOperations: UserOperations,
-    private val userRepository: UserRepository,
-) : BaseViewModel() {
+class DynamicSettingsViewModel : BaseViewModel() {
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
@@ -41,7 +34,7 @@ class DynamicSettingsViewModel(
     private val _errorSettings = MutableStateFlow<Pair<AnnotatedString, String>?>(null)
     val errorSettings : StateFlow<Pair<AnnotatedString, String>?> = _errorSettings.asStateFlow()
 
-    fun init(settingsType : String, owner : Long?, code : String?) {
+    fun init(settingsType : String, owner : Long?) {
         when(settingsType){
             "set_login" ->{
                 getSetLogin()

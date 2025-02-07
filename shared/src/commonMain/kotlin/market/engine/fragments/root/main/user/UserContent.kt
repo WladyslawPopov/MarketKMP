@@ -28,7 +28,7 @@ import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.tabs.SimpleTabs
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.rows.UserPanel
-import market.engine.widgets.rows.UserSimpleRow
+import market.engine.widgets.rows.UserRow
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -83,7 +83,7 @@ fun UserContent(
         topBar = {
             UserAppBar(
                 titleContent = {
-                    user.value?.let { UserSimpleRow(it) }
+                    user.value?.let { UserRow(it) }
                 },
                 isVisibleUserPanel = isVisibleUserPanel.value,
                 onUserSliderClick = {

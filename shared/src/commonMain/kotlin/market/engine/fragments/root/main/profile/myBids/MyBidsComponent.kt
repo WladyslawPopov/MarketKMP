@@ -11,7 +11,6 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface MyBidsComponent {
@@ -42,11 +41,7 @@ class DefaultMyBidsComponent(
     val navigateBack: () -> Unit
 ) : MyBidsComponent, ComponentContext by componentContext {
 
-    private val viewModel : MyBidsViewModel = MyBidsViewModel(
-        type,
-        getKoin().get(),
-        getKoin().get()
-    )
+    private val viewModel : MyBidsViewModel = MyBidsViewModel(type)
 
     private val listingData = viewModel.listingData.value
 

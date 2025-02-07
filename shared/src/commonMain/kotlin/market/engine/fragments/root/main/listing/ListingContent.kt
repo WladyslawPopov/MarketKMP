@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -41,6 +42,7 @@ import market.engine.fragments.root.main.listing.search.SearchViewModel
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
+import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.exceptions.onError
 import market.engine.widgets.exceptions.showNoItemLayout
@@ -350,6 +352,11 @@ fun ListingContent(
     ) {
         BaseContent(
             topBar = {
+                val showDialog = remember { mutableStateOf(false) }
+                val errorString = remember { mutableStateOf("") }
+                val os = stringResource(strings.operationSuccess)
+                val es = stringResource(strings.operationFailed)
+
                 ListingAppBar(
                     title = title.value,
                     modifier,
@@ -374,7 +381,31 @@ fun ListingContent(
                         listingViewModel.isOpenSearch.value = true
                     },
                     onSubscribesClick = {
+                        listingViewModel.viewModelScope.launch {
+                            val res = listingViewModel.addNewSubscribe(listingData.value, searchData.value)
+                            if (res?.success == true){
+                                listingViewModel.showToast(
+                                    successToastItem.copy(
+                                        message = os
+                                    )
+                                )
+                            }else{
+                                errorString.value = res?.humanMessage ?: es
+                                showDialog.value = true
+                            }
+                        }
+                    }
+                )
 
+                CreateSubscribeDialog(
+                    showDialog.value,
+                    errorString.value,
+                    onDismiss = {
+                        showDialog.value = false
+                    },
+                    goToSubscribe = {
+                        component.goToSubscribe()
+                        showDialog.value = false
                     }
                 )
             },

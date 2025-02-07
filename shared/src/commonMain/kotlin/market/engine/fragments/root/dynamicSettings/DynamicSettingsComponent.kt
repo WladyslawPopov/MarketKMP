@@ -50,7 +50,7 @@ class DefaultDynamicSettingsComponent(
     override val model = _model
 
     init {
-        dynamicSettingsViewModel.init(settingsType, owner, code)
+        dynamicSettingsViewModel.init(settingsType, owner)
     }
 
     override fun onBack() {

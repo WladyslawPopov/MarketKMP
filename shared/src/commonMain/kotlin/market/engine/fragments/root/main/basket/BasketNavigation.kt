@@ -105,7 +105,8 @@ fun createBasketChild(
     basketNavigation : StackNavigation<BasketConfig>,
     navigateToMyOrders: () -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToDialog: (dialogId: Long?) -> Unit
+    navigateToDialog: (dialogId: Long?) -> Unit,
+    navigateToSubscribe: () -> Unit
 ): ChildBasket =
     when (config) {
         BasketConfig.BasketScreen -> ChildBasket.BasketChild(
@@ -127,7 +128,10 @@ fun createBasketChild(
                     onBack = {
                         basketNavigation.pop()
                     },
-                    isOpenCategory = false
+                    isOpenCategory = false,
+                    navigateToSubscribe = {
+                        navigateToSubscribe()
+                    }
                 )
             )
         }

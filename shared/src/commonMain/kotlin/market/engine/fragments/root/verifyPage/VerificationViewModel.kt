@@ -10,18 +10,11 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.UserOperations
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class VerificationViewModel(
-    val apiService: APIService,
-    private val userOperations: UserOperations,
-    val userRepository: UserRepository,
-) : BaseViewModel() {
+class VerificationViewModel : BaseViewModel() {
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 

@@ -36,7 +36,7 @@ import market.engine.core.network.networkObjects.User
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
-import market.engine.widgets.rows.UserSimpleRow
+import market.engine.widgets.rows.UserRow
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -95,7 +95,7 @@ fun BasketItemContent(
                         modifier = Modifier
                     )
 
-                    UserSimpleRow(
+                    UserRow(
                         user = user,
                         modifier = Modifier.clickable {
                             goToUser(user.id)

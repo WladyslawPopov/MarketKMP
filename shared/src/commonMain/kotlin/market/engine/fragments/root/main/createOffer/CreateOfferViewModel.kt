@@ -14,7 +14,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.DynamicPayload
@@ -24,7 +23,7 @@ import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class CreateOfferViewModel(private val apiService: APIService) : BaseViewModel() {
+class CreateOfferViewModel : BaseViewModel() {
 
     private var _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseDynamicPayload : StateFlow<DynamicPayload<OperationResult>?> = _responseGetPage.asStateFlow()

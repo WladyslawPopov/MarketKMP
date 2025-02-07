@@ -32,7 +32,7 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.NavigationArrowButton
-import market.engine.widgets.rows.UserSimpleRow
+import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
@@ -95,7 +95,7 @@ fun DialogsAppBar(
             .fillMaxWidth(),
         title = {
             if (conversation.interlocutor != null) {
-                UserSimpleRow(
+                UserRow(
                     user = conversation.interlocutor!!,
                     modifier = Modifier.clickable {
                         goToUser(conversation.interlocutor?.id!!)

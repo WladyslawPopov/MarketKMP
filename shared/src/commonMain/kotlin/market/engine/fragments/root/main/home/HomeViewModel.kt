@@ -4,7 +4,6 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.network.APIService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,13 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
-class HomeViewModel(
-    private val apiService: APIService,
-    val userRepository: UserRepository
-) : BaseViewModel() {
+class HomeViewModel : BaseViewModel() {
 
     private val _responseOffersPromotedOnMainPage1 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage1: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage1.asStateFlow()

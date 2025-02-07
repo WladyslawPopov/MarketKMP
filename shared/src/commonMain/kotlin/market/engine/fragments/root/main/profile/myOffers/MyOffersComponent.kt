@@ -12,7 +12,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface MyOffersComponent {
@@ -39,11 +38,7 @@ class DefaultMyOffersComponent(
     val navigateToBack: () -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
 
-    private val viewModel : MyOffersViewModel = MyOffersViewModel(
-        type,
-        getKoin().get(),
-        getKoin().get()
-    )
+    private val viewModel : MyOffersViewModel = MyOffersViewModel(type)
 
     private val listingData = viewModel.listingData.value
 

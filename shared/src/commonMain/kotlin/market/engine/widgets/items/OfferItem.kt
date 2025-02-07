@@ -45,7 +45,7 @@ import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.rows.PromoRow
-import market.engine.widgets.rows.UserSimpleRow
+import market.engine.widgets.rows.UserColumn
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -415,7 +415,7 @@ fun content(
         }
 
         offer.sellerData?.let {
-            UserSimpleRow(
+            UserColumn(
                 it,
                 modifier = Modifier.fillMaxWidth()
             )

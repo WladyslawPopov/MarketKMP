@@ -12,7 +12,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.DealType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface MyOrdersComponent {
@@ -44,8 +43,6 @@ class DefaultMyOrdersComponent(
     private val viewModel : MyOrdersViewModel = MyOrdersViewModel(
         orderSelected,
         type,
-        getKoin().get(),
-        getKoin().get()
     )
 
     val listingData = viewModel.listingData.value

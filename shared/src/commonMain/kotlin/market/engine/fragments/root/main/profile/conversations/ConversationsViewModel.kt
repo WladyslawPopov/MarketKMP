@@ -10,17 +10,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.items.ListingData
-import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 
 class ConversationsViewModel(
-    val apiService: APIService,
-    val userRepository: UserRepository,
     private val conversationsOperations: ConversationsOperations
 ) : BaseViewModel() {
 

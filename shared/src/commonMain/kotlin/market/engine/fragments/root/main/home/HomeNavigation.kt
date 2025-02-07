@@ -122,7 +122,8 @@ fun createHomeChild(
     navigateToMyOrders: () -> Unit,
     navigateToDialog: (dialogId: Long?) -> Unit,
     navigateToContactUs: () -> Unit,
-    navigateToAppSettings: () -> Unit
+    navigateToAppSettings: () -> Unit,
+    navigateToSubscribe: () -> Unit
 ): ChildHome = when (config) {
     HomeConfig.HomeScreen -> ChildHome.HomeChild(
         itemHome(
@@ -202,7 +203,10 @@ fun createHomeChild(
                     homeNavigation.pop()
                 },
                 isOpenCategory = false,
-                isOpenSearch = config.isOpenSearch
+                isOpenSearch = config.isOpenSearch,
+                navigateToSubscribe = {
+                    navigateToSubscribe()
+                }
             ),
         )
     }

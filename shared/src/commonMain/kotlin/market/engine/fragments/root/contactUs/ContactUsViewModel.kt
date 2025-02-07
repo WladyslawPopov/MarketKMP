@@ -2,7 +2,6 @@ package market.engine.fragments.root.contactUs
 
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.network.APIService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,22 +11,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.core.network.networkObjects.UserPayload
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class ContactUsViewModel(
-    private val apiService: APIService,
-    val userRepository: UserRepository
-) : BaseViewModel() {
+class ContactUsViewModel : BaseViewModel() {
 
     val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
