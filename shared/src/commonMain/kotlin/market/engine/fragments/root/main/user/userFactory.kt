@@ -11,6 +11,8 @@ fun userFactory(
     goBack: () -> Unit,
     goToSnapshot: (Long) -> Unit,
     goToUser: (Long) -> Unit,
+    goToSubscriptions: () -> Unit,
+    goToOrder: (Long) -> Unit,
     ): UserComponent {
         return DefaultUserComponent(
             userId = userId,
@@ -19,9 +21,12 @@ fun userFactory(
             goToListing = goToLogin,
             navigateBack = goBack,
             navigateToOrder = {
-
+                goToOrder(it)
             },
             navigateToSnapshot = goToSnapshot,
-            navigateToUser = goToUser
+            navigateToUser = goToUser,
+            navigateToSubscriptions = {
+                goToSubscriptions()
+            }
         )
     }

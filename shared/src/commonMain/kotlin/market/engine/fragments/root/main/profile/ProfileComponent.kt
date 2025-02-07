@@ -58,14 +58,16 @@ interface ProfileComponent {
     fun selectMyOfferPage(type: LotsType)
     fun selectMyBidsPage(type: LotsType)
     fun selectMyOrderPage(type: DealType)
+    fun goToSubscribe()
 }
 
 class DefaultProfileComponent(
     componentContext: ComponentContext,
+    selectedPage : String?,
     val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
     private val navigateToDynamicSettings : (String) -> Unit,
-    selectedPage : String?,
+    private val navigateToSubscriptions : () -> Unit
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
@@ -140,6 +142,10 @@ class DefaultProfileComponent(
                 navigationMyOrders.select(0)
             }
         }
+    }
+
+    override fun goToSubscribe() {
+        navigateToSubscriptions()
     }
 
     override fun selectMyOfferPage(type: LotsType) {

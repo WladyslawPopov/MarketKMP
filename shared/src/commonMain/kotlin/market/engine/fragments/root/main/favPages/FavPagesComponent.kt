@@ -18,15 +18,20 @@ import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsCom
 interface FavPagesComponent {
     val componentsPages: Value<ChildPages<*, FavPagesComponents>>
 
+    val favScreenType : FavScreenType
+
     fun selectPage(screenType: FavScreenType)
 }
 
 class DefaultFavPagesComponent(
     private val favoritesNavigation : StackNavigation<FavoritesConfig>,
+    favType: FavScreenType,
     componentContext: ComponentContext,
 ) : FavPagesComponent, ComponentContext by componentContext {
 
     private val navigation = PagesNavigation<FavPagesConfig>()
+
+    override val favScreenType: FavScreenType = favType
 
     override fun selectPage(screenType: FavScreenType) {
         when (screenType) {
@@ -51,7 +56,7 @@ class DefaultFavPagesComponent(
                         FavPagesConfig(FavScreenType.FAVORITES),
                         FavPagesConfig(FavScreenType.SUBSCRIBED)
                     ),
-                    selectedIndex = 0,
+                    selectedIndex = if(favType == FavScreenType.FAVORITES) 0 else 1,
                 )
             },
             key = "FavoritesStack",

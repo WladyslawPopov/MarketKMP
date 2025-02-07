@@ -96,7 +96,7 @@ fun createSearchChild(
     config: SearchConfig,
     componentContext: ComponentContext,
     searchNavigation: StackNavigation<SearchConfig>,
-    navigateToMyOrders: () -> Unit,
+    navigateToMyOrders: (Long?) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToDialog: (dialogId: Long?) -> Unit,
     navigateToSubscribe: () -> Unit
@@ -177,6 +177,9 @@ fun createSearchChild(
                 },
                 navigateToDialog = { dialogId ->
                     navigateToDialog(dialogId)
+                },
+                navigationSubscribes = {
+                    navigateToSubscribe()
                 }
             )
         )
@@ -202,6 +205,12 @@ fun createSearchChild(
                     searchNavigation.pushNew(
                         SearchConfig.UserScreen(it, getCurrentDate(), false)
                     )
+                },
+                goToSubscriptions = {
+                    navigateToSubscribe()
+                },
+                goToOrder = {
+                    navigateToMyOrders(it)
                 }
             )
         )
@@ -250,7 +259,7 @@ fun createSearchChild(
                     searchNavigation.pop()
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders()
+                    navigateToMyOrders(null)
                 }
             )
         )

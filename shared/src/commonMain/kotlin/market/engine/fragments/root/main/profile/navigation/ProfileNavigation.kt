@@ -151,7 +151,7 @@ fun createProfileChild(
     config: ProfileConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
-    navigateToMyOrders: () -> Unit,
+    navigateToMyOrders: (Long?) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToDynamicSettings: (String) -> Unit,
     navigateToSubscribe: () -> Unit
@@ -316,15 +316,23 @@ fun createProfileChild(
         is ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
             itemProfile(
                 componentContext,
+                config.openPage,
                 profileNavigation,
                 profilePublicNavigationList.value,
-                selectedPage = config.openPage,
-                navigateToDynamicSettings = navigateToDynamicSettings
+                navigateToDynamicSettings,
+                navigateToSubscribe
             )
         )
 
         ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
-            component = itemProfile(componentContext, profileNavigation, profilePublicNavigationList.value, navigateToDynamicSettings)
+            component = itemProfile(
+                componentContext,
+                null,
+                profileNavigation,
+                profilePublicNavigationList.value,
+                navigateToDynamicSettings,
+                navigateToSubscribe
+            )
         )
 
         is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
@@ -371,6 +379,9 @@ fun createProfileChild(
                     profileNavigation.replaceAll(
                         ProfileConfig.ConversationsScreen(dialogId)
                     )
+                },
+                navigationSubscribes = {
+                    navigateToSubscribe()
                 }
             )
         )
@@ -423,6 +434,12 @@ fun createProfileChild(
                         profileNavigation.pushNew(
                             ProfileConfig.UserScreen(it, getCurrentDate(), false)
                         )
+                    },
+                    goToSubscriptions = {
+                        navigateToSubscribe()
+                    },
+                    goToOrder = {
+                        navigateToMyOrders(it)
                     }
                 )
             )
@@ -472,7 +489,7 @@ fun createProfileChild(
                     profileNavigation.pop()
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders()
+                    navigateToMyOrders(null)
                 }
             )
         )
@@ -481,10 +498,11 @@ fun createProfileChild(
             config.typeGroup,
             component = itemProfile(
                 componentContext,
+                if(config.typeGroup == DealTypeGroup.BUY) "purchases/${config.id}" else "sales/${config.id}",
                 profileNavigation,
                 profilePublicNavigationList.value,
                 navigateToDynamicSettings,
-                if(config.typeGroup == DealTypeGroup.BUY) "purchases/${config.id}" else "sales/${config.id}"
+                navigateToSubscribe
             )
         )
 
@@ -507,9 +525,11 @@ fun createProfileChild(
         ProfileConfig.MyBidsScreen -> ChildProfile.MyBidsChild(
             itemProfile(
                 componentContext,
+                null,
                 profileNavigation,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings
+                navigateToDynamicSettings,
+                navigateToSubscribe
             )
         )
 
@@ -543,9 +563,11 @@ fun createProfileChild(
         ProfileConfig.ProfileSettingsScreen -> ChildProfile.ProfileSettingsChild(
             itemProfile(
                 componentContext,
+                null,
                 profileNavigation,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings
+                navigateToDynamicSettings,
+                navigateToSubscribe
             )
         )
     }
@@ -553,16 +575,18 @@ fun createProfileChild(
 
 fun itemProfile(
     componentContext: ComponentContext,
+    selectedPage : String? = null,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigationItems : List<NavigationItem>,
     navigateToDynamicSettings: (String) -> Unit,
-    selectedPage : String? = null,
+    navigateToSubscriptions: () -> Unit
 ): ProfileComponent {
     return DefaultProfileComponent(
-        componentContext = componentContext,
-        navigationItems = navigationItems,
+        componentContext,
+        selectedPage,
+        navigationItems,
         profileNavigation,
-        selectedPage = selectedPage,
-        navigateToDynamicSettings = navigateToDynamicSettings
+        navigateToDynamicSettings,
+        navigateToSubscriptions
     )
 }

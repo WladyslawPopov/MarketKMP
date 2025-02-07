@@ -119,7 +119,7 @@ fun createHomeChild(
     homeNavigation: StackNavigation<HomeConfig>,
     goToMessenger: () -> Unit,
     goToLogin: () -> Unit,
-    navigateToMyOrders: () -> Unit,
+    navigateToMyOrders: (Long?) -> Unit,
     navigateToDialog: (dialogId: Long?) -> Unit,
     navigateToContactUs: () -> Unit,
     navigateToAppSettings: () -> Unit,
@@ -182,6 +182,9 @@ fun createHomeChild(
             },
             navigateToDialog = { dialogId ->
                navigateToDialog(dialogId)
+            },
+            navigationSubscribes = {
+                navigateToSubscribe()
             }
         )
     )
@@ -233,6 +236,12 @@ fun createHomeChild(
                 homeNavigation.pushNew(
                     HomeConfig.UserScreen(it, getCurrentDate(), false)
                 )
+            },
+            goToSubscriptions = {
+                navigateToSubscribe()
+            },
+            goToOrder = {
+                navigateToMyOrders(it)
             }
         )
     )
@@ -281,7 +290,7 @@ fun createHomeChild(
                 homeNavigation.pop()
             },
             navigateToMyOrders = {
-                navigateToMyOrders()
+                navigateToMyOrders(null)
             }
         )
     )

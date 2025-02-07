@@ -56,6 +56,7 @@ import kotlin.math.roundToInt
 fun UserPanel(
     modifier: Modifier,
     user: User?,
+    updateTrigger: Int,
     goToUser: (() -> Unit) ?= null,
     goToAllLots: () -> Unit,
     goToAboutMe: () -> Unit,
@@ -64,7 +65,7 @@ fun UserPanel(
     goToSettings: (() -> Unit)? = null,
     isBlackList: ArrayList<String> // Suspend function to check black/white lists
 ) {
-    if (user != null) {
+    if (user != null && updateTrigger >= 0) {
         val userMod = if (goToUser != null){
             Modifier
                 .fillMaxWidth()

@@ -18,12 +18,18 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
+import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.exceptions.BackHandler
 import market.engine.widgets.tabs.SimpleTabs
 import market.engine.widgets.exceptions.onError
@@ -108,10 +114,17 @@ fun UserContent(
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
+                val showDialog = remember { mutableStateOf(false) }
+                val errorString = remember { mutableStateOf("") }
+                val os = stringResource(strings.operationSuccess)
+                val es = stringResource(strings.operationFailed)
+
+
                 UserPanel(
                     modifier = Modifier.background(colors.white)
                         .fillMaxWidth(),
                     user = user.value,
+                    updateTrigger = userViewModel.updateItemTrigger.value,
                     goToUser = null,
                     goToAllLots = {
                         if (user.value != null) {
@@ -122,12 +135,44 @@ fun UserContent(
                         component.onTabSelect(4)
                     },
                     addToSubscriptions = {
-
+                        userViewModel.viewModelScope.launch {
+                           val res = userViewModel.addNewSubscribe(
+                                LD(), SD().copy(
+                                    userLogin = user.value?.login,
+                                    userID = user.value?.id ?: 1L,
+                                    userSearch = true
+                                )
+                           )
+                            if (res?.success == true){
+                                userViewModel.showToast(
+                                    successToastItem.copy(
+                                        message = res.humanMessage ?: os
+                                    )
+                                )
+                                delay(1000)
+                                component.updateUserInfo()
+                            }else{
+                                errorString.value = res?.humanMessage ?: es
+                                showDialog.value = true
+                            }
+                        }
                     },
                     goToSubscriptions = {
-
+                        component.goToSubscriptions()
                     },
                     isBlackList = blackList.value
+                )
+
+                CreateSubscribeDialog(
+                    showDialog.value,
+                    errorString.value,
+                    onDismiss = {
+                        showDialog.value = false
+                    },
+                    goToSubscribe = {
+                        component.goToSubscriptions()
+                        showDialog.value = false
+                    }
                 )
             }
 

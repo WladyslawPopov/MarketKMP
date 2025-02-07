@@ -38,6 +38,8 @@ interface UserComponent {
     fun selectFeedbackPage(type: ReportPageType)
 
     fun onTabSelect(index: Int)
+
+    fun goToSubscriptions()
 }
 
 class DefaultUserComponent(
@@ -49,6 +51,7 @@ class DefaultUserComponent(
     val navigateToSnapshot: (Long) -> Unit,
     val navigateToOrder: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,
+    val navigateToSubscriptions: () -> Unit,
 ) : UserComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -137,6 +140,10 @@ class DefaultUserComponent(
         }
 
         selectFeedbackPage(select)
+    }
+
+    override fun goToSubscriptions() {
+        navigateToSubscriptions()
     }
 
     override fun selectFeedbackPage(type: ReportPageType) {

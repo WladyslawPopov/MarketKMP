@@ -103,7 +103,7 @@ fun createBasketChild(
     config: BasketConfig,
     componentContext: ComponentContext,
     basketNavigation : StackNavigation<BasketConfig>,
-    navigateToMyOrders: () -> Unit,
+    navigateToMyOrders: (Long?) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToDialog: (dialogId: Long?) -> Unit,
     navigateToSubscribe: () -> Unit
@@ -179,6 +179,9 @@ fun createBasketChild(
                 },
                 navigateToDialog = { dialogId ->
                     navigateToDialog(dialogId)
+                },
+                navigationSubscribes = {
+                    navigateToSubscribe()
                 }
             )
         )
@@ -231,6 +234,12 @@ fun createBasketChild(
                     basketNavigation.pushNew(
                         BasketConfig.UserScreen(it, getCurrentDate(), false)
                     )
+                },
+                goToSubscriptions = {
+                    navigateToSubscribe()
+                },
+                goToOrder = {
+                    navigateToMyOrders(it)
                 }
             )
         )
@@ -253,7 +262,7 @@ fun createBasketChild(
                     )
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders()
+                    navigateToMyOrders(null)
                 }
             )
         )

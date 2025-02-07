@@ -31,8 +31,9 @@ fun FavPagesNavigation(
     modifier: Modifier
 ) {
     val select = remember {
-        mutableStateOf(FavScreenType.FAVORITES)
+        mutableStateOf(component.favScreenType)
     }
+
     Column {
         FavPagesAppBar(
             select.value

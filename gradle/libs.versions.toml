@@ -10,7 +10,7 @@ compose-plugin = "1.7.3"
 filekitCore = "0.8.8"
 kotlin = "2.1.10"
 koin = "4.0.0"
-kotlinxCoroutinesBom = "1.10.1"
+kotlinx-coroutines = "1.10.1"
 ktor = "3.0.1"
 accompanist-version = "0.33.2-alpha"
 accompanist-permissions = "0.32.0"
@@ -38,7 +38,6 @@ coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.r
 
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCore" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekitCore" }
-kotlinx-coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "kotlinxCoroutinesBom" }
 ksoup-entities = { module = "com.mohamedrejeb.ksoup:ksoup-entities", version.ref = "version" }
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "version" }
 
@@ -88,6 +87,8 @@ paging-compose-common = { module = "app.cash.paging:paging-compose-common", vers
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-runtime-desktop = { group = "androidx.compose.runtime", name = "runtime-desktop", version.ref = "runtimeDesktop" }
 
+kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

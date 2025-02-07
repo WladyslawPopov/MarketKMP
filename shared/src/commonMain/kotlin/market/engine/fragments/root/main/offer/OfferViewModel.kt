@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.offer
 
 import androidx.compose.runtime.mutableStateOf
-import market.engine.core.network.functions.OfferOperations
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,8 +23,7 @@ import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
 
 class OfferViewModel(
-    private val dataBase: MarketDB,
-    private val offerOperations: OfferOperations
+    private val dataBase: MarketDB
 ) : BaseViewModel() {
 
     private val _responseOffer : MutableStateFlow<Offer?> = MutableStateFlow(null)
@@ -77,7 +75,7 @@ class OfferViewModel(
     }
 
 
-    private fun getUserInfo(id : Long) {
+    fun getUserInfo(id : Long) {
         viewModelScope.launch {
             try {
                 val res =  withContext(Dispatchers.IO){
@@ -88,7 +86,10 @@ class OfferViewModel(
                     val user = res.success?.firstOrNull()
                     val error = res.error
                     if (user != null){
-                        responseOffer.value?.sellerData = user
+                        _responseOffer.value = _responseOffer.value?.copy(
+                            sellerData = user
+                        )
+                        updateItemTrigger.value++
                     }else{
                         error?.let { throw it }
                     }

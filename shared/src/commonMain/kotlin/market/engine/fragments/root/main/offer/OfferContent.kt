@@ -68,8 +68,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.common.openUrl
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -94,6 +98,7 @@ import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.dialogs.AddBidDialog
 import market.engine.widgets.dialogs.CreateOfferDialog
+import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.exceptions.FullScreenImageViewer
@@ -700,7 +705,6 @@ fun OfferContent(
                                         )
                                     }
 
-
                                     if (offer.antisniper) {
                                         Row(
                                             modifier = Modifier
@@ -758,6 +762,10 @@ fun OfferContent(
                         // seller panel
                         item {
                             SeparatorLabel(stringResource(strings.sellerLabel))
+                            val showDialog = remember { mutableStateOf(false) }
+                            val errorString = remember { mutableStateOf("") }
+                            val os = stringResource(strings.operationSuccess)
+                            val es = stringResource(strings.operationFailed)
 
                             UserPanel(
                                 modifier = Modifier.fillMaxWidth()
@@ -765,6 +773,7 @@ fun OfferContent(
                                     .background(colors.white)
                                     .padding(vertical = dimens.smallPadding),
                                 offer.sellerData,
+                                updateTrigger = offerViewModel.updateItemTrigger.value,
                                 goToUser = {
                                     component.goToUser(offer.sellerData?.id ?: 1L, false)
                                 },
@@ -775,12 +784,44 @@ fun OfferContent(
                                     component.goToUser(offer.sellerData?.id ?: 1L, true)
                                 },
                                 addToSubscriptions = {
-
+                                    offerViewModel.viewModelScope.launch {
+                                        val res = offerViewModel.addNewSubscribe(
+                                            LD(), SD().copy(
+                                                userLogin = offer.sellerData?.login,
+                                                userID = offer.sellerData?.id ?: 1L,
+                                                userSearch = true
+                                            )
+                                        )
+                                        if (res?.success == true){
+                                            offerViewModel.showToast(
+                                                successToastItem.copy(
+                                                    message = res.humanMessage ?: os
+                                                )
+                                            )
+                                            delay(1000)
+                                            offerViewModel.getUserInfo(offer.sellerData?.id ?: 1L)
+                                        }else{
+                                            errorString.value = res?.humanMessage ?: es
+                                            showDialog.value = true
+                                        }
+                                    }
                                 },
                                 goToSubscriptions = {
-
+                                    component.goToSubscribes()
                                 },
                                 isBlackList = blackList.value
+                            )
+
+                            CreateSubscribeDialog(
+                                showDialog.value,
+                                errorString.value,
+                                onDismiss = {
+                                    showDialog.value = false
+                                },
+                                goToSubscribe = {
+                                    component.goToSubscribes()
+                                    showDialog.value = false
+                                }
                             )
                         }
                         //payment and delivery

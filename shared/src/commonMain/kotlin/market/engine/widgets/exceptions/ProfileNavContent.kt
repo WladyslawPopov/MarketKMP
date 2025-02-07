@@ -57,6 +57,7 @@ fun ProfileNavContent(
                 UserPanel(
                     modifier = Modifier.fillMaxWidth(),
                     userInfo,
+                    updateTrigger = 1,
                     goToUser = null,
                     goToAllLots = {
                         goToAllLots?.invoke()

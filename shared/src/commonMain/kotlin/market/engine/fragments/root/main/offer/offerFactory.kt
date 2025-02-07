@@ -21,7 +21,8 @@ fun offerFactory(
     ) -> Unit,
     navigateToCreateOrder: (item : Pair<Long, List<SelectedBasketItem>>) -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToDialog: (dialogId: Long?) -> Unit
+    navigateToDialog: (dialogId: Long?) -> Unit,
+    navigationSubscribes: () -> Unit
 ): OfferComponent {
         return DefaultOfferComponent(
             id,
@@ -50,6 +51,9 @@ fun offerFactory(
             },
             navigateToDialog = { dialogId ->
                 navigateToDialog(dialogId)
+            },
+            navigationSubscribes = {
+                navigationSubscribes()
             }
         )
     }

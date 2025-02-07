@@ -1,12 +1,11 @@
 package market.engine.widgets.dialogs
 
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -23,7 +22,7 @@ fun CreateSubscribeDialog(
                 onDismiss()
             },
             title = {
-                Text(title, style = MaterialTheme.typography.titleSmall)
+                SeparatorLabel(title)
             },
             text = {},
             confirmButton = {

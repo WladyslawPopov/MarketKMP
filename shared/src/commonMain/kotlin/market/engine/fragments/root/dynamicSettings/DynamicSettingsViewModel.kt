@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -25,8 +24,6 @@ import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
 class DynamicSettingsViewModel : BaseViewModel() {
-
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     private val _builderDescription = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val builderDescription : StateFlow<DynamicPayload<OperationResult>?> = _builderDescription.asStateFlow()

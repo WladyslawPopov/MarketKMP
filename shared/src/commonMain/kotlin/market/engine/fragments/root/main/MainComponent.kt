@@ -98,6 +98,7 @@ class DefaultMainComponent(
 
     private var openPage: String? = null
 
+
     init {
         if(deepLink != null) {
             lifecycle.doOnResume {
@@ -134,8 +135,8 @@ class DefaultMainComponent(
                     navigateToBottomItem(MainConfig.Profile, "messenger")
                 },
                 goToLoginSelected,
-                navigateToMyOrders = {
-                    navigateToBottomItem(MainConfig.Profile, "purchases")
+                navigateToMyOrders = { id ->
+                    navigateToBottomItem(MainConfig.Profile, "purchases/$id")
                 },
                 navigateToDialog = { dialogId ->
                     navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
@@ -170,8 +171,8 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.searchNavigation,
-                    navigateToMyOrders = {
-                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    navigateToMyOrders = { id ->
+                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
                     },
                     navigateToLogin = {
                         goToLogin()
@@ -199,8 +200,8 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.basketNavigation,
-                    navigateToMyOrders = {
-                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    navigateToMyOrders = { id ->
+                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
                     },
                     navigateToLogin = {
                         goToLogin(true)
@@ -220,7 +221,7 @@ class DefaultMainComponent(
     override val childFavoritesStack: Value<ChildStack<*, ChildFavorites>> by lazy {
         childStack(
             source = modelNavigation.value.favoritesNavigation,
-            initialConfiguration = FavoritesConfig.FavPagesScreen(FavScreenType.FAVORITES),
+            initialConfiguration = FavoritesConfig.FavPagesScreen(if(openPage == "subscribe") FavScreenType.SUBSCRIBED else FavScreenType.FAVORITES),
             serializer = FavoritesConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
@@ -228,8 +229,8 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.favoritesNavigation,
-                    navigateToMyOrders = {
-                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    navigateToMyOrders = { id ->
+                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
                     },
                     navigateToLogin = {
                         goToLogin(true)
@@ -246,7 +247,7 @@ class DefaultMainComponent(
     override val childProfileStack: Value<ChildStack<*, ChildProfile>> by lazy {
         childStack(
             source = modelNavigation.value.profileNavigation,
-            initialConfiguration = ProfileConfig.ProfileScreen(openPage =openPage),
+            initialConfiguration = ProfileConfig.ProfileScreen(openPage = openPage),
             serializer = ProfileConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
@@ -254,8 +255,8 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.profileNavigation,
-                    navigateToMyOrders = {
-                        navigateToBottomItem(MainConfig.Profile, "purchases")
+                    navigateToMyOrders = { id ->
+                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
                     },
                     navigateToLogin = {
                         goToLogin(true)
@@ -388,16 +389,17 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLogin()
                 }else{
-                    if(openPage == "subscribe"){
-                        modelNavigation.value.favoritesNavigation.pushNew(
-                            FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED)
-                        )
-                    }
                     if(activeCurrent == "Favorites"){
                         modelNavigation.value.favoritesNavigation.popToFirst()
                     }
                     activeCurrent = "Favorites"
+
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
+                    if(openPage == "subscribe") {
+                        modelNavigation.value.favoritesNavigation.replaceAll(
+                            FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED)
+                        )
+                    }
                 }
             }
             is MainConfig.Profile -> {

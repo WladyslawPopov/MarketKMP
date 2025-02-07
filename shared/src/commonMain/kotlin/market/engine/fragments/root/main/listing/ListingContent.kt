@@ -386,7 +386,7 @@ fun ListingContent(
                             if (res?.success == true){
                                 listingViewModel.showToast(
                                     successToastItem.copy(
-                                        message = os
+                                        message = res.humanMessage ?: os
                                     )
                                 )
                             }else{

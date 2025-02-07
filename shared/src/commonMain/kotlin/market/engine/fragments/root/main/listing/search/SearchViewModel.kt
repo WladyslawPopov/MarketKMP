@@ -4,7 +4,6 @@ import market.engine.core.data.globalData.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.network.ServerErrorException
 
@@ -13,8 +12,6 @@ import market.engine.shared.MarketDB
 import market.engine.shared.SearchHistory
 
 class SearchViewModel(private val db : MarketDB) : BaseViewModel() {
-
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     private val _responseHistory = MutableStateFlow<List<SearchHistory>>(emptyList())
     val responseHistory: StateFlow<List<SearchHistory>> = _responseHistory.asStateFlow()

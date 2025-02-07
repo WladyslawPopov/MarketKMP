@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
@@ -51,8 +52,10 @@ open class BaseViewModel: ViewModel() {
 
     val apiService = getKoin().get<APIService>()
     val userRepository: UserRepository = getKoin().get()
-    val offersOperations : OfferOperations = getKoin().get()
+    val offerOperations : OfferOperations = getKoin().get()
     val categoryOperations : CategoryOperations = getKoin().get()
+
+    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     val userOperations : UserOperations = getKoin().get()
 
@@ -159,7 +162,7 @@ open class BaseViewModel: ViewModel() {
 
     suspend fun getUpdatedOfferById(offerId: Long) : Offer? {
         return try {
-            val response = offersOperations.getOffer(offerId)
+            val response = offerOperations.getOffer(offerId)
             response.success?.let {
                 return it
             }
@@ -174,12 +177,18 @@ open class BaseViewModel: ViewModel() {
                 userOperations.getUserOperationsCreateSubscription(UserData.login)
             }
 
+            val eventParameters : ArrayList<Pair<String, Any?>> = arrayListOf(
+                "buyer_id" to UserData.login.toString(),
+            )
+
             val body = HashMap<String, JsonElement>()
             response.success?.fields?.forEach { field ->
                 when(field.key) {
                     "category_id" -> {
-                        if (searchData.searchCategoryID != 1L)
+                        if (searchData.searchCategoryID != 1L) {
                             body["category_id"] = JsonPrimitive(searchData.searchCategoryID)
+                            eventParameters.add("category_id" to searchData.searchCategoryID.toString())
+                        }
                     }
                     "offer_scope" -> {
                         body["offer_scope"] = JsonPrimitive(1)
@@ -187,11 +196,13 @@ open class BaseViewModel: ViewModel() {
                     "search_query" -> {
                         if(searchData.searchString != "") {
                             body["search_query"] = JsonPrimitive(searchData.searchString)
+                            eventParameters.add("search_query" to searchData.searchString)
                         }
                     }
                     "seller" -> {
                         if(searchData.userSearch) {
                             body["seller"] = JsonPrimitive(searchData.userLogin)
+                            eventParameters.add("seller" to searchData.userLogin.toString())
                         }
                     }
                     "saletype" -> {
@@ -203,23 +214,30 @@ open class BaseViewModel: ViewModel() {
                                 body["saletype"] = JsonPrimitive(1)
                             }
                         }
+                        eventParameters.add("saletype" to listingData.filters.find { it.key == "sale_type" }?.value.toString())
                     }
                     "region" -> {
                         listingData.filters.find { it.key == "region" }?.value?.let {
-                            if (it != "")
+                            if (it != "") {
                                 body["region"] = JsonPrimitive(it)
+                                eventParameters.add("region" to it)
+                            }
                         }
                     }
                     "price_from" -> {
                         listingData.filters.find { it.key == "current_price" && it.operation == "gte" }?.value?.let {
-                            if (it != "")
+                            if (it != "") {
                                 body["price_from"] = JsonPrimitive(it)
+                                eventParameters.add("price_from" to it)
+                            }
                         }
                     }
                     "price_to" -> {
                         listingData.filters.find { it.key == "current_price" && it.operation == "lte" }?.value?.let {
-                            if (it != "")
+                            if (it != "") {
                                 body["price_to"] = JsonPrimitive(it)
+                                eventParameters.add("price_to" to it)
+                            }
                         }
                     }
                     else ->{
@@ -233,6 +251,8 @@ open class BaseViewModel: ViewModel() {
             val res = withContext(Dispatchers.IO) {
                 userOperations.postUserOperationsCreateSubscription(UserData.login, body)
             }
+
+            analyticsHelper.reportEvent("click_subscribe", eventParameters.toMap())
 
             return res.success
         }catch (e : ServerErrorException){

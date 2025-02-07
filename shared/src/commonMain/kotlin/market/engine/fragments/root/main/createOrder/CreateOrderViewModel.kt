@@ -12,7 +12,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -21,7 +20,6 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.DynamicPayload
@@ -33,9 +31,7 @@ import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
 
-class CreateOrderViewModel(
-    private val offerOperations: OfferOperations,
-) : BaseViewModel() {
+class CreateOrderViewModel: BaseViewModel() {
 
     private var _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseCreateOrder : StateFlow<DynamicPayload<OperationResult>?> = _responsePostPage.asStateFlow()
@@ -49,8 +45,6 @@ class CreateOrderViewModel(
     val responseGetAdditionalData  : StateFlow<AdditionalDataForNewOrder?> = _responseGetAdditionalData.asStateFlow()
 
     val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
-
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     val selectDeliveryMethod = mutableStateOf(0)
     val selectDealType = mutableStateOf(0)

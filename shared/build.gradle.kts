@@ -87,6 +87,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.sqlite.driver)
             implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java)
             implementation(libs.androidx.runtime.desktop)
         }
@@ -104,6 +105,7 @@ kotlin {
 
             implementation(libs.koin.android)
             implementation(libs.ktor.client.android)
+            implementation(libs.kotlinx.coroutines.android)
             implementation(libs.accompanist.permissions)
             implementation(libs.accompanist.swiperefresh)
         }

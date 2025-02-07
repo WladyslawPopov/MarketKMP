@@ -35,6 +35,7 @@ interface OfferComponent {
     fun goToCreateOrder(item : Pair<Long, List<SelectedBasketItem>>)
     fun goToDialog(dialogId: Long?)
     fun goToLogin()
+    fun goToSubscribes()
 }
 
 class DefaultOfferComponent(
@@ -54,6 +55,7 @@ class DefaultOfferComponent(
     val navigateToCreateOrder: (item : Pair<Long, List<SelectedBasketItem>>) -> Unit,
     val navigateToLogin: () -> Unit,
     val navigateToDialog: (dialogId: Long?) -> Unit,
+    val navigationSubscribes: () -> Unit,
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -139,5 +141,9 @@ class DefaultOfferComponent(
 
     override fun goToLogin() {
         navigateToLogin()
+    }
+
+    override fun goToSubscribes() {
+        navigationSubscribes()
     }
 }

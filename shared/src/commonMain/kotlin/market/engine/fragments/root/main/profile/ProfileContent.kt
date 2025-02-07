@@ -28,7 +28,7 @@ fun ProfileContent(
                component.goToAboutMe()
            },
            goToSubscriptions = {
-
+                component.goToSubscribe()
            }
        )
    }

@@ -49,6 +49,7 @@ class UserViewModel : BaseViewModel() {
                     if (user != null){
                         _userInfo.value = user
                         initializeUserData(user)
+                        updateItemTrigger.value++
                     }else{
                         error?.let { throw it }
                     }

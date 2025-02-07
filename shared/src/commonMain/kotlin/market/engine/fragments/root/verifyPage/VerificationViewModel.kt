@@ -5,7 +5,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -16,7 +15,6 @@ import org.jetbrains.compose.resources.getString
 
 class VerificationViewModel : BaseViewModel() {
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     val action = mutableStateOf("")
 

@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import market.engine.common.AnalyticsFactory
 import market.engine.common.compressImage
 import market.engine.common.getImageUriFromPlatformFile
 import market.engine.core.data.baseFilters.Filter
@@ -32,7 +31,6 @@ import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.MessageType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.functions.PrivateMessagesOperation
 import market.engine.core.network.networkObjects.Conversations
@@ -51,7 +49,6 @@ import kotlin.uuid.Uuid
 class DialogsViewModel(
     private val conversationsOperations: ConversationsOperations,
     private val privateMessagesOperation: PrivateMessagesOperation,
-    private val offerOperations: OfferOperations,
     private val orderOperations: OrderOperations,
 ) : BaseViewModel() {
     private val dialogsPagingRepository: PagingRepository<Dialog> = PagingRepository()
@@ -69,8 +66,6 @@ class DialogsViewModel(
 
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
     val responseImages: StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
-
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     val messageTextState = mutableStateOf("")
 

@@ -13,6 +13,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -115,12 +116,12 @@ fun createFavoritesChild(
     config: FavoritesConfig,
     componentContext: ComponentContext,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
-    navigateToMyOrders: () -> Unit,
+    navigateToMyOrders: (Long?) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToDialog: (dialogId: Long?) -> Unit
 ): ChildFavorites = when (config) {
         is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
-            itemFavPages(componentContext, favoritesNavigation)
+            itemFavPages(componentContext, favoritesNavigation, config.favScreenType)
         )
 
         is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
@@ -166,6 +167,9 @@ fun createFavoritesChild(
                 },
                 navigateToDialog = { dialogId ->
                     navigateToDialog(dialogId)
+                },
+                navigationSubscribes = {
+                    favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
                 }
             )
         )
@@ -189,7 +193,7 @@ fun createFavoritesChild(
                     },
                     isOpenCategory = false,
                     navigateToSubscribe = {
-                        favoritesNavigation.replaceCurrent(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
+                        favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
                     }
                 )
             )
@@ -217,6 +221,12 @@ fun createFavoritesChild(
                     favoritesNavigation.pushNew(
                         FavoritesConfig.UserScreen(it, getCurrentDate(), false)
                     )
+                },
+                goToSubscriptions = {
+                    favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
+                },
+                goToOrder = {
+                    navigateToMyOrders(it)
                 }
             )
         )
@@ -266,7 +276,7 @@ fun createFavoritesChild(
                     favoritesNavigation.pop()
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders()
+                    navigateToMyOrders(null)
                 }
             )
         )
@@ -285,9 +295,11 @@ fun createFavoritesChild(
 fun itemFavPages(
     componentContext: ComponentContext,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
+    favType: FavScreenType = FavScreenType.FAVORITES
 ): FavPagesComponent {
     return DefaultFavPagesComponent(
         favoritesNavigation = favoritesNavigation,
         componentContext = componentContext,
+        favType = favType
     )
 }
