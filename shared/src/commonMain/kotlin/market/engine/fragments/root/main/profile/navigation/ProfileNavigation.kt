@@ -511,7 +511,7 @@ fun createProfileChild(
                 componentContext,
                 profilePublicNavigationList.value,
                 navigateBack = {
-                    profileNavigation.pop()
+                    profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
                 },
                 navigateToMessenger = {
                     profileNavigation.pushNew(

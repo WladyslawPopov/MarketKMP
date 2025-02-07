@@ -26,8 +26,10 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.exceptions.BackHandler
@@ -135,26 +137,30 @@ fun UserContent(
                         component.onTabSelect(4)
                     },
                     addToSubscriptions = {
-                        userViewModel.viewModelScope.launch {
-                           val res = userViewModel.addNewSubscribe(
-                                LD(), SD().copy(
-                                    userLogin = user.value?.login,
-                                    userID = user.value?.id ?: 1L,
-                                    userSearch = true
-                                )
-                           )
-                            if (res?.success == true){
-                                userViewModel.showToast(
-                                    successToastItem.copy(
-                                        message = res.humanMessage ?: os
+                        if(UserData.token != "") {
+                            userViewModel.viewModelScope.launch {
+                                val res = userViewModel.addNewSubscribe(
+                                    LD(), SD().copy(
+                                        userLogin = user.value?.login,
+                                        userID = user.value?.id ?: 1L,
+                                        userSearch = true
                                     )
                                 )
-                                delay(1000)
-                                component.updateUserInfo()
-                            }else{
-                                errorString.value = res?.humanMessage ?: es
-                                showDialog.value = true
+                                if (res?.success == true) {
+                                    userViewModel.showToast(
+                                        successToastItem.copy(
+                                            message = res.humanMessage ?: os
+                                        )
+                                    )
+                                    delay(1000)
+                                    component.updateUserInfo()
+                                } else {
+                                    errorString.value = res?.humanMessage ?: es
+                                    showDialog.value = true
+                                }
                             }
+                        }else{
+                            goToLogin()
                         }
                     },
                     goToSubscriptions = {

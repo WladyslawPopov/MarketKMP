@@ -313,13 +313,6 @@ class OfferViewModel(
         }
     }
 
-    fun updateUserInfo(){
-        viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
         clearTimers()

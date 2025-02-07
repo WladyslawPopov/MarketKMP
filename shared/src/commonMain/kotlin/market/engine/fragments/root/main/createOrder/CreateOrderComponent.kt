@@ -4,6 +4,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnResume
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.SelectedBasketItem
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -45,6 +47,13 @@ class DefaultCreateOrderComponent(
     override val model = _model
 
     init {
+        lifecycle.doOnResume {
+            createOrderViewModel.updateUserInfo()
+
+            if (UserData.token == ""){
+                navigateBack()
+            }
+        }
         createOrderViewModel.loadDeliveryCards()
         createOrderViewModel.getOffers(basketItem.second.map { it.offerId })
         createOrderViewModel.getAdditionalFields(

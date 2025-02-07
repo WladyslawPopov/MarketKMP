@@ -6,6 +6,7 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProfileSettingsTypes
@@ -51,6 +52,12 @@ class DefaultProfileSettingsComponent(
     override val model = _model
 
     init {
+        lifecycle.doOnResume {
+            profileSettingsViewModel.updateUserInfo()
+            if (UserData.token == ""){
+                goToBack()
+            }
+        }
         when(type){
             ProfileSettingsTypes.GLOBAL_SETTINGS -> {
                 val eventParameters = mapOf(

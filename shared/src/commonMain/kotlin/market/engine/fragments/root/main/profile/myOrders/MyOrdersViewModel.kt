@@ -77,13 +77,6 @@ class MyOrdersViewModel(
         orderPagingRepository.refresh()
     }
 
-    fun updateUserInfo(){
-        viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
-        }
-    }
-
     suspend fun updateItem(id : Long?) : Order? {
         try {
             val ld = ListingData()

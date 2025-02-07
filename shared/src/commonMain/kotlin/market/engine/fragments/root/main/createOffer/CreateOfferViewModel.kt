@@ -57,6 +57,9 @@ class CreateOfferViewModel : BaseViewModel() {
     }
 
     fun getPage(url: String) {
+
+        updateUserInfo()
+
         viewModelScope.launch {
             try {
                 setLoading(true)

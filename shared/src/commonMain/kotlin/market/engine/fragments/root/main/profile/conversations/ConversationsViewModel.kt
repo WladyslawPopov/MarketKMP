@@ -37,13 +37,6 @@ class ConversationsViewModel(
         conversationsPagingRepository.refresh()
     }
 
-    fun updateUserInfo(){
-        viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
-        }
-    }
-
     suspend fun getConversation(id : Long) : Conversations? {
         try {
             val res = withContext(Dispatchers.IO) {

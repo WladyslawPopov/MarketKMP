@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem

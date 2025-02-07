@@ -45,11 +45,4 @@ class MyBidsViewModel(
     fun onRefresh(){
         offerPagingRepository.refresh()
     }
-
-    fun updateUserInfo(){
-        viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
-        }
-    }
 }

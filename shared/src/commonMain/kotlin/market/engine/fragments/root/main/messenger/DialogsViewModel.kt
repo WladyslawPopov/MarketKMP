@@ -159,13 +159,6 @@ class DialogsViewModel(
         }
     }
 
-    fun updateUserInfo(){
-        viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
-        }
-    }
-
     suspend fun deleteMessage(id : Long) : Boolean{
         val res = withContext(Dispatchers.IO) {
             privateMessagesOperation.postDeleteForInterlocutor(id)

@@ -24,10 +24,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
     val genderSelects : StateFlow<List<Choices>> = _genderSelects.asStateFlow()
 
     fun refresh(){
-        viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
-        }
+        updateUserInfo()
     }
 
     fun getGenderSelects(){
@@ -63,7 +60,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
                 withContext(Dispatchers.Main){
                     if (res != null){
                         if (res.success){
-                            userRepository.updateUserInfo()
+                            updateUserInfo()
                             showToast(
                                 successToastItem.copy(
                                     message = getString(strings.operationSuccess)
@@ -96,7 +93,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
                     withContext(Dispatchers.Main) {
                         if (res != null) {
                             if (res.success) {
-                                userRepository.updateUserInfo()
+                                updateUserInfo()
                                 showToast(
                                     successToastItem.copy(
                                         message = getString(strings.operationSuccess)
@@ -132,7 +129,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
                     withContext(Dispatchers.Main) {
                         if (res != null) {
                             if (res.success) {
-                                userRepository.updateUserInfo()
+                                updateUserInfo()
                                 showToast(
                                     successToastItem.copy(
                                         message = getString(strings.operationSuccess)

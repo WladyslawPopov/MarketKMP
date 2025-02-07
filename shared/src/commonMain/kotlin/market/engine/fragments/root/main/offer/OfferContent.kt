@@ -784,26 +784,32 @@ fun OfferContent(
                                     component.goToUser(offer.sellerData?.id ?: 1L, true)
                                 },
                                 addToSubscriptions = {
-                                    offerViewModel.viewModelScope.launch {
-                                        val res = offerViewModel.addNewSubscribe(
-                                            LD(), SD().copy(
-                                                userLogin = offer.sellerData?.login,
-                                                userID = offer.sellerData?.id ?: 1L,
-                                                userSearch = true
-                                            )
-                                        )
-                                        if (res?.success == true){
-                                            offerViewModel.showToast(
-                                                successToastItem.copy(
-                                                    message = res.humanMessage ?: os
+                                    if(UserData.token != "") {
+                                        offerViewModel.viewModelScope.launch {
+                                            val res = offerViewModel.addNewSubscribe(
+                                                LD(), SD().copy(
+                                                    userLogin = offer.sellerData?.login,
+                                                    userID = offer.sellerData?.id ?: 1L,
+                                                    userSearch = true
                                                 )
                                             )
-                                            delay(1000)
-                                            offerViewModel.getUserInfo(offer.sellerData?.id ?: 1L)
-                                        }else{
-                                            errorString.value = res?.humanMessage ?: es
-                                            showDialog.value = true
+                                            if (res?.success == true) {
+                                                offerViewModel.showToast(
+                                                    successToastItem.copy(
+                                                        message = res.humanMessage ?: os
+                                                    )
+                                                )
+                                                delay(1000)
+                                                offerViewModel.getUserInfo(
+                                                    offer.sellerData?.id ?: 1L
+                                                )
+                                            } else {
+                                                errorString.value = res?.humanMessage ?: es
+                                                showDialog.value = true
+                                            }
                                         }
+                                    }else{
+                                        component.goToLogin()
                                     }
                                 },
                                 goToSubscriptions = {

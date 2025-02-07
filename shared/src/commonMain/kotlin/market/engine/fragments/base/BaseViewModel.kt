@@ -149,6 +149,13 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun updateUserInfo(){
+        viewModelScope.launch {
+            userRepository.updateToken()
+            userRepository.updateUserInfo()
+        }
+    }
+
     suspend fun onCatBack(
         uploadId: Long,
     ) : Category? {

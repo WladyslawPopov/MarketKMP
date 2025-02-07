@@ -12,6 +12,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.NavigationItem
@@ -91,7 +92,9 @@ class DefaultProfileComponent(
 
 
     init {
-        updateProfile()
+        lifecycle.doOnResume {
+            updateProfile()
+        }
 
         searchID = selectedPage?.split("/")?.lastOrNull()?.toLongOrNull()
         currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""

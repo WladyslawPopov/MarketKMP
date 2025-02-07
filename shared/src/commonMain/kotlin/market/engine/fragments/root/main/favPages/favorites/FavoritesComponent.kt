@@ -56,6 +56,10 @@ class DefaultFavoritesComponent(
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
+        lifecycle.doOnResume {
+            favViewModel.updateUserInfo()
+        }
+
         analyticsHelper.reportEvent("open_favorites", mapOf())
     }
 

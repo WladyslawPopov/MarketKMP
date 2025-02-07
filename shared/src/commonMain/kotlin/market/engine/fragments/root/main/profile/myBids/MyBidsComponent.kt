@@ -58,7 +58,12 @@ class DefaultMyBidsComponent(
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
-        viewModel.updateUserInfo()
+        lifecycle.doOnResume {
+            viewModel.updateUserInfo()
+            if (UserData.token == ""){
+                goToBack()
+            }
+        }
         val eventParameters = mapOf(
             "user_id" to UserData.login.toString(),
             "profile_source" to "bids"

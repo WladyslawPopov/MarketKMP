@@ -82,7 +82,6 @@ fun FavoritesContent(
                 title = stringResource(strings.emptyFavoritesLabel),
                 image = drawables.emptyFavoritesImage
             ) {
-                favViewModel.updateUserInfo()
                 favViewModel.resetScroll()
                 favViewModel.refresh()
             }
@@ -102,7 +101,6 @@ fun FavoritesContent(
 
     val refresh = {
         favViewModel.onError(ServerErrorException())
-        favViewModel.updateUserInfo()
         favViewModel.resetScroll()
         favViewModel.refresh()
     }
@@ -144,7 +142,6 @@ fun FavoritesContent(
             baseViewModel = favViewModel,
             noFound = noFound,
             onRefresh = {
-                favViewModel.updateUserInfo()
                 favViewModel.resetScroll()
                 data.refresh()
             },
@@ -185,7 +182,6 @@ fun FavoritesContent(
 
                                 withContext(Dispatchers.Main) {
                                     favViewModel.selectItems.clear()
-                                    favViewModel.updateUserInfo()
                                     data.refresh()
                                 }
                             }
@@ -233,6 +229,7 @@ fun FavoritesContent(
                                 false
                             fav = false
                             favViewModel.updateItemTrigger.value++
+
                             favViewModel.updateUserInfo()
 
                             favViewModel.showToast(

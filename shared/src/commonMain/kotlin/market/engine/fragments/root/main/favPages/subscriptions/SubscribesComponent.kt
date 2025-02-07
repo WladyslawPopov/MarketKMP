@@ -52,6 +52,10 @@ class DefaultSubscriptionsComponent(
     private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
 
     init {
+        lifecycle.doOnResume {
+            subViewModel.updateUserInfo()
+        }
+
         analyticsHelper.reportEvent("open_subscribes", mapOf())
     }
 

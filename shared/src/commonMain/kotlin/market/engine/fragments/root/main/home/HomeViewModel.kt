@@ -43,11 +43,4 @@ class HomeViewModel : BaseViewModel() {
             }
         }
     }
-
-    fun updateUserInfo() {
-        viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
-        }
-    }
 }

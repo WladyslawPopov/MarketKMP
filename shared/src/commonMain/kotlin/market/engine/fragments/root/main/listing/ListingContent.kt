@@ -31,12 +31,14 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.network.operations.operationFavorites
 import market.engine.core.data.types.WindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.listing.search.SearchContent
 import market.engine.fragments.root.main.listing.search.SearchViewModel
 import market.engine.widgets.filterContents.CategoryContent
@@ -381,18 +383,26 @@ fun ListingContent(
                         listingViewModel.isOpenSearch.value = true
                     },
                     onSubscribesClick = {
-                        listingViewModel.viewModelScope.launch {
-                            val res = listingViewModel.addNewSubscribe(listingData.value, searchData.value)
-                            if (res?.success == true){
-                                listingViewModel.showToast(
-                                    successToastItem.copy(
-                                        message = res.humanMessage ?: os
-                                    )
+
+                        if(UserData.token != "") {
+                            listingViewModel.viewModelScope.launch {
+                                val res = listingViewModel.addNewSubscribe(
+                                    listingData.value,
+                                    searchData.value
                                 )
-                            }else{
-                                errorString.value = res?.humanMessage ?: es
-                                showDialog.value = true
+                                if (res?.success == true) {
+                                    listingViewModel.showToast(
+                                        successToastItem.copy(
+                                            message = res.humanMessage ?: os
+                                        )
+                                    )
+                                } else {
+                                    errorString.value = res?.humanMessage ?: es
+                                    showDialog.value = true
+                                }
                             }
+                        }else{
+                            goToLogin()
                         }
                     }
                 )

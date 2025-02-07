@@ -60,12 +60,6 @@ class ListingViewModel : BaseViewModel() {
         pagingRepository.refresh()
     }
 
-    fun updateUserInfo() {
-        viewModelScope.launch {
-            userRepository.updateUserInfo()
-        }
-    }
-
     private fun getOffersRecommendedInListing(categoryID:Long) {
         viewModelScope.launch{
             try {

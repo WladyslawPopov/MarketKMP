@@ -54,12 +54,6 @@ class LoginViewModel : BaseViewModel() {
         }
     }
 
-    fun updateUserInfo(){
-        viewModelScope.launch {
-            userRepository.updateUserInfo()
-        }
-    }
-
 //    fun postAuthExternal(body: HashMap<String, String>) {
 //        jobPostAuthExternal = viewModelScope.launch {
 //            try {

@@ -4,8 +4,10 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.CreateOfferType
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -55,6 +57,13 @@ class DefaultCreateOfferComponent(
     override val model = _model
 
     init {
+        lifecycle.doOnResume {
+            createOfferViewModel.updateUserInfo()
+
+            if (UserData.token == ""){
+                navigateBack()
+            }
+        }
         when(type){
             CreateOfferType.CREATE -> {
                 createOfferViewModel.activeFiltersType.value = "categories"

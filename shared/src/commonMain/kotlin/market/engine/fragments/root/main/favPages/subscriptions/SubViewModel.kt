@@ -30,6 +30,7 @@ class SubViewModel(
     }
 
     fun refresh(){
+        updateUserInfo()
         pagingRepository.refresh()
     }
 
