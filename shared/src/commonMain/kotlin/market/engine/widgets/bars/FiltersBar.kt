@@ -81,6 +81,7 @@ private fun filterListingFilters(
 fun FiltersBar(
     searchData: SD,
     listingData: LD,
+    updateTrigger : Int,
     searchString : MutableState<String>? = null,
     searchUserLogin : MutableState<String?>? = null,
     searchFinished : MutableState<Boolean>? = null,
@@ -156,6 +157,7 @@ fun FiltersBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            if (updateTrigger >=0)
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth(if (isShowFilters) 0.67f else 1f)

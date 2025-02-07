@@ -66,7 +66,7 @@ fun ListingAppBar(
             },
         title = {
             Row(
-                modifier = modifier.fillMaxWidth(),
+                modifier = modifier.fillMaxWidth().padding(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
@@ -78,8 +78,8 @@ fun ListingAppBar(
                     else
                         drawables.iconArrowDown,
                     colors.black,
-                    modifierIconSize = Modifier.size(dimens.mediumIconSize),
-                    modifier = Modifier.size(dimens.mediumIconSize),
+                    modifierIconSize = Modifier.size(dimens.smallIconSize),
+                    modifier = Modifier.size(dimens.smallIconSize),
                 ){
                     closeCategory()
                 }

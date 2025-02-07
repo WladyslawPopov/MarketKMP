@@ -165,6 +165,7 @@ fun FavoritesContent(
                 }
             },
             additionalBar = {
+                val updateFilters = remember { mutableStateOf(0) }
                 AnimatedVisibility(
                     visible = selectedItems.isNotEmpty(),
                     enter = fadeIn(),
@@ -195,6 +196,7 @@ fun FavoritesContent(
                 FiltersBar(
                     sd.value,
                     ld.value,
+                    updateFilters.value,
                     isShowGrid = false,
                     onFilterClick = {
                         favViewModel.activeFiltersType.value = "filters"
@@ -204,6 +206,7 @@ fun FavoritesContent(
                     },
                     onRefresh = {
                         refresh()
+                        updateFilters.value++
                     }
                 )
             },

@@ -144,9 +144,11 @@ fun MyBidsContent(
             },
             noFound = noFound,
             additionalBar = {
+                val updateFilters = remember { mutableStateOf(0) }
                 FiltersBar(
                     searchData.value,
                     listingData.value,
+                    updateFilters.value,
                     isShowGrid = false,
                     onFilterClick = {
                         viewModel.activeFiltersType.value = "filters"
@@ -156,6 +158,7 @@ fun MyBidsContent(
                     },
                     onRefresh = {
                         refresh()
+                        updateFilters.value++
                     }
                 )
             },

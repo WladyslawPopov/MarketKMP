@@ -147,6 +147,8 @@ fun ConversationsContent(
                 },
                 noFound = noFound,
                 additionalBar = {
+                    val updateFilters = remember { mutableStateOf(0) }
+
                     AnimatedVisibility(
                         visible = selectedItems.isNotEmpty(),
                         enter = fadeIn(),
@@ -182,6 +184,7 @@ fun ConversationsContent(
                     FiltersBar(
                         searchData.value,
                         listingData.value,
+                        updateFilters.value,
                         isShowGrid = false,
                         onFilterClick = {
                             viewModel.activeFiltersType.value = "filters"
@@ -191,6 +194,7 @@ fun ConversationsContent(
                         },
                         onRefresh = {
                             refresh()
+                            updateFilters.value++
                         }
                     )
                 },

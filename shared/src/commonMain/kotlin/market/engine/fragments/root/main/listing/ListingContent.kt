@@ -433,6 +433,7 @@ fun ListingContent(
                     }
                 },
                 additionalBar = { state ->
+                    val updateFilters = remember { mutableStateOf(0) }
                     SwipeTabsBar(
                         isVisibility = listingViewModel.activeFiltersType.value == "categories",
                         listingData.value,
@@ -445,6 +446,7 @@ fun ListingContent(
                     FiltersBar(
                         searchData.value,
                         listingData.value,
+                        updateFilters.value,
                         searchString,
                         selectedUserLogin,
                         selectedUserFinished,
@@ -467,6 +469,7 @@ fun ListingContent(
                         onRefresh = {
                             searchData.value.isRefreshing = true
                             refreshSearch()
+                            updateFilters.value++
                         }
                     )
                 },
