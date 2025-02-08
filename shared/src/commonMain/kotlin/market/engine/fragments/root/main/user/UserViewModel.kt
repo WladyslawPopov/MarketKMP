@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.User
-import market.engine.core.network.operations.checkStatusSeller
 import market.engine.fragments.base.BaseViewModel
 
 class UserViewModel : BaseViewModel() {

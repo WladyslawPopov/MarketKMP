@@ -37,11 +37,7 @@ import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.common.AnalyticsFactory
@@ -50,7 +46,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.SettingsRepository
 import market.engine.fragments.base.BaseContent
@@ -89,7 +84,7 @@ fun DynamicSettingsContent(
 
     val richTextState = rememberRichTextState()
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
         { onError(err.value) { component.onBack() } }
@@ -166,14 +161,8 @@ fun DynamicSettingsContent(
                             AcceptedPageButton(
                                 strings.actionChangeLabel
                             ) {
-                                viewModel.viewModelScope.launch {
-                                    val res = viewModel.postSubmit(settingsType, owner)
-                                    delay(2000)
-                                    withContext(Dispatchers.Main) {
-                                        if (res) {
-                                            component.onBack()
-                                        }
-                                    }
+                                viewModel.postSubmit(settingsType, owner){
+                                    component.onBack()
                                 }
                             }
                         } else {
@@ -209,15 +198,8 @@ fun DynamicSettingsContent(
                             AcceptedPageButton(
                                 strings.actionChangeLabel
                             ) {
-                                viewModel.viewModelScope.launch {
-                                    val res = viewModel.postSubmit(settingsType, owner)
-                                    delay(2000)
-
-                                    withContext(Dispatchers.Main) {
-                                        if (res) {
-                                            component.onBack()
-                                        }
-                                    }
+                                viewModel.postSubmit(settingsType, owner){
+                                    component.onBack()
                                 }
                             }
                         }
@@ -238,17 +220,11 @@ fun DynamicSettingsContent(
                             AcceptedPageButton(
                                 strings.actionChangeLabel
                             ) {
-                                viewModel.viewModelScope.launch {
-                                    val res = viewModel.postSubmit(settingsType, owner)
-                                    delay(2000)
-                                    withContext(Dispatchers.Main) {
-                                        if (res) {
-                                            if (builderDescription?.body != null) {
-                                                component.goToVerificationPage("set_password")
-                                            } else {
-                                                component.onBack()
-                                            }
-                                        }
+                                viewModel.postSubmit(settingsType, owner){
+                                    if (builderDescription?.body != null) {
+                                        component.goToVerificationPage("set_password")
+                                    } else {
+                                        component.onBack()
                                     }
                                 }
                             }
@@ -282,16 +258,8 @@ fun DynamicSettingsContent(
                             AcceptedPageButton(
                                 strings.submitSmsLabel
                             ) {
-                                viewModel.viewModelScope.launch {
-                                    val res = viewModel.postSubmit("set_phone", owner)
-
-                                    delay(2000)
-
-                                    withContext(Dispatchers.Main) {
-                                        if (res) {
-                                            component.goToVerificationPage("set_phone")
-                                        }
-                                    }
+                                viewModel.postSubmit(settingsType, owner) {
+                                    component.goToVerificationPage("set_phone")
                                 }
                             }
                         }
@@ -368,14 +336,8 @@ fun DynamicSettingsContent(
                         AcceptedPageButton(
                             strings.actionChangeLabel
                         ) {
-                            viewModel.viewModelScope.launch {
-                                val res = viewModel.postSubmit(settingsType, owner)
-                                delay(2000)
-                                withContext(Dispatchers.Main) {
-                                    if (res) {
-                                        component.onBack()
-                                    }
-                                }
+                            viewModel.postSubmit(settingsType, owner) {
+                                component.onBack()
                             }
                         }
                     }

@@ -27,7 +27,7 @@ fun ReportDialog(
     type: String,
     onDismiss: () -> Unit,
 ) {
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     if (isDialogOpen) {
         val def = stringResource(strings.toMeFeedbacksLabel)

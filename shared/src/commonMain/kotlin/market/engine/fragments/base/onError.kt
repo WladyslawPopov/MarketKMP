@@ -22,7 +22,7 @@ fun onError(
     val humanMessage = error.humanMessage
     val errorCode = error.errorCode
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val userRepository : UserRepository = koinInject()
 
     val showDialog = remember { mutableStateOf(false) }

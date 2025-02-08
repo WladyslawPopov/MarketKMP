@@ -55,7 +55,7 @@ class DefaultRootComponent(
     private val deepLink: DeepLink?
 ) : RootComponent, ComponentContext by componentContext {
 
-    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     private val settingsHelper : SettingsRepository = getKoin().get()
 
     override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {

@@ -227,6 +227,10 @@ fun OfferContent(
     }
 
     lotState.value?.let { offer ->
+
+        val showBidDialog = remember { mutableStateOf(false) }
+        val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
+
         BaseContent(
             topBar = {
                 OfferAppBar(
@@ -463,9 +467,6 @@ fun OfferContent(
                         //bids price
                         if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
                             item {
-                                val showDialog = remember { mutableStateOf(false) }
-                                val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
-
                                 AuctionPriceLayout(
                                     offer = offer,
                                     offerViewModel.updateItemTrigger.value,
@@ -475,28 +476,11 @@ fun OfferContent(
                                     },
                                     onAddBidClick = {
                                         if (UserData.token != "") {
-                                            showDialog.value = true
+                                            showBidDialog.value = true
                                         }else{
                                             component.goToLogin()
                                         }
                                     }
-                                )
-
-                                AddBidDialog(
-                                    showDialog.value,
-                                    myMaximalBid.value,
-                                    offer.id,
-                                    onDismiss = {
-                                        showDialog.value = false
-                                    },
-                                    onSuccess = {
-                                        component.updateOffer(offer.id, false)
-                                        showDialog.value = false
-                                        scope.launch {
-                                            stateColumn.animateScrollToItem(goToBids)
-                                        }
-                                    },
-                                    baseViewModel = offerViewModel
                                 )
                             }
                         }
@@ -828,7 +812,6 @@ fun OfferContent(
                         item {
                             if (offerState.value == OfferStates.ACTIVE) {
                                 val showDialog = remember { mutableStateOf(false) }
-                                val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
 
                                 AuctionBidsSection(
                                     offer,
@@ -840,20 +823,6 @@ fun OfferContent(
                                             component.goToLogin()
                                         }
                                     }
-                                )
-
-                                AddBidDialog(
-                                    showDialog.value,
-                                    myMaximalBid.value,
-                                    offer.id,
-                                    onDismiss = {
-                                        showDialog.value = false
-                                    },
-                                    onSuccess = {
-                                        component.updateOffer(offer.id, false)
-                                        showDialog.value = false
-                                    },
-                                    baseViewModel = offerViewModel
                                 )
                             }
                         }
@@ -902,6 +871,31 @@ fun OfferContent(
                             }
                         }
                     }
+                    val sum = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: ""
+
+                    AddBidDialog(
+                        showBidDialog.value,
+                        sum,
+                        onDismiss = {
+                            showBidDialog.value = false
+                        },
+                        onSuccess = {
+                            offerViewModel.addBid(
+                                sum,
+                                offer,
+                                onSuccess = {
+                                    component.updateOffer(offer.id, false)
+                                    showBidDialog.value = false
+                                    scope.launch {
+                                        stateColumn.animateScrollToItem(goToBids)
+                                    }
+                                },
+                                onDismiss = {
+                                    showBidDialog.value = false
+                                }
+                            )
+                        },
+                    )
                 }
             }
         }

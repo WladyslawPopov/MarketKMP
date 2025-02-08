@@ -63,7 +63,7 @@ class DefaultConversationsComponent(
         navigateBack()
     }
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
         lifecycle.doOnResume {

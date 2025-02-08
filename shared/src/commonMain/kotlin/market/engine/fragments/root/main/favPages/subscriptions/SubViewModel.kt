@@ -8,6 +8,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Subscription
@@ -105,8 +106,14 @@ class SubViewModel(
             }
             withContext(Dispatchers.Main) {
                 val res = buf.success
-                if (res != null)
+                if (res != null) {
+                    val eventParameters = mapOf("buyer_id" to UserData.login, "item_id" to subId)
+                    analyticsHelper.reportEvent(
+                        "delete_subscription",
+                        eventParameters
+                    )
                     onSuccess()
+                }
             }
         }
     }

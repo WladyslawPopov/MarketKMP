@@ -37,7 +37,7 @@ class DefaultProfileSettingsComponent(
 ) : ProfileSettingsComponent, ComponentContext by componentContext
 {
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     private  val profileSettingsViewModel = ProfileSettingsViewModel()
 

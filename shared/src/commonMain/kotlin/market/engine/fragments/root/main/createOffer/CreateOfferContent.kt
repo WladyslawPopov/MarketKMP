@@ -226,15 +226,7 @@ fun CreateOfferContent(
         ),
         initialDirectory = "market/temp/"
     ) { files ->
-
-        viewModel.getImages(
-            files?.map { file ->
-                PhotoTemp(
-                    file = file,
-                    id = Uuid.random().toString()
-                )
-            } ?: emptyList()
-        )
+        files?.let { viewModel.getImages(it) }
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {

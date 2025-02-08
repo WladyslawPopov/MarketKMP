@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonPrimitive
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
@@ -15,7 +16,6 @@ import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
-import market.engine.core.network.operations.checkStatusSeller
 import market.engine.core.data.types.OfferStates
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
@@ -335,6 +335,75 @@ class OfferViewModel(
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            }
+        }
+    }
+
+    fun addBid(
+        sum: String,
+        offer: Offer,
+        onSuccess: () -> Unit,
+        onDismiss: () -> Unit
+    ){
+
+        viewModelScope.launch {
+            val res =  withContext(Dispatchers.IO) {
+                val body = hashMapOf("price" to sum)
+                offerOperations.postOfferOperationsAddBid(
+                    offer.id,
+                    body
+                )
+            }
+
+            val buf = res.success
+            val error = res.error
+
+            withContext(Dispatchers.Main) {
+                if (buf != null) {
+                    if (buf.success) {
+                        showToast(
+                            successToastItem.copy(
+                                message = buf.humanMessage ?: getString(strings.operationSuccess)
+                            )
+                        )
+                        val eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.name,
+                            "lot_city" to offer.freeLocation,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category" to offer.catpath.firstOrNull(),
+                            "seller_id" to offer.sellerData?.id,
+                            "lot_price_start" to offer.currentPricePerItem,
+                            "buyer_id" to UserData.login,
+                            "bid_amount" to sum,
+                            "bids_all" to offer.bids?.size
+                        )
+                        analyticsHelper.reportEvent(
+                            "bid_made",
+                            eventParameters
+                        )
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = buf.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                        val eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "seller_id" to offer.sellerData?.id,
+                            "lot_price_start" to offer.currentPricePerItem,
+                            "buyer_id" to UserData.login,
+                            "bid_amount" to sum,
+                            "error" to buf.humanMessage
+                        )
+                        analyticsHelper.reportEvent("bid_made_failed", eventParameters)
+
+                        onDismiss()
+                    }
+                } else {
+                    error?.let { onError(it) }
+                }
             }
         }
     }

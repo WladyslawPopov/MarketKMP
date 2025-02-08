@@ -23,7 +23,7 @@ class DefaultRegistrationComponent(
     private val onBackSelected: () -> Unit
 ) : RegistrationComponent, ComponentContext by componentContext {
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     private val regViewModel = getKoin().get<RegViewModel>()
 

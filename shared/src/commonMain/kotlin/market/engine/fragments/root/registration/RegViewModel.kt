@@ -49,64 +49,69 @@ class RegViewModel : BaseViewModel() {
         }
     }
 
-    suspend fun postRegistration() : Boolean{
-        val body = HashMap<String, JsonElement>()
-        responseGetRegFields.value?.fields?.forEach {
-            if (it.data != null && it.widgetType != "captcha_image") {
-                body[it.key ?: ""] = it.data!!
-            }
-        }
-
-        try {
-            val response = withContext(Dispatchers.IO) {
-                setLoading(true)
-                apiService.postRegistration(body)
-            }
-
-            return withContext(Dispatchers.Main) {
-                try {
-                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                    val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                    if (payload.operationResult?.result == "ok") {
-                        val events = mapOf(
-                            "login_type" to "email",
-                            "body" to body.toString()
-                        )
-                        analyticsHelper.reportEvent("register_success", events)
-                        showToast(
-                            successToastItem.copy(
-                                message = payload.operationResult.message ?: response.humanMessage ?: getString(strings.operationSuccess)
-                            )
-                        )
-                        return@withContext true
-                    }else{
-                        _responseGetRegFields.value = _responseGetRegFields.value?.copy(
-                            fields = payload.recipe?.fields ?: payload.fields
-                        )
-                        val events = mapOf(
-                            "login_type" to "email",
-                            "body" to body.toString()
-                        )
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(strings.operationFailed)
-                            )
-                        )
-                        analyticsHelper.reportEvent("register_fail", events)
-                        return@withContext false
-                    }
-                }catch (e : Exception){
-                    throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
+    fun postRegistration(onSuccess : () -> Unit){
+        viewModelScope.launch {
+            setLoading(true)
+            val body = HashMap<String, JsonElement>()
+            responseGetRegFields.value?.fields?.forEach {
+                if (it.data != null && it.widgetType != "captcha_image") {
+                    body[it.key ?: ""] = it.data!!
                 }
             }
-        } catch (exception: ServerErrorException) {
-            onError(exception)
-            return false
-        } catch (exception: Exception) {
-            onError(ServerErrorException(exception.message.toString(), ""))
-            return false
-        } finally {
-            setLoading(false)
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    apiService.postRegistration(body)
+                }
+
+                withContext(Dispatchers.Main) {
+                    try {
+                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                        val payload: DynamicPayload<OperationResult> =
+                            deserializePayload(response.payload, serializer)
+
+                        if (payload.operationResult?.result == "ok") {
+                            val events = mapOf(
+                                "login_type" to "email",
+                                "body" to body.toString()
+                            )
+                            analyticsHelper.reportEvent("register_success", events)
+                            showToast(
+                                successToastItem.copy(
+                                    message = payload.operationResult.message
+                                        ?: response.humanMessage
+                                        ?: getString(strings.operationSuccess)
+                                )
+                            )
+                            onSuccess()
+                        } else {
+                            _responseGetRegFields.value = _responseGetRegFields.value?.copy(
+                                fields = payload.recipe?.fields ?: payload.fields
+                            )
+                            val events = mapOf(
+                                "login_type" to "email",
+                                "body" to body.toString()
+                            )
+                            showToast(
+                                errorToastItem.copy(
+                                    message = getString(strings.operationFailed)
+                                )
+                            )
+                            analyticsHelper.reportEvent("register_fail", events)
+                        }
+                    } catch (e: Exception) {
+                        throw ServerErrorException(
+                            errorCode = e.message.toString(),
+                            humanMessage = e.message.toString()
+                        )
+                    }
+                }
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(exception.message.toString(), ""))
+            } finally {
+                setLoading(false)
+            }
         }
     }
 }

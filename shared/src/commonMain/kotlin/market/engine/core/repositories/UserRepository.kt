@@ -14,7 +14,7 @@ class UserRepository(
     private val settings : SettingsRepository,
     private val userOperations: UserOperations,
 ) {
-    private val analyticsHelper: AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper: AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     fun setToken(l : Long, t : String) {
         settings.setSettingValue("identity", l)

@@ -56,7 +56,7 @@ class DefaultHomeComponent(
 
     private val homeViewModel: HomeViewModel = getKoin().get()
 
-    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     private val userRepository : UserRepository = getKoin().get()
 

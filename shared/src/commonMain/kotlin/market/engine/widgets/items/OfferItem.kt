@@ -63,7 +63,7 @@ fun OfferItem(
 ) {
     var isPromo = false
 
-    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     if (offer.promoOptions != null && offer.sellerData?.id != UserData.login) {
         val isBackLight = offer.promoOptions.find { it.id == "backlignt_in_listing" }

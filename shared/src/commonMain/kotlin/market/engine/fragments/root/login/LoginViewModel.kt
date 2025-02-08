@@ -4,43 +4,87 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.data.constants.errorToastItem
+import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.globalData.SAPI
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.UserPayload
 import market.engine.fragments.base.BaseViewModel
+import org.jetbrains.compose.resources.getString
 
 class LoginViewModel : BaseViewModel() {
 
 //    var postChangeGoogleAuth = MutableLiveData<GoogleAuthResponse?>()
 
-    private val _responseAuth = MutableStateFlow<UserPayload?>(null)
-    val responseAuth: StateFlow<UserPayload?> = _responseAuth.asStateFlow()
+    fun postAuth(
+        email : String,
+        password : String,
+        captchaResponse : String?,
+        captcha : String?,
+        onSuccess : () -> Unit,
+        onError : (String?, String?) -> Unit
+    ) {
+        val body = HashMap<String, String>()
+        body["identity"] = email
+        body["password"] = password
+        body["workstation_data"] = SAPI.workstationData
+        if (captcha?.isNotBlank() == true && captchaResponse?.isNotBlank() == true ) {
+            body["captcha_key"] = captcha
+            body["captcha_response"] = captchaResponse
+        }
 
-    fun postAuth(body: HashMap<String, String>) {
         setLoading(true)
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    val response = apiService.postAuth(body = body)
+                val response = withContext(Dispatchers.IO) {
+                    apiService.postAuth(body = body)
+                }
+                withContext(Dispatchers.Main) {
+                    try {
+                        val serializer = UserPayload.serializer()
+                        val payload : UserPayload = deserializePayload(response.payload, serializer)
+                        if (payload.result == "SUCCESS") {
+                            setLoading(false)
+                            userRepository.setToken(payload.user, payload.token ?: "")
 
-                    withContext(Dispatchers.Main) {
-                        try {
-                            val serializer = UserPayload.serializer()
-                            val payload : UserPayload = deserializePayload(response.payload, serializer)
+                            showToast(
+                                successToastItem.copy(
+                                    message = getString(strings.operationSuccess)
+                                )
+                            )
 
-                            if (payload.result == "success") {
-                                _responseAuth.value = payload
-                            }else{
-                                _responseAuth.value = payload
-                                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-                            }
-                        }catch (e : Exception){
-                            throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+                            val events = mapOf(
+                                "login_type" to "email",
+                                "login_result" to "success",
+                                "login_email" to body["identity"]
+                            )
+                            analyticsHelper.reportEvent("login_success",events)
+
+                            delay(2000)
+
+                            onSuccess()
+                        } else {
+                            val events = mapOf(
+                                "login_type" to "email",
+                                "login_result" to "fail",
+                                "login_email" to body["identity"]
+                            )
+
+                            onError(payload.captchaImage, payload.captchaKey)
+
+                            analyticsHelper.reportEvent("login_fail",events)
+
+                            showToast(
+                                errorToastItem.copy(
+                                    message = if(response.humanMessage != "") response.humanMessage?:getString(strings.errorLogin) else getString(strings.errorLogin)
+                                )
+                            )
                         }
-
+                    }catch (e : Exception){
+                        throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                     }
                 }
             } catch (exception: ServerErrorException) {

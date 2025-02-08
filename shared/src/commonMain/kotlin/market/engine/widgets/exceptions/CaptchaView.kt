@@ -27,7 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CaptchaView(
     isVisible: Boolean,
-    captchaImage: String,
+    captchaImage: String?,
     captchaTextValue: TextFieldValue,
     focusRequester: FocusRequester = remember { FocusRequester() },
     onCaptchaTextChange: (TextFieldValue) -> Unit
@@ -42,23 +42,25 @@ fun CaptchaView(
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             modifier = Modifier.padding(dimens.mediumPadding)
         ) {
-            val bitmap = captchaImage.substring(24).decodeBase64Bytes()
-            val imageBitmap = decodeToImageBitmap(bitmap)
+            if (captchaImage != null) {
+                val bitmap = captchaImage.substring(24).decodeBase64Bytes()
+                val imageBitmap = decodeToImageBitmap(bitmap)
 
-            Image(
-                BitmapPainter(imageBitmap),
-                contentDescription = null,
-                modifier = Modifier
-                    .width(250.dp)
-                    .height(100.dp)
-            )
+                Image(
+                    BitmapPainter(imageBitmap),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(250.dp)
+                        .height(100.dp)
+                )
 
-            OutlinedTextInputField(
-                value = captchaTextValue,
-                onValueChange = onCaptchaTextChange,
-                label = stringResource(strings.enterCaptcha),
-                focusRequester = focusRequester
-            )
+                OutlinedTextInputField(
+                    value = captchaTextValue,
+                    onValueChange = onCaptchaTextChange,
+                    label = stringResource(strings.enterCaptcha),
+                    focusRequester = focusRequester
+                )
+            }
         }
     }
 }

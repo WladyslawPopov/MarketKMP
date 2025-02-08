@@ -37,7 +37,7 @@ class DefaultCreateSubscriptionComponent(
         )
     )
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     override val model = _model
 

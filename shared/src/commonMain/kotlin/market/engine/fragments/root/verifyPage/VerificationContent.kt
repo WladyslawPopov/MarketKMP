@@ -135,13 +135,8 @@ fun VerificationContent(
                         AcceptedPageButton(
                             strings.actionChangeLabel
                         ){
-                            viewModel.viewModelScope.launch {
-                                val res = viewModel.postSetPassword(textState.value)
-                                withContext(Dispatchers.Main) {
-                                    if (res) {
-                                        component.onBack()
-                                    }
-                                }
+                            viewModel.postSetPassword(textState.value) {
+                                component.onBack()
                             }
                         }
                     }
@@ -194,13 +189,8 @@ fun VerificationContent(
                         AcceptedPageButton(
                             strings.acceptAction
                         ){
-                            viewModel.viewModelScope.launch {
-                                val res = viewModel.postSetPhone(textState.value)
-                                withContext(Dispatchers.Main) {
-                                    if (res) {
-                                        component.onBack()
-                                    }
-                                }
+                            viewModel.postSetPhone(textState.value) {
+                                component.onBack()
                             }
                         }
                     }
@@ -254,13 +244,8 @@ fun VerificationContent(
                               AcceptedPageButton(
                                   strings.actionChangeLabel
                               ) {
-                                  viewModel.viewModelScope.launch {
-                                      val res = viewModel.postSetEmail(textState.value)
-                                      withContext(Dispatchers.Main) {
-                                          if (res) {
-                                              component.onBack()
-                                          }
-                                      }
+                                  viewModel.postSetEmail(textState.value) {
+                                      component.onBack()
                                   }
                               }
                           } else {

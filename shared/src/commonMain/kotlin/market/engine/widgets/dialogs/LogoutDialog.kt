@@ -18,7 +18,7 @@ fun LogoutDialog (
     onDismiss: () -> Unit,
     goToLogin: () -> Unit,
 ){
-    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val userRepository : UserRepository = koinInject()
 
     if(showLogoutDialog) {

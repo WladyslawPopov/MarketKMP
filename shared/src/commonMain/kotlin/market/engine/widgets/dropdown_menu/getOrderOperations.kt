@@ -56,7 +56,7 @@ fun getOrderOperations(
     val reportMode = remember { mutableStateOf(false) }
     val orderType = remember { mutableStateOf(0) }
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     LaunchedEffect(Unit){
         scope.launch {

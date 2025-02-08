@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -20,12 +21,14 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.AnalyticsFactory
+import market.engine.common.getFileUpload
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.ToastItem
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
@@ -36,10 +39,13 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
+import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.repositories.UserRepository
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 open class BaseViewModel: ViewModel() {
     //select items and updateItem
@@ -58,7 +64,7 @@ open class BaseViewModel: ViewModel() {
     val offerOperations : OfferOperations = getKoin().get()
     val categoryOperations : CategoryOperations = getKoin().get()
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val userOperations : UserOperations = getKoin().get()
 
@@ -187,12 +193,30 @@ open class BaseViewModel: ViewModel() {
             else
                 offerOperations.postOfferOperationUnwatch(offer.id)
 
+            val eventParameters = mapOf(
+                "lot_id" to offer.id,
+                "lot_name" to offer.name,
+                "lot_city" to offer.freeLocation,
+                "auc_delivery" to offer.safeDeal,
+                "lot_category" to offer.catpath.firstOrNull(),
+                "seller_id" to offer.sellerData?.id,
+                "lot_price_start" to offer.currentPricePerItem,
+            )
+
             val res = buf.success
             withContext(Dispatchers.Main) {
                 if (res != null && res.success) {
-                    analyticsHelper.reportEvent("click_favorite", mapOf("offer_id" to offer.id, "is_favorite" to offer.isWatchedByMe))
+                    if (!offer.isWatchedByMe){
+                        analyticsHelper.reportEvent("offer_watch", eventParameters)
+                    }else{
+                        analyticsHelper.reportEvent("offer_unwatch", eventParameters)
+                    }
+
                     updateUserInfo()
                     onSuccess(!offer.isWatchedByMe)
+                }else{
+                    if (buf.error!= null)
+                        onError(buf.error!!)
                 }
             }
         }
@@ -297,56 +321,66 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun addBid(
-        sum: String,
-        offerId: Long,
-        onSuccess: () -> Unit,
-        onDismiss: () -> Unit
-    ){
-        val eventParameters : MutableMap<String, Any?> = mutableMapOf(
-            "lot_id" to offerId,
-            "price" to sum,
-            "buyer_id" to UserData.userInfo?.id,
-        )
-
+    @OptIn(ExperimentalUuidApi::class)
+    fun uploadFile(file : PlatformFile, onSuccess : (PhotoTemp) -> Unit) {
         viewModelScope.launch {
-            val res =  withContext(Dispatchers.IO) {
-                val body = hashMapOf("price" to sum)
-                offerOperations.postOfferOperationsAddBid(
-                    offerId,
-                    body
+            val item = PhotoTemp(
+                file = file,
+                id = Uuid.random().toString()
+            )
+
+            val res = uploadFile(item)
+
+            if (res.success != null) {
+                onSuccess(res.success!!)
+            } else {
+                showToast(
+                    errorToastItem.copy(
+                        message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
+                    )
                 )
             }
+        }
+    }
 
-            val buf = res.success
-            val error = res.error
+    private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                getFileUpload(photoTemp)
+            }
 
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    if (buf.success) {
-                        showToast(
-                            successToastItem.copy(
-                                message = buf.humanMessage ?: getString(strings.operationSuccess)
-                            )
-                        )
-                        eventParameters["operation_result"] = buf.humanMessage ?: getString(strings.operationSuccess)
-                        analyticsHelper.reportEvent("add_bid_success", eventParameters)
-                        onSuccess()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = buf.humanMessage ?: getString(strings.operationFailed)
-                            )
-                        )
-                        eventParameters["operation_result"] = buf.humanMessage ?: getString(strings.operationSuccess)
-                        analyticsHelper.reportEvent("add_bid_failed", eventParameters)
-                        onDismiss()
-                    }
-                } else {
-                    error?.let { onError(it) }
-                }
+            return withContext(Dispatchers.Main) {
+                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
+                photoTemp.tempId = cleanedSuccess
+                ServerResponse(photoTemp)
+            }
+        } catch (e : ServerErrorException){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = e)
+            }
+        }catch (e : Exception){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
             }
         }
+    }
+
+    suspend fun checkStatusSeller(id: Long) : ArrayList<String> {
+        val lists = listOf("blacklist_sellers", "blacklist_buyers", "whitelist_buyers")
+        val check : ArrayList<String> = arrayListOf()
+        for (list in lists) {
+            val found = withContext(Dispatchers.IO) {
+                userOperations.getUsersOperationsGetUserList(
+                    UserData.login,
+                    hashMapOf("list_type" to list)
+                ).success?.body?.data?.find { it.id == id }
+            }
+
+            if (found != null) {
+                check.add(list)
+            }
+        }
+        return check
     }
 
     fun resetScroll() {

@@ -58,7 +58,7 @@ class DefaultMyOrdersComponent(
     override val model: Value<MyOrdersComponent.Model> = _model
 
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
         lifecycle.doOnResume {

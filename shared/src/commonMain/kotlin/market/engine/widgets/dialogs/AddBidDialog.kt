@@ -10,7 +10,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -18,10 +17,8 @@ import org.jetbrains.compose.resources.stringResource
 fun AddBidDialog(
     isDialogOpen: Boolean,
     sum: String,
-    offerId: Long,
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
-    baseViewModel: BaseViewModel,
 ) {
     val conversationTitle = stringResource(strings.acceptAddBidsAction)
     val aboutBid = stringResource(strings.placeBetOnTheAmount)
@@ -68,12 +65,7 @@ fun AddBidDialog(
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite
                 ) {
-                    baseViewModel.addBid(
-                        sum,
-                        offerId,
-                        onSuccess,
-                        onDismiss
-                    )
+                    onSuccess()
                 }
             },
             containerColor = colors.white,

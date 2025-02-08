@@ -23,7 +23,7 @@ class DefaultContactUsComponent(
     private val onBackSelected: () -> Unit
 ) : ContactUsComponent, ComponentContext by componentContext  {
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     private val contactUsViewModel = getKoin().get<ContactUsViewModel>()
     private val _model = MutableValue(

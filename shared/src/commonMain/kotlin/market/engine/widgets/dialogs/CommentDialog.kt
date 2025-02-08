@@ -47,7 +47,7 @@ fun CommentDialog(
     baseViewModel: BaseViewModel,
 ) {
     val orderOperations: OrderOperations = koinInject()
-    val analyticsHelper: AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper: AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val commentText = remember { mutableStateOf(commentTextDefault) }
 

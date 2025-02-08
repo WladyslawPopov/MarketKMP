@@ -107,12 +107,8 @@ fun RegistrationContent(
                             backgroundColor = colors.positiveGreen,
                             textStyle = MaterialTheme.typography.titleMedium,
                         ){
-                            model.viewModelScope.launch {
-                                val res = model.postRegistration()
-
-                                if (res) {
-                                    showSuccessReg.value = true
-                                }
+                            model.postRegistration{
+                                showSuccessReg.value = true
                             }
                         }
                     }

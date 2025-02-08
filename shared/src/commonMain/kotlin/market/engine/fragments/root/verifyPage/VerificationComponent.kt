@@ -33,7 +33,7 @@ class DefaultVerificationComponent(
     componentContext: ComponentContext,
 ) : VerificationComponent, ComponentContext by componentContext
 {
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     private  val verificationViewModel : VerificationViewModel = getKoin().get()
 
@@ -56,6 +56,8 @@ class DefaultVerificationComponent(
         }else{
             navigateBack()
         }
+        val eventParameters = mapOf("settings_type" to settingsType)
+        analyticsHelper.reportEvent("view_verification_page", eventParameters)
     }
 
     override fun onBack() {

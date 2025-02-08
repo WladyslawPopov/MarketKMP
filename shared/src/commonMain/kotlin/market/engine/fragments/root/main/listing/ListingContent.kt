@@ -25,6 +25,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.common.AnalyticsFactory
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -85,7 +86,7 @@ fun ListingContent(
         )
     )
 
-    //val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
@@ -227,6 +228,15 @@ fun ListingContent(
                 if (searchViewModel.responseHistory.value.isEmpty()) {
                     searchViewModel.getHistory()
                 }
+                val eventParameters = mapOf(
+                    "search_string" to searchString.value,
+                    "category_id" to selectedCategoryID.value,
+                    "category_name" to selectedCategory.value,
+                    "user_login" to selectedUserLogin.value,
+                    "user_search" to selectedUser.value,
+                    "user_finished" to selectedUserFinished.value
+                )
+                analyticsHelper.reportEvent("open_search_listing", eventParameters)
                 focusRequester.requestFocus()
             } else {
                 focusManager.clearFocus()
@@ -255,6 +265,12 @@ fun ListingContent(
             selectedCategoryParentID.value = searchData.value.searchParentID
             selectedCategoryIsLeaf.value = searchData.value.searchIsLeaf
             listingViewModel.getCategories(searchData.value, listingData.value)
+
+            val eventParameters = mapOf(
+                "category_name" to selectedCategory.value,
+                "category_id" to selectedCategoryID.value,
+            )
+            analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
         }
     }
 

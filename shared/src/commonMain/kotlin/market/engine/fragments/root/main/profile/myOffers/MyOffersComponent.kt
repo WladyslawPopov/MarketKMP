@@ -51,7 +51,7 @@ class DefaultMyOffersComponent(
         )
     )
     override val model: Value<MyOffersComponent.Model> = _model
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
         lifecycle.doOnResume {

@@ -104,6 +104,8 @@ class DefaultProfileComponent(
                 navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
             }
         }
+
+        model.value.profileViewModel.analyticsHelper.reportEvent("view_profile", mapOf("user_id" to UserData.login))
     }
 
     override fun updateProfile() {

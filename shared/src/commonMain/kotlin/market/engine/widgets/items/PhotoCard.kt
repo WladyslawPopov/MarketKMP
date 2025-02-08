@@ -27,25 +27,29 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.utils.printLogD
+import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
 
 @Composable
 fun PhotoCard(
     item: PhotoTemp,
+    viewModel: BaseViewModel,
     interactionSource: MutableInteractionSource,
     modifier: Modifier,
-    updatePhoto: suspend (PhotoTemp) -> String?,
     deletePhoto: (PhotoTemp) -> Unit = {},
     openPhoto: () -> Unit = {}
 ) {
     val rotate = remember { mutableStateOf(item.rotate) }
 
-    val isLoading = remember{ mutableStateOf(item.tempId == null) }
+    val isLoading = remember{ mutableStateOf(item.tempId == null && item.url == null) }
 
     LaunchedEffect(item.tempId){
-        if (item.tempId == null){
-            updatePhoto(item)
-            isLoading.value = false
+        if (item.tempId == null && item.file != null){
+            viewModel.uploadFile(item.file!!){
+                item.tempId = it.tempId
+                item.uri = it.uri
+                isLoading.value = false
+            }
         }
     }
 

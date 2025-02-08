@@ -7,6 +7,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -196,89 +197,117 @@ class DynamicSettingsViewModel : BaseViewModel() {
         }
     }
 
-    suspend fun postSubmit(settingsType: String, owner: Long?) : Boolean {
-        setLoading(true)
-        userRepository.updateToken()
-        val body = HashMap<String, JsonElement>()
-        builderDescription.value?.fields?.forEach {
-            if (it.data != null && it.key != "verifiedbycaptcha" && it.key != "captcha_image")
-                body[it.key ?: ""] = it.data!!
-        }
-        if (body.isNotEmpty()) {
-            val buf = withContext(Dispatchers.IO){
-                when(settingsType){
-                    "set_login" -> userOperations.postUsersOperationsSetLogin(UserData.login, body)
-                    "set_about_me" -> userOperations.postUsersOperationsSetAboutMe(UserData.login, body)
-                    "set_email" -> userOperations.postUsersOperationsSetEmail(UserData.login, body)
-                    "set_password" -> userOperations.postUsersOperationsSetPassword(owner ?: UserData.login, body)
-                    "set_phone" -> userOperations.postUsersOperationsSetPhone(UserData.login, body)
-                    "forgot_password", "reset_password" -> userOperations.postUsersOperationsResetPassword(body)
-                    else -> {
-                        userOperations.postUsersOperationsSetLogin(UserData.login, body)
+    fun postSubmit(settingsType: String, owner: Long?, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            setLoading(true)
+            userRepository.updateToken()
+            val body = HashMap<String, JsonElement>()
+            builderDescription.value?.fields?.forEach {
+                if (it.data != null && it.key != "verifiedbycaptcha" && it.key != "captcha_image")
+                    body[it.key ?: ""] = it.data!!
+            }
+            if (body.isNotEmpty()) {
+                val buf = withContext(Dispatchers.IO) {
+                    when (settingsType) {
+                        "set_login" -> userOperations.postUsersOperationsSetLogin(
+                            UserData.login,
+                            body
+                        )
+
+                        "set_about_me" -> userOperations.postUsersOperationsSetAboutMe(
+                            UserData.login,
+                            body
+                        )
+
+                        "set_email" -> userOperations.postUsersOperationsSetEmail(
+                            UserData.login,
+                            body
+                        )
+
+                        "set_password" -> userOperations.postUsersOperationsSetPassword(
+                            owner ?: UserData.login, body
+                        )
+
+                        "set_phone" -> userOperations.postUsersOperationsSetPhone(
+                            UserData.login,
+                            body
+                        )
+
+                        "forgot_password", "reset_password" -> userOperations.postUsersOperationsResetPassword(
+                            body
+                        )
+
+                        else -> {
+                            userOperations.postUsersOperationsSetLogin(UserData.login, body)
+                        }
                     }
                 }
-            }
-            val payload = buf.success
-            val resErr = buf.error
+                val payload = buf.success
+                val resErr = buf.error
 
-            return withContext(Dispatchers.Main) {
-                setLoading(false)
-                if (payload != null) {
-                    if (payload.status == "operation_success") {
+                withContext(Dispatchers.Main) {
+                    setLoading(false)
 
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "body" to body
-                        )
-                        analyticsHelper.reportEvent("${settingsType}_success", eventParameters)
+                    if (payload != null) {
+                        if (payload.status == "operation_success") {
 
-                        setLoading(false)
-                        showToast(
-                            successToastItem.copy(
-                                message = when(settingsType){
-                                    "set_email","forgot_password","reset_password" -> getString(strings.checkOutEmailToast)
-                                    else -> getString(strings.operationSuccess)
-                                }
+                            val eventParameters = mapOf(
+                                "user_id" to UserData.login,
+                                "profile_source" to "settings",
+                                "body" to body
                             )
-                        )
-                        _builderDescription.value = _builderDescription.value?.copy(
-                            body = payload.body
-                        )
-                        return@withContext true
+                            analyticsHelper.reportEvent("${settingsType}_success", eventParameters)
+
+                            setLoading(false)
+                            showToast(
+                                successToastItem.copy(
+                                    message = when (settingsType) {
+                                        "set_email", "forgot_password", "reset_password" -> getString(
+                                            strings.checkOutEmailToast
+                                        )
+
+                                        else -> getString(strings.operationSuccess)
+                                    }
+                                )
+                            )
+                            _builderDescription.value = _builderDescription.value?.copy(
+                                body = payload.body
+                            )
+                            delay(2000)
+                            onSuccess()
+                        } else {
+                            val eventParameters = mapOf(
+                                "user_id" to UserData.login,
+                                "profile_source" to "settings",
+                                "body" to body
+                            )
+                            analyticsHelper.reportEvent("${settingsType}_failed", eventParameters)
+
+                            _builderDescription.value = _builderDescription.value?.copy(
+                                fields = payload.recipe?.fields ?: payload.fields
+                            )
+
+                            showToast(
+                                errorToastItem.copy(
+                                    message = payload.recipe?.operationResult?.message ?: getString(
+                                        strings.operationFailed
+                                    )
+                                )
+                            )
+                        }
                     } else {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "body" to body
-                        )
-                        analyticsHelper.reportEvent("${settingsType}_failed", eventParameters)
-
-                        _builderDescription.value = _builderDescription.value?.copy(
-                            fields = payload.recipe?.fields ?: payload.fields
-                        )
-
-                        showToast(
-                            errorToastItem.copy(
-                                message = payload.recipe?.operationResult?.message ?: getString(strings.operationFailed)
-                            )
-                        )
-                        return@withContext false
+                        if (resErr != null) {
+                            onError(resErr)
+                        }
                     }
-                } else {
-                    if (resErr != null) {
-                        onError(resErr)
-                    }
-                    return@withContext false
                 }
-            }
-        } else {
-            showToast(
-                errorToastItem.copy(
-                    message = getString(strings.operationFailed)
+            } else {
+                showToast(
+                    errorToastItem.copy(
+                        message = getString(strings.operationFailed)
+                    )
                 )
-            )
-            return false
+            }
         }
     }
 }

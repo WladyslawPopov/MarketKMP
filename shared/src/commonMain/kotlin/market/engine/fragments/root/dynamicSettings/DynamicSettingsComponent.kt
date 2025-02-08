@@ -34,7 +34,7 @@ class DefaultDynamicSettingsComponent(
 ) : DynamicSettingsComponent, ComponentContext by componentContext
 {
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     private  val dynamicSettingsViewModel : DynamicSettingsViewModel = getKoin().get()
 

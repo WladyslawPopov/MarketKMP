@@ -52,7 +52,7 @@ fun CreateOfferDialog(
     val conversationTitle = stringResource(strings.createConversationLabel)
     val aboutOrder = stringResource(strings.aboutOfferLabel)
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val titleText = remember {
         buildAnnotatedString {

@@ -63,7 +63,7 @@ class DefaultBasketComponent(
         navigateToCreateOrder(basketItem)
     }
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
         analyticsHelper.reportEvent("view_cart", mapOf())

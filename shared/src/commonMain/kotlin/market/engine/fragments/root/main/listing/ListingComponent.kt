@@ -50,7 +50,7 @@ class DefaultListingComponent(
     override val model: Value<ListingComponent.Model> = _model
 
     private val searchData = listingData.searchData.value
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
         val eventParameters = mapOf(

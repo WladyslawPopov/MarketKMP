@@ -45,7 +45,7 @@ fun getSubscriptionOperations(
     val listItemMenu : MutableList<Operations> = remember { mutableListOf() }
     val showMenu = remember { mutableStateOf(false) }
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val operationString = stringResource(strings.operationSuccess)
 

@@ -58,7 +58,7 @@ fun CreateOrderDialog(
         }
     }
 
-    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val conversationTitle = stringResource(strings.createConversationLabel)
     val aboutOrder = stringResource(strings.aboutOrderLabel)

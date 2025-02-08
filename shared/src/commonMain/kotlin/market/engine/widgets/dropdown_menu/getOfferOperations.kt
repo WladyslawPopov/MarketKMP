@@ -76,7 +76,7 @@ fun getOfferOperations(
     val scope = baseViewModel.viewModelScope
     val errorMes = remember { mutableStateOf("") }
     val offerOperations : OfferOperations = koinInject()
-    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val showDialog = remember { mutableStateOf(false) }
 
@@ -167,91 +167,15 @@ fun getOfferOperations(
                 onClick = {
                     when (operation.id) {
                         "watch" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = offerOperations.postOfferOperationWatch(
-                                    offer.id
-                                )
-                                val response = buf.success
-                                withContext(Dispatchers.Main) {
-                                    if (response != null) {
-                                        if (response.success) {
-                                            val eventParam = mapOf(
-                                                "lot_id" to offer.id,
-                                                "lot_name" to offer.title,
-                                                "lot_city" to offer.freeLocation,
-                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                "seller_id" to offer.sellerData?.id
-                                            )
-
-                                            analyticsHelper.reportEvent(
-                                                "add_to_favorites_success",
-                                                eventParam
-                                            )
-                                            onUpdateMenuItem(offer)
-                                        } else {
-                                            val eventParam = mapOf(
-                                                "lot_id" to offer.id,
-                                                "lot_name" to offer.title,
-                                                "lot_city" to offer.freeLocation,
-                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                "seller_id" to offer.sellerData?.id
-                                            )
-
-                                            analyticsHelper.reportEvent(
-                                                "add_to_favorites_failed",
-                                                eventParam
-                                            )
-                                            errorMes.value =
-                                                response.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    }
-                                }
+                            baseViewModel.addToFavorites(offer){
+                                offer.isWatchedByMe = it
+                                onUpdateMenuItem(offer)
                             }
                         }
                         "unwatch" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = offerOperations.postOfferOperationUnwatch(
-                                    offer.id
-                                )
-                                val response = buf.success
-                                withContext(Dispatchers.Main) {
-                                    if (response != null) {
-                                        if (response.success) {
-                                            onUpdateMenuItem(offer)
-                                            val eventParam = mapOf(
-                                                "lot_id" to offer.id,
-                                                "lot_name" to offer.title,
-                                                "lot_city" to offer.freeLocation,
-                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                "seller_id" to offer.sellerData?.id
-                                            )
-
-                                            analyticsHelper.reportEvent(
-                                                "remove_to_favorites_success",
-                                                eventParam
-                                            )
-                                        } else {
-                                            val eventParam = mapOf(
-                                                "lot_id" to offer.id,
-                                                "lot_name" to offer.title,
-                                                "lot_city" to offer.freeLocation,
-                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                "seller_id" to offer.sellerData?.id
-                                            )
-
-                                            analyticsHelper.reportEvent(
-                                                "remove_to_favorites_failed",
-                                                eventParam
-                                            )
-                                            errorMes.value =
-                                                response.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    }
-                                }
+                            baseViewModel.addToFavorites(offer){
+                                offer.isWatchedByMe = it
+                                onUpdateMenuItem(offer)
                             }
                         }
                         "prolong_offer" -> {

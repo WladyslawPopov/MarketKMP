@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.createOffer
 
 import androidx.compose.runtime.mutableStateOf
+import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,8 @@ import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class CreateOfferViewModel : BaseViewModel() {
 
@@ -40,11 +43,19 @@ class CreateOfferViewModel : BaseViewModel() {
 
     val positionList = mutableStateOf(0)
 
-    fun getImages(pickImagesRaw : List<PhotoTemp>) {
+    @OptIn(ExperimentalUuidApi::class)
+    fun getImages(pickImagesRaw : PlatformFiles) {
         viewModelScope.launch {
+            val photos = pickImagesRaw.map { file ->
+                PhotoTemp(
+                    file = file,
+                    id = Uuid.random().toString(),
+                    uri = file.path
+                )
+            }
             _responseImages.value = buildList {
                 addAll(_responseImages.value)
-                pickImagesRaw.forEach {
+                photos.forEach {
                     if (size < MAX_IMAGE_COUNT) {
                         add(it)
                     }

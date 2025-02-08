@@ -14,8 +14,6 @@ import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
 class VerificationViewModel : BaseViewModel() {
-
-
     val action = mutableStateOf("")
 
     fun init(settingsType: String, owner: Long?, code: String?) {
@@ -132,156 +130,153 @@ class VerificationViewModel : BaseViewModel() {
         }
     }
 
-    suspend fun postSetEmail(code: String) : Boolean {
-        setLoading(true)
+    fun postSetEmail(code: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            setLoading(true)
 
-        val bodySMS = HashMap<String, String>()
-        bodySMS["action"] = "change_email"
-        bodySMS["code"] = code
+            val bodySMS = HashMap<String, String>()
+            bodySMS["action"] = "change_email"
+            bodySMS["code"] = code
 
-        val buf = withContext(Dispatchers.IO) {
-
-            userOperations.postUsersOperationsEACC(
-                UserData.login, bodySMS
-            )
-        }
-        val resE = buf.success
-        val resEerr = buf.error
-        return withContext(Dispatchers.Main) {
-            setLoading(false)
-            if (resE != null) {
-                if (resE.success) {
-
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings"
-                    )
-                    analyticsHelper.reportEvent(
-                        "change_email_success",
-                        eventParameters
-                    )
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
+            val buf = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsEACC(
+                    UserData.login, bodySMS
+                )
+            }
+            val resE = buf.success
+            val resEerr = buf.error
+            withContext(Dispatchers.Main) {
+                setLoading(false)
+                if (resE != null) {
+                    if (resE.success) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings"
                         )
-                    )
-                    return@withContext true
+                        analyticsHelper.reportEvent(
+                            "change_email_success",
+                            eventParameters
+                        )
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(strings.operationFailed)
+                            )
+                        )
+                    }
                 } else {
-                    showToast(
-                        errorToastItem.copy(
-                            message = getString(strings.operationFailed)
+                    if (resEerr != null) {
+                        onError(
+                            resEerr
                         )
-                    )
-                    return@withContext false
+                    }
                 }
-            } else {
-                if (resEerr != null) {
-                    onError(
-                        resEerr
-                    )
-                }
-                return@withContext false
             }
         }
     }
 
-    suspend fun postSetPassword(code: String) : Boolean {
-        setLoading(true)
+    fun postSetPassword(code: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            setLoading(true)
 
-        val bodySMS = HashMap<String, String>()
-        bodySMS["action"] = "change_password"
-        bodySMS["code"] = code
+            val bodySMS = HashMap<String, String>()
+            bodySMS["action"] = "change_password"
+            bodySMS["code"] = code
 
-        val buf = withContext(Dispatchers.IO) {
+            val buf = withContext(Dispatchers.IO) {
 
-            userOperations.postUsersOperationsEACC(
-                UserData.login, bodySMS
-            )
-        }
-        val resE = buf.success
-        val resEerr = buf.error
-        return withContext(Dispatchers.Main) {
-            setLoading(false)
-            if (resE != null) {
-                if (resE.success) {
-
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings"
-                    )
-                    analyticsHelper.reportEvent(
-                        "change_password_success",
-                        eventParameters
-                    )
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
+                userOperations.postUsersOperationsEACC(
+                    UserData.login, bodySMS
+                )
+            }
+            val resE = buf.success
+            val resEerr = buf.error
+            withContext(Dispatchers.Main) {
+                setLoading(false)
+                if (resE != null) {
+                    if (resE.success) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings"
                         )
-                    )
-                    return@withContext true
+                        analyticsHelper.reportEvent(
+                            "change_password_success",
+                            eventParameters
+                        )
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(strings.operationFailed)
+                            )
+                        )
+                    }
                 } else {
-                    showToast(
-                        errorToastItem.copy(
-                            message = getString(strings.operationFailed)
+                    if (resEerr != null) {
+                        onError(
+                            resEerr
                         )
-                    )
-                    return@withContext false
+                    }
                 }
-            } else {
-                if (resEerr != null) {
-                    onError(
-                        resEerr
-                    )
-                }
-                return@withContext false
             }
         }
     }
 
-    suspend fun postSetPhone(code: String) : Boolean{
-        val bodySMS = HashMap<String, String>()
-        bodySMS["code"] = code
+    fun postSetPhone(code: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            setLoading(true)
+            val bodySMS = HashMap<String, String>()
+            bodySMS["code"] = code
 
-        val buf =  withContext(Dispatchers.IO) {
-            userOperations.postUsersOperationsVerifyPhone(
-                UserData.login, bodySMS
-            )
-        }
-        val resE = buf.success
-        val resEerr = buf.error
-        return withContext(Dispatchers.Main) {
-            setLoading(false)
-            if (resE != null) {
-                if (resE.success) {
-
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings"
-                    )
-                    analyticsHelper.reportEvent(
-                        "set_phone_success",
-                        eventParameters
-                    )
-
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
+            val buf = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsVerifyPhone(
+                    UserData.login, bodySMS
+                )
+            }
+            val resE = buf.success
+            val resEerr = buf.error
+            withContext(Dispatchers.Main) {
+                setLoading(false)
+                if (resE != null) {
+                    if (resE.success) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings"
                         )
-                    )
-                    return@withContext true
+                        analyticsHelper.reportEvent(
+                            "set_phone_success",
+                            eventParameters
+                        )
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(strings.operationFailed)
+                            )
+                        )
+                    }
                 } else {
-                    showToast(
-                        errorToastItem.copy(
-                            message = getString(strings.operationFailed)
-                        )
-                    )
-                    return@withContext false
+                    if (resEerr != null) {
+                        onError(resEerr)
+                    }
                 }
-            } else {
-                if (resEerr != null) {
-                    onError(resEerr)
-                }
-                return@withContext false
             }
         }
     }

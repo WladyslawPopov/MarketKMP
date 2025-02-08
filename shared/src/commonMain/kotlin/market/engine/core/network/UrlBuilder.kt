@@ -12,7 +12,7 @@ class UrlBuilder {
     private val queryParams: MutableMap<String, String> = mutableMapOf()
     private val pathSegments: MutableList<String> = mutableListOf()
 
-    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
 
     fun addQueryParameter(name: String, value: String?): UrlBuilder {

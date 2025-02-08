@@ -16,14 +16,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.PhotoTemp
-import market.engine.core.data.items.ToastItem
-import market.engine.core.data.types.ToastType
-import market.engine.core.network.operations.uploadFile
 import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
 import market.engine.widgets.items.PhotoCard
-import org.jetbrains.compose.resources.stringResource
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
 
@@ -41,8 +36,6 @@ fun PhotoDraggableGrid(
         viewModel.setImages(newList)
     }
 
-    val error = stringResource(strings.failureUploadPhoto)
-
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 150.dp),
         modifier = Modifier.fillMaxWidth().heightIn(max = (200 * photoList.size).dp),
@@ -56,6 +49,7 @@ fun PhotoDraggableGrid(
                 val interactionSource = remember { MutableInteractionSource() }
                 PhotoCard(
                     item = item,
+                    viewModel = viewModel,
                     interactionSource = interactionSource,
                     modifier = Modifier.draggableHandle(
                         onDragStarted = {
@@ -72,21 +66,6 @@ fun PhotoDraggableGrid(
                         },
                         interactionSource = interactionSource,
                     ).sizeIn(maxWidth = 600.dp, maxHeight = 150.dp),
-                    updatePhoto = {
-                        val res = uploadFile(item)
-                        if (res.success != null){
-                           return@PhotoCard res.success
-                        }else{
-                            viewModel.showToast(
-                                ToastItem(
-                                    type = ToastType.ERROR,
-                                    isVisible = true,
-                                    message = "$error ${res.error?.errorCode}"
-                                )
-                            )
-                           return@PhotoCard null
-                        }
-                    },
                     deletePhoto = deletePhoto
                 )
             }

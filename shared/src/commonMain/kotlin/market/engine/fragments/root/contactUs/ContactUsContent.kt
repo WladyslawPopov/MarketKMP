@@ -34,10 +34,6 @@ import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.ktor.util.decodeBase64Bytes
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.common.decodeToImageBitmap
@@ -46,10 +42,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.PhotoTemp
-import market.engine.core.data.items.ToastItem
-import market.engine.core.data.types.ToastType
-import market.engine.core.network.operations.uploadFile
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
@@ -60,10 +52,8 @@ import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
+
 @Composable
 fun ContactUsContent(
     component: ContactUsComponent,
@@ -101,27 +91,10 @@ fun ContactUsContent(
         ),
         initialDirectory = "market/temp/"
     ) { files ->
-        files?.map { file ->
-            model.viewModelScope.launch {
-                val item = PhotoTemp(
-                    file = file,
-                    id = Uuid.random().toString()
-                )
-
-                val res = uploadFile(item)
-
-                if (res.success != null) {
-                    responseGetFields.value?.fields?.find { it.widgetType == "attachment" }?.data = JsonPrimitive(res.success)
-                    dataImage.value = file.name
-                } else {
-                    model.showToast(
-                        ToastItem(
-                            type = ToastType.ERROR,
-                            isVisible = true,
-                            message = "$error ${res.error?.errorCode}"
-                        )
-                    )
-                }
+        files?.firstOrNull()?.let {  file->
+            model.uploadFile(file){ result->
+                responseGetFields.value?.fields?.find { it.widgetType == "attachment" }?.data = JsonPrimitive(result.tempId)
+                dataImage.value = file.name
             }
         }
     }
@@ -305,14 +278,8 @@ fun ContactUsContent(
                             textStyle = MaterialTheme.typography.titleMedium,
                             textColor = colors.alwaysWhite
                         ){
-                            model.viewModelScope.launch {
-                                val res = model.postContactUs()
-                                delay(2000)
-                                withContext(Dispatchers.Main) {
-                                    if (res) {
-                                        component.onBack()
-                                    }
-                                }
+                            model.postContactUs{
+                                component.onBack()
                             }
                         }
                     }

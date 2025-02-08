@@ -49,7 +49,7 @@ class DefaultSubscriptionsComponent(
         )
     )
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
         lifecycle.doOnResume {

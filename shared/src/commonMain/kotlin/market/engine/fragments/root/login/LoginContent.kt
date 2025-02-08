@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,15 +30,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.delay
-import market.engine.common.AnalyticsFactory
-import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.ToastItem
-import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
@@ -65,10 +59,6 @@ fun LoginContent(
     val isLoading = model.isShowProgress.collectAsState()
     val err = model.errorMessage.collectAsState()
 
-    val postAuth = model.responseAuth.collectAsState()
-
-    val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
-
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(err.value) {  } }
     } else {
@@ -78,57 +68,12 @@ fun LoginContent(
     val emailTextValue = remember { mutableStateOf(TextFieldValue()) }
     val passwordTextValue = remember { mutableStateOf(TextFieldValue()) }
     val captchaTextValue = remember { mutableStateOf(TextFieldValue()) }
+    val captchaImage = remember { mutableStateOf<String?>(null) }
+    val captchaKey = remember { mutableStateOf<String?>(null) }
     val isCaptchaVisible = remember { mutableStateOf(false) }
-
-    val successLogin = stringResource(strings.operationSuccess)
-    val errorLogin = stringResource(strings.errorLogin)
 
     BackHandler(modelState.value.backHandler){
         component.onBack()
-    }
-
-    LaunchedEffect(postAuth.value) {
-        val res = postAuth.value?.result
-        if (res != null) {
-            if ( res == "SUCCESS") {
-                model.userRepository.setToken(postAuth.value?.user ?: 1L, postAuth.value?.token ?: "")
-
-                model.showToast(
-                    ToastItem(
-                        isVisible = true,
-                        message = successLogin,
-                        type = ToastType.SUCCESS
-                    )
-                )
-                val events = mapOf(
-                    "login_type" to "email",
-                    "login_result" to "success",
-                    "login_email" to emailTextValue.value.text
-                )
-                analyticsHelper.reportEvent("login_success",events)
-                delay(3000)
-                component.onBack()
-            } else {
-                if ( res == "needs_captcha") {
-                    isCaptchaVisible.value = true
-                }else{
-                    val events = mapOf(
-                        "login_type" to "email",
-                        "login_result" to "fail",
-                        "login_email" to emailTextValue.value.text
-                    )
-                    analyticsHelper.reportEvent("login_fail",events)
-
-                    model.showToast(
-                        ToastItem(
-                            message = errorLogin,
-                            type = ToastType.ERROR,
-                            isVisible = true
-                        )
-                    )
-                }
-            }
-        }
     }
 
     DisposableEffect(Unit){
@@ -187,7 +132,7 @@ fun LoginContent(
                 item {
                     CaptchaView(
                         isVisible = isCaptchaVisible.value,
-                        captchaImage = postAuth.value?.captchaImage ?: "",
+                        captchaImage = captchaImage.value,
                         captchaTextValue = captchaTextValue.value,
                         focusRequester = focusRequester,
                         onCaptchaTextChange = {
@@ -243,22 +188,21 @@ fun LoginContent(
                             backgroundColor = colors.inactiveBottomNavIconColor,
                             textStyle = MaterialTheme.typography.titleMedium
                         ) {
-                            if (emailTextValue.value.text != "" && passwordTextValue.value.text != ""){
-                                isCaptchaVisible.value = false
-                                component.onLogin(
-                                    emailTextValue.value.text,
-                                    passwordTextValue.value.text,
-                                    captchaTextValue.value.text
-                                )
-                            }else{
-                                model.showToast(
-                                    ToastItem(
-                                        message = errorLogin,
-                                        type = ToastType.WARNING,
-                                        isVisible = true
-                                    )
-                                )
-                            }
+                            model.postAuth(
+                                emailTextValue.value.text,
+                                passwordTextValue.value.text,
+                                captchaTextValue.value.text,
+                                captchaKey.value,
+                                onSuccess = {
+                                    isCaptchaVisible.value = false
+                                    component.onBack()
+                                },
+                                onError = { image, key ->
+                                    captchaImage.value = image
+                                    captchaKey.value = key
+                                    isCaptchaVisible.value = true
+                                }
+                            )
                         }
 
                         SimpleTextButton(

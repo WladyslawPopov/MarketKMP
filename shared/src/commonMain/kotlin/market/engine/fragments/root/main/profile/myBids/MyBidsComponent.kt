@@ -55,7 +55,7 @@ class DefaultMyBidsComponent(
     )
     override val model: Value<MyBidsComponent.Model> = _model
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
         lifecycle.doOnResume {

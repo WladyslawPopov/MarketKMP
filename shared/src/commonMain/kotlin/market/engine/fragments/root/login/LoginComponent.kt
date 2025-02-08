@@ -16,8 +16,6 @@ interface LoginComponent {
         val backHandler: BackHandler
     )
 
-    fun onLogin(email : String, password : String, captcha : String? = null)
-
     fun goToRegistration()
     fun goToForgotPassword()
 
@@ -31,7 +29,7 @@ class DefaultLoginComponent(
     private val onBackSelected: () -> Unit
 ) : LoginComponent, ComponentContext by componentContext  {
 
-    private val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
+    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
 
     private val _model = MutableValue(
@@ -45,20 +43,6 @@ class DefaultLoginComponent(
 
     init {
         analyticsHelper.reportEvent("view_login_screen", mapOf())
-    }
-
-    override fun onLogin(email : String, password : String, captcha : String?) {
-        val body = HashMap<String, String>()
-        body["identity"] = email
-        body["password"] = password
-        body["workstation_data"] = SAPI.workstationData
-        if (captcha != "") {
-            captcha?.let {
-                body["captcha_key"] = model.value.loginViewModel.responseAuth.value?.captchaKey ?: ""
-                body["captcha_response"] = it
-            }
-        }
-        model.value.loginViewModel.postAuth(body)
     }
 
     override fun goToRegistration() {
