@@ -338,7 +338,7 @@ fun OfferContent(
                                             style = MaterialTheme.typography.bodySmall.copy(
                                                 fontWeight = FontWeight.Bold
                                             ),
-                                            color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
+                                            color = if (catHistory.value.size - 1 == index) colors.black else colors.grayText,
                                             modifier = Modifier.padding(dimens.smallPadding)
                                                 .clickable {
                                                     //go to Listing
@@ -363,7 +363,7 @@ fun OfferContent(
                                     Text(
                                         text = countString,
                                         style = MaterialTheme.typography.titleSmall,
-                                        color = colors.steelBlue,
+                                        color = colors.grayText,
                                         modifier = Modifier.padding(dimens.smallPadding)
                                     )
                                 }
@@ -371,7 +371,7 @@ fun OfferContent(
                                 Text(
                                     text = stringResource(strings.viewsParams) + ": " + offer.viewsCount,
                                     style = MaterialTheme.typography.titleSmall,
-                                    color = colors.steelBlue,
+                                    color = colors.grayText,
                                     modifier = Modifier.padding(dimens.smallPadding)
                                 )
                             }

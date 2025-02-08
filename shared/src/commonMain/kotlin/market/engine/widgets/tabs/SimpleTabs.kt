@@ -5,6 +5,7 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import market.engine.core.data.globalData.ThemeResources.colors
 
 @Composable
 fun SimpleTabs(
@@ -19,6 +20,8 @@ fun SimpleTabs(
             Tab(
                 selected = selectedTab == index,
                 onClick = { onTabSelected(index) },
+                unselectedContentColor = colors.grayText,
+                selectedContentColor = colors.black,
                 text = { Text(text = title, style = MaterialTheme.typography.titleSmall) }
             )
         }

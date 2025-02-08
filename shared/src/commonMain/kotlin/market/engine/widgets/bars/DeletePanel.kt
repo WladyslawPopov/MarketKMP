@@ -1,5 +1,8 @@
 package market.engine.widgets.bars
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,35 +28,41 @@ fun DeletePanel(
     onDelete: () -> Unit,
     onCancel: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    AnimatedVisibility(
+        visible = selectedCount > 0,
+        enter = fadeIn(),
+        exit = fadeOut(),
     ) {
-        Text(
-            text = "${stringResource(strings.actionDelete)} ($selectedCount)",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = colors.black,
-            modifier = Modifier.padding(dimens.mediumPadding).fillMaxWidth(0.6f)
-        )
-
         Row(
-            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SmallIconButton(
-                drawables.deleteIcon,
-                colors.inactiveBottomNavIconColor,
-                onClick = onDelete
+            Text(
+                text = "${stringResource(strings.actionDelete)} ($selectedCount)",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = colors.black,
+                modifier = Modifier.padding(dimens.mediumPadding).fillMaxWidth(0.6f)
             )
-            ActionButton(
-                strings.resetLabel,
-                fontSize = 8.sp,
-                alignment = Alignment.CenterEnd,
-                onClick = onCancel
-            )
+
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SmallIconButton(
+                    drawables.deleteIcon,
+                    colors.inactiveBottomNavIconColor,
+                    onClick = onDelete
+                )
+                ActionButton(
+                    strings.resetLabel,
+                    fontSize = 8.sp,
+                    alignment = Alignment.CenterEnd,
+                    onClick = onCancel
+                )
+            }
         }
     }
 }

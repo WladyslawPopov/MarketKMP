@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.favPages.favorites
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
@@ -163,31 +162,25 @@ fun FavoritesContent(
             },
             additionalBar = {
                 val updateFilters = remember { mutableStateOf(0) }
-                AnimatedVisibility(
-                    visible = selectedItems.isNotEmpty(),
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                    modifier = Modifier.animateContentSize()
-                ) {
-                    DeletePanel(
-                        selectedItems.size,
-                        onCancel = {
-                            favViewModel.selectItems.clear()
-                        },
-                        onDelete = {
-                            favViewModel.viewModelScope.launch(Dispatchers.IO) {
-                                selectedItems.forEach { item ->
-                                    offerOperations.postOfferOperationUnwatch(item)
-                                }
 
-                                withContext(Dispatchers.Main) {
-                                    favViewModel.selectItems.clear()
-                                    data.refresh()
-                                }
+                DeletePanel(
+                    selectedItems.size,
+                    onCancel = {
+                        favViewModel.selectItems.clear()
+                    },
+                    onDelete = {
+                        favViewModel.viewModelScope.launch(Dispatchers.IO) {
+                            selectedItems.forEach { item ->
+                                offerOperations.postOfferOperationUnwatch(item)
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                favViewModel.selectItems.clear()
+                                data.refresh()
                             }
                         }
-                    )
-                }
+                    }
+                )
 
                 FiltersBar(
                     sd.value,

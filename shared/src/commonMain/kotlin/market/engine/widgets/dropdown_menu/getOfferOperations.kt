@@ -63,7 +63,6 @@ fun getOfferOperations(
     val choices = remember{ mutableListOf<Choices>() }
     val title = remember { mutableStateOf("") }
     val selected = remember { mutableStateOf(choices.firstOrNull()) }
-    val show = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit){
         scope.launch {
@@ -92,6 +91,9 @@ fun getOfferOperations(
             }
             if (buf != null) {
                 listItemMenu.addAll(buf)
+                showMenu.value = true
+            }else{
+                showMenu.value = false
             }
 
             if (choices.isEmpty()) {
@@ -107,7 +109,6 @@ fun getOfferOperations(
                             choices.add(it)
                         }
                         selected.value = choices.firstOrNull()
-                        show.value = true
                     }
                 }
             }
@@ -364,7 +365,7 @@ fun getOfferOperations(
     )
 
     CustomDialog(
-        showDialog = show.value,
+        showDialog = showActivateOfferDialog.value,
         title = title.value,
         body = {
             getDropdownMenu(
@@ -379,7 +380,7 @@ fun getOfferOperations(
                 }
             )
         },
-        onDismiss = { show.value = false },
+        onDismiss = { showActivateOfferDialog.value = false },
         onSuccessful = {
             scope.launch {
                 withContext(Dispatchers.IO) {

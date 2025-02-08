@@ -80,7 +80,7 @@ fun SubscriptionItem(
                         Icon(
                             painter = painterResource(drawables.searchIcon),
                             contentDescription = null,
-                            tint = colors.textA0AE,
+                            tint = colors.black,
                             modifier = Modifier.size(dimens.mediumIconSize)
                         )
                     }
@@ -121,7 +121,7 @@ fun SubscriptionItem(
                 Column {
                     SmallIconButton(
                         drawables.menuIcon,
-                        color = colors.steelBlue,
+                        color = colors.black,
                     ){
                         showMenu.value = true
                     }

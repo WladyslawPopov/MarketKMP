@@ -80,8 +80,8 @@ fun SearchTextField(
             disabledIndicatorColor = colors.transparent,
             errorIndicatorColor = colors.transparent,
 
-            focusedPlaceholderColor = colors.steelBlue,
-            unfocusedPlaceholderColor = colors.steelBlue,
+            focusedPlaceholderColor = colors.grayText,
+            unfocusedPlaceholderColor = colors.grayText,
             disabledPlaceholderColor = colors.transparent
         ),
     )

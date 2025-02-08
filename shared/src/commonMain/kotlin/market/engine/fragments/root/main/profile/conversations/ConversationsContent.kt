@@ -2,9 +2,8 @@ package market.engine.fragments.root.main.profile.conversations
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
@@ -137,6 +136,7 @@ fun ConversationsContent(
             modifier = modifier.fillMaxSize()
         ) {
             ListingBaseContent(
+                modifier = Modifier.fillMaxWidth(),
                 listingData = listingData.value,
                 searchData = searchData.value,
                 data = data,
@@ -148,32 +148,27 @@ fun ConversationsContent(
                 additionalBar = {
                     val updateFilters = remember { mutableStateOf(0) }
 
-                    AnimatedVisibility(
-                        visible = selectedItems.isNotEmpty(),
-                        enter = fadeIn(),
-                        exit = fadeOut(),
-                    ) {
-                        DeletePanel(
-                            selectedItems.size,
-                            onCancel = {
-                                viewModel.selectItems.clear()
-                                isSelectedMode.value = false
-                            },
-                            onDelete = {
-                                selectedItems.forEach { item ->
-                                    viewModel.deleteConversation(item){
-                                        updateFilters.value--
-                                    }
-                                }
-                                if (updateFilters.value == 0){
-                                    viewModel.selectItems.clear()
-                                    viewModel.updateUserInfo()
-                                    viewModel.onRefresh()
-                                    isSelectedMode.value = false
+                    DeletePanel(
+                        selectedItems.size,
+                        onCancel = {
+                            viewModel.selectItems.clear()
+                            isSelectedMode.value = false
+                        },
+                        onDelete = {
+                            selectedItems.forEach { item ->
+                                viewModel.deleteConversation(item){
+                                    updateFilters.value--
                                 }
                             }
-                        )
-                    }
+                            if (updateFilters.value == 0){
+                                viewModel.selectItems.clear()
+                                viewModel.updateUserInfo()
+                                viewModel.onRefresh()
+                                isSelectedMode.value = false
+                            }
+                        }
+                    )
+
 
                     FiltersBar(
                         searchData.value,

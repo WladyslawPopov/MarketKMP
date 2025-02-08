@@ -212,7 +212,7 @@ fun DrawerContent(
                                     if (item.subtitle != null) {
                                         Text(
                                             stringResource(item.subtitle),
-                                            color = colors.steelBlue,
+                                            color = colors.grayText,
                                             fontSize = MaterialTheme.typography.labelSmall.fontSize,
                                             lineHeight = dimens.largeText
                                         )
@@ -228,7 +228,8 @@ fun DrawerContent(
                             Icon(
                                 painter = painterResource(item.icon),
                                 contentDescription = stringResource(item.title),
-                                modifier = Modifier.size(dimens.smallIconSize)
+                                modifier = Modifier.size(dimens.smallIconSize),
+                                tint = colors.black
                             )
                         },
                         badge = {
@@ -265,7 +266,7 @@ fun DrawerContent(
             ) {
                 Text(
                     text = SAPI.version,
-                    color = colors.textA0AE,
+                    color = colors.grayText,
                     fontSize = MaterialTheme.typography.labelMedium.fontSize
                 )
             }

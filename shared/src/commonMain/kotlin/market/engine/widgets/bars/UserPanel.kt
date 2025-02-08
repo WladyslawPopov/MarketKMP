@@ -243,7 +243,7 @@ fun UserPanel(
                 // Button: "About Me"
                 SimpleTextButton(
                     text = stringResource(strings.aboutMeLabel),
-                    backgroundColor = colors.textA0AE,
+                    backgroundColor = colors.steelBlue,
                     shape = MaterialTheme.shapes.medium,
                     onClick = goToAboutMe
                 )

@@ -49,7 +49,7 @@ fun ListingAppBar(
         NavigationItem(
             title = strings.searchTitle,
             icon = drawables.searchIcon,
-            tint = colors.steelBlue,
+            tint = colors.black,
             hasNews = false,
             badgeCount = null,
             onClick = { onSearchClick() }

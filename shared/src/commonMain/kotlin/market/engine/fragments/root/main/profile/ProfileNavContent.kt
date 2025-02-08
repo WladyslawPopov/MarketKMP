@@ -121,7 +121,7 @@ fun ProfileNavContent(
                                 if (item.subtitle != null) {
                                     Text(
                                         stringResource(item.subtitle),
-                                        color = colors.steelBlue,
+                                        color = colors.grayText,
                                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                         lineHeight = dimens.largeText
                                     )

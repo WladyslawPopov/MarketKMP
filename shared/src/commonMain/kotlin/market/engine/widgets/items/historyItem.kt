@@ -47,7 +47,7 @@ fun historyItem(
 
             SmallIconButton(
                 drawables.searchIcon,
-                colors.black,
+                colors.steelBlue,
                 modifier = Modifier.align(Alignment.CenterEnd),
             ){
                 onItemClick(history.query)

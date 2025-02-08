@@ -31,7 +31,7 @@ fun SearchAppBar(
     val searchItem = NavigationItem(
             title = strings.searchTitle,
             icon = drawables.searchIcon,
-            tint = colors.steelBlue,
+            tint = colors.black,
             hasNews = false,
             badgeCount = null
         )

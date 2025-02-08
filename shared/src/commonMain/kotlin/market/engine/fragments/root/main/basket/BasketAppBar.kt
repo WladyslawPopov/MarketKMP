@@ -49,7 +49,7 @@ fun BasketAppBar(
         NavigationItem(
             title = strings.menuTitle,
             icon = drawables.menuIcon,
-            tint = colors.steelBlue,
+            tint = colors.black,
             hasNews = false,
             badgeCount = null,
             onClick = {

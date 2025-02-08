@@ -54,13 +54,13 @@ fun SearchBar(modifier: Modifier = Modifier, onSearchClick: () -> Unit) {
                 modifier = Modifier.align(Alignment.CenterVertically).weight(0.8f),
                 text = stringResource(strings.searchTitle),
                 style = MaterialTheme.typography.labelMedium,
-                color = colors.steelBlue
+                color = colors.grayText
             )
             Icon(
                 modifier = Modifier.weight(0.1f),
                 imageVector = Icons.Default.Search,
                 contentDescription = stringResource(strings.searchTitle),
-                tint = colors.textA0AE,
+                tint = colors.black,
             )
         }
     }
