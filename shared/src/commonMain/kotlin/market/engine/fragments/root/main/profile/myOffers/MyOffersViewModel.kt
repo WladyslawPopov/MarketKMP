@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.LotsType

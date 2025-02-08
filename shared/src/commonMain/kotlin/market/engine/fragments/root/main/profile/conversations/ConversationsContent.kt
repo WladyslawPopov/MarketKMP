@@ -25,7 +25,6 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -161,21 +160,16 @@ fun ConversationsContent(
                                 isSelectedMode.value = false
                             },
                             onDelete = {
-                                viewModel.viewModelScope.launch {
-                                    selectedItems.forEach { item ->
-                                        viewModel.deleteConversation(item)
+                                selectedItems.forEach { item ->
+                                    viewModel.deleteConversation(item){
+                                        updateFilters.value--
                                     }
-                                    withContext(Dispatchers.Main) {
-                                        viewModel.showToast(
-                                            successToastItem.copy(
-                                                message = successToast
-                                            )
-                                        )
-                                        viewModel.selectItems.clear()
-                                        viewModel.updateUserInfo()
-                                        viewModel.onRefresh()
-                                        isSelectedMode.value = false
-                                    }
+                                }
+                                if (updateFilters.value == 0){
+                                    viewModel.selectItems.clear()
+                                    viewModel.updateUserInfo()
+                                    viewModel.onRefresh()
+                                    isSelectedMode.value = false
                                 }
                             }
                         )
@@ -277,17 +271,10 @@ fun ConversationsContent(
                             showDialog.value = false
                         },
                         onSuccess = {
-                            viewModel.viewModelScope.launch {
-                                val res = viewModel.deleteConversation(conversation.id)
-                                withContext(Dispatchers.Main){
-                                    if (res) conversation.interlocutor = null
-                                    viewModel.updateItemTrigger.value++
-                                    viewModel.showToast(
-                                        successToastItem.copy(
-                                           message = successToast
-                                        )
-                                    )
-                                }
+                            viewModel.deleteConversation(conversation.id) {
+                                viewModel.showToast(successToastItem.copy(message = successToast))
+                                conversation.interlocutor = null
+                                viewModel.updateItemTrigger.value++
                             }
                         }
                     )

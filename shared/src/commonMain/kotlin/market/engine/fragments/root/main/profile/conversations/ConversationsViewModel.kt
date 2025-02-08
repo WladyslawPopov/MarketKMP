@@ -8,13 +8,16 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.filtersObjects.MsgFilters
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
+import org.jetbrains.compose.resources.getString
 
 class ConversationsViewModel(
     private val conversationsOperations: ConversationsOperations
@@ -55,21 +58,19 @@ class ConversationsViewModel(
         }
     }
 
-    suspend fun deleteConversation(id : Long) : Boolean {
-        try {
+    fun deleteConversation(id : Long, onSuccess : () -> Unit) {
+        viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
                 conversationsOperations.postDeleteForInterlocutor(id)
             }
 
-            return withContext(Dispatchers.Main) {
-                return@withContext res != null
+            withContext(Dispatchers.Main) {
+                if(res != null){
+                    onSuccess()
+                }else{
+                    showToast(errorToastItem.copy(message = getString(strings.operationFailed)))
+                }
             }
-        }catch (e : ServerErrorException){
-            onError(e)
-            return false
-        }catch (e : Exception){
-            onError(ServerErrorException(e.message ?: "", ""))
-            return false
         }
     }
 

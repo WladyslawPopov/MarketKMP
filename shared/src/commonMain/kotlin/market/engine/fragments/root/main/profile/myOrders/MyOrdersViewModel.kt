@@ -5,7 +5,6 @@ import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.items.ListingData

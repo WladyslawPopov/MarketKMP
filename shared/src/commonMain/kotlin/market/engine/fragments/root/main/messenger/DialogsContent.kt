@@ -29,10 +29,8 @@ import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.common.clipBoardEvent
-import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -102,8 +100,6 @@ fun DialogsContent(
 
     val copyId = stringResource(strings.idCopied)
     val textCopied = stringResource(strings.textCopied)
-    val successToast = stringResource(strings.operationSuccess)
-    val failedToast = stringResource(strings.operationFailed)
 
     val noFound = @Composable {
         if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
@@ -161,23 +157,8 @@ fun DialogsContent(
                     onMenuClick = { key->
                         when(key){
                             "delete_dialog" -> {
-                                viewModel.viewModelScope.launch {
-                                    val res = viewModel.deleteConversation(conversation.id)
-                                    if (res) {
-                                        viewModel.showToast(
-                                            successToastItem.copy(
-                                                message = successToast
-                                            )
-                                        )
-                                        delay(2000)
-                                        component.onBackClicked()
-                                    }else{
-                                        viewModel.showToast(
-                                            errorToastItem.copy(
-                                                message = failedToast
-                                            )
-                                        )
-                                    }
+                                viewModel.deleteConversation(conversation.id){
+                                    component.onBackClicked()
                                 }
                             }
                             "copyId" -> {
@@ -386,11 +367,8 @@ fun DialogsContent(
                                                     onMenuClick = { key ->
                                                         when (key) {
                                                             "delete" -> {
-                                                                viewModel.viewModelScope.launch {
-                                                                    val res = viewModel.deleteMessage(messageItem.id)
-                                                                    if (res) {
-                                                                        isDeleteItem.value = true
-                                                                    }
+                                                                viewModel.deleteMessage(messageItem.id){
+                                                                    isDeleteItem.value = true
                                                                 }
                                                             }
 

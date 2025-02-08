@@ -8,6 +8,7 @@ import app.cash.paging.map
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,20 +57,20 @@ class DialogsViewModel(
     val listingData = mutableStateOf(ListingData())
 
     private val _responseGetConversation = MutableStateFlow<Conversations?>(null)
-    val responseGetConversation : StateFlow<Conversations?> = _responseGetConversation.asStateFlow()
+    val responseGetConversation: StateFlow<Conversations?> = _responseGetConversation.asStateFlow()
 
     private val _responseGetOfferInfo = MutableStateFlow<Offer?>(null)
-    val responseGetOfferInfo : StateFlow<Offer?> = _responseGetOfferInfo.asStateFlow()
+    val responseGetOfferInfo: StateFlow<Offer?> = _responseGetOfferInfo.asStateFlow()
 
     private val _responseGetOrderInfo = MutableStateFlow<Order?>(null)
-    val responseGetOrderInfo : StateFlow<Order?> = _responseGetOrderInfo.asStateFlow()
+    val responseGetOrderInfo: StateFlow<Order?> = _responseGetOrderInfo.asStateFlow()
 
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
     val responseImages: StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
 
     val messageTextState = mutableStateOf("")
 
-    fun init(dialogId : Long): Flow<PagingData<DialogsData>> {
+    fun init(dialogId: Long): Flow<PagingData<DialogsData>> {
         setLoading(true)
 
         getConversation(dialogId)
@@ -92,7 +93,11 @@ class DialogsViewModel(
         listingData.value.data.value.methodServer = "get_cabinet_listing"
         listingData.value.data.value.objServer = "private_messages"
 
-        return dialogsPagingRepository.getListing(listingData.value, apiService, Dialog.serializer())
+        return dialogsPagingRepository.getListing(
+            listingData.value,
+            apiService,
+            Dialog.serializer()
+        )
             .map { pagingData ->
                 pagingData.map { dialog ->
                     val isIncoming = (UserData.login != dialog.sender)
@@ -107,35 +112,41 @@ class DialogsViewModel(
                         else
                             UserData.userInfo?.login.toString(),
                         messageType = type,
-                        images = dialog.images?.mapTo(ArrayList()) { MesImage(it.thumbUrl, it.url) },
+                        images = dialog.images?.mapTo(ArrayList()) {
+                            MesImage(
+                                it.thumbUrl,
+                                it.url
+                            )
+                        },
                         readByReceiver = dialog.readByReceiver ?: false
                     )
-                }.insertSeparators { before: DialogsData.MessageItem?, after: DialogsData.MessageItem? ->
-                    val beforeDate = before?.dateTime.toString().convertDateYear()
-                    val afterDate = after?.dateTime.toString().convertDateYear()
-
-                    if (beforeDate != afterDate && before != null) {
-                        DialogsData.SeparatorItem(
-                            dateTime = beforeDate
-                        )
-                    } else {
-                        null
-                    }
                 }
+                    .insertSeparators { before: DialogsData.MessageItem?, after: DialogsData.MessageItem? ->
+                        val beforeDate = before?.dateTime.toString().convertDateYear()
+                        val afterDate = after?.dateTime.toString().convertDateYear()
+
+                        if (beforeDate != afterDate && before != null) {
+                            DialogsData.SeparatorItem(
+                                dateTime = beforeDate
+                            )
+                        } else {
+                            null
+                        }
+                    }
             }
             .cachedIn(viewModelScope)
     }
 
-    fun onRefresh(){
+    fun onRefresh() {
         dialogsPagingRepository.refresh()
     }
 
     @OptIn(ExperimentalUuidApi::class)
     fun getImages(files: PlatformFiles) {
         viewModelScope.launch {
-            val newImages =  files.map { file ->
+            val newImages = files.map { file ->
                 val barr = file.readBytes()
-                val resizeImage = compressImage(barr,40)
+                val resizeImage = compressImage(barr, 40)
 
                 PhotoTemp(
                     file = file,
@@ -152,40 +163,14 @@ class DialogsViewModel(
         }
     }
 
-    fun deleteImage(item : PhotoTemp){
+    fun deleteImage(item: PhotoTemp) {
         _responseImages.value = buildList {
             addAll(_responseImages.value)
             remove(item)
         }
     }
 
-    suspend fun deleteMessage(id : Long) : Boolean{
-        val res = withContext(Dispatchers.IO) {
-            privateMessagesOperation.postDeleteForInterlocutor(id)
-        }
-        val buf = res.success
-        val err = res.error
-        return withContext(Dispatchers.Main) {
-            if (buf != null) {
-                showToast(
-                    successToastItem.copy(
-                        message = getString(strings.operationSuccess)
-                    )
-                )
-                return@withContext true
-            }else{
-                showToast(
-                    errorToastItem.copy(
-                        message = err?.humanMessage ?: getString(strings.operationFailed)
-                    )
-                )
-
-                return@withContext false
-            }
-        }
-    }
-
-    fun sendMessage(dialogId: Long, message : String){
+    fun sendMessage(dialogId: Long, message: String) {
         viewModelScope.launch {
             setLoading(true)
 
@@ -203,8 +188,8 @@ class DialogsViewModel(
             _responseImages.value = emptyList()
             messageTextState.value = ""
 
-            val res = withContext(Dispatchers.IO){
-                conversationsOperations.postAddMessage(dialogId,bodyMessage)
+            val res = withContext(Dispatchers.IO) {
+                conversationsOperations.postAddMessage(dialogId, bodyMessage)
             }
 
             withContext(Dispatchers.Main) {
@@ -241,7 +226,7 @@ class DialogsViewModel(
         }
     }
 
-    private fun getConversation(id : Long) {
+    private fun getConversation(id: Long) {
         viewModelScope.launch {
             try {
                 val res = withContext(Dispatchers.IO) {
@@ -261,17 +246,15 @@ class DialogsViewModel(
 
     private fun updateDialogInfo(
         conversations: Conversations,
-    ){
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            if(conversations.aboutObjectClass == "offer") {
+            if (conversations.aboutObjectClass == "offer") {
                 val buffer = offerOperations.getOffer(conversations.aboutObjectId)
                 val res = buffer.success
                 res.let { offer ->
                     _responseGetOfferInfo.value = offer
                 }
-            }
-            else
-            {
+            } else {
                 val buf = orderOperations.getOrder(conversations.aboutObjectId)
                 val res = buf.success
                 res.let {
@@ -281,21 +264,56 @@ class DialogsViewModel(
         }
     }
 
-    suspend fun deleteConversation(id : Long) : Boolean {
-        try {
+    fun deleteConversation(id: Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
                 conversationsOperations.postDeleteForInterlocutor(id)
             }
-
-            return withContext(Dispatchers.Main) {
-                return@withContext res != null
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+                    delay(2000)
+                    onSuccess()
+                } else {
+                    showToast(
+                        errorToastItem.copy(
+                            message = getString(strings.operationFailed)
+                        )
+                    )
+                }
             }
-        }catch (e : ServerErrorException){
-            onError(e)
-            return false
-        }catch (e : Exception){
-            onError(ServerErrorException(e.message ?: "", ""))
-            return false
+        }
+    }
+
+    fun deleteMessage(id: Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                privateMessagesOperation.postDeleteForInterlocutor(id)
+            }
+            val buf = res.success
+            val err = res.error
+            withContext(Dispatchers.Main) {
+                if (buf != null) {
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+                    delay(2000)
+                    onSuccess()
+                } else {
+                    showToast(
+                        errorToastItem.copy(
+                            message = err?.humanMessage ?: getString(strings.operationFailed)
+                        )
+                    )
+                }
+            }
         }
     }
 }
+
