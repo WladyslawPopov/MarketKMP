@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.ProfileComponent
-import market.engine.widgets.exceptions.ProfileDrawer
+import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.root.main.profile.profileSettings.DefaultProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsAppBar
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent

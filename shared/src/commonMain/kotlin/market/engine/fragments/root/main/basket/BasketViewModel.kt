@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.BodyListPayload
@@ -16,6 +18,7 @@ import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
+import org.jetbrains.compose.resources.getString
 
 class BasketViewModel: BaseViewModel() {
 
@@ -77,47 +80,6 @@ class BasketViewModel: BaseViewModel() {
         }
     }
 
-    suspend fun clearBasket() : Boolean? {
-        try {
-            return withContext(Dispatchers.IO) {
-                setLoading(true)
-                if(UserData.token != "") {
-                    val resObj = userOperations.postUsersOperationDeleteCart(
-                        UserData.login)
-                    val res = resObj.success
-                    val resErr = resObj.error
-
-                    if (res == true) {
-                        updateUserInfo()
-                        return@withContext true
-                    }else {
-                        if (resErr != null) {
-                            onError(resErr)
-                            return@withContext null
-                        }else{
-                            return@withContext null
-                        }
-                    }
-                }else{
-                    return@withContext null
-                }
-            }
-        } catch (exception: ServerErrorException) {
-            onError(exception)
-            return null
-        } catch (exception: Exception) {
-            onError(
-                ServerErrorException(
-                    errorCode = exception.message.toString(),
-                    humanMessage = exception.message.toString()
-                )
-            )
-            return null
-        } finally {
-            setLoading(false)
-        }
-    }
-
     private suspend fun getUser(id : Long) : User? {
         try {
             val res = withContext(Dispatchers.IO){
@@ -142,54 +104,73 @@ class BasketViewModel: BaseViewModel() {
         }
     }
 
-    suspend fun addOfferToBasket(body : HashMap<String, String>, offerId : Long) : Boolean? {
-        try {
-            val res = withContext(Dispatchers.Default) {
-                userOperations.postUsersOperationsAddItemToCart(UserData.login, body)
-            }
-            return withContext(Dispatchers.Main) {
-                val buffer = res.success
-                val error = res.error
-                if (buffer != null) {
-                    responseGetUserCart.value.find { pair ->
-                        pair.second.find { it?.id == offerId } != null
-                    }?.second?.find { it?.id == offerId }
-                        ?.quantity = body["quantity"]?.toInt() ?: 0
+    fun clearBasket(onSuccess : () -> Unit) {
+        if (UserData.token != "") {
+            viewModelScope.launch {
+                val resObj = withContext(Dispatchers.IO) {
+                     userOperations.postUsersOperationDeleteCart(
+                        UserData.login
+                    )
+                }
+
+                val res = resObj.success
+                val resErr = resObj.error
+
+                if (res == true) {
                     updateUserInfo()
-                    return@withContext true
+                    showToast(
+                        successToastItem.copy(message = getString(strings.operationSuccess))
+                    )
+                    onSuccess()
                 } else {
-                    if (error != null) {
-                        onError(error)
+                    if (resErr != null) {
+                        onError(resErr)
                     }
-                    return@withContext null
                 }
             }
-        } catch (exception: ServerErrorException) {
-            onError(exception)
-            return null
-        } catch (exception: Exception) {
-            onError(
-                ServerErrorException(
-                    errorCode = exception.message.toString(),
-                    humanMessage = exception.message.toString()
-                )
-            )
-            return null
         }
     }
 
-    suspend fun deleteItem(bodyUIR : JsonObject, lotData: Offer?, idSeller: Long) : Boolean? {
-        try {
+    fun addOfferToBasket(body : HashMap<String, String>, offerId : Long) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsAddItemToCart(UserData.login, body)
+            }
+
+            val buffer = res.success
+            val error = res.error
+
+            if (buffer != null) {
+                responseGetUserCart.value.find { pair ->
+                    pair.second.find { it?.id == offerId } != null
+                }?.second?.find { it?.id == offerId }
+                    ?.quantity = body["quantity"]?.toInt() ?: 0
+                updateUserInfo()
+            } else {
+                if (error != null) {
+                    onError(error)
+                }
+            }
+        }
+    }
+
+    fun deleteItem(
+        bodyUIR : JsonObject,
+        lotData: Offer?,
+        idSeller: Long,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
                 userOperations.postUsersOperationsRemoveManyItemsFromCart(
                     UserData.login,
                     bodyUIR
                 )
             }
-
             val buffer = res.success
             val error = res.error
-            return withContext(Dispatchers.Main) {
+
+            withContext(Dispatchers.Main) {
                 if (buffer != null) {
                     updateUserInfo()
 
@@ -207,25 +188,13 @@ class BasketViewModel: BaseViewModel() {
                         "click_del_item",
                         eventParameters
                     )
-                    return@withContext true
+                    onSuccess()
                 } else {
                     if (error != null) {
                         onError(error)
                     }
-                    return@withContext null
                 }
             }
-        }catch (exception: ServerErrorException) {
-            onError(exception)
-            return null
-        } catch (exception: Exception) {
-            onError(
-                ServerErrorException(
-                    errorCode = exception.message.toString(),
-                    humanMessage = exception.message.toString()
-                )
-            )
-            return null
         }
     }
 }

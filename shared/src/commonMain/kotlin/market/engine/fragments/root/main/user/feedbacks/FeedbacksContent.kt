@@ -44,8 +44,8 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.bars.PagingCounterBar
-import market.engine.widgets.exceptions.onError
-import market.engine.widgets.exceptions.showNoItemLayout
+import market.engine.fragments.base.onError
+import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 

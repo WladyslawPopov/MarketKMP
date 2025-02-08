@@ -26,8 +26,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
-import market.engine.widgets.exceptions.onError
-import market.engine.widgets.exceptions.showNoItemLayout
 import market.engine.widgets.grids.PagingList
 
 @Composable

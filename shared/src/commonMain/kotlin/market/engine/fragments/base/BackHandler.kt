@@ -1,4 +1,4 @@
-package market.engine.widgets.exceptions
+package market.engine.fragments.base
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect

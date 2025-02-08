@@ -19,13 +19,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
 import market.engine.common.openShare
@@ -33,11 +31,13 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TextAppBar
@@ -50,8 +50,6 @@ fun OfferAppBar(
     offer: Offer,
     baseViewModel: BaseViewModel,
     modifier: Modifier = Modifier,
-    isFavorite: Boolean = false,
-    onFavClick: suspend () -> Boolean,
     onBeakClick: () -> Unit,
 ) {
     val showMenu = remember { mutableStateOf(false) }
@@ -59,20 +57,23 @@ fun OfferAppBar(
         showMenu.value = false
     }
 
-    val scope = rememberCoroutineScope()
-
-    val isFavorites = remember { mutableStateOf(isFavorite) }
+    val isFavorite = remember { mutableStateOf(offer.isWatchedByMe) }
 
     val listItems = listOf(
         NavigationItem(
             title = strings.favoritesTitle,
-            icon = if (isFavorites.value) drawables.favoritesIconSelected else drawables.favoritesIcon,
+            icon = if (isFavorite.value) drawables.favoritesIconSelected else drawables.favoritesIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
             badgeCount = null,
             onClick = {
-                scope.launch {
-                    isFavorites.value = onFavClick()
+                if (UserData.token != "") {
+                    baseViewModel.addToFavorites(offer){
+                        offer.isWatchedByMe = it
+                        isFavorite.value = it
+                    }
+                }else{
+                    goToLogin()
                 }
             }
         ),

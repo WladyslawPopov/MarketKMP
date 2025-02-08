@@ -21,7 +21,7 @@ import io.ktor.util.decodeBase64Bytes
 import market.engine.common.decodeToImageBitmap
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.widgets.textFields.TextInputField
+import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -53,7 +53,7 @@ fun CaptchaView(
                     .height(100.dp)
             )
 
-            TextInputField(
+            OutlinedTextInputField(
                 value = captchaTextValue,
                 onValueChange = onCaptchaTextChange,
                 label = stringResource(strings.enterCaptcha),

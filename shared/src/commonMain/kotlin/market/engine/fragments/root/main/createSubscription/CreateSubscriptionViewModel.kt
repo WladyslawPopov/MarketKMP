@@ -58,6 +58,10 @@ class CreateSubscriptionViewModel(
             if (it.data != null)
                 body[it.key ?: ""] = it.data!!
         }
+        val eventParameters = mapOf(
+            "user_id" to UserData.login,
+            "body" to body
+        )
 
         try {
             val buffer = withContext(Dispatchers.IO) {
@@ -81,6 +85,12 @@ class CreateSubscriptionViewModel(
                                 type = ToastType.SUCCESS
                             )
                         )
+
+                        if (editId == null)
+                            analyticsHelper.reportEvent("create_subscription_success", eventParameters)
+                        else
+                            analyticsHelper.reportEvent("edit_subscription_success", eventParameters)
+
                         return@withContext true
 
                     } else {
@@ -93,6 +103,13 @@ class CreateSubscriptionViewModel(
                                 type = ToastType.ERROR
                             )
                         )
+
+                        if (editId == null)
+                            analyticsHelper.reportEvent("create_subscription_failed", eventParameters)
+                        else
+                            analyticsHelper.reportEvent("edit_subscription_failed", eventParameters)
+
+
                         _responseGetPage.value = _responseGetPage.value?.copy(
                             fields = payload.recipe?.fields ?: payload.fields
                         )

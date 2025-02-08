@@ -1,4 +1,4 @@
-package market.engine.widgets.rows
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -20,7 +20,7 @@ import market.engine.widgets.buttons.RichTextStyleButton
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun RichTextStyleRow(
+fun RichTextStyleBar(
     modifier: Modifier = Modifier,
     state: RichTextState,
 ) {

@@ -27,7 +27,7 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.fragments.base.BaseContent
-import market.engine.widgets.exceptions.onError
+import market.engine.fragments.base.onError
 import market.engine.widgets.filterContents.CategoryContent
 import org.koin.compose.viewmodel.koinViewModel
 

@@ -75,35 +75,6 @@ class DefaultMyOrdersComponent(
     }
 
     override fun goToOffer(offer: Offer) {
-        if (listingData.searchData.value.userSearch || listingData.searchData.value.searchString.isNotEmpty()){
-            val eventParameters = mapOf(
-                "lot_id" to offer.id,
-                "lot_name" to offer.title,
-                "lot_city" to offer.freeLocation,
-                "auc_delivery" to offer.safeDeal,
-                "lot_category" to offer.catpath.lastOrNull(),
-                "seller_id" to offer.sellerData?.id,
-                "lot_price_start" to offer.currentPricePerItem
-            )
-            analyticsHelper.reportEvent(
-                "click_search_results_item",
-                eventParameters
-            )
-        }else{
-            val eventParameters = mapOf(
-                "lot_id" to offer.id,
-                "lot_name" to offer.title,
-                "lot_city" to offer.freeLocation,
-                "auc_delivery" to offer.safeDeal,
-                "lot_category" to offer.catpath.lastOrNull(),
-                "seller_id" to offer.sellerData?.id,
-                "lot_price_start" to offer.currentPricePerItem
-            )
-            analyticsHelper.reportEvent(
-                "click_item_at_catalog",
-                eventParameters
-            )
-        }
         offerSelected(offer.snapshotId)
 
         lifecycle.doOnResume {

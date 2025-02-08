@@ -61,6 +61,8 @@ class DefaultCreateOrderComponent(
             basketItem.second.map { it.offerId },
             basketItem.second.map { it.selectedQuantity }
         )
+
+        createOrderViewModel.analyticsHelper.reportEvent("view_create_order", mapOf())
     }
 
     override fun onBackClicked() {

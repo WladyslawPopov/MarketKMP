@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -24,17 +22,15 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.constants.successToastItem
-import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
-import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.AccessDialog
-import market.engine.widgets.exceptions.onError
-import market.engine.widgets.exceptions.showNoItemLayout
+import market.engine.fragments.base.onError
+import market.engine.fragments.base.showNoItemLayout
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -63,7 +59,7 @@ fun BasketContent(
     val manyOffers = stringResource(strings.manyOffersLabel)
     val exManyOffers = stringResource(strings.exManyOffersLabel)
 
-    val setUpSubtitle = {
+    LaunchedEffect(UserData.userInfo){
         val countOffers = UserData.userInfo?.countOffersInCart
         subtitle.value = buildString {
             if (countOffers.toString()
@@ -115,13 +111,6 @@ fun BasketContent(
     val refresh = {
         viewModel.onError(ServerErrorException())
         viewModel.getUserCart()
-        setUpSubtitle()
-    }
-
-    LaunchedEffect(userBasket){
-        if (userBasket.value.isNotEmpty()) {
-            setUpSubtitle()
-        }
     }
 
     BaseContent(
@@ -130,14 +119,8 @@ fun BasketContent(
                 stringResource(strings.yourBasketTitle),
                 subtitle.value,
                 clearBasket = {
-                    viewModel.viewModelScope.launch {
-                        val res = viewModel.clearBasket()
-                        if (res != null){
-                            refresh()
-                            viewModel.showToast(
-                                successToastItem.copy(message = successToast)
-                            )
-                        }
+                    viewModel.clearBasket{
+                        refresh()
                     }
                 }
             )
@@ -171,17 +154,11 @@ fun BasketContent(
                             component.goToOffer(offerId)
                         },
                         changeQuantity = { offerId, quantity ->
-                            viewModel.viewModelScope.launch {
-                                val bodyAddB = HashMap<String,String>()
-                                bodyAddB["offer_id"] = offerId.toString()
-                                bodyAddB["quantity"] = quantity.toString()
+                            val bodyAddB = HashMap<String,String>()
+                            bodyAddB["offer_id"] = offerId.toString()
+                            bodyAddB["quantity"] = quantity.toString()
 
-                                val res = viewModel.addOfferToBasket(bodyAddB, offerId)
-
-                                if (res != null){
-                                    setUpSubtitle()
-                                }
-                            }
+                            viewModel.addOfferToBasket(bodyAddB, offerId)
                         },
                         deleteOffer = { offerId ->
                             listOffers.value = buildList {
@@ -224,19 +201,16 @@ fun BasketContent(
                             "offer_ids" to jsonArray
                         )
                     )
-
                     viewModel.viewModelScope.launch {
-                        val res = viewModel.deleteItem(
+                        viewModel.deleteItem(
                             body,
                             userBasket.value.find { pair ->
-                                pair.second.find { it?.id == listOffers.value.first() } != null
-                            }?.second?.find { it?.id == listOffers.value.first() },
+                                pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
+                            }?.second?.find { it?.id == listOffers.value.firstOrNull() },
                             userBasket.value.find { pair ->
-                                pair.second.find { it?.id == listOffers.value.first() } != null
+                                pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
                             }?.first?.id ?: 1L
-                        )
-
-                        if (res != null){
+                        ){
                             refresh()
                             listOffers.value = emptyList()
                             viewModel.showToast(

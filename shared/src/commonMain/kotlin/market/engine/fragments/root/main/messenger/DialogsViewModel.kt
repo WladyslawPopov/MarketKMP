@@ -225,7 +225,7 @@ class DialogsViewModel(
                                 (if (aboutObject == "offer") "lot_id" else "order_id") to idAboutDialog,
                                 "message_type" to if (aboutObject == "offer") "lot" else "deal",
                             )
-                            analyticsHelper.reportEvent("sent_message_to_buyer", eventParameters)
+                            analyticsHelper.reportEvent("sent_message_to_seller", eventParameters)
                         }
 
                         onRefresh()

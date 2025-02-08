@@ -23,7 +23,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun TextInputField(
+fun OutlinedTextInputField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     label: String,

@@ -43,9 +43,9 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
-import market.engine.widgets.exceptions.BackHandler
+import market.engine.fragments.base.BackHandler
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.exceptions.onError
+import market.engine.fragments.base.onError
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

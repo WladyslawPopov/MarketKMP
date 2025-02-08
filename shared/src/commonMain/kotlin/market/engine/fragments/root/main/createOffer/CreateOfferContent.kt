@@ -90,6 +90,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.ServerErrorException
@@ -105,10 +106,10 @@ import market.engine.widgets.checkboxs.DeliveryMethods
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.checkboxs.RadioGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
-import market.engine.widgets.exceptions.BackHandler
-import market.engine.widgets.exceptions.DynamicPayloadContent
+import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.exceptions.onError
+import market.engine.fragments.base.onError
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.textFields.DescriptionOfferTextField
@@ -384,6 +385,23 @@ fun CreateOfferContent(
 
                 newOfferId.value = createOfferResponse.value?.body?.jsonPrimitive?.longOrNull
 
+                val title = dynamicPayloadState.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
+                val loc = dynamicPayloadState.value?.fields?.find { it.key == "location" }?.data?.jsonPrimitive?.content ?: ""
+
+                val eventParams = mapOf(
+                    "lot_id" to offerId,
+                    "lot_name" to title,
+                    "lot_city" to loc,
+                    "lot_category" to "$categoryID",
+                    "seller_id" to UserData.userInfo?.id
+                )
+
+                if (type != CreateOfferType.EDIT) {
+                    viewModel.analyticsHelper.reportEvent("added_offer_success", eventParams)
+                } else {
+                    viewModel.analyticsHelper.reportEvent("edit_offer_success", eventParams)
+                }
+
                 if (type == CreateOfferType.EDIT) {
                     viewModel.viewModelScope.launch {
                         delay(2000L)
@@ -394,7 +412,7 @@ fun CreateOfferContent(
                         //success offer
                         SuccessContent(
                             images.value,
-                            dynamicPayloadState.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: "",
+                            title,
                             dynamicPayloadState.value?.fields?.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
                             futureTime = selectedDate.value ?: getCurrentDate(),
                             goToOffer = {
@@ -554,7 +572,7 @@ fun CreateOfferContent(
 
                             SeparatorLabel(stringResource(strings.parametersLabel))
 
-                            DynamicPayloadContent(
+                            SetUpDynamicFields(
                                 paramList,
                                 Modifier.fillMaxWidth()
                                     .padding(dimens.smallPadding)
@@ -816,11 +834,21 @@ fun CreateOfferContent(
                                     )
 
                                     val url = when (type) {
-                                        CreateOfferType.CREATE -> "categories/${categoryID.value}/operations/create_offer"
-                                        CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
-                                        CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
-                                        CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
-                                        CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
+                                        CreateOfferType.CREATE -> {
+                                            "categories/${categoryID.value}/operations/create_offer"
+                                        }
+                                        CreateOfferType.EDIT -> {
+                                            "offers/$offerId/operations/edit_offer"
+                                        }
+                                        CreateOfferType.COPY -> {
+                                            "offers/$offerId/operations/copy_offer"
+                                        }
+                                        CreateOfferType.COPY_WITHOUT_IMAGE -> {
+                                            "offers/$offerId/operations/copy_offer_without_old_photo"
+                                        }
+                                        CreateOfferType.COPY_PROTOTYPE -> {
+                                            "offers/$offerId/operations/copy_offer_from_prototype"
+                                        }
                                     }
 
                                     viewModel.postPage(url, jsonBody)

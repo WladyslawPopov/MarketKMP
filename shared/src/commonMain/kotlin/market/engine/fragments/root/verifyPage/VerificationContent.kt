@@ -31,8 +31,8 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
-import market.engine.widgets.exceptions.BackHandler
-import market.engine.widgets.exceptions.onError
+import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.stringResource
 

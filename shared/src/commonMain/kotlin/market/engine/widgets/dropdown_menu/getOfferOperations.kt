@@ -88,7 +88,7 @@ fun getOfferOperations(
 
     LaunchedEffect(Unit){
         scope.launch {
-            val res = offerOperations.getOperationsOffer(offer.id)
+            val res = withContext(Dispatchers.IO) { offerOperations.getOperationsOffer(offer.id) }
             withContext(Dispatchers.Main){
                 val buf = res.success?.filter {
                     it.id in listOf(
@@ -175,8 +175,32 @@ fun getOfferOperations(
                                 withContext(Dispatchers.Main) {
                                     if (response != null) {
                                         if (response.success) {
+                                            val eventParam = mapOf(
+                                                "lot_id" to offer.id,
+                                                "lot_name" to offer.title,
+                                                "lot_city" to offer.freeLocation,
+                                                "lot_category" to offer.catpath.lastOrNull(),
+                                                "seller_id" to offer.sellerData?.id
+                                            )
+
+                                            analyticsHelper.reportEvent(
+                                                "add_to_favorites_success",
+                                                eventParam
+                                            )
                                             onUpdateMenuItem(offer)
                                         } else {
+                                            val eventParam = mapOf(
+                                                "lot_id" to offer.id,
+                                                "lot_name" to offer.title,
+                                                "lot_city" to offer.freeLocation,
+                                                "lot_category" to offer.catpath.lastOrNull(),
+                                                "seller_id" to offer.sellerData?.id
+                                            )
+
+                                            analyticsHelper.reportEvent(
+                                                "add_to_favorites_failed",
+                                                eventParam
+                                            )
                                             errorMes.value =
                                                 response.humanMessage.toString()
                                             showDialog.value = true
@@ -196,7 +220,31 @@ fun getOfferOperations(
                                     if (response != null) {
                                         if (response.success) {
                                             onUpdateMenuItem(offer)
+                                            val eventParam = mapOf(
+                                                "lot_id" to offer.id,
+                                                "lot_name" to offer.title,
+                                                "lot_city" to offer.freeLocation,
+                                                "lot_category" to offer.catpath.lastOrNull(),
+                                                "seller_id" to offer.sellerData?.id
+                                            )
+
+                                            analyticsHelper.reportEvent(
+                                                "remove_to_favorites_success",
+                                                eventParam
+                                            )
                                         } else {
+                                            val eventParam = mapOf(
+                                                "lot_id" to offer.id,
+                                                "lot_name" to offer.title,
+                                                "lot_city" to offer.freeLocation,
+                                                "lot_category" to offer.catpath.lastOrNull(),
+                                                "seller_id" to offer.sellerData?.id
+                                            )
+
+                                            analyticsHelper.reportEvent(
+                                                "remove_to_favorites_failed",
+                                                eventParam
+                                            )
                                             errorMes.value =
                                                 response.humanMessage.toString()
                                             showDialog.value = true

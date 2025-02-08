@@ -47,7 +47,7 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.RadioGroup
 import market.engine.widgets.dropdown_menu.ExpandableSection
-import market.engine.widgets.rows.PriceFilter
+import market.engine.widgets.items.PriceFilter
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 

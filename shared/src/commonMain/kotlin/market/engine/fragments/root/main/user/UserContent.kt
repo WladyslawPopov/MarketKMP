@@ -18,12 +18,9 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
@@ -32,10 +29,10 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
-import market.engine.widgets.exceptions.BackHandler
+import market.engine.fragments.base.BackHandler
 import market.engine.widgets.tabs.SimpleTabs
-import market.engine.widgets.exceptions.onError
-import market.engine.widgets.rows.UserPanel
+import market.engine.fragments.base.onError
+import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.rows.UserRow
 import org.jetbrains.compose.resources.stringResource
 
@@ -116,11 +113,7 @@ fun UserContent(
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
-                val showDialog = remember { mutableStateOf(false) }
                 val errorString = remember { mutableStateOf("") }
-                val os = stringResource(strings.operationSuccess)
-                val es = stringResource(strings.operationFailed)
-
 
                 UserPanel(
                     modifier = Modifier.background(colors.white)
@@ -138,27 +131,20 @@ fun UserContent(
                     },
                     addToSubscriptions = {
                         if(UserData.token != "") {
-                            userViewModel.viewModelScope.launch {
-                                val res = userViewModel.addNewSubscribe(
-                                    LD(), SD().copy(
-                                        userLogin = user.value?.login,
-                                        userID = user.value?.id ?: 1L,
-                                        userSearch = true
-                                    )
-                                )
-                                if (res?.success == true) {
-                                    userViewModel.showToast(
-                                        successToastItem.copy(
-                                            message = res.humanMessage ?: os
-                                        )
-                                    )
-                                    delay(1000)
+                            userViewModel.addNewSubscribe(
+                                LD(),
+                                SD().copy(
+                                    userLogin = user.value?.login,
+                                    userID = user.value?.id ?: 1L,
+                                    userSearch = true
+                                ),
+                                onSuccess = {
                                     component.updateUserInfo()
-                                } else {
-                                    errorString.value = res?.humanMessage ?: es
-                                    showDialog.value = true
+                                },
+                                onError = { es ->
+                                    errorString.value = es
                                 }
-                            }
+                            )
                         }else{
                             goToLogin()
                         }
@@ -170,14 +156,14 @@ fun UserContent(
                 )
 
                 CreateSubscribeDialog(
-                    showDialog.value,
+                    errorString.value != "",
                     errorString.value,
                     onDismiss = {
-                        showDialog.value = false
+                        errorString.value = ""
                     },
                     goToSubscribe = {
                         component.goToSubscriptions()
-                        showDialog.value = false
+                        errorString.value = ""
                     }
                 )
             }

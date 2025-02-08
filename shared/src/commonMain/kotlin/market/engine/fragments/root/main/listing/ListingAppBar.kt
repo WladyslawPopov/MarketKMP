@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.listing
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -11,7 +10,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -29,14 +27,13 @@ import market.engine.widgets.texts.TextAppBar
 fun ListingAppBar(
     title : String,
     modifier: Modifier = Modifier,
-    isShowNav: Boolean,
     isOpenCategory: Boolean,
+    isShowSubscribes : Boolean = false,
     closeCategory: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     onSubscribesClick: () -> Unit = {},
 ) {
-    val isVisible = rememberUpdatedState(isOpenCategory)
     val listItems = listOf(
         NavigationItem(
             title = strings.subscribersLabel,
@@ -44,6 +41,7 @@ fun ListingAppBar(
             tint = colors.positiveGreen,
             hasNews = false,
             badgeCount = null,
+            isVisible = isShowSubscribes,
             onClick = {
                 onSubscribesClick()
             }
@@ -73,7 +71,7 @@ fun ListingAppBar(
                 TextAppBar(title, modifier = Modifier.fillMaxWidth(0.9f))
 
                 SmallIconButton(
-                    if (isVisible.value)
+                    if (isOpenCategory)
                         drawables.iconArrowUp
                     else
                         drawables.iconArrowDown,
@@ -86,10 +84,8 @@ fun ListingAppBar(
             }
         },
         navigationIcon = {
-            AnimatedVisibility (isShowNav) {
-                NavigationArrowButton {
-                    onBackClick()
-                }
+            NavigationArrowButton {
+                onBackClick()
             }
         },
         actions = {

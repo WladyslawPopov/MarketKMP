@@ -6,6 +6,7 @@ import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.functions.SubscriptionOperations
@@ -52,55 +53,61 @@ class SubViewModel(
         }
     }
 
-    suspend fun enableSubscription(subId : Long) : Boolean {
-        val buffer = withContext(Dispatchers.IO) {
-            subscriptionOperations.postSubOperationsEnable(
-                subId
-            )
-        }
-        val res = buffer.success
-        val resError = buffer.error
-        return withContext(Dispatchers.Main) {
-            if (res != null) {
-                return@withContext true
-            } else {
-                if (resError != null) {
-                    onError(resError)
+    fun enableSubscription(subId : Long, onSuccess : () -> Unit) {
+        viewModelScope.launch {
+            val buffer = withContext(Dispatchers.IO) {
+                subscriptionOperations.postSubOperationsEnable(
+                    subId
+                )
+            }
+            val res = buffer.success
+            val resError = buffer.error
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    onSuccess()
+                } else {
+                    if (resError != null) {
+                        onError(resError)
+                    }
                 }
-                return@withContext false
             }
         }
     }
 
-    suspend fun disableSubscription(subId : Long) : Boolean {
-        val buffer = withContext(Dispatchers.IO) {
-            subscriptionOperations.postSubOperationsDisable(
-                subId
-            )
-        }
-        val res = buffer.success
-        val resError = buffer.error
-        return withContext(Dispatchers.Main) {
-            if (res != null) {
-                return@withContext true
-            } else {
-                if (resError != null) {
-                    onError(resError)
+    fun disableSubscription(subId : Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val buffer = withContext(Dispatchers.IO) {
+                subscriptionOperations.postSubOperationsDisable(
+                    subId
+                )
+            }
+            val res = buffer.success
+            val resError = buffer.error
+
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    onSuccess()
+                } else {
+                    if (resError != null) {
+                        onError(resError)
+                    }
                 }
-                return@withContext false
             }
         }
     }
 
-    suspend fun deleteSubscription(subId : Long) : Boolean {
-        val buf = withContext(Dispatchers.IO) {
-            subscriptionOperations.postSubOperationsDelete(
-                subId
-            )
-        }
-        return withContext(Dispatchers.Main) {
-            val res = buf.success
-            return@withContext res != null
+    fun deleteSubscription(subId : Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val buf = withContext(Dispatchers.IO) {
+                subscriptionOperations.postSubOperationsDelete(
+                    subId
+                )
+            }
+            withContext(Dispatchers.Main) {
+                val res = buf.success
+                if (res != null)
+                    onSuccess()
+            }
         }
     }
 }

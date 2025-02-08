@@ -33,7 +33,6 @@ interface HomeComponent {
 
     fun goToLogin()
     fun goToOffer(id: Long)
-
     fun goToNewSearch()
     fun goToCategory(category: TopCategory)
     fun goToAllPromo()

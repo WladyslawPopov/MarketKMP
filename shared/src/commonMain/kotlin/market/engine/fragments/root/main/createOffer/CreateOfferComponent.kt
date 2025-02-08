@@ -70,9 +70,19 @@ class DefaultCreateOfferComponent(
                 val searchData = SD()
                 searchData.searchCategoryID = catPath?.get(0) ?: 1L
                 createOfferViewModel.getCategories(searchData, LD(), withoutCounter = true)
+                createOfferViewModel.analyticsHelper.reportEvent("add_offer_start", mapOf())
             }
-            else ->{
-                createOfferViewModel.activeFiltersType.value = ""
+            CreateOfferType.EDIT -> {
+                createOfferViewModel.analyticsHelper.reportEvent("edit_offer_start", mapOf())
+            }
+            CreateOfferType.COPY -> {
+                createOfferViewModel.analyticsHelper.reportEvent("copy_offer_start", mapOf())
+            }
+            CreateOfferType.COPY_WITHOUT_IMAGE ->{
+                createOfferViewModel.analyticsHelper.reportEvent("copy_offer_without_image_start", mapOf())
+            }
+            CreateOfferType.COPY_PROTOTYPE ->{
+                createOfferViewModel.analyticsHelper.reportEvent("copy_offer_prototype_start", mapOf())
             }
         }
     }

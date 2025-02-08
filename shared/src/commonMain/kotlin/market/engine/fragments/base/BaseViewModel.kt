@@ -22,6 +22,9 @@ import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.errorToastItem
+import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ToastItem
 import market.engine.core.network.APIService
@@ -34,8 +37,8 @@ import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.functions.UserOperations
-import market.engine.core.network.networkObjects.AppResponse
 import market.engine.core.repositories.UserRepository
+import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
@@ -72,6 +75,8 @@ open class BaseViewModel: ViewModel() {
 
     val viewModelScope = CoroutineScope(Dispatchers.Default)
 
+    val settings : SettingsRepository = getKoin().get()
+
     fun onError(exception: ServerErrorException) {
         _errorMessage.value = exception
     }
@@ -87,9 +92,6 @@ open class BaseViewModel: ViewModel() {
             toastItem.value = ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
         }
     }
-
-    val settings : SettingsRepository = getKoin().get()
-
 
     fun getCategories(searchData : SD, listingData : LD, withoutCounter : Boolean = false) {
 
@@ -178,15 +180,37 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    suspend fun addNewSubscribe(listingData : LD, searchData : SD) : AppResponse? {
-        try {
-            val response = withContext(Dispatchers.IO) {
-                userOperations.getUserOperationsCreateSubscription(UserData.login)
+    fun addToFavorites(offer: Offer, onSuccess: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val buf = if (!offer.isWatchedByMe)
+                offerOperations.postOfferOperationWatch(offer.id)
+            else
+                offerOperations.postOfferOperationUnwatch(offer.id)
+
+            val res = buf.success
+            withContext(Dispatchers.Main) {
+                if (res != null && res.success) {
+                    analyticsHelper.reportEvent("click_favorite", mapOf("offer_id" to offer.id, "is_favorite" to offer.isWatchedByMe))
+                    updateUserInfo()
+                    onSuccess(!offer.isWatchedByMe)
+                }
             }
+        }
+    }
+
+    fun addNewSubscribe(
+        listingData : LD,
+        searchData : SD,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = userOperations.getUserOperationsCreateSubscription(UserData.login)
 
             val eventParameters : ArrayList<Pair<String, Any?>> = arrayListOf(
                 "buyer_id" to UserData.login.toString(),
             )
+            analyticsHelper.reportEvent("click_subscribe_query", eventParameters.toMap())
 
             val body = HashMap<String, JsonElement>()
             response.success?.fields?.forEach { field ->
@@ -255,19 +279,73 @@ open class BaseViewModel: ViewModel() {
                 }
             }
 
-            val res = withContext(Dispatchers.IO) {
-                userOperations.postUserOperationsCreateSubscription(UserData.login, body)
+            val res = userOperations.postUserOperationsCreateSubscription(UserData.login, body)
+
+            withContext(Dispatchers.Main) {
+                if (res.success?.success == true) {
+                    showToast(
+                        successToastItem.copy(
+                            message = res.success?.humanMessage ?: getString(strings.operationSuccess)
+                        )
+                    )
+                    delay(1000)
+                    onSuccess()
+                }else {
+                    onError(res.success?.humanMessage ?: "")
+                }
+            }
+        }
+    }
+
+    fun addBid(
+        sum: String,
+        offerId: Long,
+        onSuccess: () -> Unit,
+        onDismiss: () -> Unit
+    ){
+        val eventParameters : MutableMap<String, Any?> = mutableMapOf(
+            "lot_id" to offerId,
+            "price" to sum,
+            "buyer_id" to UserData.userInfo?.id,
+        )
+
+        viewModelScope.launch {
+            val res =  withContext(Dispatchers.IO) {
+                val body = hashMapOf("price" to sum)
+                offerOperations.postOfferOperationsAddBid(
+                    offerId,
+                    body
+                )
             }
 
-            analyticsHelper.reportEvent("click_subscribe", eventParameters.toMap())
+            val buf = res.success
+            val error = res.error
 
-            return res.success
-        }catch (e : ServerErrorException){
-            onError(e)
-            return null
-        }catch (e : Exception){
-            onError(ServerErrorException(e.message ?: "Unknown error", ""))
-            return null
+            withContext(Dispatchers.Main) {
+                if (buf != null) {
+                    if (buf.success) {
+                        showToast(
+                            successToastItem.copy(
+                                message = buf.humanMessage ?: getString(strings.operationSuccess)
+                            )
+                        )
+                        eventParameters["operation_result"] = buf.humanMessage ?: getString(strings.operationSuccess)
+                        analyticsHelper.reportEvent("add_bid_success", eventParameters)
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = buf.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                        eventParameters["operation_result"] = buf.humanMessage ?: getString(strings.operationSuccess)
+                        analyticsHelper.reportEvent("add_bid_failed", eventParameters)
+                        onDismiss()
+                    }
+                } else {
+                    error?.let { onError(it) }
+                }
+            }
         }
     }
 

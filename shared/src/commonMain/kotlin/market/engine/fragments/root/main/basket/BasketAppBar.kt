@@ -3,7 +3,6 @@ package market.engine.fragments.root.main.basket
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,28 +21,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import market.engine.common.clipBoardEvent
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.ToastItem
-import market.engine.core.data.types.CreateOfferType
-import market.engine.core.data.types.ToastType
 import market.engine.widgets.badges.getBadgedBox
-import market.engine.widgets.buttons.NavigationArrowButton
-import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 

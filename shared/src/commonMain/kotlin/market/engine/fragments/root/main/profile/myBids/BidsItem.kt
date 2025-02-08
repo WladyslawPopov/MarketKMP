@@ -33,7 +33,7 @@ import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.CreateOfferDialog
 import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.rows.HeaderOfferItem
+import market.engine.widgets.items.HeaderOfferItem
 import market.engine.widgets.rows.UserColumn
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

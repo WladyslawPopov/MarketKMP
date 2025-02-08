@@ -68,12 +68,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.common.openUrl
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -86,7 +84,6 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Param
 import market.engine.core.network.networkObjects.PaymentMethod
 import market.engine.core.network.networkObjects.Value
-import market.engine.core.network.operations.operationFavorites
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.utils.convertDateWithMinutes
@@ -104,11 +101,11 @@ import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.exceptions.FullScreenImageViewer
 import market.engine.widgets.exceptions.HorizontalImageViewer
 import market.engine.widgets.dropdown_menu.getOfferOperations
-import market.engine.widgets.exceptions.BackHandler
-import market.engine.widgets.exceptions.onError
+import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
-import market.engine.widgets.rows.UserPanel
+import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
@@ -235,17 +232,6 @@ fun OfferContent(
                 OfferAppBar(
                     offer,
                     offerViewModel,
-                    isFavorite = offer.isWatchedByMe,
-                    onFavClick = {
-                        if (UserData.token != "") {
-                            val res = operationFavorites(offer, offerViewModel.viewModelScope)
-                            offerViewModel.updateUserInfo()
-                            return@OfferAppBar res
-                        }else{
-                            component.goToLogin()
-                            return@OfferAppBar false
-                        }
-                    },
                     onBeakClick = {
                         if (!isImageViewerVisible.value) {
                             component.onBeakClick()
@@ -545,9 +531,7 @@ fun OfferContent(
                                     },
                                     onAddToCartClick = {
                                         if (UserData.token != "") {
-                                            offerViewModel.viewModelScope.launch {
-                                                offerViewModel.addToBasket(offer.id)
-                                            }
+                                            offerViewModel.addToBasket(offer.id)
                                         }else{
                                             component.goToLogin()
                                         }
@@ -762,10 +746,7 @@ fun OfferContent(
                         // seller panel
                         item {
                             SeparatorLabel(stringResource(strings.sellerLabel))
-                            val showDialog = remember { mutableStateOf(false) }
                             val errorString = remember { mutableStateOf("") }
-                            val os = stringResource(strings.operationSuccess)
-                            val es = stringResource(strings.operationFailed)
 
                             UserPanel(
                                 modifier = Modifier.fillMaxWidth()
@@ -785,29 +766,22 @@ fun OfferContent(
                                 },
                                 addToSubscriptions = {
                                     if(UserData.token != "") {
-                                        offerViewModel.viewModelScope.launch {
-                                            val res = offerViewModel.addNewSubscribe(
-                                                LD(), SD().copy(
-                                                    userLogin = offer.sellerData?.login,
-                                                    userID = offer.sellerData?.id ?: 1L,
-                                                    userSearch = true
-                                                )
-                                            )
-                                            if (res?.success == true) {
-                                                offerViewModel.showToast(
-                                                    successToastItem.copy(
-                                                        message = res.humanMessage ?: os
-                                                    )
-                                                )
-                                                delay(1000)
+                                        offerViewModel.addNewSubscribe(
+                                            LD(),
+                                            SD().copy(
+                                                userLogin = offer.sellerData?.login,
+                                                userID = offer.sellerData?.id ?: 1L,
+                                                userSearch = true
+                                            ),
+                                            onSuccess = {
                                                 offerViewModel.getUserInfo(
                                                     offer.sellerData?.id ?: 1L
                                                 )
-                                            } else {
-                                                errorString.value = res?.humanMessage ?: es
-                                                showDialog.value = true
+                                            },
+                                            onError = { es ->
+                                                errorString.value = es
                                             }
-                                        }
+                                        )
                                     }else{
                                         component.goToLogin()
                                     }
@@ -819,14 +793,14 @@ fun OfferContent(
                             )
 
                             CreateSubscribeDialog(
-                                showDialog.value,
+                                errorString.value != "",
                                 errorString.value,
                                 onDismiss = {
-                                    showDialog.value = false
+                                    errorString.value = ""
                                 },
                                 goToSubscribe = {
                                     component.goToSubscribes()
-                                    showDialog.value = false
+                                    errorString.value = ""
                                 }
                             )
                         }

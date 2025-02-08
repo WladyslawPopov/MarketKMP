@@ -56,12 +56,6 @@ class DynamicSettingsViewModel : BaseViewModel() {
         userRepository.updateToken()
         if (UserData.token != "") {
             viewModelScope.launch {
-                val eventParameters = mapOf(
-                    "user_id" to UserData.login,
-                    "profile_source" to "settings",
-                )
-                analyticsHelper.reportEvent("view_set_login", eventParameters)
-
                 val buffer = withContext(Dispatchers.IO) {
                     userOperations.getUsersOperationsSetLogin(UserData.login)
                 }
@@ -105,12 +99,6 @@ class DynamicSettingsViewModel : BaseViewModel() {
         userRepository.updateToken()
         if (UserData.token != "") {
             viewModelScope.launch {
-                val eventParameters = mapOf(
-                    "user_id" to UserData.login,
-                    "profile_source" to "settings",
-                )
-                analyticsHelper.reportEvent("view_set_about_me", eventParameters)
-
                 val buffer = withContext(Dispatchers.IO) {
                     userOperations.getUsersOperationsSetAboutMe(UserData.login)
                 }
@@ -143,13 +131,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
             withContext(Dispatchers.Main) {
                 setLoading(false)
                 if (payload != null) {
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings",
-                    )
-                    analyticsHelper.reportEvent("view_set_email", eventParameters)
                     _builderDescription.value = payload
-
                 } else {
                     if (resErr != null) {
                        onError(resErr)
@@ -179,13 +161,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
             withContext(Dispatchers.Main) {
                 setLoading(false)
                 if (payload != null) {
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings",
-                    )
-                    analyticsHelper.reportEvent("view_$settingsType", eventParameters)
                     _builderDescription.value = payload
-
                 } else {
                     if (resErr != null) {
                         onError(resErr)
@@ -209,13 +185,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                 withContext(Dispatchers.Main) {
                     setLoading(false)
                     if (payload != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                        )
-                        analyticsHelper.reportEvent("view_set_phone", eventParameters)
                         _builderDescription.value = payload
-
                     } else {
                         if (resErr != null) {
                             onError(resErr)

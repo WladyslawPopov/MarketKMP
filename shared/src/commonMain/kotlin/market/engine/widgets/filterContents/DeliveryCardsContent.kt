@@ -1,4 +1,4 @@
-package market.engine.widgets.exceptions
+package market.engine.widgets.filterContents
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement

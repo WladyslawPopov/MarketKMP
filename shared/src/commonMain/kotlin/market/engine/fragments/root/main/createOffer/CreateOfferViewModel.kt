@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
@@ -143,7 +144,7 @@ class CreateOfferViewModel : BaseViewModel() {
                         try {
                             val serializer = DynamicPayload.serializer(OperationResult.serializer())
                             val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            if (payload.status == "operation_success"){
+                            if (payload.status == "operation_success") {
                                 showToast(
                                     ToastItem(
                                         isVisible = true,
@@ -153,6 +154,11 @@ class CreateOfferViewModel : BaseViewModel() {
                                 )
                                 _responsePostPage.value = payload
                             }else{
+                                val eventParams = mapOf(
+                                    "error_type" to payload.globalErrorMessage,
+                                    "seller_id" to UserData.userInfo?.id
+                                )
+                                analyticsHelper.reportEvent("added_offer_fail", eventParams)
                                 showToast(
                                     ToastItem(
                                         isVisible = true,

@@ -43,7 +43,7 @@ import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.exceptions.showNoItemLayout
+import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.painterResource

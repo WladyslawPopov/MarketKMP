@@ -28,7 +28,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.processInput
-import market.engine.widgets.rows.RichTextStyleRow
+import market.engine.widgets.bars.RichTextStyleBar
 import market.engine.widgets.texts.DynamicLabel
 import market.engine.widgets.texts.ErrorText
 import market.engine.widgets.texts.SeparatorLabel
@@ -63,7 +63,7 @@ fun DescriptionOfferTextField(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        RichTextStyleRow(
+        RichTextStyleBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimens.smallPadding),

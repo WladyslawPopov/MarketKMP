@@ -398,6 +398,14 @@ class CreateOrderViewModel: BaseViewModel() {
                                     type = ToastType.SUCCESS
                                 )
                             )
+
+                            val id = payload.operationResult?.message?.toLong()
+
+                            val ep = mapOf(
+                                "buyer_id" to UserData.login,
+                                "order_id" to id
+                            )
+                            analyticsHelper.reportEvent("create_order_success", ep)
                             _responsePostPage.value = payload
                         }else{
                             showToast(
@@ -408,6 +416,11 @@ class CreateOrderViewModel: BaseViewModel() {
                                     type = ToastType.ERROR
                                 )
                             )
+                            val ep = mapOf(
+                                "buyer_id" to UserData.login,
+                                "body" to jsonBody,
+                            )
+                            analyticsHelper.reportEvent("create_order_failed", ep)
                             _responsePostPage.value = payload
                         }
                     }catch (e: Exception){

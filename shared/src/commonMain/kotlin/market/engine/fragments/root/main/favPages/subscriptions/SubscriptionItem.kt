@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -271,17 +270,16 @@ fun SubscriptionItem(
                 Switch(
                     checked = isEnabled.value,
                     onCheckedChange = {
-                        viewModel.viewModelScope.launch {
-                            val res = if (isEnabled.value)
-                                viewModel.disableSubscription(subscription.id)
-                            else
-                                viewModel.enableSubscription(subscription.id)
-
-                            if (res) {
+                        if (isEnabled.value)
+                            viewModel.disableSubscription(subscription.id){
                                 subscription.isEnabled = !subscription.isEnabled
                                 isEnabled.value = !isEnabled.value
                             }
-                        }
+                        else
+                            viewModel.enableSubscription(subscription.id){
+                                subscription.isEnabled = !subscription.isEnabled
+                                isEnabled.value = !isEnabled.value
+                            }
                     },
                     colors = SwitchDefaults.colors(
                         checkedBorderColor = colors.transparent,

@@ -1,4 +1,4 @@
-package market.engine.widgets.rows
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

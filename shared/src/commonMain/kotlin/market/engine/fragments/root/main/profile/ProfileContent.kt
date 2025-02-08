@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import market.engine.fragments.base.BaseContent
-import market.engine.widgets.exceptions.ProfileNavContent
 
 @Composable
 fun ProfileContent(

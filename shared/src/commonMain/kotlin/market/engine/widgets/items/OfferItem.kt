@@ -24,7 +24,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -39,7 +38,6 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseViewModel
-import market.engine.widgets.rows.HeaderOfferItem
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
@@ -57,13 +55,12 @@ fun OfferItem(
     baseViewModel: BaseViewModel,
     updateTrigger : Int,
     isSelection : Boolean = false,
+    isShowFavorites : Boolean = false,
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
-    onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
     goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
     onItemClick: () -> Unit = {}
 ) {
-
     var isPromo = false
 
     val analyticsHelper : AnalyticsHelper = AnalyticsFactory.createAnalyticsHelper()
@@ -122,9 +119,9 @@ fun OfferItem(
                     offer,
                     isGrid,
                     onUpdateOfferItem != null,
+                    isShowFavorites,
                     baseViewModel,
                     updateTrigger,
-                    onFavouriteClick,
                 )
             }
         } else {
@@ -137,9 +134,9 @@ fun OfferItem(
                     offer,
                     isGrid,
                     onUpdateOfferItem != null,
+                    isShowFavorites,
                     baseViewModel,
                     updateTrigger,
-                    onFavouriteClick,
                 )
             }
         }
@@ -172,10 +169,10 @@ fun OfferItem(
 fun contentStructure(
     offer: Offer,
     isGrid : Boolean,
-    isShowPromo : Boolean = false,
+    isShowPromo : Boolean,
+    isShowFavourite : Boolean,
     baseViewModel: BaseViewModel,
-    updateTrigger : Int = 0,
-    onFavouriteClick: (suspend (Offer) -> Boolean)? = null,
+    updateTrigger : Int,
 ){
     val imageSize =
         if (getWindowType() == WindowType.Big){
@@ -214,10 +211,10 @@ fun contentStructure(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            content(offer, baseViewModel,updateTrigger,isShowPromo, onFavouriteClick)
+            content(offer, baseViewModel,updateTrigger,isShowPromo, isShowFavourite)
         }
     }else{
-        content(offer, baseViewModel, updateTrigger,isShowPromo, onFavouriteClick)
+        content(offer, baseViewModel, updateTrigger,isShowPromo, isShowFavourite)
     }
 }
 
@@ -228,17 +225,17 @@ fun content(
     offer: Offer,
     baseViewModel : BaseViewModel,
     updateTrigger : Int = 0,
-    isShowPromo : Boolean = false,
-    onFavouriteClick: (suspend (Offer) -> Boolean)? = null
+    isShowPromo : Boolean,
+    isShowFavourite : Boolean,
 ){
     if (updateTrigger < 0) return
 
     Row(
         modifier = Modifier.fillMaxWidth().padding(dimens.extraSmallPadding),
     ) {
-        TitleText(text = offer.title ?: "", modifier = Modifier.weight(if (onFavouriteClick != null) 0.8f else 1f))
+        TitleText(text = offer.title ?: "", modifier = Modifier.weight(if (isShowFavourite) 0.8f else 1f))
 
-        if (onFavouriteClick != null) {
+        if (isShowFavourite) {
             SmallIconButton(
                 icon = if (offer.isWatchedByMe) drawables.favoritesIconSelected
                 else drawables.favoritesIcon,
@@ -246,8 +243,8 @@ fun content(
                 modifierIconSize = Modifier.size(dimens.smallIconSize),
                 modifier = Modifier.align(Alignment.Top).weight(0.2f)
             ){
-                baseViewModel.viewModelScope.launch {
-                    offer.isWatchedByMe = onFavouriteClick(offer)
+                baseViewModel.addToFavorites(offer){
+                    offer.isWatchedByMe = it
                     baseViewModel.updateItemTrigger.value++
                 }
             }
@@ -415,10 +412,12 @@ fun content(
         }
 
         offer.sellerData?.let {
-            UserColumn(
-                it,
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (it.id != UserData.login) {
+                UserColumn(
+                    it,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         Text(

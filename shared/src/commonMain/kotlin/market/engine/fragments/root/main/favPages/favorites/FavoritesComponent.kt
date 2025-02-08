@@ -67,46 +67,6 @@ class DefaultFavoritesComponent(
     //private val listingData = model.value.listingData.data
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
-        if (isTopPromo){
-            val eventParameters = mapOf(
-                "lot_category" to offer.catpath.lastOrNull(),
-                "lot_id" to offer.id,
-            )
-
-            analyticsHelper.reportEvent(
-                "click_super_top_lots",
-                eventParameters
-            )
-        }
-        if (searchData.value.userSearch || searchData.value.searchString.isNotEmpty()){
-            val eventParameters = mapOf(
-                "lot_id" to offer.id,
-                "lot_name" to offer.title,
-                "lot_city" to offer.freeLocation,
-                "auc_delivery" to offer.safeDeal,
-                "lot_category" to offer.catpath.lastOrNull(),
-                "seller_id" to offer.sellerData?.id,
-                "lot_price_start" to offer.currentPricePerItem
-            )
-            analyticsHelper.reportEvent(
-                "click_search_results_item",
-                eventParameters
-            )
-        }else{
-            val eventParameters = mapOf(
-                "lot_id" to offer.id,
-                "lot_name" to offer.title,
-                "lot_city" to offer.freeLocation,
-                "auc_delivery" to offer.safeDeal,
-                "lot_category" to offer.catpath.lastOrNull(),
-                "seller_id" to offer.sellerData?.id,
-                "lot_price_start" to offer.currentPricePerItem
-            )
-            analyticsHelper.reportEvent(
-                "click_item_at_catalog",
-                eventParameters
-            )
-        }
         goToOffer(offer.id)
         lifecycle.doOnResume {
             favViewModel.updateItem.value = offer.id

@@ -54,8 +54,8 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.DynamicSelect
-import market.engine.widgets.exceptions.BackHandler
-import market.engine.widgets.exceptions.onError
+import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource

@@ -27,8 +27,8 @@ import market.engine.widgets.grids.GridPopularCategory
 import market.engine.widgets.grids.GridPromoOffers
 import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
-import market.engine.widgets.exceptions.BackHandler
-import market.engine.widgets.exceptions.onError
+import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

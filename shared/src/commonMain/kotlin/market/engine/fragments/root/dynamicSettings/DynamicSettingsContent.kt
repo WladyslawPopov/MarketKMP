@@ -50,15 +50,16 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.SettingsRepository
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
-import market.engine.widgets.exceptions.BackHandler
-import market.engine.widgets.exceptions.SetUpDynamicFields
-import market.engine.widgets.exceptions.onError
-import market.engine.widgets.rows.RichTextStyleRow
+import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.SetUpDynamicFields
+import market.engine.fragments.base.onError
+import market.engine.widgets.bars.RichTextStyleBar
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
 import market.engine.widgets.texts.SeparatorLabel
@@ -312,7 +313,7 @@ fun DynamicSettingsContent(
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                RichTextStyleRow(
+                                RichTextStyleBar(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(dimens.smallPadding),

@@ -1,4 +1,4 @@
-package market.engine.widgets.rows
+package market.engine.widgets.items
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

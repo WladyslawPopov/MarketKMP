@@ -12,7 +12,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
@@ -23,7 +22,7 @@ import market.engine.fragments.root.main.profile.ProfileComponent
 import market.engine.fragments.root.main.profile.myOffers.DefaultMyOffersComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersAppBar
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
-import market.engine.widgets.exceptions.ProfileDrawer
+import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.root.main.profile.myOffers.MyOffersContent
 
 

@@ -51,6 +51,8 @@ class OfferViewModel(
 
     val isMyOffer = mutableStateOf(false)
 
+    var eventParameters : Map<String, Any?> = mapOf()
+
     fun getOffer(id: Long, isSnapshot: Boolean = false) {
         viewModelScope.launch {
             try {
@@ -73,7 +75,6 @@ class OfferViewModel(
             }
         }
     }
-
 
     fun getUserInfo(id : Long) {
         viewModelScope.launch {
@@ -118,10 +119,28 @@ class OfferViewModel(
 
                         isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
 
+                         eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title,
+                            "lot_city" to offer.freeLocation,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category_id" to offer.catpath.lastOrNull(),
+                            "seller_id" to offer.sellerData?.id,
+                            "lot_price_start" to offer.currentPricePerItem,
+                            "visitor_id" to UserData.userInfo?.id
+                        )
+
                         offerState.value = when {
-                            isSnapshot -> OfferStates.SNAPSHOT
-                            offer.isPrototype -> OfferStates.PROTOTYPE
+                            isSnapshot -> {
+                                analyticsHelper.reportEvent("view_item_snapshot", eventParameters)
+                                OfferStates.SNAPSHOT
+                            }
+                            offer.isPrototype -> {
+                                analyticsHelper.reportEvent("view_item_prototype", eventParameters)
+                                OfferStates.PROTOTYPE
+                            }
                             offer.state == "active" -> {
+                                analyticsHelper.reportEvent("view_item", eventParameters)
                                 when {
                                     (offer.session?.start?.toLongOrNull()
                                         ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
@@ -134,10 +153,14 @@ class OfferViewModel(
                             }
 
                             offer.state == "sleeping" -> {
+                                analyticsHelper.reportEvent("view_item", eventParameters)
                                 if (offer.session == null || offer.buyerData!=null) OfferStates.COMPLETED else OfferStates.INACTIVE
                             }
 
-                            else -> offerState.value
+                            else -> {
+                                analyticsHelper.reportEvent("view_item", eventParameters)
+                                offerState.value
+                            }
                         }
 
                         if (!isMyOffer.value && offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
@@ -232,7 +255,6 @@ class OfferViewModel(
         }
     }
 
-
     private fun startTimerUpdateBids(offer: Offer) {
         val initialTime = (offer.session?.end?.toLongOrNull()?.let { it - getCurrentDate().toLong() } ?: 0L) * 1000
 
@@ -284,32 +306,36 @@ class OfferViewModel(
         }
     }
 
-    suspend fun addToBasket(offerId: Long): Boolean? {
-        try {
-            return withContext(Dispatchers.IO){
-                val bodyAddB = HashMap<String,String>()
-                bodyAddB["offer_id"] = offerId.toString()
-
-                val response = userOperations.postUsersOperationsAddItemToCart(UserData.login, bodyAddB)
-                if (response.success?.success == true){
-                    showToast(
-                        successToastItem.copy(message = getString(strings.offerAddedToBasketLabel))
-                    )
-                    updateUserInfo()
-                   return@withContext true
-                }else{
-                    throw ServerErrorException(
-                        errorCode = response.success?.errorCode ?: "",
-                        humanMessage = response.success?.humanMessage ?: ""
-                    )
+    fun addToBasket(offerId: Long) {
+        viewModelScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO){
+                    val bodyAddB = HashMap<String,String>()
+                    bodyAddB["offer_id"] = offerId.toString()
+                    userOperations.postUsersOperationsAddItemToCart(UserData.login, bodyAddB)
                 }
+                withContext(Dispatchers.Main) {
+                    if (response.success?.success == true) {
+                        analyticsHelper.reportEvent(
+                            "add_item_to_cart",
+                            eventParameters
+                        )
+                        showToast(
+                            successToastItem.copy(message = getString(strings.offerAddedToBasketLabel))
+                        )
+                        updateUserInfo()
+                    } else {
+                        throw ServerErrorException(
+                            errorCode = response.success?.errorCode ?: "",
+                            humanMessage = response.success?.humanMessage ?: ""
+                        )
+                    }
+                }
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
             }
-        } catch (exception: ServerErrorException) {
-            onError(exception)
-            return null
-        } catch (exception: Exception) {
-            onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-            return null
         }
     }
 

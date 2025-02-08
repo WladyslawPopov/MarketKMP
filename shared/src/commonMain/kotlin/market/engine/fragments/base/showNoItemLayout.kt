@@ -1,4 +1,4 @@
-package market.engine.widgets.exceptions
+package market.engine.fragments.base
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -14,56 +16,67 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun showErrLayout(err: String, onRefresh: () -> Unit) {
+fun showNoItemLayout(
+    icon: DrawableResource? = null,
+    image : DrawableResource = drawables.notFoundListingIcon,
+    title: String = stringResource(strings.notFoundListingTitle),
+    textButton: String = stringResource(strings.refreshButton),
+    modifier: Modifier = Modifier.fillMaxSize().background(colors.primaryColor),
+    onRefresh: () -> Unit
+) {
     Box(
-        modifier = Modifier.fillMaxSize().zIndex(50f).background(color = colors.primaryColor),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ){
         Column {
-            Image(
-                painterResource(drawables.oopsIcon),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(0.5f).align(Alignment.CenterHorizontally),
-            )
-            Spacer(modifier = Modifier.height(dimens.mediumSpacer))
+            when{
+                icon != null -> {
+                    Icon(
+                        painterResource(icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(90.dp).align(Alignment.CenterHorizontally),
+                        tint = colors.textA0AE
+                    )
+                }
+                else -> {
+                    Image(
+                        painterResource(image),
+                        contentDescription = null,
+                        modifier = Modifier.size(200.dp).align(Alignment.CenterHorizontally),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
             Text(
-                text = stringResource(strings.oopsTitle),
+                text = title,
                 textAlign = TextAlign.Center,
-                color = colors.titleTextColor,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(dimens.mediumSpacer))
-
-            Text(
-                text = err,
-                textAlign = TextAlign.Center,
-                color = colors.steelBlue,
-                style = MaterialTheme.typography.bodyMedium
+                color = colors.darkBodyTextColor,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
             Spacer(modifier = Modifier.height(dimens.mediumSpacer))
 
             TextButton(
-                onClick = {
-                    onRefresh()
-                },
+                onClick = onRefresh,
                 colors = colors.themeButtonColors,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 shape = MaterialTheme.shapes.small
             ){
                 Text(
-                    text = stringResource(strings.refreshButton),
+                    text = textButton,
                     textAlign = TextAlign.Center,
                     color = colors.black
                 )

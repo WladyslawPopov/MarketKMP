@@ -43,10 +43,10 @@ import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.exceptions.BackHandler
+import market.engine.fragments.base.BackHandler
 import market.engine.widgets.exceptions.CaptchaView
-import market.engine.widgets.exceptions.onError
-import market.engine.widgets.textFields.TextInputField
+import market.engine.fragments.base.onError
+import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -196,7 +196,7 @@ fun LoginContent(
                     )
                 }
                  item {
-                     TextInputField(
+                     OutlinedTextInputField(
                          value = emailTextValue.value,
                          onValueChange = {
                              emailTextValue.value = it
@@ -207,7 +207,7 @@ fun LoginContent(
                          isEmail = true
                      )
 
-                     TextInputField(
+                     OutlinedTextInputField(
                          value = passwordTextValue.value,
                          onValueChange = {
                              passwordTextValue.value = it

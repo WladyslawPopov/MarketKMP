@@ -92,28 +92,18 @@ fun getSubscriptionOperations(
                 onClick = {
                     when (operation.id)  {
                         "enable_subscription" ->{
-                            scope.launch {
-                                val res = viewModel.enableSubscription(subscription.id)
-                                withContext(Dispatchers.Main) {
-                                    if (res) {
-                                        subscription.isEnabled = true
-                                        viewModel.updateItemTrigger.value++
-                                        onClose()
-                                    }
-                                }
-                            }
+                           viewModel.enableSubscription(subscription.id){
+                                subscription.isEnabled = true
+                                viewModel.updateItemTrigger.value++
+                           }
+                           onClose()
                         }
                         "disable_subscription" ->{
-                            scope.launch {
-                                val res = viewModel.disableSubscription(subscription.id)
-                                withContext(Dispatchers.Main) {
-                                    if (res) {
-                                        subscription.isEnabled = false
-                                        viewModel.updateItemTrigger.value++
-                                        onClose()
-                                    }
-                                }
+                            viewModel.disableSubscription(subscription.id){
+                                subscription.isEnabled = false
+                                viewModel.updateItemTrigger.value++
                             }
+                            onClose()
                         }
                         "edit_subscription" ->{
                             goToEditSubscription(subscription.id)
@@ -139,29 +129,24 @@ fun getSubscriptionOperations(
                     text = stringResource(strings.acceptAction),
                     backgroundColor = colors.grayLayout,
                     onClick = {
-                        scope.launch {
-                            val res = viewModel.deleteSubscription(subscription.id)
-                            withContext(Dispatchers.Main) {
-                                if (res) {
-                                    val eventParameters = mapOf(
-                                        "buyer_id" to UserData.login,
-                                        "item_id" to subscription.id
-                                    )
-                                    analyticsHelper.reportEvent(
-                                        "delete_subscription",
-                                        eventParameters
-                                    )
-                                    subscription.id = 1L
-                                    viewModel.updateItemTrigger.value++
-                                    viewModel.showToast(
-                                        successToastItem.copy(
-                                            message = operationString
-                                        )
-                                    )
-                                    onClose()
-                                }
-                            }
+                        viewModel.deleteSubscription(subscription.id){
+                            val eventParameters = mapOf(
+                                "buyer_id" to UserData.login,
+                                "item_id" to subscription.id
+                            )
+                            analyticsHelper.reportEvent(
+                                "delete_subscription",
+                                eventParameters
+                            )
+                            subscription.id = 1L
+                            viewModel.updateItemTrigger.value++
+                            viewModel.showToast(
+                                successToastItem.copy(
+                                    message = operationString
+                                )
+                            )
                         }
+                        onClose()
                         showDeleteOfferDialog.value = false
                     }
                 )

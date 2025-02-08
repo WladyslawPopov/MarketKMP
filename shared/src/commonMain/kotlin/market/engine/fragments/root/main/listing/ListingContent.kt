@@ -25,14 +25,10 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.data.baseFilters.LD
-import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.EmptyFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.network.operations.operationFavorites
 import market.engine.core.data.types.WindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
@@ -45,9 +41,9 @@ import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.dialogs.CreateSubscribeDialog
-import market.engine.widgets.exceptions.BackHandler
-import market.engine.widgets.exceptions.onError
-import market.engine.widgets.exceptions.showNoItemLayout
+import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
+import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.FilterListingContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.OfferItem
@@ -169,57 +165,39 @@ fun ListingContent(
         }
     }
 
+    val categoryBackClick = {
+        listingViewModel.viewModelScope.launch {
+            val newCat = listingViewModel.onCatBack(selectedCategoryParentID.value ?: 1L)
+            if (newCat != null) {
+                selectedCategoryID.value = newCat.id
+                selectedCategory.value = newCat.name ?: catDef
+                selectedCategoryParentID.value = newCat.parentId
+                selectedCategoryIsLeaf.value = newCat.isLeaf
+                val sd = searchData.value.copy(
+                    searchCategoryID = selectedCategoryID.value,
+                    searchCategoryName = selectedCategory.value,
+                    searchParentID = selectedCategoryParentID.value,
+                    searchIsLeaf = selectedCategoryIsLeaf.value
+                )
+                listingViewModel.getCategories(
+                    sd,
+                    listingData.value,
+                    false
+                )
+            }else{
+                listingViewModel.activeFiltersType.value = ""
+            }
+        }
+    }
+
     BackHandler(model.backHandler){
         when{
             listingViewModel.activeFiltersType.value == "categories" -> {
-                listingViewModel.viewModelScope.launch {
-                    val newCat = listingViewModel.onCatBack(selectedCategoryParentID.value ?: 1L)
-                    if (newCat != null) {
-                        selectedCategoryID.value = newCat.id
-                        selectedCategory.value = newCat.name ?: catDef
-                        selectedCategoryParentID.value = newCat.parentId
-                        selectedCategoryIsLeaf.value = newCat.isLeaf
-                        val sd = searchData.value.copy(
-                            searchCategoryID = selectedCategoryID.value,
-                            searchCategoryName = selectedCategory.value,
-                            searchParentID = selectedCategoryParentID.value,
-                            searchIsLeaf = selectedCategoryIsLeaf.value
-                        )
-                        listingViewModel.getCategories(
-                            sd,
-                            listingData.value,
-                            false
-                        )
-                    }else{
-                        listingViewModel.activeFiltersType.value = ""
-                    }
-                }
+                categoryBackClick()
             }
             listingViewModel.isOpenSearch.value -> {
                 if (openSearchCategoryBottomSheet.value){
-                    searchViewModel.viewModelScope.launch {
-                        val newCat =
-                            searchViewModel.onCatBack(selectedCategoryParentID.value ?: 1L)
-                        if (newCat != null) {
-                            selectedCategoryID.value = newCat.id
-                            selectedCategory.value = newCat.name ?: catDef
-                            selectedCategoryParentID.value = newCat.parentId
-                            selectedCategoryIsLeaf.value = newCat.isLeaf
-                            val sd = SD(
-                                searchCategoryID = selectedCategoryID.value,
-                                searchCategoryName = selectedCategory.value,
-                                searchParentID = selectedCategoryParentID.value,
-                                searchIsLeaf = selectedCategoryIsLeaf.value
-                            )
-                            searchViewModel.getCategories(
-                                sd,
-                                LD(),
-                                true
-                            )
-                        }else{
-                            openSearchCategoryBottomSheet.value = false
-                        }
-                    }
+                    categoryBackClick()
                 }else{
                     listingViewModel.isOpenSearch.value = false
                 }
@@ -239,8 +217,6 @@ fun ListingContent(
     }else{
         null
     }
-
-    val backCountClick = remember { mutableStateOf(0) }
 
     LaunchedEffect(listingViewModel.isOpenSearch.value) {
         snapshotFlow { listingViewModel.isOpenSearch.value }.collectLatest { isOpen ->
@@ -354,15 +330,11 @@ fun ListingContent(
     ) {
         BaseContent(
             topBar = {
-                val showDialog = remember { mutableStateOf(false) }
                 val errorString = remember { mutableStateOf("") }
-                val os = stringResource(strings.operationSuccess)
-                val es = stringResource(strings.operationFailed)
 
                 ListingAppBar(
                     title = title.value,
                     modifier,
-                    isShowNav = backCountClick.value == 0,
                     isOpenCategory = listingViewModel.activeFiltersType.value != "categories",
                     onBackClick = {
                         if (listingViewModel.activeFiltersType.value.isEmpty()) {
@@ -379,28 +351,20 @@ fun ListingContent(
                             listingViewModel.activeFiltersType.value = "categories"
                         }
                     },
+                    isShowSubscribes = (searchData.value.searchCategoryID != 1L || searchData.value.userSearch || searchData.value.searchString != ""),
                     onSearchClick = {
                         listingViewModel.isOpenSearch.value = true
                     },
                     onSubscribesClick = {
-
                         if(UserData.token != "") {
-                            listingViewModel.viewModelScope.launch {
-                                val res = listingViewModel.addNewSubscribe(
-                                    listingData.value,
-                                    searchData.value
-                                )
-                                if (res?.success == true) {
-                                    listingViewModel.showToast(
-                                        successToastItem.copy(
-                                            message = res.humanMessage ?: os
-                                        )
-                                    )
-                                } else {
-                                    errorString.value = res?.humanMessage ?: es
-                                    showDialog.value = true
+                            listingViewModel.addNewSubscribe(
+                                listingData.value,
+                                searchData.value,
+                                onSuccess = {},
+                                onError = { es ->
+                                    errorString.value = es
                                 }
-                            }
+                            )
                         }else{
                             goToLogin()
                         }
@@ -408,14 +372,14 @@ fun ListingContent(
                 )
 
                 CreateSubscribeDialog(
-                    showDialog.value,
+                    errorString.value != "",
                     errorString.value,
                     onDismiss = {
-                        showDialog.value = false
+                        errorString.value = ""
                     },
                     goToSubscribe = {
                         component.goToSubscribe()
-                        showDialog.value = false
+                        errorString.value = ""
                     }
                 )
             },
@@ -519,24 +483,8 @@ fun ListingContent(
                         offer,
                         isGrid = listingData.value.listingType == 1,
                         baseViewModel = listingViewModel,
+                        isShowFavorites = true,
                         updateTrigger = listingViewModel.updateItemTrigger.value,
-                        onFavouriteClick = {
-                            val currentOffer =
-                                data[data.itemSnapshotList.items.indexOf(
-                                    it
-                                )]
-                            if (currentOffer != null) {
-                                val res =
-                                    operationFavorites(
-                                        currentOffer,
-                                        listingViewModel.viewModelScope
-                                    )
-                                listingViewModel.updateUserInfo()
-                                return@OfferItem res
-                            } else {
-                                return@OfferItem it.isWatchedByMe
-                            }
-                        }
                     ) {
                         component.goToOffer(offer)
                     }

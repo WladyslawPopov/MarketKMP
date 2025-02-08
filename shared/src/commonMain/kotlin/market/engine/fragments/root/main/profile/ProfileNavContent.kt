@@ -1,4 +1,4 @@
-package market.engine.widgets.exceptions
+package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,7 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.dialogs.LogoutDialog
-import market.engine.widgets.rows.UserPanel
+import market.engine.widgets.bars.UserPanel
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

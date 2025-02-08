@@ -1,10 +1,11 @@
-package market.engine.widgets.exceptions
+package market.engine.fragments.base
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
@@ -21,6 +22,7 @@ fun onError(
     val humanMessage = error.humanMessage
     val errorCode = error.errorCode
 
+    val analyticsHelper = AnalyticsFactory.createAnalyticsHelper()
     val userRepository : UserRepository = koinInject()
 
     val showDialog = remember { mutableStateOf(false) }
@@ -53,7 +55,7 @@ fun onError(
                 goToDynamicSettings(humanMessage)
             }
             else -> {
-                if(humanMessage != "" && (humanMessage != "null" && humanMessage != "Unknown error" && humanMessage != "")){
+                if (humanMessage != "" && (humanMessage != "null" && humanMessage != "Unknown error" && humanMessage != "")) {
                     if (errorCode.isNotEmpty() && humanMessage.isNotEmpty()) {
                         showDialog.value = true
                     }
@@ -73,12 +75,14 @@ fun onError(
                                 )
                             }
                         )
-                    } else {
-
                     }
-                } else {
-
                 }
+
+                val eventParameters = mapOf(
+                    "exception_code" to errorCode,
+                    "exception_message" to humanMessage
+                )
+                analyticsHelper.reportEvent("exceptions_event", eventParameters)
             }
         }
     }

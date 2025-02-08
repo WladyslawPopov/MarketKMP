@@ -55,6 +55,11 @@ class DefaultBasketComponent(
     }
 
     override fun goToCreateOrder(basketItem : Pair<Long, List<SelectedBasketItem>>) {
+        val eventParameters = mapOf(
+            "seller_id" to basketItem.first.toString(),
+            "lot_count" to basketItem.second.size.toString()
+        )
+        analyticsHelper.reportEvent("click_checkout", eventParameters)
         navigateToCreateOrder(basketItem)
     }
 
