@@ -2,7 +2,6 @@ package market.engine.widgets.dropdown_menu
 
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -26,7 +25,7 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
-import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.dialogs.AccessDialog
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -117,50 +116,33 @@ fun getSubscriptionOperations(
         }
     }
 
-    if (showDeleteOfferDialog.value){
-        AlertDialog(
-            onDismissRequest = { showDeleteOfferDialog.value = false },
-            title = { Text(stringResource(strings.warningDeleteSubscription)) },
-            text = {  },
-            containerColor = colors.white,
-            tonalElevation = 0.dp,
-            confirmButton = {
-                SimpleTextButton(
-                    text = stringResource(strings.acceptAction),
-                    backgroundColor = colors.grayLayout,
-                    onClick = {
-                        viewModel.deleteSubscription(subscription.id){
-                            val eventParameters = mapOf(
-                                "buyer_id" to UserData.login,
-                                "item_id" to subscription.id
-                            )
-                            analyticsHelper.reportEvent(
-                                "delete_subscription",
-                                eventParameters
-                            )
-                            subscription.id = 1L
-                            viewModel.updateItemTrigger.value++
-                            viewModel.showToast(
-                                successToastItem.copy(
-                                    message = operationString
-                                )
-                            )
-                        }
-                        onClose()
-                        showDeleteOfferDialog.value = false
-                    }
+    AccessDialog(
+        showDeleteOfferDialog.value,
+        title = stringResource(strings.warningDeleteSubscription),
+        onSuccess = {
+            viewModel.deleteSubscription(subscription.id){
+                val eventParameters = mapOf(
+                    "buyer_id" to UserData.login,
+                    "item_id" to subscription.id
                 )
-            },
-            dismissButton = {
-                SimpleTextButton(
-                    text = stringResource(strings.closeWindow),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
-                    onClick = {
-                        showDeleteOfferDialog.value = false
-                        onClose()
-                    }
+                analyticsHelper.reportEvent(
+                    "delete_subscription",
+                    eventParameters
+                )
+                subscription.id = 1L
+                viewModel.updateItemTrigger.value++
+                viewModel.showToast(
+                    successToastItem.copy(
+                        message = operationString
+                    )
                 )
             }
-        )
-    }
+            onClose()
+            showDeleteOfferDialog.value = false
+        },
+        onDismiss = {
+            showDeleteOfferDialog.value = false
+            onClose()
+        }
+    )
 }

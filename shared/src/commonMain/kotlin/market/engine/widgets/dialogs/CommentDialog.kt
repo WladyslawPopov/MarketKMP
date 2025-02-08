@@ -191,7 +191,7 @@ fun CommentDialog(
                 val errString = stringResource(strings.operationFailed)
                 SimpleTextButton(
                     text = stringResource(strings.acceptAction),
-                    backgroundColor = colors.titleTextColor,
+                    backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
                     enabled = commentText.value.isNotEmpty()
                 ) {

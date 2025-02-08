@@ -30,7 +30,7 @@ fun AccessDialog (
             confirmButton = {
                 SimpleTextButton(
                     text = textAccept,
-                    backgroundColor = colors.textA0AE,
+                    backgroundColor = colors.steelBlue,
                     onClick = {
                         onSuccess()
                         onDismiss()

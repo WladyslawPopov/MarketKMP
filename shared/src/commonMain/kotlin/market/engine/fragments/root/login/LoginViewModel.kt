@@ -76,12 +76,13 @@ class LoginViewModel : BaseViewModel() {
                             onError(payload.captchaImage, payload.captchaKey)
 
                             analyticsHelper.reportEvent("login_fail",events)
-
-                            showToast(
-                                errorToastItem.copy(
-                                    message = if(response.humanMessage != "") response.humanMessage?:getString(strings.errorLogin) else getString(strings.errorLogin)
+                            if(response.humanMessage != "") {
+                                showToast(
+                                    errorToastItem.copy(
+                                        message = response.humanMessage ?: getString(strings.errorLogin)
+                                    )
                                 )
-                            )
+                            }
                         }
                     }catch (e : Exception){
                         throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

@@ -2,7 +2,6 @@ package market.engine.fragments.root.main.offer
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,7 +30,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
@@ -106,6 +104,7 @@ import market.engine.fragments.base.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
+import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
@@ -488,6 +487,8 @@ fun OfferContent(
                         if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
                             item {
                                 val showDialog = remember { mutableStateOf(false) }
+                                val values = remember { (1..offer.originalQuantity).map { it.toString() } }
+                                val valuesPickerState = rememberPickerState()
 
                                 BuyNowPriceLayout(
                                     offer = offer,
@@ -530,73 +531,49 @@ fun OfferContent(
                                     }
                                 )
 
-                                AnimatedVisibility(
-                                    showDialog.value,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ){
-                                    val values = remember { (1..offer.originalQuantity).map { it.toString() } }
-                                    val valuesPickerState = rememberPickerState()
+                                CustomDialog(
+                                    showDialog = showDialog.value,
+                                    title = "",
+                                    body = {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            SeparatorLabel(
+                                                stringResource(strings.chooseAmountLabel)
+                                            )
 
-                                    AlertDialog(
-                                        onDismissRequest = {
-                                            showDialog.value = false
-                                        },
-                                        title = {
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .padding(dimens.mediumPadding),
+                                                horizontalArrangement = Arrangement.Center,
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                SeparatorLabel(
-                                                    stringResource(strings.chooseAmountLabel)
+                                                ListPicker(
+                                                    state = valuesPickerState,
+                                                    items = values,
+                                                    visibleItemsCount = 3,
+                                                    modifier = Modifier.fillMaxWidth(0.5f),
+                                                    textModifier = Modifier.padding(dimens.smallPadding),
+                                                    textStyle = MaterialTheme.typography.titleLarge,
+                                                    dividerColor = colors.textA0AE
                                                 )
-
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth()
-                                                        .padding(dimens.mediumPadding),
-                                                    horizontalArrangement = Arrangement.Center,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    ListPicker(
-                                                        state = valuesPickerState,
-                                                        items = values,
-                                                        visibleItemsCount = 3,
-                                                        modifier = Modifier.fillMaxWidth(0.5f),
-                                                        textModifier = Modifier.padding(dimens.smallPadding),
-                                                        textStyle = MaterialTheme.typography.titleLarge,
-                                                        dividerColor = colors.textA0AE
-                                                    )
-                                                }
                                             }
-                                        },
-                                        confirmButton = {
-                                            SimpleTextButton(
-                                                text = stringResource(strings.acceptAction),
-                                                backgroundColor = colors.inactiveBottomNavIconColor,
-                                                onClick = {
-                                                    val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
-                                                        offerId = offer.id,
-                                                        pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
-                                                        selectedQuantity = valuesPickerState.selectedItem.toIntOrNull() ?: 1
-                                                    )))
-                                                    component.goToCreateOrder(item)
-                                                    showDialog.value = false
-                                                }
-                                            )
-                                        },
-                                        dismissButton = {
-                                            SimpleTextButton(
-                                                text = stringResource(strings.closeWindow),
-                                                backgroundColor = colors.textA0AE,
-                                                onClick = {
-                                                    showDialog.value = false
-                                                }
-                                            )
-                                        },
-                                        containerColor = colors.white,
-                                        tonalElevation = 0.dp
-                                    )
-                                }
+                                        }
+                                    },
+                                    onSuccessful = {
+                                        val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
+                                            offerId = offer.id,
+                                            pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
+                                            selectedQuantity = valuesPickerState.selectedItem.toIntOrNull() ?: 1
+                                        )))
+                                        component.goToCreateOrder(item)
+                                        showDialog.value = false
+                                    },
+                                    onDismiss = {
+                                        showDialog.value = false
+                                    }
+                                )
                             }
                         }
                         // actions and other status

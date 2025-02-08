@@ -1,17 +1,14 @@
 package market.engine.fragments.base
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
-import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.dialogs.CustomDialog
 import org.koin.compose.koinInject
 
 @Composable
@@ -59,23 +56,14 @@ fun onError(
                     if (errorCode.isNotEmpty() && humanMessage.isNotEmpty()) {
                         showDialog.value = true
                     }
-                    if (showDialog.value) {
-                        AlertDialog(
-                            onDismissRequest = { showDialog.value = false },
-                            title = { Text("") },
-                            text = { Text(humanMessage) },
-                            confirmButton = {
-                                SimpleTextButton(
-                                    text = "OK",
-                                    backgroundColor = colors.grayLayout,
-                                    onClick = {
-                                        showDialog.value = false
-                                        error.humanMessage = ""
-                                    }
-                                )
-                            }
-                        )
-                    }
+
+                    CustomDialog(
+                        showDialog = showDialog.value,
+                        title = humanMessage,
+                        onDismiss = {
+                            showDialog.value = false
+                        }
+                    )
                 }
 
                 val eventParameters = mapOf(

@@ -24,19 +24,9 @@ import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerDefaults
-import androidx.compose.material3.TimePickerLayoutType
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -55,7 +45,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -65,11 +54,6 @@ import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atTime
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -95,13 +79,11 @@ import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Fields
-import market.engine.core.utils.convertDateOnlyYear
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
-import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.checkboxs.DeliveryMethods
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.checkboxs.RadioGroup
@@ -110,6 +92,7 @@ import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.fragments.base.onError
+import market.engine.widgets.dialogs.DateDialog
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.textFields.DescriptionOfferTextField
@@ -118,10 +101,8 @@ import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalUuidApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CreateOfferContent(
     component: CreateOfferComponent
@@ -152,7 +133,7 @@ fun CreateOfferContent(
 
 
     val futureTime = remember { mutableStateOf(dynamicPayloadState.value?.fields?.find { it.key == "future_time" }) }
-    val selectedDate = remember { mutableStateOf(futureTime.value?.data?.jsonPrimitive?.content) }
+    val selectedDate = remember { mutableStateOf(futureTime.value?.data?.jsonPrimitive?.longOrNull) }
     val richTextState = rememberRichTextState()
     val columnState = rememberLazyListState(
          initialFirstVisibleItemIndex = viewModel.positionList.value
@@ -406,7 +387,7 @@ fun CreateOfferContent(
                             images.value,
                             title,
                             dynamicPayloadState.value?.fields?.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
-                            futureTime = selectedDate.value ?: getCurrentDate(),
+                            futureTime = selectedDate.value ?: getCurrentDate().toLong(),
                             goToOffer = {
                                 component.goToOffer(newOfferId.value!!)
                             },
@@ -786,7 +767,7 @@ fun CreateOfferContent(
 
                                                if (selectedDate.value != null && field.data == null){
                                                    field.data = JsonPrimitive(2)
-                                                   selectedDate.value = futureTime.value?.data?.jsonPrimitive?.content
+                                                   selectedDate.value = futureTime.value?.data?.jsonPrimitive?.longOrNull
                                                }else{
                                                    field.data = JsonPrimitive(0)
                                                }
@@ -855,10 +836,10 @@ fun CreateOfferContent(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSerializationApi::class)
+@OptIn(ExperimentalSerializationApi::class)
 @Composable
 fun SessionStartContent(
-    selectedDate : MutableState<String?>,
+    selectedDate : MutableState<Long?>,
     field: Fields,
 ){
     val saleTypeFilters = listOf(
@@ -910,7 +891,7 @@ fun SessionStartContent(
                     )
                 }else{
                     Text(
-                        selectedDate.value?.convertDateWithMinutes() ?: "",
+                        selectedDate.value.toString().convertDateWithMinutes(),
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.titleTextColor
                     )
@@ -925,119 +906,25 @@ fun SessionStartContent(
                 }
             }
 
-            AnimatedVisibility(showActivateOfferForFutureDialog.value,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                val currentDate = getCurrentDate()
-
-                val year = currentDate.convertDateOnlyYear().toInt()
-
-                val pickDate = remember { mutableStateOf<String?>(null) }
-
-                val selectableDates = object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                        return utcTimeMillis > currentDate.toLong() * 1000
-                    }
+            DateDialog(
+                showActivateOfferForFutureDialog.value,
+                onDismiss = {
+                    showActivateOfferForFutureDialog.value = false
+                },
+                onSucceed = {
+                    selectedDate.value = it
+                    showActivateOfferForFutureDialog.value = false
                 }
-                val oneDayInMillis = 24 * 60 * 60 * 1000
-                val datePickerState = rememberDatePickerState(
-                    initialSelectedDateMillis = currentDate.toLong() * 1000 + oneDayInMillis,
-                    yearRange = year..(year + 100),
-                    selectableDates = selectableDates
-                )
-
-                val timePickerState = rememberTimePickerState(
-                    is24Hour = true
-                )
-
-                DatePickerDialog(
-                    colors = DatePickerDefaults.colors(
-                        containerColor = colors.white
-                    ),
-                    tonalElevation = 0.dp,
-                    properties = DialogProperties(usePlatformDefaultWidth = true),
-                    onDismissRequest = {
-                        showActivateOfferForFutureDialog.value = false
-                    },
-                    confirmButton = {
-                        SimpleTextButton(
-                            text = stringResource(strings.acceptAction),
-                            backgroundColor = colors.inactiveBottomNavIconColor,
-                            onClick = {
-                                if (pickDate.value == null) {
-                                    val selectedDateMillis = datePickerState.selectedDateMillis
-                                    if (selectedDateMillis != null) {
-                                        pickDate.value = selectedDateMillis.toString()
-                                        selectedDate.value = selectedDateMillis.toString()
-                                    }
-                                } else {
-                                    val selectedDateMillis = selectedDate.value?.toLongOrNull() ?: 0L
-                                    val selectedHour = timePickerState.hour
-                                    val selectedMinute = timePickerState.minute
-
-                                    val localDateTime = Instant
-                                        .fromEpochMilliseconds(selectedDateMillis)
-                                        .toLocalDateTime(TimeZone.currentSystemDefault())
-                                        .date
-                                        .atTime(selectedHour, selectedMinute)
-
-                                    selectedDate.value = localDateTime
-                                        .toInstant(TimeZone.currentSystemDefault())
-                                        .epochSeconds.toString()
-
-                                    showActivateOfferForFutureDialog.value = false
-                                    pickDate.value = null
-                                }
-                            },
-                            modifier = Modifier.padding(dimens.smallPadding),
-                        )
-                    },
-                    dismissButton = {
-                        SimpleTextButton(
-                            text = stringResource(strings.closeWindow),
-                            backgroundColor = colors.grayLayout,
-                            onClick = {
-                                showActivateOfferForFutureDialog.value = false
-                            },
-                            modifier = Modifier.padding(dimens.smallPadding),
-                        )
-                    }
-                ) {
-                    if (pickDate.value == null) {
-                        DatePicker(
-                            state = datePickerState,
-                            showModeToggle = false,
-                            title = null,
-                            colors = DatePickerDefaults.colors(
-                                containerColor = colors.white,
-                            ),
-                            modifier = Modifier.padding(dimens.smallPadding)
-                                .clip(MaterialTheme.shapes.medium)
-                        )
-                    } else {
-                        TimePicker(
-                            state = timePickerState,
-                            colors = TimePickerDefaults.colors(
-                                containerColor = colors.white,
-                            ),
-                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
-                                .clip(MaterialTheme.shapes.medium),
-                            layoutType = TimePickerLayoutType.Vertical
-                        )
-                    }
-                }
-            }
+            )
         }
     }
-
 }
 
 
 fun createJsonBody(
     fields: List<Fields>,
     categoryID: Long,
-    selectedDate: String?,
+    selectedDate: Long?,
     deleteImages: List<JsonPrimitive>,
     images: List<PhotoTemp>,
     type: CreateOfferType,
@@ -1141,7 +1028,7 @@ fun SuccessContent(
     images: List<PhotoTemp>,
     title : String,
     isActive : Boolean = true,
-    futureTime : String,
+    futureTime : Long?,
     goToOffer : () -> Unit,
     createNewOffer : () -> Unit,
     addSimilarOffer : () -> Unit,
@@ -1158,7 +1045,7 @@ fun SuccessContent(
             if (isActive) {
                 append(stringResource(strings.congratulationsCreateOfferInFutureLabel))
                  withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = colors.yellowSun)) {
-                     append(" ${futureTime.convertDateWithMinutes()}")
+                     append(" ${futureTime.toString().convertDateWithMinutes()}")
                  }
             } else{
                 append(
