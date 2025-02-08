@@ -413,6 +413,11 @@ class DefaultMainComponent(
                     }
                     activeCurrent = "Profile"
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
+                    if(openPage != null) {
+                        modelNavigation.value.profileNavigation.replaceAll(
+                            ProfileConfig.ProfileScreen(openPage)
+                        )
+                    }
                 }
             }
         }

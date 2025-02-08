@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Divider
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,7 +45,7 @@ import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.fragments.base.onError
-import market.engine.widgets.dialogs.AccessDialog
+import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -178,16 +179,30 @@ fun globalSettings(
                 }
 
                 if(showDialog.value) {
-                    AccessDialog(
-                        showDialog = showDialog.value,
-                        title = stringResource(strings.dialogChooseActionLabel),
-                        onDismiss = {
-                            viewModel.deleteAvatar()
-                            showDialog.value = false
+                    AlertDialog(
+                        onDismissRequest = { showDialog.value = false },
+                        title = { Text(stringResource(strings.dialogChooseActionLabel)) },
+                        text = {  },
+                        containerColor = colors.white,
+                        confirmButton = {
+                            SimpleTextButton(
+                                text = stringResource(strings.acceptAction),
+                                backgroundColor = colors.inactiveBottomNavIconColor,
+                                onClick = {
+                                    launcher.launch()
+                                    showDialog.value = false
+                                }
+                            )
                         },
-                        onSuccess = {
-                            launcher.launch()
-                            showDialog.value = false
+                        dismissButton = {
+                            SimpleTextButton(
+                                text = stringResource(strings.deleteAvatarLabel),
+                                backgroundColor = colors.steelBlue,
+                                onClick = {
+                                    viewModel.deleteAvatar()
+                                    showDialog.value = false
+                                }
+                            )
                         }
                     )
                 }

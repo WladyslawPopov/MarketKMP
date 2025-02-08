@@ -313,7 +313,7 @@ fun DialogsContent(
                                             subtitle = subtitle,
                                             image = imageUrl,
                                         ) {
-                                            val type = if (userRole.value == "seller") {
+                                            val type = if (userRole.value != "seller") {
                                                 DealTypeGroup.BUY
                                             } else {
                                                 DealTypeGroup.SELL

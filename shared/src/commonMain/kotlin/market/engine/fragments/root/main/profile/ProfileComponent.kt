@@ -94,18 +94,18 @@ class DefaultProfileComponent(
     init {
         lifecycle.doOnResume {
             updateProfile()
-        }
 
-        searchID = selectedPage?.split("/")?.lastOrNull()?.toLongOrNull()
-        currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""
+            searchID = selectedPage?.split("/")?.lastOrNull()?.toLongOrNull()
+            currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""
 
-        when(currentPage) {
-            "messenger" -> {
-                navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+            when(currentPage) {
+                "messenger" -> {
+                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                }
             }
-        }
 
-        model.value.profileViewModel.analyticsHelper.reportEvent("view_profile", mapOf("user_id" to UserData.login))
+            model.value.profileViewModel.analyticsHelper.reportEvent("view_profile", mapOf("user_id" to UserData.login))
+        }
     }
 
     override fun updateProfile() {
