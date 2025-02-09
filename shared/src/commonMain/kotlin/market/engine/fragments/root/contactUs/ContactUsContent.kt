@@ -42,6 +42,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.PhotoTemp
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
@@ -52,8 +53,11 @@ import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ContactUsContent(
     component: ContactUsComponent,
@@ -92,7 +96,11 @@ fun ContactUsContent(
         initialDirectory = "market/temp/"
     ) { files ->
         files?.firstOrNull()?.let {  file->
-            model.uploadFile(file){ result->
+            val photo = PhotoTemp(
+                id = Uuid.random().toString(),
+                file = file,
+            )
+            model.uploadFile(photo){ result->
                 responseGetFields.value?.fields?.find { it.widgetType == "attachment" }?.data = JsonPrimitive(result.tempId)
                 dataImage.value = file.name
             }

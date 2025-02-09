@@ -25,10 +25,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
@@ -258,15 +254,8 @@ fun CreateSubscriptionContent(
                                 .wrapContentWidth()
                                 .padding(dimens.mediumPadding)
                         ) {
-                            viewModel.viewModelScope.launch {
-                                val res = viewModel.postPage(model.value.editId)
-
-                                if (res) {
-                                    delay(2000)
-                                    withContext(Dispatchers.Main){
-                                        component.onBackClicked()
-                                    }
-                                }
+                            viewModel.postPage(model.value.editId){
+                                component.onBackClicked()
                             }
                         }
                     }

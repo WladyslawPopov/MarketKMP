@@ -66,6 +66,8 @@ class ContactUsViewModel : BaseViewModel() {
                 }
 
                 withContext(Dispatchers.Main) {
+                    setLoading(false)
+
                     try {
                         val serializer = DynamicPayload.serializer(OperationResult.serializer())
                         val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
@@ -104,8 +106,6 @@ class ContactUsViewModel : BaseViewModel() {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message.toString(), ""))
-            } finally {
-                setLoading(false)
             }
         }
     }

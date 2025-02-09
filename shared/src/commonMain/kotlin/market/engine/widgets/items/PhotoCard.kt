@@ -33,22 +33,21 @@ import market.engine.widgets.buttons.SmallIconButton
 @Composable
 fun PhotoCard(
     item: PhotoTemp,
-    viewModel: CreateOfferViewModel,
     interactionSource: MutableInteractionSource,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
+    viewModel: CreateOfferViewModel,
     deletePhoto: (PhotoTemp) -> Unit = {},
     openPhoto: () -> Unit = {}
 ) {
     val rotate = remember { mutableStateOf(item.rotate) }
 
-    val isLoading = remember{ mutableStateOf(item.tempId == null && item.url == null) }
+    val isLoading = remember{ mutableStateOf(item.tempId == null) }
 
     LaunchedEffect(item.tempId){
-        if (item.tempId == null && item.file != null){
-            viewModel.uploadFile(item.file!!){
-                item.tempId = it.tempId
+        if (item.tempId == null){
+            viewModel.uploadFile(item){
                 item.uri = it.uri
-                viewModel.updateImage(item)
+                item.tempId = it.tempId
                 isLoading.value = false
             }
         }

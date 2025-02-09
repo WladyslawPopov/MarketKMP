@@ -5,7 +5,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -44,8 +43,6 @@ import market.engine.core.network.functions.UserOperations
 import market.engine.core.repositories.UserRepository
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 open class BaseViewModel: ViewModel() {
     //select items and updateItem
@@ -321,14 +318,9 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    @OptIn(ExperimentalUuidApi::class)
-    fun uploadFile(file : PlatformFile, onSuccess : (PhotoTemp) -> Unit) {
-        viewModelScope.launch {
-            val item = PhotoTemp(
-                file = file,
-                id = Uuid.random().toString()
-            )
 
+    fun uploadFile(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
+        viewModelScope.launch {
             val res = uploadFile(item)
 
             if (res.success != null) {

@@ -49,8 +49,8 @@ fun PhotoDraggableGrid(
                 val interactionSource = remember { MutableInteractionSource() }
                 PhotoCard(
                     item = item,
-                    viewModel = viewModel,
                     interactionSource = interactionSource,
+                    viewModel = viewModel,
                     modifier = Modifier.draggableHandle(
                         onDragStarted = {
 //                                    ViewCompat.performHapticFeedback(
