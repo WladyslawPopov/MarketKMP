@@ -171,7 +171,7 @@ fun OfferContent(
         }
     }
 
-    val imageSize = remember { mutableStateOf(0) }
+    val imageSize = remember { mutableStateOf(1) }
 
     val images = remember { mutableListOf<String>() }
 
@@ -212,10 +212,10 @@ fun OfferContent(
                 when {
                     offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() } ?: emptyList()
                     offer.externalImages?.isNotEmpty() == true -> offer.externalImages
-                    else -> emptyList()
+                    else -> listOf("empty")
                 }
             )
-            imageSize.value = images.size
+            imageSize.value = if(images.isEmpty()) 1 else images.size
         }
     }
 
@@ -292,24 +292,22 @@ fun OfferContent(
                                     .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  },
                                 contentAlignment = Alignment.Center
                             ) {
-                                if(imageSize.value > 0) {
-                                    HorizontalImageViewer(
-                                        images = images,
-                                        pagerState = pagerState,
-                                    )
+                                HorizontalImageViewer(
+                                    images = images,
+                                    pagerState = pagerState,
+                                )
 
-                                    if (offer.videoUrls?.isNotEmpty() == true) {
-                                        SmallImageButton(
-                                            drawables.iconYouTubeSmall,
-                                            modifierIconSize = Modifier.size(dimens.largeIconSize),
-                                            modifier = Modifier
-                                                .size(90.dp)
-                                                .align(Alignment.TopEnd)
-                                                .zIndex(1f), // Higher priority
-                                        ) {
-                                            // Open web view YouTube
-                                            openUrl(offer.videoUrls[0])
-                                        }
+                                if (offer.videoUrls?.isNotEmpty() == true) {
+                                    SmallImageButton(
+                                        drawables.iconYouTubeSmall,
+                                        modifierIconSize = Modifier.size(dimens.largeIconSize),
+                                        modifier = Modifier
+                                            .size(90.dp)
+                                            .align(Alignment.TopEnd)
+                                            .zIndex(1f), // Higher priority
+                                    ) {
+                                        // Open web view YouTube
+                                        openUrl(offer.videoUrls[0])
                                     }
                                 }
                             }
@@ -401,24 +399,21 @@ fun OfferContent(
                         //action seller mode and active promo options
                         if (isMyOffer.value && offerState.value != OfferStates.SNAPSHOT) {
                             item {
-                                Column {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        TitleText(
-                                            stringResource(strings.actionsOffersParameterName),
-                                            color = colors.black
-                                        )
-                                    }
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(0.9f),
+                                    horizontalAlignment = Alignment.Start,
+                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                ) {
+
+                                    SeparatorLabel(stringResource(strings.actionsOffersParameterName))
 
                                     Row(
-                                        modifier = Modifier.fillMaxWidth(),
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         PopupActionButton(
                                             stringResource(strings.operationsParameterName),
-                                            color = colors.textA0AE,
+                                            color = colors.steelBlue,
                                             tint = colors.alwaysWhite,
                                             isShowOptions = isShowOptions
                                         )
@@ -426,7 +421,6 @@ fun OfferContent(
 
                                     AnimatedVisibility(
                                         isShowOptions.value,
-                                        modifier = Modifier.fillMaxWidth(),
                                         enter = expandIn(),
                                         exit = fadeOut()
                                     ) {

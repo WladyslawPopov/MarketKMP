@@ -59,7 +59,7 @@ fun HorizontalImageViewer(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageLoadFailed.value || imageUrl.isEmpty()){
+                if (imageLoadFailed.value || images.isEmpty() ){
                     getImage(imageUrl)
                 }else {
                     if (loading.value) {

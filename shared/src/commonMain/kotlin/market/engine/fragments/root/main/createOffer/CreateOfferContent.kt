@@ -21,9 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.Card
+import androidx.compose.material3.Card
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -1065,6 +1066,7 @@ fun SuccessContent(
             verticalAlignment = Alignment.Top,
         ) {
             Card(
+                colors = CardDefaults.cardColors(containerColor = colors.white),
                 shape = MaterialTheme.shapes.medium
             ) {
                 LoadImage(

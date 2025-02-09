@@ -2,10 +2,8 @@ package market.engine.widgets.buttons
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 
@@ -33,44 +30,40 @@ fun PopupActionButton(
     val rotationAngle by animateFloatAsState(
         targetValue = if (isShowOptions.value) 180f else 0f
     )
-    Box(
-        modifier = Modifier.wrapContentSize()
-            .padding(dimens.smallPadding)
+    TextButton(
+        shape = MaterialTheme.shapes.small,
+        onClick = {
+            isShowOptions.value = !isShowOptions.value
+        },
+        colors = ButtonDefaults.textButtonColors(
+            containerColor = color,
+        ),
+        modifier = Modifier.wrapContentWidth()
     ) {
-        TextButton(
-            onClick = {
-                isShowOptions.value = !isShowOptions.value
-            },
-            colors = ButtonDefaults.textButtonColors(
-                containerColor = color,
-                contentColor = colors.black,
-            ),
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.wrapContentWidth()
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.wrapContentWidth()
-            ) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = tint,
-                    modifier = Modifier.padding(horizontal = dimens.smallPadding)
-                )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = tint,
+                modifier = Modifier.padding(horizontal = dimens.smallPadding)
+            )
 
-                SmallIconButton(
-                    drawables.iconArrowDown,
-                    tint,
-                    onClick = {
-                        isShowOptions.value = !isShowOptions.value
-                    },
-                    modifier = Modifier
-                        .graphicsLayer {
-                            rotationZ = rotationAngle
-                        }
-                )
-            }
+            SmallIconButton(
+                drawables.iconArrowDown,
+                tint,
+                onClick = {
+                    isShowOptions.value = !isShowOptions.value
+                },
+                modifier = Modifier
+                    .graphicsLayer {
+                        rotationZ = rotationAngle
+                    }
+            )
         }
     }
 }
