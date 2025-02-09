@@ -54,7 +54,7 @@ fun SearchContent(
     val history = searchViewModel.responseHistory.collectAsState()
 
     val errorSearch: (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
-        { onError(isErrorSearch.value) { } }
+        { onError(isErrorSearch) { } }
     } else {
         null
     }

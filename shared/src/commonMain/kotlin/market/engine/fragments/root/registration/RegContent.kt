@@ -53,7 +53,7 @@ fun RegistrationContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) {  } }
+        { onError(err) {  } }
     } else {
         null
     }
@@ -104,7 +104,7 @@ fun RegistrationContent(
                     item {
                         SimpleTextButton(
                             stringResource(strings.registration),
-                            backgroundColor = colors.positiveGreen,
+                            backgroundColor = colors.brightGreen,
                             textStyle = MaterialTheme.typography.titleMedium,
                         ){
                             model.postRegistration{

@@ -75,7 +75,7 @@ fun ContactUsContent(
     val responseGetFields = model.responseGetFields.collectAsState()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) {  } }
+        { onError(err) {  } }
     } else {
         null
     }

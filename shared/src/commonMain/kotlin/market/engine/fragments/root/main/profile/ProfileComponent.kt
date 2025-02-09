@@ -17,6 +17,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.MyOfferConfig
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyOffers
@@ -101,6 +102,12 @@ class DefaultProfileComponent(
             when (currentPage) {
                 "messenger" -> {
                     navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                }
+                "purchases" -> {
+                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, searchID))
+                }
+                "sales" -> {
+                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, searchID))
                 }
             }
 

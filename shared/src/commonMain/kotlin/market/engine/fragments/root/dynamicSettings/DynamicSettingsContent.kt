@@ -87,7 +87,7 @@ fun DynamicSettingsContent(
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err.value) { component.onBack() } }
+        { onError(err) { component.onBack() } }
     } else {
         null
     }

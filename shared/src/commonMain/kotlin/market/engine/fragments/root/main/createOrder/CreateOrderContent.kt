@@ -82,7 +82,7 @@ fun CreateOrderContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err.value) { refresh() } }
+        { onError(err) { refresh() } }
     } else {
         null
     }

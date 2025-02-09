@@ -124,17 +124,18 @@ fun CreateOfferContent(
 
     val focusManager = LocalFocusManager.current
 
-    val isEditCat = remember { mutableStateOf(false) }
-    val categoryName = remember { mutableStateOf("") }
-    val categoryID = remember { mutableStateOf(model.value.catPath?.get(0) ?: 1L) }
-    val parentID : MutableState<Long?> = remember { mutableStateOf(model.value.catPath?.get(1) ?: 1L) }
-    val isLeaf = remember { mutableStateOf(true) }
-    val isRefreshingFromFilters = remember { mutableStateOf(true) }
-    val choiceCodeSaleType = remember { mutableStateOf<Int?>(null) }
+    val isEditCat = remember {viewModel.isEditCat }
+    val categoryName = remember { viewModel.categoryName }
+    val categoryID = remember { viewModel.categoryID }
+    val parentID : MutableState<Long?> = remember { viewModel.parentID }
+    val isLeaf = remember { viewModel.isLeaf }
+    val isRefreshingFromFilters = remember { viewModel.isRefreshingFromFilters }
+    val choiceCodeSaleType = remember { viewModel.choiceCodeSaleType }
 
 
-    val futureTime = remember { mutableStateOf(dynamicPayloadState.value?.fields?.find { it.key == "future_time" }) }
-    val selectedDate = remember { mutableStateOf(futureTime.value?.data?.jsonPrimitive?.longOrNull) }
+    val futureTime = remember { viewModel.futureTime }
+    val selectedDate = remember { viewModel.selectedDate }
+
     val richTextState = rememberRichTextState()
     val columnState = rememberLazyListState(
          initialFirstVisibleItemIndex = viewModel.positionList.value
@@ -214,9 +215,12 @@ fun CreateOfferContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err.value) {
-            refresh()
-        } }
+        {
+            onError(err) {
+                refresh()
+            }
+            viewModel.onError(ServerErrorException())
+        }
     } else {
         null
     }
@@ -275,7 +279,6 @@ fun CreateOfferContent(
         }.collect { filter ->
             if (filter == "") {
                 scaffoldState.bottomSheetState.collapse()
-                refresh()
             } else {
                 scaffoldState.bottomSheetState.expand()
             }
@@ -346,6 +349,7 @@ fun CreateOfferContent(
                 CategoryContent(
                     baseViewModel = viewModel,
                     complete = {
+                        refresh()
                         viewModel.activeFiltersType.value = ""
                     },
                     isCreateOffer = true,

@@ -220,7 +220,7 @@ fun OfferContent(
     }
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(isError.value) { component.updateOffer(lotState.value?.id ?: 1L, model.isSnapshot) } }
+        { onError(isError) { component.updateOffer(lotState.value?.id ?: 1L, model.isSnapshot) } }
     }else{
         null
     }

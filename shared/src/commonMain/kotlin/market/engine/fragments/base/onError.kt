@@ -1,6 +1,7 @@
 package market.engine.fragments.base
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import market.engine.common.AnalyticsFactory
@@ -13,11 +14,11 @@ import org.koin.compose.koinInject
 
 @Composable
 fun onError(
-    error : ServerErrorException,
+    error : State<ServerErrorException>,
     onRefresh: () -> Unit,
 ) {
-    val humanMessage = error.humanMessage
-    val errorCode = error.errorCode
+    val humanMessage = error.value.humanMessage
+    val errorCode = error.value.errorCode
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val userRepository : UserRepository = koinInject()
@@ -61,6 +62,8 @@ fun onError(
                         showDialog = showDialog.value,
                         title = humanMessage,
                         onDismiss = {
+                            error.value.errorCode = ""
+                            error.value.humanMessage = ""
                             showDialog.value = false
                         }
                     )

@@ -41,6 +41,7 @@ import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.repositories.UserRepository
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -184,38 +185,42 @@ open class BaseViewModel: ViewModel() {
     }
 
     fun addToFavorites(offer: Offer, onSuccess: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            val buf = if (!offer.isWatchedByMe)
-                offerOperations.postOfferOperationWatch(offer.id)
-            else
-                offerOperations.postOfferOperationUnwatch(offer.id)
+        if(UserData.token != "") {
+            viewModelScope.launch {
+                val buf = if (!offer.isWatchedByMe)
+                    offerOperations.postOfferOperationWatch(offer.id)
+                else
+                    offerOperations.postOfferOperationUnwatch(offer.id)
 
-            val eventParameters = mapOf(
-                "lot_id" to offer.id,
-                "lot_name" to offer.name,
-                "lot_city" to offer.freeLocation,
-                "auc_delivery" to offer.safeDeal,
-                "lot_category" to offer.catpath.firstOrNull(),
-                "seller_id" to offer.sellerData?.id,
-                "lot_price_start" to offer.currentPricePerItem,
-            )
+                val eventParameters = mapOf(
+                    "lot_id" to offer.id,
+                    "lot_name" to offer.name,
+                    "lot_city" to offer.freeLocation,
+                    "auc_delivery" to offer.safeDeal,
+                    "lot_category" to offer.catpath.firstOrNull(),
+                    "seller_id" to offer.sellerData?.id,
+                    "lot_price_start" to offer.currentPricePerItem,
+                )
 
-            val res = buf.success
-            withContext(Dispatchers.Main) {
-                if (res != null && res.success) {
-                    if (!offer.isWatchedByMe){
-                        analyticsHelper.reportEvent("offer_watch", eventParameters)
-                    }else{
-                        analyticsHelper.reportEvent("offer_unwatch", eventParameters)
+                val res = buf.success
+                withContext(Dispatchers.Main) {
+                    if (res != null && res.success) {
+                        if (!offer.isWatchedByMe) {
+                            analyticsHelper.reportEvent("offer_watch", eventParameters)
+                        } else {
+                            analyticsHelper.reportEvent("offer_unwatch", eventParameters)
+                        }
+
+                        updateUserInfo()
+                        onSuccess(!offer.isWatchedByMe)
+                    } else {
+                        if (buf.error != null)
+                            onError(buf.error!!)
                     }
-
-                    updateUserInfo()
-                    onSuccess(!offer.isWatchedByMe)
-                }else{
-                    if (buf.error!= null)
-                        onError(buf.error!!)
                 }
             }
+        }else{
+            goToLogin()
         }
     }
 

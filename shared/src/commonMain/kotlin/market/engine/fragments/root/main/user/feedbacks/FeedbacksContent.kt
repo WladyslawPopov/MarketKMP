@@ -44,7 +44,6 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.bars.PagingCounterBar
-import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import org.jetbrains.compose.resources.stringResource
@@ -82,6 +81,16 @@ fun FeedbacksContent(
         }
     }
 
+    LaunchedEffect(data.loadState.refresh){
+        if((data.loadState.refresh as LoadStateError).error.message != null){
+            viewModel.onError(
+                ServerErrorException(
+                    (data.loadState.refresh as LoadStateError).error.message ?: "", ""
+                )
+            )
+        }
+    }
+
     val isLoading : State<Boolean> = rememberUpdatedState(
         data.loadState.refresh is LoadStateLoading
     )
@@ -116,17 +125,6 @@ fun FeedbacksContent(
                             )
                             component.onRefresh()
                         }
-                    }
-                }
-            }
-            refresh is LoadStateError -> {
-                error = {
-                    onError(
-                        ServerErrorException(
-                            (data.loadState.refresh as LoadStateError).error.message ?: "", ""
-                        )
-                    ) {
-                        data.retry()
                     }
                 }
             }

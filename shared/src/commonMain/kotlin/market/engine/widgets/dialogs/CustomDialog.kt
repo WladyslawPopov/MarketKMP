@@ -49,7 +49,8 @@ fun CustomDialog(
             dismissButton = {
                 SimpleTextButton(
                     text = stringResource(strings.closeWindow),
-                    backgroundColor = colors.grayLayout,
+                    backgroundColor = colors.steelBlue,
+                    textColor = colors.alwaysWhite,
                     onClick = {
                         onDismiss()
                     }

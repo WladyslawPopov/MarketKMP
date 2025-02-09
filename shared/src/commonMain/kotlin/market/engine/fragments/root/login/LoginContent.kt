@@ -60,7 +60,9 @@ fun LoginContent(
     val err = model.errorMessage.collectAsState()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) {  } }
+        {
+            onError(err) {  }
+        }
     } else {
         null
     }
@@ -207,7 +209,7 @@ fun LoginContent(
 
                         SimpleTextButton(
                             text = stringResource(strings.registration),
-                            backgroundColor = colors.grayLayout,
+                            backgroundColor = colors.steelBlue,
                             textColor = colors.alwaysWhite,
                             textStyle = MaterialTheme.typography.titleMedium
                         ){

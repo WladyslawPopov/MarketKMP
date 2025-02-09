@@ -52,7 +52,7 @@ fun UserContent(
     val feedbacksPages by component.feedbacksPages.subscribeAsState()
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(isError.value) { component.updateUserInfo() } }
+        { onError(isError) { component.updateUserInfo() } }
     }else{
         null
     }

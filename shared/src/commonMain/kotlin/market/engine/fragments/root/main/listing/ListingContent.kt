@@ -71,8 +71,6 @@ fun ListingContent(
     val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
     val regions = listingViewModel.regionOptions.value
 
-    val isErrorCategory = listingViewModel.errorMessage.value
-
     val searchViewModel : SearchViewModel = koinViewModel()
 
     val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
@@ -110,7 +108,7 @@ fun ListingContent(
         listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()
     }
-
+    val err = listingViewModel.errorMessage.collectAsState()
     val refreshSearch = {
         searchViewModel.resetScroll()
         columns.value =
@@ -213,8 +211,8 @@ fun ListingContent(
     }
 
 
-    val error : (@Composable () -> Unit)? = if (isErrorCategory.humanMessage != "") {
-        { onError(isErrorCategory) { refresh() } }
+    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+        { onError(err) { refresh() } }
     }else{
         null
     }
