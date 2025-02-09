@@ -244,6 +244,7 @@ fun UserPanel(
                 SimpleTextButton(
                     text = stringResource(strings.aboutMeLabel),
                     backgroundColor = colors.steelBlue,
+                    textColor = colors.alwaysWhite,
                     shape = MaterialTheme.shapes.medium,
                     onClick = goToAboutMe
                 )

@@ -198,6 +198,7 @@ fun globalSettings(
                             SimpleTextButton(
                                 text = stringResource(strings.deleteAvatarLabel),
                                 backgroundColor = colors.steelBlue,
+                                textColor = colors.alwaysWhite,
                                 onClick = {
                                     viewModel.deleteAvatar()
                                     showDialog.value = false

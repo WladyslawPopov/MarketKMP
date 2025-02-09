@@ -31,6 +31,7 @@ fun AccessDialog (
                 SimpleTextButton(
                     text = textAccept,
                     backgroundColor = colors.steelBlue,
+                    textColor = colors.alwaysWhite,
                     onClick = {
                         onSuccess()
                         onDismiss()

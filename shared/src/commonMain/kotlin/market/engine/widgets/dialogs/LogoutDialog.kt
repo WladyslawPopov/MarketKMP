@@ -30,6 +30,7 @@ fun LogoutDialog (
             confirmButton = {
                 SimpleTextButton(
                     text = stringResource(strings.logoutTitle),
+                    textColor = colors.alwaysWhite,
                     backgroundColor = colors.steelBlue,
                     onClick = {
                         analyticsHelper.reportEvent("logout_success", mapOf())
