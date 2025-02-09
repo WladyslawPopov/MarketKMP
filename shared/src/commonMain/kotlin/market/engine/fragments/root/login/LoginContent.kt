@@ -208,6 +208,7 @@ fun LoginContent(
                         SimpleTextButton(
                             text = stringResource(strings.registration),
                             backgroundColor = colors.grayLayout,
+                            textColor = colors.alwaysWhite,
                             textStyle = MaterialTheme.typography.titleMedium
                         ){
                             component.goToRegistration()

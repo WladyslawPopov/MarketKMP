@@ -188,6 +188,7 @@ fun globalSettings(
                             SimpleTextButton(
                                 text = stringResource(strings.acceptAction),
                                 backgroundColor = colors.inactiveBottomNavIconColor,
+                                textColor = colors.alwaysWhite,
                                 onClick = {
                                     launcher.launch()
                                     showDialog.value = false

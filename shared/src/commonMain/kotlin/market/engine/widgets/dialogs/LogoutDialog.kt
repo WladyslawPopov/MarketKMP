@@ -44,6 +44,7 @@ fun LogoutDialog (
                 SimpleTextButton(
                     text = stringResource(strings.closeWindow),
                     backgroundColor = colors.inactiveBottomNavIconColor,
+                    textColor = colors.alwaysWhite,
                     onClick = {
                         onDismiss()
                     }

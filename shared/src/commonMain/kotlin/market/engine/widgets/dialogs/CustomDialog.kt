@@ -39,6 +39,7 @@ fun CustomDialog(
                     SimpleTextButton(
                         text = stringResource(strings.acceptAction),
                         backgroundColor = colors.inactiveBottomNavIconColor,
+                        textColor = colors.alwaysWhite,
                         onClick = {
                             onSuccessful()
                         }

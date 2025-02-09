@@ -83,6 +83,7 @@ fun DateDialog(
                 SimpleTextButton(
                     text = stringResource(strings.acceptAction),
                     backgroundColor = colors.inactiveBottomNavIconColor,
+                    textColor = colors.alwaysWhite,
                     onClick = {
                         if (selectedDate.value == null) {
                             val selectedDateMillis = datePickerState.selectedDateMillis
