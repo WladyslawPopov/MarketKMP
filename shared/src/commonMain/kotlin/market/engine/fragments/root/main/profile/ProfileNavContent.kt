@@ -158,10 +158,10 @@ fun ProfileNavContent(
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                     colors = NavigationDrawerItemDefaults.colors(
-                        selectedContainerColor = colors.outgoingBubble,
+                        selectedContainerColor = colors.rippleColor,
                         unselectedContainerColor = colors.white,
-                        selectedIconColor = colors.textA0AE,
-                        unselectedIconColor = colors.textA0AE,
+                        selectedIconColor = colors.black,
+                        unselectedIconColor = colors.black,
                         selectedTextColor = colors.black,
                         selectedBadgeColor = colors.black,
                         unselectedTextColor = colors.black,

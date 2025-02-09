@@ -244,17 +244,17 @@ fun DrawerContent(
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                             .wrapContentWidth(),
                         colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.white,
+                            selectedContainerColor = colors.rippleColor,
                             unselectedContainerColor = colors.white,
-                            selectedIconColor = colors.lightGray,
-                            unselectedIconColor = colors.lightGray,
+                            selectedIconColor = colors.black,
+                            unselectedIconColor = colors.black,
                             selectedTextColor = colors.lightGray,
                             selectedBadgeColor = colors.lightGray,
                             unselectedTextColor = colors.lightGray,
                             unselectedBadgeColor = colors.lightGray
 
                         ),
-                        selected = true
+                        selected = false
                     )
                 }
             }
