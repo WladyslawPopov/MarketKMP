@@ -67,7 +67,7 @@ fun FeedbackItem(
     Column(
         modifier = Modifier
             .fillMaxWidth().wrapContentHeight()
-            .background(colors.white, shape = MaterialTheme.shapes.medium)
+            .background(colors.white, shape = MaterialTheme.shapes.small)
             .padding(dimens.smallPadding)
     ) {
         Row(

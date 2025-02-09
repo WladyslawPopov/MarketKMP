@@ -50,7 +50,7 @@ fun SubscriptionItem(
 
     Card(
         colors = colors.cardColors,
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.small,
         onClick = onItemClick
     ) {
         Column(

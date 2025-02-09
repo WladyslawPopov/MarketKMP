@@ -63,7 +63,7 @@ fun BidsItem(
 
     Card(
         colors = colors.cardColors,
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.small,
     ) {
         Column(
             modifier = Modifier

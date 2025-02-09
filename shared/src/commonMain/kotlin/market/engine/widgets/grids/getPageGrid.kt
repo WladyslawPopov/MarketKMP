@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -81,10 +82,11 @@ fun <T : Any> BoxScope.PagingList(
 
     LazyColumn(
         state = state,
-        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        horizontalAlignment = Alignment.CenterHorizontally,
         reverseLayout = isReversingPaging,
         modifier = Modifier
-            .align(align)
+            .fillMaxSize().align(align).padding(horizontal = dimens.smallPadding)
     ) {
         if (!promoList.isNullOrEmpty() && promoContent != null) {
             item {

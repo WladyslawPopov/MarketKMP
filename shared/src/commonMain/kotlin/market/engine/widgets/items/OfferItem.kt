@@ -81,7 +81,7 @@ fun OfferItem(
 
     Card(
         colors = if (!isPromo) colors.cardColors else colors.cardColorsPromo,
-        shape = RoundedCornerShape(dimens.smallCornerRadius),
+        shape = MaterialTheme.shapes.small,
         onClick = {
             if (isPromo) {
                 val eventParameters = mapOf(

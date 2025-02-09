@@ -22,7 +22,7 @@ import org.jetbrains.compose.resources.painterResource
 fun dismissBackground() {
     Row(
         modifier = Modifier
-            .background(colors.errorLayoutBackground, shape = MaterialTheme.shapes.medium)
+            .background(colors.errorLayoutBackground, shape = MaterialTheme.shapes.small)
             .fillMaxSize(),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
