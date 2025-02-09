@@ -35,6 +35,7 @@ import market.engine.widgets.dialogs.CreateOfferDialog
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.items.HeaderOfferItem
 import market.engine.widgets.rows.UserColumn
+import market.engine.widgets.rows.UserRow
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -99,11 +100,12 @@ fun BidsItem(
                         color = colors.black
                     )
 
-                    UserColumn(
+                    UserRow(
                         it,
                         Modifier.clickable {
                             goToUser(it.id)
-                        }.padding(dimens.smallPadding),
+                        }.fillMaxWidth(0.95f).
+                        padding(dimens.smallPadding),
                     )
                 }
             }
