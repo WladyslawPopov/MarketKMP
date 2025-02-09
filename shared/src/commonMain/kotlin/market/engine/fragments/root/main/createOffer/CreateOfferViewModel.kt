@@ -63,9 +63,17 @@ class CreateOfferViewModel : BaseViewModel() {
             }
         }
     }
-
     fun setImages(images: List<PhotoTemp>) {
         _responseImages.value = images
+    }
+    fun updateImage(photoTemp: PhotoTemp){
+        _responseImages.value = _responseImages.value.map {
+            if (it.id == photoTemp.id) {
+                photoTemp
+            } else {
+                it
+            }
+        }
     }
 
     fun getPage(url: String) {

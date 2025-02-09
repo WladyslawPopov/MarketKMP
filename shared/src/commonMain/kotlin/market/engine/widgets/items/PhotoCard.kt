@@ -27,13 +27,13 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.utils.printLogD
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
 import market.engine.widgets.buttons.SmallIconButton
 
 @Composable
 fun PhotoCard(
     item: PhotoTemp,
-    viewModel: BaseViewModel,
+    viewModel: CreateOfferViewModel,
     interactionSource: MutableInteractionSource,
     modifier: Modifier,
     deletePhoto: (PhotoTemp) -> Unit = {},
@@ -48,6 +48,7 @@ fun PhotoCard(
             viewModel.uploadFile(item.file!!){
                 item.tempId = it.tempId
                 item.uri = it.uri
+                viewModel.updateImage(item)
                 isLoading.value = false
             }
         }

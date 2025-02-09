@@ -4,7 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,12 +38,10 @@ fun PopupActionButton(
         colors = ButtonDefaults.textButtonColors(
             containerColor = color,
         ),
-        modifier = Modifier.wrapContentWidth()
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.wrapContentWidth()
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         ) {
             Text(
                 text = text,
@@ -62,7 +60,7 @@ fun PopupActionButton(
                 modifier = Modifier
                     .graphicsLayer {
                         rotationZ = rotationAngle
-                    }
+                    }.size(dimens.smallIconSize)
             )
         }
     }

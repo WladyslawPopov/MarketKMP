@@ -181,23 +181,25 @@ fun CreateOfferContent(
 
     val refresh = {
         viewModel.onError(ServerErrorException())
-        viewModel.getCategoriesHistory(categoryID.value)
-        if (isEditCat.value){
-            // update params
-            viewModel.updateParams(categoryID.value)
-            isEditCat.value = false
-        }else {
-            val url = when (type) {
-                CreateOfferType.CREATE -> "categories/${categoryID.value}/operations/create_offer"
-                CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
-                CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
-                CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
-                CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
-            }
-            if(type != CreateOfferType.CREATE){
+        if(categoryID.value != 1L) {
+            viewModel.getCategoriesHistory(categoryID.value)
+            if (isEditCat.value) {
+                // update params
                 viewModel.updateParams(categoryID.value)
+                isEditCat.value = false
+            } else {
+                val url = when (type) {
+                    CreateOfferType.CREATE -> "categories/${categoryID.value}/operations/create_offer"
+                    CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
+                    CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
+                    CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
+                    CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
+                }
+                if (type != CreateOfferType.CREATE) {
+                    viewModel.updateParams(categoryID.value)
+                }
+                viewModel.getPage(url)
             }
-            viewModel.getPage(url)
         }
     }
 
@@ -212,7 +214,9 @@ fun CreateOfferContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err.value) { refresh() } }
+        { onError(err.value) {
+            refresh()
+        } }
     } else {
         null
     }

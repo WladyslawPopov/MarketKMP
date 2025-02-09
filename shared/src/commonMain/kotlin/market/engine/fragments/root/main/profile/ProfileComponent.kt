@@ -98,13 +98,16 @@ class DefaultProfileComponent(
             searchID = selectedPage?.split("/")?.lastOrNull()?.toLongOrNull()
             currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""
 
-            when(currentPage) {
+            when (currentPage) {
                 "messenger" -> {
                     navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
                 }
             }
 
-            model.value.profileViewModel.analyticsHelper.reportEvent("view_profile", mapOf("user_id" to UserData.login))
+            model.value.profileViewModel.analyticsHelper.reportEvent(
+                "view_profile",
+                mapOf("user_id" to UserData.login)
+            )
         }
     }
 

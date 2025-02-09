@@ -173,7 +173,7 @@ fun OfferContent(
 
     val imageSize = remember { mutableStateOf(1) }
 
-    val images = remember { mutableListOf<String>() }
+    val images = remember { mutableListOf("") }
 
     val pagerState = rememberPagerState(
         pageCount = { imageSize.value },
@@ -215,7 +215,7 @@ fun OfferContent(
                     else -> listOf("empty")
                 }
             )
-            imageSize.value = if(images.isEmpty()) 1 else images.size
+            imageSize.value = images.size
         }
     }
 

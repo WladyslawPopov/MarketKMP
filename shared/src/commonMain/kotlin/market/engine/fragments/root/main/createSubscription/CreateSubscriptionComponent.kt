@@ -42,13 +42,6 @@ class DefaultCreateSubscriptionComponent(
     override val model = _model
 
     init {
-        lifecycle.doOnResume {
-            createSubscriptionViewModel.updateUserInfo()
-
-            if (UserData.token == ""){
-                navigateBack()
-            }
-        }
         createSubscriptionViewModel.getPage(editId)
         analyticsHelper.reportEvent("view_create_subscription", mapOf())
     }
