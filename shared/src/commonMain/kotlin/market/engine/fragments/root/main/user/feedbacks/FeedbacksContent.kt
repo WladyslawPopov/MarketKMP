@@ -82,10 +82,10 @@ fun FeedbacksContent(
     }
 
     LaunchedEffect(data.loadState.refresh){
-        if((data.loadState.refresh as LoadStateError).error.message != null){
+        if((data.loadState.refresh as? LoadStateError)?.error?.message != null){
             viewModel.onError(
                 ServerErrorException(
-                    (data.loadState.refresh as LoadStateError).error.message ?: "", ""
+                    (data.loadState.refresh as? LoadStateError)?.error?.message ?: "", ""
                 )
             )
         }

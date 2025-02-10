@@ -60,7 +60,7 @@ fun <T : Any>ListingBaseContent(
         if((data.loadState.refresh as? LoadStateError)?.error?.message != null){
                 baseViewModel.onError(
                     ServerErrorException(
-                    (data.loadState.refresh as LoadStateError).error.message ?: "", ""
+                    (data.loadState.refresh as? LoadStateError)?.error?.message ?: "", ""
                 )
             )
         }
