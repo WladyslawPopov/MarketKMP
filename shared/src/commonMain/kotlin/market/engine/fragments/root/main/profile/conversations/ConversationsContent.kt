@@ -26,6 +26,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.fragments.base.BaseContent
@@ -69,6 +70,9 @@ fun ConversationsContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
+                listingData.value.filters.clear()
+                listingData.value.filters = MsgFilters.filters
+                viewModel.resetScroll()
                 viewModel.onRefresh()
             }
         }else {

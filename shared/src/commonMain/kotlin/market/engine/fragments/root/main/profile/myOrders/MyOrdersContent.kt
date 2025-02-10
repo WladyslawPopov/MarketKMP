@@ -80,8 +80,7 @@ fun MyOrdersContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                listingData.value.clearFilters()
-                refresh()
+                viewModel.init()
             }
         }else {
             showNoItemLayout(
