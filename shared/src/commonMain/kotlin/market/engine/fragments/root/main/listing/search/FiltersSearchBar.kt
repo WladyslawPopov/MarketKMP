@@ -2,7 +2,6 @@ package market.engine.fragments.root.main.listing.search
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
@@ -79,8 +78,8 @@ fun FiltersSearchBar(
                             icon = drawables.cancelIcon,
                             contentDescription = stringResource(strings.actionClose),
                             color = colors.steelBlue,
-                            modifier = modifier.size(dimens.extraSmallIconSize),
-                            modifierIconSize = modifier.size(dimens.extraSmallIconSize),
+                            modifier = modifier.size(dimens.smallIconSize),
+                            modifierIconSize = modifier.size(dimens.smallIconSize),
                         ) {
                             selectedUser.value = false
                             selectedUserLogin.value = null
