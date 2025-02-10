@@ -24,7 +24,7 @@ import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
 import market.engine.fragments.root.main.createOrder.CreateOrderViewModel
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionViewModel
 import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
-import market.engine.fragments.root.main.profile.ProfileViewModel
+import market.engine.fragments.root.main.profile.main.ProfileViewModel
 import market.engine.fragments.root.main.listing.ListingViewModel
 import market.engine.fragments.root.main.listing.search.SearchViewModel
 import market.engine.fragments.root.main.messenger.DialogsViewModel

@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile
+package market.engine.fragments.root.main.profile.main
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ModalDrawerSheet

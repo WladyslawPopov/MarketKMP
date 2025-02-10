@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile
+package market.engine.fragments.root.main.profile.main
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

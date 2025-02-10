@@ -35,7 +35,7 @@ import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.root.main.profile.ProfileDrawer
+import market.engine.fragments.root.main.profile.main.ProfileDrawer
 import market.engine.widgets.exceptions.dismissBackground
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.DialogsFilterContent

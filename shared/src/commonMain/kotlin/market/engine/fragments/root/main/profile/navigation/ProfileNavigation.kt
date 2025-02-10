@@ -46,9 +46,9 @@ import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
-import market.engine.fragments.root.main.profile.DefaultProfileComponent
-import market.engine.fragments.root.main.profile.ProfileComponent
-import market.engine.fragments.root.main.profile.ProfileContent
+import market.engine.fragments.root.main.profile.main.DefaultProfileComponent
+import market.engine.fragments.root.main.profile.main.ProfileComponent
+import market.engine.fragments.root.main.profile.main.ProfileContent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
