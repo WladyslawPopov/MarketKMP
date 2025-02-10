@@ -59,10 +59,13 @@ fun ConversationsContent(
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
+    val updateFilters = remember { mutableStateOf(0) }
+
     val successToast = stringResource(strings.operationSuccess)
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        updateFilters.value++
     }
 
     val noFound = @Composable {
@@ -70,18 +73,16 @@ fun ConversationsContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                listingData.value.filters.clear()
+                MsgFilters.clearFilters()
                 listingData.value.filters = MsgFilters.filters
-                viewModel.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.dialogIcon
             ) {
-                viewModel.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             }
         }
     }
@@ -150,8 +151,6 @@ fun ConversationsContent(
                 },
                 noFound = noFound,
                 additionalBar = {
-                    val updateFilters = remember { mutableStateOf(0) }
-
                     DeletePanel(
                         selectedItems.size,
                         onCancel = {

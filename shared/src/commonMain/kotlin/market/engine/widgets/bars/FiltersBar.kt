@@ -100,9 +100,7 @@ fun FiltersBar(
     val userDef = stringResource(strings.searchUsersSearch)
 
     // Construct active filters title
-    val activeFiltersTitle = remember {
-        mutableStateOf(constructActiveFiltersTitle(filters, searchData, listingData.sort, filterString, searchTitle, sortTitle))
-    }
+    val activeFiltersTitle = mutableStateOf(constructActiveFiltersTitle(filters, searchData, listingData.sort, filterString, searchTitle, sortTitle))
 
     val itemFilter = remember(filters) {
         NavigationItem(

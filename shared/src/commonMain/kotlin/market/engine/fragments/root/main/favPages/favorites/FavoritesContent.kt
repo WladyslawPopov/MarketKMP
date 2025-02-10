@@ -67,26 +67,6 @@ fun FavoritesContent(
 
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
-    val noFound = @Composable {
-        if (ld.value.filters.any {it.interpritation != null && it.interpritation != "" }){
-            showNoItemLayout(
-                textButton = stringResource(strings.resetLabel)
-            ){
-                ld.value.filters.clear()
-                ld.value.filters.addAll(OfferFilters.filtersFav.toList())
-                favViewModel.refresh()
-            }
-        }else {
-            showNoItemLayout(
-                title = stringResource(strings.emptyFavoritesLabel),
-                image = drawables.emptyFavoritesImage
-            ) {
-                favViewModel.resetScroll()
-                favViewModel.refresh()
-            }
-        }
-    }
-
     BackHandler(model.backHandler){
         when{
             favViewModel.activeFiltersType.value != "" ->{
@@ -98,11 +78,36 @@ fun FavoritesContent(
         }
     }
 
+    val updateFilters = remember { mutableStateOf(0) }
+
+
     val refresh = {
         favViewModel.onError(ServerErrorException())
         favViewModel.resetScroll()
         favViewModel.refresh()
+        updateFilters.value++
     }
+
+
+    val noFound = @Composable {
+        if (ld.value.filters.any {it.interpritation != null && it.interpritation != "" }){
+            showNoItemLayout(
+                textButton = stringResource(strings.resetLabel)
+            ){
+                ld.value.filters.clear()
+                ld.value.filters.addAll(OfferFilters.filtersFav.toList())
+                refresh()
+            }
+        }else {
+            showNoItemLayout(
+                title = stringResource(strings.emptyFavoritesLabel),
+                image = drawables.emptyFavoritesImage
+            ) {
+                refresh()
+            }
+        }
+    }
+
 
     //update item when we back
     LaunchedEffect(favViewModel.updateItem.value) {
@@ -161,7 +166,6 @@ fun FavoritesContent(
                 }
             },
             additionalBar = {
-                val updateFilters = remember { mutableStateOf(0) }
 
                 DeletePanel(
                     selectedItems.size,

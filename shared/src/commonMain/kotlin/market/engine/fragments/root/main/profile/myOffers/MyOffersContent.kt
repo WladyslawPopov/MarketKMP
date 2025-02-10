@@ -57,6 +57,7 @@ fun MyOffersContent(
     val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
     val successToast = stringResource(strings.operationSuccess)
+    val updateFilters = remember { mutableStateOf(0) }
 
     val refresh = {
         viewModel.resetScroll()
@@ -99,15 +100,14 @@ fun MyOffersContent(
                         listingData.value.filters.clear()
                     }
                 }
-                viewModel.onRefresh()
+                refresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.emptyOffersIcon
             ) {
-                viewModel.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             }
         }
     }
@@ -168,7 +168,6 @@ fun MyOffersContent(
             },
             noFound = noFound,
             additionalBar = {
-                val updateFilters = remember { mutableStateOf(0) }
 
                 FiltersBar(
                     searchData.value,

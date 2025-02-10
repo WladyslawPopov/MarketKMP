@@ -111,7 +111,13 @@ fun FeedbacksContent(
                             title = stringResource(strings.notFoundFeedbackLabel),
                             textButton = stringResource(strings.refreshButton)
                         ) {
-                            viewModel.init(component.model.value.type, component.model.value.userId)
+                            setReportsFilters(
+                                listingData.value,
+                                component.model.value.userId,
+                                component.model.value.type
+                            )
+                            component.onRefresh()
+                            viewModel.updateItemTrigger.value++
                         }
                     }else{
                         showNoItemLayout(

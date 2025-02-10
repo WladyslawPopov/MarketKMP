@@ -116,6 +116,7 @@ fun CategoryContent(
                     ) {
                         searchData.clear()
                         refresh()
+                        baseViewModel.updateItemTrigger.value++
                     }
                 }
             }

@@ -50,9 +50,12 @@ fun MyBidsContent(
 
     val successToast = stringResource(strings.operationSuccess)
 
+    val updateFilters = remember { mutableStateOf(0) }
+
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        updateFilters.value++
     }
 
     BackHandler(model.backHandler){
@@ -87,6 +90,7 @@ fun MyBidsContent(
                     }
                 }
                 viewModel.onRefresh()
+                updateFilters.value++
             }
         }else {
             showNoItemLayout(
@@ -144,7 +148,6 @@ fun MyBidsContent(
             },
             noFound = noFound,
             additionalBar = {
-                val updateFilters = remember { mutableStateOf(0) }
                 FiltersBar(
                     searchData.value,
                     listingData.value,

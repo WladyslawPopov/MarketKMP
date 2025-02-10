@@ -104,12 +104,16 @@ fun ListingContent(
 
     val title = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
 
+    val updateFilters = remember { mutableStateOf(0) }
+
     val refresh = {
         listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()
+        updateFilters.value++
     }
     val err = listingViewModel.errorMessage.collectAsState()
     val refreshSearch = {
+        updateFilters.value++
         searchViewModel.resetScroll()
         columns.value =
             if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2
@@ -284,6 +288,7 @@ fun ListingContent(
                 listingData.value.filters.addAll(EmptyFilters.getEmpty())
                 searchData.value.isRefreshing = true
                 refreshSearch()
+                refresh()
             }
         }else {
             showNoItemLayout {
@@ -452,7 +457,6 @@ fun ListingContent(
                     }
                 },
                 additionalBar = { state ->
-                    val updateFilters = remember { mutableStateOf(0) }
                     SwipeTabsBar(
                         isVisibility = listingViewModel.activeFiltersType.value == "categories",
                         listingData.value,

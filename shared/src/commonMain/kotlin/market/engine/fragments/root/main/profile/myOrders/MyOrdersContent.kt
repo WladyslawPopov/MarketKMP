@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
@@ -59,9 +60,12 @@ fun MyOrdersContent(
 
     val successToast = stringResource(strings.operationSuccess)
 
+    val updateFilters = remember { mutableStateOf(0) }
+
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        updateFilters.value++
     }
 
     BackHandler(model.backHandler){
@@ -80,7 +84,33 @@ fun MyOrdersContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                viewModel.init()
+                when (model.type) {
+                    DealType.BUY_IN_WORK -> {
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(DealFilters.filtersBuysInWork.toList())
+                    }
+
+                    DealType.BUY_ARCHIVE -> {
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(DealFilters.filtersBuysArchive)
+                    }
+
+                    DealType.SELL_ALL -> {
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(DealFilters.filtersSalesAll)
+                    }
+
+                    DealType.SELL_IN_WORK -> {
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(DealFilters.filtersSalesInWork)
+                    }
+
+                    DealType.SELL_ARCHIVE -> {
+                        listingData.value.filters.clear()
+                        listingData.value.filters.addAll(DealFilters.filtersSalesArchive)
+                    }
+                }
+                refresh()
             }
         }else {
             showNoItemLayout(
@@ -144,7 +174,6 @@ fun MyOrdersContent(
             },
             noFound = noFound,
             additionalBar = {
-                val updateFilters = remember { mutableStateOf(0) }
                 FiltersBar(
                     searchData.value,
                     listingData.value,
