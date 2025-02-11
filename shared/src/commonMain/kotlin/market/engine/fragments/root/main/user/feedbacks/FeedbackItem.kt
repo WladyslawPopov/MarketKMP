@@ -34,6 +34,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Reports
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
@@ -47,7 +48,7 @@ fun FeedbackItem(
     report: Reports,
     isMyFeedbacks: Boolean = false,
     onClickReporter: (Long) -> Unit = {},
-    onClickOrder: (Long) -> Unit = {},
+    onClickOrder: (Long, DealTypeGroup) -> Unit,
     onClickSnapshot: (Long) -> Unit = {},
 ) {
     var showAnswer by remember { mutableStateOf(false) }
@@ -173,7 +174,17 @@ fun FeedbackItem(
                 style = MaterialTheme.typography.titleSmall,
                 color = colors.black,
                 modifier = if (isMyFeedbacks || report.fromUser?.id == UserData.login)
-                    Modifier.clickable { onClickOrder(report.orderId ?: 1L) }
+                    Modifier.clickable {
+                        val type = if (
+                            (report.toUser?.role == "buyer" && report.toUser.id == UserData.login) ||
+                            (report.fromUser?.role == "buyer" && report.fromUser.id == UserData.login)
+                        )
+                            DealTypeGroup.BUY
+                        else
+                            DealTypeGroup.SELL
+
+                        onClickOrder(report.orderId ?: 1L, type)
+                    }
                 else
                     Modifier
             )

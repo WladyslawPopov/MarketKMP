@@ -22,6 +22,7 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -32,6 +33,9 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
+import market.engine.fragments.root.main.messenger.DialogsComponent
+import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
@@ -64,6 +68,9 @@ sealed class BasketConfig {
     data class CreateOrderScreen(
         val basketItem : Pair<Long, List<SelectedBasketItem>>,
     ) : BasketConfig()
+
+    @Serializable
+    data class MessengerScreen(val id: Long) : BasketConfig()
 }
 
 sealed class ChildBasket {
@@ -73,6 +80,7 @@ sealed class ChildBasket {
     class UserChild(val component: UserComponent) : ChildBasket()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildBasket()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildBasket()
+    class MessengerChild(val component: DialogsComponent) : ChildBasket()
 }
 
 @Composable
@@ -94,6 +102,7 @@ fun BasketNavigation(
             is ChildBasket.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildBasket.UserChild -> UserContent(screen.component, modifier)
             is ChildBasket.CreateOrderChild -> CreateOrderContent(screen.component)
+            is ChildBasket.MessengerChild -> DialogsContent(screen.component, modifier)
         }
     }
 }
@@ -103,9 +112,8 @@ fun createBasketChild(
     config: BasketConfig,
     componentContext: ComponentContext,
     basketNavigation : StackNavigation<BasketConfig>,
-    navigateToMyOrders: (Long?) -> Unit,
+    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToDialog: (dialogId: Long?) -> Unit,
     navigateToSubscribe: () -> Unit
 ): ChildBasket =
     when (config) {
@@ -178,7 +186,9 @@ fun createBasketChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    navigateToDialog(dialogId)
+                    basketNavigation.pushNew(
+                        BasketConfig.MessengerScreen(dialogId ?: 1L)
+                    )
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()
@@ -238,8 +248,8 @@ fun createBasketChild(
                 goToSubscriptions = {
                     navigateToSubscribe()
                 },
-                goToOrder = {
-                    navigateToMyOrders(it)
+                goToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
                 }
             )
         )
@@ -262,7 +272,30 @@ fun createBasketChild(
                     )
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders(null)
+                    navigateToMyOrders(null, DealTypeGroup.BUY)
+                }
+            )
+        )
+
+        is BasketConfig.MessengerScreen -> ChildBasket.MessengerChild(
+            component = messengerFactory(
+                componentContext,
+                config.id,
+                navigateBack = {
+                    basketNavigation.pop()
+                },
+                navigateToUser = {
+                    basketNavigation.pushNew(
+                        BasketConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateToOffer = {
+                    basketNavigation.pushNew(
+                        BasketConfig.OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
                 }
             )
         )

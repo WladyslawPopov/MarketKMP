@@ -100,8 +100,8 @@ class DefaultProfileComponent(
             currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""
 
             when (currentPage) {
-                "messenger" -> {
-                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                "conversations" -> {
+                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen)
                 }
                 "purchases" -> {
                     navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, searchID))

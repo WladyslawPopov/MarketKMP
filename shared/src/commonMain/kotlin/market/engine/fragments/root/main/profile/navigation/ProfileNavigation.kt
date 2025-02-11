@@ -68,7 +68,7 @@ sealed class ProfileConfig {
     data object ProfileSettingsScreen : ProfileConfig()
 
     @Serializable
-    data class ConversationsScreen(val selectedDialogId : Long? = null) : ProfileConfig()
+    data object ConversationsScreen : ProfileConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : ProfileConfig()
@@ -151,7 +151,7 @@ fun createProfileChild(
     config: ProfileConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
-    navigateToMyOrders: (Long?) -> Unit,
+    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToDynamicSettings: (String) -> Unit,
     navigateToSubscribe: () -> Unit
@@ -252,7 +252,7 @@ fun createProfileChild(
             onClick = {
                 try {
                     profileNavigation.replaceCurrent(
-                        ProfileConfig.ConversationsScreen(null)
+                        ProfileConfig.ConversationsScreen
                     )
                 } catch ( _ : Exception){
                 }
@@ -376,9 +376,7 @@ fun createProfileChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    profileNavigation.replaceAll(
-                        ProfileConfig.ConversationsScreen(dialogId)
-                    )
+                    profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId ?: 1L))
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()
@@ -438,8 +436,8 @@ fun createProfileChild(
                     goToSubscriptions = {
                         navigateToSubscribe()
                     },
-                    goToOrder = {
-                        navigateToMyOrders(it)
+                    goToOrder = { id, type ->
+                        navigateToMyOrders(id, type)
                     }
                 )
             )
@@ -489,7 +487,7 @@ fun createProfileChild(
                     profileNavigation.pop()
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders(null)
+                    navigateToMyOrders(null, DealTypeGroup.BUY)
                 }
             )
         )
@@ -518,7 +516,6 @@ fun createProfileChild(
                         ProfileConfig.DialogsScreen(it)
                     )
                 },
-                selectedId = config.selectedDialogId,
             )
         )
 

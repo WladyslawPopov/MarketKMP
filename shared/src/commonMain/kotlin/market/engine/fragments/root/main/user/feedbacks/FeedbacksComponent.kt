@@ -5,7 +5,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.Flow
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Reports
 import market.engine.core.data.types.ReportPageType
 import org.koin.mp.KoinPlatform.getKoin
@@ -22,7 +22,7 @@ interface FeedbacksComponent {
 
     fun onRefresh()
 
-    fun goToOrder(orderId : Long)
+    fun goToOrder(orderId: Long, type: DealTypeGroup)
 
     fun goToSnapshot(snapshotId : Long)
 
@@ -33,7 +33,7 @@ class DefaultFeedbacksComponent(
     val type : ReportPageType,
     val userId : Long,
     componentContext: ComponentContext,
-    private val navigateToOrder : (Long) -> Unit,
+    private val navigateToOrder : (Long, DealTypeGroup) -> Unit,
     private val navigateToSnapshot : (Long) -> Unit,
     private val navigateToUser : (Long) -> Unit
 ) : FeedbacksComponent, ComponentContext by componentContext {
@@ -55,8 +55,8 @@ class DefaultFeedbacksComponent(
         model.value.feedbacksViewModel.refresh()
     }
 
-    override fun goToOrder(orderId: Long) {
-        navigateToOrder(orderId)
+    override fun goToOrder(orderId: Long, type: DealTypeGroup) {
+        navigateToOrder(orderId, type)
     }
 
     override fun goToSnapshot(snapshotId: Long) {

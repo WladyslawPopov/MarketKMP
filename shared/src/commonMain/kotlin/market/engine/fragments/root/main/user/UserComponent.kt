@@ -11,6 +11,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import kotlinx.serialization.Serializable
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.User
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.root.main.user.feedbacks.DefaultFeedbacksComponent
@@ -49,7 +50,7 @@ class DefaultUserComponent(
     val goToListing: (ListingData) -> Unit,
     val navigateBack: () -> Unit,
     val navigateToSnapshot: (Long) -> Unit,
-    val navigateToOrder: (Long) -> Unit,
+    val navigateToOrder: (Long, DealTypeGroup) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateToSubscriptions: () -> Unit,
 ) : UserComponent, ComponentContext by componentContext {
@@ -118,8 +119,8 @@ class DefaultUserComponent(
             navigateToSnapshot = {
                 navigateToSnapshot(it)
             },
-            navigateToOrder = {
-                navigateToOrder(it)
+            navigateToOrder = { id, type ->
+                navigateToOrder(id, type)
             },
             navigateToUser = {
                 navigateToUser(it)

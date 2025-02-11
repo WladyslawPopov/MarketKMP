@@ -24,6 +24,7 @@ import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -34,6 +35,9 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
+import market.engine.fragments.root.main.messenger.DialogsComponent
+import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
@@ -66,6 +70,11 @@ sealed class HomeConfig {
     data class CreateOrderScreen(
         val basketItem : Pair<Long, List<SelectedBasketItem>>,
     ) : HomeConfig()
+
+    @Serializable
+    data class MessagesScreen(
+        val dialogId: Long,
+    ) : HomeConfig()
 }
 
 sealed class ChildHome {
@@ -75,6 +84,7 @@ sealed class ChildHome {
     class UserChild(val component: UserComponent) : ChildHome()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildHome()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildHome()
+    class MessagesChild(val component: DialogsComponent) : ChildHome()
 }
 
 @Composable
@@ -109,6 +119,9 @@ fun HomeNavigation(
             is ChildHome.CreateOrderChild -> {
                 CreateOrderContent(screen.component)
             }
+            is ChildHome.MessagesChild -> {
+                DialogsContent(screen.component, modifier)
+            }
         }
     }
 }
@@ -117,10 +130,9 @@ fun createHomeChild(
     config: HomeConfig,
     componentContext: ComponentContext,
     homeNavigation: StackNavigation<HomeConfig>,
-    goToMessenger: () -> Unit,
     goToLogin: () -> Unit,
-    navigateToMyOrders: (Long?) -> Unit,
-    navigateToDialog: (dialogId: Long?) -> Unit,
+    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
+    navigateToConversations: () -> Unit,
     navigateToContactUs: () -> Unit,
     navigateToAppSettings: () -> Unit,
     navigateToSubscribe: () -> Unit
@@ -130,9 +142,11 @@ fun createHomeChild(
             componentContext,
             homeNavigation,
             goToLogin = { goToLogin() },
-            navigateToMessenger = { goToMessenger() },
             navigateToContactUs = { navigateToContactUs() },
-            navigateToAppSettings = { navigateToAppSettings() }
+            navigateToAppSettings = { navigateToAppSettings() },
+            navigateToConversations = {
+                navigateToConversations()
+            }
         )
     )
 
@@ -181,7 +195,9 @@ fun createHomeChild(
                 goToLogin()
             },
             navigateToDialog = { dialogId ->
-               navigateToDialog(dialogId)
+               homeNavigation.pushNew(
+                   HomeConfig.MessagesScreen(dialogId ?: 1L)
+               )
             },
             navigationSubscribes = {
                 navigateToSubscribe()
@@ -240,8 +256,8 @@ fun createHomeChild(
             goToSubscriptions = {
                 navigateToSubscribe()
             },
-            goToOrder = {
-                navigateToMyOrders(it)
+            goToOrder = { id, type ->
+                navigateToMyOrders(id, type)
             }
         )
     )
@@ -290,7 +306,30 @@ fun createHomeChild(
                 homeNavigation.pop()
             },
             navigateToMyOrders = {
-                navigateToMyOrders(null)
+                navigateToMyOrders(null, DealTypeGroup.BUY)
+            }
+        )
+    )
+
+    is HomeConfig.MessagesScreen -> ChildHome.MessagesChild(
+        component = messengerFactory(
+            componentContext = componentContext,
+            dialogId = config.dialogId,
+            navigateBack = {
+                homeNavigation.pop()
+            },
+            navigateToOrder = { id, type ->
+                navigateToMyOrders(id,type)
+            },
+            navigateToUser = {
+                homeNavigation.pushNew(
+                    HomeConfig.UserScreen(it, getCurrentDate(), false)
+                )
+            },
+            navigateToOffer = {
+                homeNavigation.pushNew(
+                    HomeConfig.OfferScreen(it, getCurrentDate())
+                )
             }
         )
     )
@@ -300,7 +339,7 @@ fun itemHome(
     componentContext: ComponentContext,
     homeNavigation : StackNavigation<HomeConfig>,
     goToLogin: () -> Unit,
-    navigateToMessenger: () -> Unit,
+    navigateToConversations: () -> Unit,
     navigateToContactUs: () -> Unit,
     navigateToAppSettings: ()->Unit
 ): HomeComponent {
@@ -337,7 +376,7 @@ fun itemHome(
             }
         },
         navigateToMessengerSelected = {
-            navigateToMessenger()
+            navigateToConversations()
         },
         navigateToContactUsSelected = {
             navigateToContactUs()

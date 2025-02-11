@@ -24,6 +24,7 @@ import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
@@ -38,6 +39,9 @@ import market.engine.fragments.root.main.createSubscription.createSubscriptionFa
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
+import market.engine.fragments.root.main.messenger.DialogsComponent
+import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
@@ -75,6 +79,9 @@ sealed class FavoritesConfig {
     data class CreateSubscriptionScreen(
         val editId : Long? = null,
     ) : FavoritesConfig()
+
+    @Serializable
+    data class MessengerScreen( val dialogId: Long) : FavoritesConfig()
 }
 
 sealed class ChildFavorites {
@@ -85,6 +92,7 @@ sealed class ChildFavorites {
     class CreateOfferChild(val component: CreateOfferComponent) : ChildFavorites()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildFavorites()
     class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildFavorites()
+    class MessengerChild(val component: DialogsComponent) : ChildFavorites()
 }
 
 @Composable
@@ -108,6 +116,7 @@ fun FavoritesNavigation(
             is ChildFavorites.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildFavorites.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildFavorites.CreateSubscriptionChild -> CreateSubscriptionContent(screen.component)
+            is ChildFavorites.MessengerChild -> DialogsContent(screen.component, modifier)
         }
     }
 }
@@ -116,9 +125,8 @@ fun createFavoritesChild(
     config: FavoritesConfig,
     componentContext: ComponentContext,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
-    navigateToMyOrders: (Long?) -> Unit,
+    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToDialog: (dialogId: Long?) -> Unit
 ): ChildFavorites = when (config) {
         is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
             itemFavPages(componentContext, favoritesNavigation, config.favScreenType)
@@ -166,7 +174,7 @@ fun createFavoritesChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    navigateToDialog(dialogId)
+                    favoritesNavigation.pushNew(FavoritesConfig.MessengerScreen(dialogId ?: 1L))
                 },
                 navigationSubscribes = {
                     favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
@@ -225,8 +233,8 @@ fun createFavoritesChild(
                 goToSubscriptions = {
                     favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
                 },
-                goToOrder = {
-                    navigateToMyOrders(it)
+                goToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
                 }
             )
         )
@@ -276,7 +284,7 @@ fun createFavoritesChild(
                     favoritesNavigation.pop()
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders(null)
+                    navigateToMyOrders(null, DealTypeGroup.BUY)
                 }
             )
         )
@@ -287,6 +295,29 @@ fun createFavoritesChild(
             editId = config.editId,
             navigateBack = {
                 favoritesNavigation.pop()
+            }
+        )
+    )
+
+    is FavoritesConfig.MessengerScreen -> ChildFavorites.MessengerChild(
+        component = messengerFactory(
+            componentContext = componentContext,
+            dialogId = config.dialogId,
+            navigateBack = {
+                favoritesNavigation.pop()
+            },
+            navigateToOrder = { id, type ->
+                navigateToMyOrders(id, type)
+            },
+            navigateToUser = {
+                favoritesNavigation.pushNew(
+                    FavoritesConfig.UserScreen(it, getCurrentDate(), false)
+                )
+            },
+            navigateToOffer = {
+                favoritesNavigation.pushNew(
+                    FavoritesConfig.OfferScreen(it, getCurrentDate())
+                )
             }
         )
     )

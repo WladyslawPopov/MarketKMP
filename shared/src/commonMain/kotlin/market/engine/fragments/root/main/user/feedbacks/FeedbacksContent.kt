@@ -257,8 +257,8 @@ fun FeedbacksContent(
                                         onClickSnapshot = { id ->
                                             component.goToSnapshot(id)
                                         },
-                                        onClickOrder = { id ->
-                                            component.goToOrder(id)
+                                        onClickOrder = { id, type ->
+                                            component.goToOrder(id,type)
                                         }
                                     )
                                 }

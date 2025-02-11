@@ -23,6 +23,7 @@ import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -30,6 +31,9 @@ import market.engine.fragments.root.main.createOffer.createOfferFactory
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.messenger.DialogsComponent
+import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
@@ -59,6 +63,9 @@ sealed class SearchConfig {
     data class CreateOrderScreen(
         val basketItem : Pair<Long, List<SelectedBasketItem>>,
     ) : SearchConfig()
+
+    @Serializable
+    data class MessageScreen(val id: Long) : SearchConfig()
 }
 
 sealed class ChildSearch {
@@ -67,6 +74,7 @@ sealed class ChildSearch {
     class UserChild(val component: UserComponent) : ChildSearch()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildSearch()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildSearch()
+    class MessageChild(val component: DialogsComponent) : ChildSearch()
 }
 
 @Composable
@@ -88,6 +96,7 @@ fun SearchNavigation(
             is ChildSearch.UserChild -> UserContent(screen.component, modifier)
             is ChildSearch.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildSearch.CreateOrderChild -> CreateOrderContent(screen.component)
+            is ChildSearch.MessageChild -> DialogsContent(screen.component, modifier)
         }
     }
 }
@@ -96,9 +105,8 @@ fun createSearchChild(
     config: SearchConfig,
     componentContext: ComponentContext,
     searchNavigation: StackNavigation<SearchConfig>,
-    navigateToMyOrders: (Long?) -> Unit,
+    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToDialog: (dialogId: Long?) -> Unit,
     navigateToSubscribe: () -> Unit
 ): ChildSearch =
     when (config) {
@@ -176,7 +184,9 @@ fun createSearchChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    navigateToDialog(dialogId)
+                    searchNavigation.pushNew(
+                        SearchConfig.MessageScreen(dialogId ?: 1L)
+                    )
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()
@@ -209,8 +219,8 @@ fun createSearchChild(
                 goToSubscriptions = {
                     navigateToSubscribe()
                 },
-                goToOrder = {
-                    navigateToMyOrders(it)
+                goToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
                 }
             )
         )
@@ -259,7 +269,30 @@ fun createSearchChild(
                     searchNavigation.pop()
                 },
                 navigateToMyOrders = {
-                    navigateToMyOrders(null)
+                    navigateToMyOrders(null, DealTypeGroup.BUY)
+                }
+            )
+        )
+
+        is SearchConfig.MessageScreen -> ChildSearch.MessageChild(
+            component = messengerFactory(
+                componentContext = componentContext,
+                dialogId = config.id,
+                navigateBack = {
+                    searchNavigation.pop()
+                },
+                navigateToUser = {
+                    searchNavigation.pushNew(
+                        SearchConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateToOffer = {
+                    searchNavigation.pushNew(
+                        SearchConfig.OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
                 }
             )
         )

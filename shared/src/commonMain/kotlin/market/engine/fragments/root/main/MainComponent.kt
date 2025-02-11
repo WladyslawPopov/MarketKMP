@@ -15,6 +15,7 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.ListingData
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.basket.BasketConfig
@@ -131,15 +132,12 @@ class DefaultMainComponent(
                 config,
                 componentContext,
                 modelNavigation.value.homeNavigation,
-                goToMessenger = {
-                    navigateToBottomItem(MainConfig.Profile, "messenger")
-                },
                 goToLoginSelected,
-                navigateToMyOrders = { id ->
-                    navigateToBottomItem(MainConfig.Profile, "purchases/$id")
+                navigateToMyOrders = { id, type ->
+                    navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                 },
-                navigateToDialog = { dialogId ->
-                    navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
+                navigateToConversations = {
+                    navigateToBottomItem(MainConfig.Profile, "conversations")
                 },
                 navigateToContactUs = {
                     contactUsSelected()
@@ -171,14 +169,11 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.searchNavigation,
-                    navigateToMyOrders = { id ->
-                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
+                    navigateToMyOrders = { id, type ->
+                        navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                     },
                     navigateToLogin = {
                         goToLogin()
-                    },
-                    navigateToDialog = { dialogId ->
-                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
                     },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
@@ -200,14 +195,11 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.basketNavigation,
-                    navigateToMyOrders = { id ->
-                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
+                    navigateToMyOrders = { id, type ->
+                        navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                     },
                     navigateToLogin = {
                         goToLogin(true)
-                    },
-                    navigateToDialog = { dialogId ->
-                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
                     },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
@@ -229,14 +221,11 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.favoritesNavigation,
-                    navigateToMyOrders = { id ->
-                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
+                    navigateToMyOrders = { id, type ->
+                        navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                     },
                     navigateToLogin = {
                         goToLogin(true)
-                    },
-                    navigateToDialog = { dialogId ->
-                        navigateToBottomItem(MainConfig.Profile, "conversations/$dialogId")
                     }
                 )
             },
@@ -255,8 +244,8 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.profileNavigation,
-                    navigateToMyOrders = { id ->
-                        navigateToBottomItem(MainConfig.Profile, "purchases/$id")
+                    navigateToMyOrders = { id, type ->
+                        navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                     },
                     navigateToLogin = {
                         goToLogin(true)

@@ -13,14 +13,12 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.network.networkObjects.Conversations
 import org.koin.mp.KoinPlatform.getKoin
 
-
 interface ConversationsComponent {
     val model : Value<Model>
     data class Model(
         val pagingDataFlow : Flow<PagingData<Conversations>>,
         val viewModel: ConversationsViewModel,
         val navigationItems : List<NavigationItem>,
-        val selectedId : Long?,
         val backHandler: BackHandler
     )
 
@@ -33,7 +31,6 @@ class DefaultConversationsComponent(
     navigationItems : List<NavigationItem>,
     val navigateBack : () -> Unit,
     val navigateToMessenger : (Long) -> Unit,
-    private var selectedId : Long? = null
 ) : ConversationsComponent, ComponentContext by componentContext {
 
     private val viewModel : ConversationsViewModel = getKoin().get()
@@ -43,7 +40,6 @@ class DefaultConversationsComponent(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             navigationItems = navigationItems,
-            selectedId = selectedId,
             backHandler = backHandler
         )
     )
@@ -77,13 +73,5 @@ class DefaultConversationsComponent(
             "profile_source" to "messages"
         )
         analyticsHelper.reportEvent("view_seller_profile", eventParameters)
-
-        if (selectedId != null) {
-            lifecycle.doOnResume {
-                viewModel.updateItem.value = selectedId
-            }
-            navigateToMessenger(selectedId!!)
-            selectedId = null
-        }
     }
 }
