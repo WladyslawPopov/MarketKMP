@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.myBids
+package market.engine.fragments.root.main.profile.myProposals
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -26,13 +26,14 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.fragments.root.main.profile.myProposals.MyBidsComponent
+import market.engine.fragments.root.main.profile.myBids.BidsItem
+import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun MyBidsContent(
+fun MyProposalsContent(
     component: MyBidsComponent,
     modifier: Modifier,
 ) {
@@ -76,18 +77,14 @@ fun MyBidsContent(
                 textButton = stringResource(strings.resetLabel)
             ) {
                 when(component.model.value.type){
-                    LotsType.MYBIDLOTS_ACTIVE ->{
-                        OfferFilters.clearTypeFilter(LotsType.MYBIDLOTS_ACTIVE)
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(OfferFilters.filtersMyBidsActive.toList())
+                    LotsType.ALL_PROPOSAL ->{
+                        OfferFilters.clearTypeFilter(LotsType.ALL_PROPOSAL)
                     }
-                    LotsType.MYBIDLOTS_UNACTIVE ->{
-                        OfferFilters.clearTypeFilter(LotsType.MYBIDLOTS_UNACTIVE)
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(OfferFilters.filtersMyBidsUnactive.toList())
+                    LotsType.NEED_RESPOSE ->{
+                        OfferFilters.clearTypeFilter(LotsType.NEED_RESPOSE)
                     }
                     else ->{
-                        listingData.value.filters.clear()
+                        OfferFilters.clearTypeFilter(LotsType.ALL_PROPOSAL)
                     }
                 }
                 viewModel.onRefresh()

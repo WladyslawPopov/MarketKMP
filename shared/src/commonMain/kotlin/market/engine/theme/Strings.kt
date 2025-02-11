@@ -420,4 +420,6 @@ interface Strings {
     val subscriptionOnLabel : StringResource
     val subscriptionOffLabel : StringResource
     val editLabel : StringResource
+    val allProposalLabel : StringResource
+    val needResponseProposalLabel : StringResource
 }
