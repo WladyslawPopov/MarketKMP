@@ -63,6 +63,8 @@ sealed class ProfileConfig {
     data object MyOffersScreen : ProfileConfig()
     @Serializable
     data object MyBidsScreen : ProfileConfig()
+    @Serializable
+    data object MyProposalsScreen : ProfileConfig()
 
     @Serializable
     data object ProfileSettingsScreen : ProfileConfig()
@@ -100,6 +102,7 @@ sealed class ProfileConfig {
 
     @Serializable
     data class DialogsScreen(val dialogId : Long) : ProfileConfig()
+
 }
 
 sealed class ChildProfile {
@@ -115,6 +118,7 @@ sealed class ChildProfile {
     class ConversationsChild(val component: ConversationsComponent) : ChildProfile()
     class MyBidsChild(val component: ProfileComponent) : ChildProfile()
     class DialogsChild(val component: DialogsComponent) : ChildProfile()
+    class MyProposalsChild(val component: ProfileComponent) : ChildProfile()
 }
 
 @Composable
@@ -143,6 +147,7 @@ fun ProfileNavigation(
             is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier)
             is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
             is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier)
+            is ChildProfile.MyProposalsChild -> ProfileMyProposalsNavigation(screen.component, modifier)
         }
     }
 }
@@ -192,9 +197,16 @@ fun createProfileChild(
             icon = drawables.proposalIcon,
             tint = colors.black,
             hasNews = false,
-            isVisible = false,
+            isVisible = true,
             badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
-                userInfo?.countUnreadPriceProposals else null
+                userInfo?.countUnreadPriceProposals else null,
+            onClick = {
+                try {
+                    profileNavigation.replaceCurrent(
+                        ProfileConfig.MyProposalsScreen
+                    )
+                } catch ( _ : Exception){}
+            }
         ),
         NavigationItem(
             title = strings.myPurchasesTitle,
@@ -561,6 +573,17 @@ fun createProfileChild(
         )
 
         ProfileConfig.ProfileSettingsScreen -> ChildProfile.ProfileSettingsChild(
+            itemProfile(
+                componentContext,
+                null,
+                profileNavigation,
+                profilePublicNavigationList.value,
+                navigateToDynamicSettings,
+                navigateToSubscribe
+            )
+        )
+
+        ProfileConfig.MyProposalsScreen -> ChildProfile.MyProposalsChild(
             itemProfile(
                 componentContext,
                 null,

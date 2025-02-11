@@ -16,16 +16,14 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.main.ProfileComponent
-import market.engine.fragments.root.main.profile.myBids.MyBidsAppBar
-import market.engine.fragments.root.main.profile.myBids.MyBidsContent
 import market.engine.fragments.root.main.profile.main.ProfileDrawer
-import market.engine.fragments.root.main.profile.myBids.DefaultMyBidsComponent
-import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
-
+import market.engine.fragments.root.main.profile.myProposals.DefaultMyProposalsComponent
+import market.engine.fragments.root.main.profile.myProposals.MyProposalsAppBar
+import market.engine.fragments.root.main.profile.myProposals.MyProposalsComponent
+import market.engine.fragments.root.main.profile.myProposals.MyProposalsContent
 
 @Serializable
 data class MyProposalsConfig(
@@ -44,7 +42,7 @@ fun ProfileMyProposalsNavigation(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(strings.myBidsTitle, component.model.value.navigationItems)
+            ProfileDrawer(strings.proposalTitle, component.model.value.navigationItems)
         },
         gesturesEnabled = drawerState.isOpen,
     ) {
@@ -53,16 +51,16 @@ fun ProfileMyProposalsNavigation(
         }
         Column {
 
-            MyBidsAppBar(
+            MyProposalsAppBar(
                 select.value,
                 drawerState = drawerState,
                 navigationClick = { newType->
-                    component.selectMyBidsPage(newType)
+                    component.selectOfferPage(newType)
                 }
             )
 
             ChildPages(
-                pages = component.myBidsPages,
+                pages = component.myProposalsPages,
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
                     select.value = when(it){
@@ -72,10 +70,10 @@ fun ProfileMyProposalsNavigation(
                             LotsType.ALL_PROPOSAL
                         }
                     }
-                    component.selectMyBidsPage(select.value)
+                    component.selectOfferPage(select.value)
                 }
             ) { _, page ->
-                MyBidsContent(
+                MyProposalsContent(
                     component = page,
                     modifier = modifier
                 )
@@ -85,25 +83,22 @@ fun ProfileMyProposalsNavigation(
 }
 
 fun itemMyProposals(
-    config: MyBidsConfig,
+    config: MyProposalsConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
-    selectMyBidsPage: (LotsType) -> Unit
-): MyBidsComponent {
-    return DefaultMyBidsComponent(
+    selectMyProposalPage: (LotsType) -> Unit
+): MyProposalsComponent {
+    return DefaultMyProposalsComponent(
         componentContext = componentContext,
         type = config.lotsType,
         offerSelected = { id ->
             profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
         },
-        selectedMyBidsPage = { type ->
-            selectMyBidsPage(type)
+        selectedMyProposalsPage = {
+            selectMyProposalPage(it)
         },
         navigateToUser = { userId ->
             profileNavigation.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
-        },
-        navigateToPurchases = {
-            profileNavigation.replaceCurrent(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
         },
         navigateToDialog = { dialogId ->
             if (dialogId != null)

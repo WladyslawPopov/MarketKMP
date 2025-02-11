@@ -56,7 +56,7 @@ fun ProfileMyOffersNavigation(
                 select.value,
                 drawerState = drawerState,
                 navigationClick = { newType->
-                    component.selectMyOfferPage(newType)
+                    component.selectOfferPage(newType)
                 }
             )
 
@@ -72,7 +72,7 @@ fun ProfileMyOffersNavigation(
                             LotsType.MYLOT_ACTIVE
                         }
                     }
-                    component.selectMyOfferPage(select.value)
+                    component.selectOfferPage(select.value)
                 }
             ) { _, page ->
                 MyOffersContent(

@@ -27,11 +27,14 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
+import market.engine.fragments.root.main.profile.myProposals.MyProposalsComponent
 import market.engine.fragments.root.main.profile.navigation.MyBidsConfig
 import market.engine.fragments.root.main.profile.navigation.MyOrderConfig
+import market.engine.fragments.root.main.profile.navigation.MyProposalsConfig
 import market.engine.fragments.root.main.profile.navigation.ProfileSettingsConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyBids
 import market.engine.fragments.root.main.profile.navigation.itemMyOrders
+import market.engine.fragments.root.main.profile.navigation.itemMyProposals
 import market.engine.fragments.root.main.profile.navigation.itemProfileSettings
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 import org.koin.mp.KoinPlatform.getKoin
@@ -45,6 +48,8 @@ interface ProfileComponent {
 
     val myBidsPages: Value<ChildPages<*, MyBidsComponent>>
 
+    val myProposalsPages: Value<ChildPages<*, MyProposalsComponent>>
+
     val settingsPages: Value<ChildPages<*, ProfileSettingsComponent>>
 
     data class Model(
@@ -57,8 +62,7 @@ interface ProfileComponent {
     fun goToAllMyOfferListing()
     fun goToAboutMe()
     fun selectProfileSettingsPage(type: ProfileSettingsTypes)
-    fun selectMyOfferPage(type: LotsType)
-    fun selectMyBidsPage(type: LotsType)
+    fun selectOfferPage(type: LotsType)
     fun selectMyOrderPage(type: DealType)
     fun goToSubscribe()
 }
@@ -75,6 +79,7 @@ class DefaultProfileComponent(
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
     private val navigationMyBids = PagesNavigation<MyBidsConfig>()
     private val navigationMyOrders = PagesNavigation<MyOrderConfig>()
+    private val navigationMyProposals = PagesNavigation<MyProposalsConfig>()
     private val navigationSettings = PagesNavigation<ProfileSettingsConfig>()
 
 
@@ -163,37 +168,31 @@ class DefaultProfileComponent(
         navigateToSubscriptions()
     }
 
-    override fun selectMyOfferPage(type: LotsType) {
+    override fun selectOfferPage(type: LotsType) {
         when (type) {
             LotsType.MYLOT_ACTIVE -> {
                 navigationMyOffers.select(0)
             }
-
             LotsType.MYLOT_UNACTIVE -> {
                 navigationMyOffers.select(1)
             }
-
             LotsType.MYLOT_FUTURE -> {
                 navigationMyOffers.select(2)
             }
-            else -> {
-                navigationMyOffers.select(0)
-            }
-        }
-    }
-
-    override fun selectMyBidsPage(type: LotsType) {
-        when (type) {
             LotsType.MYBIDLOTS_ACTIVE -> {
                 navigationMyBids.select(0)
             }
-
             LotsType.MYBIDLOTS_UNACTIVE -> {
                 navigationMyBids.select(1)
             }
-
-            else -> {
+            LotsType.ALL_PROPOSAL -> {
                 navigationMyBids.select(0)
+            }
+            LotsType.NEED_RESPOSE -> {
+                navigationMyBids.select(1)
+            }
+            else -> {
+                navigationMyOffers.select(0)
             }
         }
     }
@@ -261,9 +260,7 @@ class DefaultProfileComponent(
             },
             key = "ProfileMyOffersStack",
             childFactory = { config, componentContext ->
-                itemMyOffers(config, componentContext, navigationProfile, selectMyOfferPage = { type ->
-                    selectMyOfferPage(type)
-                })
+                itemMyOffers(config, componentContext, navigationProfile,::selectOfferPage)
             }
         )
     }
@@ -284,7 +281,28 @@ class DefaultProfileComponent(
             },
             key = "ProfileMyBidsStack",
             childFactory = { config, componentContext ->
-                itemMyBids(config, componentContext, navigationProfile, ::selectMyBidsPage)
+                itemMyBids(config, componentContext, navigationProfile,::selectOfferPage)
+            }
+        )
+    }
+
+    override val myProposalsPages: Value<ChildPages<*, MyProposalsComponent>> by lazy {
+        childPages(
+            source = navigationMyProposals,
+            serializer = MyProposalsConfig.serializer(),
+            handleBackButton = true,
+            initialPages = {
+                Pages(
+                    listOf(
+                        MyProposalsConfig(lotsType = LotsType.ALL_PROPOSAL),
+                        MyProposalsConfig(lotsType = LotsType.NEED_RESPOSE),
+                    ),
+                    selectedIndex = 0,
+                )
+            },
+            key = "ProfileMyProposalsStack",
+            childFactory = { config, componentContext ->
+                itemMyProposals(config, componentContext, navigationProfile,::selectOfferPage)
             }
         )
     }

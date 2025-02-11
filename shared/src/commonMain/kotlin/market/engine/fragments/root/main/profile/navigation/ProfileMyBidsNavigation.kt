@@ -57,7 +57,7 @@ fun ProfileMyBidsNavigation(
                 select.value,
                 drawerState = drawerState,
                 navigationClick = { newType->
-                    component.selectMyBidsPage(newType)
+                    component.selectOfferPage(newType)
                 }
             )
 
@@ -72,7 +72,7 @@ fun ProfileMyBidsNavigation(
                             LotsType.MYBIDLOTS_ACTIVE
                         }
                     }
-                    component.selectMyBidsPage(select.value)
+                    component.selectOfferPage(select.value)
                 }
             ) { _, page ->
                 MyBidsContent(

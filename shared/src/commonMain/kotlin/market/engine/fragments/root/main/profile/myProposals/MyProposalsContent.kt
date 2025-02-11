@@ -26,15 +26,13 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.fragments.root.main.profile.myBids.BidsItem
-import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MyProposalsContent(
-    component: MyBidsComponent,
+    component: MyProposalsComponent,
     modifier: Modifier,
 ) {
     val model by component.model.subscribeAsState()
@@ -42,7 +40,6 @@ fun MyProposalsContent(
     val listingData = viewModel.listingData.value.data
     val searchData = viewModel.listingData.value.searchData
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
-
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
     val windowClass = getWindowType()
@@ -93,7 +90,7 @@ fun MyProposalsContent(
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
-                icon = drawables.bidsIcon
+                icon = drawables.proposalIcon
             ) {
                 viewModel.resetScroll()
                 viewModel.onRefresh()
@@ -181,7 +178,7 @@ fun MyProposalsContent(
             },
             item = { offer ->
                 if(offer.bids?.isNotEmpty() == true) {
-                    BidsItem(
+                    ProposalItem(
                         offer = offer,
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id
@@ -195,9 +192,6 @@ fun MyProposalsContent(
                         updateTrigger = viewModel.updateItemTrigger.value,
                         goToOffer = {
                             component.goToOffer(offer, true)
-                        },
-                        goToMyPurchases = {
-                            component.goToPurchases()
                         },
                         goToUser = {
                             component.goToUser(it)
