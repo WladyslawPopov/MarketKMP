@@ -106,7 +106,10 @@ fun itemMyBids(
             profileNavigation.replaceCurrent(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
         },
         navigateToDialog = { dialogId ->
-            profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId ?: 1L))
+            if (dialogId != null)
+                profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
+            else
+                profileNavigation.pushNew(ProfileConfig.ConversationsScreen)
         },
         navigateBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())

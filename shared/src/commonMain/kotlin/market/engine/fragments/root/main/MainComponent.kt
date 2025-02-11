@@ -177,6 +177,9 @@ class DefaultMainComponent(
                     },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
+                    },
+                    navigateToConversations = {
+                        navigateToBottomItem(MainConfig.Profile, "conversations")
                     }
                 )
             },
@@ -203,6 +206,9 @@ class DefaultMainComponent(
                     },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
+                    },
+                    navigateToConversations = {
+                        navigateToBottomItem(MainConfig.Profile, "conversations")
                     }
                 )
             },
@@ -226,6 +232,9 @@ class DefaultMainComponent(
                     },
                     navigateToLogin = {
                         goToLogin(true)
+                    },
+                    navigateToConversations = {
+                        navigateToBottomItem(MainConfig.Profile, "conversations")
                     }
                 )
             },

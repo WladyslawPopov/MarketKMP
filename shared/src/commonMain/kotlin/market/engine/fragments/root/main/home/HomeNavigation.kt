@@ -195,9 +195,12 @@ fun createHomeChild(
                 goToLogin()
             },
             navigateToDialog = { dialogId ->
-               homeNavigation.pushNew(
-                   HomeConfig.MessagesScreen(dialogId ?: 1L)
-               )
+                if (dialogId != null)
+                   homeNavigation.pushNew(
+                       HomeConfig.MessagesScreen(dialogId)
+                   )
+                else
+                    navigateToConversations()
             },
             navigationSubscribes = {
                 navigateToSubscribe()

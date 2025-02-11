@@ -376,7 +376,10 @@ fun createProfileChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId ?: 1L))
+                    if(dialogId != null)
+                        profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
+                    else
+                        profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen)
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()

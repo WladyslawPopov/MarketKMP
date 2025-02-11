@@ -126,6 +126,7 @@ fun createFavoritesChild(
     componentContext: ComponentContext,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
+    navigateToConversations: () -> Unit,
     navigateToLogin: () -> Unit,
 ): ChildFavorites = when (config) {
         is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
@@ -174,7 +175,10 @@ fun createFavoritesChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    favoritesNavigation.pushNew(FavoritesConfig.MessengerScreen(dialogId ?: 1L))
+                    if (dialogId != null)
+                        favoritesNavigation.pushNew(FavoritesConfig.MessengerScreen(dialogId))
+                    else
+                        navigateToConversations()
                 },
                 navigationSubscribes = {
                     favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))

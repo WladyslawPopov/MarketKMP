@@ -113,6 +113,7 @@ fun createBasketChild(
     componentContext: ComponentContext,
     basketNavigation : StackNavigation<BasketConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
+    navigateToConversations: () -> Unit,
     navigateToLogin: () -> Unit,
     navigateToSubscribe: () -> Unit
 ): ChildBasket =
@@ -186,9 +187,10 @@ fun createBasketChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    basketNavigation.pushNew(
-                        BasketConfig.MessengerScreen(dialogId ?: 1L)
-                    )
+                    if(dialogId != null)
+                        basketNavigation.pushNew(BasketConfig.MessengerScreen(dialogId))
+                    else
+                        navigateToConversations()
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()

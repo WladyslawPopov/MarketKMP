@@ -107,7 +107,8 @@ fun createSearchChild(
     searchNavigation: StackNavigation<SearchConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToSubscribe: () -> Unit
+    navigateToSubscribe: () -> Unit,
+    navigateToConversations: () -> Unit,
 ): ChildSearch =
     when (config) {
         is SearchConfig.ListingScreen -> {
@@ -184,9 +185,12 @@ fun createSearchChild(
                     navigateToLogin()
                 },
                 navigateToDialog = { dialogId ->
-                    searchNavigation.pushNew(
-                        SearchConfig.MessageScreen(dialogId ?: 1L)
-                    )
+                    if(dialogId != null)
+                        searchNavigation.pushNew(
+                            SearchConfig.MessageScreen(dialogId)
+                        )
+                    else
+                        navigateToConversations()
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()

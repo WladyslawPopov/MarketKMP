@@ -124,7 +124,10 @@ fun itemMyOrders(
             profileNavigation.pushNew(ProfileConfig.UserScreen(it, getCurrentDate(), false))
         },
         navigateToMessenger = { dialogId ->
-            profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId ?: 1L))
+            if(dialogId != null)
+                profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
+            else
+                profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen)
         },
         navigateToBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
