@@ -1,0 +1,118 @@
+package market.engine.fragments.root.main.profile.navigation
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.extensions.compose.pages.ChildPages
+import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
+import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceCurrent
+import kotlinx.serialization.Serializable
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.data.types.LotsType
+import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.main.profile.main.ProfileComponent
+import market.engine.fragments.root.main.profile.myBids.MyBidsAppBar
+import market.engine.fragments.root.main.profile.myBids.MyBidsContent
+import market.engine.fragments.root.main.profile.main.ProfileDrawer
+import market.engine.fragments.root.main.profile.myBids.DefaultMyBidsComponent
+import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
+
+
+@Serializable
+data class MyProposalsConfig(
+    @Serializable
+    val lotsType: LotsType
+)
+
+@Composable
+fun ProfileMyProposalsNavigation(
+    component: ProfileComponent,
+    modifier: Modifier
+) {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+    ModalNavigationDrawer(
+        modifier = modifier,
+        drawerState = drawerState,
+        drawerContent = {
+            ProfileDrawer(strings.myBidsTitle, component.model.value.navigationItems)
+        },
+        gesturesEnabled = drawerState.isOpen,
+    ) {
+        val select = remember {
+            mutableStateOf(LotsType.ALL_PROPOSAL)
+        }
+        Column {
+
+            MyBidsAppBar(
+                select.value,
+                drawerState = drawerState,
+                navigationClick = { newType->
+                    component.selectMyBidsPage(newType)
+                }
+            )
+
+            ChildPages(
+                pages = component.myBidsPages,
+                scrollAnimation = PagesScrollAnimation.Default,
+                onPageSelected = {
+                    select.value = when(it){
+                        0 -> LotsType.ALL_PROPOSAL
+                        1 -> LotsType.NEED_RESPOSE
+                        else -> {
+                            LotsType.ALL_PROPOSAL
+                        }
+                    }
+                    component.selectMyBidsPage(select.value)
+                }
+            ) { _, page ->
+                MyBidsContent(
+                    component = page,
+                    modifier = modifier
+                )
+            }
+        }
+    }
+}
+
+fun itemMyProposals(
+    config: MyBidsConfig,
+    componentContext: ComponentContext,
+    profileNavigation: StackNavigation<ProfileConfig>,
+    selectMyBidsPage: (LotsType) -> Unit
+): MyBidsComponent {
+    return DefaultMyBidsComponent(
+        componentContext = componentContext,
+        type = config.lotsType,
+        offerSelected = { id ->
+            profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+        },
+        selectedMyBidsPage = { type ->
+            selectMyBidsPage(type)
+        },
+        navigateToUser = { userId ->
+            profileNavigation.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
+        },
+        navigateToPurchases = {
+            profileNavigation.replaceCurrent(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
+        },
+        navigateToDialog = { dialogId ->
+            if (dialogId != null)
+                profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
+            else
+                profileNavigation.pushNew(ProfileConfig.ConversationsScreen)
+        },
+        navigateBack = {
+            profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
+        }
+    )
+}
