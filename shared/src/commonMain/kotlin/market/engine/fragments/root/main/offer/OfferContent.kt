@@ -609,7 +609,7 @@ fun OfferContent(
                                     }
 
                                     //make proposal to seller
-                                    if (false) {
+                                    if (offer.isProposalEnabled) {
                                         ProposalToSeller(
                                             if (UserData.login == offer.sellerData?.id) "act_on_proposal" else "make_proposal",
                                         )
@@ -1268,12 +1268,23 @@ fun MessageToSeller(
 fun ProposalToSeller(
     type : String
 ){
+    val onClick = {
+        when(type){
+            "make_proposal" ->{
+
+            }
+            "act_on_proposal" ->{
+
+            }
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(dimens.smallPadding)
             .clickable {
-
+                onClick()
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
@@ -1282,7 +1293,7 @@ fun ProposalToSeller(
             drawables.makeProposalIcon,
             colors.inactiveBottomNavIconColor,
         ) {
-
+            onClick()
         }
 
         Text(

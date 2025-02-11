@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.myBids
+package market.engine.fragments.root.main.profile.myProposals
 
 import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
@@ -11,11 +11,8 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.root.main.profile.myProposals.MyBidsComponent
-import market.engine.fragments.root.main.profile.myProposals.MyProposalsViewModel
 
-
-interface MyBidsComponent {
+interface MyProposalsComponent {
     val model : Value<Model>
     data class Model(
         val pagingDataFlow : Flow<PagingData<Offer>>,
@@ -25,37 +22,35 @@ interface MyBidsComponent {
     )
 
     fun goToUser(userId : Long)
-    fun goToPurchases()
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
-    fun selectMyBidsPage(select : LotsType)
+    fun selectMyProposalsPage(select : LotsType)
     fun goToDialog(dialogId : Long?)
     fun goToBack()
 }
 
-class DefaultMyBidsComponent(
+class DefaultMyProposalsComponent(
     componentContext: ComponentContext,
-    val type: LotsType = LotsType.MYBIDLOTS_ACTIVE,
+    val type: LotsType = LotsType.ALL_PROPOSAL,
     val offerSelected: (Long) -> Unit,
-    val selectedMyBidsPage: (LotsType) -> Unit,
+    val selectedMyProposalsPage: (LotsType) -> Unit,
     val navigateToUser: (Long) -> Unit,
-    val navigateToPurchases: () -> Unit,
     val navigateToDialog: (Long?) -> Unit,
     val navigateBack: () -> Unit
-) : MyBidsComponent, ComponentContext by componentContext {
+) : MyProposalsComponent, ComponentContext by componentContext {
 
     private val viewModel : MyProposalsViewModel = MyProposalsViewModel(type)
 
     private val listingData = viewModel.listingData.value
 
     private val _model = MutableValue(
-        MyBidsComponent.Model(
+        MyProposalsComponent.Model(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             type = type,
             backHandler = backHandler
         )
     )
-    override val model: Value<MyBidsComponent.Model> = _model
+    override val model: Value<MyProposalsComponent.Model> = _model
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
@@ -68,7 +63,7 @@ class DefaultMyBidsComponent(
         }
         val eventParameters = mapOf(
             "user_id" to UserData.login.toString(),
-            "profile_source" to "bids"
+            "profile_source" to "proposals"
         )
         analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
@@ -81,8 +76,8 @@ class DefaultMyBidsComponent(
         }
     }
 
-    override fun selectMyBidsPage(select: LotsType) {
-        selectedMyBidsPage(select)
+    override fun selectMyProposalsPage(select: LotsType) {
+        selectedMyProposalsPage(select)
     }
 
     override fun goToDialog(dialogId: Long?) {
@@ -93,12 +88,7 @@ class DefaultMyBidsComponent(
         navigateBack()
     }
 
-
     override fun goToUser(userId: Long) {
         navigateToUser(userId)
-    }
-
-    override fun goToPurchases() {
-        navigateToPurchases()
     }
 }

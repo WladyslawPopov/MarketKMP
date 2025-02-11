@@ -24,7 +24,7 @@ import market.engine.fragments.root.main.profile.navigation.itemMyOffers
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
+import market.engine.fragments.root.main.profile.myProposals.MyBidsComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.navigation.MyBidsConfig
