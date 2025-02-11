@@ -11,7 +11,6 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.root.main.profile.myProposals.MyBidsComponent
 import market.engine.fragments.root.main.profile.myProposals.MyProposalsViewModel
 
 

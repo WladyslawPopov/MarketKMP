@@ -26,7 +26,6 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.fragments.root.main.profile.myProposals.MyBidsComponent
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import org.jetbrains.compose.resources.stringResource
