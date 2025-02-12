@@ -28,6 +28,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.utils.getOfferImagePreview
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
@@ -40,13 +41,6 @@ fun CreateOrderOfferItem(
     goToOffer: (Long) -> Unit,
 ) {
     if (offer == null) return
-
-    val imageUrl = when {
-        offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
-        offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
-        offer.externalUrl != null -> offer.externalUrl
-        else -> null
-    }
 
     Column(
         modifier = Modifier
@@ -69,7 +63,7 @@ fun CreateOrderOfferItem(
                 contentAlignment = Alignment.TopStart
             ) {
                 LoadImage(
-                    url = imageUrl ?: "",
+                    url = offer.getOfferImagePreview(),
                     size = 90.dp
                 )
             }

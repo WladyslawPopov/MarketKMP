@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.ProposalType
 
 fun offerFactory(
     componentContext: ComponentContext,
@@ -22,7 +23,8 @@ fun offerFactory(
     navigateToCreateOrder: (item : Pair<Long, List<SelectedBasketItem>>) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToDialog: (dialogId: Long?) -> Unit,
-    navigationSubscribes: () -> Unit
+    navigationSubscribes: () -> Unit,
+    navigateToProposalPage: (offerId: Long, type: ProposalType) -> Unit
 ): OfferComponent {
         return DefaultOfferComponent(
             id,
@@ -54,6 +56,9 @@ fun offerFactory(
             },
             navigationSubscribes = {
                 navigationSubscribes()
+            },
+            navigateToProposalPage = { offerId, type ->
+                navigateToProposalPage(offerId, type)
             }
         )
     }

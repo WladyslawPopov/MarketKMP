@@ -19,6 +19,7 @@ import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.LotsType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
@@ -178,7 +179,7 @@ fun MyProposalsContent(
             },
             item = { offer ->
                 if(offer.bids?.isNotEmpty() == true) {
-                    ProposalItem(
+                    MyProposalItem(
                         offer = offer,
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id
@@ -198,6 +199,9 @@ fun MyProposalsContent(
                         },
                         goToDialog = {
                             component.goToDialog(it)
+                        },
+                        goToProposal = {
+                            component.goToProposal(offer.id, ProposalType.ACT_ON_PROPOSAL)
                         },
                         baseViewModel = viewModel,
                     )

@@ -11,6 +11,7 @@ import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Region
 import market.engine.core.network.networkObjects.User
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -34,6 +35,7 @@ interface OfferComponent {
     fun goToCreateOffer(type: CreateOfferType,catPath: List<Long>?, offerId: Long, externalImages : List<String>?)
     fun goToCreateOrder(item : Pair<Long, List<SelectedBasketItem>>)
     fun goToDialog(dialogId: Long?)
+    fun goToProposalPage(type: ProposalType)
     fun goToLogin()
     fun goToSubscribes()
 }
@@ -56,6 +58,7 @@ class DefaultOfferComponent(
     val navigateToLogin: () -> Unit,
     val navigateToDialog: (dialogId: Long?) -> Unit,
     val navigationSubscribes: () -> Unit,
+    val navigateToProposalPage: (offerId: Long, type: ProposalType) -> Unit,
 ) : OfferComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
@@ -137,6 +140,10 @@ class DefaultOfferComponent(
 
     override fun goToDialog(dialogId: Long?) {
         navigateToDialog(dialogId)
+    }
+
+    override fun goToProposalPage(type: ProposalType) {
+        navigateToProposalPage(id, type)
     }
 
     override fun goToLogin() {

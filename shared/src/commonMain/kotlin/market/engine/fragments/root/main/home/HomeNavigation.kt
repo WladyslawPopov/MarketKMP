@@ -25,6 +25,7 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -41,6 +42,9 @@ import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
+import market.engine.fragments.root.main.proposalPage.ProposalComponent
+import market.engine.fragments.root.main.proposalPage.ProposalContent
+import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
 
@@ -75,6 +79,9 @@ sealed class HomeConfig {
     data class MessagesScreen(
         val dialogId: Long,
     ) : HomeConfig()
+
+    @Serializable
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : HomeConfig()
 }
 
 sealed class ChildHome {
@@ -85,6 +92,7 @@ sealed class ChildHome {
     class CreateOfferChild(val component: CreateOfferComponent) : ChildHome()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildHome()
     class MessagesChild(val component: DialogsComponent) : ChildHome()
+    class ProposalChild(val component: ProposalComponent) : ChildHome()
 }
 
 @Composable
@@ -121,6 +129,9 @@ fun HomeNavigation(
             }
             is ChildHome.MessagesChild -> {
                 DialogsContent(screen.component, modifier)
+            }
+            is ChildHome.ProposalChild -> {
+                ProposalContent(screen.component)
             }
         }
     }
@@ -204,6 +215,11 @@ fun createHomeChild(
             },
             navigationSubscribes = {
                 navigateToSubscribe()
+            },
+            navigateToProposalPage = { offerId, type ->
+                homeNavigation.pushNew(
+                    HomeConfig.ProposalScreen(offerId, type)
+                )
             }
         )
     )
@@ -332,6 +348,27 @@ fun createHomeChild(
             navigateToOffer = {
                 homeNavigation.pushNew(
                     HomeConfig.OfferScreen(it, getCurrentDate())
+                )
+            }
+        )
+    )
+
+    is HomeConfig.ProposalScreen -> ChildHome.ProposalChild(
+        component = proposalFactory(
+            componentContext = componentContext,
+            offerId = config.offerId,
+            proposalType = config.proposalType,
+            navigateBack = {
+                homeNavigation.pop()
+            },
+            navigateToOffer = {
+                homeNavigation.pushNew(
+                    HomeConfig.OfferScreen(it, getCurrentDate(),false)
+                )
+            },
+            navigateToUser = {
+                homeNavigation.pushNew(
+                    HomeConfig.UserScreen(it, getCurrentDate(), false)
                 )
             }
         )

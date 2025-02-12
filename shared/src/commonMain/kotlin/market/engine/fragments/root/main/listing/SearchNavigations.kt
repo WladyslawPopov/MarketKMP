@@ -24,6 +24,7 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -37,6 +38,9 @@ import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
+import market.engine.fragments.root.main.proposalPage.ProposalComponent
+import market.engine.fragments.root.main.proposalPage.ProposalContent
+import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
 
@@ -66,6 +70,9 @@ sealed class SearchConfig {
 
     @Serializable
     data class MessageScreen(val id: Long) : SearchConfig()
+
+    @Serializable
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : SearchConfig()
 }
 
 sealed class ChildSearch {
@@ -75,6 +82,7 @@ sealed class ChildSearch {
     class CreateOfferChild(val component: CreateOfferComponent) : ChildSearch()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildSearch()
     class MessageChild(val component: DialogsComponent) : ChildSearch()
+    class ProposalChild(val component: ProposalComponent) : ChildSearch()
 }
 
 @Composable
@@ -97,6 +105,7 @@ fun SearchNavigation(
             is ChildSearch.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildSearch.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildSearch.MessageChild -> DialogsContent(screen.component, modifier)
+            is ChildSearch.ProposalChild -> ProposalContent(screen.component)
         }
     }
 }
@@ -194,6 +203,11 @@ fun createSearchChild(
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()
+                },
+                navigateToProposalPage = { offerId, type ->
+                    searchNavigation.pushNew(
+                        SearchConfig.ProposalScreen(offerId, type)
+                    )
                 }
             )
         )
@@ -297,6 +311,27 @@ fun createSearchChild(
                 },
                 navigateToOrder = { id, type ->
                     navigateToMyOrders(id, type)
+                }
+            )
+        )
+
+        is SearchConfig.ProposalScreen -> ChildSearch.ProposalChild(
+            component = proposalFactory(
+                componentContext = componentContext,
+                offerId = config.offerId,
+                proposalType = config.proposalType,
+                navigateBack = {
+                    searchNavigation.pop()
+                },
+                navigateToUser = {
+                    searchNavigation.pushNew(
+                        SearchConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateToOffer = {
+                    searchNavigation.pushNew(
+                        SearchConfig.OfferScreen(it, getCurrentDate())
+                    )
                 }
             )
         )

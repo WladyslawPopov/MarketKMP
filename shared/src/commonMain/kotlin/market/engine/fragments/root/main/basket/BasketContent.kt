@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -201,22 +200,21 @@ fun BasketContent(
                             "offer_ids" to jsonArray
                         )
                     )
-                    viewModel.viewModelScope.launch {
-                        viewModel.deleteItem(
-                            body,
-                            userBasket.value.find { pair ->
-                                pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
-                            }?.second?.find { it?.id == listOffers.value.firstOrNull() },
-                            userBasket.value.find { pair ->
-                                pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
-                            }?.first?.id ?: 1L
-                        ){
-                            refresh()
-                            listOffers.value = emptyList()
-                            viewModel.showToast(
-                                successToastItem.copy(message = successToast)
-                            )
-                        }
+
+                    viewModel.deleteItem(
+                        body,
+                        userBasket.value.find { pair ->
+                            pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
+                        }?.second?.find { it?.id == listOffers.value.firstOrNull() },
+                        userBasket.value.find { pair ->
+                            pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
+                        }?.first?.id ?: 1L
+                    ){
+                        refresh()
+                        listOffers.value = emptyList()
+                        viewModel.showToast(
+                            successToastItem.copy(message = successToast)
+                        )
                     }
                 }
             )

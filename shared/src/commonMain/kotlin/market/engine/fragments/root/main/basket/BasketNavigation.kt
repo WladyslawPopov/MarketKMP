@@ -23,6 +23,7 @@ import market.engine.core.data.items.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -39,6 +40,9 @@ import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
+import market.engine.fragments.root.main.proposalPage.ProposalComponent
+import market.engine.fragments.root.main.proposalPage.ProposalContent
+import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
 import market.engine.fragments.root.main.user.userFactory
@@ -71,6 +75,9 @@ sealed class BasketConfig {
 
     @Serializable
     data class MessengerScreen(val id: Long) : BasketConfig()
+
+    @Serializable
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : BasketConfig()
 }
 
 sealed class ChildBasket {
@@ -81,6 +88,7 @@ sealed class ChildBasket {
     class CreateOfferChild(val component: CreateOfferComponent) : ChildBasket()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildBasket()
     class MessengerChild(val component: DialogsComponent) : ChildBasket()
+    class ProposalChild(val component: ProposalComponent) : ChildBasket()
 }
 
 @Composable
@@ -103,6 +111,7 @@ fun BasketNavigation(
             is ChildBasket.UserChild -> UserContent(screen.component, modifier)
             is ChildBasket.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildBasket.MessengerChild -> DialogsContent(screen.component, modifier)
+            is ChildBasket.ProposalChild -> ProposalContent(screen.component)
         }
     }
 }
@@ -115,7 +124,7 @@ fun createBasketChild(
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToSubscribe: () -> Unit
+    navigateToSubscribe: () -> Unit,
 ): ChildBasket =
     when (config) {
         BasketConfig.BasketScreen -> ChildBasket.BasketChild(
@@ -194,6 +203,11 @@ fun createBasketChild(
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()
+                },
+                navigateToProposalPage = { offerId, type ->
+                    basketNavigation.pushNew(
+                        BasketConfig.ProposalScreen(offerId, type)
+                    )
                 }
             )
         )
@@ -298,6 +312,26 @@ fun createBasketChild(
                 },
                 navigateToOrder = { id, type ->
                     navigateToMyOrders(id, type)
+                }
+            )
+        )
+        is BasketConfig.ProposalScreen -> ChildBasket.ProposalChild(
+            component = proposalFactory(
+                config.offerId,
+                config.proposalType,
+                componentContext,
+                navigateBack = {
+                    basketNavigation.pop()
+                },
+                navigateToOffer = {
+                    basketNavigation.pushNew(
+                        BasketConfig.OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateToUser = {
+                    basketNavigation.pushNew(
+                        BasketConfig.UserScreen(it, getCurrentDate(), false)
+                    )
                 }
             )
         )

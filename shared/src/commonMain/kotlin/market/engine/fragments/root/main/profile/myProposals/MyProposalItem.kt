@@ -27,6 +27,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.CreateOfferDialog
@@ -37,14 +38,15 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun ProposalItem(
+fun MyProposalItem(
     offer: Offer,
     onUpdateOfferItem : (offer: Offer) -> Unit,
     baseViewModel: BaseViewModel,
     updateTrigger : Int,
     goToUser: (Long) -> Unit,
     goToOffer: (Long) -> Unit,
-    goToDialog: (Long?) -> Unit
+    goToDialog: (Long?) -> Unit,
+    goToProposal: () -> Unit
 ) {
     if(updateTrigger < 0) return
 
@@ -60,6 +62,9 @@ fun ProposalItem(
     Card(
         colors = colors.cardColors,
         shape = MaterialTheme.shapes.small,
+        onClick = {
+            goToProposal()
+        }
     ) {
         Column(
             modifier = Modifier
@@ -106,14 +111,6 @@ fun ProposalItem(
                 }
             }
 
-            val imageUrl = when {
-                offer.image != null -> offer.image.small?.content
-                offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
-                offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
-                offer.externalUrl != null -> offer.externalUrl
-                else -> null
-            }
-
             Row(
                 modifier = Modifier.clickable {
                     goToOffer(offer.id)
@@ -128,7 +125,7 @@ fun ProposalItem(
                     contentAlignment = Alignment.TopStart
                 ) {
                     LoadImage(
-                        url = imageUrl ?: "",
+                        url = offer.getOfferImagePreview(),
                         size = 90.dp
                     )
                 }

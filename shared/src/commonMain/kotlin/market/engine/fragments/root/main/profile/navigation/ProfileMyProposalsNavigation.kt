@@ -108,6 +108,9 @@ fun itemMyProposals(
         },
         navigateBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
+        },
+        navigateToProposal = { offerId, proposalType ->
+            profileNavigation.pushNew(ProfileConfig.ProposalScreen(offerId, proposalType))
         }
     )
 }

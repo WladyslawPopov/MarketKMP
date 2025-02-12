@@ -32,6 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.utils.getOfferImagePreview
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.exceptions.LoadImage
@@ -52,13 +53,6 @@ fun BasketOfferItem(
     val isChecked = remember { mutableStateOf(selectedOffers.value.find { it.offerId == offer.id } != null) }
 
     val selectedQuantity = remember { mutableStateOf(offer.quantity) }
-
-    val imageUrl = when {
-        offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
-        offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
-        offer.externalUrl != null -> offer.externalUrl
-        else -> null
-    }
 
     LaunchedEffect(selectedOffers){
         snapshotFlow {
@@ -127,7 +121,7 @@ fun BasketOfferItem(
                     contentAlignment = Alignment.TopStart
                 ) {
                     LoadImage(
-                        url = imageUrl ?: "",
+                        url = offer.getOfferImagePreview(),
                         size = 90.dp
                     )
                 }

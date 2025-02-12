@@ -84,6 +84,7 @@ import market.engine.core.network.networkObjects.PaymentMethod
 import market.engine.core.network.networkObjects.Value
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
+import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
@@ -610,9 +611,13 @@ fun OfferContent(
 
                                     //make proposal to seller
                                     if (offer.isProposalEnabled) {
-                                        ProposalToSeller(
-                                            if (UserData.login == offer.sellerData?.id) "act_on_proposal" else "make_proposal",
-                                        )
+                                        ProposalToSeller{
+                                            if (UserData.login == offer.sellerData?.id) {
+                                                component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
+                                            }else{
+                                                component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
+                                            }
+                                        }
                                     }
                                     // who pays for delivery
                                     Row(
@@ -1266,25 +1271,14 @@ fun MessageToSeller(
 
 @Composable
 fun ProposalToSeller(
-    type : String
+    goToProposalPage: () -> Unit
 ){
-    val onClick = {
-        when(type){
-            "make_proposal" ->{
-
-            }
-            "act_on_proposal" ->{
-
-            }
-        }
-    }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(dimens.smallPadding)
             .clickable {
-                onClick()
+                goToProposalPage()
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
@@ -1293,7 +1287,7 @@ fun ProposalToSeller(
             drawables.makeProposalIcon,
             colors.inactiveBottomNavIconColor,
         ) {
-            onClick()
+            goToProposalPage()
         }
 
         Text(

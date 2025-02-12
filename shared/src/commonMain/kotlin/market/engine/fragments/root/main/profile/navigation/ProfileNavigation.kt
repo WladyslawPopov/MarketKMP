@@ -30,6 +30,7 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -53,6 +54,9 @@ import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
 import market.engine.fragments.root.main.profile.conversations.conversationsFactory
+import market.engine.fragments.root.main.proposalPage.ProposalComponent
+import market.engine.fragments.root.main.proposalPage.ProposalContent
+import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserContent
 
 @Serializable
@@ -102,7 +106,8 @@ sealed class ProfileConfig {
 
     @Serializable
     data class DialogsScreen(val dialogId : Long) : ProfileConfig()
-
+    @Serializable
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : ProfileConfig()
 }
 
 sealed class ChildProfile {
@@ -119,6 +124,7 @@ sealed class ChildProfile {
     class MyBidsChild(val component: ProfileComponent) : ChildProfile()
     class DialogsChild(val component: DialogsComponent) : ChildProfile()
     class MyProposalsChild(val component: ProfileComponent) : ChildProfile()
+    class ProposalChild(val component: ProposalComponent) : ChildProfile()
 }
 
 @Composable
@@ -148,6 +154,7 @@ fun ProfileNavigation(
             is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
             is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier)
             is ChildProfile.MyProposalsChild -> ProfileMyProposalsNavigation(screen.component, modifier)
+            is ChildProfile.ProposalChild -> ProposalContent(screen.component)
         }
     }
 }
@@ -395,6 +402,11 @@ fun createProfileChild(
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()
+                },
+                navigateToProposalPage = { offerId, type ->
+                    profileNavigation.pushNew(
+                        ProfileConfig.ProposalScreen(offerId, type)
+                    )
                 }
             )
         )
@@ -591,6 +603,27 @@ fun createProfileChild(
                 profilePublicNavigationList.value,
                 navigateToDynamicSettings,
                 navigateToSubscribe
+            )
+        )
+
+        is ProfileConfig.ProposalScreen -> ChildProfile.ProposalChild(
+            component = proposalFactory(
+                config.offerId,
+                config.proposalType,
+                componentContext,
+                navigateBack = {
+                    profileNavigation.pop()
+                },
+                navigateToOffer = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateToUser = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.UserScreen(it, getCurrentDate(), false)
+                    )
+                }
             )
         )
     }

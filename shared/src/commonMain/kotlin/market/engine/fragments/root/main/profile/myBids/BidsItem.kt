@@ -29,12 +29,12 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.CreateOfferDialog
 import market.engine.widgets.exceptions.LoadImage
 import market.engine.widgets.items.HeaderOfferItem
-import market.engine.widgets.rows.UserColumn
 import market.engine.widgets.rows.UserRow
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -110,14 +110,6 @@ fun BidsItem(
                 }
             }
 
-            val imageUrl = when {
-                offer.image != null -> offer.image.small?.content
-                offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
-                offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
-                offer.externalUrl != null -> offer.externalUrl
-                else -> null
-            }
-
             Row(
                 modifier = Modifier.clickable {
                     goToOffer(offer.id)
@@ -132,7 +124,7 @@ fun BidsItem(
                     contentAlignment = Alignment.TopStart
                 ) {
                     LoadImage(
-                        url = imageUrl ?: "",
+                        url = offer.getOfferImagePreview(),
                         size = 90.dp
                     )
                 }

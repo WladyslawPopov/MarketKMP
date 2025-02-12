@@ -26,6 +26,7 @@ import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -45,6 +46,9 @@ import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
+import market.engine.fragments.root.main.proposalPage.ProposalComponent
+import market.engine.fragments.root.main.proposalPage.ProposalContent
+import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
 
@@ -82,6 +86,9 @@ sealed class FavoritesConfig {
 
     @Serializable
     data class MessengerScreen( val dialogId: Long) : FavoritesConfig()
+
+    @Serializable
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : FavoritesConfig()
 }
 
 sealed class ChildFavorites {
@@ -93,6 +100,7 @@ sealed class ChildFavorites {
     class CreateOrderChild(val component: CreateOrderComponent) : ChildFavorites()
     class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildFavorites()
     class MessengerChild(val component: DialogsComponent) : ChildFavorites()
+    class ProposalChild(val component: ProposalComponent) : ChildFavorites()
 }
 
 @Composable
@@ -117,6 +125,7 @@ fun FavoritesNavigation(
             is ChildFavorites.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildFavorites.CreateSubscriptionChild -> CreateSubscriptionContent(screen.component)
             is ChildFavorites.MessengerChild -> DialogsContent(screen.component, modifier)
+            is ChildFavorites.ProposalChild -> ProposalContent(screen.component)
         }
     }
 }
@@ -182,6 +191,11 @@ fun createFavoritesChild(
                 },
                 navigationSubscribes = {
                     favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
+                },
+                navigateToProposalPage = { offerId, type ->
+                    favoritesNavigation.pushNew(
+                        FavoritesConfig.ProposalScreen(offerId, type)
+                    )
                 }
             )
         )
@@ -321,6 +335,27 @@ fun createFavoritesChild(
             navigateToOffer = {
                 favoritesNavigation.pushNew(
                     FavoritesConfig.OfferScreen(it, getCurrentDate())
+                )
+            }
+        )
+    )
+
+    is FavoritesConfig.ProposalScreen -> ChildFavorites.ProposalChild(
+        component = proposalFactory(
+            componentContext = componentContext,
+            offerId = config.offerId,
+            proposalType = config.proposalType,
+            navigateBack = {
+                favoritesNavigation.pop()
+            },
+            navigateToOffer = {
+                favoritesNavigation.pushNew(
+                    FavoritesConfig.OfferScreen(it, getCurrentDate())
+                )
+            },
+            navigateToUser = {
+                favoritesNavigation.pushNew(
+                    FavoritesConfig.UserScreen(it, getCurrentDate(), false)
                 )
             }
         )

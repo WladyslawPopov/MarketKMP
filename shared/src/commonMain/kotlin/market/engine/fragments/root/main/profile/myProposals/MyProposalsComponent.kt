@@ -11,6 +11,7 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
+import market.engine.core.data.types.ProposalType
 
 interface MyProposalsComponent {
     val model : Value<Model>
@@ -21,6 +22,7 @@ interface MyProposalsComponent {
         val backHandler: BackHandler
     )
 
+    fun goToProposal(offerId: Long, proposalType: ProposalType)
     fun goToUser(userId : Long)
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun selectMyProposalsPage(select : LotsType)
@@ -35,12 +37,11 @@ class DefaultMyProposalsComponent(
     val selectedMyProposalsPage: (LotsType) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateToDialog: (Long?) -> Unit,
-    val navigateBack: () -> Unit
+    val navigateBack: () -> Unit,
+    val navigateToProposal: (Long, ProposalType) -> Unit,
 ) : MyProposalsComponent, ComponentContext by componentContext {
 
     private val viewModel : MyProposalsViewModel = MyProposalsViewModel(type)
-
-    private val listingData = viewModel.listingData.value
 
     private val _model = MutableValue(
         MyProposalsComponent.Model(
@@ -51,6 +52,7 @@ class DefaultMyProposalsComponent(
         )
     )
     override val model: Value<MyProposalsComponent.Model> = _model
+
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
@@ -90,5 +92,9 @@ class DefaultMyProposalsComponent(
 
     override fun goToUser(userId: Long) {
         navigateToUser(userId)
+    }
+
+    override fun goToProposal(offerId: Long, proposalType: ProposalType) {
+        navigateToProposal(offerId, proposalType)
     }
 }

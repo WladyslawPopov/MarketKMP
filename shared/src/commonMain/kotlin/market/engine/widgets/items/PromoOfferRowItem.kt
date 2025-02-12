@@ -23,6 +23,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.utils.getOfferImagePreview
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.exceptions.LoadImage
@@ -30,13 +31,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
-
-    val images = when {
-        offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content ?: ""
-        offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull() ?: ""
-        else -> ""
-    }
-
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),
@@ -54,7 +48,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
                 contentAlignment = Alignment.TopCenter
             ) {
                 LoadImage(
-                    url = images,
+                    url = offer.getOfferImagePreview(),
                     size = 120.dp
                 )
 

@@ -27,6 +27,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.utils.getOfferImagePreview
 import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -36,14 +37,6 @@ fun OfferPartItem(
     offer: Offer,
     goToOffer: (Long) -> Unit,
 ) {
-    val imageUrl = when {
-        offer.image != null -> offer.image.small?.content
-        offer.images?.isNotEmpty() == true -> offer.images?.firstOrNull()?.urls?.small?.content
-        offer.externalImages?.isNotEmpty() == true -> offer.externalImages.firstOrNull()
-        offer.externalUrl != null -> offer.externalUrl
-        else -> null
-    }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,7 +58,7 @@ fun OfferPartItem(
                 contentAlignment = Alignment.TopStart
             ) {
                 LoadImage(
-                    url = imageUrl ?: "",
+                    url = offer.getOfferImagePreview(),
                     size = 60.dp
                 )
             }

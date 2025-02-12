@@ -30,6 +30,7 @@ import market.engine.fragments.root.main.listing.search.SearchViewModel
 import market.engine.fragments.root.main.messenger.DialogsViewModel
 import market.engine.fragments.root.main.offer.OfferViewModel
 import market.engine.fragments.root.main.profile.conversations.ConversationsViewModel
+import market.engine.fragments.root.main.proposalPage.ProposalViewModel
 import market.engine.fragments.root.registration.RegViewModel
 import market.engine.fragments.root.main.user.UserViewModel
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksViewModel
@@ -70,6 +71,7 @@ val viewModelModule = module {
     viewModelOf(::RegViewModel)
     viewModelOf(::ContactUsViewModel)
     viewModelOf(::CreateSubscriptionViewModel)
+    viewModelOf(::ProposalViewModel)
 }
 
 val networkModule = module {
