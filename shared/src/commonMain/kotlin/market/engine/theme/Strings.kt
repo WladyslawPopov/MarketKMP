@@ -422,4 +422,8 @@ interface Strings {
     val editLabel : StringResource
     val allProposalLabel : StringResource
     val needResponseProposalLabel : StringResource
+    val subtitleProposalCountLabel : StringResource
+    val subtitleOfferCountLabel : StringResource
+    val countsSign : StringResource
+    val notFoundProposalsLabel : StringResource
 }

@@ -113,7 +113,7 @@ fun FavoritesContent(
     LaunchedEffect(favViewModel.updateItem.value) {
         if (favViewModel.updateItem.value != null) {
             val offer = withContext(Dispatchers.IO) {
-                    favViewModel.getUpdatedOfferById(favViewModel.updateItem.value!!)
+                    favViewModel.getOfferById(favViewModel.updateItem.value!!)
             }
 
             withContext(Dispatchers.Main) {

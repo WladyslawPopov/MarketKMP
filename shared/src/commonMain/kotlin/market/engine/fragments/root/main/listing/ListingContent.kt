@@ -300,7 +300,7 @@ fun ListingContent(
     LaunchedEffect(listingViewModel.updateItem.value){
         if (listingViewModel.updateItem.value != null) {
             val offer = withContext(Dispatchers.IO) {
-                listingViewModel.getUpdatedOfferById(listingViewModel.updateItem.value ?: 1L)
+                listingViewModel.getOfferById(listingViewModel.updateItem.value ?: 1L)
             }
 
             withContext(Dispatchers.Main) {

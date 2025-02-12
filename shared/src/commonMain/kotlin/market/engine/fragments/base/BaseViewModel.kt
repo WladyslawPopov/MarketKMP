@@ -173,7 +173,7 @@ open class BaseViewModel: ViewModel() {
         return response.success
     }
 
-    suspend fun getUpdatedOfferById(offerId: Long) : Offer? {
+    suspend fun getOfferById(offerId: Long) : Offer? {
         return try {
             val response = offerOperations.getOffer(offerId)
             response.success?.let {

@@ -108,7 +108,7 @@ fun MyBidsContent(
         if (viewModel.updateItem.value != null) {
             withContext(Dispatchers.Default) {
                 val offer =
-                    viewModel.getUpdatedOfferById(viewModel.updateItem.value!!)
+                    viewModel.getOfferById(viewModel.updateItem.value!!)
                 withContext(Dispatchers.Main) {
                     val oldItem = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
                     oldItem?.buyerData = offer?.buyerData

@@ -74,6 +74,6 @@ class DefaultProposalComponent(
             }
         }
 
-        proposalViewModel.getProposal(offerId)
+        proposalViewModel.getProposal(offerId, proposalType)
     }
 }

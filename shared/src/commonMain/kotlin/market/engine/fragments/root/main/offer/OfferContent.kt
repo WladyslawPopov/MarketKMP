@@ -610,7 +610,7 @@ fun OfferContent(
                                     }
 
                                     //make proposal to seller
-                                    if (offer.isProposalEnabled) {
+                                    if (offer.isProposalEnabled && (offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now")) {
                                         ProposalToSeller{
                                             if (UserData.login == offer.sellerData?.id) {
                                                 component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
