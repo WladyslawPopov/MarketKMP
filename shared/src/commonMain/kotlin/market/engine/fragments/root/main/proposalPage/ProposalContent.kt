@@ -240,9 +240,7 @@ fun ProposalContent(
                             goToUser = {
                                 component.goToUser(it)
                             }
-                        ) {
-                            refresh()
-                        }
+                        )
                     }
                 }
             }

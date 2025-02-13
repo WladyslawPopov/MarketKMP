@@ -25,13 +25,11 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.checkValidation
-import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.checkboxs.DynamicRadioButtons
 import market.engine.widgets.rows.UserRow
@@ -43,9 +41,7 @@ fun ProposalItem(
     proposals: Proposals,
     type: ProposalType,
     fields: ArrayList<Fields>?,
-    goToUser: (Long) -> Unit,
-
-    refresh : () -> Unit
+    goToUser: (Long) -> Unit
 ) {
     Card(
         shape = MaterialTheme.shapes.small,
