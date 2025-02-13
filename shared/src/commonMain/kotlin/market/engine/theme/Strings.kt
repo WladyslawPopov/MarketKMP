@@ -428,4 +428,14 @@ interface Strings {
     val countsSign : StringResource
     val notFoundProposalsLabel : StringResource
     val forLabel : StringResource
+    val proposalAcceptLabel : StringResource
+    val withCommentProposalLabel : StringResource
+    val proposalRejectLabel : StringResource
+    val sellerProposalRejectLabel : StringResource
+    val proposalLeftUnansweredLabel : StringResource
+    val yourProposeLabel : StringResource
+    val sellerProposalAcceptLabel : StringResource
+    val sellerProposeLabel : StringResource
+    val yourProposeWaitAnswer : StringResource
+    val sellerWaitYourAnswer : StringResource
 }

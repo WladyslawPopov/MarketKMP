@@ -28,7 +28,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
@@ -54,9 +53,6 @@ fun MyProposalItem(
 
     val showMesDialog = remember { mutableStateOf(false) }
 
-    val currentDate = getCurrentDate().toLongOrNull() ?: 1L
-    val isActive = ((offer.session?.end?.toLongOrNull() ?: 1L) > currentDate)
-
     val date1 = offer.session?.start?.convertDateWithMinutes()
     val date2 = offer.session?.end?.convertDateWithMinutes()
     val d3 = "$date1 – $date2"
@@ -65,7 +61,7 @@ fun MyProposalItem(
         colors = colors.cardColors,
         shape = MaterialTheme.shapes.small,
         onClick = {
-            goToProposal(if(offer.sellerData?.id == UserData.login) ProposalType.ACT_ON_PROPOSAL else ProposalType.MAKE_PROPOSAL)
+            goToOffer(offer.id)
         }
     ) {
         Column(
@@ -117,9 +113,7 @@ fun MyProposalItem(
             }
 
             Row(
-                modifier = Modifier.clickable {
-                    goToOffer(offer.id)
-                }.fillMaxWidth().padding(dimens.smallPadding),
+                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -201,24 +195,6 @@ fun MyProposalItem(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        Icon(
-                            painter = painterResource(drawables.bidsIcon),
-                            contentDescription = "",
-                            tint = colors.textA0AE,
-                            modifier = Modifier.size(dimens.smallIconSize)
-                        )
-                        Text(
-                            (offer.bids?.size ?: 0).toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.notifyTextColor
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                    ) {
                         Image(
                             painter = painterResource(drawables.iconClock),
                             contentDescription = "",
@@ -234,6 +210,24 @@ fun MyProposalItem(
                             color = colors.black
                         )
                     }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End)
+                    ) {
+                        Text(
+                            stringResource(strings.priceParameterName),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = colors.textA0AE
+                        )
+
+                        Text(
+                            offer.currentPricePerItem + " " + stringResource(strings.currencySign),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.titleTextColor
+                        )
+                    }
                 }
             }
 
@@ -241,82 +235,58 @@ fun MyProposalItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(dimens.smallPadding),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-
-                if (isActive) {
-                    SimpleTextButton(
-                        stringResource(strings.writeSellerLabel),
-                        leadIcon = {
-                            Icon(
-                                painterResource(drawables.mail),
-                                contentDescription = "",
-                                tint = colors.alwaysWhite,
-                                modifier = Modifier.size(dimens.extraSmallIconSize)
-
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.labelSmall,
-                        backgroundColor = colors.steelBlue,
-                        textColor = colors.alwaysWhite
-                    ) {
-                        showMesDialog.value = true
-                    }
-
-                    CreateOfferDialog(
-                        showMesDialog.value,
-                        offer,
-                        onSuccess = { dialogId ->
-                            goToDialog(dialogId)
-                            showMesDialog.value = false
-                        },
-                        onDismiss = {
-                            showMesDialog.value = false
-                        },
-                        baseViewModel = baseViewModel
-                    )
+                SimpleTextButton(
+                    stringResource(strings.proposalTitle),
+                    leadIcon = {
+                        Icon(
+                            painterResource(drawables.proposalIcon),
+                            contentDescription = "",
+                            tint = colors.alwaysWhite,
+                            modifier = Modifier.size(dimens.extraSmallIconSize)
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.labelSmall,
+                    backgroundColor = colors.steelBlue,
+                    textColor = colors.alwaysWhite
+                ) {
+                    goToProposal(if(offer.sellerData?.id == UserData.login) ProposalType.ACT_ON_PROPOSAL else ProposalType.MAKE_PROPOSAL)
                 }
-            }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
-                Text(
-                    stringResource(strings.currentPriceParameterName),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.textA0AE
-                )
 
-                Text(
-                    (offer.minimalAcceptablePrice
-                        ?: offer.currentPricePerItem) + " " + stringResource(strings.currencySign),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colors.titleTextColor
-                )
-            }
+                SimpleTextButton(
+                    stringResource(strings.writeSellerLabel),
+                    leadIcon = {
+                        Icon(
+                            painterResource(drawables.mail),
+                            contentDescription = "",
+                            tint = colors.alwaysWhite,
+                            modifier = Modifier.size(dimens.extraSmallIconSize)
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
-                Text(
-                    stringResource(strings.yourBidLabel),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.textA0AE
-                )
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.labelSmall,
+                    backgroundColor = colors.steelBlue,
+                    textColor = colors.alwaysWhite
+                ) {
+                    showMesDialog.value = true
+                }
 
-                Text(
-                    offer.myMaximalBid + " " + stringResource(strings.currencySign),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.positiveGreen
+                CreateOfferDialog(
+                    showMesDialog.value,
+                    offer,
+                    onSuccess = { dialogId ->
+                        goToDialog(dialogId)
+                        showMesDialog.value = false
+                    },
+                    onDismiss = {
+                        showMesDialog.value = false
+                    },
+                    baseViewModel = baseViewModel
                 )
             }
-
         }
     }
 }

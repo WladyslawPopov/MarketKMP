@@ -7,6 +7,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
+import market.engine.core.data.constants.errorToastItem
+import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.BodyListPayload
@@ -16,6 +21,7 @@ import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.fragments.base.BaseViewModel
+import org.jetbrains.compose.resources.getString
 
 class ProposalViewModel: BaseViewModel() {
 
@@ -30,12 +36,11 @@ class ProposalViewModel: BaseViewModel() {
 
     val firstVisibleItem = MutableStateFlow(0)
 
-    fun getProposal(offerId : Long, proposalType: ProposalType){
+    fun getProposal(offerId : Long){
         viewModelScope.launch {
             setLoading(true)
             try {
                 val response = withContext(Dispatchers.IO) {
-                    getFieldsProposal(offerId, proposalType)
                     _responseGetOffer.value = getOfferById(offerId)
                     apiService.getProposal(offerId)
                 }
@@ -55,7 +60,7 @@ class ProposalViewModel: BaseViewModel() {
         }
     }
 
-    private fun getFieldsProposal(offerId : Long, proposalType : ProposalType){
+    fun getFieldsProposal(offerId : Long, proposalType : ProposalType){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val buffer = if (proposalType == ProposalType.MAKE_PROPOSAL) {
@@ -74,6 +79,96 @@ class ProposalViewModel: BaseViewModel() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    fun confirmProposal(offerId : Long, proposalType : ProposalType, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val bodyProposals = HashMap<String,JsonElement>()
+
+            responseGetFields.value?.fields?.forEach { field ->
+                if (field.data != null){
+                    bodyProposals[field.key ?: ""] = field.data!!
+                }
+            }
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    if (proposalType == ProposalType.MAKE_PROPOSAL)
+                        apiService.postMakeProposal(offerId, bodyProposals)
+                    else
+                        apiService.postActOnProposal(offerId, bodyProposals)
+                }
+
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                        val payload: DynamicPayload<OperationResult> =
+                            deserializePayload(response.payload, serializer)
+
+                        if (payload.operationResult?.result == "ok") {
+                            val eventParams = mapOf(
+                                "lot_id" to offerId,
+                                "buyer_id" to UserData.login,
+                            )
+
+                            when (proposalType) {
+                                ProposalType.MAKE_PROPOSAL -> analyticsHelper.reportEvent(
+                                    "make_proposal",
+                                    eventParams
+                                )
+
+                                ProposalType.ACT_ON_PROPOSAL -> analyticsHelper.reportEvent(
+                                    "act_on_proposal",
+                                    eventParams
+                                )
+                            }
+
+                            showToast(
+                                successToastItem.copy(
+                                    message = getString(strings.operationSuccess)
+                                )
+                            )
+
+                            onSuccess()
+                        } else {
+                            val eventParams = mapOf(
+                                "lot_id" to offerId,
+                                "buyer_id" to UserData.login,
+                                "body" to bodyProposals.toString()
+                            )
+
+                            when (proposalType) {
+                                ProposalType.MAKE_PROPOSAL -> analyticsHelper.reportEvent(
+                                    "make_proposal_failed",
+                                    eventParams
+                                )
+
+                                ProposalType.ACT_ON_PROPOSAL -> analyticsHelper.reportEvent(
+                                    "act_on_proposal_failed",
+                                    eventParams
+                                )
+                            }
+
+                            showToast(
+                                errorToastItem.copy(
+                                    message = getString(strings.operationFailed)
+                                )
+                            )
+
+                            _responseGetFields.value = _responseGetFields.value?.copy(
+                                fields = payload.recipe?.fields ?: payload.fields
+                            )
+                        }
+                    }else{
+                        throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+                    }
+                }
+            }catch (e : ServerErrorException) {
+                onError(e)
+            } catch (e : Exception){
+                 onError(ServerErrorException(e.message.toString(), ""))
             }
         }
     }

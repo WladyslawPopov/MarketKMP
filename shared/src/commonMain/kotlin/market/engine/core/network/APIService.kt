@@ -492,7 +492,7 @@ class APIService(private val client: HttpClient) {
     suspend fun getProposal(idOffer: Long): AppResponse =
         client.post("offers/$idOffer/operations/get_proposals").body()
 
-    suspend fun postMakeProposal(idOffer: Long, body: HashMap<String, String>): AppResponse =
+    suspend fun postMakeProposal(idOffer: Long, body: HashMap<String, JsonElement>): AppResponse =
         client.post("offers/$idOffer/operations/make_proposal") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -504,7 +504,7 @@ class APIService(private val client: HttpClient) {
     suspend fun getActOnProposal(idOffer: Long): AppResponse =
         client.get("offers/$idOffer/operations/act_on_proposal").body()
 
-    suspend fun postActOnProposal(idOffer: Long, body: HashMap<String, String>): AppResponse =
+    suspend fun postActOnProposal(idOffer: Long, body: HashMap<String, JsonElement>): AppResponse =
         client.post("offers/$idOffer/operations/act_on_proposal") {
             contentType(ContentType.Application.Json)
             setBody(body)

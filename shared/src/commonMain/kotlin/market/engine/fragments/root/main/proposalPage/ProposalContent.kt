@@ -52,7 +52,6 @@ fun ProposalContent(
     val type = modelState.value.proposalType
     val offerState = viewModel.responseGetOffer.collectAsState()
     val proposalState = viewModel.responseGetProposal.collectAsState()
-    val fieldsState = viewModel.responseGetFields.collectAsState()
     val isLoading = viewModel.isShowProgress.collectAsState()
     val isError = viewModel.errorMessage.collectAsState()
 
@@ -124,7 +123,7 @@ fun ProposalContent(
 
     val refresh = {
         viewModel.onError(ServerErrorException())
-        viewModel.getProposal(modelState.value.offerId, modelState.value.proposalType)
+        viewModel.getProposal(modelState.value.offerId)
     }
 
     val noFound = @Composable {
@@ -233,12 +232,18 @@ fun ProposalContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     bodyList.forEach { body ->
-                        ProposalItem(
+                        ProposalsItemContent(
+                            offer,
                             body,
                             type,
-                            fieldsState.value?.fields,
+                            viewModel,
                             goToUser = {
                                 component.goToUser(it)
+                            },
+                            confirmProposal = {
+                                viewModel.confirmProposal(offerState.value?.id ?: 1L, type) {
+                                    refresh()
+                                }
                             }
                         )
                     }
