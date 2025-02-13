@@ -106,7 +106,7 @@ fun OfferItem(
                 onUpdateOfferItem = onUpdateOfferItem,
                 goToCreateOffer = goToCreateOffer,
                 goToProposals = {
-
+                    goToProposal(it)
                 },
             )
         }
@@ -189,7 +189,7 @@ fun contentStructure(
         modifier = Modifier.padding(dimens.extraSmallPadding),
     ) {
         LoadImage(
-            url = offer.getOfferImagePreview() ?: "",
+            url = offer.getOfferImagePreview(),
             size = imageSize
         )
 
