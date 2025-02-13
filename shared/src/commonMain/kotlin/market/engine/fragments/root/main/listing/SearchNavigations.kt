@@ -72,7 +72,7 @@ sealed class SearchConfig {
     data class MessageScreen(val id: Long) : SearchConfig()
 
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : SearchConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : SearchConfig()
 }
 
 sealed class ChildSearch {
@@ -206,7 +206,7 @@ fun createSearchChild(
                 },
                 navigateToProposalPage = { offerId, type ->
                     searchNavigation.pushNew(
-                        SearchConfig.ProposalScreen(offerId, type)
+                        SearchConfig.ProposalScreen(offerId, type, getCurrentDate())
                     )
                 }
             )
@@ -329,9 +329,7 @@ fun createSearchChild(
                     )
                 },
                 navigateToOffer = {
-                    searchNavigation.pushNew(
-                        SearchConfig.OfferScreen(it, getCurrentDate())
-                    )
+                    searchNavigation.pop()
                 }
             )
         )

@@ -32,6 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getOfferImagePreview
@@ -55,6 +56,7 @@ fun OfferItem(
     updateTrigger : Int,
     isSelection : Boolean = false,
     isShowFavorites : Boolean = false,
+    goToProposal : (ProposalType) -> Unit= { _ -> },
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
@@ -98,11 +100,14 @@ fun OfferItem(
             HeaderOfferItem(
                 offer = offer,
                 isSelected = isSelection,
+                onUpdateTrigger = updateTrigger,
+                baseViewModel = baseViewModel,
                 onSelectionChange = onSelectionChange,
                 onUpdateOfferItem = onUpdateOfferItem,
                 goToCreateOffer = goToCreateOffer,
-                baseViewModel = baseViewModel,
-                updateTrigger
+                goToProposals = {
+
+                },
             )
         }
 

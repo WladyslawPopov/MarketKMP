@@ -232,6 +232,9 @@ fun MyOffersContent(
                         goToCreateOffer = { type ->
                             component.goToCreateOffer(type, offer.id, offer.catpath)
                         },
+                        goToProposal = {
+                            component.goToProposals(offer.id, it)
+                        },
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id
                             viewModel.showToast(

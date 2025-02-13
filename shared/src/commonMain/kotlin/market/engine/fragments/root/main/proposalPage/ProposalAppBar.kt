@@ -21,7 +21,6 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalAppBar(
-    subtitle: AnnotatedString,
     modifier: Modifier = Modifier,
     goBack: () -> Unit
 ) {
@@ -38,8 +37,6 @@ fun ProposalAppBar(
                     horizontalAlignment = Alignment.Start
                 ) {
                     TextAppBar(stringResource(strings.proposalTitle))
-
-                    Text(subtitle, color = colors.black, style = MaterialTheme.typography.titleSmall)
                 }
             },
             navigationIcon = {

@@ -107,7 +107,7 @@ sealed class ProfileConfig {
     @Serializable
     data class DialogsScreen(val dialogId : Long) : ProfileConfig()
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : ProfileConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String) : ProfileConfig()
 }
 
 sealed class ChildProfile {
@@ -405,7 +405,7 @@ fun createProfileChild(
                 },
                 navigateToProposalPage = { offerId, type ->
                     profileNavigation.pushNew(
-                        ProfileConfig.ProposalScreen(offerId, type)
+                        ProfileConfig.ProposalScreen(offerId, type, getCurrentDate())
                     )
                 }
             )

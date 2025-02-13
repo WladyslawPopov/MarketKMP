@@ -45,7 +45,8 @@ fun DialogsHeader(
             Text(
                 text = headerItem.title,
                 style = MaterialTheme.typography.titleSmall,
-                color = colors.black
+                color = colors.black,
+                maxLines = 2
             )
             Text(
                 text = headerItem.subtitle,

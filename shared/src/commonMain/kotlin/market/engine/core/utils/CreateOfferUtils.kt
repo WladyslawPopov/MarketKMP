@@ -33,19 +33,21 @@ fun checkNumberKeyBoard(field : Fields): KeyboardType {
 
 fun checkValidation(field : Fields, value : String): JsonPrimitive {
     if (field.validators?.isNotEmpty() == true) {
-        return when(field.validators[0].type){
-            "positive_integer","integer" -> {
-                JsonPrimitive(value.toLongOrNull() ?: 1)
-            }
-
-            "positive_float", "float" -> {
-                JsonPrimitive(value.toFloatOrNull() ?: 0f)
-            }
-
-            else -> {
-                JsonPrimitive(value)
-            }
+        var data = JsonPrimitive(value)
+        field.validators.forEach { validator ->
+           data = when(validator.type){
+                "positive_integer","integer" -> {
+                    JsonPrimitive(value.toLongOrNull() ?: 1)
+                }
+                "positive_float", "float" -> {
+                    JsonPrimitive(value.toFloatOrNull() ?: 0f)
+                }
+                else -> {
+                    JsonPrimitive(value)
+                }
+           }
         }
+        return data
     }else{
         return JsonPrimitive(value)
     }

@@ -24,6 +24,8 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
+import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
@@ -46,7 +48,7 @@ fun MyProposalItem(
     goToUser: (Long) -> Unit,
     goToOffer: (Long) -> Unit,
     goToDialog: (Long?) -> Unit,
-    goToProposal: () -> Unit
+    goToProposal: (ProposalType) -> Unit
 ) {
     if(updateTrigger < 0) return
 
@@ -63,7 +65,7 @@ fun MyProposalItem(
         colors = colors.cardColors,
         shape = MaterialTheme.shapes.small,
         onClick = {
-            goToProposal()
+            goToProposal(if(offer.sellerData?.id == UserData.login) ProposalType.ACT_ON_PROPOSAL else ProposalType.MAKE_PROPOSAL)
         }
     ) {
         Column(
@@ -82,7 +84,10 @@ fun MyProposalItem(
 
                 },
                 baseViewModel = baseViewModel,
-                onUpdateTrigger = updateTrigger
+                onUpdateTrigger = updateTrigger,
+                goToProposals = {
+                    goToProposal(it)
+                }
             )
 
 

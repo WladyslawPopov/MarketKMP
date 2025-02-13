@@ -28,6 +28,7 @@ import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.dialogs.AccessDialog
@@ -35,6 +36,8 @@ import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.dialogs.DateDialog
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+
+
 @Composable
 fun getOfferOperations(
     offer: Offer,
@@ -44,6 +47,7 @@ fun getOfferOperations(
     offset: DpOffset = DpOffset(0.dp, 0.dp),
     onUpdateMenuItem: (Offer) -> Unit,
     goToCreateOffer: (CreateOfferType) -> Unit,
+    goToProposals: (ProposalType) -> Unit,
     onClose: () -> Unit,
     onBack: () -> Unit = {},
 ) {
@@ -301,8 +305,12 @@ fun getOfferOperations(
                         "copy_offer" -> {
                             goToCreateOffer(CreateOfferType.COPY)
                         }
-                        "act_on_proposal" -> {}
-                        "make_proposal" -> {}
+                        "act_on_proposal" -> {
+                            goToProposals(ProposalType.ACT_ON_PROPOSAL)
+                        }
+                        "make_proposal" -> {
+                            goToProposals(ProposalType.MAKE_PROPOSAL)
+                        }
                         "cancel_all_bids" -> {}
                         "remove_bids_of_users" -> {}
                     }

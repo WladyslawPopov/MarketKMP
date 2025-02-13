@@ -110,7 +110,7 @@ fun itemMyProposals(
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
         },
         navigateToProposal = { offerId, proposalType ->
-            profileNavigation.pushNew(ProfileConfig.ProposalScreen(offerId, proposalType))
+            profileNavigation.pushNew(ProfileConfig.ProposalScreen(offerId, proposalType, getCurrentDate()))
         }
     )
 }

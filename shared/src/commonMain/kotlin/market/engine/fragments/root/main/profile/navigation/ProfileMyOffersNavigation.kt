@@ -110,6 +110,9 @@ fun itemMyOffers(
         },
         navigateToBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
+        },
+        navigateToProposal = { id, type ->
+            profileNavigation.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
         }
     )
 }

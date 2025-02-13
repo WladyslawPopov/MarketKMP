@@ -15,8 +15,8 @@ fun proposalFactory(
         offerId,
         proposalType,
         componentContext,
-        navigateToUser,
         navigateToOffer,
+        navigateToUser,
         navigateBack
     )
 }

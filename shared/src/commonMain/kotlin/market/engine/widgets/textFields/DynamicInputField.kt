@@ -54,6 +54,8 @@ fun DynamicInputField(
 
     val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
 
+    val maxNumber = field.validators?.find { it.type == "between" }?.parameters?.max
+
     val counter = remember { mutableStateOf(maxSymbols) }
 
     val isMandatory = remember {
@@ -73,17 +75,26 @@ fun DynamicInputField(
         TextField(
             value = textState.value,
             onValueChange = {
-                if (maxSymbols != null) {
-                    if ( maxSymbols >= it.length) {
-                        counter.value = maxSymbols - it.length
+                if (maxNumber == null) {
+                    if (maxSymbols != null) {
+                        if(maxSymbols >= it.length) {
+                            counter.value = maxSymbols - it.length
+                            field.data = JsonPrimitive(it)
+                            textState.value = it
+                        }
+                    }else{
                         field.data = JsonPrimitive(it)
                         textState.value = it
                     }
                 }else{
-                    field.data = checkValidation(field, it)
-                    textState.value = it
+                    if ((it.toIntOrNull() ?:0) >= maxNumber) {
+                        field.data = checkValidation(field, maxNumber.toString())
+                        textState.value = maxNumber.toString()
+                    }else{
+                        field.data = checkValidation(field, it)
+                        textState.value = it
+                    }
                 }
-
             },
             label = {
                 Row(
@@ -91,8 +102,21 @@ fun DynamicInputField(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    val labelString = buildString {
+                        when{
+                            label != null -> append(label)
+                            field.shortDescription != null -> append(field.shortDescription)
+                            field.longDescription != null -> append(field.longDescription)
+                        }
+                        if (maxNumber!= null){
+                            append(" ")
+                            append(stringResource(strings.totalCostLabel))
+                            append("( $maxNumber )")
+                        }
+                    }
+
                     DynamicLabel(
-                        text = label ?: field.shortDescription ?: field.longDescription ?:  "",
+                        text = labelString,
                         isMandatory = isMandatory.value
                     )
                 }

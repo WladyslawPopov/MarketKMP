@@ -25,6 +25,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.ProposalType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
@@ -36,11 +37,12 @@ import org.jetbrains.compose.resources.painterResource
 fun HeaderOfferItem(
     offer: Offer,
     isSelected: Boolean = false,
+    onUpdateTrigger: Int,
+    baseViewModel: BaseViewModel,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onUpdateOfferItem : (Offer) -> Unit,
     goToCreateOffer : (CreateOfferType) -> Unit,
-    baseViewModel: BaseViewModel,
-    onUpdateTrigger: Int
+    goToProposals : (ProposalType) -> Unit = {},
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
 
@@ -123,6 +125,9 @@ fun HeaderOfferItem(
                     goToCreateOffer = goToCreateOffer,
                     onClose = {
                         isOpenPopup.value = false
+                    },
+                    goToProposals = {
+                        goToProposals(it)
                     }
                 )
             }

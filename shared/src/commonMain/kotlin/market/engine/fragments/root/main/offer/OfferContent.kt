@@ -441,6 +441,9 @@ fun OfferContent(
                                             },
                                             onBack = {
                                                 component.onBeakClick()
+                                            },
+                                            goToProposals = { type ->
+                                                component.goToProposalPage(type)
                                             }
                                         )
                                     }

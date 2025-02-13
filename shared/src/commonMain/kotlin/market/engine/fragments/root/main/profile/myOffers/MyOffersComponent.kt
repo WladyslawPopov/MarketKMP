@@ -12,6 +12,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
+import market.engine.core.data.types.ProposalType
 
 
 interface MyOffersComponent {
@@ -26,6 +27,7 @@ interface MyOffersComponent {
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun selectMyOfferPage(select : LotsType)
     fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
+    fun goToProposals(offerId : Long, proposalType: ProposalType)
     fun goToBack()
 }
 
@@ -35,12 +37,11 @@ class DefaultMyOffersComponent(
     val offerSelected: (Long) -> Unit,
     val selectedMyOfferPage: (LotsType) -> Unit,
     val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit,
+    val navigateToProposal: (Long, ProposalType) -> Unit,
     val navigateToBack: () -> Unit
 ) : MyOffersComponent, ComponentContext by componentContext {
 
     private val viewModel : MyOffersViewModel = MyOffersViewModel(type)
-
-    private val listingData = viewModel.listingData.value
 
     private val _model = MutableValue(
         MyOffersComponent.Model(
@@ -85,6 +86,10 @@ class DefaultMyOffersComponent(
         lifecycle.doOnResume {
             viewModel.updateItem.value = offerId
         }
+    }
+
+    override fun goToProposals(offerId: Long, proposalType: ProposalType) {
+        navigateToProposal(offerId, proposalType)
     }
 
     override fun goToBack() {

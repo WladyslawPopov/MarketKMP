@@ -77,7 +77,7 @@ sealed class BasketConfig {
     data class MessengerScreen(val id: Long) : BasketConfig()
 
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : BasketConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : BasketConfig()
 }
 
 sealed class ChildBasket {
@@ -206,7 +206,7 @@ fun createBasketChild(
                 },
                 navigateToProposalPage = { offerId, type ->
                     basketNavigation.pushNew(
-                        BasketConfig.ProposalScreen(offerId, type)
+                        BasketConfig.ProposalScreen(offerId, type, getCurrentDate())
                     )
                 }
             )
@@ -324,9 +324,7 @@ fun createBasketChild(
                     basketNavigation.pop()
                 },
                 navigateToOffer = {
-                    basketNavigation.pushNew(
-                        BasketConfig.OfferScreen(it, getCurrentDate())
-                    )
+                    basketNavigation.pop()
                 },
                 navigateToUser = {
                     basketNavigation.pushNew(

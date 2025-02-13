@@ -192,6 +192,7 @@ interface Strings {
     val deleteSelectedLot : StringResource
     val warningDeleteSubscription : StringResource
     val acceptAction : StringResource
+    val actionConfirm : StringResource
     val idCopied : StringResource
     val defaultOfferTitle : StringResource
     val lastViewedOffers : StringResource
@@ -426,4 +427,5 @@ interface Strings {
     val subtitleOfferCountLabel : StringResource
     val countsSign : StringResource
     val notFoundProposalsLabel : StringResource
+    val forLabel : StringResource
 }

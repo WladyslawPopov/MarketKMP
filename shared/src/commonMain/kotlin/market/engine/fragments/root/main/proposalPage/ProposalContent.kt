@@ -1,8 +1,15 @@
 package market.engine.fragments.root.main.proposalPage
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -10,7 +17,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,6 +67,8 @@ fun ProposalContent(
     val makeSubLabel = stringResource(strings.subtitleProposalCountLabel)
     val offerLeftLabel = stringResource(strings.subtitleOfferCountLabel)
     val countsSign = stringResource(strings.countsSign)
+
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(proposalState.value){
         if (offerState.value != null) {
@@ -116,16 +128,16 @@ fun ProposalContent(
     }
 
     val noFound = @Composable {
-        if (proposalState.value == null){
+        if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL){
             showNoItemLayout(
-                image = drawables.cartEmptyIcon,
-                title = stringResource(strings.cardIsEmptyLabel),
-                textButton = stringResource(strings.startShoppingLabel),
+                icon = drawables.proposalIcon,
+                title = stringResource(strings.notFoundProposalsLabel),
             ){
                 refresh()
             }
         }
     }
+
     val error = @Composable {
         if (isError.value.humanMessage.isNotBlank()){
             onError(
@@ -142,7 +154,7 @@ fun ProposalContent(
     if (offer != null && bodyList != null) {
         BaseContent(
             topBar = {
-                ProposalAppBar(subtitle.value){
+                ProposalAppBar{
                     component.goBack()
                 }
             },
@@ -155,7 +167,15 @@ fun ProposalContent(
             toastItem = viewModel.toastItem,
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                }.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 val mesHed = MesHeaderItem(
                     title = buildAnnotatedString {
                         append(offer.title)
@@ -163,11 +183,21 @@ fun ProposalContent(
                     subtitle = buildAnnotatedString {
                         withStyle(
                             SpanStyle(
-                                color = colors.titleTextColor
+                                color = colors.grayText,
+                            )
+                        ) {
+                            append(stringResource(strings.priceParameterName))
+                            append(": ")
+                        }
+                        withStyle(
+                            SpanStyle(
+                                color = colors.titleTextColor,
+                                fontWeight = FontWeight.Bold
                             )
                         ) {
                             append(offer.currentPricePerItem.toString())
-                            append(stringResource(strings.currencySign))
+                            append(" ")
+                            append(stringResource(strings.currencyCode))
                         }
                     },
                     image = offerState.value?.getOfferImagePreview(),
@@ -176,16 +206,43 @@ fun ProposalContent(
                 }
 
                 DialogsHeader(
-                    mesHed
+                    mesHed,
                 )
+                if(subtitle.value.text != "") {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .background(
+                                colors.actionTextColor.copy(alpha = 0.25f),
+                                MaterialTheme.shapes.medium
+                            ).padding(dimens.mediumPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            subtitle.value,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.darkBodyTextColor
+                        )
+                    }
+                }
 
-                bodyList.forEach { body ->
-                    ProposalItem(
-                        body,
-                        type,
-                        fieldsState.value?.fields
-                    ){
-                        refresh()
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = dimens.smallPadding),
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    bodyList.forEach { body ->
+                        ProposalItem(
+                            body,
+                            type,
+                            fieldsState.value?.fields,
+                            goToUser = {
+                                component.goToUser(it)
+                            }
+                        ) {
+                            refresh()
+                        }
                     }
                 }
             }

@@ -81,7 +81,7 @@ sealed class HomeConfig {
     ) : HomeConfig()
 
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : HomeConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : HomeConfig()
 }
 
 sealed class ChildHome {
@@ -218,7 +218,7 @@ fun createHomeChild(
             },
             navigateToProposalPage = { offerId, type ->
                 homeNavigation.pushNew(
-                    HomeConfig.ProposalScreen(offerId, type)
+                    HomeConfig.ProposalScreen(offerId, type, getCurrentDate())
                 )
             }
         )
@@ -362,11 +362,13 @@ fun createHomeChild(
                 homeNavigation.pop()
             },
             navigateToOffer = {
+                homeNavigation.pop()
                 homeNavigation.pushNew(
                     HomeConfig.OfferScreen(it, getCurrentDate(),false)
                 )
             },
             navigateToUser = {
+                homeNavigation.pop()
                 homeNavigation.pushNew(
                     HomeConfig.UserScreen(it, getCurrentDate(), false)
                 )

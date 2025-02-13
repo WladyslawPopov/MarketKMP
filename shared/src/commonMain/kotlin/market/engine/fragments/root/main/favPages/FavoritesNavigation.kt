@@ -88,7 +88,7 @@ sealed class FavoritesConfig {
     data class MessengerScreen( val dialogId: Long) : FavoritesConfig()
 
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType) : FavoritesConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : FavoritesConfig()
 }
 
 sealed class ChildFavorites {
@@ -194,7 +194,7 @@ fun createFavoritesChild(
                 },
                 navigateToProposalPage = { offerId, type ->
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.ProposalScreen(offerId, type)
+                        FavoritesConfig.ProposalScreen(offerId, type, getCurrentDate())
                     )
                 }
             )
