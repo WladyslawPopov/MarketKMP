@@ -436,6 +436,13 @@ interface Strings {
     val yourProposeLabel : StringResource
     val sellerProposalAcceptLabel : StringResource
     val sellerProposeLabel : StringResource
+    val buyerWaitYourAnswer : StringResource
+    val buyerProposeLabel : StringResource
     val yourProposeWaitAnswer : StringResource
     val sellerWaitYourAnswer : StringResource
+    val waitAnswerSeller : StringResource
+    val waitAnswerBuyer : StringResource
+    val mayAnswerTo : StringResource
+    val leftLabel : StringResource
+    val historyLabel : StringResource
 }

@@ -23,7 +23,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,7 +50,6 @@ fun LoginContent(
 ) {
     val scrollState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
 
     val modelState = component.model.subscribeAsState()
     val model = modelState.value.loginViewModel
@@ -136,7 +134,6 @@ fun LoginContent(
                         isVisible = isCaptchaVisible.value,
                         captchaImage = captchaImage.value,
                         captchaTextValue = captchaTextValue.value,
-                        focusRequester = focusRequester,
                         onCaptchaTextChange = {
                             captchaTextValue.value = it
                         }
@@ -150,7 +147,6 @@ fun LoginContent(
                          },
                          label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
                          keyboardType = KeyboardType.Email,
-                         focusRequester = focusRequester,
                          isEmail = true
                      )
 
@@ -162,7 +158,6 @@ fun LoginContent(
                          label = stringResource(strings.promptPassword),
                          keyboardType = KeyboardType.Password,
                          isPassword = true,
-                         focusRequester = focusRequester
                      )
                  }
                  item {

@@ -60,9 +60,6 @@ fun MyProposalItem(
     Card(
         colors = colors.cardColors,
         shape = MaterialTheme.shapes.small,
-        onClick = {
-            goToOffer(offer.id)
-        }
     ) {
         Column(
             modifier = Modifier
@@ -113,7 +110,9 @@ fun MyProposalItem(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                modifier = Modifier.clickable {
+                    goToOffer(offer.id)
+                }.fillMaxWidth().padding(dimens.smallPadding),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -217,9 +216,9 @@ fun MyProposalItem(
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End)
                     ) {
                         Text(
-                            stringResource(strings.priceParameterName),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = colors.textA0AE
+                            "${stringResource(strings.priceParameterName)}: ",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.grayText
                         )
 
                         Text(

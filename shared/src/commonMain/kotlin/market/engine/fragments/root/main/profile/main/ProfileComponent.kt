@@ -114,6 +114,9 @@ class DefaultProfileComponent(
                 "sales" -> {
                     navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, searchID))
                 }
+                "proposals" -> {
+                    navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
+                }
             }
 
             model.value.profileViewModel.analyticsHelper.reportEvent(
@@ -186,13 +189,13 @@ class DefaultProfileComponent(
                 navigationMyBids.select(1)
             }
             LotsType.ALL_PROPOSAL -> {
-                navigationMyBids.select(0)
+                navigationMyProposals.select(0)
             }
             LotsType.NEED_RESPOSE -> {
-                navigationMyBids.select(1)
+                navigationMyProposals.select(1)
             }
             else -> {
-                navigationMyOffers.select(0)
+
             }
         }
     }

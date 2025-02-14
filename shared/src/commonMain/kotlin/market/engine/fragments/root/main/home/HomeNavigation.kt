@@ -146,7 +146,8 @@ fun createHomeChild(
     navigateToConversations: () -> Unit,
     navigateToContactUs: () -> Unit,
     navigateToAppSettings: () -> Unit,
-    navigateToSubscribe: () -> Unit
+    navigateToSubscribe: () -> Unit,
+    navigateToMyProposals: () -> Unit
 ): ChildHome = when (config) {
     HomeConfig.HomeScreen -> ChildHome.HomeChild(
         itemHome(
@@ -157,6 +158,9 @@ fun createHomeChild(
             navigateToAppSettings = { navigateToAppSettings() },
             navigateToConversations = {
                 navigateToConversations()
+            },
+            navigateToMyProposals = {
+                navigateToMyProposals()
             }
         )
     )
@@ -383,7 +387,8 @@ fun itemHome(
     goToLogin: () -> Unit,
     navigateToConversations: () -> Unit,
     navigateToContactUs: () -> Unit,
-    navigateToAppSettings: ()->Unit
+    navigateToAppSettings: ()->Unit,
+    navigateToMyProposals: () -> Unit
 ): HomeComponent {
     return DefaultHomeComponent(
         componentContext = componentContext,
@@ -425,6 +430,9 @@ fun itemHome(
         },
         navigateToSettingsSelected = {
             navigateToAppSettings()
+        },
+        navigateToMyProposalsSelected = {
+            navigateToMyProposals()
         }
     )
 }

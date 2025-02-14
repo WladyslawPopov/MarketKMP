@@ -1,6 +1,5 @@
 package market.engine.core.utils
 
-
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -10,6 +9,19 @@ fun getCurrentDate(): String {
     val currentInstant: Instant = Clock.System.now()
     val currentTimeInSeconds = currentInstant.epochSeconds
     return currentTimeInSeconds.toString()
+}
+
+fun getRemainingMinutesTime(endTimestamp: Long): Long {
+    val endInstant = Instant.fromEpochSeconds(endTimestamp)
+    val nowInstant = Clock.System.now()
+
+    val duration = endInstant - nowInstant
+
+    if (duration.isNegative()) return 1
+
+    val totalMinutes = duration.inWholeMinutes
+
+    return totalMinutes
 }
 
 

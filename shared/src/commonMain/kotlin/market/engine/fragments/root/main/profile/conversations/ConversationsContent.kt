@@ -1,14 +1,7 @@
 package market.engine.fragments.root.main.profile.conversations
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
@@ -25,7 +18,6 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -33,16 +25,13 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
-import market.engine.widgets.dialogs.AccessDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.root.main.profile.main.ProfileDrawer
-import market.engine.widgets.exceptions.dismissBackground
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.DialogsFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ConversationsContent(
     component: ConversationsComponent,
@@ -61,7 +50,6 @@ fun ConversationsContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
-    val successToast = stringResource(strings.operationSuccess)
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
@@ -208,74 +196,37 @@ fun ConversationsContent(
                     }
                 },
                 item = { conversation ->
-                    val showDialog = remember { mutableStateOf(false) }
                     val isSelect = rememberUpdatedState(selectedItems.contains(conversation.id))
-                    val dismissState = rememberDismissState(
-                        confirmStateChange = { dismissValue ->
-                            if (dismissValue == DismissValue.DismissedToStart) {
-                                showDialog.value = true
-                                false
-                            } else {
-                                false
-                            }
-                        }
-                    )
+
                     if (conversation.interlocutor != null && viewModel.updateItemTrigger.value >= 0) {
-                        AnimatedVisibility(
-                            dismissState.currentValue != DismissValue.DismissedToStart,
-                            enter = expandIn(),
-                        ) {
-                            SwipeToDismiss(
-                                state = dismissState,
-                                directions = setOf(DismissDirection.EndToStart),
-                                background = { dismissBackground() },
-                                dismissContent = {
-                                    ConversationItem(
-                                        conversation = conversation,
-                                        isVisibleCBMode = isSelectedMode.value,
-                                        isSelected = isSelect.value,
-                                        updateTrigger = viewModel.updateItemTrigger.value,
-                                        onSelectionChange = {
-                                            if (it) {
-                                                viewModel.selectItems.add(conversation.id)
-                                            } else {
-                                                viewModel.selectItems.remove(conversation.id)
-                                            }
+                        ConversationItem(
+                            conversation = conversation,
+                            isVisibleCBMode = isSelectedMode.value,
+                            isSelected = isSelect.value,
+                            updateTrigger = viewModel.updateItemTrigger.value,
+                            onSelectionChange = {
+                                if (it) {
+                                    viewModel.selectItems.add(conversation.id)
+                                } else {
+                                    viewModel.selectItems.remove(conversation.id)
+                                }
 
-                                            isSelectedMode.value = selectedItems.isNotEmpty()
-                                        },
-                                        goToMessenger = {
-                                            if (isSelectedMode.value) {
-                                                if (!isSelect.value) {
-                                                    viewModel.selectItems.add(conversation.id)
-                                                } else {
-                                                    viewModel.selectItems.remove(conversation.id)
-                                                }
-                                                isSelectedMode.value = selectedItems.isNotEmpty()
-                                            } else {
-                                                component.goToMessenger(conversation)
-                                            }
-                                        }
-                                    )
-                                },
-                            )
-                        }
-                    }
-
-                    AccessDialog(
-                        showDialog = showDialog.value,
-                        title = stringResource(strings.deleteConversationLabel),
-                        onDismiss = {
-                            showDialog.value = false
-                        },
-                        onSuccess = {
-                            viewModel.deleteConversation(conversation.id) {
-                                viewModel.showToast(successToastItem.copy(message = successToast))
-                                conversation.interlocutor = null
-                                viewModel.updateItemTrigger.value++
+                                isSelectedMode.value = selectedItems.isNotEmpty()
+                            },
+                            goToMessenger = {
+                                if (isSelectedMode.value) {
+                                    if (!isSelect.value) {
+                                        viewModel.selectItems.add(conversation.id)
+                                    } else {
+                                        viewModel.selectItems.remove(conversation.id)
+                                    }
+                                    isSelectedMode.value = selectedItems.isNotEmpty()
+                                } else {
+                                    component.goToMessenger(conversation)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             )
         }

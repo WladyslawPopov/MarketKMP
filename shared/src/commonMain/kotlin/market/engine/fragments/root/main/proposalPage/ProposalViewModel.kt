@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.proposalPage
 
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.DynamicPayload
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Proposals
@@ -31,10 +33,11 @@ class ProposalViewModel: BaseViewModel() {
     private var _responseGetProposal = MutableStateFlow<BodyListPayload<Proposals>?>(null)
     val responseGetProposal : StateFlow<BodyListPayload<Proposals>?> = _responseGetProposal.asStateFlow()
 
-    private var _responseGetFields = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    val responseGetFields : StateFlow<DynamicPayload<OperationResult>?> = _responseGetFields.asStateFlow()
-
     val firstVisibleItem = MutableStateFlow(0)
+
+    val rememberFields = mutableStateOf<MutableMap<Long, ArrayList<Fields>?>>(mutableMapOf())
+
+    val rememberChoice = mutableStateOf<MutableMap<Long, Int>>(mutableMapOf())
 
     fun getProposal(offerId : Long){
         viewModelScope.launch {
@@ -60,34 +63,38 @@ class ProposalViewModel: BaseViewModel() {
         }
     }
 
-    fun getFieldsProposal(offerId : Long, proposalType : ProposalType){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val buffer = if (proposalType == ProposalType.MAKE_PROPOSAL) {
-                    offerOperations.getMakeProposal(offerId)
-                } else {
-                    offerOperations.getActOnProposal(offerId)
+    suspend fun getFieldsProposal(offerId : Long, buyerId : Long, proposalType : ProposalType) : ArrayList<Fields>?{
+        val buffer = withContext(Dispatchers.IO) {
+            if (proposalType == ProposalType.MAKE_PROPOSAL) {
+                offerOperations.getMakeProposal(offerId)
+            } else {
+                offerOperations.getActOnProposal(offerId)
+            }
+        }
+        val payload = buffer.success
+        val error = buffer.error
+        return withContext(Dispatchers.Main) {
+            if (payload != null) {
+                rememberChoice.value = if (buyerId == 0L) {
+                    mutableMapOf(Pair(buyerId, 2))
+                }else{
+                    mutableMapOf(Pair(buyerId, 0))
                 }
-                val payload = buffer.success
-                val error = buffer.error
-                withContext(Dispatchers.Main) {
-                    if (payload != null) {
-                        _responseGetFields.value = payload
-                    }else{
-                        if (error != null) {
-                            onError(error)
-                        }
-                    }
+                return@withContext payload.fields
+            }else{
+                if (error != null) {
+                    onError(error)
                 }
+                return@withContext null
             }
         }
     }
 
-    fun confirmProposal(offerId : Long, proposalType : ProposalType, onSuccess: () -> Unit) {
+    fun confirmProposal(offerId : Long, proposalType : ProposalType, fields: ArrayList<Fields>, onSuccess: () -> Unit, onError: (ArrayList<Fields>) -> Unit) {
         viewModelScope.launch {
             val bodyProposals = HashMap<String,JsonElement>()
 
-            responseGetFields.value?.fields?.forEach { field ->
+            fields.forEach { field ->
                 if (field.data != null){
                     bodyProposals[field.key ?: ""] = field.data!!
                 }
@@ -157,9 +164,7 @@ class ProposalViewModel: BaseViewModel() {
                                 )
                             )
 
-                            _responseGetFields.value = _responseGetFields.value?.copy(
-                                fields = payload.recipe?.fields ?: payload.fields
-                            )
+                            onError(payload.recipe?.fields ?: payload.fields)
                         }
                     }else{
                         throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

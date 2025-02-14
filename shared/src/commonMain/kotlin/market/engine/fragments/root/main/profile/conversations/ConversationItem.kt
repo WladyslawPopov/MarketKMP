@@ -138,7 +138,8 @@ fun ConversationItem(
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.black,
                             maxLines = 2,
-                            minLines = 2
+                            minLines = 2,
+                            modifier = Modifier.fillMaxWidth(0.7f)
                         )
                     }
 

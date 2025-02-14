@@ -22,6 +22,7 @@ import market.engine.core.network.networkObjects.Fields
 @Composable
 fun DynamicRadioButtons(
     field: Fields,
+    selectedChoice : (Boolean, Int) -> Unit = { _, _ -> },
 ){
     val list = buildMap {
         field.choices?.forEach { 
@@ -50,6 +51,8 @@ fun DynamicRadioButtons(
                 selectedFilterKey.value = 0
                 field.data = JsonPrimitive(null)
             }
+
+            selectedChoice(!isChecked, choice)
         }
     }
 }

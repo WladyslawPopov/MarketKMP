@@ -147,6 +147,9 @@ class DefaultMainComponent(
                 },
                 navigateToSubscribe = {
                     navigateToBottomItem(MainConfig.Favorites, "subscribe")
+                },
+                navigateToMyProposals = {
+                    navigateToBottomItem(MainConfig.Profile, "proposals")
                 }
             )
         },

@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -172,7 +175,6 @@ fun ProposalContent(
                         focusManager.clearFocus()
                     })
                 }.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val mesHed = MesHeaderItem(
@@ -207,31 +209,36 @@ fun ProposalContent(
                 DialogsHeader(
                     mesHed,
                 )
-                if(subtitle.value.text != "") {
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .background(
-                                colors.actionTextColor.copy(alpha = 0.25f),
-                                MaterialTheme.shapes.medium
-                            ).padding(dimens.mediumPadding),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            subtitle.value,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.darkBodyTextColor
-                        )
-                    }
-                }
 
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = dimens.smallPadding),
+                LazyColumn(
+                    state = state,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    bodyList.forEach { body ->
+                    item {
+                        if(subtitle.value.text != "") {
+                            Row(
+                                modifier = Modifier
+                                    .padding(dimens.smallPadding)
+                                    .align(Alignment.CenterHorizontally)
+                                    .background(
+                                        colors.actionTextColor.copy(alpha = 0.25f),
+                                        MaterialTheme.shapes.medium
+                                    ).padding(dimens.smallPadding),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    subtitle.value,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colors.darkBodyTextColor
+                                )
+                            }
+                        }
+                    }
+
+                    items(bodyList){ body ->
                         ProposalsItemContent(
                             offer,
                             body,
@@ -239,14 +246,11 @@ fun ProposalContent(
                             viewModel,
                             goToUser = {
                                 component.goToUser(it)
-                            },
-                            confirmProposal = {
-                                viewModel.confirmProposal(offerState.value?.id ?: 1L, type) {
-                                    refresh()
-                                }
                             }
                         )
                     }
+
+                    item {}
                 }
             }
         }

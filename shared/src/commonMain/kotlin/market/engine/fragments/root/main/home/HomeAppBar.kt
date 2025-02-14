@@ -30,7 +30,8 @@ import org.jetbrains.compose.resources.stringResource
 fun HomeAppBar(
     modifier: Modifier = Modifier,
     drawerState: DrawerState,
-    goToMessenger: () -> Unit
+    goToMessenger: () -> Unit,
+    goToMyProposals: () -> Unit,
 ) {
     val userInfo = UserData.userInfo
 
@@ -41,7 +42,10 @@ fun HomeAppBar(
             tint = colors.notifyTextColor,
             hasNews = false,
             badgeCount = userInfo?.countUnreadPriceProposals,
-            isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0
+            isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
+            onClick = {
+                goToMyProposals()
+            }
         ),
         NavigationItem(
             title = strings.messageTitle,

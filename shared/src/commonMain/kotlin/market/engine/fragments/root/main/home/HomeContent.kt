@@ -180,6 +180,9 @@ fun HomeContent(
                     drawerState,
                     goToMessenger = {
                         component.goToMessenger()
+                    },
+                    goToMyProposals = {
+                        component.goToMyProposals()
                     }
                 )
             },

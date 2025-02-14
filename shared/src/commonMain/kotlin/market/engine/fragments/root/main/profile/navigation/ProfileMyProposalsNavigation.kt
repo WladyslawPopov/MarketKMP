@@ -50,7 +50,6 @@ fun ProfileMyProposalsNavigation(
             mutableStateOf(LotsType.ALL_PROPOSAL)
         }
         Column {
-
             MyProposalsAppBar(
                 select.value,
                 drawerState = drawerState,
