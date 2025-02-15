@@ -11,14 +11,13 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.root.main.profile.myProposals.MyProposalsViewModel
 
 
 interface MyBidsComponent {
     val model : Value<Model>
     data class Model(
         val pagingDataFlow : Flow<PagingData<Offer>>,
-        val viewModel: MyProposalsViewModel,
+        val viewModel: MyBidsViewModel,
         var type : LotsType,
         val backHandler: BackHandler
     )
@@ -42,9 +41,7 @@ class DefaultMyBidsComponent(
     val navigateBack: () -> Unit
 ) : MyBidsComponent, ComponentContext by componentContext {
 
-    private val viewModel : MyProposalsViewModel = MyProposalsViewModel(type)
-
-    private val listingData = viewModel.listingData.value
+    private val viewModel : MyBidsViewModel = MyBidsViewModel(type)
 
     private val _model = MutableValue(
         MyBidsComponent.Model(
