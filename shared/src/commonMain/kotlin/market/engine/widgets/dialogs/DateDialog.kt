@@ -40,6 +40,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DateDialog(
     showDialog : Boolean,
+    isSelectableDates : Boolean = false,
     onDismiss : () -> Unit,
     onSucceed : (Long) -> Unit,
 ) {
@@ -63,7 +64,7 @@ fun DateDialog(
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = currentDate.toLong()*1000 + oneDayInMillis,
             yearRange = year..(year + 100),
-            selectableDates = selectableDates
+            selectableDates = if (isSelectableDates) selectableDates else DatePickerDefaults. AllDates
         )
 
         val timePickerState  = rememberTimePickerState(

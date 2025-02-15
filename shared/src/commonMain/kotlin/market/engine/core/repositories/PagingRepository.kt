@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
 import market.engine.core.data.constants.PAGES_MAX_SIZE
 import market.engine.core.data.constants.PAGE_SIZE
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.paging.GenericPagingSource
 
 

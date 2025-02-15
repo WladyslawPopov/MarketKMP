@@ -90,12 +90,12 @@ fun FavoritesContent(
 
 
     val noFound = @Composable {
-        if (ld.value.filters.any {it.interpritation != null && it.interpritation != "" }){
+        if (ld.value.filters.any {it.interpretation != null && it.interpretation != "" }){
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ){
-                ld.value.filters.clear()
-                ld.value.filters.addAll(OfferFilters.filtersFav.toList())
+                OfferFilters.clearTypeFilter(LotsType.FAVORITES)
+                listingData.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
                 refresh()
             }
         }else {
@@ -153,7 +153,7 @@ fun FavoritesContent(
                 when (favViewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
                         isRefreshingFromFilters,
-                        ld.value,
+                        ld.value.filters,
                         favViewModel,
                         LotsType.FAVORITES,
                         onClose

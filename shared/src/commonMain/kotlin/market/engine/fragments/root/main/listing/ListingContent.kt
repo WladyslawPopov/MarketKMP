@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.filtersObjects.EmptyFilters
+import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
@@ -108,6 +108,7 @@ fun ListingContent(
         listingViewModel.refresh()
         updateFilters.value++
     }
+
     val err = listingViewModel.errorMessage.collectAsState()
     val refreshSearch = {
         updateFilters.value++
@@ -274,15 +275,14 @@ fun ListingContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any {it.interpritation != null && it.interpritation != "" } ||
+        if (listingData.value.filters.any {it.interpretation != null && it.interpretation != "" } ||
             searchData.value.userSearch || searchData.value.searchString.isNotEmpty()
         ){
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ){
                 searchData.value.clear()
-                listingData.value.filters.clear()
-                listingData.value.filters.addAll(EmptyFilters.getEmpty())
+                listingData.value.filters = ListingFilters.getEmpty()
                 searchData.value.isRefreshing = true
                 refreshSearch()
                 refresh()
@@ -424,7 +424,7 @@ fun ListingContent(
                         "filters" -> {
                             FilterListingContent(
                                 isRefreshingFromFilters,
-                                listingData = listingData.value,
+                                listingData = listingData.value.filters,
                                 regionsOptions = regions,
                                 onClosed = onClose,
                             )
@@ -438,19 +438,17 @@ fun ListingContent(
                         }
                         "categories" ->{
                             CategoryContent(
+                                filters = listingData.value.filters,
                                 baseViewModel = listingViewModel,
-                                listingData = listingData.value,
-                                searchData = searchData.value,
                                 searchCategoryId = selectedCategoryID,
                                 searchCategoryName = selectedCategory,
                                 searchIsLeaf = selectedCategoryIsLeaf,
                                 searchParentID = selectedCategoryParentID,
                                 isRefreshingFromFilters = isRefreshingFromFilters,
-                                complete = {
-                                    isRefreshingFromFilters.value = true
-                                    listingViewModel.activeFiltersType.value = ""
-                                },
-                            )
+                            ){
+                                isRefreshingFromFilters.value = true
+                                listingViewModel.activeFiltersType.value = ""
+                            }
                         }
                     }
                 },

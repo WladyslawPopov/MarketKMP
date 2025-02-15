@@ -3,7 +3,7 @@ package market.engine.core.network.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import kotlinx.serialization.KSerializer
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload

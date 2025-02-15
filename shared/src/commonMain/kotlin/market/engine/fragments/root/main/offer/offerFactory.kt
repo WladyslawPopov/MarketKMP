@@ -1,7 +1,7 @@
 package market.engine.fragments.root.main.offer
 
 import com.arkivanov.decompose.ComponentContext
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType

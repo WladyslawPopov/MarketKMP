@@ -15,18 +15,5 @@ data class LD(
     var totalCount: Int = 0,
     var totalPages: Int = totalCount / PAGE_SIZE,
     var prevIndex : Int? = null,
-
-) {
-    fun clearFilters(){
-        filters = arrayListOf()
-        sort = null
-        listingType = 0
-    }
-
-    fun clearPagingInfo(){
-        methodServer = ""
-        objServer = ""
-        totalCount = 0
-    }
-}
+)
 

@@ -73,7 +73,7 @@ private fun filterListingFilters(
     filters: ArrayList<Filter>
 ): List<Filter> {
     return filters.filter { filter ->
-         filter.interpritation != "" && filter.interpritation != null
+         filter.interpretation != "" && filter.interpretation != null
     }
 }
 
@@ -108,7 +108,7 @@ fun FiltersBar(
             string = filterString,
             icon = drawables.filterIcon,
             tint = colors.black,
-            hasNews = filters.find { it.interpritation?.isNotEmpty() == true } != null,
+            hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
             badgeCount = if(filters.isNotEmpty()) filters.size else null,
         )
     }
@@ -162,13 +162,13 @@ fun FiltersBar(
                     .clip(MaterialTheme.shapes.medium),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
-                items(filters, key = { it.interpritation ?: it.value }) { filter ->
-                    filter.interpritation?.let { text->
+                items(filters, key = { it.interpretation ?: it.value }) { filter ->
+                    filter.interpretation?.let { text->
                         ActiveFilterListing(
                             text = text,
                             removeFilter = {
                                 filters.find { it.key == filter.key && it.operation == filter.operation }?.value = ""
-                                filters.find { it.key == filter.key && it.operation == filter.operation }?.interpritation = null
+                                filters.find { it.key == filter.key && it.operation == filter.operation }?.interpretation = null
                                 onRefresh()
                             },
                         ){
@@ -224,7 +224,7 @@ fun FiltersBar(
                 if (listingData.sort != null) {
                     item(key = "sort") {
                         ActiveFilterListing(
-                            text = listingData.sort?.interpritation ?: "",
+                            text = listingData.sort?.interpretation ?: "",
                             removeFilter = {
                                 listingData.sort = null
                                 onRefresh()

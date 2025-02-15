@@ -5,7 +5,7 @@ import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.types.DealType
 
 object DealFilters {
-    var filtersSalesInWork = arrayListOf(
+    private var filtersSalesInWork = arrayListOf(
         Filter("parcel_sent", "", null, null),//0 фильтр
         Filter("paid", "", null, null),//1 фильтр
         Filter("created_ts", "", null, "gte"),
@@ -17,7 +17,7 @@ object DealFilters {
         Filter("search", "", null, null),
         Filter("archived_by_seller","false","",null)
     )
-    var filtersSalesArchive = arrayListOf(
+    private var filtersSalesArchive = arrayListOf(
         Filter("created_ts", "", null, "gte"),
         Filter("created_ts", "", null, "lte"),
         Filter("buyer_id", "", null, null),
@@ -27,7 +27,7 @@ object DealFilters {
         Filter("search", "", null, null),
         Filter("archived_by_seller","true","",null)
     )
-    var filtersSalesAll = arrayListOf(
+    private var filtersSalesAll = arrayListOf(
         Filter("created_ts", "", null, "gte"),
         Filter("created_ts", "", null, "lte"),
         Filter("buyer_id", "", null, null),
@@ -36,7 +36,7 @@ object DealFilters {
         Filter("offer_id", "", null, null),
         Filter("search", "", null, null),
     )
-    var filtersBuysArchive = arrayListOf(
+    private var filtersBuysArchive = arrayListOf(
         Filter("created_ts", "", null, "gte"),
         Filter("created_ts", "", null, "lte"),
         Filter("seller_id", "", null, null),
@@ -46,7 +46,7 @@ object DealFilters {
         Filter("search", "", null, null),
         Filter("archived_by_buyer","true","",null)
     )
-    var filtersBuysInWork = arrayListOf(
+    private var filtersBuysInWork = arrayListOf(
         Filter("created_ts", "", null, "gte"),
         Filter("created_ts", "", null, "lte"),
         Filter("seller_id", "", null, null),
@@ -124,7 +124,7 @@ object DealFilters {
         }
     }
 
-    fun addByTypeFilter(type: DealType): List<Filter> {
+    fun getByTypeFilter(type: DealType): ArrayList<Filter> {
         when (type) {
             DealType.BUY_IN_WORK -> {
                 return filtersBuysInWork

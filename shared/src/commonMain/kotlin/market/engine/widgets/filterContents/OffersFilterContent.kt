@@ -1,11 +1,8 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.MutableState
 import market.engine.core.data.baseFilters.LD
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,22 +12,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.Icon
 import androidx.compose.material.rememberBottomSheetScaffoldState
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Button
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -49,31 +35,34 @@ import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.FilterButton
-import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
+import market.engine.widgets.rows.FilterContentHeaderRow
 import market.engine.widgets.textFields.TextFieldWithState
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfferFilterContent(
     isRefreshing: MutableState<Boolean>,
-    filters: LD,
+    listingData: ArrayList<Filter>,
     baseViewModel: BaseViewModel,
     typeFilters: LotsType,
-    onClose :  () -> Unit,
+    onClose: () -> Unit,
 ) {
-    val listingData by remember { mutableStateOf(filters.filters) }
-
     val focusManager: FocusManager = LocalFocusManager.current
+
+    val checkSize: () -> Boolean = {
+        listingData.any { it.interpretation?.isNotBlank() == true }
+    }
+
+    val isShowClear = remember { mutableStateOf(checkSize()) }
 
     val favExpandChoice = listOf(
         "0" to stringResource(strings.activeFilterOffers),
@@ -100,27 +89,58 @@ fun OfferFilterContent(
     var isExpanded1 by remember { mutableStateOf(listingData.find { it.key == "state" }?.value != "") }
     var isExpanded2 by remember {
         mutableStateOf(
-            listingData.find { it.key == "with_sales" }?.interpritation != null ||
-                listingData.find { it.key == "without_sales" }?.interpritation != null
+            listingData.find { it.key == "with_sales" }?.interpretation != null ||
+                listingData.find { it.key == "without_sales" }?.interpretation != null
         )
+    }
+
+    val setNewType: (String, String) -> Unit = { type, choice->
+        when(type){
+            "with_sales" ->{
+                listingData.find { it.key == "with_sales" }?.value = choice
+                listingData.find { it.key == "with_sales" }?.interpretation = myOfferExpandChoice.find { it.first == choice }?.second
+                listingData.find { it.key == "without_sales" }?.value = ""
+                listingData.find { it.key == "without_sales" }?.interpretation = null
+            }
+            "without_sales" ->{
+                listingData.find { it.key == "without_sales" }?.value = choice
+                listingData.find { it.key == "without_sales" }?.interpretation = myOfferExpandChoice.find { it.first == choice }?.second
+                listingData.find { it.key == "with_sales" }?.value = ""
+                listingData.find { it.key == "with_sales" }?.interpretation = null
+            }
+            "clear" ->{
+                listingData.find { it.key == "with_sales" }?.value = ""
+                listingData.find { it.key == "with_sales" }?.interpretation = null
+                listingData.find { it.key == "without_sales" }?.value = ""
+                listingData.find { it.key == "without_sales" }?.interpretation = null
+            }
+        }
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openBottomSheet = remember { mutableStateOf(false) }
 
-    val defCat = stringResource(strings.selectCategory)
+    val defCat = stringResource(strings.categoryMain)
 
-    val selectedCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.interpritation ?: defCat) }
+    val selectedCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.interpretation ?: defCat) }
     val selectedCategoryID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
     val selectedCategoryParentID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull()) }
     val selectedCategoryIsLeaf = remember { mutableStateOf(listingData.find { it.key == "category" }?.operation?.toBoolean() ?: false) }
-    val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpritation ?: offersType[0].second) }
-    val isRefreshingFromFilters = remember { mutableStateOf(false) }
+    val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpretation ?: offersType[0].second) }
+    val isRefreshingFromCategories = remember { mutableStateOf(false) }
 
 
     val selectedFilterKey = remember {
         mutableStateOf(
             listingData.find { it.key == "state" }?.value
+        )
+    }
+
+    val expandChoice = remember {
+        mutableStateOf(
+            myOfferExpandChoice.find { f->
+                listingData.find { it.key == f.first && it.interpretation != null } != null
+            }?.first
         )
     }
 
@@ -146,13 +166,13 @@ fun OfferFilterContent(
             if (selectedCategoryID.value != 1L) {
                 listingData.find { it.key == "category" }?.value =
                     selectedCategoryID.value.toString()
-                listingData.find { it.key == "category" }?.interpritation =
+                listingData.find { it.key == "category" }?.interpretation =
                     selectedCategory.value
                 listingData.find { it.key == "category" }?.operation =
                     selectedCategoryIsLeaf.value.toString()
             }else{
                 listingData.find { it.key == "category" }?.value = ""
-                listingData.find { it.key == "category" }?.interpritation = null
+                listingData.find { it.key == "category" }?.interpretation = null
                 listingData.find { it.key == "category" }?.operation = null
             }
             selectedCategory.value = selectedCategory.value
@@ -171,23 +191,15 @@ fun OfferFilterContent(
         sheetContent = {
             CategoryContent(
                 baseViewModel = baseViewModel,
-                searchData = SD(
-                    searchCategoryID = selectedCategoryID.value,
-                    searchCategoryName = selectedCategory.value,
-                    searchParentID = selectedCategoryParentID.value,
-                    searchIsLeaf = selectedCategoryIsLeaf.value
-                ),
-                listingData = LD(),
                 searchCategoryId = selectedCategoryID,
                 searchCategoryName = selectedCategory,
                 searchParentID = selectedCategoryParentID,
                 searchIsLeaf = selectedCategoryIsLeaf,
-                isRefreshingFromFilters = isRefreshingFromFilters,
+                isRefreshingFromFilters = isRefreshingFromCategories,
                 isFilters = true,
-                complete = {
-                    openBottomSheet.value = false
-                }
-            )
+            ){
+                openBottomSheet.value = false
+            }
         },
     ) {
         Box(
@@ -195,307 +207,151 @@ fun OfferFilterContent(
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
                 })
-            },
+            }.animateContentSize(),
             contentAlignment = Alignment.TopCenter
         ) {
             //Header Filters
-            Row(
-                modifier = Modifier.fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .padding(dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    IconButton(
-                        onClick = {
-                            onClose()
-                        },
-                        content = {
-                            Icon(
-                                painterResource(drawables.closeBtn),
-                                tint = colors.black,
-                                contentDescription = stringResource(strings.actionClose)
-                            )
-                        },
-                    )
-
-                    Text(
-                        stringResource(strings.filter),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(dimens.smallPadding)
-                    )
+            FilterContentHeaderRow(
+                title = stringResource(strings.filter),
+                isShowClearBtn = isShowClear.value,
+                onClear = {
+                    OfferFilters.clearTypeFilter(typeFilters)
+                    listingData.clear()
+                    listingData.addAll(OfferFilters.getByTypeFilter(typeFilters))
+                    isRefreshing.value = true
+                    isShowClear.value = false
+                    onClose()
+                },
+                onClosed = {
+                    onClose()
                 }
+            )
 
-                if (isRefreshing.value) {
-                    Button(
-                        onClick = {
-                            listingData.clear()
-                            OfferFilters.clearTypeFilter(typeFilters)
-                            listingData.addAll(OfferFilters.addByTypeFilter(typeFilters))
-                            isRefreshing.value = true
-                            onClose()
-                        },
-                        content = {
-                            Text(
-                                stringResource(strings.clear),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.black
-                            )
-                        },
-                        colors = colors.simpleButtonColors
-                    )
-                }
-            }
-
-            //Expands
-            AnimatedVisibility(
-                visible = true,
-                enter = fadeIn(),
-                exit = fadeOut()
+            LazyColumn(
+                modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                LazyColumn(
-                    modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    if (typeFilters == LotsType.FAVORITES) {
+                //Expands
+                when(typeFilters){
+                    LotsType.FAVORITES -> {
                         item {
-                            //Fav Filters
                             ExpandableSection(
                                 title = stringResource(strings.offersState),
                                 isExpanded = isExpanded1,
                                 onExpandChange = { isExpanded1 = !isExpanded1 },
                                 content = {
-                                    LazyColumn(
-                                        modifier = Modifier.heightIn(max = 500.dp)
-                                    ) {
-                                        items(favExpandChoice) { filter ->
-                                            val (filterKey, filterText) = filter
-                                            val isChecked = selectedFilterKey.value == filterKey
-
-                                            val onClick = {
-                                                listingData.find { it.key == "state" }?.value = filterKey
-                                                selectedFilterKey.value = filterKey
+                                    Column {
+                                        favExpandChoice.forEach { pair ->
+                                            RadioOptionRow(
+                                                pair,
+                                                selectedFilterKey.value
+                                            ){ _, choice ->
+                                                listingData.find { it.key == "state" }?.value = choice
+                                                selectedFilterKey.value = choice
+                                                isShowClear.value = checkSize()
                                                 isRefreshing.value = true
-                                            }
-
-                                            Row(
-                                                horizontalArrangement = Arrangement.Start,
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(MaterialTheme.shapes.medium)
-                                                    .clickable {
-                                                        onClick()
-                                                    }
-                                            ) {
-                                                RadioButton(
-                                                    isChecked,
-                                                    {
-                                                        onClick()
-                                                    },
-                                                    colors = RadioButtonDefaults.colors(
-                                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                                        unselectedColor = colors.black
-                                                    )
-                                                )
-                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                                Text(
-                                                    filterText,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
                                             }
                                         }
                                     }
                                 }
                             )
                         }
-                    } else {
-                        if (typeFilters == LotsType.MYLOT_UNACTIVE) {
-                            item {
-                                //MyOffers Filters
-                                ExpandableSection(
-                                    title = stringResource(strings.offersState),
-                                    isExpanded = isExpanded2,
-                                    onExpandChange = { isExpanded2 = !isExpanded2 },
-                                    content = {
-                                        Column(
-                                            modifier = Modifier.heightIn(max = 500.dp)
-                                        ) {
-
-                                            val filter = myOfferExpandChoice[0]
-                                            val (filterKey, filterText) = filter
-
-                                            val filter1 = myOfferExpandChoice[1]
-                                            val (filterKey1, filterText1) = filter1
-
-                                            val isChecked = remember { mutableStateOf( listingData.find { it.key == filterKey }?.interpritation != null) }
-                                            val isChecked1 = remember { mutableStateOf( listingData.find { it.key == filterKey1 }?.interpritation != null) }
-
-                                            val onClick = {
-                                                isChecked.value = !isChecked.value
-                                                if (isChecked.value) {
-                                                    isChecked1.value = false
-                                                    listingData.find { it.key == filterKey1 }?.interpritation = null
-
-                                                    listingData.find { it.key == filterKey }?.interpritation =
-                                                        filterText
-                                                }else {
-                                                    listingData.find { it.key == filterKey }?.interpritation =
-                                                        null
+                    }
+                    LotsType.MYLOT_UNACTIVE -> {
+                        item {
+                            ExpandableSection(
+                                title = stringResource(strings.offersState),
+                                isExpanded = isExpanded2,
+                                onExpandChange = { isExpanded2 = !isExpanded2 },
+                                content = {
+                                    Column {
+                                        myOfferExpandChoice.forEach { pair ->
+                                            RadioOptionRow(
+                                                pair,
+                                                expandChoice.value
+                                            ){ isChecked, choice ->
+                                                if (isChecked) {
+                                                    setNewType("clear", choice)
+                                                    expandChoice.value = null
+                                                }else{
+                                                    expandChoice.value = choice
+                                                    setNewType(choice, choice)
                                                 }
 
+                                                isShowClear.value = checkSize()
                                                 isRefreshing.value = true
                                             }
-
-                                            Row(
-                                                horizontalArrangement = Arrangement.Start,
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(MaterialTheme.shapes.medium)
-                                                    .clickable {
-                                                        onClick()
-                                                    }
-                                            ) {
-                                                RadioButton(
-                                                    isChecked.value,
-                                                    {
-                                                        onClick()
-                                                    },
-                                                    colors = RadioButtonDefaults.colors(
-                                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                                        unselectedColor = colors.black
-                                                    )
-                                                )
-                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                                Text(
-                                                    filterText,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                            }
-
-
-                                            Row(
-                                                horizontalArrangement = Arrangement.Start,
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(MaterialTheme.shapes.medium)
-                                                    .clickable {
-                                                        isChecked1.value = !isChecked1.value
-                                                        if (isChecked1.value) {
-                                                            isChecked.value = false
-                                                            listingData.find { it.key == filterKey }?.interpritation = null
-                                                            listingData.find { it.key == filterKey1 }?.interpritation =
-                                                                filterText1
-                                                        }else {
-                                                            listingData.find { it.key == filterKey1 }?.interpritation =
-                                                                null
-                                                        }
-
-                                                        isRefreshing.value = true
-                                                    }
-                                            ) {
-                                                RadioButton(
-                                                    isChecked1.value,
-                                                    {
-                                                        isChecked1.value = !isChecked1.value
-                                                        if (isChecked1.value) {
-                                                            isChecked.value = false
-                                                            listingData.find { it.key == filterKey }?.interpritation = null
-                                                            listingData.find { it.key == filterKey1 }?.interpritation =
-                                                                filterText1
-                                                        }else {
-                                                            listingData.find { it.key == filterKey1 }?.interpritation =
-                                                                null
-                                                        }
-
-                                                        isRefreshing.value = true
-
-                                                    },
-                                                    colors = RadioButtonDefaults.colors(
-                                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                                        unselectedColor = colors.black
-                                                    )
-                                                )
-                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                                Text(
-                                                    filterText1,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                            }
-
                                         }
                                     }
-                                )
-                            }
-                        }
-                    }
-
-                    item {
-                        InputsOfferFilterContent(
-                            selectedCategory,
-                            selectedCategoryID,
-                            selectedCategoryParentID,
-                            isRefreshing,
-                            listingData,
-                            openBottomSheet,
-                        )
-                    }
-
-                    item {
-                        val title = stringResource(strings.saleTypeParameterName)
-
-                        Column(
-                            modifier = Modifier.padding(dimens.mediumPadding)
-                        ){
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(dimens.smallPadding)
-                            )
-
-                            getDropdownMenu(
-                                selectedType.value,
-                                offersType[0].second,
-                                offersTypeFilterMap,
-                                onItemClick = { type ->
-                                    offersType.find { it.second == type }?.let { pair ->
-                                        listingData.find { it.key == "sale_type" }?.value =
-                                            pair.first
-                                        listingData.find { it.key == "sale_type" }?.interpritation =
-                                            pair.second
-                                        selectedType.value = pair.second
-                                    }
-
-                                    isRefreshing.value = true
-                                },
-                                onClearItem = {
-                                    listingData.find { it.key == "sale_type" }?.value =
-                                        ""
-                                    listingData.find { it.key == "sale_type" }?.interpritation =
-                                        null
-                                    selectedType.value = offersType[0].second
-                                    isRefreshing.value = true
                                 }
                             )
                         }
+                    }
+                    else -> {}
+                }
+
+                item {
+                    InputsOfferFilterContent(
+                        listingData,
+                        selectedCategory,
+                        selectedCategoryID,
+                        selectedCategoryParentID,
+                        openBottomSheet,
+                    ){
+                        isRefreshing.value = true
+                        isShowClear.value = checkSize()
+                    }
+                }
+
+                item {
+                    val title = stringResource(strings.saleTypeParameterName)
+
+                    Column(
+                        modifier = Modifier.padding(dimens.mediumPadding)
+                    ){
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(dimens.smallPadding)
+                        )
+
+                        getDropdownMenu(
+                            selectedType.value,
+                            offersType[0].second,
+                            offersTypeFilterMap,
+                            onItemClick = { type ->
+                                offersType.find { it.second == type }?.let { pair ->
+                                    listingData.find { it.key == "sale_type" }?.value =
+                                        pair.first
+                                    listingData.find { it.key == "sale_type" }?.interpretation =
+                                        pair.second
+                                    selectedType.value = pair.second
+                                }
+
+                                isRefreshing.value = true
+                                isShowClear.value = checkSize()
+                            },
+                            onClearItem = {
+                                listingData.find { it.key == "sale_type" }?.value =
+                                    ""
+                                listingData.find { it.key == "sale_type" }?.interpretation =
+                                    null
+                                selectedType.value = offersType[0].second
+                                isRefreshing.value = true
+                                isShowClear.value = checkSize()
+                            }
+                        )
                     }
                 }
             }
+
             AcceptedPageButton(
                 strings.actionAcceptFilters,
                 Modifier.align(Alignment.BottomCenter)
                     .wrapContentWidth()
                     .padding(dimens.mediumPadding)
             ){
-                filters.filters = listingData
                 onClose()
             }
             Spacer(modifier = Modifier.height(dimens.mediumSpacer))
@@ -505,18 +361,28 @@ fun OfferFilterContent(
 
 @Composable
 fun InputsOfferFilterContent(
+    filters: List<Filter>,
     activeCategory: MutableState<String>,
     selectedCategoryID: MutableState<Long>,
     selectedParentId : MutableState<Long?>,
-    isRefreshing: MutableState<Boolean>,
-    filters: List<Filter>,
     openBottomSheet: MutableState<Boolean>,
+    onFiltersUpdated: () -> Unit,
 ) {
-
-    val defCat = stringResource(strings.selectCategory)
+    val defCat = stringResource(strings.categoryMain)
     val idTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
     val nameTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
     val sellerLoginTextState = remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
+
+    val clear = remember {
+        {
+            filters.find { it.key == "category" }?.value = ""
+            filters.find { it.key == "category" }?.interpretation = null
+            activeCategory.value = defCat
+            selectedCategoryID.value = 1L
+            selectedParentId.value = null
+            onFiltersUpdated()
+        }
+    }
 
     Column(
         modifier = Modifier.padding(dimens.smallPadding),
@@ -524,8 +390,8 @@ fun InputsOfferFilterContent(
         verticalArrangement = Arrangement.Center
     ) {
         Row(
-            modifier = Modifier.wrapContentWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val offerId = stringResource(strings.offerIdParameterName)
@@ -536,19 +402,19 @@ fun InputsOfferFilterContent(
                     if (idTextState.value.isNotBlank()) {
                         filters.find { it.key == "id"}?.apply {
                             value = text
-                            interpritation = "$offerId: $text"
+                            interpretation = "$offerId: $text"
                         }
                     }else{
                         filters.find { it.key == "id" }.let {
                             it?.value = ""
-                            it?.interpritation = null
+                            it?.interpretation = null
                         }
                     }
 
                     idTextState.value = text
-                    isRefreshing.value = true
+                    onFiltersUpdated()
                 },
-                modifier = Modifier.widthIn(max = 250.dp).weight(1f),
+                modifier = Modifier.fillMaxWidth(0.5f).padding(dimens.smallPadding),
                 isNumber = true
             )
 
@@ -560,83 +426,76 @@ fun InputsOfferFilterContent(
                     if (nameTextState.value.isNotBlank()) {
                         filters.find { filter -> filter.key == "search"}?.apply {
                             value = text
-                            interpritation = "$offerName: $text"
+                            interpretation = "$offerName: $text"
                         }
                     }else{
                         filters.find { it.key == "search" }.let {
                             it?.value = ""
-                            it?.interpritation = null
+                            it?.interpretation = null
                         }
                     }
                     nameTextState.value = text
-                    isRefreshing.value = true
+                    onFiltersUpdated()
                 },
-                modifier = Modifier.widthIn(max = 250.dp).weight(1f)
+                modifier = Modifier.padding(dimens.smallPadding),
             )
         }
 
         Row(
-            modifier = Modifier.wrapContentWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val sellerLogin = stringResource(strings.sellerLoginParameterName)
-            if (filters.find { it.key == "seller_login" }?.value != null) {
-                TextFieldWithState(
-                    label = sellerLogin,
-                    textState = sellerLoginTextState,
-                    onTextChange = { text ->
-                        if (sellerLoginTextState.value.isNotBlank()) {
-                            filters.find { filter -> filter.key == "seller_login" }?.apply {
-                                value = text
-                                interpritation = "$sellerLogin: $text"
+            Row(
+                modifier = Modifier.fillMaxWidth(0.5f).padding(dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val sellerLogin = stringResource(strings.sellerLoginParameterName)
+                if (filters.find { it.key == "seller_login" }?.value != null) {
+                    TextFieldWithState(
+                        label = sellerLogin,
+                        textState = sellerLoginTextState,
+                        onTextChange = { text ->
+                            if (sellerLoginTextState.value.isNotBlank()) {
+                                filters.find { filter -> filter.key == "seller_login" }?.apply {
+                                    value = text
+                                    interpretation = "$sellerLogin: $text"
+                                }
+                            } else {
+                                filters.find { it.key == "seller_login" }.let {
+                                    it?.value = ""
+                                    it?.interpretation = null
+                                }
                             }
-                        } else {
-                            filters.find { it.key == "seller_login" }.let {
-                                it?.value = ""
-                                it?.interpritation = null
-                            }
-                        }
-                        sellerLoginTextState.value = text
-                        isRefreshing.value = true
-                    },
-                    modifier = Modifier.widthIn(max = 250.dp).weight(1f)
-                )
+                            sellerLoginTextState.value = text
+                            onFiltersUpdated()
+                        },
+                        modifier = Modifier
+                    )
+                }
             }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(dimens.smallPadding)
-            ){
+            ) {
                 FilterButton(
-                    modifier = Modifier.padding(dimens.smallPadding),
                     activeCategory.value,
-                    color = if(selectedCategoryID.value == 1L)
+                    color = if (selectedCategoryID.value == 1L)
                         colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = {
                         openBottomSheet.value = !openBottomSheet.value
                     },
-                    onCancelClick = {
-                        if (selectedCategoryID.value != 1L) {
-                            SmallIconButton(
-                                icon = drawables.cancelIcon,
-                                contentDescription = stringResource(strings.actionClose),
-                                color = colors.steelBlue,
-                                modifier = Modifier.size(dimens.extraSmallIconSize),
-                                modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
-                            ) {
-                                isRefreshing.value = true
-                                filters.find { it.key == "category" }?.value = ""
-                                filters.find { it.key == "category" }?.interpritation = null
-                                activeCategory.value = defCat
-                                selectedCategoryID.value = 1L
-                                selectedParentId.value = null
-                            }
-                        }
+                    onCancelClick = if(selectedCategoryID.value != 1L){
+                       clear
+                    }else{
+                        null
                     }
                 )
             }
         }
     }
 }
+
+
 

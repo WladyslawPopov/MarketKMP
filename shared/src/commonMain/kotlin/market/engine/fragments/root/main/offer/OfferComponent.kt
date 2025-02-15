@@ -4,8 +4,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import market.engine.core.data.filtersObjects.EmptyFilters
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.filtersObjects.ListingFilters
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Region
@@ -117,10 +117,9 @@ class DefaultOfferComponent(
         if (region!= null){
             val ld = ListingData()
             val listingData = ld.data
-            listingData.value.filters = arrayListOf()
-            listingData.value.filters.addAll(EmptyFilters.getEmpty())
+            listingData.value.filters = ListingFilters.getEmpty()
             listingData.value.filters.find { it.key == "region" }?.value = region.code.toString()
-            listingData.value.filters.find { it.key == "region" }?.interpritation = region.name
+            listingData.value.filters.find { it.key == "region" }?.interpretation = region.name
             navigationListing(ld)
         }
     }

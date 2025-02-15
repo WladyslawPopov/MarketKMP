@@ -17,12 +17,12 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import market.engine.core.data.filtersObjects.EmptyFilters
+import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.WindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
@@ -158,7 +158,7 @@ fun SubscriptionsContent(
                     if (listingData.value.sort != null){
                         if (listingData.value.sort != null){
                             ActiveFilterListing(
-                                text = listingData.value.sort?.interpritation ?: "",
+                                text = listingData.value.sort?.interpretation ?: "",
                                 removeFilter = {
                                     listingData.value.sort = null
                                     refresh()
@@ -187,14 +187,14 @@ fun SubscriptionsContent(
                         },
                         onItemClick = {
                             val ld = ListingData()
-                            ld.data.value.filters = EmptyFilters.getEmpty()
+                            ld.data.value.filters = ListingFilters.getEmpty()
 
                             if(subscription.priceTo != null) {
                                 ld.data.value.filters.find {
                                     it.key == "current_price" && it.operation == "lte"
                                 }?.let{
                                     it.value = subscription.priceTo ?: ""
-                                    it.interpritation = "$price $from - ${subscription.priceTo} $currency"
+                                    it.interpretation = "$price $from - ${subscription.priceTo} $currency"
                                 }
                             }
 
@@ -203,7 +203,7 @@ fun SubscriptionsContent(
                                     it.key == "current_price" && it.operation == "gte"
                                 }?.let{
                                     it.value = subscription.priceFrom ?: ""
-                                    it.interpritation = "$price $to - ${subscription.priceFrom} $currency"
+                                    it.interpretation = "$price $to - ${subscription.priceFrom} $currency"
                                 }
                             }
 
@@ -212,7 +212,7 @@ fun SubscriptionsContent(
                                     it.key == "region"
                                 }?.let {
                                    it.value = (subscription.region?.code ?: "").toString()
-                                   it.interpritation = subscription.region?.name ?: ""
+                                   it.interpretation = subscription.region?.name ?: ""
                                 }
                             }
 
@@ -223,11 +223,11 @@ fun SubscriptionsContent(
                                     when (subscription.saleType) {
                                         "buy_now" -> {
                                             it.value = "buynow"
-                                            it.interpritation = ""
+                                            it.interpretation = ""
                                         }
                                         "ordinary_auction" -> {
                                             it.value = "auction"
-                                            it.interpritation = ""
+                                            it.interpretation = ""
                                         }
                                     }
                                 }

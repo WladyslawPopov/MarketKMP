@@ -76,30 +76,12 @@ fun MyOffersContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
+        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                when(component.model.value.type){
-                    LotsType.MYLOT_ACTIVE ->{
-                        OfferFilters.clearTypeFilter(LotsType.MYLOT_ACTIVE)
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsActive.toList())
-                    }
-                    LotsType.MYLOT_UNACTIVE ->{
-                        OfferFilters.clearTypeFilter(LotsType.MYLOT_UNACTIVE)
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsUnactive.toList())
-                    }
-                    LotsType.MYLOT_FUTURE ->{
-                        OfferFilters.clearTypeFilter(LotsType.MYLOT_FUTURE)
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(OfferFilters.filtersMyLotsFuture.toList())
-                    }
-                    else ->{
-                        listingData.value.filters.clear()
-                    }
-                }
+                OfferFilters.clearTypeFilter(component.model.value.type)
+                listingData.value.filters = OfferFilters.getByTypeFilter(component.model.value.type)
                 refresh()
             }
         }else {
@@ -190,7 +172,7 @@ fun MyOffersContent(
                 when(viewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
                         isRefreshingFromFilters,
-                        listingData.value,
+                        listingData.value.filters,
                         viewModel,
                         model.type,
                         onClose

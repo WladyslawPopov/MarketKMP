@@ -105,7 +105,7 @@ class UrlBuilder {
             analyticsHelper.reportEvent("activate_filter_catalog", eventParameters)
 
             listingData.filters.forEach {
-                if (it.interpritation != null) {
+                if (it.interpretation != null) {
                     when (it.key) {
                         "session_start" -> {
                             it.value = getCurrentDate()

@@ -27,12 +27,4 @@ data class SD(
         userLogin = null
         isRefreshing = true
     }
-
-    fun clearCategory(){
-        searchCategoryID = 1L
-        searchCategoryName = null
-        searchParentID = 1L
-        searchParentName = null
-        searchIsLeaf = false
-    }
 }

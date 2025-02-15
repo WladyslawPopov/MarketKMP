@@ -8,7 +8,7 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.printLogD
 import market.engine.fragments.root.main.listing.search.SearchViewModel

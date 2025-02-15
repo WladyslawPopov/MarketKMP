@@ -4,10 +4,11 @@ import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.DealFilters
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.UrlBuilder
@@ -27,36 +28,11 @@ class MyOrdersViewModel(
     val listingData = mutableStateOf(ListingData())
 
     fun init(): Flow<PagingData<Order>> {
+        listingData.value.data.value.filters = DealFilters.getByTypeFilter(type)
 
-        when (type) {
-            DealType.BUY_IN_WORK -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll(DealFilters.filtersBuysInWork.toList())
-            }
-
-            DealType.BUY_ARCHIVE -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll(DealFilters.filtersBuysArchive)
-            }
-
-            DealType.SELL_ALL -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll(DealFilters.filtersSalesAll)
-            }
-
-            DealType.SELL_IN_WORK -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll(DealFilters.filtersSalesInWork)
-            }
-
-            DealType.SELL_ARCHIVE -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll(DealFilters.filtersSalesArchive)
-            }
-        }
         if (orderSelected != null) {
             listingData.value.data.value.filters.find { it.key == "id" }?.value = orderSelected.toString()
-            listingData.value.data.value.filters.find { it.key == "id" }?.interpritation = "id: $orderSelected"
+            listingData.value.data.value.filters.find { it.key == "id" }?.interpretation = "id: $orderSelected"
         }
 
         val method = if (type in arrayOf(
@@ -79,33 +55,7 @@ class MyOrdersViewModel(
     suspend fun updateItem(id : Long?) : Order? {
         try {
             val ld = ListingData()
-
-            when (type) {
-                DealType.BUY_IN_WORK -> {
-                    ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersBuysInWork.toMutableList())
-                }
-
-                DealType.BUY_ARCHIVE -> {
-                    ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersBuysArchive.toMutableList())
-                }
-
-                DealType.SELL_ALL -> {
-                    ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersSalesAll.toMutableList())
-                }
-
-                DealType.SELL_IN_WORK -> {
-                    ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersSalesInWork.toMutableList())
-                }
-
-                DealType.SELL_ARCHIVE -> {
-                    ld.data.value.filters.clear()
-                    ld.data.value.filters.addAll(DealFilters.filtersSalesArchive.toMutableList())
-                }
-            }
+            ld.data.value.filters = DealFilters.getByTypeFilter(type)
 
             val method = if (type in arrayOf(
                     DealType.BUY_ARCHIVE,
@@ -117,7 +67,7 @@ class MyOrdersViewModel(
             ld.data.value.methodServer = "get_cabinet_listing_$method"
 
             ld.data.value.filters.find { it.key == "id" }?.value = id.toString()
-            ld.data.value.filters.find { it.key == "id" }?.interpritation = ""
+            ld.data.value.filters.find { it.key == "id" }?.interpretation = ""
 
             val url = UrlBuilder()
                 .addPathSegment(ld.data.value.objServer)
@@ -125,12 +75,12 @@ class MyOrdersViewModel(
                 .addFilters(ld.data.value, ld.searchData.value)
                 .build()
 
-            val res = withContext(Dispatchers.Default) {
+            val res = withContext(Dispatchers.IO) {
                 apiService.getPage(url)
             }
             return withContext(Dispatchers.Main) {
                 ld.data.value.filters.find { it.key == "id" }?.value = ""
-                ld.data.value.filters.find { it.key == "id" }?.interpritation = null
+                ld.data.value.filters.find { it.key == "id" }?.interpretation = null
 
                 if (res.success) {
                     val serializer = Payload.serializer(Order.serializer())

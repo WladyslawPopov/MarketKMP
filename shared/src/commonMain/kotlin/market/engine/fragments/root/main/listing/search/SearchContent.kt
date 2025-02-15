@@ -4,11 +4,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -17,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -125,18 +122,15 @@ fun SearchContent(
             sheetContent = {
                 CategoryContent(
                     baseViewModel = searchViewModel,
-                    complete = {
-                        openBottomSheet.value = false
-                    },
                     isFilters = true,
-                    searchData = searchData,
-                    listingData = LD(),
                     searchCategoryId = selectedCategoryID,
                     searchCategoryName = selectedCategory,
                     searchParentID = selectedCategoryParentID,
                     searchIsLeaf = selectedCategoryIsLeaf,
                     isRefreshingFromFilters = isRefreshingFromFilters
-                )
+                ){
+                    openBottomSheet.value = false
+                }
             },
         ) {
             Column(
@@ -146,7 +140,7 @@ fun SearchContent(
                         detectTapGestures(onTap = {
                             focusManager.clearFocus()
                         })
-                    }.padding(dimens.smallPadding),
+                    },
                 verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -156,7 +150,6 @@ fun SearchContent(
                     selectedUser = selectedUser,
                     selectedUserLogin = selectedUserLogin,
                     selectedUserFinished = selectedUserFinished,
-                    modifier = Modifier.padding(dimens.extraSmallPadding),
                     goToCategory = {
                         searchViewModel.activeFiltersType.value = "categories"
                         openBottomSheet.value = true
@@ -165,7 +158,7 @@ fun SearchContent(
 
                 HistoryLayout(
                     historyItems = history.value,
-                    modifier = Modifier.clip(MaterialTheme.shapes.medium).fillMaxWidth(),
+                    modifier = Modifier.padding(dimens.smallPadding),
                     onItemClick = {
                         searchString.value = it
                     },

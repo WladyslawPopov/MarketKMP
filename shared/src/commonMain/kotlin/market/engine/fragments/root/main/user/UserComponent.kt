@@ -10,7 +10,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import kotlinx.serialization.Serializable
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.User
 import market.engine.core.data.types.ReportPageType

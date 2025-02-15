@@ -33,7 +33,6 @@ import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.filtersObjects.ReportFilters
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -57,6 +56,9 @@ fun FeedbacksContent(
     val viewModel = model.feedbacksViewModel
     val listingData = viewModel.listingData.value.data
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
+
+    val type = model.type
+    val userId = model.userId
 
     val htmlText = rememberRichTextState()
 
@@ -94,8 +96,18 @@ fun FeedbacksContent(
     val isLoading : State<Boolean> = rememberUpdatedState(
         data.loadState.refresh is LoadStateLoading
     )
+
     var error : (@Composable () -> Unit)? = null
     var noItem : (@Composable () -> Unit)? = null
+
+    val refreshPage = {
+        if(type != ReportPageType.ABOUT_ME){
+            listingData.value.filters = ReportFilters.getByTypeFilter(type)
+            listingData.value.filters.find { it.key == "user_id" }?.value = userId.toString()
+        }
+        component.onRefresh()
+        viewModel.updateItemTrigger.value++
+    }
 
     data.loadState.apply {
         when {
@@ -111,25 +123,14 @@ fun FeedbacksContent(
                             title = stringResource(strings.notFoundFeedbackLabel),
                             textButton = stringResource(strings.refreshButton)
                         ) {
-                            setReportsFilters(
-                                listingData.value,
-                                component.model.value.userId,
-                                component.model.value.type
-                            )
-                            component.onRefresh()
-                            viewModel.updateItemTrigger.value++
+                            refreshPage()
                         }
                     }else{
                         showNoItemLayout(
                             textButton = stringResource(strings.resetLabel)
                         ) {
                             viewModel.currentFilter.value = filters[0]
-                            setReportsFilters(
-                                listingData.value,
-                                component.model.value.userId,
-                                component.model.value.type
-                            )
-                            component.onRefresh()
+                            refreshPage()
                         }
                     }
                 }
@@ -163,11 +164,6 @@ fun FeedbacksContent(
                     selects = filters,
                     onClearItem = {
                         viewModel.currentFilter.value = filters[0]
-                        setReportsFilters(
-                            listingData.value,
-                            component.model.value.userId,
-                            component.model.value.type
-                        )
                         component.onRefresh()
                     },
                     onItemClick = { filter ->
@@ -177,22 +173,22 @@ fun FeedbacksContent(
                         when (filters.indexOf(filter)) {
                             0 -> {
                                 listingData.value.filters.find { it.key == "evaluation" }?.value = ""
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = null
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = null
                             }
 
                             1 -> {
                                 listingData.value.filters.find { it.key == "evaluation" }?.value = "0"
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = ""
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = ""
                             }
 
                             2 -> {
                                 listingData.value.filters.find { it.key == "evaluation" }?.value = "1"
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = ""
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = ""
                             }
 
                             3 -> {
                                 listingData.value.filters.find { it.key == "evaluation" }?.value = "2"
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpritation = ""
+                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = ""
                             }
                         }
 
@@ -224,7 +220,6 @@ fun FeedbacksContent(
                         noItem != null -> item { noItem?.invoke() }
                         model.type == ReportPageType.ABOUT_ME -> {
                             item {
-
                                 if (aboutMe != null) {
                                     htmlText.setHtml(aboutMe)
                                 } else {
@@ -297,46 +292,6 @@ fun FeedbacksContent(
                     )
                 }
             }
-        }
-    }
-}
-
-fun setReportsFilters(listingData : LD, userId : Long, pageType : ReportPageType){
-    when (pageType) {
-        ReportPageType.ALL_REPORTS -> {
-            ReportFilters.clearTypeFilter(ReportPageType.ALL_REPORTS)
-            listingData.filters.clear()
-            listingData.filters.addAll(ReportFilters.filtersAll)
-            listingData.filters.find { it.key == "user_id" }?.value =
-                userId.toString()
-        }
-
-        ReportPageType.FROM_BUYERS -> {
-            ReportFilters.clearTypeFilter(ReportPageType.FROM_BUYERS)
-            listingData.filters.clear()
-            listingData.filters.addAll(ReportFilters.filtersFromBuyers)
-            listingData.filters.find { it.key == "user_id" }?.value =
-                userId.toString()
-        }
-
-        ReportPageType.FROM_SELLERS -> {
-            ReportFilters.clearTypeFilter(ReportPageType.FROM_SELLERS)
-            listingData.filters.clear()
-            listingData.filters.addAll(ReportFilters.filtersFromSellers)
-            listingData.filters.find { it.key == "user_id" }?.value =
-                userId.toString()
-        }
-
-        ReportPageType.FROM_USER -> {
-            ReportFilters.clearTypeFilter(ReportPageType.FROM_USER)
-            listingData.filters.clear()
-            listingData.filters.addAll(ReportFilters.filtersFromUsers)
-            listingData.filters.find { it.key == "user_id" }?.value =
-                userId.toString()
-        }
-
-        ReportPageType.ABOUT_ME -> {
-
         }
     }
 }

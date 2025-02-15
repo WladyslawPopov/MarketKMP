@@ -428,6 +428,7 @@ fun getOfferOperations(
 
     DateDialog(
         showDialog = showActivateOfferForFutureDialog.value,
+        isSelectableDates = true,
         onDismiss = { showActivateOfferForFutureDialog.value = false },
         onSucceed = { futureTimeInSeconds ->
             scope.launch {

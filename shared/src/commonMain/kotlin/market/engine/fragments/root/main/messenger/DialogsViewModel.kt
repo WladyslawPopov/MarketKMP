@@ -27,7 +27,7 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DialogsData
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.MessageType
 import market.engine.core.network.ServerErrorException

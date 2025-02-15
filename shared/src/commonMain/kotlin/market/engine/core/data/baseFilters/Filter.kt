@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class Filter(
     var key: String,
     var value: String,
-    var interpritation: String?,
+    var interpretation: String?,
     var operation: String?,
 )

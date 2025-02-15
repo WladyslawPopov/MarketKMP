@@ -1,8 +1,6 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,9 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,9 +27,8 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import org.jetbrains.compose.resources.painterResource
+import market.engine.widgets.rows.FilterContentHeaderRow
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -66,111 +61,69 @@ fun SortingOffersContent(
     )
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().animateContentSize()
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(dimens.smallPadding),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(
-                    onClick = {
-                        onClose()
-                    },
-                    content = {
-                        Icon(
-                            painterResource(drawables.closeBtn),
-                            tint = colors.black,
-                            contentDescription = stringResource(strings.actionClose)
-                        )
-                    },
-                )
-
-                Text(
-                    stringResource(strings.sort),
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(dimens.smallPadding)
-                )
+        FilterContentHeaderRow(
+            stringResource(strings.sort),
+            listingData.sort != null,
+            onClosed = onClose,
+            onClear = {
+                isRefreshing.value = true
+                listingData.sort = null
+                onClose()
             }
 
-            if(listingData.sort != null) {
-                Button(
-                    onClick = {
-                        isRefreshing.value = true
-                        listingData.sort = null
-                        onClose()
-                    },
-                    content = {
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .padding(top = 60.dp)
+                .fillMaxSize()
+        ) {
+            // For each section, display the heading and options under it
+            sortSections.forEach { (sectionTitle, sortOptions) ->
+                item {
+                    // Section title
+                    Text(
+                        text = sectionTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier
+                            .padding(dimens.smallPadding),
+                        color = colors.textA0AE
+                    )
+                }
+
+                items(sortOptions) { sortOption ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                isRefreshing.value = true
+                                listingData.sort = sortOption
+                                onClose()
+                            }
+                            .background(colors.white)
+                            .clip(MaterialTheme.shapes.small)
+                            .padding(dimens.smallPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text(
-                            stringResource(strings.clear),
-                            style = MaterialTheme.typography.labelSmall,
+                            text = sortOption.interpretation ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f).padding(dimens.smallPadding),
                             color = colors.black
                         )
-                    },
-                    colors = colors.simpleButtonColors
-                )
-            }
-        }
 
-        AnimatedVisibility(
-            true,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ){
-            LazyColumn(
-                modifier = Modifier
-                    .padding(top = 60.dp)
-                    .fillMaxSize()
-            ) {
-                // For each section, display the heading and options under it
-                sortSections.forEach { (sectionTitle, sortOptions) ->
-                    item {
-                        // Section title
-                        Text(
-                            text = sectionTitle,
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier
-                                .padding(dimens.smallPadding),
-                            color = colors.textA0AE
-                        )
-                    }
-
-                    items(sortOptions) { sortOption ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    isRefreshing.value = true
-                                    listingData.sort = sortOption
-                                    onClose()
-                                }
-                                .background(colors.white)
-                                .clip(MaterialTheme.shapes.small)
-                                .padding(dimens.smallPadding),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = sortOption.interpritation ?: "",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f).padding(dimens.smallPadding),
-                                color = colors.black
+                        if (listingData.sort?.key == sortOption.key && listingData.sort?.value == sortOption.value) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = colors.inactiveBottomNavIconColor
                             )
-
-                            if (listingData.sort?.key == sortOption.key && listingData.sort?.value == sortOption.value) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = colors.inactiveBottomNavIconColor
-                                )
-                            }
                         }
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 1.dp), color = colors.textA0AE)
                     }
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 1.dp), color = colors.textA0AE)
                 }
             }
         }

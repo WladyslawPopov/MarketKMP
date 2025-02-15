@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.data.filtersObjects.EmptyFilters
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.filtersObjects.ListingFilters
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
@@ -42,7 +42,7 @@ class ListingViewModel : BaseViewModel() {
          listingData.data.value.objServer = "offers"
 
          if (listingData.data.value.filters.isEmpty()) {
-             listingData.data.value.filters.addAll(EmptyFilters.getEmpty())
+             listingData.data.value.filters = ListingFilters.getEmpty()
          }
 
          listingData.data.value.listingType = settings.getSettingValue("listingType", 0) ?: 0

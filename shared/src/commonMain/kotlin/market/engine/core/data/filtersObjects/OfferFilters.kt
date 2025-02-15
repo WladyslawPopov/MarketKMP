@@ -4,7 +4,7 @@ import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.types.LotsType
 
 object OfferFilters {
-    var filtersMyLotsActive = arrayListOf(
+    private var filtersMyLotsActive = arrayListOf(
         Filter("state", "0", "", null),
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
@@ -12,7 +12,7 @@ object OfferFilters {
         Filter("search", "", null, null),
         Filter("session_start", "time", "", "lte"),
     )
-    var filtersMyLotsUnactive = arrayListOf(
+    private var filtersMyLotsUnactive = arrayListOf(
         Filter("state", "1", "", null),
         Filter("with_sales", "", null, null),
         Filter("without_sales", "", null, null),
@@ -21,7 +21,7 @@ object OfferFilters {
         Filter("id", "", null, null),
         Filter("search", "", null, null),
     )
-    var filtersMyLotsFuture = arrayListOf(
+    private var filtersMyLotsFuture = arrayListOf(
         Filter("state", "0", "", null),
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
@@ -29,7 +29,7 @@ object OfferFilters {
         Filter("search", "", null, null),
         Filter("session_start", "time", "", "gt"),
     )
-    var filtersMyBidsActive = arrayListOf(
+    private var filtersMyBidsActive = arrayListOf(
         Filter("state", "0", "", null),
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
@@ -37,7 +37,7 @@ object OfferFilters {
         Filter("search", "", null, null),
         Filter("seller_login", "", null, null),
     )
-    var filtersMyBidsUnactive = arrayListOf(
+    private var filtersMyBidsUnactive = arrayListOf(
         Filter("state", "1", "", null),
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
@@ -45,7 +45,7 @@ object OfferFilters {
         Filter("search", "", null, null),
         Filter("seller_login", "", null, null),
     )
-    var filtersFav = arrayListOf(
+    private  var filtersFav = arrayListOf(
         Filter("state", "0", "", null),//0 фильтр
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
@@ -53,7 +53,7 @@ object OfferFilters {
         Filter("search", "", null, null),
         Filter("seller_login", "", null, null),
     )
-    var filtersProposeAll = arrayListOf(
+    private  var filtersProposeAll = arrayListOf(
         Filter("state", "0", "", null),//0 фильтр
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
@@ -62,7 +62,7 @@ object OfferFilters {
         Filter("seller_login", "", null, null),
     )
 
-    var filtersProposeNeed = arrayListOf(
+    private var filtersProposeNeed = arrayListOf(
         Filter("state", "0", "", null),//0 фильтр
         Filter("category", "1", null, null),
         Filter("sale_type", "", null, null),
@@ -161,7 +161,7 @@ object OfferFilters {
         }
     }
 
-    fun addByTypeFilter(type: LotsType) : ArrayList<Filter> {
+    fun getByTypeFilter(type: LotsType) : ArrayList<Filter> {
         return when(type){
             LotsType.MYLOT_ACTIVE ->{
                 filtersMyLotsActive

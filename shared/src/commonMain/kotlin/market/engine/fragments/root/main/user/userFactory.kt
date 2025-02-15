@@ -1,7 +1,7 @@
 package market.engine.fragments.root.main.user
 
 import com.arkivanov.decompose.ComponentContext
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealTypeGroup
 
 fun userFactory(

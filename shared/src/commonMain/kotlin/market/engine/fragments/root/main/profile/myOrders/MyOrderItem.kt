@@ -71,6 +71,13 @@ fun MyOrderItem(
 
     val showMenu = remember { mutableStateOf(false) }
 
+    val idOrderText = buildAnnotatedString {
+            withStyle(SpanStyle(color = colors.titleTextColor)) {
+                append(stringResource(strings.orderLabel))
+            }
+            append(" #${order.id}")
+        }
+
     Column(
         modifier = Modifier.background(colors.white, MaterialTheme.shapes.medium).fillMaxWidth(),
         horizontalAlignment = Alignment.Start,
@@ -82,15 +89,8 @@ fun MyOrderItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ){
-
-            val text = buildAnnotatedString {
-                withStyle(SpanStyle(color = colors.titleTextColor)){
-                    append(stringResource(strings.orderLabel))
-                }
-                append(" #${order.id}")
-            }
             Text(
-                text,
+                idOrderText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.actionTextColor,
                 modifier = Modifier.clickable {
@@ -246,11 +246,7 @@ fun MyOrderItem(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.grayText,
             )
-//            order.suborders = buildList {
-//                repeat(10) {
-//                    add(order.suborders[0])
-//                }
-//            }
+
             order.suborders.forEachIndexed { index, offer ->
                 if (index < maxItems.value) {
                     Row(

@@ -18,7 +18,6 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
@@ -69,31 +68,20 @@ fun MyProposalsContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
+        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                when(component.model.value.type){
-                    LotsType.ALL_PROPOSAL ->{
-                        OfferFilters.clearTypeFilter(LotsType.ALL_PROPOSAL)
-                    }
-                    LotsType.NEED_RESPOSE ->{
-                        OfferFilters.clearTypeFilter(LotsType.NEED_RESPOSE)
-                    }
-                    else ->{
-                        OfferFilters.clearTypeFilter(LotsType.ALL_PROPOSAL)
-                    }
-                }
-                viewModel.onRefresh()
-                updateFilters.value++
+                OfferFilters.clearTypeFilter(component.model.value.type)
+                listingData.value.filters = OfferFilters.getByTypeFilter(component.model.value.type)
+                refresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.proposalIcon
             ) {
-                viewModel.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             }
         }
     }
@@ -156,7 +144,6 @@ fun MyProposalsContent(
                     },
                     onRefresh = {
                         refresh()
-                        updateFilters.value++
                     }
                 )
             },
@@ -164,7 +151,7 @@ fun MyProposalsContent(
                 when(viewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
                         isRefreshingFromFilters,
-                        listingData.value,
+                        listingData.value.filters,
                         viewModel,
                         model.type,
                         onClose

@@ -187,7 +187,6 @@ fun getOrderOperations(
                                 }
                             }
                         }
-
                         "mark_as_parcel_sent" -> {
                             scope.launch(Dispatchers.IO) {
                                 val buf = orderOperations.postMarkAsParcelSent(order.id)

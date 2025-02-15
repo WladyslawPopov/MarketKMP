@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.BottomSheetScaffold
@@ -32,13 +32,11 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.FilterButton
-import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.DynamicCheckbox
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
@@ -119,6 +117,18 @@ fun CreateSubscriptionContent(
         else strings.editLabel
     )
 
+    val clear = remember {
+        {
+            selectedCategory.value = defCat
+            selectedCategoryID.value = 1L
+            selectedCategoryParentID.value = null
+            responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription =
+                defCat
+            responseGetPage.value?.fields?.find { it.key == "category_id" }?.data =
+                null
+        }
+    }
+
     BaseContent(
         topBar = {
             CreateSubscriptionAppBar(
@@ -150,23 +160,15 @@ fun CreateSubscriptionContent(
             sheetContent = {
                 CategoryContent(
                     baseViewModel = viewModel,
-                    searchData = SD(
-                        searchCategoryID = selectedCategoryID.value,
-                        searchCategoryName = selectedCategory.value,
-                        searchParentID = selectedCategoryParentID.value,
-                        searchIsLeaf = selectedCategoryIsLeaf.value
-                    ),
-                    listingData = LD(),
                     searchCategoryId = selectedCategoryID,
                     searchCategoryName = selectedCategory,
                     searchParentID = selectedCategoryParentID,
                     searchIsLeaf = selectedCategoryIsLeaf,
                     isRefreshingFromFilters = isRefreshingFromFilters,
                     isFilters = true,
-                    complete = {
-                        openBottomSheet.value = false
-                    }
-                )
+                ){
+                    openBottomSheet.value = false
+                }
             },
         ) {
             Box(
@@ -195,33 +197,21 @@ fun CreateSubscriptionContent(
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Start,
-                                            modifier = Modifier.padding(dimens.mediumPadding)
+                                            modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.mediumPadding)
                                         ){
                                             FilterButton(
-                                                modifier = Modifier.padding(dimens.smallPadding),
                                                 selectedCategory.value,
                                                 color = if(selectedCategoryID.value == 1L)
                                                     colors.simpleButtonColors else colors.themeButtonColors,
                                                 onClick = {
                                                     openBottomSheet.value = !openBottomSheet.value
                                                 },
-                                                onCancelClick = {
+                                                onCancelClick =
                                                     if (selectedCategoryID.value != 1L) {
-                                                        SmallIconButton(
-                                                            icon = drawables.cancelIcon,
-                                                            contentDescription = stringResource(strings.actionClose),
-                                                            color = colors.steelBlue,
-                                                            modifier = Modifier.size(dimens.extraSmallIconSize),
-                                                            modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
-                                                        ) {
-                                                            selectedCategory.value = defCat
-                                                            selectedCategoryID.value = 1L
-                                                            selectedCategoryParentID.value = null
-                                                            responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = defCat
-                                                            responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = null
-                                                        }
+                                                        clear
+                                                    }else{
+                                                        null
                                                     }
-                                                }
                                             )
                                         }
                                     }else{

@@ -40,19 +40,20 @@ fun DynamicRadioButtons(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        RadioGroup(
-            list.toList(),
-            selectedFilterKey.value,
-        ){ isChecked, choice ->
-            if(!isChecked) {
-                selectedFilterKey.value = choice
-                field.data = JsonPrimitive(choice)
-            }else{
-                selectedFilterKey.value = 0
-                field.data = JsonPrimitive(null)
+        list.forEach {
+            RadioOptionRow(
+                it.toPair(),
+                selectedFilterKey.value,
+            ){ isChecked, choice ->
+                if(!isChecked) {
+                    selectedFilterKey.value = choice
+                    field.data = JsonPrimitive(choice)
+                }else{
+                    selectedFilterKey.value = 0
+                    field.data = JsonPrimitive(null)
+                }
+                selectedChoice(!isChecked, choice)
             }
-
-            selectedChoice(!isChecked, choice)
         }
     }
 }

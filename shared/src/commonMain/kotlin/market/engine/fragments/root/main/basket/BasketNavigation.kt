@@ -19,7 +19,7 @@ import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup

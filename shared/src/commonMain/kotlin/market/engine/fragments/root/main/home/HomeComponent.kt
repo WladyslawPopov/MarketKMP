@@ -12,9 +12,9 @@ import market.engine.common.getPermissionHandler
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.filtersObjects.EmptyFilters
+import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.TopCategory
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
@@ -119,19 +119,14 @@ class DefaultHomeComponent(
     }
 
     override fun goToAllPromo() {
-
-        if (listingData.data.value.filters.isEmpty()) {
-            listingData.data.value.filters = arrayListOf()
-            listingData.data.value.filters.addAll(EmptyFilters.getEmpty())
-        }
-
+        listingData.data.value.filters = ListingFilters.getEmpty()
         model.value.homeViewModel.viewModelScope.launch {
             listingData.data.value.filters.find {
                     filter -> filter.key == "promo_main_page"
             }?.value = "promo_main_page"
             listingData.data.value.filters.find {
                     filter -> filter.key == "promo_main_page"
-            }?.interpritation = getString(strings.allPromoOffersBtn)
+            }?.interpretation = getString(strings.allPromoOffersBtn)
 
             listingData.searchData.value.isRefreshing = true
 

@@ -88,12 +88,12 @@ fun SwipeTabsBar(
             title = allString,
             onClick = {
                 listingData.filters.find { filter-> filter.key == "sale_type" }?.value = ""
-                listingData.filters.find { filter-> filter.key == "sale_type" }?.interpritation = null
+                listingData.filters.find { filter-> filter.key == "sale_type" }?.interpretation = null
 
                 listingData.filters.find { filter-> filter.key == "starting_price" }?.value = ""
-                listingData.filters.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.filters.find { filter-> filter.key == "starting_price" }?.interpretation = null
                 listingData.filters.find { filter-> filter.key == "discount_price" }?.value = ""
-                listingData.filters.find { filter-> filter.key == "discount_price" }?.interpritation = null
+                listingData.filters.find { filter-> filter.key == "discount_price" }?.interpretation = null
 
                 onRefresh()
             }
@@ -103,12 +103,12 @@ fun SwipeTabsBar(
             title = auctionString,
             onClick = {
                 listingData.filters.find { filter-> filter.key == "sale_type" }?.value = "auction"
-                listingData.filters.find { filter-> filter.key == "sale_type" }?.interpritation = ""
+                listingData.filters.find { filter-> filter.key == "sale_type" }?.interpretation = ""
 
                 listingData.filters.find { filter-> filter.key == "starting_price" }?.value = ""
-                listingData.filters.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.filters.find { filter-> filter.key == "starting_price" }?.interpretation = null
                 listingData.filters.find { filter-> filter.key == "discount_price" }?.value = ""
-                listingData.filters.find { filter-> filter.key == "discount_price" }?.interpritation = null
+                listingData.filters.find { filter-> filter.key == "discount_price" }?.interpretation = null
 
                 onRefresh()
             }
@@ -118,12 +118,12 @@ fun SwipeTabsBar(
             title = buyNowString,
             onClick = {
                 listingData.filters.find { filter-> filter.key == "sale_type" }?.value = "buynow"
-                listingData.filters.find { filter-> filter.key == "sale_type" }?.interpritation = ""
+                listingData.filters.find { filter-> filter.key == "sale_type" }?.interpretation = ""
 
                 listingData.filters.find { filter-> filter.key == "starting_price" }?.value = ""
-                listingData.filters.find { filter-> filter.key == "starting_price" }?.interpritation = null
+                listingData.filters.find { filter-> filter.key == "starting_price" }?.interpretation = null
                 listingData.filters.find { filter-> filter.key == "discount_price" }?.value = ""
-                listingData.filters.find { filter-> filter.key == "discount_price" }?.interpritation = null
+                listingData.filters.find { filter-> filter.key == "discount_price" }?.interpretation = null
 
                 onRefresh()
             }

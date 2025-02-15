@@ -57,12 +57,12 @@ fun PriceFilter(
                     if (newText.isNotBlank()) {
                         filters.find { filter -> filter.key == "current_price" && filter.operation == "gte" }?.apply {
                             value = newText
-                            interpritation = "$price $from - $newText $currency"
+                            interpretation = "$price $from - $newText $currency"
                         }
                     } else {
                         filters.find { filter -> filter.key == "current_price" && filter.operation == "gte" }?.apply {
                             value = ""
-                            interpritation = null
+                            interpretation = null
                         }
                     }
                     onFiltersUpdated()
@@ -86,12 +86,12 @@ fun PriceFilter(
                     if (newText.isNotBlank()) {
                         filters.find { filter -> filter.key == "current_price" && filter.operation == "lte" }?.apply {
                             value = newText
-                            interpritation = "$price $to - $newText $currency"
+                            interpretation = "$price $to - $newText $currency"
                         }
                     } else {
                         filters.find { filter -> filter.key == "current_price" && filter.operation == "lte" }?.apply {
                             value = ""
-                            interpritation = null
+                            interpretation = null
                         }
                     }
                     onFiltersUpdated()

@@ -18,7 +18,6 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
@@ -70,25 +69,12 @@ fun MyBidsContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
+        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                when(component.model.value.type){
-                    LotsType.MYBIDLOTS_ACTIVE ->{
-                        OfferFilters.clearTypeFilter(LotsType.MYBIDLOTS_ACTIVE)
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(OfferFilters.filtersMyBidsActive.toList())
-                    }
-                    LotsType.MYBIDLOTS_UNACTIVE ->{
-                        OfferFilters.clearTypeFilter(LotsType.MYBIDLOTS_UNACTIVE)
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(OfferFilters.filtersMyBidsUnactive.toList())
-                    }
-                    else ->{
-                        listingData.value.filters.clear()
-                    }
-                }
+                OfferFilters.clearTypeFilter(component.model.value.type)
+                listingData.value.filters = OfferFilters.getByTypeFilter(component.model.value.type)
                 viewModel.onRefresh()
                 updateFilters.value++
             }
@@ -169,7 +155,7 @@ fun MyBidsContent(
                 when(viewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
                         isRefreshingFromFilters,
-                        listingData.value,
+                        listingData.value.filters,
                         viewModel,
                         model.type,
                         onClose

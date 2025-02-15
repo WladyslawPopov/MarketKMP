@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.networkObjects.Conversations

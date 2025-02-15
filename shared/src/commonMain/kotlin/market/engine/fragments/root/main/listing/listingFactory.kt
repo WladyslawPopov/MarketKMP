@@ -1,7 +1,7 @@
 package market.engine.fragments.root.main.listing
 
 import com.arkivanov.decompose.ComponentContext
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 
 fun listingFactory(
     componentContext: ComponentContext,

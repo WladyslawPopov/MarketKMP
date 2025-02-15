@@ -87,7 +87,7 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.checkboxs.DeliveryMethods
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
-import market.engine.widgets.checkboxs.RadioGroup
+import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
@@ -338,29 +338,18 @@ fun CreateOfferContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                val searchData = SD(
-                    searchCategoryID = categoryID.value,
-                    searchCategoryName = categoryName.value,
-                    searchParentID = parentID.value,
-                    searchIsLeaf = isLeaf.value
-                )
-                val listingData = LD()
-
                 CategoryContent(
                     baseViewModel = viewModel,
-                    complete = {
-                        refresh()
-                        viewModel.activeFiltersType.value = ""
-                    },
                     isCreateOffer = true,
-                    searchData = searchData,
-                    listingData = listingData,
                     searchCategoryId = categoryID,
                     searchCategoryName = categoryName,
                     searchParentID = parentID,
                     searchIsLeaf = isLeaf,
                     isRefreshingFromFilters = isRefreshingFromFilters,
-                )
+                ){
+                    refresh()
+                    viewModel.activeFiltersType.value = ""
+                }
             },
         ) {
             if (createOfferResponse.value?.status == "operation_success") {
@@ -864,22 +853,25 @@ fun SessionStartContent(
     }
 
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier.fillMaxWidth()
             .padding(dimens.mediumPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        RadioGroup(
-            saleTypeFilters,
-            selectedFilterKey.value
-        ){ isChecked, choice ->
-            if(!isChecked) {
-                selectedFilterKey.value = choice
-                field.data = JsonPrimitive(choice)
-            }else{
-                selectedFilterKey.value = 0
-                field.data = JsonPrimitive(null)
+        saleTypeFilters.forEach {
+            RadioOptionRow(
+                it,
+                selectedFilterKey.value
+            ) { isChecked, choice ->
+                if(!isChecked) {
+                    selectedFilterKey.value = choice
+                    field.data = JsonPrimitive(choice)
+                }else{
+                    selectedFilterKey.value = 0
+                    field.data = JsonPrimitive(null)
+                }
             }
         }
 
@@ -917,6 +909,7 @@ fun SessionStartContent(
 
             DateDialog(
                 showActivateOfferForFutureDialog.value,
+                isSelectableDates = true,
                 onDismiss = {
                     showActivateOfferForFutureDialog.value = false
                 },

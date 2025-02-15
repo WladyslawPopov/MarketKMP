@@ -5,7 +5,7 @@ import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
 import market.engine.core.data.filtersObjects.OfferFilters
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.PagingRepository
@@ -20,21 +20,7 @@ class MyBidsViewModel(
     val listingData = mutableStateOf(ListingData())
 
     fun init(): Flow<PagingData<Offer>> {
-        when(type){
-            LotsType.MYBIDLOTS_ACTIVE -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll( OfferFilters.filtersMyBidsActive.toList())
-            }
-            LotsType.MYBIDLOTS_UNACTIVE -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyBidsUnactive.toList())
-            }
-            else -> {
-                listingData.value.data.value.filters.clear()
-                listingData.value.data.value.filters.addAll(OfferFilters.filtersMyBidsActive.toList())
-            }
-        }
-
+        listingData.value.data.value.filters = OfferFilters.getByTypeFilter(type)
         listingData.value.data.value.methodServer = "get_cabinet_listing_with_my_bids"
         listingData.value.data.value.objServer = "offers"
 

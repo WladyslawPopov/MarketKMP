@@ -102,7 +102,7 @@ fun DialogsContent(
     val textCopied = stringResource(strings.textCopied)
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
+        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {

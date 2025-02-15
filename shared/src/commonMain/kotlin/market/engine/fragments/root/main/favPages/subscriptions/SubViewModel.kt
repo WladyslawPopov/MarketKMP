@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.repositories.PagingRepository

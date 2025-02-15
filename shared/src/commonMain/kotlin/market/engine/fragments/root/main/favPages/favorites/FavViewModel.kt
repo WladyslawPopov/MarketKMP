@@ -5,7 +5,8 @@ import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
 import market.engine.core.data.filtersObjects.OfferFilters
-import market.engine.core.data.items.ListingData
+import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.types.LotsType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
@@ -17,10 +18,7 @@ class FavViewModel : BaseViewModel() {
     val listingData = mutableStateOf(ListingData())
 
     fun init(): Flow<PagingData<Offer>> {
-        if (listingData.value.data.value.filters.isEmpty()) {
-            listingData.value.data.value.filters.clear()
-            listingData.value.data.value.filters.addAll(OfferFilters.filtersFav)
-        }
+        listingData.value.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
         listingData.value.data.value.methodServer = "get_cabinet_listing_watched_by_me"
         listingData.value.data.value.objServer = "offers"
 

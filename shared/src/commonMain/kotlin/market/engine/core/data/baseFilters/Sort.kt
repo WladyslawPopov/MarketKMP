@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class Sort(
     var key: String,
     var value: String,
-    var interpritation: String?,
+    var interpretation: String?,
     var operation: String?,
     var sortText: String?
 )

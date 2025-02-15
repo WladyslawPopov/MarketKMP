@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
@@ -53,8 +52,7 @@ fun HistoryLayout(
 
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = dimens.smallPadding),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -90,7 +88,6 @@ fun HistoryLayout(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(50.dp, 250.dp)
-            .wrapContentHeight()
             .background(color = colors.primaryColor),
         contentPadding = PaddingValues(dimens.extraSmallPadding),
         verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),

@@ -80,36 +80,12 @@ fun MyOrdersContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpritation != null && it.interpritation != "" }) {
+        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                when (model.type) {
-                    DealType.BUY_IN_WORK -> {
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(DealFilters.filtersBuysInWork.toList())
-                    }
-
-                    DealType.BUY_ARCHIVE -> {
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(DealFilters.filtersBuysArchive)
-                    }
-
-                    DealType.SELL_ALL -> {
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(DealFilters.filtersSalesAll)
-                    }
-
-                    DealType.SELL_IN_WORK -> {
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(DealFilters.filtersSalesInWork)
-                    }
-
-                    DealType.SELL_ARCHIVE -> {
-                        listingData.value.filters.clear()
-                        listingData.value.filters.addAll(DealFilters.filtersSalesArchive)
-                    }
-                }
+                DealFilters.clearTypeFilter(model.type)
+                listingData.value.filters = DealFilters.getByTypeFilter(model.type)
                 refresh()
             }
         }else {

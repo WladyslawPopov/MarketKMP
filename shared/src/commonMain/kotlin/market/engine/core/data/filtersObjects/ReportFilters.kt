@@ -4,27 +4,27 @@ import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.types.ReportPageType
 
 object ReportFilters {
-    var filtersAll = arrayListOf(
+    private var filtersAll = arrayListOf(
         Filter("user_id", "", "", null),
         Filter("direction", "0", "", null),
         Filter("evaluation", "", null, null),
     )
 
-    var filtersFromBuyers = arrayListOf(
+    private var filtersFromBuyers = arrayListOf(
         Filter("user_id", "", "", null),
         Filter("direction", "0", "", null),
         Filter("role", "0", "", null),
         Filter("evaluation", "", null, null),
     )
 
-    var filtersFromSellers = arrayListOf(
+    private var filtersFromSellers = arrayListOf(
         Filter("user_id", "", "", null),
         Filter("direction", "0", "", null),
         Filter("role", "1", "", null),
         Filter("evaluation", "", null, null),
     )
 
-    var filtersFromUsers = arrayListOf(
+    private var filtersFromUsers = arrayListOf(
         Filter("user_id", "", "", null),
         Filter("direction", "1", "", null),
         Filter("evaluation", "", null, null),
@@ -64,6 +64,26 @@ object ReportFilters {
             }
             ReportPageType.ABOUT_ME -> {
 
+            }
+        }
+    }
+
+    fun getByTypeFilter(type: ReportPageType) : ArrayList<Filter> {
+        return when(type){
+            ReportPageType.ALL_REPORTS -> {
+                filtersAll
+            }
+            ReportPageType.FROM_BUYERS -> {
+                filtersFromBuyers
+            }
+            ReportPageType.FROM_SELLERS -> {
+                filtersFromSellers
+            }
+            ReportPageType.FROM_USER -> {
+                filtersFromUsers
+            }
+            ReportPageType.ABOUT_ME -> {
+                arrayListOf()
             }
         }
     }
