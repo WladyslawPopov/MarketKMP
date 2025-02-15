@@ -10,6 +10,9 @@ fun ProfileContent(
     component: ProfileComponent,
     modifier: Modifier
 ) {
+
+
+
    BaseContent(
        topBar = {},
        modifier = modifier.fillMaxSize(),

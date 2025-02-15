@@ -18,7 +18,7 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.main.profile.main.ProfileComponent
+import market.engine.fragments.root.main.profile.main.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.main.ProfileDrawer
 import market.engine.fragments.root.main.profile.myProposals.DefaultMyProposalsComponent
 import market.engine.fragments.root.main.profile.myProposals.MyProposalsAppBar
@@ -33,7 +33,7 @@ data class MyProposalsConfig(
 
 @Composable
 fun ProfileMyProposalsNavigation(
-    component: ProfileComponent,
+    component: ProfileChildrenComponent,
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)

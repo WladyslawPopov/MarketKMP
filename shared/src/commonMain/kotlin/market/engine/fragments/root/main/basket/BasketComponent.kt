@@ -33,7 +33,7 @@ class DefaultBasketComponent(
     val navigateToCreateOrder: (Pair<Long, List<SelectedBasketItem>>) -> Unit,
 ) : BasketComponent, ComponentContext by componentContext {
 
-    private val basketViewModel : BasketViewModel = getKoin().get()
+    private val basketViewModel : BasketViewModel = BasketViewModel()
 
     private val _model = MutableValue(
         BasketComponent.Model(

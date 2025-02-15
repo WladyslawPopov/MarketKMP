@@ -16,7 +16,6 @@ import market.engine.core.network.networkObjects.User
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.root.main.user.feedbacks.DefaultFeedbacksComponent
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksComponent
-import org.koin.mp.KoinPlatform.getKoin
 
 interface UserComponent {
     val model : Value<Model>
@@ -55,11 +54,13 @@ class DefaultUserComponent(
     val navigateToSubscriptions: () -> Unit,
 ) : UserComponent, ComponentContext by componentContext {
 
+    val viewModel : UserViewModel = UserViewModel()
+
     private val _model = MutableValue(
         UserComponent.Model(
             userId = userId,
             isClickedAboutMe = isClickedAboutMe,
-            userViewModel = getKoin().get(),
+            userViewModel = viewModel,
             backHandler = backHandler
         )
     )

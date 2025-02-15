@@ -5,8 +5,8 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.globalData.SAPI
-import org.koin.mp.KoinPlatform.getKoin
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToMain
 
 interface LoginComponent {
     val model: Value<Model>
@@ -18,23 +18,23 @@ interface LoginComponent {
 
     fun goToRegistration()
     fun goToForgotPassword()
-
     fun onBack()
 }
 
 class DefaultLoginComponent(
     componentContext: ComponentContext,
+    private val isReset: Boolean,
     private val navigateToRegistration: () -> Unit,
     private val navigateToForgotPassword: () -> Unit,
-    private val onBackSelected: () -> Unit
 ) : LoginComponent, ComponentContext by componentContext  {
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
+    val viewModel : LoginViewModel = LoginViewModel()
 
     private val _model = MutableValue(
         LoginComponent.Model(
-            loginViewModel = getKoin().get(),
+            loginViewModel = viewModel,
             backHandler = backHandler
         )
     )
@@ -54,6 +54,10 @@ class DefaultLoginComponent(
     }
 
     override fun onBack() {
-        onBackSelected()
+        if (!isReset) {
+            goBack()
+        }else{
+            goToMain()
+        }
     }
 }

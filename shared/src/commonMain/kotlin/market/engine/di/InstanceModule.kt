@@ -14,30 +14,8 @@ import market.engine.common.getKtorClient
 import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
-import market.engine.fragments.root.main.basket.BasketViewModel
-import market.engine.fragments.root.dynamicSettings.DynamicSettingsViewModel
-import market.engine.fragments.root.main.favPages.favorites.FavViewModel
-import market.engine.fragments.root.main.home.HomeViewModel
-import market.engine.fragments.root.login.LoginViewModel
-import market.engine.fragments.root.contactUs.ContactUsViewModel
-import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
-import market.engine.fragments.root.main.createOrder.CreateOrderViewModel
-import market.engine.fragments.root.main.createSubscription.CreateSubscriptionViewModel
-import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
-import market.engine.fragments.root.main.profile.main.ProfileViewModel
-import market.engine.fragments.root.main.listing.ListingViewModel
-import market.engine.fragments.root.main.listing.search.SearchViewModel
-import market.engine.fragments.root.main.messenger.DialogsViewModel
-import market.engine.fragments.root.main.offer.OfferViewModel
-import market.engine.fragments.root.main.profile.conversations.ConversationsViewModel
-import market.engine.fragments.root.main.proposalPage.ProposalViewModel
-import market.engine.fragments.root.registration.RegViewModel
-import market.engine.fragments.root.main.user.UserViewModel
-import market.engine.fragments.root.main.user.feedbacks.FeedbacksViewModel
-import market.engine.fragments.root.verifyPage.VerificationViewModel
 import market.engine.shared.MarketDB
 import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 object InstanceModule {
@@ -46,32 +24,7 @@ object InstanceModule {
         databaseModule,
         operationsModule,
         repositoryModule,
-        viewModelModule,
     )
-}
-
-val viewModelModule = module {
-    viewModelOf(::HomeViewModel)
-    viewModelOf(::ListingViewModel)
-    viewModelOf(::SearchViewModel)
-    viewModelOf(::LoginViewModel)
-    viewModelOf(::FavViewModel)
-    viewModelOf(::SubViewModel)
-    viewModelOf(::OfferViewModel)
-    viewModelOf(::UserViewModel)
-    viewModelOf(::ProfileViewModel)
-    viewModelOf(::FeedbacksViewModel)
-    viewModelOf(::CreateOfferViewModel)
-    viewModelOf(::BasketViewModel)
-    viewModelOf(::CreateOrderViewModel)
-    viewModelOf(::ConversationsViewModel)
-    viewModelOf(::DialogsViewModel)
-    viewModelOf(::DynamicSettingsViewModel)
-    viewModelOf(::VerificationViewModel)
-    viewModelOf(::RegViewModel)
-    viewModelOf(::ContactUsViewModel)
-    viewModelOf(::CreateSubscriptionViewModel)
-    viewModelOf(::ProposalViewModel)
 }
 
 val networkModule = module {

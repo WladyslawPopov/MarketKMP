@@ -19,7 +19,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.main.profile.main.ProfileComponent
+import market.engine.fragments.root.main.profile.main.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.myBids.MyBidsAppBar
 import market.engine.fragments.root.main.profile.myBids.MyBidsContent
 import market.engine.fragments.root.main.profile.main.ProfileDrawer
@@ -35,7 +35,7 @@ data class MyBidsConfig(
 
 @Composable
 fun ProfileMyBidsNavigation(
-    component: ProfileComponent,
+    component: ProfileChildrenComponent,
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)

@@ -5,7 +5,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
-import org.koin.mp.KoinPlatform.getKoin
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 
 interface ContactUsComponent {
     val model: Value<Model>
@@ -19,13 +19,12 @@ interface ContactUsComponent {
 }
 
 class DefaultContactUsComponent(
-    componentContext: ComponentContext,
-    private val onBackSelected: () -> Unit
+    componentContext: ComponentContext
 ) : ContactUsComponent, ComponentContext by componentContext  {
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    private val contactUsViewModel = getKoin().get<ContactUsViewModel>()
+    private val contactUsViewModel = ContactUsViewModel()
     private val _model = MutableValue(
         ContactUsComponent.Model(
             contactUsViewModel = contactUsViewModel,
@@ -41,6 +40,6 @@ class DefaultContactUsComponent(
     }
 
     override fun onBack() {
-        onBackSelected()
+        goBack()
     }
 }

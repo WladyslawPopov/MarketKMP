@@ -32,6 +32,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.createOfferFactory
@@ -54,6 +55,8 @@ import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
 import market.engine.fragments.root.main.profile.conversations.conversationsFactory
+import market.engine.fragments.root.main.profile.main.DefaultProfileChildrenComponent
+import market.engine.fragments.root.main.profile.main.ProfileChildrenComponent
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
@@ -112,18 +115,18 @@ sealed class ProfileConfig {
 
 sealed class ChildProfile {
     class ProfileChild(val component: ProfileComponent) : ChildProfile()
-    class MyOffersChild(val component: ProfileComponent) : ChildProfile()
-    class ProfileSettingsChild(val component: ProfileComponent) : ChildProfile()
+    class MyOffersChild(val component: ProfileChildrenComponent) : ChildProfile()
+    class ProfileSettingsChild(val component: ProfileChildrenComponent) : ChildProfile()
     class OfferChild(val component: OfferComponent) : ChildProfile()
     class ListingChild(val component: ListingComponent) : ChildProfile()
     class UserChild(val component: UserComponent) : ChildProfile()
     class CreateOfferChild(val component: CreateOfferComponent) : ChildProfile()
     class CreateOrderChild(val component: CreateOrderComponent) : ChildProfile()
-    class MyOrdersChild(val type : DealTypeGroup, val component: ProfileComponent) : ChildProfile()
+    class MyOrdersChild(val type : DealTypeGroup, val component: ProfileChildrenComponent) : ChildProfile()
     class ConversationsChild(val component: ConversationsComponent) : ChildProfile()
-    class MyBidsChild(val component: ProfileComponent) : ChildProfile()
+    class MyBidsChild(val component: ProfileChildrenComponent) : ChildProfile()
     class DialogsChild(val component: DialogsComponent) : ChildProfile()
-    class MyProposalsChild(val component: ProfileComponent) : ChildProfile()
+    class MyProposalsChild(val component: ProfileChildrenComponent) : ChildProfile()
     class ProposalChild(val component: ProposalComponent) : ChildProfile()
 }
 
@@ -164,8 +167,6 @@ fun createProfileChild(
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
-    navigateToLogin: () -> Unit,
-    navigateToDynamicSettings: (String) -> Unit,
     navigateToSubscribe: () -> Unit
 ): ChildProfile {
 
@@ -326,7 +327,7 @@ fun createProfileChild(
             hasNews = false,
             badgeCount = null,
             onClick = {
-                navigateToLogin()
+                goToLogin(true)
             }
         ),
     ))
@@ -338,19 +339,16 @@ fun createProfileChild(
                 config.openPage,
                 profileNavigation,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings,
                 navigateToSubscribe
             )
         )
 
         ProfileConfig.MyOffersScreen -> ChildProfile.MyOffersChild(
-            component = itemProfile(
-                componentContext,
+            component = DefaultProfileChildrenComponent(
                 null,
-                profileNavigation,
+                componentContext,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings,
-                navigateToSubscribe
+                profileNavigation,
             )
         )
 
@@ -392,7 +390,7 @@ fun createProfileChild(
                     )
                 },
                 navigateToLogin = {
-                    navigateToLogin()
+                    goToLogin(false)
                 },
                 navigateToDialog = { dialogId ->
                     if(dialogId != null)
@@ -521,13 +519,11 @@ fun createProfileChild(
 
         is ProfileConfig.MyOrdersScreen -> ChildProfile.MyOrdersChild(
             config.typeGroup,
-            component = itemProfile(
-                componentContext,
+            component = DefaultProfileChildrenComponent(
                 if(config.typeGroup == DealTypeGroup.BUY) "purchases/${config.id}" else "sales/${config.id}",
-                profileNavigation,
+                componentContext,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings,
-                navigateToSubscribe
+                profileNavigation,
             )
         )
 
@@ -547,13 +543,11 @@ fun createProfileChild(
         )
 
         ProfileConfig.MyBidsScreen -> ChildProfile.MyBidsChild(
-            itemProfile(
-                componentContext,
+            DefaultProfileChildrenComponent(
                 null,
-                profileNavigation,
+                componentContext,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings,
-                navigateToSubscribe
+                profileNavigation,
             )
         )
 
@@ -585,24 +579,20 @@ fun createProfileChild(
         )
 
         ProfileConfig.ProfileSettingsScreen -> ChildProfile.ProfileSettingsChild(
-            itemProfile(
-                componentContext,
+            DefaultProfileChildrenComponent(
                 null,
-                profileNavigation,
+                componentContext,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings,
-                navigateToSubscribe
+                profileNavigation,
             )
         )
 
         ProfileConfig.MyProposalsScreen -> ChildProfile.MyProposalsChild(
-            itemProfile(
-                componentContext,
+            DefaultProfileChildrenComponent(
                 null,
-                profileNavigation,
+                componentContext,
                 profilePublicNavigationList.value,
-                navigateToDynamicSettings,
-                navigateToSubscribe
+                profileNavigation,
             )
         )
 
@@ -634,7 +624,6 @@ fun itemProfile(
     selectedPage : String? = null,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigationItems : List<NavigationItem>,
-    navigateToDynamicSettings: (String) -> Unit,
     navigateToSubscriptions: () -> Unit
 ): ProfileComponent {
     return DefaultProfileComponent(
@@ -642,7 +631,6 @@ fun itemProfile(
         selectedPage,
         navigationItems,
         profileNavigation,
-        navigateToDynamicSettings,
         navigateToSubscriptions
     )
 }

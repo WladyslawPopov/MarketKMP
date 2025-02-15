@@ -34,7 +34,7 @@ class DefaultFavoritesComponent(
     val goToOffer : (Long) -> Unit
 ) : FavoritesComponent, ComponentContext by componentContext {
 
-    private val favViewModel : FavViewModel = getKoin().get()
+    private val favViewModel : FavViewModel = FavViewModel()
 
     val listingData = favViewModel.listingData.value
 

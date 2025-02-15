@@ -27,6 +27,9 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToContactUs
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.createOfferFactory
@@ -141,11 +144,8 @@ fun createHomeChild(
     config: HomeConfig,
     componentContext: ComponentContext,
     homeNavigation: StackNavigation<HomeConfig>,
-    goToLogin: () -> Unit,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,
-    navigateToContactUs: () -> Unit,
-    navigateToAppSettings: () -> Unit,
     navigateToSubscribe: () -> Unit,
     navigateToMyProposals: () -> Unit
 ): ChildHome = when (config) {
@@ -153,9 +153,9 @@ fun createHomeChild(
         itemHome(
             componentContext,
             homeNavigation,
-            goToLogin = { goToLogin() },
-            navigateToContactUs = { navigateToContactUs() },
-            navigateToAppSettings = { navigateToAppSettings() },
+            goToLogin = { goToLogin(true) },
+            navigateToContactUs = { goToContactUs() },
+            navigateToAppSettings = { goToDynamicSettings("app_settings", null, null) },
             navigateToConversations = {
                 navigateToConversations()
             },
@@ -198,7 +198,7 @@ fun createHomeChild(
                         )
                     )
                 } else {
-                    goToLogin()
+                    goToLogin(false)
                 }
             },
             navigateToCreateOrder = {
@@ -207,7 +207,7 @@ fun createHomeChild(
                 )
             },
             navigateToLogin = {
-                goToLogin()
+                goToLogin(false)
             },
             navigateToDialog = { dialogId ->
                 if (dialogId != null)

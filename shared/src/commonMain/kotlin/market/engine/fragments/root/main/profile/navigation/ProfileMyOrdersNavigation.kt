@@ -19,7 +19,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.main.profile.main.ProfileComponent
+import market.engine.fragments.root.main.profile.main.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.main.ProfileDrawer
 import market.engine.fragments.root.main.profile.myOrders.DefaultMyOrdersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrderAppBar
@@ -39,7 +39,7 @@ data class MyOrderConfig(
 @Composable
 fun ProfileMyOrdersNavigation(
     typeGroup: DealTypeGroup,
-    component: ProfileComponent,
+    component: ProfileChildrenComponent,
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)

@@ -26,6 +26,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.createOfferFactory
@@ -115,7 +116,6 @@ fun createSearchChild(
     componentContext: ComponentContext,
     searchNavigation: StackNavigation<SearchConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
-    navigateToLogin: () -> Unit,
     navigateToSubscribe: () -> Unit,
     navigateToConversations: () -> Unit,
 ): ChildSearch =
@@ -191,7 +191,7 @@ fun createSearchChild(
                     )
                 },
                 navigateToLogin = {
-                    navigateToLogin()
+                    goToLogin(false)
                 },
                 navigateToDialog = { dialogId ->
                     if(dialogId != null)

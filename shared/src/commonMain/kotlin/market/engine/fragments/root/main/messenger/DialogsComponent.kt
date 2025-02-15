@@ -38,7 +38,11 @@ class DefaultDialogsComponent(
     dialogId : Long
 ) : DialogsComponent, ComponentContext by componentContext {
 
-    private val dialogsViewModel : DialogsViewModel = getKoin().get()
+    private val dialogsViewModel : DialogsViewModel = DialogsViewModel(
+        getKoin().get(),
+        getKoin().get(),
+        getKoin().get(),
+    )
 
     private val _model = MutableValue(
         DialogsComponent.Model(

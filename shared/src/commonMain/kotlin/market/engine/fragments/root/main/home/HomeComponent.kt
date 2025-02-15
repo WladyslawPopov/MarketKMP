@@ -56,7 +56,7 @@ class DefaultHomeComponent(
     val navigateToMyProposalsSelected: () -> Unit,
 ) : HomeComponent, ComponentContext by componentContext {
 
-    private val homeViewModel: HomeViewModel = getKoin().get()
+    private val homeViewModel: HomeViewModel = HomeViewModel()
 
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 

@@ -6,6 +6,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -14,19 +15,18 @@ import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.items.DeepLink
 import market.engine.core.repositories.SettingsRepository
-import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.contactUs.ContactUsComponent
 import market.engine.fragments.root.contactUs.DefaultContactUsComponent
+import market.engine.fragments.root.dynamicSettings.DefaultDynamicSettingsComponent
 import market.engine.fragments.root.dynamicSettings.DynamicSettingsComponent
-import market.engine.fragments.root.dynamicSettings.dynamicSettingsFactory
 import market.engine.fragments.root.login.DefaultLoginComponent
 import market.engine.fragments.root.login.LoginComponent
 import market.engine.fragments.root.main.DefaultMainComponent
 import market.engine.fragments.root.main.MainComponent
 import market.engine.fragments.root.registration.DefaultRegistrationComponent
 import market.engine.fragments.root.registration.RegistrationComponent
+import market.engine.fragments.root.verifyPage.DefaultVerificationComponent
 import market.engine.fragments.root.verifyPage.VerificationComponent
-import market.engine.fragments.root.verifyPage.verificationFactory
 import org.koin.mp.KoinPlatform.getKoin
 
 interface RootComponent {
@@ -45,9 +45,6 @@ interface RootComponent {
         data class VerificationChildMain(val component: VerificationComponent) : Child()
         data class DynamicSettingsChild(val component: DynamicSettingsComponent) : Child()
     }
-
-    fun backToMain()
-    fun navigateToLogin()
 }
 
 class DefaultRootComponent(
@@ -73,17 +70,8 @@ class DefaultRootComponent(
             backHandler = backHandler
         )
     )
+
     override val model = _model
-
-    override fun backToMain() {
-        navigation.pop()
-    }
-
-    override fun navigateToLogin() {
-        navigation.pushNew(RootConfig.Login)
-    }
-
-    val userRepository = getKoin().get<UserRepository>()
 
     init {
 
@@ -114,66 +102,48 @@ class DefaultRootComponent(
                 DefaultMainComponent(
                     componentContext,
                     deepLink = deepLink,
-                    goToLoginSelected =::navigateToLogin,
-                    contactUsSelected = {
-                        navigation.pushNew(RootConfig.ContactUs)
-                    },
-                    navigateToDynamicSettings = { settingsType, ownerId, code ->
-                       navigation.pushNew(RootConfig.DynamicSettingsScreen(settingsType, ownerId, code))
-                    },
-                    navigateToVerification = { settingsType, ownerId, code ->
-                        navigation.pushNew(RootConfig.Verification(settingsType, ownerId, code))
-                    }
                 )
             )
-            RootConfig.Login -> RootComponent.Child.LoginChild(
+            is RootConfig.Login -> RootComponent.Child.LoginChild(
                 DefaultLoginComponent(
                     componentContext,
+                    isReset = rootConfig.reset,
                     navigateToRegistration = {
                         navigation.pushNew(RootConfig.Registration)
                     },
                     navigateToForgotPassword = {
                         navigation.pushNew(RootConfig.DynamicSettingsScreen("forgot_password"))
                     },
-                    ::backToMain
                 )
             )
 
             RootConfig.Registration -> RootComponent.Child.RegistrationChild(
                 DefaultRegistrationComponent(
                     componentContext = componentContext,
-                    onBackSelected = ::backToMain
                 )
             )
 
             RootConfig.ContactUs -> RootComponent.Child.ContactUsChild(
                 DefaultContactUsComponent(
                     componentContext = componentContext,
-                    onBackSelected = ::backToMain
                 )
             )
 
             is RootConfig.Verification -> RootComponent.Child.VerificationChildMain(
-                verificationFactory(
+                DefaultVerificationComponent(
+                    settingsType = rootConfig.settingsType,
                     componentContext = componentContext,
                     owner = rootConfig.ownerId,
                     code = rootConfig.code,
-                    settingsType = rootConfig.settingsType,
-                    navigateBack = ::backToMain,
-                    navigateLogin = ::navigateToLogin
                 )
             )
 
             is RootConfig.DynamicSettingsScreen ->RootComponent.Child.DynamicSettingsChild(
-                component = dynamicSettingsFactory(
-                    componentContext,
+                component = DefaultDynamicSettingsComponent(
                     owner = rootConfig.ownerId,
                     code = rootConfig.code,
                     settingsType = rootConfig.settingsType,
-                    navigateBack = ::backToMain,
-                    navigateToVerification = {
-                       navigation.pushNew(RootConfig.Verification(it))
-                    }
+                    componentContext = componentContext,
                 )
             )
         }
@@ -181,12 +151,32 @@ class DefaultRootComponent(
     companion object {
         private val navigation = StackNavigation<RootConfig>()
 
-        val goToLogin = {
-            navigation.pushNew(RootConfig.Login)
+        val goToLogin: (reset : Boolean) -> Unit = { isReset ->
+            if (!isReset) {
+                navigation.pushNew(RootConfig.Login())
+            }else{
+                navigation.replaceAll(RootConfig.Login(true))
+            }
         }
 
-        val goToDynamicSettings : (String) -> Unit = {
-            navigation.pushNew(RootConfig.DynamicSettingsScreen(it))
+        val goToContactUs : () -> Unit = {
+            navigation.pushNew(RootConfig.ContactUs)
+        }
+
+        val goToVerification: (String, Long?, String?) -> Unit = { settingsType, ownerId, code ->
+            navigation.pushNew(RootConfig.Verification(settingsType, ownerId, code))
+        }
+
+        val goToDynamicSettings : (String, Long?, String?) -> Unit = { settingsType, ownerId, code ->
+            navigation.pushNew(RootConfig.DynamicSettingsScreen(settingsType, ownerId, code))
+        }
+
+        val goBack: () -> Unit = {
+            navigation.pop()
+        }
+
+        val goToMain : () -> Unit = {
+            navigation.replaceAll(RootConfig.Main)
         }
     }
 }

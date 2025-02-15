@@ -220,7 +220,7 @@ open class BaseViewModel: ViewModel() {
                 }
             }
         }else{
-            goToLogin()
+            goToLogin(false)
         }
     }
 

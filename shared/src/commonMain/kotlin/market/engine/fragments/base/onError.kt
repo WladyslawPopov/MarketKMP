@@ -32,7 +32,7 @@ fun onError(
             }
             it == "MISSING_OR_INVALID_TOKEN" -> {
                 userRepository.delete()
-                goToLogin()
+                goToLogin(true)
             }
             it.contains(" timeout ") -> {
                 showNoInternetLayout(onRefresh)
@@ -50,7 +50,7 @@ fun onError(
                 showErrLayout(it,onRefresh)
             }
             it == "NEEDS_PASSWORD_RESET" ->{
-                goToDynamicSettings(humanMessage)
+                goToDynamicSettings(humanMessage, null, null)
             }
             else -> {
                 if (humanMessage != "" && (humanMessage != "null" && humanMessage != "Unknown error" && humanMessage != "")) {

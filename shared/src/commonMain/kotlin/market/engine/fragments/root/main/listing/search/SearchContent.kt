@@ -29,7 +29,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.widgets.filterContents.CategoryContent
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchContent(
@@ -43,10 +42,10 @@ fun SearchContent(
     selectedUserLogin : MutableState<String?>,
     selectedUserFinished : MutableState<Boolean>,
     openBottomSheet : MutableState<Boolean>,
+    searchViewModel : SearchViewModel,
     closeSearch : () -> Unit,
     goToListing : () -> Unit,
 ) {
-    val searchViewModel: SearchViewModel = koinViewModel()
     val isErrorSearch = searchViewModel.errorMessage.collectAsState()
 
     val focusManager = LocalFocusManager.current

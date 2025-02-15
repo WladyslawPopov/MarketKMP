@@ -25,6 +25,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.createOfferFactory
@@ -123,7 +124,6 @@ fun createBasketChild(
     basketNavigation : StackNavigation<BasketConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,
-    navigateToLogin: () -> Unit,
     navigateToSubscribe: () -> Unit,
 ): ChildBasket =
     when (config) {
@@ -193,7 +193,7 @@ fun createBasketChild(
                     )
                 },
                 navigateToLogin = {
-                    navigateToLogin()
+                    goToLogin(true)
                 },
                 navigateToDialog = { dialogId ->
                     if(dialogId != null)

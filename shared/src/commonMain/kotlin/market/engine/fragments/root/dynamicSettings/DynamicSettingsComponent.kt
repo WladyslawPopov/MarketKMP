@@ -7,7 +7,8 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
-import org.koin.mp.KoinPlatform.getKoin
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToVerification
 
 interface DynamicSettingsComponent {
     val model : Value<Model>
@@ -25,8 +26,6 @@ interface DynamicSettingsComponent {
 }
 
 class DefaultDynamicSettingsComponent(
-    val navigateBack : () -> Unit,
-    val navigateToVerification: (String) -> Unit,
     settingsType : String,
     owner : Long?,
     code : String?,
@@ -36,7 +35,7 @@ class DefaultDynamicSettingsComponent(
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    private  val dynamicSettingsViewModel : DynamicSettingsViewModel = getKoin().get()
+    private  val dynamicSettingsViewModel : DynamicSettingsViewModel = DynamicSettingsViewModel()
 
     private val _model = MutableValue(
         DynamicSettingsComponent.Model(
@@ -61,13 +60,13 @@ class DefaultDynamicSettingsComponent(
     }
 
     override fun onBack() {
-        navigateBack()
+        goBack()
     }
 
     override fun goToVerificationPage(method: String) {
-        navigateToVerification(method)
+        goToVerification(method, null, null)
         lifecycle.doOnResume {
-            navigateBack()
+            onBack()
         }
     }
 }

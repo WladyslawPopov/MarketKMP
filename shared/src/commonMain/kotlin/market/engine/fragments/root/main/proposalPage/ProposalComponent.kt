@@ -7,7 +7,6 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface ProposalComponent {
@@ -35,7 +34,7 @@ class DefaultProposalComponent(
     val navigateBack: () -> Unit
 ) : ProposalComponent, ComponentContext by componentContext {
 
-    private val proposalViewModel : ProposalViewModel = getKoin().get()
+    private val proposalViewModel : ProposalViewModel = ProposalViewModel()
 
     private val _model = MutableValue(
         ProposalComponent.Model(

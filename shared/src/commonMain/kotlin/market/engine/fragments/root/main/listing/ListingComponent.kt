@@ -11,6 +11,7 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.items.ListingData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.printLogD
+import market.engine.fragments.root.main.listing.search.SearchViewModel
 import org.koin.mp.KoinPlatform.getKoin
 
 interface ListingComponent {
@@ -18,6 +19,7 @@ interface ListingComponent {
     data class Model(
         var pagingDataFlow : Flow<PagingData<Offer>>,
         val listingViewModel: ListingViewModel,
+        val searchViewModel : SearchViewModel,
         val backHandler: BackHandler
     )
 
@@ -37,12 +39,16 @@ class DefaultListingComponent(
 ) : ListingComponent, ComponentContext by componentContext {
 
 
-    private val listingViewModel : ListingViewModel = getKoin().get()
+    private val listingViewModel : ListingViewModel = ListingViewModel()
+    private val searchViewModel : SearchViewModel = SearchViewModel(
+        getKoin().get()
+    )
 
     private val _model = MutableValue(
         ListingComponent.Model(
             pagingDataFlow = listingViewModel.init(listingData),
             listingViewModel = listingViewModel,
+            searchViewModel = searchViewModel,
             backHandler = backHandler
         )
     )

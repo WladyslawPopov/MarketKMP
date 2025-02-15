@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Reports
 import market.engine.core.data.types.ReportPageType
-import org.koin.mp.KoinPlatform.getKoin
 
 interface FeedbacksComponent {
     val model : Value<Model>
@@ -38,7 +37,7 @@ class DefaultFeedbacksComponent(
     private val navigateToUser : (Long) -> Unit
 ) : FeedbacksComponent, ComponentContext by componentContext {
 
-    private  val feedbacksViewModel : FeedbacksViewModel = getKoin().get()
+    private  val feedbacksViewModel : FeedbacksViewModel = FeedbacksViewModel()
 
     private val _model = MutableValue(
         FeedbacksComponent.Model(

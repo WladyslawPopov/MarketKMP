@@ -15,7 +15,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ProfileSettingsTypes
-import market.engine.fragments.root.main.profile.main.ProfileComponent
+import market.engine.fragments.root.main.profile.main.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.main.ProfileDrawer
 import market.engine.fragments.root.main.profile.profileSettings.DefaultProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsAppBar
@@ -30,7 +30,7 @@ data class ProfileSettingsConfig(
 
 @Composable
 fun ProfileSettingsNavigation(
-    component: ProfileComponent,
+    component: ProfileChildrenComponent,
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)

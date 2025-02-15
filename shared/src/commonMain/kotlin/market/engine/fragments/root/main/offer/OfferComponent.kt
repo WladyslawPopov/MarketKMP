@@ -61,11 +61,15 @@ class DefaultOfferComponent(
     val navigateToProposalPage: (offerId: Long, type: ProposalType) -> Unit,
 ) : OfferComponent, ComponentContext by componentContext {
 
+    val viewModel : OfferViewModel = OfferViewModel(
+        getKoin().get(),
+    )
+
     private val _model = MutableValue(
         OfferComponent.Model(
             id = id,
             isSnapshot = isSnapshot,
-            offerViewModel = getKoin().get(),
+            offerViewModel = viewModel,
             backHandler = backHandler
         )
     )

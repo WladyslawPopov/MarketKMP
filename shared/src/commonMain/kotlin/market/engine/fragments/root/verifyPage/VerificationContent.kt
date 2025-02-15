@@ -33,6 +33,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.stringResource
 
@@ -253,7 +254,7 @@ fun VerificationContent(
                                   delay(2000)
                                   withContext(Dispatchers.Main) {
                                       if (viewModel.action.value == "login" && UserData.token == "") {
-                                          component.goToLogin()
+                                          goToLogin(true)
                                       } else {
                                           component.onBack()
                                       }

@@ -28,6 +28,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.createOfferFactory
@@ -136,7 +137,6 @@ fun createFavoritesChild(
     favoritesNavigation : StackNavigation<FavoritesConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,
-    navigateToLogin: () -> Unit,
 ): ChildFavorites = when (config) {
         is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
             itemFavPages(componentContext, favoritesNavigation, config.favScreenType)
@@ -181,7 +181,7 @@ fun createFavoritesChild(
                     )
                 },
                 navigateToLogin = {
-                    navigateToLogin()
+                    goToLogin(true)
                 },
                 navigateToDialog = { dialogId ->
                     if (dialogId != null)

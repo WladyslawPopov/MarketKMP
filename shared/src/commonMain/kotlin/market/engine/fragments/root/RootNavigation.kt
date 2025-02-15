@@ -64,7 +64,7 @@ sealed class RootConfig {
     data object Main : RootConfig()
 
     @Serializable
-    data object Login : RootConfig()
+    data class Login(val reset : Boolean = false) : RootConfig()
 
     @Serializable
     data object Registration : RootConfig()

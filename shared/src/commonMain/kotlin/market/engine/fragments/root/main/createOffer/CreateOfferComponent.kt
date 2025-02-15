@@ -9,7 +9,6 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.CreateOfferType
-import org.koin.mp.KoinPlatform.getKoin
 
 interface CreateOfferComponent {
     val model : Value<Model>
@@ -41,7 +40,7 @@ class DefaultCreateOfferComponent(
     val navigateToCreateOffer: (Long?, List<Long>?, CreateOfferType) -> Unit
 ) : CreateOfferComponent, ComponentContext by componentContext {
 
-    private val createOfferViewModel : CreateOfferViewModel = getKoin().get()
+    private val createOfferViewModel : CreateOfferViewModel = CreateOfferViewModel()
 
     private val _model = MutableValue(
         CreateOfferComponent.Model(

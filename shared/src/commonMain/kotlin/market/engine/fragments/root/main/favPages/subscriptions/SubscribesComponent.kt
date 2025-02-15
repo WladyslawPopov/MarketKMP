@@ -38,7 +38,9 @@ class DefaultSubscriptionsComponent(
     val navigateToListing : (ListingData) -> Unit,
 ) : SubscriptionsComponent, ComponentContext by componentContext {
 
-    private val subViewModel : SubViewModel = getKoin().get()
+    private val subViewModel : SubViewModel = SubViewModel(
+        getKoin().get(),
+    )
 
     private val _model = MutableValue(
         SubscriptionsComponent.Model(

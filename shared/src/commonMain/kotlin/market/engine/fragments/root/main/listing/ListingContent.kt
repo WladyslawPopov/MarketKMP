@@ -37,7 +37,6 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.listing.search.SearchContent
-import market.engine.fragments.root.main.listing.search.SearchViewModel
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
@@ -50,7 +49,6 @@ import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.OfferItem
 import market.engine.widgets.items.PromoOfferRowItem
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
@@ -61,6 +59,7 @@ fun ListingContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val listingViewModel = model.listingViewModel
+    val searchViewModel = model.searchViewModel
     val searchData = listingViewModel.listingData.value.searchData.subscribeAsState()
     val listingData = listingViewModel.listingData.value.data.subscribeAsState()
 
@@ -70,8 +69,6 @@ fun ListingContent(
 
     val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
     val regions = listingViewModel.regionOptions.value
-
-    val searchViewModel : SearchViewModel = koinViewModel()
 
     val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
 
@@ -337,6 +334,7 @@ fun ListingContent(
                 selectedUserLogin,
                 selectedUserFinished,
                 openSearchCategoryBottomSheet,
+                searchViewModel,
                 closeSearch = {
                     listingViewModel.isOpenSearch.value = false
                 },
@@ -385,7 +383,7 @@ fun ListingContent(
                                 }
                             )
                         }else{
-                            goToLogin()
+                            goToLogin(false)
                         }
                     }
                 )

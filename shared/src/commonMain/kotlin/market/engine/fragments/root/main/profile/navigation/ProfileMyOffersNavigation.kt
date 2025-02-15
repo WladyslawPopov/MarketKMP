@@ -18,7 +18,7 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.main.profile.main.ProfileComponent
+import market.engine.fragments.root.main.profile.main.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.myOffers.DefaultMyOffersComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersAppBar
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
@@ -34,7 +34,7 @@ data class MyOfferConfig(
 
 @Composable
 fun ProfileMyOffersNavigation(
-    component: ProfileComponent,
+    component: ProfileChildrenComponent,
     modifier: Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)

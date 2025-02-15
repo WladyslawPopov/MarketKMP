@@ -33,7 +33,9 @@ class DefaultConversationsComponent(
     val navigateToMessenger : (Long) -> Unit,
 ) : ConversationsComponent, ComponentContext by componentContext {
 
-    private val viewModel : ConversationsViewModel = getKoin().get()
+    private val viewModel : ConversationsViewModel = ConversationsViewModel(
+        getKoin().get()
+    )
 
     private val _model = MutableValue(
         ConversationsComponent.Model(

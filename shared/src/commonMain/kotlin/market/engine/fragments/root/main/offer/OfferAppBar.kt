@@ -73,7 +73,7 @@ fun OfferAppBar(
                         isFavorite.value = it
                     }
                 }else{
-                    goToLogin()
+                    goToLogin(false)
                 }
             }
         ),

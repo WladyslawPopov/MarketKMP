@@ -34,7 +34,7 @@ class DefaultCreateOrderComponent(
     val navigateToMyOrders: () -> Unit
 ) : CreateOrderComponent, ComponentContext by componentContext {
 
-    private val createOrderViewModel : CreateOrderViewModel = getKoin().get()
+    private val createOrderViewModel : CreateOrderViewModel = CreateOrderViewModel()
 
     private val _model = MutableValue(
         CreateOrderComponent.Model(

@@ -2,7 +2,6 @@ package market.engine.fragments.root.main.createOffer
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

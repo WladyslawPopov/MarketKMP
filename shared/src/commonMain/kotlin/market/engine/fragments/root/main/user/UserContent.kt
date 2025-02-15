@@ -146,7 +146,7 @@ fun UserContent(
                                 }
                             )
                         }else{
-                            goToLogin()
+                            goToLogin(false)
                         }
                     },
                     goToSubscriptions = {

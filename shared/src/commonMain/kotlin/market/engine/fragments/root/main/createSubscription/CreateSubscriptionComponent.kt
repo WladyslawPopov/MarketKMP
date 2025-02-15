@@ -27,7 +27,9 @@ class DefaultCreateSubscriptionComponent(
     val navigateBack: () -> Unit,
 ) : CreateSubscriptionComponent, ComponentContext by componentContext {
 
-    private val createSubscriptionViewModel : CreateSubscriptionViewModel = getKoin().get()
+    private val createSubscriptionViewModel : CreateSubscriptionViewModel = CreateSubscriptionViewModel(
+        getKoin().get()
+    )
 
     private val _model = MutableValue(
         CreateSubscriptionComponent.Model(

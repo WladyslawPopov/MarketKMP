@@ -5,7 +5,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
-import org.koin.mp.KoinPlatform.getKoin
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 
 interface RegistrationComponent {
     val model: Value<Model>
@@ -19,13 +19,12 @@ interface RegistrationComponent {
 }
 
 class DefaultRegistrationComponent(
-    componentContext: ComponentContext,
-    private val onBackSelected: () -> Unit
+    componentContext: ComponentContext
 ) : RegistrationComponent, ComponentContext by componentContext {
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    private val regViewModel = getKoin().get<RegViewModel>()
+    private val regViewModel = RegViewModel()
 
     private val _model = MutableValue(
         RegistrationComponent.Model(
@@ -42,6 +41,6 @@ class DefaultRegistrationComponent(
     }
 
     override fun onBack() {
-        onBackSelected()
+        goBack()
     }
 }

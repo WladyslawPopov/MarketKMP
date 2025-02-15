@@ -18,6 +18,9 @@ import market.engine.core.data.items.ListingData
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToVerification
 import market.engine.fragments.root.main.basket.BasketConfig
 import market.engine.fragments.root.main.basket.ChildBasket
 import market.engine.fragments.root.main.home.ChildHome
@@ -65,16 +68,11 @@ interface MainComponent {
     )
 
     fun navigateToBottomItem(config: MainConfig, openPage: String? = null)
-    fun goToLogin(reset: Boolean = false)
 }
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
     private var deepLink: DeepLink?,
-    val goToLoginSelected: () -> Unit,
-    val contactUsSelected: () -> Unit,
-    val navigateToVerification: (String, Long?, String?) -> Unit,
-    val navigateToDynamicSettings: (String, Long?, String?) -> Unit,
 
 ) : MainComponent, ComponentContext by componentContext {
     private val _modelNavigation = MutableValue(
@@ -98,7 +96,6 @@ class DefaultMainComponent(
     override val modelNavigation = _modelNavigation
 
     private var openPage: String? = null
-
 
     init {
         if(deepLink != null) {
@@ -132,18 +129,11 @@ class DefaultMainComponent(
                 config,
                 componentContext,
                 modelNavigation.value.homeNavigation,
-                goToLoginSelected,
                 navigateToMyOrders = { id, type ->
                     navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                 },
                 navigateToConversations = {
                     navigateToBottomItem(MainConfig.Profile, "conversations")
-                },
-                navigateToContactUs = {
-                    contactUsSelected()
-                },
-                navigateToAppSettings = {
-                    navigateToDynamicSettings("app_settings", null, null)
                 },
                 navigateToSubscribe = {
                     navigateToBottomItem(MainConfig.Favorites, "subscribe")
@@ -175,9 +165,6 @@ class DefaultMainComponent(
                     navigateToMyOrders = { id, type ->
                         navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                     },
-                    navigateToLogin = {
-                        goToLogin()
-                    },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
                     },
@@ -203,9 +190,6 @@ class DefaultMainComponent(
                     modelNavigation.value.basketNavigation,
                     navigateToMyOrders = { id, type ->
                         navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
-                    },
-                    navigateToLogin = {
-                        goToLogin(true)
                     },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
@@ -233,9 +217,6 @@ class DefaultMainComponent(
                     navigateToMyOrders = { id, type ->
                         navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
                     },
-                    navigateToLogin = {
-                        goToLogin(true)
-                    },
                     navigateToConversations = {
                         navigateToBottomItem(MainConfig.Profile, "conversations")
                     }
@@ -258,12 +239,6 @@ class DefaultMainComponent(
                     modelNavigation.value.profileNavigation,
                     navigateToMyOrders = { id, type ->
                         navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
-                    },
-                    navigateToLogin = {
-                        goToLogin(true)
-                    },
-                    navigateToDynamicSettings = { settingsType ->
-                        navigateToDynamicSettings(settingsType, null, null)
                     },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
@@ -324,26 +299,19 @@ class DefaultMainComponent(
             }
             is DeepLink.GoToAuth -> {
                 if (UserData.token == "")
-                    goToLogin()
+                    goToLogin(true)
             }
             is DeepLink.GoToRegistration -> {
                 if (UserData.token == "")
-                    goToLogin()
+                    goToLogin(true)
             }
             is DeepLink.GoToDynamicSettings -> {
-                navigateToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
+                goToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
             }
             is DeepLink.GoToVerification -> {
-                navigateToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
+                goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
             }
             is DeepLink.Unknown -> {}
-        }
-    }
-
-    override fun goToLogin(reset: Boolean) {
-        goToLoginSelected()
-        if (reset) {
-            navigateToBottomItem(MainConfig.Home)
         }
     }
 
@@ -377,7 +345,7 @@ class DefaultMainComponent(
             }
             is MainConfig.Basket -> {
                 if (UserData.token == "") {
-                    goToLogin()
+                    goToLogin(true)
                 }else{
                     if(activeCurrent == "Basket"){
                         modelNavigation.value.basketNavigation.popToFirst()
@@ -388,7 +356,7 @@ class DefaultMainComponent(
             }
             is MainConfig.Favorites -> {
                 if (UserData.token == "") {
-                    goToLogin()
+                    goToLogin(true)
                 }else{
                     if(activeCurrent == "Favorites"){
                         modelNavigation.value.favoritesNavigation.popToFirst()
@@ -405,7 +373,7 @@ class DefaultMainComponent(
             }
             is MainConfig.Profile -> {
                 if (UserData.token == "") {
-                    goToLogin()
+                    goToLogin(true)
                 }else{
                     if(activeCurrent == "Profile"){
                         modelNavigation.value.profileNavigation.replaceAll(
