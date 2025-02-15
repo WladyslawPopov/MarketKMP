@@ -21,7 +21,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 fun SimpleTextButton(
     text: String,
     backgroundColor: Color = colors.white,
-    shape: CornerBasedShape = MaterialTheme.shapes.small,
     textColor: Color = colors.black,
     textStyle : TextStyle = MaterialTheme.typography.titleSmall,
     modifier: Modifier = Modifier,
@@ -39,7 +38,7 @@ fun SimpleTextButton(
             disabledContainerColor = colors.rippleColor,
             disabledContentColor = colors.grayText
         ),
-        shape = shape,
+        shape = MaterialTheme.shapes.small,
         modifier = modifier,
         enabled = enabled
     ) {

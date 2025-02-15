@@ -3,7 +3,9 @@ package market.engine.fragments.root.main.listing.search
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -144,6 +146,8 @@ fun SearchContent(
                 verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
+
                 FiltersSearchBar(
                     selectedCategory = selectedCategory,
                     selectedCategoryID = selectedCategoryID,

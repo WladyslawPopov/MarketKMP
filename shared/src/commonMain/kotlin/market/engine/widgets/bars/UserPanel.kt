@@ -234,7 +234,6 @@ fun UserPanel(
                 SimpleTextButton(
                     text = stringResource(strings.allOffers),
                     backgroundColor = colors.inactiveBottomNavIconColor,
-                    shape = MaterialTheme.shapes.medium,
                     onClick = goToAllLots
                 )
 
@@ -245,7 +244,6 @@ fun UserPanel(
                     text = stringResource(strings.aboutMeLabel),
                     backgroundColor = colors.steelBlue,
                     textColor = colors.alwaysWhite,
-                    shape = MaterialTheme.shapes.medium,
                     onClick = goToAboutMe
                 )
 

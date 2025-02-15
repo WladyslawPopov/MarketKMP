@@ -41,7 +41,7 @@ fun FiltersSearchBar(
 
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
         modifier = Modifier.fillMaxWidth()
     ){
         item {  }

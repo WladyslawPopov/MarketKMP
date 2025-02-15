@@ -2,6 +2,7 @@ package market.engine.fragments.root.main.messenger
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -54,24 +55,30 @@ fun MessengerBar(
         }
     }
 
-    LazyRow(
-        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+    AnimatedVisibility(
+        imagesUpload.isNotEmpty(),
+        enter = fadeIn(),
+        exit = fadeOut()
     ) {
-        items(
-            imagesUpload.size,
-            key = {
-                imagesUpload[it].id ?: it
-            }
-        ){
-            val item = imagesUpload[it]
-            DialogsImgUploadItem(
-                item = item,
-                delete = {
-                    deleteImage(item)
+        LazyRow(
+            modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+        ) {
+            items(
+                imagesUpload.size,
+                key = {
+                    imagesUpload[it].id ?: it
                 }
-            )
+            ) {
+                val item = imagesUpload[it]
+                DialogsImgUploadItem(
+                    item = item,
+                    delete = {
+                        deleteImage(item)
+                    }
+                )
+            }
         }
     }
 

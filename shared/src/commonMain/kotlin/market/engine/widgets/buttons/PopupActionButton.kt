@@ -48,7 +48,7 @@ fun PopupActionButton(
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = tint,
-                modifier = Modifier.padding(horizontal = dimens.smallPadding)
+                modifier = Modifier.padding(dimens.smallPadding)
             )
 
             SmallIconButton(
