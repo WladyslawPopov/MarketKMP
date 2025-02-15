@@ -346,7 +346,7 @@ fun DynamicSettingsContent(
                         titleText.value = stringResource(strings.settingsTitleApp)
 
                         val isLightMode =
-                            remember { mutableStateOf(settings.themeMode.value == "day") }
+                            remember { mutableStateOf(settings.themeMode.value != "night") }
 
                         Column(
                             modifier = Modifier.fillMaxSize(),

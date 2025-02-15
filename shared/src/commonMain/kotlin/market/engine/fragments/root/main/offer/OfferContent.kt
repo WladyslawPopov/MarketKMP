@@ -639,7 +639,7 @@ fun OfferContent(
                                         Text(
                                             text = stringResource(strings.whoPayForDeliveryLabel),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = colors.greenColor
+                                            color = colors.brightGreen
                                         )
 
                                         Spacer(modifier = Modifier.width(dimens.smallSpacer))
@@ -1197,7 +1197,7 @@ fun BuyNowPriceLayout(
                     if (offerState == OfferStates.PROTOTYPE) {
                         SimpleTextButton(
                             text = stringResource(strings.saleLabel),
-                            backgroundColor = colors.greenColor,
+                            backgroundColor = colors.brightGreen,
                             modifier = Modifier
                                 .padding(horizontal = dimens.mediumPadding),
                             textColor = colors.alwaysWhite,

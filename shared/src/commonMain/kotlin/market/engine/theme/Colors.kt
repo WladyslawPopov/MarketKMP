@@ -22,8 +22,6 @@ interface Colors {
     val transparent: Color
     val notifyTextColor: Color
     val white: Color
-    val badgeColor: Color
-    val waterBlue: Color
     val lightGray: Color
     val grayLayout: Color
     val grayText: Color
@@ -32,21 +30,15 @@ interface Colors {
     val positiveGreen: Color
     val negativeRed: Color
     val textA0AE: Color
-    val menuIconColor: Color
     val alwaysWhite: Color
-    val alwaysGreyLight: Color
     val rippleColor: Color
     val solidGreen: Color
-    val strokeGreen: Color
     val yellowSun: Color
     val crimsonRed: Color
     val steelBlue: Color
     val transparentGrayColor: Color
     val brightGreen: Color
-    val greenColor: Color
-    val stLightBlue: Color
     val brightPurple: Color
-    val brightYellow: Color
     val brightBlue: Color
 
     val themeButtonColors : ButtonColors

@@ -20,7 +20,7 @@ fun DiscountBadge(
         colors = CardColors(
             containerColor = colors.positiveGreen,
             contentColor = colors.alwaysWhite,
-            disabledContainerColor = colors.greenColor,
+            disabledContainerColor = colors.brightGreen,
             disabledContentColor = colors.alwaysWhite
         ),
         modifier = Modifier

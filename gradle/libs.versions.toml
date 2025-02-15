@@ -1,6 +1,5 @@
 [versions]
-accompanistSwiperefresh = "0.26.2-beta"
-agp = "8.2.2"
+agp = "8.5.2"
 android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
@@ -11,20 +10,19 @@ filekitCore = "0.8.8"
 kotlin = "2.1.10"
 koin = "4.0.0"
 kotlinx-coroutines = "1.10.0"
-ktor = "3.0.1"
-accompanist-version = "0.33.2-alpha"
-accompanist-permissions = "0.32.0"
-lifecycle = "2.5.0-alpha01"
+ktor = "3.1.0"
+accompanist-version = "0.36.0"
+lifecycle = "2.4.0"
 multiplatformSettings = "1.2.0"
 richeditorCompose = "1.0.0-rc10"
 runtimeDesktop = "1.7.0"
 kotlinx-datetime = "0.6.0"
-decompose-version = "3.3.0-alpha03"
+decompose-version = "3.2.2"
 jetbrainsKotlinJvm = "2.0.0"
 googleServices = "4.4.2"
 slf4jSimple = "2.0.9"
 sqlDelight = "2.0.2"
-pagingCommonVersion = "3.3.0-alpha02-0.4.0"
+pagingCommonVersion = "3.3.0-alpha02-0.5.1"
 sqliteDriver = "2.0.2"
 skiko_version = "0.8.18"
 version = "0.4.1"
@@ -61,8 +59,8 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" 
 sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqliteDriver" }
 
 system-ui-controller = {module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist-version"}
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions" }
-accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-version" }
+accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanist-version" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
