@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.profile.main
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 
 @Composable
@@ -11,7 +12,11 @@ fun ProfileContent(
     modifier: Modifier
 ) {
 
+    BackHandler(
+        component.model.value.backHandler
+    ){
 
+    }
 
    BaseContent(
        topBar = {},
