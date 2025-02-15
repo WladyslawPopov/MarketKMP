@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.profile.navigation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -411,8 +412,8 @@ fun createProfileChild(
 
         is ProfileConfig.ListingScreen -> {
             val ld = ListingData(
-                searchData = MutableValue(config.searchData),
-                data = MutableValue(config.listingData)
+                searchData = mutableStateOf(config.searchData),
+                data = mutableStateOf(config.listingData)
             )
             ChildProfile.ListingChild(
                 component = listingFactory(

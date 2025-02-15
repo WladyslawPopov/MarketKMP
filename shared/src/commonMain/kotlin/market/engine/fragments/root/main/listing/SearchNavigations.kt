@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.listing
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -14,7 +15,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
@@ -122,8 +122,8 @@ fun createSearchChild(
     when (config) {
         is SearchConfig.ListingScreen -> {
             val ld = ListingData(
-                searchData = MutableValue(config.searchData),
-                data = MutableValue(config.listingData)
+                searchData = mutableStateOf(config.searchData),
+                data = mutableStateOf(config.listingData)
             )
 
             ChildSearch.ListingChild(

@@ -1,9 +1,9 @@
 package market.engine.core.data.baseFilters
 
-import com.arkivanov.decompose.value.MutableValue
-import com.arkivanov.decompose.value.Value
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 
 data class ListingData(
-    var searchData : Value<SD> = MutableValue(SD()),
-    var data: Value<LD> = MutableValue(LD())
+    var searchData : MutableState<SD> = mutableStateOf(SD()),
+    var data: MutableState<LD> = mutableStateOf(LD())
 )

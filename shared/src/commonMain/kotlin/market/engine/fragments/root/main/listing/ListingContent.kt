@@ -60,8 +60,8 @@ fun ListingContent(
     val model = modelState.value
     val listingViewModel = model.listingViewModel
     val searchViewModel = model.searchViewModel
-    val searchData = listingViewModel.listingData.value.searchData.subscribeAsState()
-    val listingData = listingViewModel.listingData.value.data.subscribeAsState()
+    val searchData = listingViewModel.listingData.value.searchData
+    val listingData = listingViewModel.listingData.value.data
 
     val data = remember { component.model.value.pagingDataFlow }.collectAsLazyPagingItems()
 

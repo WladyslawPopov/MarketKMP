@@ -51,8 +51,8 @@ fun FavoritesContent(
     val listingData = favViewModel.listingData.value
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
-    val ld = listingData.data.subscribeAsState()
-    val sd = listingData.searchData.subscribeAsState()
+    val ld = listingData.data
+    val sd = listingData.searchData
 
     val offerOperations : OfferOperations = koinInject()
 
