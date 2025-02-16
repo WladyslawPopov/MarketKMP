@@ -111,7 +111,7 @@ fun ListingContent(
 
     val err = listingViewModel.errorMessage.collectAsState()
     val refreshSearch = {
-        updateFilters.value++
+
         searchViewModel.resetScroll()
         columns.value =
             if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2
@@ -141,7 +141,8 @@ fun ListingContent(
         title.value = searchData.value.searchCategoryName ?: catDef
 
         listingViewModel.getCategories(searchData.value, listingData.value)
-        listingViewModel.refresh()
+
+        refresh()
     }
 
     val getSearchFilters = {
@@ -163,6 +164,18 @@ fun ListingContent(
             if (searchData.value.searchCategoryID != selectedCategoryID.value){
                 searchData.value.isRefreshing = true
             }
+
+            if (searchData.value.userLogin != selectedUserLogin.value){
+                searchData.value.isRefreshing = true
+            }
+
+            if (searchData.value.userSearch != selectedUser.value){
+                searchData.value.isRefreshing = true
+            }
+
+            if (searchData.value.searchFinished != selectedUserFinished.value){
+                searchData.value.isRefreshing = true
+            }
         }
     }
 
@@ -170,16 +183,19 @@ fun ListingContent(
         listingViewModel.viewModelScope.launch {
             val newCat = listingViewModel.onCatBack(selectedCategoryParentID.value ?: 1L)
             if (newCat != null) {
+
                 selectedCategoryID.value = newCat.id
                 selectedCategory.value = newCat.name ?: catDef
                 selectedCategoryParentID.value = newCat.parentId
                 selectedCategoryIsLeaf.value = newCat.isLeaf
+
                 val sd = searchData.value.copy(
                     searchCategoryID = selectedCategoryID.value,
                     searchCategoryName = selectedCategory.value,
                     searchParentID = selectedCategoryParentID.value,
                     searchIsLeaf = selectedCategoryIsLeaf.value
                 )
+
                 listingViewModel.getCategories(
                     sd,
                     listingData.value,

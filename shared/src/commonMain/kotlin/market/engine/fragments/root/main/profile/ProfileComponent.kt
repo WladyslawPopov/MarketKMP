@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.main
+package market.engine.fragments.root.main.profile
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
@@ -14,17 +14,17 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.base.BaseViewModel
 
 interface ProfileComponent {
     val model : Value<Model>
 
     data class Model(
         val navigationItems: List<NavigationItem>,
-        val profileViewModel: ProfileViewModel,
+        val profileViewModel: BaseViewModel,
         val backHandler: BackHandler
     )
 
-    fun updateProfile()
     fun goToAllMyOfferListing()
     fun goToAboutMe()
     fun goToSubscribe()
@@ -41,7 +41,7 @@ class DefaultProfileComponent(
     private val _model = MutableValue(
         ProfileComponent.Model(
             navigationItems = navigationItems,
-            profileViewModel = ProfileViewModel(),
+            profileViewModel = BaseViewModel(),
             backHandler = backHandler
         )
     )
@@ -54,7 +54,7 @@ class DefaultProfileComponent(
 
     init {
         lifecycle.doOnResume {
-            updateProfile()
+            model.value.profileViewModel.updateUserInfo()
 
             searchID = selectedPage?.split("/")?.lastOrNull()?.toLongOrNull()
             currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""
@@ -79,10 +79,6 @@ class DefaultProfileComponent(
                 mapOf("user_id" to UserData.login)
             )
         }
-    }
-
-    override fun updateProfile() {
-        model.value.profileViewModel.getUserInfo(UserData.login)
     }
 
     override fun goToAllMyOfferListing() {

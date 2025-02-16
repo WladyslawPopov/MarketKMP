@@ -26,7 +26,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.root.main.profile.main.ProfileDrawer
+import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.DialogsFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent

@@ -151,19 +151,8 @@ class UrlBuilder {
     fun build(): String {
         val path = pathSegments.joinToString("/")
         val queryString = queryParams.entries.joinToString("&") { (key, value) ->
-            "${encode(key)}=${encode(value)}"
+            "${key}=${value}"
         }
         return if (queryString.isNotEmpty()) "$path?$queryString" else path
-    }
-
-    private fun encode(value: String): String {
-        return value.replace(" ", "%20")
-            .replace("<", "%3C")
-            .replace(">", "%3E")
-            .replace("#", "%23")
-            .replace("%", "%25")
-            .replace("|", "%7C")
-            .replace("&", "%26")
-            .replace("=", "%3D")
     }
 }

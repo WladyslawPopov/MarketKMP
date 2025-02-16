@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.main
+package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ModalDrawerSheet
@@ -8,8 +8,6 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.items.NavigationItem
 import org.jetbrains.compose.resources.StringResource
-
-
 
 @Composable
 fun ProfileDrawer(

@@ -25,12 +25,15 @@ import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.rememberDismissState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.shared.SearchHistory
 import market.engine.widgets.buttons.ActionButton
+import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.exceptions.dismissBackground
 import market.engine.widgets.items.historyItem
 import org.jetbrains.compose.resources.painterResource
@@ -46,6 +49,8 @@ fun HistoryLayout(
     onDeleteItem: (Long) -> Unit,
     goToListing: (String) -> Unit
 ) {
+    val showDialog = remember { mutableStateOf(false) }
+
     if (historyItems.isEmpty()) {
         return
     }
@@ -80,7 +85,7 @@ fun HistoryLayout(
             MaterialTheme.typography.bodySmall.fontSize,
             alignment = Alignment.BottomEnd
         ){
-            onClearHistory()
+            showDialog.value = true
         }
     }
 
@@ -94,7 +99,6 @@ fun HistoryLayout(
         horizontalAlignment = Alignment.Start
     ) {
         // List Items
-
         items(historyItems.reversed(), key = { it.id }) { historyItem ->
             val dismissState = rememberDismissState(
                 confirmStateChange = { dismissValue ->
@@ -121,4 +125,15 @@ fun HistoryLayout(
             }
         }
     }
+
+    AccessDialog(
+        showDialog.value,
+        title = stringResource(strings.warningDeleteHistory),
+        onSuccess = {
+            onClearHistory()
+        },
+        onDismiss = {
+            showDialog.value = false
+        }
+    )
 }

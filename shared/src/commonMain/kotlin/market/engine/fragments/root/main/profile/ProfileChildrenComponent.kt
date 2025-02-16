@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.main
+package market.engine.fragments.root.main.profile
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.pages.ChildPages

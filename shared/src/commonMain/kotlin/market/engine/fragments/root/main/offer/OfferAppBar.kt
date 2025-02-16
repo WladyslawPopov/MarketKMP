@@ -47,6 +47,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferAppBar(
+    isSnapshot: Boolean,
     offer: Offer,
     baseViewModel: BaseViewModel,
     modifier: Modifier = Modifier,
@@ -99,7 +100,7 @@ fun OfferAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            TextAppBar(offer.name ?: stringResource(strings.defaultOfferTitle))
+            TextAppBar(stringResource(if(isSnapshot) strings.snapshotLabel else strings.defaultOfferTitle))
         },
         navigationIcon = {
             NavigationArrowButton {

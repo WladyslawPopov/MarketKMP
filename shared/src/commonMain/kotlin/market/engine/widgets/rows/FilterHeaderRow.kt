@@ -24,8 +24,7 @@ fun FilterContentHeaderRow(
     onClosed: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .padding(dimens.smallPadding),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Icon
@@ -84,7 +83,7 @@ fun OrderFilterContent(
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
-        }.animateContentSize(),
+        }.padding(dimens.smallPadding).animateContentSize(),
     ) {
         //Header Filters
         FilterContentHeaderRow(
@@ -110,8 +109,8 @@ fun OrderFilterContent(
         ) {
             item {
                 Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val sellerId = stringResource(strings.sellerIdParameterName)
@@ -125,7 +124,7 @@ fun OrderFilterContent(
                                 if (sellerIdTextState.value.isNotBlank()) {
                                     filters.find { filter -> filter.key == "seller_id" }?.apply {
                                         value = text
-                                        interpretation = "$sellerLogin: $text"
+                                        interpretation = "$sellerId: $text"
                                     }
                                 } else {
                                     filters.find { it.key == "seller_id" }.let {
@@ -138,7 +137,7 @@ fun OrderFilterContent(
                                 isShowClear.value = checkSize()
                             },
                             isNumber = true,
-                            modifier = Modifier.widthIn(max = 250.dp).weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
@@ -162,15 +161,15 @@ fun OrderFilterContent(
                                 isRefreshing.value = true
                                 isShowClear.value = checkSize()
                             },
-                            modifier = Modifier.widthIn(max = 250.dp).weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
             item {
                 Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val buyerId = stringResource(strings.buyerIdParameterName)
@@ -184,7 +183,7 @@ fun OrderFilterContent(
                                 if (buyerIdTextState.value.isNotBlank()) {
                                     filters.find { filter -> filter.key == "buyer_id" }?.apply {
                                         value = text
-                                        interpretation = "$buyerLogin: $text"
+                                        interpretation = "$buyerId: $text"
                                     }
                                 } else {
                                     filters.find { it.key == "buyer_id" }.let {
@@ -197,7 +196,7 @@ fun OrderFilterContent(
                                 isShowClear.value = checkSize()
                             },
                             isNumber = true,
-                            modifier = Modifier.widthIn(max = 250.dp).weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
@@ -221,15 +220,15 @@ fun OrderFilterContent(
                                 isRefreshing.value = true
                                 isShowClear.value = checkSize()
                             },
-                            modifier = Modifier.widthIn(max = 250.dp).weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
             item {
                 Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val offerId = stringResource(strings.offerIdParameterName)
@@ -256,7 +255,7 @@ fun OrderFilterContent(
                                 isShowClear.value = checkSize()
                             },
                             isNumber = true,
-                            modifier = Modifier.widthIn(max = 250.dp).weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
@@ -280,14 +279,15 @@ fun OrderFilterContent(
                                 isShowClear.value = checkSize()
                             },
                             isNumber = true,
-                            modifier = Modifier.widthIn(max = 250.dp).weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
             item {
                 Row(
-                    modifier = Modifier.wrapContentWidth(),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val offerTitle = stringResource(strings.searchOfferNameParameterName)
@@ -311,7 +311,7 @@ fun OrderFilterContent(
                                 isRefreshing.value = true
                                 isShowClear.value = checkSize()
                             },
-                            modifier = Modifier.widthIn(max = 250.dp).weight(1f),
+                            modifier = Modifier.weight(1f),
                             leadingIcon = {
                                 Icon(
                                     painterResource(drawables.searchIcon),
@@ -414,8 +414,6 @@ fun OrderFilterContent(
         ){
             onClose()
         }
-
-        Spacer(modifier = Modifier.height(dimens.mediumSpacer))
     }
 }
 

@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.main
+package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

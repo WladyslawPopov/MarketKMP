@@ -18,11 +18,11 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.main.profile.main.ProfileChildrenComponent
+import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.myOffers.DefaultMyOffersComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersAppBar
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
-import market.engine.fragments.root.main.profile.main.ProfileDrawer
+import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.root.main.profile.myOffers.MyOffersContent
 
 

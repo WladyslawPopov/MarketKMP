@@ -77,7 +77,7 @@ fun DialogsFilterContent(
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
-        }.animateContentSize(),
+        }.padding(dimens.smallPadding).animateContentSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         //Header Filters
@@ -235,7 +235,6 @@ fun DialogsFilterContent(
             }
         }
 
-
         AcceptedPageButton(
             strings.actionAcceptFilters,
             Modifier.align(Alignment.BottomCenter)
@@ -244,7 +243,6 @@ fun DialogsFilterContent(
         ){
             onClose()
         }
-        Spacer(modifier = Modifier.height(dimens.mediumSpacer))
     }
 }
 

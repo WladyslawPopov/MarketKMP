@@ -445,4 +445,7 @@ interface Strings {
     val mayAnswerTo : StringResource
     val leftLabel : StringResource
     val historyLabel : StringResource
+    val warningDeleteHistory : StringResource
+    val currentStateOfferLabel : StringResource
+    val snapshotLabel : StringResource
 }

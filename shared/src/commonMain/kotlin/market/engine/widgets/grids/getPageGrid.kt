@@ -91,7 +91,7 @@ fun <T : Any> BoxScope.PagingList(
         if (!promoList.isNullOrEmpty() && promoContent != null) {
             item {
                 LazyRow(
-                    modifier = Modifier.height(300.dp),
+                    modifier = Modifier.height(250.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                 ) {

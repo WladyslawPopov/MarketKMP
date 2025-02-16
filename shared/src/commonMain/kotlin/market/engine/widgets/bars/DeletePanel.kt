@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -35,8 +34,8 @@ fun DeletePanel(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .fillMaxWidth().padding(horizontal = dimens.smallPadding),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -44,11 +43,12 @@ fun DeletePanel(
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = colors.black,
-                modifier = Modifier.padding(dimens.mediumPadding).fillMaxWidth(0.6f)
+                modifier = Modifier.weight(1f)
             )
 
             Row(
-                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SmallIconButton(
@@ -58,7 +58,7 @@ fun DeletePanel(
                 )
                 ActionButton(
                     strings.resetLabel,
-                    fontSize = 8.sp,
+                    fontSize = dimens.mediumText,
                     alignment = Alignment.CenterEnd,
                     onClick = onCancel
                 )

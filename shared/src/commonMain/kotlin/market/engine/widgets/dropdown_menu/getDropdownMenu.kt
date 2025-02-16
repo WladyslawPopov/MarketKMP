@@ -55,9 +55,10 @@ fun getDropdownMenu(
 
     Column(
         modifier = Modifier
-            .shadow(elevation = 3.dp, shape = MaterialTheme.shapes.medium, true)
-            .clip(MaterialTheme.shapes.medium)
+            .shadow(elevation = 1.dp, shape = MaterialTheme.shapes.small, true)
             .background(color = colors.white)
+            .clip(MaterialTheme.shapes.small)
+            .fillMaxWidth()
             .animateContentSize(
                 animationSpec = spring(
                     stiffness = Spring.StiffnessMedium,
@@ -76,8 +77,7 @@ fun getDropdownMenu(
             Text(
                 selectedText,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(dimens.mediumPadding)
-                    .fillMaxWidth(0.7f)
+                modifier = Modifier.fillMaxWidth(0.7f).padding(dimens.mediumPadding)
             )
             Row {
                 AnimatedVisibility(

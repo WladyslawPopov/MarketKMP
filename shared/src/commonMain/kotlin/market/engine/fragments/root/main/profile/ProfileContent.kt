@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.main
+package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -23,7 +23,7 @@ fun ProfileContent(
        modifier = modifier.fillMaxSize(),
        isLoading = false,
        onRefresh = {
-            component.updateProfile()
+            component.model.value.profileViewModel.updateUserInfo()
        },
    ) {
        ProfileNavContent(

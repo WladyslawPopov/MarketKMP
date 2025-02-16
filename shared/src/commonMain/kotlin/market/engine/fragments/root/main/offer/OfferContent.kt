@@ -234,6 +234,7 @@ fun OfferContent(
         BaseContent(
             topBar = {
                 OfferAppBar(
+                    offerState.value == OfferStates.SNAPSHOT,
                     offer,
                     offerViewModel,
                     onBeakClick = {
@@ -387,6 +388,8 @@ fun OfferContent(
                             item {
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
                                         text = (offer.currentPricePerItem ?: "") +
@@ -394,6 +397,14 @@ fun OfferContent(
                                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                         color = colors.titleTextColor
                                     )
+
+//                                    if(offerState.value == OfferStates.SNAPSHOT){
+//                                        ActionButton(
+//                                            strings.currentStateOfferLabel
+//                                        ){
+//                                            component.navigateToOffers(offer.id)
+//                                        }
+//                                    }
                                 }
                             }
                         }

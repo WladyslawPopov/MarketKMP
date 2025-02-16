@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -198,6 +196,7 @@ fun OfferFilterContent(
                 isRefreshingFromFilters = isRefreshingFromCategories,
                 isFilters = true,
             ){
+                isRefreshing.value = true
                 openBottomSheet.value = false
             }
         },
@@ -207,7 +206,7 @@ fun OfferFilterContent(
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
                 })
-            }.animateContentSize(),
+            }.padding(dimens.smallPadding).animateContentSize(),
             contentAlignment = Alignment.TopCenter
         ) {
             //Header Filters
@@ -229,7 +228,7 @@ fun OfferFilterContent(
 
             LazyColumn(
                 modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 //Expands
@@ -308,12 +307,13 @@ fun OfferFilterContent(
                     val title = stringResource(strings.saleTypeParameterName)
 
                     Column(
-                        modifier = Modifier.padding(dimens.mediumPadding)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ){
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(dimens.smallPadding)
+                            style = MaterialTheme.typography.titleSmall
                         )
 
                         getDropdownMenu(
@@ -354,7 +354,6 @@ fun OfferFilterContent(
             ){
                 onClose()
             }
-            Spacer(modifier = Modifier.height(dimens.mediumSpacer))
         }
     }
 }
@@ -385,13 +384,12 @@ fun InputsOfferFilterContent(
     }
 
     Column(
-        modifier = Modifier.padding(dimens.smallPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             val offerId = stringResource(strings.offerIdParameterName)
@@ -414,7 +412,7 @@ fun InputsOfferFilterContent(
                     idTextState.value = text
                     onFiltersUpdated()
                 },
-                modifier = Modifier.fillMaxWidth(0.5f).padding(dimens.smallPadding),
+                modifier = Modifier.weight(1f),
                 isNumber = true
             )
 
@@ -437,18 +435,19 @@ fun InputsOfferFilterContent(
                     nameTextState.value = text
                     onFiltersUpdated()
                 },
-                modifier = Modifier.padding(dimens.smallPadding),
+                modifier = Modifier.weight(1f),
             )
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(0.5f).padding(dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
             ) {
                 val sellerLogin = stringResource(strings.sellerLoginParameterName)
                 if (filters.find { it.key == "seller_login" }?.value != null) {
@@ -477,7 +476,8 @@ fun InputsOfferFilterContent(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(dimens.smallPadding)
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
             ) {
                 FilterButton(
                     activeCategory.value,

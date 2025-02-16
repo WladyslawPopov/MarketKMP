@@ -7,10 +7,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -161,7 +159,7 @@ fun FilterListingContent(
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
-        }.animateContentSize(),
+        }.padding(dimens.smallPadding).animateContentSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         FilterContentHeaderRow(
@@ -181,7 +179,7 @@ fun FilterListingContent(
 
         LazyColumn(
             modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             state = scrollState
         ) {
@@ -265,14 +263,13 @@ fun FilterListingContent(
             // Region
             item {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     Text(
                         text = stringResource(strings.regionParameterName),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(dimens.smallPadding)
+                        style = MaterialTheme.typography.titleSmall
                     )
 
                     getDropdownMenu(
@@ -315,23 +312,25 @@ fun FilterListingContent(
                     content = {
                         LazyColumn(
                             modifier = Modifier
-                                .wrapContentWidth()
-                                .heightIn(max = 500.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(colors.grayLayout)
+                                .heightIn(max = 800.dp)
+                                .clip(MaterialTheme.shapes.small)
+                                .background(colors.primaryColor)
+                                .fillMaxWidth()
+                                .padding(dimens.smallPadding),
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             item {
                                 val title = stringResource(strings.offersFor)
 
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.Center
+                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                 ) {
                                     Text(
                                         text = title,
                                         style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(dimens.smallPadding)
                                     )
 
                                     getDropdownMenu(
@@ -367,14 +366,13 @@ fun FilterListingContent(
                                 val title =
                                     stringResource(strings.newOffersWithoutRelistedFor)
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.Center
+                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                 ) {
                                     Text(
                                         text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(dimens.smallPadding)
+                                        style = MaterialTheme.typography.titleSmall
                                     )
 
                                     getDropdownMenu(
@@ -410,14 +408,13 @@ fun FilterListingContent(
                             item {
                                 val title = stringResource(strings.endingWith)
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.Center
+                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                 ) {
                                     Text(
                                         text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(dimens.smallPadding)
+                                        style = MaterialTheme.typography.titleSmall
                                     )
 
                                     getDropdownMenu(
@@ -449,6 +446,8 @@ fun FilterListingContent(
                                     )
                                 }
                             }
+
+                            item {  }
                         }
                     }
                 )
@@ -463,8 +462,6 @@ fun FilterListingContent(
         ) {
             onClosed()
         }
-
-        Spacer(modifier = Modifier.height(dimens.smallSpacer))
     }
 
 }

@@ -143,7 +143,7 @@ fun SearchContent(
                             focusManager.clearFocus()
                         })
                     },
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
@@ -162,7 +162,7 @@ fun SearchContent(
 
                 HistoryLayout(
                     historyItems = history.value,
-                    modifier = Modifier.padding(dimens.smallPadding),
+                    modifier = Modifier.padding(horizontal = dimens.smallPadding),
                     onItemClick = {
                         searchString.value = it
                     },
