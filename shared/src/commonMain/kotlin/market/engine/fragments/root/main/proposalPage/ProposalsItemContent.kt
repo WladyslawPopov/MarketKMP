@@ -216,7 +216,7 @@ fun ProposalsItemContent(
                                 }
                             }
                             "proposal_left_unanswered" -> {
-                                showEnd.value = true
+                                showEnd.value = false
                                 showBody.value = (proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs &&
                                         countLeft < countProposalMax)
                                 statusColor.value = colors.brightBlue
@@ -233,7 +233,7 @@ fun ProposalsItemContent(
                                     )
                                     commentText.value = proposal.sellerComment.orEmpty()
                                 } else {
-                                    typeLabel.value = stringResource(strings.proposalLeftUnansweredLabel)
+                                    typeLabel.value = stringResource(strings.leftUnansweredLabel)
                                     proposalLabel.value = formatProposalLabel(
                                         prefixRes = strings.buyerProposeLabel,
                                         price = proposal.price,
@@ -349,9 +349,8 @@ fun ProposalsItemContent(
                                 }
                             }
                             "proposal_left_unanswered" -> {
-                                showEnd.value = true
-                                showBody.value = (proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs &&
-                                        countLeft < countProposalMax)
+                                showEnd.value = false
+                                showBody.value = false
                                 statusColor.value = colors.brightBlue
                                 statusIcon.value = drawables.dislikeIcon
                                 iconColor.value = colors.brightBlue
@@ -366,7 +365,7 @@ fun ProposalsItemContent(
                                     )
                                     commentText.value = proposal.sellerComment.orEmpty()
                                 } else {
-                                    typeLabel.value = stringResource(strings.proposalLeftUnansweredLabel)
+                                    typeLabel.value = stringResource(strings.leftUnansweredLabel)
                                     proposalLabel.value = formatProposalLabel(
                                         prefixRes = strings.buyerProposeLabel,
                                         price = proposal.price,

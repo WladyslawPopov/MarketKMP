@@ -128,6 +128,9 @@ class DefaultHomeComponent(
                     filter -> filter.key == "promo_main_page"
             }?.interpretation = getString(strings.allPromoOffersBtn)
 
+            listingData.searchData.value.clear()
+
+
             listingData.searchData.value.isRefreshing = true
 
             navigateToListingSelected(listingData, false)

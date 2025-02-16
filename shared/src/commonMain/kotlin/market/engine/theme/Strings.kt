@@ -433,6 +433,7 @@ interface Strings {
     val proposalRejectLabel : StringResource
     val sellerProposalRejectLabel : StringResource
     val proposalLeftUnansweredLabel : StringResource
+    val leftUnansweredLabel : StringResource
     val yourProposeLabel : StringResource
     val sellerProposalAcceptLabel : StringResource
     val sellerProposeLabel : StringResource

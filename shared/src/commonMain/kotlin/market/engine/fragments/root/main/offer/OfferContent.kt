@@ -615,7 +615,9 @@ fun OfferContent(
 
                                     //make proposal to seller
                                     if (offer.isProposalEnabled && (offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now")) {
-                                        ProposalToSeller{
+                                        ProposalToSeller(
+                                            isMyOffer.value,
+                                        ){
                                             if (UserData.login == offer.sellerData?.id) {
                                                 component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
                                             }else{
@@ -1277,6 +1279,7 @@ fun MessageToSeller(
 
 @Composable
 fun ProposalToSeller(
+    isMyOffer: Boolean,
     goToProposalPage: () -> Unit
 ){
     Row(
@@ -1290,14 +1293,14 @@ fun ProposalToSeller(
         horizontalArrangement = Arrangement.Start
     ) {
         SmallIconButton(
-            drawables.makeProposalIcon,
+            if(!isMyOffer) drawables.makeProposalIcon else drawables.proposalIcon,
             colors.inactiveBottomNavIconColor,
         ) {
             goToProposalPage()
         }
 
         Text(
-            text = stringResource(strings.actionProposalPriceLabel),
+            text = if(!isMyOffer) stringResource(strings.actionProposalPriceLabel) else stringResource(strings.proposalTitle),
             style = MaterialTheme.typography.bodyMedium,
             color = colors.inactiveBottomNavIconColor
         )
@@ -1788,16 +1791,18 @@ fun AuctionBidsSection(
                         )
 
                         // Rebid Button logic
-                        if (!isRebidShown && i == 0 && bid.moverId != UserData.login) {
-                            isRebidShown = true
-                            SimpleTextButton(
-                                text = stringResource(strings.rebidLabel),
-                                backgroundColor = colors.notifyTextColor,
-                                textColor = colors.alwaysWhite,
-                                textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                modifier = Modifier.heightIn(max = 35.dp),
-                            ) {
-                                onRebidClick(offer.id)
+                        if(offer.sellerData?.id != UserData.login) {
+                            if (!isRebidShown && i == 0 && bid.moverId != UserData.login) {
+                                isRebidShown = true
+                                SimpleTextButton(
+                                    text = stringResource(strings.rebidLabel),
+                                    backgroundColor = colors.notifyTextColor,
+                                    textColor = colors.alwaysWhite,
+                                    textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    modifier = Modifier.heightIn(max = 35.dp),
+                                ) {
+                                    onRebidClick(offer.id)
+                                }
                             }
                         }
 

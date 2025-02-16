@@ -83,29 +83,29 @@ fun MyProposalItem(
                 }
             )
 
+            if(offer.sellerData?.id != UserData.login) {
+                offer.sellerData?.let {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            dimens.smallPadding,
+                            Alignment.CenterHorizontally
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            stringResource(strings.sellerLabel),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.black
+                        )
 
-            offer.sellerData?.let {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimens.smallPadding,
-                        Alignment.CenterHorizontally
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        stringResource(strings.sellerLabel),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.black
-                    )
-
-                    UserRow(
-                        it,
-                        Modifier.clickable {
-                            goToUser(it.id)
-                        }.fillMaxWidth(0.95f).
-                        padding(dimens.smallPadding),
-                    )
+                        UserRow(
+                            it,
+                            Modifier.clickable {
+                                goToUser(it.id)
+                            }.fillMaxWidth(0.95f).padding(dimens.smallPadding),
+                        )
+                    }
                 }
             }
 

@@ -89,7 +89,7 @@ fun BidsItem(
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.Start
                 ) {
                     Text(
                         stringResource(strings.sellerLabel),
@@ -290,9 +290,8 @@ fun BidsItem(
                 )
 
                 Text(
-                    (offer.minimalAcceptablePrice
-                        ?: offer.currentPricePerItem) + " " + stringResource(strings.currencySign),
-                    style = MaterialTheme.typography.titleMedium,
+                    offer.currentPricePerItem + stringResource(strings.currencySign),
+                    style = MaterialTheme.typography.titleSmall,
                     color = colors.titleTextColor
                 )
             }
@@ -309,8 +308,8 @@ fun BidsItem(
                 )
 
                 Text(
-                    offer.myMaximalBid + " " + stringResource(strings.currencySign),
-                    style = MaterialTheme.typography.bodyMedium,
+                    offer.myMaximalBid + stringResource(strings.currencySign),
+                    style = MaterialTheme.typography.titleSmall,
                     color = colors.positiveGreen
                 )
             }

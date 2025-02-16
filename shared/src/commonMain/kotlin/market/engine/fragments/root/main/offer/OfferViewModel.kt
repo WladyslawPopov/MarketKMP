@@ -163,7 +163,7 @@ class OfferViewModel(
                             }
                         }
 
-                        if (!isMyOffer.value && offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
+                        if (offer.saleType != "buy_now" && offerState.value == OfferStates.ACTIVE) {
                             startTimerUpdateBids(offer)
                         }
 

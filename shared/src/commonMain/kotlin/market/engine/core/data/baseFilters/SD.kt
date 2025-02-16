@@ -20,6 +20,12 @@ data class SD(
 )
 {
     fun clear(){
+        searchCategoryName = null
+        searchCategoryID = 1L
+        searchParentID = 1L
+        searchParentName = null
+        searchIsLeaf = false
+
         searchString = ""
         userID = 1L
         searchFinished = false
