@@ -86,13 +86,10 @@ fun BidsItem(
 
 
             offer.sellerData?.let {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimens.smallPadding,
-                        Alignment.CenterHorizontally
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         stringResource(strings.sellerLabel),
@@ -104,8 +101,7 @@ fun BidsItem(
                         it,
                         Modifier.clickable {
                             goToUser(it.id)
-                        }.fillMaxWidth(0.95f).
-                        padding(dimens.smallPadding),
+                        }.fillMaxWidth(),
                     )
                 }
             }

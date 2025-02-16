@@ -38,7 +38,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -165,13 +164,6 @@ fun OfferContent(
         }
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            offerViewModel.addHistory(model.id)
-            offerViewModel.clearTimers()
-        }
-    }
-
     val imageSize = remember { mutableStateOf(1) }
 
     val images = remember { mutableListOf("") }
@@ -183,6 +175,9 @@ fun OfferContent(
     val pagerFullState = rememberPagerState(
         pageCount = { imageSize.value },
     )
+
+    val showBidDialog = remember { mutableStateOf(false) }
+    val myMaximalBid = remember { mutableStateOf("") }
 
 
     LaunchedEffect(isImageViewerVisible.value){
@@ -217,6 +212,8 @@ fun OfferContent(
                 }
             )
             imageSize.value = images.size
+
+            myMaximalBid.value = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: ""
         }
     }
 
@@ -227,10 +224,6 @@ fun OfferContent(
     }
 
     lotState.value?.let { offer ->
-
-        val showBidDialog = remember { mutableStateOf(false) }
-        val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
-
         BaseContent(
             topBar = {
                 OfferAppBar(
@@ -478,12 +471,9 @@ fun OfferContent(
                                 AuctionPriceLayout(
                                     offer = offer,
                                     offerViewModel.updateItemTrigger.value,
-                                    myMaximalBid = myMaximalBid.value,
-                                    onBidChanged = { newBid ->
-                                        myMaximalBid.value = newBid
-                                    },
-                                    onAddBidClick = {
+                                    onAddBidClick = { bid ->
                                         if (UserData.token != "") {
+                                            myMaximalBid.value = bid
                                             showBidDialog.value = true
                                         }else{
                                             component.goToLogin()
@@ -650,7 +640,7 @@ fun OfferContent(
                                         Text(
                                             text = stringResource(strings.whoPayForDeliveryLabel),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = colors.brightGreen
+                                            color = colors.grayText
                                         )
 
                                         Spacer(modifier = Modifier.width(dimens.smallSpacer))
@@ -801,14 +791,12 @@ fun OfferContent(
                         //bids list
                         item {
                             if (offerState.value == OfferStates.ACTIVE) {
-                                val showDialog = remember { mutableStateOf(false) }
-
                                 AuctionBidsSection(
                                     offer,
                                     offerViewModel.updateItemTrigger.value,
                                     onRebidClick = {
                                         if (UserData.token != "") {
-                                            showDialog.value = true
+                                            showBidDialog.value = true
                                         }else{
                                             component.goToLogin()
                                         }
@@ -861,20 +849,19 @@ fun OfferContent(
                             }
                         }
                     }
-                    val sum = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: ""
 
                     AddBidDialog(
                         showBidDialog.value,
-                        sum,
+                        myMaximalBid.value,
                         onDismiss = {
                             showBidDialog.value = false
                         },
                         onSuccess = {
                             offerViewModel.addBid(
-                                sum,
+                                myMaximalBid.value,
                                 offer,
                                 onSuccess = {
-                                    component.updateOffer(offer.id, false)
+                                    offerViewModel.updateBidsInfo(offer)
                                     showBidDialog.value = false
                                     scope.launch {
                                         stateColumn.animateScrollToItem(goToBids)
@@ -1008,13 +995,14 @@ fun getCountString(offerState: OfferStates, offer: Offer): String {
 @Composable
 fun AuctionPriceLayout(
     offer: Offer,
-    updateTrigger : Int,
-    myMaximalBid: String,
-    onBidChanged: (String) -> Unit,
-    onAddBidClick: () -> Unit
+    updateTrigger: Int,
+    onAddBidClick: (String) -> Unit
 ) {
     if (updateTrigger < 0) return
     val focusManager = LocalFocusManager.current
+
+    val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
+
     Column(
         modifier = Modifier
             .clip(MaterialTheme.shapes.medium)
@@ -1069,8 +1057,10 @@ fun AuctionPriceLayout(
                     modifier = Modifier.padding(dimens.smallPadding)
                 ) {
                     OutlinedTextField(
-                        value = myMaximalBid,
-                        onValueChange = onBidChanged,
+                        value = myMaximalBid.value,
+                        onValueChange = { newText ->
+                            myMaximalBid.value = newText
+                        },
                         modifier = Modifier
                             .width(120.dp),
                         textStyle = MaterialTheme.typography.bodyLarge,
@@ -1112,7 +1102,9 @@ fun AuctionPriceLayout(
                     text = stringResource(strings.actionAddBid),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
-                    onClick = onAddBidClick,
+                    onClick = {
+                        onAddBidClick(myMaximalBid.value)
+                    },
                 )
             }
         }

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +26,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.widgets.badges.getBadge
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.exceptions.LoadImage
 import org.jetbrains.compose.resources.painterResource
@@ -145,12 +145,7 @@ fun ConversationItem(
 
 
                     if (conversation.countUnreadMessages > 0) {
-                        Badge {
-                            Text(
-                                text = conversation.countUnreadMessages.toString(),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
+                        getBadge(conversation.countUnreadMessages, false)
                     }
                 }
             }

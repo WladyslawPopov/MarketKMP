@@ -186,21 +186,30 @@ class OfferViewModel(
         }
     }
 
+
     private fun getHistory(currentId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                _responseHistory.value = arrayListOf()
                 val queries = dataBase.offerVisitedHistoryQueries
-                val history = queries.selectAll(UserData.login).executeAsList().apply {
-                    if (size > 17) queries.deleteById(first(), UserData.login)
-                    queries.insertEntry(currentId, UserData.login)
-                }
+                val historyIds = queries.selectAll(UserData.login).executeAsList()
 
-                history.map { id ->
-                    apiService.getOffer(id).let {
-                        val serializer = ListSerializer(Offer.serializer())
-                        val offer = deserializePayload(it.payload, serializer).firstOrNull()
-                        if (offer != null) {
-                            _responseHistory.value.add(offer)
+                // Delete the oldest entry if the history size exceeds the limit.
+                if (historyIds.size >= 17) {
+                    queries.deleteById(historyIds.last(), UserData.login)
+                }
+                // Insert the current offer ID into the history.
+                queries.insertEntry(currentId, UserData.login)
+
+                // Fetch offer details for each history ID and update the response history.
+                historyIds.forEach { id ->
+                    val response = apiService.getOffer(id)
+                    val serializer = ListSerializer(Offer.serializer())
+                    val offer = deserializePayload(response.payload, serializer).firstOrNull()
+                    offer?.let {
+                        // Update the response history only on the main thread.
+                        withContext(Dispatchers.Main) {
+                            _responseHistory.value.add(it)
                         }
                     }
                 }
@@ -286,23 +295,29 @@ class OfferViewModel(
         }
     }
 
-    private suspend fun updateBidsInfo(offer: Offer) {
-        try {
-            val response = offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
-            response.success?.body?.let { body ->
-                if (body.isChanged) {
-                    offer.apply {
-                        bids = body.bids
-                        version = JsonPrimitive(body.currentVersion)
-                        currentPricePerItem = body.currentPrice
-                        minimalAcceptablePrice = body.minimalAcceptablePrice
-                    }
-                    _responseOffer.value = offer
-                    updateItemTrigger.value++
+   fun updateBidsInfo(offer: Offer) {
+        viewModelScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
                 }
+                withContext(Dispatchers.Main) {
+                    response.success?.body?.let { body ->
+                        if (body.isChanged) {
+                            offer.apply {
+                                bids = body.bids
+                                version = JsonPrimitive(body.currentVersion)
+                                currentPricePerItem = body.currentPrice
+                                minimalAcceptablePrice = body.minimalAcceptablePrice
+                            }
+                            _responseOffer.value = offer
+                            updateItemTrigger.value++
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
             }
-        } catch (e: Exception) {
-            onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
         }
     }
 
@@ -345,7 +360,6 @@ class OfferViewModel(
         onSuccess: () -> Unit,
         onDismiss: () -> Unit
     ){
-
         viewModelScope.launch {
             val res =  withContext(Dispatchers.IO) {
                 val body = hashMapOf("price" to sum)
@@ -406,11 +420,6 @@ class OfferViewModel(
                 }
             }
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        clearTimers()
     }
 
     fun clearTimers() {

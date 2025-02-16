@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Badge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
@@ -43,6 +42,7 @@ import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.fragments.base.showNoItemLayout
+import market.engine.widgets.badges.getBadge
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.rows.FilterContentHeaderRow
 import market.engine.widgets.texts.TextAppBar
@@ -231,16 +231,7 @@ fun CategoryContent(
                         },
                         badge = {
                             if (!(isFilters || isCreateOffer)) {
-                                Badge(
-                                    containerColor = colors.steelBlue
-                                ) {
-                                    Text(
-                                        text = category.estimatedActiveOffersCount.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.padding(dimens.extraSmallPadding),
-                                        color = colors.white
-                                    )
-                                }
+                                getBadge(category.estimatedActiveOffersCount, false, color = colors.steelBlue)
                             }
                         },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),

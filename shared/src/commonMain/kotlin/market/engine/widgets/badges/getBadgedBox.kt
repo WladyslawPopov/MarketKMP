@@ -4,14 +4,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.sp
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.exceptions.LoadImage
@@ -27,15 +24,7 @@ fun getBadgedBox(
     BadgedBox(
         modifier = modifier,
         badge = {
-            if (item.badgeCount != null) {
-                Badge{
-                    Text(text = item.badgeCount.toString(), fontSize = 9.sp)
-                }
-            } else {
-                if (item.hasNews) {
-                    Badge()
-                }
-            }
+            getBadge(item.badgeCount, item.hasNews)
         }
     ) {
         if (item.image != null){

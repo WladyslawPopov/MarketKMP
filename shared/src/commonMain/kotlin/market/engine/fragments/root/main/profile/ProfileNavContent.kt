@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
@@ -31,6 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.widgets.badges.getBadge
 import market.engine.widgets.dialogs.LogoutDialog
 import market.engine.widgets.bars.UserPanel
 import org.jetbrains.compose.resources.StringResource
@@ -146,15 +146,7 @@ fun ProfileNavContent(
                         )
                     },
                     badge = {
-                        if (item.badgeCount != null) {
-                            Badge {
-                                Text(text = item.badgeCount.toString())
-                            }
-                        }
-
-                        if (item.hasNews) {
-                            Badge { }
-                        }
+                        getBadge(item.badgeCount, item.hasNews)
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                     colors = NavigationDrawerItemDefaults.colors(

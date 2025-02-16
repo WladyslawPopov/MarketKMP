@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Badge
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +36,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.widgets.badges.getBadge
 import market.engine.widgets.dialogs.LogoutDialog
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -233,13 +233,7 @@ fun DrawerContent(
                             )
                         },
                         badge = {
-                            if (item.badgeCount != null) {
-                                Text(text = item.badgeCount.toString())
-                            }
-
-                            if (item.hasNews) {
-                                Badge { }
-                            }
+                            getBadge(item.badgeCount, item.hasNews)
                         },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                             .wrapContentWidth(),

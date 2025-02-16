@@ -91,6 +91,9 @@ class DefaultOfferComponent(
     }
 
     override fun onBeakClick() {
+        offerViewModel.addHistory(model.value.id)
+        offerViewModel.clearTimers()
+
         navigationBack()
     }
 

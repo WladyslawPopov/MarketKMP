@@ -213,6 +213,7 @@ fun FeedbacksContent(
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(horizontal = dimens.smallPadding)
                         .animateContentSize()
                 ) {
                     when {
