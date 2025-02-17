@@ -85,13 +85,10 @@ fun MyProposalItem(
 
             if(offer.sellerData?.id != UserData.login) {
                 offer.sellerData?.let {
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            dimens.smallPadding,
-                            Alignment.CenterHorizontally
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                        horizontalAlignment = Alignment.Start
                     ) {
                         Text(
                             stringResource(strings.sellerLabel),
@@ -103,7 +100,7 @@ fun MyProposalItem(
                             it,
                             Modifier.clickable {
                                 goToUser(it.id)
-                            }.fillMaxWidth(0.95f).padding(dimens.smallPadding),
+                            }.fillMaxWidth(),
                         )
                     }
                 }

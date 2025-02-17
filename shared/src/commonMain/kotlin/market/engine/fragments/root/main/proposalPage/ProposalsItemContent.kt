@@ -54,6 +54,7 @@ import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToLong
 
 @Composable
 fun ProposalsItemContent(
@@ -159,7 +160,7 @@ fun ProposalsItemContent(
                                     commentText.value = proposal.buyerComment.orEmpty()
                                 } else {
                                     showBody.value = true
-                                    statusColor.value = colors.notifyTextColor
+                                    statusColor.value = colors.brightPurple
                                     statusIcon.value = drawables.iconClock
                                     iconColor.value = colors.notifyTextColor
                                     typeLabel.value = stringResource(strings.sellerWaitYourAnswer)
@@ -178,8 +179,8 @@ fun ProposalsItemContent(
                                 showBody.value = (proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs &&
                                         countLeft < countProposalMax)
                                 statusIcon.value = drawables.dislikeIcon
-                                statusColor.value = colors.brightBlue
-                                iconColor.value = colors.brightBlue
+                                statusColor.value = colors.negativeRed
+                                iconColor.value = colors.negativeRed
 
                                 if (!proposal.isResponserProposal) {
                                     typeLabel.value = buildString {
@@ -219,9 +220,9 @@ fun ProposalsItemContent(
                                 showEnd.value = false
                                 showBody.value = (proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs &&
                                         countLeft < countProposalMax)
-                                statusColor.value = colors.brightBlue
+                                statusColor.value = colors.negativeRed
                                 statusIcon.value = drawables.dislikeIcon
-                                iconColor.value = colors.brightBlue
+                                iconColor.value = colors.negativeRed
                                 if (proposal.isResponserProposal) {
                                     typeLabel.value = stringResource(strings.proposalLeftUnansweredLabel)
                                     proposalLabel.value = formatProposalLabel(
@@ -280,7 +281,7 @@ fun ProposalsItemContent(
                                 showEnd.value = true
                                 if (!proposal.isResponserProposal) {
                                     showBody.value = true
-                                    statusColor.value = colors.notifyTextColor
+                                    statusColor.value = colors.brightPurple
                                     statusIcon.value = drawables.iconClock
                                     iconColor.value = colors.notifyTextColor
                                     typeLabel.value = stringResource(strings.buyerWaitYourAnswer)
@@ -311,9 +312,9 @@ fun ProposalsItemContent(
                             "proposal_reject" -> {
                                 showEnd.value = false
                                 showBody.value = false
-                                statusColor.value = colors.brightBlue
+                                statusColor.value = colors.negativeRed
                                 statusIcon.value = drawables.dislikeIcon
-                                iconColor.value = colors.brightBlue
+                                iconColor.value = colors.negativeRed
                                 if (!proposal.isResponserProposal) {
                                     typeLabel.value = buildString {
                                         append(stringResource(strings.sellerProposalRejectLabel))
@@ -351,9 +352,9 @@ fun ProposalsItemContent(
                             "proposal_left_unanswered" -> {
                                 showEnd.value = false
                                 showBody.value = false
-                                statusColor.value = colors.brightBlue
+                                statusColor.value = colors.negativeRed
                                 statusIcon.value = drawables.dislikeIcon
-                                iconColor.value = colors.brightBlue
+                                iconColor.value = colors.negativeRed
                                 if (proposal.isResponserProposal) {
                                     typeLabel.value = stringResource(strings.proposalLeftUnansweredLabel)
                                     proposalLabel.value = formatProposalLabel(
@@ -440,7 +441,7 @@ fun ProposalsItemContent(
                                 stringResource(if (!showHistory.value) strings.historyLabel else strings.actionClose),
                                 textColor = colors.greenWaterBlue,
                                 backgroundColor = colors.transparentGrayColor,
-                                textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                             ) {
                                 showHistory.value = !showHistory.value
                             }
@@ -708,11 +709,11 @@ fun getBody(
 
                                     field.data = checkValidation(field, it.text)
 
-                                    val price = priceTextState.value.text.toIntOrNull() ?: 1
+                                    val price = priceTextState.value.text.toDoubleOrNull() ?: 1.0
                                     val count = quantityTextState.value.text.toIntOrNull() ?: 1
 
                                     errorState.value = buildString {
-                                        append(price / count)
+                                        append((price / count).roundToLong())
                                         append(" ")
                                         append(currency)
                                         append(" ")

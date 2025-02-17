@@ -1,10 +1,13 @@
 package market.engine.widgets.badges
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 
@@ -13,6 +16,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 fun getBadge(badgeCount: Int?, hasNews: Boolean, color: Color = colors.negativeRed) {
     if (badgeCount != null) {
         Badge(
+            modifier = Modifier.padding(dimens.extraSmallPadding),
             containerColor = color,
             contentColor = colors.alwaysWhite
         ){
@@ -20,7 +24,8 @@ fun getBadge(badgeCount: Int?, hasNews: Boolean, color: Color = colors.negativeR
                 text = badgeCount.toString(),
                 fontSize = dimens.smallText,
                 color = colors.alwaysWhite,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
             )
         }
     } else {

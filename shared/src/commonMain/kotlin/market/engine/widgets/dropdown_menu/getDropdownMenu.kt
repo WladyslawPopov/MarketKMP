@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -54,11 +55,10 @@ fun getDropdownMenu(
     )
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .shadow(elevation = 1.dp, shape = MaterialTheme.shapes.small, true)
             .background(color = colors.white)
             .clip(MaterialTheme.shapes.small)
-            .fillMaxWidth()
             .animateContentSize(
                 animationSpec = spring(
                     stiffness = Spring.StiffnessMedium,
@@ -68,7 +68,7 @@ fun getDropdownMenu(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = modifier.clickable {
+            modifier = Modifier.clickable {
                     expanded = !expanded
                 },
             verticalAlignment = Alignment.CenterVertically,
@@ -115,7 +115,10 @@ fun getDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = !expanded },
             containerColor = colors.white,
-            modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp)
+            modifier = modifier
+                .widthIn(max = 350.dp)
+                .heightIn(max = 400.dp)
+                .wrapContentSize()
         ) {
             selects.forEach { option ->
                 DropdownMenuItem(
