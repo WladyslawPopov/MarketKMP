@@ -642,6 +642,17 @@ fun getBody(
                                     selectedChoice.value = 0
                                 }
                                 viewModel.rememberChoice.value[buyerId] = selectedChoice.value
+
+                                if (selectedChoice.value != 2) {
+                                    priceTextState.value = TextFieldValue(text = "")
+                                    commentTextState.value = TextFieldValue(text = "")
+                                    quantityTextState.value = TextFieldValue(text = "")
+                                    errorState.value = null
+
+                                    fields.find { it.key == "comment" }?.data = null
+                                    fields.find { it.key == "price" }?.data = null
+                                    fields.find { it.key == "quantity" }?.data = null
+                                }
                             }
                         }
                     }
