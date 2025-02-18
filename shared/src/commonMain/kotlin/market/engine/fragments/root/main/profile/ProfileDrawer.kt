@@ -7,11 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.items.NavigationItem
-import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun ProfileDrawer(
-    activeTitle: StringResource,
+    activeTitle: String,
     list: List<NavigationItem>,
 ) {
     ModalDrawerSheet(

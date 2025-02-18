@@ -14,8 +14,10 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
+import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
@@ -25,6 +27,7 @@ import market.engine.fragments.root.main.profile.myBids.MyBidsContent
 import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.root.main.profile.myBids.DefaultMyBidsComponent
 import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
+import org.jetbrains.compose.resources.stringResource
 
 
 @Serializable
@@ -36,7 +39,8 @@ data class MyBidsConfig(
 @Composable
 fun ProfileMyBidsNavigation(
     component: ProfileChildrenComponent,
-    modifier: Modifier
+    modifier: Modifier,
+    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -44,7 +48,7 @@ fun ProfileMyBidsNavigation(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(strings.myBidsTitle, component.model.value.navigationItems)
+            ProfileDrawer(stringResource(strings.myBidsTitle), publicProfileNavigationItems.value)
         },
         gesturesEnabled = drawerState.isOpen,
     ) {

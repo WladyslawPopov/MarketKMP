@@ -12,8 +12,10 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
@@ -21,6 +23,7 @@ import market.engine.fragments.root.main.profile.profileSettings.DefaultProfileS
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsAppBar
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsContent
+import org.jetbrains.compose.resources.stringResource
 
 @Serializable
 data class ProfileSettingsConfig(
@@ -31,7 +34,8 @@ data class ProfileSettingsConfig(
 @Composable
 fun ProfileSettingsNavigation(
     component: ProfileChildrenComponent,
-    modifier: Modifier
+    modifier: Modifier,
+    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -41,11 +45,10 @@ fun ProfileSettingsNavigation(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(strings.settingsProfileTitle, component.model.value.navigationItems)
+            ProfileDrawer(stringResource(strings.settingsProfileTitle), publicProfileNavigationItems.value)
         },
         gesturesEnabled = drawerState.isOpen,
     ) {
-
         Column {
             // app bar
             ProfileSettingsAppBar(

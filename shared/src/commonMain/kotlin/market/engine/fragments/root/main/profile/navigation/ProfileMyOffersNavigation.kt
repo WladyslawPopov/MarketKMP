@@ -14,8 +14,10 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
+import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
@@ -24,6 +26,7 @@ import market.engine.fragments.root.main.profile.myOffers.MyOffersAppBar
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.root.main.profile.myOffers.MyOffersContent
+import org.jetbrains.compose.resources.stringResource
 
 
 @Serializable
@@ -35,7 +38,8 @@ data class MyOfferConfig(
 @Composable
 fun ProfileMyOffersNavigation(
     component: ProfileChildrenComponent,
-    modifier: Modifier
+    modifier: Modifier,
+    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -43,7 +47,7 @@ fun ProfileMyOffersNavigation(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(strings.myOffersTitle, component.model.value.navigationItems)
+            ProfileDrawer(stringResource(strings.myOffersTitle), publicProfileNavigationItems.value)
         },
         gesturesEnabled = drawerState.isOpen,
     ) {

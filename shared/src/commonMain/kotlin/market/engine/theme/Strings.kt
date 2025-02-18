@@ -449,4 +449,16 @@ interface Strings {
     val warningDeleteHistory : StringResource
     val currentStateOfferLabel : StringResource
     val snapshotLabel : StringResource
+    val messageToBuyersLabel : StringResource
+    val settingsBiddingStepsLabel : StringResource
+    val settingsAutoFeedbacksLabel : StringResource
+    val settingsWatermarkLabel : StringResource
+    val sellerSettingsTitle : StringResource
+    val addressesSettingsTitle : StringResource
+    val blackListSettingsTitle : StringResource
+    val outgoingAddressLabel : StringResource
+    val settingsBlackListSellersLabel : StringResource
+    val settingsBlackListBuyersLabel : StringResource
+    val settingsWhiteListBuyersLabel : StringResource
+    val settingsBlockRatingLabel : StringResource
 }

@@ -16,11 +16,13 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.decompose.value.MutableValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
@@ -36,6 +38,7 @@ import org.jetbrains.compose.resources.stringResource
 fun ConversationsContent(
     component: ConversationsComponent,
     modifier: Modifier,
+    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
@@ -108,7 +111,7 @@ fun ConversationsContent(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(strings.messageTitle, model.navigationItems)
+            ProfileDrawer(stringResource(strings.messageTitle), publicProfileNavigationItems.value)
         },
         gesturesEnabled = drawerState.isOpen,
     ) {

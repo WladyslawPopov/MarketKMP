@@ -12,7 +12,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.MyOfferConfig
@@ -49,7 +48,6 @@ interface ProfileChildrenComponent {
     val settingsPages: Value<ChildPages<*, ProfileSettingsComponent>>
 
     data class Model(
-        val navigationItems: List<NavigationItem>,
         val backHandler: BackHandler
     )
 
@@ -61,7 +59,6 @@ interface ProfileChildrenComponent {
 class DefaultProfileChildrenComponent(
     selectedPage : String?,
     componentContext: ComponentContext,
-    val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
 ) : ProfileChildrenComponent, ComponentContext by componentContext {
 
@@ -73,7 +70,6 @@ class DefaultProfileChildrenComponent(
 
     private val _model = MutableValue(
         ProfileChildrenComponent.Model(
-            navigationItems = navigationItems,
             backHandler = backHandler
         )
     )
@@ -179,8 +175,8 @@ class DefaultProfileChildrenComponent(
                 Pages(
                     listOf(
                         ProfileSettingsConfig(ProfileSettingsTypes.GLOBAL_SETTINGS),
-//                        ProfileSettingsConfig(ProfileSettingsTypes.SELLER_SETTINGS),
-//                        ProfileSettingsConfig(ProfileSettingsTypes.ADDITIONAL_SETTINGS)
+                        ProfileSettingsConfig(ProfileSettingsTypes.SELLER_SETTINGS),
+                        ProfileSettingsConfig(ProfileSettingsTypes.ADDITIONAL_SETTINGS)
                     ),
                     selectedIndex = 0,
                 )

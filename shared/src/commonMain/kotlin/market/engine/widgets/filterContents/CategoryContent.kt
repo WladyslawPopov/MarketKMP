@@ -3,7 +3,6 @@ package market.engine.widgets.filterContents
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,13 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,16 +33,16 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.widgets.badges.getBadge
 import market.engine.widgets.ilustrations.getCategoryIcon
+import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.rows.FilterContentHeaderRow
 import market.engine.widgets.texts.TextAppBar
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -191,17 +187,10 @@ fun CategoryContent(
                 }
                 item { noFound() }
                 items(categories.value) { category ->
-                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
-                    NavigationDrawerItem(
-                        label = {
-                            Text(
-                                category.name ?: "",
-                                color = colors.black,
-                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                lineHeight = dimens.largeText
-                            )
-                        },
+                    val item = NavigationItem(
+                        title = category.name ?: catDef,
+                        image = getCategoryIcon(category.name),
+                        badgeCount = if (!(isFilters || isCreateOffer)) category.estimatedActiveOffersCount else null,
                         onClick = {
                             focus.clearFocus()
                             searchCategoryId.value = category.id
@@ -219,34 +208,21 @@ fun CategoryContent(
                                     isSelected.value = category.id
                                 }
                             }
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
+                    getNavigationItem(
+                        item,
+                        label = {
+                            Text(
+                                category.name ?: "",
+                                color = colors.black,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                lineHeight = dimens.largeText
+                            )
                         },
-                        icon = {
-                            getCategoryIcon(category.name)?.let {
-                                Image(
-                                    painterResource(it),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(dimens.smallIconSize)
-                                )
-                            }
-                        },
-                        badge = {
-                            if (!(isFilters || isCreateOffer)) {
-                                getBadge(category.estimatedActiveOffersCount, false, color = colors.steelBlue)
-                            }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.rippleColor,
-                            unselectedContainerColor = colors.white,
-                            selectedIconColor = colors.grayLayout,
-                            unselectedIconColor = colors.white,
-                            selectedTextColor = colors.grayLayout,
-                            selectedBadgeColor = colors.grayLayout,
-                            unselectedTextColor = colors.white,
-                            unselectedBadgeColor = colors.white
-                        ),
-                        shape = MaterialTheme.shapes.small,
-                        selected = if(isFilters || isCreateOffer) isSelected.value == category.id else category.isLeaf
+                        isSelected = if(isFilters || isCreateOffer) isSelected.value == category.id else category.isLeaf,
+                        badgeColor = colors.steelBlue
                     )
                 }
             }

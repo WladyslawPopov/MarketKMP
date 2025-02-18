@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.widgets.buttons.MenuHamburgerButton
 import market.engine.widgets.tabs.SimpleTabs
 import org.jetbrains.compose.resources.stringResource
@@ -25,8 +24,8 @@ fun ProfileSettingsAppBar(
 ) {
     val tabs = listOf(
         stringResource(strings.profileGlobalSettingsLabel),
-//        stringResource(strings.profileSellerSettingsLabel),
-//        stringResource(strings.profileAdditionalSettingsLabel),
+        stringResource(strings.profileSellerSettingsLabel),
+        stringResource(strings.profileAdditionalSettingsLabel),
     )
 
     TopAppBar(

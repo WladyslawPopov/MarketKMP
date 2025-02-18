@@ -21,6 +21,7 @@ import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.texts.TextAppBar
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +37,7 @@ fun ListingAppBar(
 ) {
     val listItems = listOf(
         NavigationItem(
-            title = strings.subscribersLabel,
+            title = stringResource(strings.subscribersLabel),
             icon = drawables.newLotIcon,
             tint = colors.positiveGreen,
             hasNews = false,
@@ -47,7 +48,7 @@ fun ListingAppBar(
             }
         ),
         NavigationItem(
-            title = strings.searchTitle,
+            title = stringResource(strings.searchTitle),
             icon = drawables.searchIcon,
             tint = colors.black,
             hasNews = false,

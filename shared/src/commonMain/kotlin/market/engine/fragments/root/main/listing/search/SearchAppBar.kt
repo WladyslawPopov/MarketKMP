@@ -18,6 +18,7 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.textFields.SearchTextField
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +30,7 @@ fun SearchAppBar(
     onBeakClick: () -> Unit
 ) {
     val searchItem = NavigationItem(
-            title = strings.searchTitle,
+            title = stringResource(strings.searchTitle),
             icon = drawables.searchIcon,
             tint = colors.black,
             hasNews = false,
@@ -54,9 +55,9 @@ fun SearchAppBar(
                 modifier = Modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if(searchItem.isVisible){
+                if(searchItem.isVisible && searchItem.icon != null){
                     SmallIconButton(
-                        icon = searchItem.icon,
+                        icon = searchItem.icon!!,
                         color = searchItem.tint
                     ){
                         onSearchClick()

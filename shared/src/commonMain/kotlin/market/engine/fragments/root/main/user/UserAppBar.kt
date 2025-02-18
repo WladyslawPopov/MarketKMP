@@ -19,6 +19,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.NavigationArrowButton
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +31,7 @@ fun UserAppBar(
 ) {
     val listItems = listOf(
         NavigationItem(
-            title = strings.searchUserStringChoice,
+            title = stringResource(strings.searchUserStringChoice),
             icon = if (isVisibleUserPanel) drawables.iconArrowUp else drawables.iconArrowDown,
             tint = colors.black,
             hasNews = false,

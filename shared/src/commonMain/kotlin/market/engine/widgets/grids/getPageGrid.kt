@@ -165,6 +165,8 @@ fun <T : Any> BoxScope.PagingList(
                 }
             }
         }
+
+        item {  }
     }
 
     PagingCounterBar(

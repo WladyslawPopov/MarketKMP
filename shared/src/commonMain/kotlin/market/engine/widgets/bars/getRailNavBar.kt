@@ -18,7 +18,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.fragments.root.main.MainComponent
 import market.engine.widgets.badges.getBadgedBox
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import org.jetbrains.compose.resources.painterResource
@@ -91,7 +90,7 @@ fun getRailNavBar(
                 },
                 label = {
                     if(isSelected) {
-                        Text(text = stringResource(item.title), fontSize = 10.sp)
+                        Text(text = item.title, fontSize = 10.sp)
                     }
                 }
             )

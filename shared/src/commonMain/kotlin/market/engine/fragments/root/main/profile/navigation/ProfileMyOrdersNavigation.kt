@@ -14,8 +14,10 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
+import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
@@ -25,6 +27,7 @@ import market.engine.fragments.root.main.profile.myOrders.DefaultMyOrdersCompone
 import market.engine.fragments.root.main.profile.myOrders.MyOrderAppBar
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersContent
+import org.jetbrains.compose.resources.stringResource
 
 
 @Serializable
@@ -40,7 +43,8 @@ data class MyOrderConfig(
 fun ProfileMyOrdersNavigation(
     typeGroup: DealTypeGroup,
     component: ProfileChildrenComponent,
-    modifier: Modifier
+    modifier: Modifier,
+    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -49,11 +53,11 @@ fun ProfileMyOrdersNavigation(
         drawerState = drawerState,
         drawerContent = {
             ProfileDrawer(
-                if(typeGroup == DealTypeGroup.SELL)
+                stringResource(if(typeGroup == DealTypeGroup.SELL)
                     strings.mySalesTitle
                 else
-                    strings.myPurchasesTitle,
-                component.model.value.navigationItems
+                    strings.myPurchasesTitle),
+                publicProfileNavigationItems.value
             )
         },
         gesturesEnabled = drawerState.isOpen,

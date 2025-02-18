@@ -2,16 +2,16 @@ package market.engine.widgets.bars
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.badges.getBadgedBox
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun getBottomNavBar(
@@ -37,10 +37,10 @@ fun getBottomNavBar(
                     label = {
                         if(isSelected) {
                             Text(
-                                text = stringResource(item.title),
-                                fontSize = 9.sp,
+                                text = item.title,
+                                fontSize = dimens.smallText,
                                 maxLines = 1,
-                                lineHeight = 8.sp
+                                style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }

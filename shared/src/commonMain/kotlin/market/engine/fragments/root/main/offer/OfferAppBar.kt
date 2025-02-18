@@ -62,7 +62,7 @@ fun OfferAppBar(
 
     val listItems = listOf(
         NavigationItem(
-            title = strings.favoritesTitle,
+            title = stringResource(strings.favoritesTitle),
             icon = if (isFavorite.value) drawables.favoritesIconSelected else drawables.favoritesIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
@@ -79,7 +79,7 @@ fun OfferAppBar(
             }
         ),
         NavigationItem(
-            title = strings.menuTitle,
+            title = stringResource(strings.menuTitle),
             icon = drawables.menuIcon,
             tint = colors.black,
             hasNews = false,

@@ -5,10 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,8 +15,6 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,8 +33,8 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.widgets.badges.getBadge
 import market.engine.widgets.dialogs.LogoutDialog
+import market.engine.widgets.items.getNavigationItem
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -53,8 +50,8 @@ fun DrawerContent(
 
     val list = listOf(
         NavigationItem(
-            title = strings.top100Title,
-            subtitle = strings.top100Subtitle,
+            title = stringResource(strings.top100Title),
+            subtitle = stringResource(strings.top100Subtitle),
             icon = drawables.top100Icon,
             tint = colors.black,
             hasNews = false,
@@ -67,8 +64,8 @@ fun DrawerContent(
             }
         ),
         NavigationItem(
-            title = strings.helpTitle,
-            subtitle = strings.helpSubtitle,
+            title = stringResource(strings.helpTitle),
+            subtitle = stringResource(strings.helpSubtitle),
             icon = drawables.helpIcon,
             tint = colors.black,
             hasNews = false,
@@ -81,8 +78,8 @@ fun DrawerContent(
             }
         ),
         NavigationItem(
-            title = strings.contactUsTitle,
-            subtitle = strings.contactUsSubtitle,
+            title = stringResource(strings.contactUsTitle),
+            subtitle = stringResource(strings.contactUsSubtitle),
             icon = drawables.contactUsIcon,
             tint = colors.black,
             hasNews = false,
@@ -95,8 +92,8 @@ fun DrawerContent(
             }
         ),
         NavigationItem(
-            title = strings.aboutUsTitle,
-            subtitle = strings.aboutUsSubtitle,
+            title = stringResource(strings.aboutUsTitle),
+            subtitle = stringResource(strings.aboutUsSubtitle),
             icon = drawables.infoIcon,
             tint = colors.black,
             hasNews = false,
@@ -109,8 +106,8 @@ fun DrawerContent(
             }
         ),
         NavigationItem(
-            title = strings.reviewsTitle,
-            subtitle = strings.reviewsSubtitle,
+            title = stringResource(strings.reviewsTitle),
+            subtitle = stringResource(strings.reviewsSubtitle),
             icon = drawables.starIcon,
             tint = colors.black,
             hasNews = false,
@@ -118,8 +115,8 @@ fun DrawerContent(
             isVisible = false
         ),
         NavigationItem(
-            title = strings.settingsTitleApp,
-            subtitle = strings.settingsSubtitleApp,
+            title = stringResource(strings.settingsTitleApp),
+            subtitle = stringResource(strings.settingsSubtitleApp),
             icon = drawables.settingsIcon,
             tint = colors.black,
             hasNews = false,
@@ -195,60 +192,30 @@ fun DrawerContent(
             list.forEachIndexed { _, item ->
                 if (item.isVisible) {
                     Spacer(modifier = Modifier.height(dimens.mediumSpacer))
-
-                    NavigationDrawerItem(
+                    getNavigationItem(
+                        item,
                         label = {
-                            Box(
-                                modifier = Modifier.wrapContentWidth().wrapContentHeight(),
-                                contentAlignment = Alignment.CenterStart
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.SpaceEvenly,
+                                horizontalAlignment = Alignment.Start
                             ) {
-                                Column {
+                                Text(
+                                    item.title,
+                                    color = colors.black,
+                                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                    lineHeight = dimens.largeText
+                                )
+                                if (item.subtitle != null) {
                                     Text(
-                                        stringResource(item.title),
-                                        color = colors.black,
-                                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                        item.subtitle,
+                                        color = colors.grayText,
+                                        fontSize = MaterialTheme.typography.labelSmall.fontSize,
                                         lineHeight = dimens.largeText
                                     )
-                                    if (item.subtitle != null) {
-                                        Text(
-                                            stringResource(item.subtitle),
-                                            color = colors.grayText,
-                                            fontSize = MaterialTheme.typography.labelSmall.fontSize,
-                                            lineHeight = dimens.largeText
-                                        )
-                                    }
                                 }
-
                             }
-                        },
-                        onClick = {
-                            item.onClick()
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(item.icon),
-                                contentDescription = stringResource(item.title),
-                                modifier = Modifier.size(dimens.smallIconSize),
-                                tint = colors.black
-                            )
-                        },
-                        badge = {
-                            getBadge(item.badgeCount, item.hasNews)
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                            .wrapContentWidth(),
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = colors.rippleColor,
-                            unselectedContainerColor = colors.white,
-                            selectedIconColor = colors.black,
-                            unselectedIconColor = colors.black,
-                            selectedTextColor = colors.lightGray,
-                            selectedBadgeColor = colors.lightGray,
-                            unselectedTextColor = colors.lightGray,
-                            unselectedBadgeColor = colors.lightGray
-
-                        ),
-                        selected = false
+                        }
                     )
                 }
             }

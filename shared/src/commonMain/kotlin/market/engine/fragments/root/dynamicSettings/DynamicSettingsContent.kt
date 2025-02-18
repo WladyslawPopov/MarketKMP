@@ -342,6 +342,11 @@ fun DynamicSettingsContent(
                         }
                     }
 
+                    "set_vacation" -> {
+                        titleText.value = stringResource(strings.vacationLabel)
+
+                    }
+
                     "app_settings" -> {
                         titleText.value = stringResource(strings.settingsTitleApp)
 

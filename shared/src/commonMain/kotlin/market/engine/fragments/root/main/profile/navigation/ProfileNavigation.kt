@@ -21,11 +21,11 @@ import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
@@ -62,6 +62,7 @@ import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserContent
+import org.jetbrains.compose.resources.stringResource
 
 @Serializable
 sealed class ProfileConfig {
@@ -134,47 +135,15 @@ sealed class ChildProfile {
 @Composable
 fun ProfileNavigation(
     modifier: Modifier = Modifier,
-    childStack: Value<ChildStack<*, ChildProfile>>
+    childStack: Value<ChildStack<*, ChildProfile>>,
+    profileNavigation: StackNavigation<ProfileConfig>
 ) {
     val stack by childStack.subscribeAsState()
 
-    Children(
-        stack = stack,
-        modifier = modifier
-            .fillMaxSize(),
-        animation = stackAnimation(fade())
-    ) { child ->
-        when (val screen = child.instance) {
-            is ChildProfile.ProfileChild -> ProfileContent(screen.component, modifier)
-            is ChildProfile.MyOffersChild -> ProfileMyOffersNavigation(screen.component, modifier)
-            is ChildProfile.OfferChild -> OfferContent(screen.component, modifier)
-            is ChildProfile.ListingChild -> ListingContent(screen.component, modifier)
-            is ChildProfile.UserChild -> UserContent(screen.component, modifier)
-            is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
-            is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
-            is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.type, screen.component, modifier)
-            is ChildProfile.ConversationsChild -> ConversationsContent(screen.component, modifier)
-            is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier)
-            is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
-            is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier)
-            is ChildProfile.MyProposalsChild -> ProfileMyProposalsNavigation(screen.component, modifier)
-            is ChildProfile.ProposalChild -> ProposalContent(screen.component)
-        }
-    }
-}
-
-fun createProfileChild(
-    config: ProfileConfig,
-    componentContext: ComponentContext,
-    profileNavigation: StackNavigation<ProfileConfig>,
-    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
-    navigateToSubscribe: () -> Unit
-): ChildProfile {
-
     val userInfo = UserData.userInfo
-    val profilePublicNavigationList = MutableValue(listOf(
+    val publicProfileNavigationItems = MutableValue(listOf(
         NavigationItem(
-            title = strings.createNewOfferTitle,
+            title = stringResource(strings.createNewOfferTitle),
             icon = drawables.newLotIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
@@ -186,8 +155,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.myBidsTitle,
-            subtitle = strings.myBidsSubTitle,
+            title = stringResource(strings.myBidsTitle),
+            subtitle = stringResource(strings.myBidsSubTitle),
             icon = drawables.bidsIcon,
             tint = colors.black,
             hasNews = false,
@@ -201,8 +170,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.proposalTitle,
-            subtitle = strings.proposalPriceSubTitle,
+            title = stringResource(strings.proposalTitle),
+            subtitle = stringResource(strings.proposalPriceSubTitle),
             icon = drawables.proposalIcon,
             tint = colors.black,
             hasNews = false,
@@ -218,8 +187,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.myPurchasesTitle,
-            subtitle = strings.myPurchasesSubTitle,
+            title = stringResource(strings.myPurchasesTitle),
+            subtitle = stringResource(strings.myPurchasesSubTitle),
             icon = drawables.purchasesIcon,
             tint = colors.black,
             hasNews = false,
@@ -234,8 +203,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.myOffersTitle,
-            subtitle = strings.myOffersSubTitle,
+            title = stringResource(strings.myOffersTitle),
+            subtitle = stringResource(strings.myOffersSubTitle),
             icon = drawables.tagIcon,
             tint = colors.black,
             hasNews = false,
@@ -249,8 +218,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.mySalesTitle,
-            subtitle = strings.mySalesSubTitle,
+            title = stringResource(strings.mySalesTitle),
+            subtitle = stringResource(strings.mySalesSubTitle),
             icon = drawables.salesIcon,
             tint = colors.black,
             hasNews = false,
@@ -264,8 +233,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.messageTitle,
-            subtitle = strings.messageSubTitle,
+            title = stringResource(strings.messageTitle),
+            subtitle = stringResource(strings.messageSubTitle),
             icon = drawables.dialogIcon,
             tint = colors.black,
             hasNews = false,
@@ -280,8 +249,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.myProfileTitle,
-            subtitle = strings.myProfileSubTitle,
+            title = stringResource(strings.myProfileTitle),
+            subtitle = stringResource(strings.myProfileSubTitle),
             icon = drawables.profileIcon,
             tint = colors.black,
             hasNews = false,
@@ -299,8 +268,8 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.settingsProfileTitle,
-            subtitle = strings.profileSettingsSubTitle,
+            title = stringResource(strings.settingsProfileTitle),
+            subtitle = stringResource(strings.profileSettingsSubTitle),
             icon = drawables.settingsIcon,
             tint = colors.black,
             hasNews = false,
@@ -314,15 +283,15 @@ fun createProfileChild(
             }
         ),
         NavigationItem(
-            title = strings.myBalanceTitle,
-            subtitle = strings.myBalanceSubTitle,
+            title = stringResource(strings.myBalanceTitle),
+            subtitle = stringResource(strings.myBalanceSubTitle),
             icon = drawables.balanceIcon,
             tint = colors.black,
             hasNews = false,
             badgeCount = null
         ),
         NavigationItem(
-            title = strings.logoutTitle,
+            title = stringResource(strings.logoutTitle),
             icon = drawables.logoutIcon,
             tint = colors.black,
             hasNews = false,
@@ -333,13 +302,45 @@ fun createProfileChild(
         ),
     ))
 
+    Children(
+        stack = stack,
+        modifier = modifier
+            .fillMaxSize(),
+        animation = stackAnimation(fade())
+    ) { child ->
+        when (val screen = child.instance) {
+            is ChildProfile.ProfileChild -> ProfileContent(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.MyOffersChild -> ProfileMyOffersNavigation(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.OfferChild -> OfferContent(screen.component, modifier)
+            is ChildProfile.ListingChild -> ListingContent(screen.component, modifier)
+            is ChildProfile.UserChild -> UserContent(screen.component, modifier)
+            is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
+            is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
+            is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.type, screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.ConversationsChild -> ConversationsContent(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
+            is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.MyProposalsChild -> ProfileMyProposalsNavigation(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.ProposalChild -> ProposalContent(screen.component)
+        }
+    }
+}
+
+fun createProfileChild(
+    config: ProfileConfig,
+    componentContext: ComponentContext,
+    profileNavigation: StackNavigation<ProfileConfig>,
+    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
+    navigateToSubscribe: () -> Unit
+): ChildProfile {
+
     return when (config) {
         is ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
             itemProfile(
                 componentContext,
                 config.openPage,
                 profileNavigation,
-                profilePublicNavigationList.value,
                 navigateToSubscribe
             )
         )
@@ -348,7 +349,6 @@ fun createProfileChild(
             component = DefaultProfileChildrenComponent(
                 null,
                 componentContext,
-                profilePublicNavigationList.value,
                 profileNavigation,
             )
         )
@@ -523,7 +523,6 @@ fun createProfileChild(
             component = DefaultProfileChildrenComponent(
                 if(config.typeGroup == DealTypeGroup.BUY) "purchases/${config.id}" else "sales/${config.id}",
                 componentContext,
-                profilePublicNavigationList.value,
                 profileNavigation,
             )
         )
@@ -531,7 +530,6 @@ fun createProfileChild(
         is ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(
             component = conversationsFactory(
                 componentContext,
-                profilePublicNavigationList.value,
                 navigateBack = {
                     profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
                 },
@@ -547,7 +545,6 @@ fun createProfileChild(
             DefaultProfileChildrenComponent(
                 null,
                 componentContext,
-                profilePublicNavigationList.value,
                 profileNavigation,
             )
         )
@@ -583,7 +580,6 @@ fun createProfileChild(
             DefaultProfileChildrenComponent(
                 null,
                 componentContext,
-                profilePublicNavigationList.value,
                 profileNavigation,
             )
         )
@@ -592,7 +588,6 @@ fun createProfileChild(
             DefaultProfileChildrenComponent(
                 null,
                 componentContext,
-                profilePublicNavigationList.value,
                 profileNavigation,
             )
         )
@@ -624,13 +619,11 @@ fun itemProfile(
     componentContext: ComponentContext,
     selectedPage : String? = null,
     profileNavigation: StackNavigation<ProfileConfig>,
-    navigationItems : List<NavigationItem>,
     navigateToSubscriptions: () -> Unit
 ): ProfileComponent {
     return DefaultProfileComponent(
         componentContext,
         selectedPage,
-        navigationItems,
         profileNavigation,
         navigateToSubscriptions
     )

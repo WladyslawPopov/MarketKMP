@@ -37,7 +37,7 @@ fun HomeAppBar(
 
     val listItems = listOf(
         NavigationItem(
-            title = strings.proposalTitle,
+            title = stringResource(strings.proposalTitle),
             icon = drawables.currencyIcon,
             tint = colors.notifyTextColor,
             hasNews = false,
@@ -48,7 +48,7 @@ fun HomeAppBar(
             }
         ),
         NavigationItem(
-            title = strings.messageTitle,
+            title = stringResource(strings.messageTitle),
             icon = drawables.mail,
             tint = colors.brightBlue,
             hasNews = false,
@@ -58,7 +58,7 @@ fun HomeAppBar(
             }
         ),
         NavigationItem(
-            title = strings.notificationTitle,
+            title = stringResource(strings.notificationTitle),
             icon = drawables.notification,
             tint = colors.titleTextColor,
             isVisible = false,

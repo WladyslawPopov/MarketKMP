@@ -47,7 +47,7 @@ fun BasketAppBar(
 
     val listItems = listOf(
         NavigationItem(
-            title = strings.menuTitle,
+            title = stringResource(strings.menuTitle),
             icon = drawables.menuIcon,
             tint = colors.black,
             hasNews = false,

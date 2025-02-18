@@ -9,7 +9,6 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.NavigationItem
 import market.engine.core.network.networkObjects.Conversations
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -18,7 +17,6 @@ interface ConversationsComponent {
     data class Model(
         val pagingDataFlow : Flow<PagingData<Conversations>>,
         val viewModel: ConversationsViewModel,
-        val navigationItems : List<NavigationItem>,
         val backHandler: BackHandler
     )
 
@@ -28,7 +26,6 @@ interface ConversationsComponent {
 
 class DefaultConversationsComponent(
     componentContext: ComponentContext,
-    navigationItems : List<NavigationItem>,
     val navigateBack : () -> Unit,
     val navigateToMessenger : (Long) -> Unit,
 ) : ConversationsComponent, ComponentContext by componentContext {
@@ -41,7 +38,6 @@ class DefaultConversationsComponent(
         ConversationsComponent.Model(
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
-            navigationItems = navigationItems,
             backHandler = backHandler
         )
     )

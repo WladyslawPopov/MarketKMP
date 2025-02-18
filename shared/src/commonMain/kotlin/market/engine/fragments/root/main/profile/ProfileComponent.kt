@@ -10,7 +10,6 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.core.utils.getCurrentDate
@@ -20,7 +19,6 @@ interface ProfileComponent {
     val model : Value<Model>
 
     data class Model(
-        val navigationItems: List<NavigationItem>,
         val profileViewModel: BaseViewModel,
         val backHandler: BackHandler
     )
@@ -33,14 +31,12 @@ interface ProfileComponent {
 class DefaultProfileComponent(
     componentContext: ComponentContext,
     selectedPage : String?,
-    val navigationItems: List<NavigationItem>,
     private val navigationProfile: StackNavigation<ProfileConfig>,
     private val navigateToSubscriptions : () -> Unit
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val _model = MutableValue(
         ProfileComponent.Model(
-            navigationItems = navigationItems,
             profileViewModel = BaseViewModel(),
             backHandler = backHandler
         )

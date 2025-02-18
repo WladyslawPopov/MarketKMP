@@ -145,4 +145,13 @@ interface Drawables {
    val documentIcon : DrawableResource
    val modeDayIcon : DrawableResource
    val modeNightIcon : DrawableResource
+   val vacationIcon : DrawableResource
+   val listIcon : DrawableResource
+   val timerListIcon : DrawableResource
+   val watermarkIcon : DrawableResource
+
+   val blackSellersIcon : DrawableResource
+   val blackBuyersIcon : DrawableResource
+   val whiteBuyersIcon : DrawableResource
+   val blockRatingIcon : DrawableResource
 }

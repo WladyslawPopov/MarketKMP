@@ -60,7 +60,7 @@ fun DialogsAppBar(
 
     val listItems = listOf(
         NavigationItem(
-            title = strings.favoritesTitle,
+            title = stringResource(strings.favoritesTitle),
             icon = drawables.recycleIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
@@ -68,7 +68,7 @@ fun DialogsAppBar(
             onClick = onRefresh
         ),
         NavigationItem(
-            title = strings.menuTitle,
+            title = stringResource(strings.menuTitle),
             icon = drawables.menuIcon,
             tint = colors.black,
             hasNews = false,

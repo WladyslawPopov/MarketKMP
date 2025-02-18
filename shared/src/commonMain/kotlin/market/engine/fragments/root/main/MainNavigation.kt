@@ -22,6 +22,7 @@ import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.fragments.root.main.favPages.FavoritesNavigation
 import market.engine.widgets.bars.getBottomNavBar
+import org.jetbrains.compose.resources.stringResource
 
 
 sealed class ChildMain {
@@ -48,10 +49,9 @@ fun MainNavigation(
     }
 
     val userInfo = UserData.userInfo
-
     val listItems = listOf(
         NavigationItem(
-            title = strings.homeTitle,
+            title = stringResource(strings.homeTitle),
             icon =  drawables.home,
             tint = colors.black,
             hasNews = false,
@@ -61,7 +61,7 @@ fun MainNavigation(
             }
         ),
         NavigationItem(
-            title = strings.searchTitle,
+            title = stringResource(strings.searchTitle),
             icon = drawables.search,
             tint = colors.black,
             hasNews = false,
@@ -71,7 +71,7 @@ fun MainNavigation(
             }
         ),
         NavigationItem(
-            title = strings.basketTitle,
+            title = stringResource(strings.basketTitle),
             icon = drawables.basketIcon,
             tint = colors.black,
             hasNews = false,
@@ -81,7 +81,7 @@ fun MainNavigation(
             }
         ),
         NavigationItem(
-            title = strings.favoritesTitle,
+            title = stringResource(strings.favoritesTitle),
             icon = drawables.favoritesIcon,
             tint = colors.black,
             hasNews = false,
@@ -91,9 +91,9 @@ fun MainNavigation(
             }
         ),
         NavigationItem(
-            title = strings.profileTitleBottom,
+            title = stringResource(strings.profileTitleBottom),
             icon = drawables.profileIcon,
-            image = userInfo?.avatar?.thumb?.content,
+            imageString = userInfo?.avatar?.thumb?.content,
             tint = colors.black,
             hasNews = (
                         (userInfo?.countUnreadMessages ?: 0) > 0 ||
@@ -106,6 +106,7 @@ fun MainNavigation(
         )
     )
 
+    val profileNavigation = component.modelNavigation.value.profileNavigation
 
     Scaffold(
         bottomBar = { getBottomNavBar(modifier, listItems, currentScreen) },
@@ -117,7 +118,7 @@ fun MainNavigation(
                 .padding(bottom = innerPadding.calculateBottomPadding()),
             animation = stackAnimation(fade())
         ) { child ->
-            when (val screen = child.instance) {
+            when (child.instance) {
                 is ChildMain.HomeChildMain ->
                     HomeNavigation(modifier, component.childHomeStack)
 
@@ -131,7 +132,7 @@ fun MainNavigation(
                     FavoritesNavigation(modifier, component.childFavoritesStack)
 
                 is ChildMain.ProfileChildMain ->
-                    ProfileNavigation(modifier, component.childProfileStack)
+                    ProfileNavigation(modifier, component.childProfileStack, profileNavigation)
             }
         }
     }

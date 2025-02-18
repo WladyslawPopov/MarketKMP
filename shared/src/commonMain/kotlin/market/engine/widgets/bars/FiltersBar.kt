@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -102,31 +101,27 @@ fun FiltersBar(
     // Construct active filters title
     val activeFiltersTitle = mutableStateOf(constructActiveFiltersTitle(filters, searchData, listingData.sort, filterString, searchTitle, sortTitle))
 
-    val itemFilter = remember(filters) {
-        NavigationItem(
-            title = strings.filter,
-            string = filterString,
-            icon = drawables.filterIcon,
-            tint = colors.black,
-            hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
-            badgeCount = if(filters.isNotEmpty()) filters.size else null,
-        )
-    }
+    val itemFilter = NavigationItem(
+        title = stringResource(strings.filter),
+        subtitle = filterString,
+        icon = drawables.filterIcon,
+        tint = colors.black,
+        hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
+        badgeCount = if(filters.isNotEmpty()) filters.size else null,
+    )
 
-    val itemSort = remember(listingData.sort) {
-        NavigationItem(
-            title = strings.sort,
-            string = sortTitle,
-            icon = drawables.sortIcon,
-            tint = colors.black,
-            hasNews = listingData.sort != null,
-            badgeCount = null
-        )
-    }
+    val itemSort = NavigationItem(
+        title = stringResource(strings.sort),
+        subtitle = sortTitle,
+        icon = drawables.sortIcon,
+        tint = colors.black,
+        hasNews = listingData.sort != null,
+        badgeCount = null
+    )
 
     val itemGallery = if (isShowGrid)
         NavigationItem(
-            title = strings.menuTitle,
+            title = stringResource(strings.menuTitle),
             icon = drawables.iconWidget,
             tint = colors.black,
             hasNews = false,
@@ -150,12 +145,12 @@ fun FiltersBar(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(start = dimens.smallPadding),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             if (updateTrigger >=0)
+
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth(if (isShowFilters) 0.67f else 1f)
