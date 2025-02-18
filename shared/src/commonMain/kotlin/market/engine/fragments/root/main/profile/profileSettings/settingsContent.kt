@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,18 +21,15 @@ fun settingsContent(
     separatorString: String,
     list: List<NavigationItem>,
 ) {
-    LazyColumn(
+    Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         horizontalAlignment = Alignment.Start
     ) {
-        item {
-            SeparatorLabel(
-                title = separatorString
-            )
-        }
-
-        itemsIndexed(list) { _, item ->
+        SeparatorLabel(
+            title = separatorString
+        )
+        list.forEach { item ->
             if (item.isVisible) {
                 getNavigationItem(
                     item,

@@ -214,18 +214,18 @@ fun globalSettings(
         settingRow(
             stringResource(strings.phoneParameterName),
             body = {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        user?.phone ?: stringResource(strings.notSetParameterName),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = colors.titleTextColor,
-                        modifier = Modifier.fillMaxWidth(0.6f)
-                    )
-                    if (user?.phone != null) {
+                Text(
+                    user?.phone ?: stringResource(strings.notSetParameterName),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.titleTextColor,
+                    modifier = Modifier.fillMaxWidth(0.6f)
+                )
+                if (user?.phone != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Image(
                             painterResource(drawables.verifySellersIcon),
                             contentDescription = null,
