@@ -83,6 +83,12 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         }
                         userOperations.getUsersOperationsSetLogin(UserData.login)
                     }
+                    "remove_bids_of_users" -> {
+                        offerOperations.getOfferOperationsRemoveBidsOfUsers(UserData.login)
+                    }
+                    "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
+                        userOperations.getUsersOperationsGetSettingsList(UserData.login, settingsType)
+                    }
                     else -> {
                         userOperations.getUsersOperationsSetLogin(UserData.login)
                     }
@@ -190,6 +196,17 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         body
                     )
 
+                    "remove_bids_of_users" -> offerOperations.postOfferOperationsRemoveBidsOfUsers(
+                        UserData.login,
+                        body
+                    )
+                    "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
+                        userOperations.postUsersOperationAddList(
+                            UserData.login,
+                            body,
+                            settingsType
+                        )
+                    }
                     else -> {
                         userOperations.postUsersOperationsSetLogin(UserData.login, body)
                     }
@@ -253,6 +270,13 @@ class DynamicSettingsViewModel : BaseViewModel() {
                     }
                 }
             }
+        }
+    }
+
+    fun getBlocList(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+
+
         }
     }
 

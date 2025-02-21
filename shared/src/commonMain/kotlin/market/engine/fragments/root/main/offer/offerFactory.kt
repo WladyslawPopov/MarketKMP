@@ -5,6 +5,7 @@ import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 
 fun offerFactory(
     componentContext: ComponentContext,
@@ -59,6 +60,9 @@ fun offerFactory(
             },
             navigateToProposalPage = { offerId, type ->
                 navigateToProposalPage(offerId, type)
+            },
+            navigateDynamicSettings = {
+                goToDynamicSettings(it, null, null)
             }
         )
     }

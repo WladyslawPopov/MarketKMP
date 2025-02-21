@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,22 +37,28 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DeliveryCardsContent(
     cards: List<DeliveryAddress>,
-    fields: MutableState<List<Fields>>,
+    fields: List<Fields>,
     viewModel: BaseViewModel,
+    setUpNewFields: (List<Fields>) -> Unit,
+    onError: (List<Fields>) -> Unit,
     refresh: () -> Unit
 ){
     val showFields = remember { mutableStateOf(false) }
     
     val selectedCards = remember { mutableStateOf(cards.find { it.isDefault }?.id) }
 
-    val selectedCountry = remember { mutableStateOf(0) }
+    val selectedCountry = remember {
+        mutableStateOf(
+            fields.find { it.key == "country" }?.data?.jsonPrimitive?.intOrNull ?: 0
+        )
+    }
 
     val countryDef = stringResource(strings.countryDefault)
 
-    val setUpFields = {
-        val card = cards.find { it.id == selectedCards.value }
+    val setFields : (Long?) -> Unit = { selectedId ->
+        val card = cards.find { it.id == selectedId }
         if (card != null) {
-            fields.value.forEach { field ->
+            fields.forEach { field ->
                 when (field.key) {
                     "zip" -> {
                         field.data = JsonPrimitive(card.zip)
@@ -89,25 +93,16 @@ fun DeliveryCardsContent(
                 field.errors = null
             }
         } else {
-            fields.value.forEach { field ->
-                field.data = null
-                field.errors = null
+            fields.forEach {
+                it.data = null
+                it.errors = null
             }
         }
-    }
-
-    LaunchedEffect(cards){
-        if (cards.isNotEmpty() && selectedCards.value == null){
-            selectedCards.value = cards.find { it.isDefault }?.id
-        }
-    }
-
-    LaunchedEffect(selectedCards){
-        setUpFields()
+        setUpNewFields(fields)
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
     ) {
@@ -125,7 +120,7 @@ fun DeliveryCardsContent(
                     strings.addNewDeliveryCard,
                     containerColor = colors.brightGreen,
                 ) {
-                    selectedCards.value = null
+                    setFields(null)
                     showFields.value = true
                 }
             }
@@ -140,9 +135,10 @@ fun DeliveryCardsContent(
             ){
                 items(cards.size, key = { cards[it].id }){
                     DeliveryCardItem(
-                        selectedCards.value == cards[it].id,
+                        cards[it].id == selectedCards.value,
                         cards[it],
                         setActiveCard = { card ->
+                            setFields(card.id)
                             selectedCards.value = card.id
                         }
                     )
@@ -157,7 +153,7 @@ fun DeliveryCardsContent(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
-                fields.value.forEach { field ->
+                fields.forEach { field ->
                     when (field.widgetType) {
                         "input" -> {
                             if (field.key != "country" && field.key != "other_country") {
@@ -169,13 +165,13 @@ fun DeliveryCardsContent(
                     }
                 }
 
-                val countryField = fields.value.find { it.key == "country" }
-                val otherCountryField = fields.value.find { it.key == "other_country" }
+                val countryField = fields.find { it.key == "country" }
+                val otherCountryField = fields.find { it.key == "other_country" }
 
                 // country
                 if (countryField != null) {
 
-                    selectedCountry.value = fields.value.find {
+                    selectedCountry.value = fields.find {
                         it.key == "country"
                     }?.data?.jsonPrimitive?.intOrNull ?: 0
 
@@ -234,14 +230,14 @@ fun DeliveryCardsContent(
                     textColor = colors.alwaysWhite
                 ) {
                     viewModel.saveDeliveryCard(
-                        fields.value,
+                        fields,
                         selectedCards.value,
                         onSaved = {
                             showFields.value = false
                             refresh()
                         },
                         onError = {
-                            fields.value = it
+                            onError(it)
                         }
                     )
                 }
@@ -254,7 +250,7 @@ fun DeliveryCardsContent(
                     textColor = colors.alwaysWhite
                 ) {
                     showFields.value = false
-                    selectedCards.value = cards.find { it.isDefault }?.id
+                    setFields(cards.find { it.isDefault }?.id)
                 }
             }
 
@@ -268,7 +264,7 @@ fun DeliveryCardsContent(
                         viewModel.updateDeleteCard(
                             it
                         ){
-                            selectedCards.value = null
+                            setFields(null)
                             refresh()
                         }
                     }

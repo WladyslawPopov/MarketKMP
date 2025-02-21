@@ -60,6 +60,7 @@ fun OfferItem(
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
+    goToDynamicSettings : (String) -> Unit = { _ -> },
     onItemClick: () -> Unit = {}
 ) {
     var isPromo = false
@@ -108,6 +109,9 @@ fun OfferItem(
                 goToProposals = {
                     goToProposal(it)
                 },
+                goToDynamicSettings = {
+                    goToDynamicSettings(it)
+                }
             )
         }
 

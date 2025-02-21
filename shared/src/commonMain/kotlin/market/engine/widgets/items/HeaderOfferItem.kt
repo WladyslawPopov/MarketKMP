@@ -42,6 +42,7 @@ fun HeaderOfferItem(
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onUpdateOfferItem : (Offer) -> Unit,
     goToCreateOffer : (CreateOfferType) -> Unit,
+    goToDynamicSettings : (String) -> Unit = {},
     goToProposals : (ProposalType) -> Unit = {},
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
@@ -128,6 +129,9 @@ fun HeaderOfferItem(
                     },
                     goToProposals = {
                         goToProposals(it)
+                    },
+                    goToDynamicSettings = {
+                        goToDynamicSettings(it)
                     }
                 )
             }

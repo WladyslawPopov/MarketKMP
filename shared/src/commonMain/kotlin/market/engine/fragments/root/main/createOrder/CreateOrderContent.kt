@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -128,33 +127,28 @@ fun CreateOrderContent(
                     detectTapGestures(onTap = {
                         focusManager.clearFocus()
                     })
-                }
+                }.padding(dimens.smallPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
         ) {
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
             // header
             Column(
                 modifier = Modifier
                     .background(colors.white, MaterialTheme.shapes.medium)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(dimens.smallPadding),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
             ) {
                 //user header
                 offers.value.firstOrNull()?.sellerData?.let {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        DynamicLabel(
-                            stringResource(strings.sellerLabel),
-                            false,
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
-                        UserRow(it, modifier = Modifier.clickable {
+                    UserRow(
+                        it,
+                        modifier = Modifier.clickable {
                             component.goToSeller(it.id)
-                        })
-                    }
-
+                        }.align(Alignment.CenterHorizontally)
+                            .padding(dimens.smallPadding)
+                    )
                 }
 
                 Spacer(modifier = Modifier
@@ -167,10 +161,8 @@ fun CreateOrderContent(
                 // offers
                 offers.value.forEachIndexed { index, offer ->
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         DynamicLabel(
@@ -178,7 +170,6 @@ fun CreateOrderContent(
                             false,
                             style = MaterialTheme.typography.titleSmall
                         )
-                        Spacer(modifier = Modifier.height(dimens.smallSpacer))
                         CreateOrderOfferItem(
                             offer,
                             basketItem.second.find {
@@ -199,10 +190,8 @@ fun CreateOrderContent(
 
                 //total sum
                 Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(dimens.mediumPadding),
-                    horizontalArrangement = Arrangement.End,
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -211,7 +200,6 @@ fun CreateOrderContent(
                         fontWeight = FontWeight.Bold,
                         color = colors.black,
                     )
-                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                     val totalPriceText = buildAnnotatedString {
                         var total = 0.0
@@ -232,16 +220,21 @@ fun CreateOrderContent(
             // delivery cards
             DeliveryCardsContent(
                 deliveryCards.value,
-                deliveryFields,
-                viewModel
+                deliveryFields.value,
+                viewModel,
+                setUpNewFields = { cf->
+                    deliveryFields.value = cf
+                },
+                onError = {
+                    deliveryFields.value = it
+                }
             ){
                 refresh()
             }
 
             // additional fields
             Column(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(dimens.mediumPadding),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.Start
             ) {

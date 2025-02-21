@@ -202,6 +202,9 @@ class APIService(private val client: HttpClient) {
     suspend fun getUsersOperationsSetMessageToBuyer(idUser: Long): AppResponse =
         client.get("users/$idUser/operations/set_message_to_buyers").body()
 
+    suspend fun getSettingsList(idUser: Long, list : String?): AppResponse =
+        client.get("users/$idUser/operations/$list").body()
+
     suspend fun getUsersOperationsSetAutoFeedback(idUser: Long): AppResponse =
         client.get("users/$idUser/operations/set_auto_feedback").body()
     suspend fun getUsersOperationsSetBiddingStep(idUser: Long): AppResponse =
@@ -233,6 +236,12 @@ class APIService(private val client: HttpClient) {
 
     suspend fun postUsersOperationsSetMessageToBuyer(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/set_message_to_buyers") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
+    suspend fun postOfferOperationsRemoveBidsOfUsers(idOffer: Long, body: HashMap<String, JsonElement>): AppResponse =
+        client.post("offers/$idOffer/operations/remove_bids_of_users") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
@@ -299,6 +308,9 @@ class APIService(private val client: HttpClient) {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
+
+    suspend fun getOfferOperationsRemoveBidsOfUsers(idOffer: Long): AppResponse =
+        client.get("offers/$idOffer/operations/remove_bids_of_users").body()
 
     suspend fun postUsersOperationsSetDefaultAddressCard(idUser: Long, body: Map<String, Long>): AppResponse =
         client.post("users/$idUser/operations/set_default_address_card") {
@@ -534,7 +546,7 @@ class APIService(private val client: HttpClient) {
         }.body()
     }
 
-    suspend fun postUsersOperationAddList(idUser: Long, body: HashMap<String, String>, list : String? = null): AppResponse {
+    suspend fun postUsersOperationAddList(idUser: Long, body: HashMap<String, JsonElement>, list : String? = null): AppResponse {
         return client.post("users/$idUser/operations/$list") {
             contentType(ContentType.Application.Json)
             setBody(body)

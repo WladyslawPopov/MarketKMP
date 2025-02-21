@@ -25,6 +25,7 @@ interface OfferComponent {
         val offerViewModel: OfferViewModel,
         val backHandler: BackHandler
     )
+
     fun updateOffer(id: Long, isSnapshot: Boolean)
     fun navigateToOffers(id: Long)
     fun onBeakClick()
@@ -36,6 +37,7 @@ interface OfferComponent {
     fun goToCreateOrder(item : Pair<Long, List<SelectedBasketItem>>)
     fun goToDialog(dialogId: Long?)
     fun goToProposalPage(type: ProposalType)
+    fun goToDynamicSettings(type: String)
     fun goToLogin()
     fun goToSubscribes()
 }
@@ -59,6 +61,7 @@ class DefaultOfferComponent(
     val navigateToDialog: (dialogId: Long?) -> Unit,
     val navigationSubscribes: () -> Unit,
     val navigateToProposalPage: (offerId: Long, type: ProposalType) -> Unit,
+    val navigateDynamicSettings: (type: String) -> Unit,
 ) : OfferComponent, ComponentContext by componentContext {
 
     val viewModel : OfferViewModel = OfferViewModel(
@@ -150,6 +153,10 @@ class DefaultOfferComponent(
 
     override fun goToProposalPage(type: ProposalType) {
         navigateToProposalPage(id, type)
+    }
+
+    override fun goToDynamicSettings(type: String) {
+        navigateDynamicSettings(type)
     }
 
     override fun goToLogin() {

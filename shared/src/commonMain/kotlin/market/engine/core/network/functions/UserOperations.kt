@@ -51,6 +51,23 @@ class UserOperations(val apiService: APIService) {
         }
     }
 
+    suspend fun getUsersOperationsGetSettingsList(id: Long = 1L, list : String?): ServerResponse<DynamicPayload<OperationResult>> {
+        return try {
+            val response = apiService.getSettingsList(id, list)
+            try {
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload,serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
     suspend fun getUserOperationsCreateSubscription(idUser: Long): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.getUserCreateSubscription(idUser)
@@ -255,6 +272,23 @@ class UserOperations(val apiService: APIService) {
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun postUsersOperationAddList(id: Long, body: HashMap<String, JsonElement>, list: String?): ServerResponse<DynamicPayload<OperationResult>> {
+        return try {
+            val res = apiService.postUsersOperationAddList(id, body, list)
+            try {
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(res.payload, serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(res.errorCode.toString(), res.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {
             ServerResponse(error = e)

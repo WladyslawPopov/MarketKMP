@@ -448,6 +448,9 @@ fun OfferContent(
                                             },
                                             goToProposals = { type ->
                                                 component.goToProposalPage(type)
+                                            },
+                                            goToDynamicSettings = {
+                                                component.goToDynamicSettings(it)
                                             }
                                         )
                                     }

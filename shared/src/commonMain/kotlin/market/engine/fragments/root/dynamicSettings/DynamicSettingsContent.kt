@@ -191,14 +191,65 @@ fun DynamicSettingsContent(
 
                             DeliveryCardsContent(
                                 deliveryCards.value,
-                                deliveryFields,
-                                viewModel
-                            ){
-                                viewModel.viewModelScope.launch {
-                                    viewModel.responseGetLoadCards.value = viewModel.getDeliveryCards() ?: emptyList()
-                                    viewModel.deliveryFields.value =  viewModel.getDeliveryFields() ?: emptyList()
+                                deliveryFields.value,
+                                viewModel,
+                                setUpNewFields = { newFields ->
+                                   deliveryFields.value = newFields
+                                },
+                                onError = {
+                                    deliveryFields.value = it
+                                },
+                                refresh = {
+                                    viewModel.viewModelScope.launch {
+                                        viewModel.responseGetLoadCards.value = viewModel.getDeliveryCards() ?: emptyList()
+                                        viewModel.deliveryFields.value =  viewModel.getDeliveryFields() ?: emptyList()
+                                    }
                                 }
+                            )
+                        }
+
+                        "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
+                            if (builderDescription?.fields?.isNotEmpty() == true) {
+                                HeaderAlertText(
+                                    rememberRichTextState().setHtml(
+                                        builderDescription?.title ?: builderDescription?.description ?: ""
+                                    ).annotatedString
+                                )
+
+                                builderDescription?.fields?.let {
+                                    SetUpDynamicFields(it)
+                                }
+
+                                AcceptedPageButton(
+                                    strings.actionChangeLabel
+                                ) {
+                                    viewModel.postSubmit(settingsType, owner) {
+                                        when (settingsType) {
+                                            "set_phone" -> {
+                                                component.goToVerificationPage("set_phone")
+                                            }
+
+                                            "set_password", "forgot_password", "reset_password" -> {
+                                                if (builderDescription?.body != null) {
+                                                    component.goToVerificationPage("set_password")
+                                                } else {
+                                                    component.onBack()
+                                                }
+                                            }
+
+                                            else -> {
+                                                component.onBack()
+                                            }
+                                        }
+                                    }
+                                }
+
+
                             }
+                        }
+
+                        "cancel_all_bids" ->{
+
                         }
 
                         else -> {

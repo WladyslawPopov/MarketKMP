@@ -230,6 +230,9 @@ fun MyOffersContent(
                         updateTrigger = viewModel.updateItemTrigger.value,
                         onItemClick = {
                             component.goToOffer(offer)
+                        },
+                        goToDynamicSettings = {
+                            component.goToDynamicSettings(it)
                         }
                     )
                 }
