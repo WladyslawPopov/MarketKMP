@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import market.engine.common.AnalyticsFactory
 import market.engine.common.getFileUpload
 import market.engine.core.data.baseFilters.LD
@@ -40,6 +41,8 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.UserOperations
+import market.engine.core.network.networkObjects.DeliveryAddress
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
@@ -378,6 +381,198 @@ open class BaseViewModel: ViewModel() {
             }
         }
         return check
+    }
+
+    suspend fun getDeliveryCards(): List<DeliveryAddress>? {
+        try {
+            val response = withContext(Dispatchers.IO) {
+                userOperations.getUsersOperationsAddressCards(UserData.login)
+            }
+
+            val payload = response.success
+            val err = response.error
+
+            if (payload?.body?.addressCards != null) {
+                return payload.body.addressCards
+            } else {
+                throw err ?: ServerErrorException(errorCode = "Error", humanMessage = "")
+            }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+            return null
+        } catch (exception: Exception) {
+            onError(
+                ServerErrorException(
+                    errorCode = exception.message.toString(),
+                    humanMessage = exception.message.toString()
+                )
+            )
+            return null
+        }
+    }
+
+    suspend fun getDeliveryFields(): ArrayList<Fields>? {
+        val res = withContext(Dispatchers.IO) {
+            userOperations.getUsersOperationsSetAddressCards(UserData.login)
+        }
+        return withContext(Dispatchers.Main){
+            val payload = res.success
+            val err = res.error
+
+            if (payload != null) {
+                return@withContext payload.fields
+            } else {
+                if (err != null)
+                    onError(err)
+                return@withContext null
+            }
+        }
+    }
+
+    fun updateDefaultCard(card: DeliveryAddress, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                val b = HashMap<String, Long>()
+                b["id_as_ts"] = card.id
+                userOperations.postUsersOperationsSetAddressCardsDefault(UserData.login, b)
+            }
+
+            withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val err = res.error
+
+                if (buffer != null) {
+                    if (buffer.success) {
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        delay(2000)
+
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = buffer.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                    }
+                } else {
+                    err?.let { onError(it) }
+                }
+            }
+        }
+    }
+
+    fun updateDeleteCard(card: DeliveryAddress, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                val b = HashMap<String, Long>()
+                b["id_as_ts"] = card.id
+                userOperations.postUsersOperationsDeleteAddressCards(UserData.login, b)
+            }
+            withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val err = res.error
+
+                if (buffer != null) {
+                    if (buffer.success) {
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        delay(2000)
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = buffer.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                    }
+                } else {
+                    err?.let { onError(it) }
+                }
+            }
+        }
+    }
+
+    fun saveDeliveryCard(deliveryFields: List<Fields>, cardId: Long?, onSaved: () -> Unit, onError: (List<Fields>) -> Unit) {
+        viewModelScope.launch {
+            val jsonBody = buildJsonObject {
+                deliveryFields.forEach { field ->
+                    when (field.widgetType) {
+                        "input" -> {
+                            if (field.data != null) {
+                                put(field.key.toString(), field.data!!)
+                            }
+                        }
+
+                        "hidden" -> {
+                            if (cardId != null) {
+                                put(field.key.toString(), JsonPrimitive(cardId))
+                            }
+                        }
+
+                        else -> {}
+                    }
+                }
+            }
+
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsSetAddressCards(UserData.login, jsonBody)
+            }
+
+            withContext(Dispatchers.Main) {
+                val payload = res.success
+                val err = res.error
+
+                if (payload != null) {
+                    if (payload.status == "operation_success") {
+
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings",
+                            "body" to jsonBody
+                        )
+                        analyticsHelper.reportEvent(
+                            "save_address_cards_success",
+                            eventParameters
+                        )
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        delay(2000)
+                        onSaved()
+                    } else {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings",
+                            "body" to jsonBody
+                        )
+                        analyticsHelper.reportEvent(
+                            "save_address_cards_failed",
+                            eventParameters
+                        )
+                        payload.recipe?.fields?.let { onError(it) }
+
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(strings.operationFailed)
+                            )
+                        )
+                    }
+                } else {
+                    err?.let { onError(it) }
+                }
+            }
+        }
     }
 
     fun resetScroll() {

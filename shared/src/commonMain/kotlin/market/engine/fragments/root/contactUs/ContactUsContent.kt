@@ -139,7 +139,7 @@ fun ContactUsContent(
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(dimens.mediumPadding),
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                  item {
@@ -159,19 +159,16 @@ fun ContactUsContent(
                                      if(field.key == "email") {
                                          DynamicInputField(
                                              field = field,
-                                             Modifier.fillMaxWidth(0.9f),
                                              enabled = UserData.token == ""
                                          )
                                      }else{
                                          DynamicInputField(
                                              field = field,
-                                             Modifier.fillMaxWidth(0.9f),
                                          )
                                      }
                                  }else{
                                      DynamicSelect(
-                                         field,
-                                         Modifier.fillMaxWidth(0.9f)
+                                         field
                                      )
                                  }
                              }
@@ -179,7 +176,6 @@ fun ContactUsContent(
                              "text_area" -> {
                                  DynamicInputField(
                                      field = field,
-                                     Modifier.fillMaxWidth(0.9f),
                                      singleLine = false
                                  )
                              }

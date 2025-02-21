@@ -1,4 +1,4 @@
-package market.engine.widgets.filterContents
+package market.engine.fragments.root.dynamicSettings.contents
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -26,6 +24,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
+import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dropdown_menu.DynamicSelect
@@ -38,26 +37,23 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DeliveryCardsContent(
-    cards : List<DeliveryAddress>,
-    fields : List<Fields>,
-    setDefaultCard : (DeliveryAddress) -> Unit,
-    addNewCard : suspend (Long?) -> Boolean,
-    deleteCard : (DeliveryAddress) -> Unit,
+    cards: List<DeliveryAddress>,
+    fields: MutableState<List<Fields>>,
+    viewModel: BaseViewModel,
+    refresh: () -> Unit
 ){
     val showFields = remember { mutableStateOf(false) }
-
-    val selectedCards = remember { mutableStateOf(cards.find { it.isDefault }?.id) }
+    
+    val selectedCards = remember { mutableStateOf(1L) }
 
     val selectedCountry = remember { mutableStateOf(0) }
 
     val countryDef = stringResource(strings.countryDefault)
 
-    val scope = rememberCoroutineScope()
-
     val setUpFields = {
         val card = cards.find { it.id == selectedCards.value }
         if (card != null) {
-            fields.forEach { field ->
+            fields.value.forEach { field ->
                 when (field.key) {
                     "zip" -> {
                         field.data = JsonPrimitive(card.zip)
@@ -94,18 +90,6 @@ fun DeliveryCardsContent(
         }
     }
 
-    LaunchedEffect(cards){
-        if (cards.isNotEmpty()){
-            selectedCards.value = cards.find { it.isDefault }?.id
-        }
-    }
-
-    LaunchedEffect(fields){
-        if (fields.isNotEmpty()){
-           setUpFields()
-        }
-    }
-
     Column(
         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
         horizontalAlignment = Alignment.Start,
@@ -126,11 +110,6 @@ fun DeliveryCardsContent(
                     containerColor = colors.brightGreen,
                 ) {
                     selectedCards.value = 1L
-                    fields.forEach {
-                        if (it.data != null){
-                            it.data = null
-                        }
-                    }
                     showFields.value = true
                 }
             }
@@ -157,29 +136,30 @@ fun DeliveryCardsContent(
 
         //fields
         AnimatedVisibility(showFields.value) {
-            Column {
-                fields.forEach { field ->
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            ) {
+                fields.value.forEach { field ->
                     when (field.widgetType) {
                         "input" -> {
                             if (field.key != "country" && field.key != "other_country") {
                                 DynamicInputField(
                                     field = field,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
                                 )
                             }
                         }
                     }
                 }
 
-                val countryField = fields.find { it.key == "country" }
-                val otherCountryField = fields.find { it.key == "other_country" }
+                val countryField = fields.value.find { it.key == "country" }
+                val otherCountryField = fields.value.find { it.key == "other_country" }
 
                 // country
                 if (countryField != null) {
 
-                    selectedCountry.value = fields.find {
+                    selectedCountry.value = fields.value.find {
                         it.key == "country"
                     }?.data?.jsonPrimitive?.intOrNull ?: 0
 
@@ -196,10 +176,7 @@ fun DeliveryCardsContent(
                 if (otherCountryField != null) {
                     AnimatedVisibility(visible = selectedCountry.value == 1) {
                         DynamicInputField(
-                            field = otherCountryField,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
+                            field = otherCountryField
                         )
                     }
                 }
@@ -210,18 +187,19 @@ fun DeliveryCardsContent(
             modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         ) {
-            AnimatedVisibility(!showFields.value && selectedCards.value != null && cards.find { it.id == selectedCards.value }?.isDefault == false) {
+            AnimatedVisibility(!showFields.value && selectedCards.value != 1L && cards.find { it.id == selectedCards.value }?.isDefault == false) {
                 SimpleTextButton(
                     stringResource(strings.defaultCardLabel),
                     backgroundColor = colors.textA0AE,
                     textColor = colors.alwaysWhite
                 ) {
-                    setDefaultCard(cards.find { it.id == selectedCards.value }
-                        ?: return@SimpleTextButton)
+                    cards.find { it.id == selectedCards.value }?.let { viewModel.updateDefaultCard(it){
+                        refresh()
+                    } }
                 }
             }
 
-            AnimatedVisibility(!showFields.value && selectedCards.value != null) {
+            AnimatedVisibility(!showFields.value && selectedCards.value != 1L) {
                 SimpleTextButton(
                     stringResource(strings.editCardLabel),
                     backgroundColor = colors.greenWaterBlue,
@@ -237,13 +215,17 @@ fun DeliveryCardsContent(
                     backgroundColor = colors.textA0AE,
                     textColor = colors.alwaysWhite
                 ) {
-                    scope.launch {
-                        val res = addNewCard(selectedCards.value)
-                        if (res) {
-                            selectedCards.value = cards.find { it.isDefault }?.id
+                    viewModel.saveDeliveryCard(
+                        fields.value,
+                        selectedCards.value,
+                        onSaved = {
+                            refresh()
                             showFields.value = false
+                        },
+                        onError = {
+                            fields.value = it
                         }
-                    }
+                    )
                 }
             }
 
@@ -255,27 +237,28 @@ fun DeliveryCardsContent(
                 ) {
                     showFields.value = false
                     if (selectedCards.value == 1L){
-                        selectedCards.value = null
+                        selectedCards.value = 1L
                     }
-                    selectedCards.value = selectedCards.value ?: cards.find { it.isDefault }?.id
+                    selectedCards.value = selectedCards.value
                     setUpFields()
                 }
             }
 
-            AnimatedVisibility(!showFields.value && selectedCards.value != null) {
+            AnimatedVisibility(!showFields.value && selectedCards.value != 1L) {
                 SimpleTextButton(
                     stringResource(strings.actionDelete),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite
                 ) {
                     cards.find { it.id == selectedCards.value }?.let {
-                        selectedCards.value = null
-                        deleteCard(it)
+                        viewModel.updateDeleteCard(
+                            it
+                        ){
+                            selectedCards.value = 1L
+                        }
                     }
                 }
             }
         }
     }
 }
-
-

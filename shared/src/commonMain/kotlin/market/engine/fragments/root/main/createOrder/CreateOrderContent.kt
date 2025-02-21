@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +38,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.fragments.base.BackHandler
-import market.engine.widgets.filterContents.DeliveryCardsContent
+import market.engine.fragments.root.dynamicSettings.contents.DeliveryCardsContent
 import market.engine.fragments.base.onError
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.DynamicLabel
@@ -55,7 +56,6 @@ fun CreateOrderContent(
     val selectPaymentType = rememberUpdatedState(viewModel.selectPaymentType.value)
 
     val offers = viewModel.responseGetOffers.collectAsState()
-    val deliveryCards = viewModel.responseGetLoadCards
     val additionalFields = viewModel.responseGetAdditionalData.collectAsState()
     val createOrderResponse = viewModel.responseCreateOrder.collectAsState()
 
@@ -66,13 +66,21 @@ fun CreateOrderContent(
 
     val basketItem = model.value.basketItem
 
+    val deliveryCards = remember {
+        viewModel.responseGetLoadCards
+    }
+
+    val deliveryFields = remember {
+        viewModel.deliveryFields
+    }
+
     BackHandler(model.value.backHandler){
         component.onBackClicked()
     }
 
     val refresh = {
         viewModel.onError(ServerErrorException())
-        viewModel.loadDeliveryCards()
+        viewModel.updateDeliveryFields()
         viewModel.getOffers(basketItem.second.map { it.offerId })
         viewModel.getAdditionalFields(
             basketItem.first,
@@ -224,17 +232,11 @@ fun CreateOrderContent(
             // delivery cards
             DeliveryCardsContent(
                 deliveryCards.value,
-                viewModel.deliveryFields.value,
-                addNewCard = {
-                    viewModel.saveDeliveryCard(it)
-                },
-                setDefaultCard = { card ->
-                    viewModel.updateDefaultCard(card)
-                },
-                deleteCard = { card ->
-                    viewModel.updateDeleteCard(card)
-                }
-            )
+                deliveryFields,
+                viewModel
+            ){
+
+            }
 
             // additional fields
             Column(
@@ -312,7 +314,7 @@ fun CreateOrderContent(
                     modifier = Modifier.fillMaxWidth(0.6f)
                         .padding(dimens.mediumPadding),
                 ){
-                    viewModel.postPage(basketItem)
+                    viewModel.postPage(deliveryFields.value, basketItem)
                 }
             }
         }

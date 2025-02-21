@@ -36,18 +36,16 @@ fun SetUpDynamicFields(
                 "input" -> {
                     if(field.choices.isNullOrEmpty()) {
                         DynamicInputField(
-                            field = field,
-                            Modifier.fillMaxWidth()
+                            field = field
                         )
                     }else{
-                        DynamicSelect(field, Modifier.fillMaxWidth())
+                        DynamicSelect(field)
                     }
                 }
 
                 "password" -> {
                     DynamicInputField(
-                        field = field,
-                        Modifier.fillMaxWidth()
+                        field = field
                     )
                 }
 
@@ -70,28 +68,24 @@ fun SetUpDynamicFields(
                 "checkbox" -> {
                     DynamicCheckbox(
                         field = field,
-                        Modifier.fillMaxWidth()
                     )
                 }
 
                 "text_area" -> {
                     DynamicInputField(
                         field = field,
-                        Modifier.fillMaxWidth(),
                         singleLine = false
                     )
                 }
 
                 "checkbox_group" -> {
                     DynamicCheckboxGroup(
-                        field,
-                        Modifier.fillMaxWidth()
+                        field
                     )
                 }
                 "select" -> {
                     DynamicSelect(
-                        field,
-                        Modifier.fillMaxWidth()
+                        field
                     )
                 }
             }

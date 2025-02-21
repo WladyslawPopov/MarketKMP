@@ -96,7 +96,7 @@ import market.engine.fragments.base.onError
 import market.engine.widgets.dialogs.DateDialog
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
-import market.engine.widgets.textFields.DescriptionOfferTextField
+import market.engine.widgets.textFields.DescriptionTextField
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
@@ -137,6 +137,7 @@ fun CreateOfferContent(
     val selectedDate = remember { viewModel.selectedDate }
 
     val richTextState = rememberRichTextState()
+
     val columnState = rememberLazyListState(
          initialFirstVisibleItemIndex = viewModel.positionList.value
     )
@@ -226,13 +227,13 @@ fun CreateOfferContent(
     }
 
     LaunchedEffect(dynamicPayloadState.value){
+        val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
+
         if (dynamicPayloadState.value?.fields?.find { it.key == "description" }?.hasData == true ||
             dynamicPayloadState.value?.fields?.find { it.key == "description" }?.data != null){
             richTextState.setHtml(dynamicPayloadState.value?.fields?.find { it.key == "description"
             }?.data ?.jsonPrimitive?.content ?: "")
         }
-
-        val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
 
         if (images.value.isEmpty()) {
             when (type) {
@@ -411,13 +412,14 @@ fun CreateOfferContent(
                                 detectTapGestures(onTap = {
                                     focusManager.clearFocus()
                                 })
-                            },
+                            }.padding(horizontal = dimens.smallPadding),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
                         //categories
                         item {
                             Row(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(dimens.mediumPadding),
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.Bottom,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
@@ -466,8 +468,7 @@ fun CreateOfferContent(
                                 SeparatorLabel(titleField.shortDescription ?: "")
 
                                 DynamicInputField(
-                                    titleField,
-                                    Modifier.fillMaxWidth().padding(dimens.smallPadding)
+                                    titleField
                                 )
                             }
                         }
@@ -477,8 +478,7 @@ fun CreateOfferContent(
                             SeparatorLabel(stringResource(strings.photoLabel))
 
                             Row(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(dimens.mediumPadding),
+                                modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceAround
                             ) {
@@ -546,7 +546,6 @@ fun CreateOfferContent(
                             SetUpDynamicFields(
                                 paramList,
                                 Modifier.fillMaxWidth()
-                                    .padding(dimens.smallPadding)
                             )
                         }
 
@@ -589,8 +588,6 @@ fun CreateOfferContent(
 
                                                 DynamicSelect(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 ) { choice ->
                                                     choiceCodeSaleType.value = choice?.code?.int
                                                 }
@@ -606,8 +603,6 @@ fun CreateOfferContent(
                                                 ) {
                                                     DynamicInputField(
                                                         field,
-                                                        Modifier.fillMaxWidth()
-                                                            .padding(dimens.smallPadding),
                                                         suffix = stringResource(
                                                             strings.currencySign
                                                         ),
@@ -626,8 +621,6 @@ fun CreateOfferContent(
                                                 ) {
                                                     DynamicInputField(
                                                         field,
-                                                        Modifier.fillMaxWidth()
-                                                            .padding(dimens.smallPadding),
                                                         suffix = stringResource(
                                                             strings.currencySign
                                                         ),
@@ -641,8 +634,6 @@ fun CreateOfferContent(
                                             item {
                                                 DynamicSelect(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 )
                                             }
                                         }
@@ -651,8 +642,6 @@ fun CreateOfferContent(
                                             item {
                                                 DynamicSelect(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding),
                                                 )
                                             }
                                         }
@@ -667,8 +656,6 @@ fun CreateOfferContent(
                                                     item {
                                                         DynamicInputField(
                                                             field,
-                                                            Modifier.fillMaxWidth()
-                                                                .padding(dimens.smallPadding),
                                                             mandatory = true
                                                         )
                                                     }
@@ -684,8 +671,6 @@ fun CreateOfferContent(
                                             item {
                                                 DynamicSelect(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 )
                                             }
                                         }
@@ -697,8 +682,6 @@ fun CreateOfferContent(
                                                 )
                                                 DynamicSelect(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 )
                                             }
                                         }
@@ -707,8 +690,6 @@ fun CreateOfferContent(
                                             item {
                                                 DynamicSelect(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 )
                                             }
                                         }
@@ -717,8 +698,6 @@ fun CreateOfferContent(
                                             item {
                                                 DynamicInputField(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding),
                                                 )
                                             }
                                         }
@@ -727,8 +706,6 @@ fun CreateOfferContent(
                                             item {
                                                 DynamicCheckboxGroup(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 )
                                             }
                                         }
@@ -737,8 +714,6 @@ fun CreateOfferContent(
                                             item {
                                                 DynamicCheckboxGroup(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 )
                                             }
                                         }
@@ -751,8 +726,6 @@ fun CreateOfferContent(
 
                                                 DeliveryMethods(
                                                     field,
-                                                    Modifier.fillMaxWidth()
-                                                        .padding(dimens.smallPadding)
                                                 )
                                             }
                                         }
@@ -775,7 +748,11 @@ fun CreateOfferContent(
                                         }
                                         "description" -> {
                                             item {
-                                                DescriptionOfferTextField(field, richTextState)
+                                                SeparatorLabel(
+                                                    stringResource(strings.description)
+                                                )
+
+                                                DescriptionTextField(field, richTextState)
                                             }
                                         }
                                     }

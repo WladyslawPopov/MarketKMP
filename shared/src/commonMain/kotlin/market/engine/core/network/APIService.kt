@@ -180,13 +180,13 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetBiddingStep(idUser: Long, body: Map<String, Int>): AppResponse =
+    suspend fun postUsersOperationsSetBiddingStep(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/set_bidding_step") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetVacation(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetVacation(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/set_vacation") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -222,9 +222,6 @@ class APIService(private val client: HttpClient) {
     suspend fun getUsersOperationsSetVacation(idUser: Long): AppResponse =
         client.get("users/$idUser/operations/set_vacation").body()
 
-    suspend fun getUsersOperationsSetWatermark(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_watermark").body()
-
     suspend fun getUsersOperationsSetOutgoingAddress(idUser: Long): AppResponse =
         client.get("users/$idUser/operations/save_outgoing_address").body()
 
@@ -252,7 +249,7 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetMessageToBuyer(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetMessageToBuyer(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/set_message_to_buyers") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -288,7 +285,7 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetAutoFeedback(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetAutoFeedback(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/set_auto_feedback") {
             contentType(ContentType.Application.Json)
             setBody(body)

@@ -20,7 +20,7 @@ interface DynamicSettingsComponent {
         val dynamicSettingsViewModel: DynamicSettingsViewModel,
         val backHandler: BackHandler
     )
-
+    fun updateModel()
     fun onBack()
     fun goToVerificationPage(method : String)
 }
@@ -49,8 +49,12 @@ class DefaultDynamicSettingsComponent(
 
     override val model = _model
 
+    override fun updateModel() {
+        dynamicSettingsViewModel.init(model.value.settingsType, model.value.owner)
+    }
+
     init {
-        dynamicSettingsViewModel.init(settingsType, owner)
+        updateModel()
 
         val eventParameters = mapOf(
             "user_id" to UserData.login,

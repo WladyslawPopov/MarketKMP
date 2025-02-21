@@ -7,17 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.AcceptedPageButton
-import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.buttons.DateBtn
 import market.engine.widgets.dialogs.DateDialog
 import market.engine.widgets.rows.FilterContentHeaderRow
 import market.engine.widgets.textFields.TextFieldWithState
@@ -337,43 +333,22 @@ fun OrderFilterContent(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (filters.find { it.key == "created_ts" && it.operation == "gte" }?.value != null) {
-                            SimpleTextButton(
-                                text = fromThisDateTextState.value,
-                                leadIcon = {
-                                    Icon(
-                                        painterResource(drawables.calendarIcon),
-                                        "",
-                                        tint = colors.steelBlue,
-                                        modifier = Modifier.size(dimens.smallIconSize)
-                                    )
-                                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                },
-                                textStyle = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f).padding(dimens.smallPadding)
+                            DateBtn(
+                                fromThisDateTextState.value,
+                                Modifier.weight(1f)
                             ){
                                 showDateDialog.value = "from"
                             }
                         }
 
                         if (filters.find { it.key == "created_ts" && it.operation == "lte" }?.value != null) {
-                            SimpleTextButton(
-                                text = toThisDateTextState.value,
-                                leadIcon = {
-                                    Icon(
-                                        painterResource(drawables.calendarIcon),
-                                        "",
-                                        tint = colors.steelBlue,
-                                        modifier = Modifier.size(dimens.smallIconSize)
-                                    )
-
-                                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-                                },
-                                textStyle = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f).padding(dimens.smallPadding)
+                            DateBtn(
+                                toThisDateTextState.value,
+                                Modifier.weight(1f)
                             ){
                                 showDateDialog.value = "to"
                             }

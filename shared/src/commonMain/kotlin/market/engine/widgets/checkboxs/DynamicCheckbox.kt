@@ -1,22 +1,18 @@
 package market.engine.widgets.checkboxs
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.processInput
-import market.engine.widgets.texts.DynamicLabel
 import market.engine.widgets.texts.ErrorText
 
 @Composable
@@ -33,34 +29,24 @@ fun DynamicCheckbox(
 
     val error = remember { mutableStateOf(processInput(field.errors)) }
 
-    val onClickListener : (Boolean) -> Unit = {
-        initialSelected.value = it
-        field.data = JsonPrimitive(it)
+    val onClickListener : (Int) -> Unit = {
+        initialSelected.value = field.data?.jsonPrimitive?.booleanOrNull != true
+        field.data = JsonPrimitive(initialSelected.value)
     }
 
-    Column(modifier = modifier) {
-        // A single checkbox row
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    onClickListener(initialSelected.value)
-                }
-        ) {
-            ThemeCheckBox(
-                isSelected = initialSelected.value,
-                onSelectionChange = {
-                    onClickListener(it)
-                },
-                Modifier
-            )
 
-            DynamicLabel(
-                text = field.longDescription ?: field.shortDescription ?: "",
-                isMandatory = isMandatory.value
-            )
-        }
+    Column(modifier = modifier) {
+        val choices = Choices(
+            name = field.longDescription ?: field.shortDescription ?: "",
+            code = JsonPrimitive(0)
+        )
+
+        CheckBoxRow(
+            isSelected = initialSelected.value,
+            choice = choices,
+            isMandatory = isMandatory.value,
+            onClickListener = onClickListener
+        )
 
         if (error.value != null) {
             ErrorText(text = error.value ?: "", modifier = Modifier.padding(dimens.smallPadding))

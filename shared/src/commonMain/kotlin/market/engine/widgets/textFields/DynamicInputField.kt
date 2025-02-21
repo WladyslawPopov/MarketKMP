@@ -32,7 +32,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DynamicInputField(
     field: Fields,
-    modifier: Modifier = Modifier,
     label : String? = null,
     suffix : String? = null,
     mandatory: Boolean? = null,
@@ -72,6 +71,7 @@ fun DynamicInputField(
                 modifier = Modifier.align(Alignment.End)
             )
         }
+
         TextField(
             value = textState.value,
             onValueChange = {
@@ -98,7 +98,6 @@ fun DynamicInputField(
             },
             label = {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -130,9 +129,9 @@ fun DynamicInputField(
                     )
                 }
             },
-            modifier = modifier,
             singleLine = singleLine,
             enabled = enabled,
+            modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
             colors = TextFieldDefaults.colors(
                 focusedTextColor = colors.black,

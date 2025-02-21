@@ -115,7 +115,7 @@ fun getDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = !expanded },
             containerColor = colors.white,
-            modifier = modifier
+            modifier = Modifier
                 .widthIn(max = 350.dp)
                 .heightIn(max = 400.dp)
                 .wrapContentSize()

@@ -46,7 +46,7 @@ fun ProfileSettingsContent(
             }
         ),
         NavigationItem(
-            title = stringResource(strings.vacationLabel),
+            title = stringResource(strings.vacationTitle),
             icon = drawables.vacationIcon,
             onClick = {
                 component.navigateToDynamicSettings("set_vacation")

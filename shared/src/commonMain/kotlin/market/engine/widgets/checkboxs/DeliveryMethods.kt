@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -112,9 +110,9 @@ fun DeliveryMethods(
                 AnimatedVisibility(selectedItems.value.contains(choiceCode) && choice.extendedFields != null) {
                     Column(
                         modifier = Modifier.fillMaxWidth()
-                            .padding(dimens.smallPadding),
-                        verticalArrangement = Arrangement.SpaceAround,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .padding(dimens.mediumPadding),
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                        horizontalAlignment = Alignment.Start
                     ){
                         choice.extendedFields?.forEach { extendField ->
                             when (extendField.key) {
@@ -128,8 +126,6 @@ fun DeliveryMethods(
 
                                     DynamicInputField(
                                         extendField,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding),
                                         suffix = stringResource(strings.currencyCode),
                                         label = stringResource(strings.deliveryCityParameterLabel),
                                     )
@@ -144,8 +140,6 @@ fun DeliveryMethods(
 
                                     DynamicInputField(
                                         extendField,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding),
                                         suffix = stringResource(strings.currencyCode),
                                         label = stringResource(strings.deliveryCountryParameterLabel),
                                     )
@@ -159,8 +153,6 @@ fun DeliveryMethods(
                                     }
                                     DynamicInputField(
                                         extendField,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding),
                                         suffix = stringResource(strings.currencyCode),
                                         label = stringResource(strings.deliveryWorldParameterLabel),
                                     )
@@ -175,9 +167,6 @@ fun DeliveryMethods(
 
                                     DynamicInputField(
                                         extendField,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .heightIn(min = 120.dp, max = 400.dp)
-                                            .padding(dimens.smallPadding),
                                         label = stringResource(strings.commentLabel),
                                         singleLine = false,
                                     )
@@ -185,8 +174,6 @@ fun DeliveryMethods(
                                 else -> {
                                     DynamicInputField(
                                         extendField,
-                                        Modifier.fillMaxWidth(0.7f)
-                                            .padding(dimens.smallPadding)
                                     )
                                 }
                             }

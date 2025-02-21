@@ -31,19 +31,14 @@ import market.engine.core.utils.processInput
 import market.engine.widgets.bars.RichTextStyleBar
 import market.engine.widgets.texts.DynamicLabel
 import market.engine.widgets.texts.ErrorText
-import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DescriptionOfferTextField(
+fun DescriptionTextField(
     field: Fields,
     richTextState: RichTextState
 ) {
-    SeparatorLabel(
-        stringResource(strings.description)
-    )
-
     val errorState = rememberUpdatedState(field.errors)
 
     val isMandatory = remember {
@@ -53,20 +48,17 @@ fun DescriptionOfferTextField(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth()
-            .padding(dimens.mediumPadding)
-            .background(
-                colors.white,
-                MaterialTheme.shapes.medium
-            )
-            .clip(MaterialTheme.shapes.medium),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.background(
+            colors.white,
+            MaterialTheme.shapes.small
+        )
+            .clip(MaterialTheme.shapes.small).fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         RichTextStyleBar(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimens.smallPadding),
+                .fillMaxWidth(),
             state = richTextState,
         )
 
@@ -85,7 +77,6 @@ fun DescriptionOfferTextField(
                 .heightIn(min = 300.dp, max = 500.dp),
             label = {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {

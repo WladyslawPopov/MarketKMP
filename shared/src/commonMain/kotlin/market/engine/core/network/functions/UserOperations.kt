@@ -25,7 +25,7 @@ class UserOperations(val apiService: APIService) {
             val response = apiService.getUsers(idUser)
             try {
                 val serializer = ListSerializer(User.serializer())
-                val payload = deserializePayload<List<User>>(response.payload, serializer)
+                val payload = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
             }catch (e : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -139,7 +139,7 @@ class UserOperations(val apiService: APIService) {
             try {
                 val serializer = PayloadExistence.serializer(AdditionalDataForNewOrder.serializer())
                 val payload =
-                    deserializePayload<PayloadExistence<AdditionalDataForNewOrder>>(
+                    deserializePayload(
                         response.payload, serializer
                     )
                 ServerResponse(success = payload)
@@ -206,7 +206,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetBiddingStep(
         id: Long = 1L,
-        body: HashMap<String, Int>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetBiddingStep(id, body)
@@ -226,7 +226,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetVacation(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetVacation(id, body)
@@ -384,23 +384,6 @@ class UserOperations(val apiService: APIService) {
         }
     }
 
-    suspend fun getUsersOperationsSetWatermark(id: Long = 1L): ServerResponse<DynamicPayload<OperationResult>> {
-        return try {
-            val response = apiService.getUsersOperationsSetWatermark(id)
-            try {
-                val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                ServerResponse(success = payload)
-            }catch (e : Exception){
-                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-            }
-        } catch (e: ServerErrorException) {
-            ServerResponse(error = e)
-        } catch (e: Exception) {
-            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
-        }
-    }
-
     suspend fun getUsersOperationsAddressCards(id: Long = 1L): ServerResponse<BodyPayload<AddressCards>> {
         return try {
             val response = apiService.getUsersOperationsAddressCards(id)
@@ -475,7 +458,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetMessageToBuyer(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetMessageToBuyer(id, body)
@@ -626,7 +609,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetAutoFeedback(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetAutoFeedback(id, body)
@@ -715,7 +698,7 @@ class UserOperations(val apiService: APIService) {
             try {
                 val serializer = BodyPayload.serializer(BodyObj.serializer())
                 val payload =
-                    deserializePayload<BodyPayload<BodyObj>>(
+                    deserializePayload(
                         response.payload, serializer
                     )
                 ServerResponse(success = payload)

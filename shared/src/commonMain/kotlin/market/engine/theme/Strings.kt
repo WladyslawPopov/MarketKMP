@@ -181,6 +181,8 @@ interface Strings {
     val myBalanceSubTitle : StringResource
     val ratingParameterName : StringResource
     val vacationLabel : StringResource
+    val vacationTitle : StringResource
+    val vacationHeaderSettingsLabel : StringResource
     val activeTab : StringResource
     val inactiveTab : StringResource
     val futureTab : StringResource
@@ -450,6 +452,7 @@ interface Strings {
     val currentStateOfferLabel : StringResource
     val snapshotLabel : StringResource
     val messageToBuyersLabel : StringResource
+    val headerMessageToBuyersLabel : StringResource
     val settingsBiddingStepsLabel : StringResource
     val settingsAutoFeedbacksLabel : StringResource
     val settingsWatermarkLabel : StringResource
@@ -461,4 +464,10 @@ interface Strings {
     val settingsBlackListBuyersLabel : StringResource
     val settingsWhiteListBuyersLabel : StringResource
     val settingsBlockRatingLabel : StringResource
+    val autoFeedbackTitle : StringResource
+    val autoFeedbackSubtitle : StringResource
+    val autoFeedbackAfterExceededTimeTitle : StringResource
+    val autoFeedbackAfterExceededTimeSubtitle : StringResource
+    val watermarkHeaderLabel : StringResource
+    val headerDeliveryCardLabel : StringResource
 }

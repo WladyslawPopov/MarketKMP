@@ -54,7 +54,7 @@ class DefaultCreateOrderComponent(
                 navigateBack()
             }
         }
-        createOrderViewModel.loadDeliveryCards()
+        createOrderViewModel.updateDeliveryFields()
         createOrderViewModel.getOffers(basketItem.second.map { it.offerId })
         createOrderViewModel.getAdditionalFields(
             basketItem.first,
