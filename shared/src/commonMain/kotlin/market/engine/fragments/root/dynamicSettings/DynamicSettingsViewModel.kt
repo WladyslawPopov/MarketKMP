@@ -184,6 +184,12 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         UserData.login,
                         body
                     )
+
+                    "set_outgoing_address" -> userOperations.postUsersOperationsSetOutgoingAddress(
+                        UserData.login,
+                        body
+                    )
+
                     else -> {
                         userOperations.postUsersOperationsSetLogin(UserData.login, body)
                     }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +45,7 @@ fun DeliveryCardsContent(
 ){
     val showFields = remember { mutableStateOf(false) }
     
-    val selectedCards = remember { mutableStateOf(1L) }
+    val selectedCards = remember { mutableStateOf(cards.find { it.isDefault }?.id) }
 
     val selectedCountry = remember { mutableStateOf(0) }
 
@@ -87,7 +88,22 @@ fun DeliveryCardsContent(
                 }
                 field.errors = null
             }
+        } else {
+            fields.value.forEach { field ->
+                field.data = null
+                field.errors = null
+            }
         }
+    }
+
+    LaunchedEffect(cards){
+        if (cards.isNotEmpty() && selectedCards.value == null){
+            selectedCards.value = cards.find { it.isDefault }?.id
+        }
+    }
+
+    LaunchedEffect(selectedCards){
+        setUpFields()
     }
 
     Column(
@@ -98,7 +114,7 @@ fun DeliveryCardsContent(
         SeparatorLabel(
             stringResource(strings.addressCardsTitle),
         )
-
+        //create new card
         AnimatedVisibility(!showFields.value) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -109,12 +125,13 @@ fun DeliveryCardsContent(
                     strings.addNewDeliveryCard,
                     containerColor = colors.brightGreen,
                 ) {
-                    selectedCards.value = 1L
+                    selectedCards.value = null
                     showFields.value = true
                 }
             }
         }
 
+        //card items
         AnimatedVisibility(!showFields.value) {
             LazyRow(
                 modifier = Modifier.padding(dimens.smallPadding),
@@ -127,7 +144,6 @@ fun DeliveryCardsContent(
                         cards[it],
                         setActiveCard = { card ->
                             selectedCards.value = card.id
-                            setUpFields()
                         }
                     )
                 }
@@ -182,24 +198,26 @@ fun DeliveryCardsContent(
                 }
             }
         }
-
+        //buttons
         FlowRow(
             modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         ) {
-            AnimatedVisibility(!showFields.value && selectedCards.value != 1L && cards.find { it.id == selectedCards.value }?.isDefault == false) {
+            AnimatedVisibility(!showFields.value && selectedCards.value != null && cards.find { it.id == selectedCards.value }?.isDefault == false) {
                 SimpleTextButton(
                     stringResource(strings.defaultCardLabel),
                     backgroundColor = colors.textA0AE,
                     textColor = colors.alwaysWhite
                 ) {
-                    cards.find { it.id == selectedCards.value }?.let { viewModel.updateDefaultCard(it){
-                        refresh()
-                    } }
+                    cards.find { it.id == selectedCards.value }?.let {
+                        viewModel.updateDefaultCard(it){
+                            refresh()
+                        }
+                    }
                 }
             }
 
-            AnimatedVisibility(!showFields.value && selectedCards.value != 1L) {
+            AnimatedVisibility(!showFields.value && selectedCards.value != null) {
                 SimpleTextButton(
                     stringResource(strings.editCardLabel),
                     backgroundColor = colors.greenWaterBlue,
@@ -219,8 +237,8 @@ fun DeliveryCardsContent(
                         fields.value,
                         selectedCards.value,
                         onSaved = {
-                            refresh()
                             showFields.value = false
+                            refresh()
                         },
                         onError = {
                             fields.value = it
@@ -236,15 +254,11 @@ fun DeliveryCardsContent(
                     textColor = colors.alwaysWhite
                 ) {
                     showFields.value = false
-                    if (selectedCards.value == 1L){
-                        selectedCards.value = 1L
-                    }
-                    selectedCards.value = selectedCards.value
-                    setUpFields()
+                    selectedCards.value = cards.find { it.isDefault }?.id
                 }
             }
 
-            AnimatedVisibility(!showFields.value && selectedCards.value != 1L) {
+            AnimatedVisibility(!showFields.value && selectedCards.value != null) {
                 SimpleTextButton(
                     stringResource(strings.actionDelete),
                     backgroundColor = colors.inactiveBottomNavIconColor,
@@ -254,7 +268,8 @@ fun DeliveryCardsContent(
                         viewModel.updateDeleteCard(
                             it
                         ){
-                            selectedCards.value = 1L
+                            selectedCards.value = null
+                            refresh()
                         }
                     }
                 }

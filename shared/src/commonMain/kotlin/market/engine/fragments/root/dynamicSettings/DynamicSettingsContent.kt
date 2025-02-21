@@ -189,16 +189,14 @@ fun DynamicSettingsContent(
                                 rememberRichTextState().setHtml(stringResource(strings.headerDeliveryCardLabel)).annotatedString
                             )
 
-                            builderDescription?.fields?.let {
-                                DeliveryCardsContent(
-                                    deliveryCards.value,
-                                    deliveryFields,
-                                    viewModel
-                                ){
-                                    viewModel.viewModelScope.launch {
-                                        viewModel.responseGetLoadCards.value = viewModel.getDeliveryCards() ?: emptyList()
-                                        viewModel.deliveryFields.value =  viewModel.getDeliveryFields() ?: emptyList()
-                                    }
+                            DeliveryCardsContent(
+                                deliveryCards.value,
+                                deliveryFields,
+                                viewModel
+                            ){
+                                viewModel.viewModelScope.launch {
+                                    viewModel.responseGetLoadCards.value = viewModel.getDeliveryCards() ?: emptyList()
+                                    viewModel.deliveryFields.value =  viewModel.getDeliveryFields() ?: emptyList()
                                 }
                             }
                         }

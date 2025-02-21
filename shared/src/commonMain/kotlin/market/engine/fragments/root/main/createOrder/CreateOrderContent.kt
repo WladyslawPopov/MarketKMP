@@ -235,7 +235,7 @@ fun CreateOrderContent(
                 deliveryFields,
                 viewModel
             ){
-
+                refresh()
             }
 
             // additional fields

@@ -478,7 +478,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsSetOutgoingAddress(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
             val response = apiService.postUsersOperationsSetOutgoingAddress(id, body)

@@ -1,11 +1,10 @@
 package market.engine.widgets.items
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +35,7 @@ fun DeliveryCardItem(
     val isDefault = card.isDefault
 
     Card(
-        modifier = Modifier.width(230.dp).height(250.dp),
+        modifier = Modifier,
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) colors.solidGreen else colors.white,
             contentColor = colors.black
@@ -45,54 +44,67 @@ fun DeliveryCardItem(
             setActiveCard(card)
         }
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+        LazyColumn(
+            modifier = Modifier.width(230.dp).height(250.dp).padding(dimens.smallPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
-            Text(
-                text = surname ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.black,
-                maxLines = 1
-            )
-            Text(
-                text = country ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.black,
-                maxLines = 1
-            )
-            Text(
-                text = zip ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.black,
-                maxLines = 1
-            )
-            Text(
-                text = city ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.black,
-                maxLines = 1
-            )
-            Text(
-                text = address ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.black,
-                maxLines = 1
-            )
-            Text(
-                text = phone ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.black,
-                maxLines = 1
-            )
-
-            Text(
-                text = if (isDefault) stringResource(strings.defaultCardLabel) else "",
-                style = MaterialTheme.typography.titleSmall,
-                color = colors.black,
-                maxLines = 1
-            )
+            item {
+                Text(
+                    text = surname ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black,
+                    maxLines = 1
+                )
+            }
+            item {
+                Text(
+                    text = country ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black,
+                    maxLines = 1
+                )
+            }
+            item {
+                Text(
+                    text = zip ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black,
+                    maxLines = 1
+                )
+            }
+            item {
+                Text(
+                    text = city ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black,
+                    maxLines = 1
+                )
+            }
+            item {
+                Text(
+                    text = address ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black,
+                    maxLines = 1
+                )
+            }
+            item {
+                Text(
+                    text = phone ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black,
+                    maxLines = 1
+                )
+            }
+            item {
+                Text(
+                    text = if (isDefault) stringResource(strings.defaultCardLabel) else "",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.black,
+                    maxLines = 1
+                )
+            }
         }
     }
 }

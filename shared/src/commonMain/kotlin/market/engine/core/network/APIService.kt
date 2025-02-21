@@ -108,12 +108,6 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postOfferOperationsAddBidError(idOffer: Long, body: Map<String, String>): AppResponse =
-        client.post("offers/$idOffer/operations/add_bid") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
     suspend fun postOfferOperationsDeleteOffer(idOffer: Long): AppResponse =
         client.post("offers/$idOffer/operations/delete_offer").body()
 
@@ -121,12 +115,6 @@ class APIService(private val client: HttpClient) {
         client.post("offers/$idOffer/operations/finalize_session").body()
 
     suspend fun postOfferOperationsWriteToSeller(idOffer: Long, body: Map<String, String>): AppResponse =
-        client.post("offers/$idOffer/operations/write_to_seller") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOfferOperationsWriteToSellerError(idOffer: Long, body: Map<String, String>): AppResponse =
         client.post("offers/$idOffer/operations/write_to_seller") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -231,19 +219,13 @@ class APIService(private val client: HttpClient) {
     suspend fun getUsersOperationsSetAddressCards(idUser: Long): AppResponse =
         client.get("users/$idUser/operations/save_address_cards").body()
 
-    suspend fun getUsersOperationsEditAddressCards(idUser: Long, body: Map<String, String>): AppResponse =
-        client.get("users/$idUser/operations/save_address_cards") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
     suspend fun postUsersOperationsSetAddressCards(idUser: Long, body: JsonObject): AppResponse =
         client.post("users/$idUser/operations/save_address_cards") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetOutgoingAddress(idUser: Long, body: Map<String, String>): AppResponse =
+    suspend fun postUsersOperationsSetOutgoingAddress(idUser: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("users/$idUser/operations/save_outgoing_address") {
             contentType(ContentType.Application.Json)
             setBody(body)
