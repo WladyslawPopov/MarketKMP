@@ -460,6 +460,7 @@ interface Strings {
     val addressesSettingsTitle : StringResource
     val blackListSettingsTitle : StringResource
     val outgoingAddressLabel : StringResource
+    val outgoingAddressHeaderLabel : StringResource
     val settingsBlackListSellersLabel : StringResource
     val settingsBlackListBuyersLabel : StringResource
     val settingsWhiteListBuyersLabel : StringResource

@@ -282,7 +282,7 @@ fun DynamicSettingsContent(
                                         }
 
                                         "set_outgoing_address" -> {
-                                            rememberRichTextState().setHtml(stringResource(strings.outgoingAddressLabel))
+                                            rememberRichTextState().setHtml(stringResource(strings.outgoingAddressHeaderLabel))
                                         }
 
                                         else -> {
