@@ -80,7 +80,8 @@ fun SetUpDynamicFields(
 
                 "checkbox_group" -> {
                     DynamicCheckboxGroup(
-                        field
+                        field,
+                        showRating = true
                     )
                 }
                 "select" -> {

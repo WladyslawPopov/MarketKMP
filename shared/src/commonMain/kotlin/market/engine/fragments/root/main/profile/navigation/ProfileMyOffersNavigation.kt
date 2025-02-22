@@ -119,8 +119,8 @@ fun itemMyOffers(
         navigateToProposal = { id, type ->
             profileNavigation.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
         },
-        navigateToDynamicSettings = { type ->
-            goToDynamicSettings(type, null, null)
+        navigateToDynamicSettings = { type, id ->
+            goToDynamicSettings(type, id, null)
         }
     )
 }

@@ -16,22 +16,31 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.fragments.root.dynamicSettings.DynamicSettingsViewModel
+import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun WatermarkContent(
-    viewModel : DynamicSettingsViewModel,
+fun WatermarkAndBlockRatingContent(
+    isWatermark : Boolean,
+    viewModel : BaseViewModel,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        val isEnabled = remember { mutableStateOf(UserData.userInfo?.waterMarkEnabled ?: false) }
+        val isEnabled = remember {
+            mutableStateOf(
+                if(isWatermark) UserData.userInfo?.waterMarkEnabled ?: false
+                else UserData.userInfo?.blockRatingEnabled ?: false
+            )
+        }
 
         Text(
-            stringResource(strings.watermarkHeaderLabel),
+            stringResource(
+                if (isWatermark) strings.watermarkHeaderLabel
+                else strings.settingsBlockRatingHeaderLabel
+            ),
             color = colors.grayText,
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.weight(1f)
@@ -40,15 +49,29 @@ fun WatermarkContent(
         Switch(
             checked = isEnabled.value,
             onCheckedChange = {
-                if (isEnabled.value) {
-                    viewModel.disabledWatermark {
-                        isEnabled.value = false
-                        UserData.userInfo?.waterMarkEnabled = false
+                if (isWatermark) {
+                    if (isEnabled.value) {
+                        viewModel.disabledWatermark {
+                            isEnabled.value = false
+                            UserData.userInfo?.waterMarkEnabled = false
+                        }
+                    } else {
+                        viewModel.enabledWatermark {
+                            isEnabled.value = true
+                            UserData.userInfo?.waterMarkEnabled = true
+                        }
                     }
                 }else{
-                    viewModel.enabledWatermark {
-                        isEnabled.value = true
-                        UserData.userInfo?.waterMarkEnabled = true
+                    if (isEnabled.value) {
+                        viewModel.disabledBlockRating {
+                            isEnabled.value = false
+                            UserData.userInfo?.blockRatingEnabled = false
+                        }
+                    } else {
+                        viewModel.enabledBlockRating {
+                            isEnabled.value = true
+                            UserData.userInfo?.blockRatingEnabled = true
+                        }
                     }
                 }
             },

@@ -1,4 +1,4 @@
-package market.engine.widgets.exceptions
+package market.engine.widgets.ilustrations
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

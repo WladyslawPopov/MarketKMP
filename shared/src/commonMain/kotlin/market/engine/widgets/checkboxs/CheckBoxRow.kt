@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.longOrNull
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Choices
 import market.engine.widgets.texts.DynamicLabel
@@ -17,10 +17,11 @@ import market.engine.widgets.texts.DynamicLabel
 fun CheckBoxRow(
     isSelected: Boolean,
     choice : Choices,
+    showRating : Boolean = false,
     isMandatory : Boolean = false,
-    onClickListener: (Int) -> Unit,
+    onClickListener: (Long) -> Unit,
 ) {
-    val choiceCode = remember { choice.code?.intOrNull ?: 0 }
+    val choiceCode = remember { choice.code?.longOrNull ?: 0 }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -40,7 +41,7 @@ fun CheckBoxRow(
         )
 
         DynamicLabel(
-            text = choice.name ?: "",
+            text = if(showRating)"${choice.name} (${choice.weight})" else choice.name.orEmpty(),
             modifier = Modifier.fillMaxWidth(0.85f),
             isMandatory = isMandatory
         )

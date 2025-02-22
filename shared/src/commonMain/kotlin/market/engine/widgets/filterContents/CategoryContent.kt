@@ -41,7 +41,7 @@ import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.items.getNavigationItem
-import market.engine.widgets.rows.FilterContentHeaderRow
+import market.engine.widgets.bars.FilterContentHeaderBar
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
@@ -136,7 +136,7 @@ fun CategoryContent(
     ) {
         Column {
             if (isFilters) {
-                FilterContentHeaderRow(
+                FilterContentHeaderBar(
                     title = stringResource(strings.selectCategory),
                     isShowClearBtn = searchCategoryId.value != 1L,
                     onClear = {

@@ -42,7 +42,7 @@ import market.engine.widgets.buttons.FilterButton
 import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
-import market.engine.widgets.rows.FilterContentHeaderRow
+import market.engine.widgets.bars.FilterContentHeaderBar
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 
@@ -210,7 +210,7 @@ fun OfferFilterContent(
             contentAlignment = Alignment.TopCenter
         ) {
             //Header Filters
-            FilterContentHeaderRow(
+            FilterContentHeaderBar(
                 title = stringResource(strings.filter),
                 isShowClearBtn = isShowClear.value,
                 onClear = {

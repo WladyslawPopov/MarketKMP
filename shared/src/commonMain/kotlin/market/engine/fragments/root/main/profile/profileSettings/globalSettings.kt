@@ -35,7 +35,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

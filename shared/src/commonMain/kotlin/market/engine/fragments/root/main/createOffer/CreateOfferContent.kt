@@ -82,22 +82,25 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.processInput
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
-import market.engine.widgets.checkboxs.DeliveryMethods
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import market.engine.fragments.base.onError
+import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dialogs.DateDialog
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.textFields.DescriptionTextField
 import market.engine.widgets.textFields.DynamicInputField
+import market.engine.widgets.texts.DynamicLabel
+import market.engine.widgets.texts.ErrorText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
@@ -1087,5 +1090,160 @@ fun SuccessContent(
     }
 }
 
+@Composable
+fun DeliveryMethods(
+    field: Fields,
+    modifier: Modifier = Modifier
+) {
+    val isMandatory = remember {
+        mutableStateOf(field.validators?.any { it.type == "mandatory" } == true)
+    }
 
+    val initialSelected = remember {
+        val selectedCodes = mutableListOf<Int>()
+        field.data?.jsonArray?.forEach { item ->
+            item.jsonObject["code"]?.jsonPrimitive?.intOrNull?.let { selectedCodes.add(it) }
+        }
+        selectedCodes.toList()
+    }
 
+    val selectedItems = remember { mutableStateOf(initialSelected) }
+
+    val error = remember { mutableStateOf(processInput(field.errors)) }
+
+    val onClickListener : (Int) -> Unit = { choiceCode ->
+        val currentSet = selectedItems.value.toMutableList()
+        if (currentSet.contains(choiceCode)) {
+            currentSet.remove(choiceCode)
+        } else {
+            currentSet.add(choiceCode)
+        }
+
+        selectedItems.value = currentSet.toList()
+        field.data = buildJsonArray {
+            selectedItems.value.forEach {
+                add(JsonObject(mapOf("code" to JsonPrimitive(it))))
+            }
+        }
+    }
+
+    Column(modifier = modifier) {
+
+        DynamicLabel(
+            text = field.longDescription ?: field.shortDescription.orEmpty(),
+            isMandatory = isMandatory.value,
+            modifier = Modifier.padding(dimens.smallPadding)
+        )
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+        ) {
+            field.choices?.forEach { choice ->
+                val choiceCode = choice.code?.intOrNull ?: 0
+
+                // A single checkbox row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onClickListener(choiceCode)
+                        }
+                ) {
+                    ThemeCheckBox(
+                        isSelected = selectedItems.value.contains(choiceCode),
+                        onSelectionChange = {
+                            onClickListener(choiceCode)
+                        },
+                        Modifier
+                    )
+
+                    Text(
+                        text = choice.name.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.black,
+                        modifier = Modifier.padding(start = dimens.smallPadding)
+                    )
+                }
+
+                AnimatedVisibility(selectedItems.value.contains(choiceCode) && choice.extendedFields != null) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(dimens.mediumPadding),
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                        horizontalAlignment = Alignment.Start
+                    ){
+                        choice.extendedFields?.forEach { extendField ->
+                            when (extendField.key) {
+                                "delivery_price_city" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_price_city")?.jsonPrimitive
+                                    }
+
+                                    DynamicInputField(
+                                        extendField,
+                                        suffix = stringResource(strings.currencyCode),
+                                        label = stringResource(strings.deliveryCityParameterLabel),
+                                    )
+                                }
+                                "delivery_price_country" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_price_country")?.jsonPrimitive
+                                    }
+
+                                    DynamicInputField(
+                                        extendField,
+                                        suffix = stringResource(strings.currencyCode),
+                                        label = stringResource(strings.deliveryCountryParameterLabel),
+                                    )
+                                }
+                                "delivery_price_world" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_price_world")?.jsonPrimitive
+                                    }
+                                    DynamicInputField(
+                                        extendField,
+                                        suffix = stringResource(strings.currencyCode),
+                                        label = stringResource(strings.deliveryWorldParameterLabel),
+                                    )
+                                }
+                                "delivery_comment" -> {
+                                    if (extendField.data == null) {
+                                        extendField.data = field.data?.jsonArray?.find {
+                                            it.jsonObject["code"]?.jsonPrimitive?.intOrNull ==
+                                                    choice.code?.intOrNull
+                                        }?.jsonObject?.get("delivery_comment")?.jsonPrimitive
+                                    }
+
+                                    DynamicInputField(
+                                        extendField,
+                                        label = stringResource(strings.commentLabel),
+                                        singleLine = false,
+                                    )
+                                }
+                                else -> {
+                                    DynamicInputField(
+                                        extendField,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (error.value != null) {
+            ErrorText(text = error.value ?: "", modifier = Modifier.padding(dimens.smallPadding))
+        }
+    }
+}

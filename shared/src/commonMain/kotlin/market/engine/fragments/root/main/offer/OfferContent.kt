@@ -96,8 +96,8 @@ import market.engine.widgets.dialogs.CreateOfferDialog
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
-import market.engine.widgets.exceptions.FullScreenImageViewer
-import market.engine.widgets.exceptions.HorizontalImageViewer
+import market.engine.widgets.ilustrations.FullScreenImageViewer
+import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.widgets.dropdown_menu.getOfferOperations
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
@@ -449,8 +449,8 @@ fun OfferContent(
                                             goToProposals = { type ->
                                                 component.goToProposalPage(type)
                                             },
-                                            goToDynamicSettings = {
-                                                component.goToDynamicSettings(it)
+                                            goToDynamicSettings = { type, offerId ->
+                                                component.goToDynamicSettings(type, offerId)
                                             }
                                         )
                                     }

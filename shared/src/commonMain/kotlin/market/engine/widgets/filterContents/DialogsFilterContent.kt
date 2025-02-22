@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,7 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
-import market.engine.widgets.rows.FilterContentHeaderRow
+import market.engine.widgets.bars.FilterContentHeaderBar
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 
@@ -81,7 +79,7 @@ fun DialogsFilterContent(
         contentAlignment = Alignment.TopCenter
     ) {
         //Header Filters
-        FilterContentHeaderRow(
+        FilterContentHeaderBar(
             stringResource(strings.filter),
             isShowClear.value,
             {

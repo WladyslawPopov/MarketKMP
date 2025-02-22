@@ -28,7 +28,7 @@ import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.widgets.rows.FilterContentHeaderRow
+import market.engine.widgets.bars.FilterContentHeaderBar
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -47,7 +47,7 @@ fun SortingOrdersContent(
     Box(
         modifier = Modifier.fillMaxSize().animateContentSize()
     ) {
-        FilterContentHeaderRow(
+        FilterContentHeaderBar(
             stringResource(strings.sort),
             listingData.sort != null,
             onClosed = onClose,

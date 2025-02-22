@@ -28,7 +28,7 @@ interface MyOffersComponent {
     fun selectMyOfferPage(select : LotsType)
     fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
     fun goToProposals(offerId : Long, proposalType: ProposalType)
-    fun goToDynamicSettings(type : String)
+    fun goToDynamicSettings(type : String, id : Long? = null)
     fun goToBack()
 }
 
@@ -40,7 +40,7 @@ class DefaultMyOffersComponent(
     val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit,
     val navigateToProposal: (Long, ProposalType) -> Unit,
     val navigateToBack: () -> Unit,
-    val navigateToDynamicSettings: (String) -> Unit,
+    val navigateToDynamicSettings: (String, Long?) -> Unit,
 ) : MyOffersComponent, ComponentContext by componentContext {
 
     private val viewModel : MyOffersViewModel = MyOffersViewModel(type)
@@ -94,8 +94,8 @@ class DefaultMyOffersComponent(
         navigateToProposal(offerId, proposalType)
     }
 
-    override fun goToDynamicSettings(type: String) {
-        navigateToDynamicSettings(type)
+    override fun goToDynamicSettings(type: String, id : Long?) {
+        navigateToDynamicSettings(type, id)
     }
 
     override fun goToBack() {

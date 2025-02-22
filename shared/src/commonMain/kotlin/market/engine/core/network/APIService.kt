@@ -480,6 +480,16 @@ class APIService(private val client: HttpClient) {
     suspend fun getRegistration(): AppResponse =
         client.get("registration").body()
 
+    suspend fun postUsersOperationsSetBlockRatingEnabled(idUser: Long): AppResponse =
+        client.post("users/$idUser/operations/enable_block_rating") {
+            contentType(ContentType.Application.Json)
+        }.body()
+
+    suspend fun postUsersOperationsSetBlockRatingDisabled(idUser: Long): AppResponse =
+        client.post("users/$idUser/operations/disable_block_rating") {
+            contentType(ContentType.Application.Json)
+        }.body()
+
     suspend fun getProposal(idOffer: Long): AppResponse =
         client.post("offers/$idOffer/operations/get_proposals").body()
 
@@ -539,7 +549,7 @@ class APIService(private val client: HttpClient) {
         }.body()
     }
 
-    suspend fun postUsersOperationRemoveFromList(idUser: Long, body: HashMap<String, String>, list : String? = null): AppResponse {
+    suspend fun postUsersOperationRemoveFromList(idUser: Long, body: HashMap<String, JsonElement>, list : String? = null): AppResponse {
         return client.post("users/$idUser/operations/remove_from_$list") {
             contentType(ContentType.Application.Json)
             setBody(body)
@@ -552,5 +562,4 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
     }
-
 }

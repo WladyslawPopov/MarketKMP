@@ -29,7 +29,7 @@ fun DynamicCheckbox(
 
     val error = remember { mutableStateOf(processInput(field.errors)) }
 
-    val onClickListener : (Int) -> Unit = {
+    val onClickListener : (Long) -> Unit = {
         initialSelected.value = field.data?.jsonPrimitive?.booleanOrNull != true
         field.data = JsonPrimitive(initialSelected.value)
     }

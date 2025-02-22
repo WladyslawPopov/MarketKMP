@@ -195,6 +195,7 @@ interface Strings {
     val warningDeleteSubscription : StringResource
     val acceptAction : StringResource
     val actionConfirm : StringResource
+    val actionAddEnterLabel : StringResource
     val idCopied : StringResource
     val defaultOfferTitle : StringResource
     val lastViewedOffers : StringResource
@@ -471,4 +472,10 @@ interface Strings {
     val autoFeedbackAfterExceededTimeSubtitle : StringResource
     val watermarkHeaderLabel : StringResource
     val headerDeliveryCardLabel : StringResource
+    val settingsBlocListHeader : StringResource
+    val settingsBlocListEmpty : StringResource
+    val settingsBlockRatingHeaderLabel : StringResource
+    val cancelAllBidsTitle : StringResource
+    val cancelAllBidsHeader : StringResource
+    val cancelAllBidsCommentLabel : StringResource
 }

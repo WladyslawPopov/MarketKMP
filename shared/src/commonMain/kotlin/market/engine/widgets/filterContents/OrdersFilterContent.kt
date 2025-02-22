@@ -34,7 +34,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.DateBtn
 import market.engine.widgets.dialogs.DateDialog
-import market.engine.widgets.rows.FilterContentHeaderRow
+import market.engine.widgets.bars.FilterContentHeaderBar
 import market.engine.widgets.textFields.TextFieldWithState
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
@@ -82,7 +82,7 @@ fun OrderFilterContent(
         }.padding(dimens.smallPadding).animateContentSize(),
     ) {
         //Header Filters
-        FilterContentHeaderRow(
+        FilterContentHeaderBar(
             title = stringResource(strings.filter),
             isShowClearBtn = isShowClear.value,
             onClear = {

@@ -35,7 +35,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

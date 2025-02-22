@@ -1,4 +1,4 @@
-package market.engine.widgets.exceptions
+package market.engine.widgets.ilustrations
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size

@@ -678,6 +678,59 @@ class UserOperations(val apiService: APIService) {
         }
     }
 
+    suspend fun postUsersOperationRemoveFromList(id: Long, body: HashMap<String, JsonElement>, list: String?): ServerResponse<Boolean> {
+        return try {
+            val res = apiService.postUsersOperationRemoveFromList(id, body, list)
+            if (res.success){
+                ServerResponse(success = true)
+            }else{
+                throw ServerErrorException(res.errorCode.toString(), res.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun postUsersOperationsSetBlockRatingDisabled(
+        id: Long = 1L
+    ): ServerResponse<DynamicPayload<OperationResult>> {
+        return try {
+            val response = apiService.postUsersOperationsSetBlockRatingDisabled(id)
+            try {
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun postUsersOperationsSetBlockRatingEnabled(
+        id: Long = 1L
+    ): ServerResponse<DynamicPayload<OperationResult>> {
+        return try {
+            val response = apiService.postUsersOperationsSetBlockRatingEnabled(id)
+            try {
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
     suspend fun postUsersOperationsSetAboutMe(
         id: Long = 1L,
         body: HashMap<String, JsonElement>

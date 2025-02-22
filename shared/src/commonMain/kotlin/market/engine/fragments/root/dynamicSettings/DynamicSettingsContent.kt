@@ -37,9 +37,11 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.root.dynamicSettings.contents.AppSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.AutoFeedbackSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.BiddingStepSettingsContent
+import market.engine.fragments.root.dynamicSettings.contents.BlocListContent
+import market.engine.fragments.root.dynamicSettings.contents.CancelAllBidsContent
 import market.engine.fragments.root.dynamicSettings.contents.DeliveryCardsContent
 import market.engine.fragments.root.dynamicSettings.contents.VacationSettingsContent
-import market.engine.fragments.root.dynamicSettings.contents.WatermarkContent
+import market.engine.fragments.root.dynamicSettings.contents.WatermarkAndBlockRatingContent
 import market.engine.widgets.textFields.DescriptionTextField
 import market.engine.widgets.texts.HeaderAlertText
 import org.jetbrains.compose.resources.stringResource
@@ -179,7 +181,7 @@ fun DynamicSettingsContent(
                         "set_watermark" -> {
                             titleText.value = stringResource(strings.settingsWatermarkLabel)
 
-                            WatermarkContent(viewModel)
+                            WatermarkAndBlockRatingContent(true, viewModel)
                         }
 
                         "set_address_cards" -> {
@@ -221,37 +223,34 @@ fun DynamicSettingsContent(
                                 }
 
                                 AcceptedPageButton(
-                                    strings.actionChangeLabel
+                                    strings.actionAddEnterLabel
                                 ) {
                                     viewModel.postSubmit(settingsType, owner) {
-                                        when (settingsType) {
-                                            "set_phone" -> {
-                                                component.goToVerificationPage("set_phone")
-                                            }
-
-                                            "set_password", "forgot_password", "reset_password" -> {
-                                                if (builderDescription?.body != null) {
-                                                    component.goToVerificationPage("set_password")
-                                                } else {
-                                                    component.onBack()
-                                                }
-                                            }
-
-                                            else -> {
-                                                component.onBack()
-                                            }
-                                        }
+                                        viewModel.init(settingsType, owner)
+                                        focusManager.clearFocus()
+                                        viewModel.updateItemTrigger.value++
                                     }
                                 }
 
-
+                                BlocListContent(settingsType, viewModel, viewModel.updateItemTrigger.value)
                             }
                         }
 
-                        "cancel_all_bids" ->{
+                        "set_block_rating" ->{
+                            titleText.value = stringResource(strings.settingsBlockRatingLabel)
 
+                            WatermarkAndBlockRatingContent(false, viewModel)
                         }
 
+                        "cancel_all_bids" ->{
+                            titleText.value = stringResource(strings.cancelAllBidsTitle)
+
+                            CancelAllBidsContent(
+                                viewModel
+                            )
+                        }
+                        // set_login, set_email, set/reset_password, set_phone,
+                        // set_message_to_buyer, set_outgoing_address, remove_bids_of_users
                         else -> {
                             if (errorSettings != null) {
                                 titleText.value = stringResource(strings.setLoginTitle)
@@ -303,7 +302,8 @@ fun DynamicSettingsContent(
                                     }
 
                                     AcceptedPageButton(
-                                        strings.actionChangeLabel
+                                        if("remove_bids_of_users" != settingsType) strings.actionChangeLabel
+                                        else strings.actionDelete
                                     ) {
                                         viewModel.postSubmit(settingsType, owner) {
                                             when (settingsType) {

@@ -1,4 +1,4 @@
-package market.engine.widgets.rows
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -17,7 +17,7 @@ import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SmallIconButton
 
 @Composable
-fun FilterContentHeaderRow(
+fun FilterContentHeaderBar(
     title: String,
     isShowClearBtn: Boolean,
     onClear: () ->Unit,

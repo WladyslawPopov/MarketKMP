@@ -33,8 +33,8 @@ import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.CreateOfferDialog
-import market.engine.widgets.exceptions.LoadImage
-import market.engine.widgets.items.HeaderOfferItem
+import market.engine.widgets.ilustrations.LoadImage
+import market.engine.widgets.bars.HeaderOfferBar
 import market.engine.widgets.rows.UserRow
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -72,7 +72,7 @@ fun BidsItem(
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.Start
         ) {
-            HeaderOfferItem(
+            HeaderOfferBar(
                 offer = offer,
                 onUpdateOfferItem = {
                     onUpdateOfferItem(it)

@@ -81,22 +81,26 @@ class DynamicSettingsViewModel : BaseViewModel() {
                             responseGetLoadCards.value = getDeliveryCards() ?: emptyList()
                             deliveryFields.value = getDeliveryFields() ?: emptyList()
                         }
-                        userOperations.getUsersOperationsSetLogin(UserData.login)
+                        null
                     }
                     "remove_bids_of_users" -> {
-                        offerOperations.getOfferOperationsRemoveBidsOfUsers(UserData.login)
+                        if (owner != null) {
+                            offerOperations.getOfferOperationsRemoveBidsOfUsers(owner)
+                        }else{
+                            null
+                        }
                     }
                     "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
                         userOperations.getUsersOperationsGetSettingsList(UserData.login, settingsType)
                     }
                     else -> {
-                        userOperations.getUsersOperationsSetLogin(UserData.login)
+                        null
                     }
                 }
             }
 
-            val payload = buffer.success
-            val resErr = buffer.error
+            val payload = buffer?.success
+            val resErr = buffer?.error
 
             withContext(Dispatchers.Main) {
                 setLoading(false)
@@ -267,87 +271,6 @@ class DynamicSettingsViewModel : BaseViewModel() {
                 } else {
                     if (resErr != null) {
                         onError(resErr)
-                    }
-                }
-            }
-        }
-    }
-
-    fun getBlocList(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-
-
-        }
-    }
-
-    fun enabledWatermark(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsSetWatermarkEnabled(UserData.login)
-            }
-            withContext(Dispatchers.Main) {
-                if (res.success?.status == "operation_success") {
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings",
-                    )
-                    analyticsHelper.reportEvent("enabled_watermark_success", eventParameters)
-
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-
-                    onSuccess()
-                } else {
-                    if (res.error != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "human_message" to res.error?.humanMessage,
-                            "error_code" to res.error?.errorCode
-                        )
-                        analyticsHelper.reportEvent("enabled_watermark_failed", eventParameters)
-
-                        onError(res.error!!)
-                    }
-                }
-            }
-        }
-    }
-
-    fun disabledWatermark(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsSetWatermarkDisabled(UserData.login)
-            }
-            withContext(Dispatchers.Main) {
-                if (res.success?.status == "operation_success") {
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings",
-                    )
-                    analyticsHelper.reportEvent("disabled_watermark_success", eventParameters)
-
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-
-                    onSuccess()
-                } else {
-                    if (res.error != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "human_message" to res.error?.humanMessage,
-                            "error_code" to res.error?.errorCode
-                        )
-                        analyticsHelper.reportEvent("disabled_watermark_failed", eventParameters)
-
-                        onError(res.error!!)
                     }
                 }
             }

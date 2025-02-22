@@ -48,7 +48,7 @@ fun getOfferOperations(
     onUpdateMenuItem: (Offer) -> Unit,
     goToCreateOffer: (CreateOfferType) -> Unit,
     goToProposals: (ProposalType) -> Unit,
-    goToDynamicSettings: (String) -> Unit,
+    goToDynamicSettings: (String, Long?) -> Unit,
     onClose: () -> Unit,
     onBack: () -> Unit = {},
 ) {
@@ -313,10 +313,10 @@ fun getOfferOperations(
                             goToProposals(ProposalType.MAKE_PROPOSAL)
                         }
                         "cancel_all_bids" -> {
-                            goToDynamicSettings("cancel_all_bids")
+                            goToDynamicSettings("cancel_all_bids", null)
                         }
                         "remove_bids_of_users" -> {
-                            goToDynamicSettings("remove_bids_of_users")
+                            goToDynamicSettings("remove_bids_of_users", offer.id)
                         }
                     }
                 }

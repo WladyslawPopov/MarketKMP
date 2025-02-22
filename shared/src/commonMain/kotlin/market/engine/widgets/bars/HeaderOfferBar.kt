@@ -1,4 +1,4 @@
-package market.engine.widgets.items
+package market.engine.widgets.bars
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -34,7 +34,7 @@ import org.jetbrains.compose.resources.painterResource
 
 
 @Composable
-fun HeaderOfferItem(
+fun HeaderOfferBar(
     offer: Offer,
     isSelected: Boolean = false,
     onUpdateTrigger: Int,
@@ -42,7 +42,7 @@ fun HeaderOfferItem(
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onUpdateOfferItem : (Offer) -> Unit,
     goToCreateOffer : (CreateOfferType) -> Unit,
-    goToDynamicSettings : (String) -> Unit = {},
+    goToDynamicSettings : (String, Long?) -> Unit = {_, _ ->},
     goToProposals : (ProposalType) -> Unit = {},
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
@@ -130,8 +130,8 @@ fun HeaderOfferItem(
                     goToProposals = {
                         goToProposals(it)
                     },
-                    goToDynamicSettings = {
-                        goToDynamicSettings(it)
+                    goToDynamicSettings = { type, id ->
+                        goToDynamicSettings(type, id)
                     }
                 )
             }

@@ -22,7 +22,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.network.networkObjects.User
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalLayoutApi::class)

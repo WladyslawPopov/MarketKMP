@@ -37,7 +37,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
-import market.engine.widgets.exceptions.CaptchaView
+import market.engine.widgets.ilustrations.CaptchaView
 import market.engine.fragments.base.onError
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.painterResource

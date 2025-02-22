@@ -42,7 +42,7 @@ import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.fragments.base.BackHandler
-import market.engine.widgets.exceptions.FullScreenImageViewer
+import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.items.SeparatorDialogItem
 import org.jetbrains.compose.resources.stringResource

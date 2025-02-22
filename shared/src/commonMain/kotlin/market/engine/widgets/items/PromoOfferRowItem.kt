@@ -26,7 +26,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

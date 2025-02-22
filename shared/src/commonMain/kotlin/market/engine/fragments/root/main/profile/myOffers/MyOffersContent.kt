@@ -231,8 +231,8 @@ fun MyOffersContent(
                         onItemClick = {
                             component.goToOffer(offer)
                         },
-                        goToDynamicSettings = {
-                            component.goToDynamicSettings(it)
+                        goToDynamicSettings = { type, id ->
+                            component.goToDynamicSettings(type, id)
                         }
                     )
                 }

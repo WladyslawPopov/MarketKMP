@@ -39,9 +39,10 @@ import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
+import market.engine.widgets.bars.HeaderOfferBar
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.rows.UserColumn
 import market.engine.widgets.texts.TitleText
@@ -60,7 +61,7 @@ fun OfferItem(
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
-    goToDynamicSettings : (String) -> Unit = { _ -> },
+    goToDynamicSettings : (String, Long?) -> Unit = { _, _ -> },
     onItemClick: () -> Unit = {}
 ) {
     var isPromo = false
@@ -98,7 +99,7 @@ fun OfferItem(
         }
     ) {
         if (onUpdateOfferItem != null) {
-            HeaderOfferItem(
+            HeaderOfferBar(
                 offer = offer,
                 isSelected = isSelection,
                 onUpdateTrigger = updateTrigger,
@@ -109,8 +110,8 @@ fun OfferItem(
                 goToProposals = {
                     goToProposal(it)
                 },
-                goToDynamicSettings = {
-                    goToDynamicSettings(it)
+                goToDynamicSettings = { type, id ->
+                    goToDynamicSettings(type, id)
                 }
             )
         }

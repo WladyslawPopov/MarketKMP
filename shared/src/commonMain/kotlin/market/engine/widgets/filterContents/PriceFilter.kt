@@ -1,4 +1,4 @@
-package market.engine.widgets.items
+package market.engine.widgets.filterContents
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

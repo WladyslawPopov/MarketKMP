@@ -15,7 +15,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 @Composable
 fun HeaderAlertText(
     text : AnnotatedString,
-    color : Color = colors.grayText,
+    color : Color = colors.darkBodyTextColor,
 ) {
     Text(
         text,

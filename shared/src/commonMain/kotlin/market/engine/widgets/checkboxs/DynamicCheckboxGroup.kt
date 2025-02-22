@@ -9,18 +9,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.processInput
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.texts.DynamicLabel
 import market.engine.widgets.texts.ErrorText
 
 @Composable
 fun DynamicCheckboxGroup(
     field: Fields,
+    showRating : Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val isMandatory = remember {
@@ -28,9 +30,9 @@ fun DynamicCheckboxGroup(
     }
 
     val initialSelected = remember {
-        val selectedCodes = mutableListOf<Int>()
+        val selectedCodes = mutableListOf<Long>()
         field.data?.jsonArray?.forEach { item ->
-            item.jsonPrimitive.intOrNull?.let { selectedCodes.add(it) }
+            item.jsonPrimitive.longOrNull?.let { selectedCodes.add(it) }
         }
         selectedCodes.toList()
     }
@@ -39,7 +41,7 @@ fun DynamicCheckboxGroup(
 
     val error = remember { mutableStateOf(processInput(field.errors)) }
 
-    val onClickListener : (Int) -> Unit = { choiceCode ->
+    val onClickListener : (Long) -> Unit = { choiceCode ->
         val currentSet = selectedItems.value.toMutableList()
         if (currentSet.contains(choiceCode)) {
             currentSet.remove(choiceCode)
@@ -68,10 +70,13 @@ fun DynamicCheckboxGroup(
         ) {
             field.choices?.forEach { choice ->
                 CheckBoxRow(
-                    isSelected = selectedItems.value.contains(choice.code?.intOrNull),
+                    isSelected = selectedItems.value.contains(choice.code?.longOrNull),
                     choice = choice,
+                    showRating = showRating,
                     onClickListener = onClickListener
                 )
+
+                choice.extendedFields?.let { SetUpDynamicFields(it) }
             }
         }
 

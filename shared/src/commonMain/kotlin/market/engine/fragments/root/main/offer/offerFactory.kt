@@ -61,8 +61,8 @@ fun offerFactory(
             navigateToProposalPage = { offerId, type ->
                 navigateToProposalPage(offerId, type)
             },
-            navigateDynamicSettings = {
-                goToDynamicSettings(it, null, null)
+            navigateDynamicSettings = { type, owner ->
+                goToDynamicSettings(type, owner, null)
             }
         )
     }

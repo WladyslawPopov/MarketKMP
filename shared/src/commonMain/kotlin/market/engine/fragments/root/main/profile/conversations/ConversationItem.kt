@@ -28,7 +28,7 @@ import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.getBadge
 import market.engine.widgets.checkboxs.ThemeCheckBox
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalFoundationApi::class)

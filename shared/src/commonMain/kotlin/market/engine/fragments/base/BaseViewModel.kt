@@ -43,6 +43,7 @@ import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
+import market.engine.core.network.networkObjects.ListItem
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
@@ -326,7 +327,6 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-
     fun uploadFile(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
         viewModelScope.launch {
             val res = uploadFile(item)
@@ -570,6 +570,229 @@ open class BaseViewModel: ViewModel() {
                     }
                 } else {
                     err?.let { onError(it) }
+                }
+            }
+        }
+    }
+
+    fun getBlocList(type : String, onSuccess: (ArrayList<ListItem>) -> Unit) {
+        viewModelScope.launch {
+            val res =  withContext(Dispatchers.IO){
+                val body = HashMap<String,String>()
+                when(type){
+                    "add_to_seller_blacklist" -> {
+                        body["list_type"] = "blacklist_sellers"
+                    }
+                    "add_to_buyer_blacklist" -> {
+                        body["list_type"] = "blacklist_buyers"
+                    }
+                    "add_to_whitelist" -> {
+                        body["list_type"] = "whitelist_buyers"
+                    }
+                }
+                userOperations.getUsersOperationsGetUserList(UserData.login, body)
+            }
+
+            withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val resErr = res.error
+
+                if (buffer != null) {
+                    if(!buffer.body?.data.isNullOrEmpty()) {
+                        onSuccess(buffer.body?.data!!)
+                    }
+                }else{
+                    if (resErr != null) {
+                        onError(resErr)
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteFromBlocList(type : String, id : Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val list = when(type){
+                "add_to_seller_blacklist" -> {
+                    "seller_blacklist"
+                }
+                "add_to_buyer_blacklist" -> {
+                    "buyer_blacklist"
+                }
+                "add_to_whitelist" -> {
+                    "whitelist"
+                }
+                else -> {
+                    ""
+                }
+            }
+            val body = HashMap<String, JsonElement>()
+            body["identity"] = JsonPrimitive(id)
+
+            val res = withContext(Dispatchers.IO){
+                userOperations.postUsersOperationRemoveFromList(UserData.login, body, list)
+            }
+
+            withContext(Dispatchers.Main) {
+                if (res.success == true){
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+                    onSuccess()
+                }else{
+                    if (res.error != null) {
+                        onError(res.error!!)
+                    }
+                }
+            }
+        }
+    }
+
+    fun enabledWatermark(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsSetWatermarkEnabled(UserData.login)
+            }
+            withContext(Dispatchers.Main) {
+                if (res.success?.status == "operation_success") {
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                    )
+                    analyticsHelper.reportEvent("enabled_watermark_success", eventParameters)
+
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+
+                    onSuccess()
+                } else {
+                    if (res.error != null) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings",
+                            "human_message" to res.error?.humanMessage,
+                            "error_code" to res.error?.errorCode
+                        )
+                        analyticsHelper.reportEvent("enabled_watermark_failed", eventParameters)
+
+                        onError(res.error!!)
+                    }
+                }
+            }
+        }
+    }
+
+    fun disabledWatermark(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsSetWatermarkDisabled(UserData.login)
+            }
+            withContext(Dispatchers.Main) {
+                if (res.success?.status == "operation_success") {
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                    )
+                    analyticsHelper.reportEvent("disabled_watermark_success", eventParameters)
+
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+
+                    onSuccess()
+                } else {
+                    if (res.error != null) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings",
+                            "human_message" to res.error?.humanMessage,
+                            "error_code" to res.error?.errorCode
+                        )
+                        analyticsHelper.reportEvent("disabled_watermark_failed", eventParameters)
+
+                        onError(res.error!!)
+                    }
+                }
+            }
+        }
+    }
+
+    fun enabledBlockRating(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsSetBlockRatingEnabled(UserData.login)
+            }
+            withContext(Dispatchers.Main) {
+                if (res.success?.status == "operation_success") {
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                    )
+                    analyticsHelper.reportEvent("enabled_block_rating_success", eventParameters)
+
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+
+                    onSuccess()
+                } else {
+                    if (res.error != null) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings",
+                            "human_message" to res.error?.humanMessage,
+                            "error_code" to res.error?.errorCode
+                        )
+                        analyticsHelper.reportEvent("enabled_block_rating_failed", eventParameters)
+
+                        onError(res.error!!)
+                    }
+                }
+            }
+        }
+    }
+
+    fun disabledBlockRating(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                userOperations.postUsersOperationsSetBlockRatingDisabled(UserData.login)
+            }
+            withContext(Dispatchers.Main) {
+                if (res.success?.status == "operation_success") {
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                    )
+                    analyticsHelper.reportEvent("disabled_block_rating_success", eventParameters)
+
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+
+                    onSuccess()
+                } else {
+                    if (res.error != null) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings",
+                            "human_message" to res.error?.humanMessage,
+                            "error_code" to res.error?.errorCode
+                        )
+                        analyticsHelper.reportEvent("disabled_block_rating_failed", eventParameters)
+
+                        onError(res.error!!)
+                    }
                 }
             }
         }

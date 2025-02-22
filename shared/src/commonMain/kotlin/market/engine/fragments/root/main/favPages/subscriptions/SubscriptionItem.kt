@@ -30,7 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.getSubscriptionOperations
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

@@ -38,7 +38,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Reports
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.exceptions.LoadImage
+import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

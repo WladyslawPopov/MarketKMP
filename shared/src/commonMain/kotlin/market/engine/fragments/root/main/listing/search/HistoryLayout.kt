@@ -34,7 +34,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.shared.SearchHistory
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dialogs.AccessDialog
-import market.engine.widgets.exceptions.dismissBackground
+import market.engine.widgets.ilustrations.dismissBackground
 import market.engine.widgets.items.historyItem
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

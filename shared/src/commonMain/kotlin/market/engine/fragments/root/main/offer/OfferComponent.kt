@@ -37,7 +37,7 @@ interface OfferComponent {
     fun goToCreateOrder(item : Pair<Long, List<SelectedBasketItem>>)
     fun goToDialog(dialogId: Long?)
     fun goToProposalPage(type: ProposalType)
-    fun goToDynamicSettings(type: String)
+    fun goToDynamicSettings(type: String, offerId : Long? = null)
     fun goToLogin()
     fun goToSubscribes()
 }
@@ -61,7 +61,7 @@ class DefaultOfferComponent(
     val navigateToDialog: (dialogId: Long?) -> Unit,
     val navigationSubscribes: () -> Unit,
     val navigateToProposalPage: (offerId: Long, type: ProposalType) -> Unit,
-    val navigateDynamicSettings: (type: String) -> Unit,
+    val navigateDynamicSettings: (type: String, offerId: Long?) -> Unit,
 ) : OfferComponent, ComponentContext by componentContext {
 
     val viewModel : OfferViewModel = OfferViewModel(
@@ -155,8 +155,8 @@ class DefaultOfferComponent(
         navigateToProposalPage(id, type)
     }
 
-    override fun goToDynamicSettings(type: String) {
-        navigateDynamicSettings(type)
+    override fun goToDynamicSettings(type: String, offerId: Long?) {
+        navigateDynamicSettings(type, offerId)
     }
 
     override fun goToLogin() {
