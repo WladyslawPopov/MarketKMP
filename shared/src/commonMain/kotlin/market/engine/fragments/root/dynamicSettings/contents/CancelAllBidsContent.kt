@@ -3,6 +3,7 @@ package market.engine.fragments.root.dynamicSettings.contents
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Parameters
@@ -15,7 +16,9 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CancelAllBidsContent(
+    offerId: Long,
     viewModel: BaseViewModel,
+    onClose: () -> Unit
 ) {
     val commentLabel = stringResource(strings.cancelAllBidsCommentLabel)
 
@@ -44,6 +47,8 @@ fun CancelAllBidsContent(
     AcceptedPageButton(
         strings.actionConfirm
     ) {
-
+        viewModel.cancelAllBids(offerId, field.data?.jsonPrimitive?.content ?: ""){
+            onClose()
+        }
     }
 }

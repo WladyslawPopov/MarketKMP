@@ -282,6 +282,12 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
+    suspend fun postOfferOperationsCancelAllBids(idOffer: Long, body: Map<String, String>): AppResponse =
+        client.post("offers/$idOffer/operations/cancel_all_bids") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
     suspend fun getUsersOperationsEditAboutMe(idUser: Long): AppResponse =
         client.get("users/$idUser/operations/edit_about_me").body()
 

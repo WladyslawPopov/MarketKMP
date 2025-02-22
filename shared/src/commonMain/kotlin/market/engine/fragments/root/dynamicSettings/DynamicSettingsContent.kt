@@ -25,6 +25,9 @@ import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -42,6 +45,7 @@ import market.engine.fragments.root.dynamicSettings.contents.CancelAllBidsConten
 import market.engine.fragments.root.dynamicSettings.contents.DeliveryCardsContent
 import market.engine.fragments.root.dynamicSettings.contents.VacationSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.WatermarkAndBlockRatingContent
+import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.textFields.DescriptionTextField
 import market.engine.widgets.texts.HeaderAlertText
 import org.jetbrains.compose.resources.stringResource
@@ -120,6 +124,11 @@ fun DynamicSettingsContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     when (settingsType) {
+                        "app_settings" -> {
+                            titleText.value = stringResource(strings.settingsTitleApp)
+                            AppSettingsContent()
+                        }
+
                         "set_about_me" -> {
                             titleText.value =
                                 builderDescription?.title ?: builderDescription?.description ?: ""
@@ -153,11 +162,6 @@ fun DynamicSettingsContent(
                                     )
                                 }
                             }
-                        }
-
-                        "app_settings" -> {
-                            titleText.value = stringResource(strings.settingsTitleApp)
-                            AppSettingsContent()
                         }
 
                         "set_bidding_step" -> {
@@ -246,11 +250,60 @@ fun DynamicSettingsContent(
                             titleText.value = stringResource(strings.cancelAllBidsTitle)
 
                             CancelAllBidsContent(
-                                viewModel
-                            )
+                                owner ?: 1L,
+                                viewModel,
+                            ){
+                                component.onBack()
+                            }
                         }
+
+                        "remove_bids_of_users" -> {
+                            titleText.value = stringResource(strings.cancelAllBidsTitle)
+
+                            val field = builderDescription?.fields?.find { it.key == "bidders" }
+
+                            field?.let {
+                                DynamicCheckboxGroup(
+                                    field,
+                                    showRating = true
+                                )
+
+                                AcceptedPageButton(
+                                    strings.actionDelete
+                                ) {
+                                    val data = field.data?.jsonArray
+                                    field.data = buildJsonArray {
+                                        field.choices?.forEachIndexed { index, choices ->
+                                            if(data?.get(index) == choices.code){
+                                                val exData = choices.extendedFields?.find { it.data != null }?.data
+                                                if (exData != null) {
+                                                    add(
+                                                        buildJsonObject {
+                                                            choices.code?.jsonPrimitive?.let { code ->
+                                                                put(
+                                                                    "code",
+                                                                    code
+                                                                )
+                                                            }
+                                                            put("comment", exData)
+                                                        }
+                                                    )
+                                                }else{
+                                                    choices.code?.let { code -> add(code) }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    viewModel.postSubmit(settingsType, owner) {
+                                        component.onBack()
+                                    }
+                                }
+                            }
+                        }
+
                         // set_login, set_email, set/reset_password, set_phone,
-                        // set_message_to_buyer, set_outgoing_address, remove_bids_of_users
+                        // set_message_to_buyer, set_outgoing_address
                         else -> {
                             if (errorSettings != null) {
                                 titleText.value = stringResource(strings.setLoginTitle)
@@ -302,8 +355,7 @@ fun DynamicSettingsContent(
                                     }
 
                                     AcceptedPageButton(
-                                        if("remove_bids_of_users" != settingsType) strings.actionChangeLabel
-                                        else strings.actionDelete
+                                        strings.actionChangeLabel
                                     ) {
                                         viewModel.postSubmit(settingsType, owner) {
                                             when (settingsType) {

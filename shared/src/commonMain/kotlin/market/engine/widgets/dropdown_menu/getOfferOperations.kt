@@ -313,7 +313,7 @@ fun getOfferOperations(
                             goToProposals(ProposalType.MAKE_PROPOSAL)
                         }
                         "cancel_all_bids" -> {
-                            goToDynamicSettings("cancel_all_bids", null)
+                            goToDynamicSettings("cancel_all_bids", offer.id)
                         }
                         "remove_bids_of_users" -> {
                             goToDynamicSettings("remove_bids_of_users", offer.id)

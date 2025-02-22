@@ -176,7 +176,16 @@ class OfferOperations(private val apiService: APIService) {
             ServerResponse(error = ServerErrorException(e.message.toString(), ""))
         }
     }
-
+    suspend fun postOfferOperationsCancelAllBids(offerId: Long, body: HashMap<String, String>): ServerResponse<AppResponse> {
+        return try {
+            val response= apiService.postOfferOperationsCancelAllBids(offerId, body)
+            ServerResponse(success = response)
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
     suspend fun postOfferOperationsProlongOffer(offerId: Long): ServerResponse<AppResponse> {
         return try {
             val response = apiService.postOfferOperationsProlongOffer(offerId)

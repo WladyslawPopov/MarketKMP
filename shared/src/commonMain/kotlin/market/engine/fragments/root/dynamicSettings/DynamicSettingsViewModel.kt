@@ -139,10 +139,10 @@ class DynamicSettingsViewModel : BaseViewModel() {
             userRepository.updateToken()
 
             val body = HashMap<String, JsonElement>()
-
-            builderDescription.value?.fields?.forEach {
-                if (it.data != null && it.key != "verifiedbycaptcha" && it.key != "captcha_image")
-                    body[it.key ?: ""] = it.data!!
+            builderDescription.value?.fields?.forEach { field ->
+                if (field.data != null && field.key != "verifiedbycaptcha" && field.key != "captcha_image") {
+                    body[field.key ?: ""] = field.data!!
+                }
             }
 
             val buf = withContext(Dispatchers.IO) {
@@ -199,11 +199,12 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         UserData.login,
                         body
                     )
-
-                    "remove_bids_of_users" -> offerOperations.postOfferOperationsRemoveBidsOfUsers(
-                        UserData.login,
-                        body
-                    )
+                    "remove_bids_of_users" -> owner?.let {
+                        offerOperations.postOfferOperationsRemoveBidsOfUsers(
+                            it,
+                            body
+                        )
+                    }
                     "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
                         userOperations.postUsersOperationAddList(
                             UserData.login,
@@ -212,12 +213,12 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         )
                     }
                     else -> {
-                        userOperations.postUsersOperationsSetLogin(UserData.login, body)
+                        null
                     }
                 }
             }
-            val payload = buf.success
-            val resErr = buf.error
+            val payload = buf?.success
+            val resErr = buf?.error
 
             withContext(Dispatchers.Main) {
                 setLoading(false)
@@ -262,7 +263,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
 
                         showToast(
                             errorToastItem.copy(
-                                message = payload.recipe?.operationResult?.message ?: getString(
+                                message = payload.globalErrorMessage ?: getString(
                                     strings.operationFailed
                                 )
                             )

@@ -84,6 +84,8 @@ import market.engine.core.network.networkObjects.Value
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.networkObjects.Bids
+import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
@@ -105,6 +107,8 @@ import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.dialogs.CustomDialog
+import market.engine.widgets.items.BidsListItem
+import market.engine.widgets.items.RemovedBidsListItem
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
@@ -153,7 +157,7 @@ fun OfferContent(
     val scope = rememberCoroutineScope()
 
     BackHandler(model.backHandler){
-        component.onBeakClick()
+        component.onBackClick()
     }
 
     LaunchedEffect(stateColumn){
@@ -232,7 +236,7 @@ fun OfferContent(
                     offerViewModel,
                     onBeakClick = {
                         if (!isImageViewerVisible.value) {
-                            component.onBeakClick()
+                            component.onBackClick()
                         } else {
                             isImageViewerVisible.value = false
                         }
@@ -444,7 +448,7 @@ fun OfferContent(
                                                 isShowOptions.value = false
                                             },
                                             onBack = {
-                                                component.onBeakClick()
+                                                component.onBackClick()
                                             },
                                             goToProposals = { type ->
                                                 component.goToProposalPage(type)
@@ -799,6 +803,27 @@ fun OfferContent(
                                 AuctionBidsSection(
                                     offer,
                                     offerViewModel.updateItemTrigger.value,
+                                    isDeletesBids = false,
+                                    onRebidClick = {
+                                        if (UserData.token != "") {
+                                            showBidDialog.value = true
+                                        }else{
+                                            component.goToLogin()
+                                        }
+                                    },
+                                    goToUser = {
+                                        component.goToUser(it, false)
+                                    }
+                                )
+                            }
+                        }
+                        // removed bids
+                        item {
+                            if (offerState.value == OfferStates.ACTIVE) {
+                                AuctionBidsSection(
+                                    offer,
+                                    offerViewModel.updateItemTrigger.value,
+                                    isDeletesBids = true,
                                     onRebidClick = {
                                         if (UserData.token != "") {
                                             showBidDialog.value = true
@@ -808,10 +833,6 @@ fun OfferContent(
                                     }
                                 )
                             }
-                        }
-                        // removed bids
-                        item {
-
                         }
                         //recommended list offers
                         item {
@@ -1725,14 +1746,32 @@ fun formatParameterValue(value: Value?): String {
 fun AuctionBidsSection(
     offer: Offer,
     updateTrigger : Int,
-    onRebidClick: (id: Long) -> Unit
+    isDeletesBids : Boolean,
+    onRebidClick: (id: Long) -> Unit,
+    goToUser: (id: Long) -> Unit = {}
 ) {
     if (updateTrigger < 0) return
-    val bids = offer.bids
+    val bids = if(isDeletesBids) offer.removedBids else offer.bids
     if (bids != null) {
-        SeparatorLabel(stringResource(strings.bidsLabel))
-        var isRebidShown = false
-        var isYourBidShown = false
+        SeparatorLabel(
+            title = stringResource(strings.bidsLabel),
+            annotatedString = if(isDeletesBids) {
+                buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = colors.titleTextColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append(
+                            stringResource(strings.removedBidsLabel)
+                        )
+                    }
+                }
+            }else{
+                null
+            }
+        )
 
         LazyColumn(
             modifier = Modifier
@@ -1744,90 +1783,57 @@ fun AuctionBidsSection(
             // Header row
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = dimens.mediumPadding),
-                    horizontalArrangement = Arrangement.SpaceAround
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = stringResource(strings.bidsUserLabel),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = colors.grayText,
                     )
-                    Text(
-                        text = stringResource(strings.yourMaxBidParameterName),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = colors.grayText,
-                    )
-                    Text(
-                        text = stringResource(strings.dateParameterName),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = colors.grayText,
-                    )
+                    if(!isDeletesBids) {
+                        Text(
+                            text = stringResource(strings.yourMaxBidParameterName),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = colors.grayText,
+                        )
+                        Text(
+                            text = stringResource(strings.dateParameterName),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = colors.grayText,
+                        )
+                    }else{
+                        Text(
+                            text = stringResource(strings.commentLabel),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = colors.grayText,
+                        )
+                    }
                 }
             }
 
             // List items
             itemsIndexed(bids) { i, bid ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = dimens.smallPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${i + 1}. ${bid.obfuscatedMoverLogin ?: bid.moverLogin ?: "User"}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "${bid.curprice} ${stringResource(strings.currencySign)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.black,
+                if (!isDeletesBids) {
+                    if (bid is Bids) {
+                        BidsListItem(
+                            i = i,
+                            bid = bid,
+                            offer = offer,
+                            goToUser = {
+                                goToUser(it)
+                            },
+                            onRebidClick = onRebidClick
                         )
-
-                        // Rebid Button logic
-                        if(offer.sellerData?.id != UserData.login) {
-                            if (!isRebidShown && i == 0 && bid.moverId != UserData.login) {
-                                isRebidShown = true
-                                SimpleTextButton(
-                                    text = stringResource(strings.rebidLabel),
-                                    backgroundColor = colors.notifyTextColor,
-                                    textColor = colors.alwaysWhite,
-                                    textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    modifier = Modifier.heightIn(max = 35.dp),
-                                ) {
-                                    onRebidClick(offer.id)
-                                }
-                            }
-                        }
-
-                        if (!isYourBidShown && bid.moverId == UserData.login) {
-                            isYourBidShown = true
-                            SimpleTextButton(
-                                text = stringResource(strings.yourBidLabel),
-                                backgroundColor = colors.textA0AE,
-                                textColor = colors.alwaysWhite,
-                                textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                modifier = Modifier.heightIn(max = 35.dp),
-                            ) {
-                            }
-                        }
                     }
-
-                    Text(
-                        text = bid.ts?.convertDateWithMinutes() ?: "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black,
-                        modifier = Modifier.weight(1f)
-                    )
+                }else{
+                    if (bid is RemoveBid) {
+                        RemovedBidsListItem(
+                            i,
+                            bid
+                        )
+                    }
                 }
             }
 

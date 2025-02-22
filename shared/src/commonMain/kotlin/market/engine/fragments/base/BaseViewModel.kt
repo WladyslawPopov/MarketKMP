@@ -798,6 +798,52 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun cancelAllBids(offerId: Long, comment: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val body = HashMap<String, String>()
+            body["comment"] = comment
+
+            val eventParameters = mapOf(
+                "user_id" to UserData.login,
+                "profile_source" to "settings",
+                "body" to body
+            )
+            analyticsHelper.reportEvent(
+                "set_cancel_all_bids",
+                eventParameters
+            )
+
+            val res = withContext(Dispatchers.IO) {
+                offerOperations.postOfferOperationsCancelAllBids(
+                    offerId,
+                    body
+                )
+            }
+
+            val payload = res.success
+            val resErr = res.error
+
+            withContext(Dispatchers.Main) {
+                if (payload != null) {
+                    if (payload.success) {
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        delay(2000)
+                        onSuccess()
+                    }
+                } else {
+                    if (resErr != null) {
+                        onError(resErr)
+                    }
+                }
+            }
+        }
+    }
+
+
     fun resetScroll() {
         scrollItem.value = 0
         offsetScrollItem.value = 0

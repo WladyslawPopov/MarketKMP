@@ -180,6 +180,7 @@ data class Offer(
     @SerialName("estimated_active_offers_count") val estimatedActiveOffersCount: Int = 1,
     @SerialName("has_temp_images") val hasTempImages: Boolean = false,
     @SerialName("bids") var bids: List<Bids>? = null,
+    @SerialName("removed_bids") var removedBids: List<RemoveBid>? = null,
     @SerialName("relisting_mode") var relistingMode: RelistingMode? = null,
     @SerialName("public_snapshot_url") val publicSnapshotUrl: String? = null,
     @SerialName("antisniper") val antisniper: Boolean = false,
@@ -212,6 +213,15 @@ data class AddedDescriptions(
     val text: String? = null,
     @SerialName("timestamp")
     val timestamp: Long?=null,
+)
+
+
+@Serializable
+data class RemoveBid(
+    @SerialName("bidder_login") val bidderLogin: String? = null,
+    @SerialName("bidder_rating") val bidderRating: Int = 0,
+    @SerialName("owner_comments") val ownerComments: String? = null,
+    @SerialName("removed_by_system") val removedBySystem: Boolean = false,
 )
 
 @Serializable

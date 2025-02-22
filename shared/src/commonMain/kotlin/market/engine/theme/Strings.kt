@@ -257,6 +257,7 @@ interface Strings {
     val commentLabel : StringResource
     val parametersLabel : StringResource
     val bidsLabel : StringResource
+    val removedBidsLabel : StringResource
     val bidsUserLabel : StringResource
     val dateParameterName : StringResource
     val rebidLabel : StringResource

@@ -11,10 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -42,15 +38,8 @@ fun BlocListItem(
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
                 Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                            color = colors.brightBlue,
-                            fontWeight = FontWeight.Bold
-                        )
-                        ) {
-                            append(item.name)
-                        }
+                    buildString {
+                        append(item.name)
                         append(" (${item.rating})")
                     },
                     style = MaterialTheme.typography.bodyMedium,

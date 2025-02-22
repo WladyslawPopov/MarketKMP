@@ -31,9 +31,14 @@ fun DynamicCheckboxGroup(
 
     val initialSelected = remember {
         val selectedCodes = mutableListOf<Long>()
-        field.data?.jsonArray?.forEach { item ->
-            item.jsonPrimitive.longOrNull?.let { selectedCodes.add(it) }
+        try {
+            field.data?.jsonArray?.forEach { item ->
+                item.jsonPrimitive.longOrNull?.let { selectedCodes.add(it) }
+            }
+        } catch (_ : Exception){
+
         }
+
         selectedCodes.toList()
     }
 

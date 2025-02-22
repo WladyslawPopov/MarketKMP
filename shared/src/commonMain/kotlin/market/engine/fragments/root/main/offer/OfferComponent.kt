@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
@@ -28,7 +29,7 @@ interface OfferComponent {
 
     fun updateOffer(id: Long, isSnapshot: Boolean)
     fun navigateToOffers(id: Long)
-    fun onBeakClick()
+    fun onBackClick()
     fun goToCategory(cat: Category)
     fun goToUsersListing(sellerData : User?)
     fun goToRegion(region : Region?)
@@ -44,7 +45,7 @@ interface OfferComponent {
 
 class DefaultOfferComponent(
     val id: Long,
-    isSnapshot: Boolean,
+    val isSnapshot: Boolean,
     componentContext: ComponentContext,
     val selectOffer: (Long) -> Unit,
     val navigationBack: () -> Unit,
@@ -93,7 +94,7 @@ class DefaultOfferComponent(
         selectOffer(id)
     }
 
-    override fun onBeakClick() {
+    override fun onBackClick() {
         offerViewModel.addHistory(model.value.id)
         offerViewModel.clearTimers()
 
@@ -141,10 +142,16 @@ class DefaultOfferComponent(
         externalImages: List<String>?
     ) {
         navigationCreateOffer(type, catPath, offerId, externalImages)
+        lifecycle.doOnResume {
+            updateOffer(id, isSnapshot)
+        }
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
         navigateToCreateOrder(item)
+        lifecycle.doOnResume {
+            updateOffer(id, isSnapshot)
+        }
     }
 
     override fun goToDialog(dialogId: Long?) {
@@ -153,10 +160,16 @@ class DefaultOfferComponent(
 
     override fun goToProposalPage(type: ProposalType) {
         navigateToProposalPage(id, type)
+        lifecycle.doOnResume {
+            updateOffer(id, isSnapshot)
+        }
     }
 
     override fun goToDynamicSettings(type: String, offerId: Long?) {
         navigateDynamicSettings(type, offerId)
+        lifecycle.doOnResume {
+            updateOffer(id, isSnapshot)
+        }
     }
 
     override fun goToLogin() {
