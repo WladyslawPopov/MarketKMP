@@ -24,46 +24,37 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.network.functions.OrderOperations
-import market.engine.core.network.networkObjects.Order
+import market.engine.core.network.functions.OfferOperations
+import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
-fun CreateOrderDialog(
+fun OfferMessagingDialog(
     isDialogOpen: Boolean,
-    order: Order,
-    type: DealTypeGroup,
+    offer: Offer,
     onDismiss: () -> Unit,
     onSuccess: (Long?) -> Unit,
     baseViewModel: BaseViewModel,
 ) {
     val isShowDialog = remember { mutableStateOf(false) }
-
-    val orderOperations: OrderOperations = koinInject()
+    val offerOperations: OfferOperations = koinInject()
 
     val messageText = remember { mutableStateOf("") }
 
     val charsLeft = 2000 - messageText.value.length
 
 
-    val userName = remember(order.id) {
-        if (type != DealTypeGroup.BUY) {
-            order.sellerData?.login ?: ""
-        } else {
-            order.buyerData?.login ?: ""
-        }
-    }
+    val userName = offer.sellerData?.login ?: stringResource(strings.sellerLabel)
+
+    val conversationTitle = stringResource(strings.createConversationLabel)
+    val aboutOrder = stringResource(strings.aboutOfferLabel)
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    val conversationTitle = stringResource(strings.createConversationLabel)
-    val aboutOrder = stringResource(strings.aboutOrderLabel)
-
-    val titleText = remember(order.id, userName) {
+    val titleText = remember {
         buildAnnotatedString {
             withStyle(SpanStyle(
                  color = colors.grayText,
@@ -91,7 +82,7 @@ fun CreateOrderDialog(
             withStyle(SpanStyle(
                 color = colors.titleTextColor,
             )) {
-                append(" #${order.id}")
+                append(" #${offer.id}")
             }
         }
     }
@@ -100,7 +91,7 @@ fun CreateOrderDialog(
         if (isDialogOpen) {
             val scope = baseViewModel.viewModelScope
             scope.launch(Dispatchers.IO) {
-                val res = orderOperations.postCheckingConversationExistence(order.id)
+                val res = offerOperations.postCheckingConversationExistence(offer.id)
                 val dialogId = res.success?.operationResult?.additionalData?.conversationId
                 withContext(Dispatchers.Main) {
                     if (dialogId != null) {
@@ -116,8 +107,8 @@ fun CreateOrderDialog(
     if (isShowDialog.value) {
         AlertDialog(
             onDismissRequest = {
-                onDismiss()
                 isShowDialog.value = false
+                onDismiss()
             },
             title = {
                 Text(titleText, style = MaterialTheme.typography.titleSmall)
@@ -156,8 +147,8 @@ fun CreateOrderDialog(
                     val scope = baseViewModel.viewModelScope
                     scope.launch(Dispatchers.IO) {
                         val body = hashMapOf("message" to messageText.value)
-                        val res = orderOperations.postOrderOperationsWriteToPartner(
-                            order.id,
+                        val res = offerOperations.postWriteToSeller(
+                            offer.id,
                             body
                         )
                         val buffer1 = res.success
@@ -166,12 +157,15 @@ fun CreateOrderDialog(
                             if (buffer1 != null) {
                                 if (buffer1.operationResult?.result == "ok") {
                                     val eventParameters = mapOf(
-                                        "seller_id" to userName,
+                                        "seller_id" to offer.sellerData?.id.toString(),
                                         "buyer_id" to UserData.userInfo?.id.toString(),
                                         "message_type" to "lot",
-                                        "order_id" to order.id.toString()
+                                        "lot_id" to offer.id.toString()
                                     )
-                                    analyticsHelper.reportEvent("start_message_to_seller", eventParameters)
+
+                                    analyticsHelper.reportEvent("start_message_to_seller",
+                                        eventParameters
+                                    )
                                     onSuccess(buffer1.operationResult.additionalData?.conversationId)
                                     isShowDialog.value = false
                                 } else {

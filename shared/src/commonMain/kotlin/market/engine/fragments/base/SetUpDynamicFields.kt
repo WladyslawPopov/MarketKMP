@@ -24,7 +24,7 @@ import market.engine.widgets.textFields.DynamicInputField
 @Composable
 fun SetUpDynamicFields(
     fields: List<Fields>,
-    modifier: Modifier = Modifier.fillMaxWidth(0.9f)
+    modifier: Modifier = Modifier.fillMaxWidth(0.9f),
 ){
     Column(
         modifier = modifier,

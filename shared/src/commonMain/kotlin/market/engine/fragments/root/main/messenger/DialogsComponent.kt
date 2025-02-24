@@ -41,7 +41,6 @@ class DefaultDialogsComponent(
     private val dialogsViewModel : DialogsViewModel = DialogsViewModel(
         getKoin().get(),
         getKoin().get(),
-        getKoin().get(),
     )
 
     private val _model = MutableValue(

@@ -19,7 +19,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.DateBtn
 import market.engine.widgets.dialogs.DateDialog
@@ -41,10 +40,9 @@ fun VacationSettingsContent(
                 append(from)
                 append(" ")
                 append(
-                    fields.find {
+                    (fields.find {
                         it.key == "from_time"
-                    }?.data?.jsonPrimitive?.content?.convertDateWithMinutes()
-                        ?: getCurrentDate().convertDateWithMinutes()
+                    }?.data?.jsonPrimitive?.content ?: "").convertDateWithMinutes()
                 )
             }
         )
@@ -56,11 +54,9 @@ fun VacationSettingsContent(
                 append(to)
                 append(" ")
                 append(
-                    fields.find {
+                    (fields.find {
                         it.key == "to_time"
-                    }?.data?.jsonPrimitive?.content?.convertDateWithMinutes()
-                        ?: (getCurrentDate().toLong() * 60 * 24 * 20 * 1000).toString()
-                            .convertDateWithMinutes()
+                    }?.data?.jsonPrimitive?.content ?: "").convertDateWithMinutes()
                 )
             }
         )

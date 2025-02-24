@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Conversations
-import org.koin.mp.KoinPlatform.getKoin
 
 interface ConversationsComponent {
     val model : Value<Model>
@@ -30,9 +29,7 @@ class DefaultConversationsComponent(
     val navigateToMessenger : (Long) -> Unit,
 ) : ConversationsComponent, ComponentContext by componentContext {
 
-    private val viewModel : ConversationsViewModel = ConversationsViewModel(
-        getKoin().get()
-    )
+    private val viewModel : ConversationsViewModel = ConversationsViewModel()
 
     private val _model = MutableValue(
         ConversationsComponent.Model(

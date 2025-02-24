@@ -110,7 +110,7 @@ fun DialogsAppBar(
                 Row(
                     modifier = modifier.padding(end = dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.End)
                 ) {
                     listItems.forEachIndexed { _, item ->
                         BadgedButton(item)

@@ -2,11 +2,10 @@ package market.engine.widgets.dialogs
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -20,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -89,101 +89,111 @@ fun CommentDialog(
                 )
             },
             text = {
-                Column {
-                    if (orderType >= 0) {
-                        Row(modifier = Modifier.clickable {
-                            feedbackType.value = 1
-                        },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                        ) {
-                            RadioButton(
-                                selected = feedbackType.value == 1, // positive
-                                onClick = {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                ) {
+                    item {
+                        if (orderType >= 0) {
+                            Row(
+                                modifier = Modifier.clickable {
                                     feedbackType.value = 1
                                 },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = colors.inactiveBottomNavIconColor,
-                                    unselectedColor = colors.black
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                RadioButton(
+                                    selected = feedbackType.value == 1, // positive
+                                    onClick = {
+                                        feedbackType.value = 1
+                                    },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = colors.inactiveBottomNavIconColor,
+                                        unselectedColor = colors.black
+                                    )
                                 )
-                            )
-                            Text(
-                                text = feedbacksTypePositiveLabel,
-                                color = colors.positiveGreen
-                            )
-                        }
-                        Row(modifier = Modifier.clickable {
-                            feedbackType.value = 2
-                        },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                        ) {
-                            RadioButton(
-                                selected = feedbackType.value == 2, // neutral
-                                onClick = {
+                                Text(
+                                    text = feedbacksTypePositiveLabel,
+                                    color = colors.positiveGreen
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.clickable {
                                     feedbackType.value = 2
                                 },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = colors.inactiveBottomNavIconColor,
-                                    unselectedColor = colors.black
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                RadioButton(
+                                    selected = feedbackType.value == 2, // neutral
+                                    onClick = {
+                                        feedbackType.value = 2
+                                    },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = colors.inactiveBottomNavIconColor,
+                                        unselectedColor = colors.black
+                                    )
                                 )
-                            )
-                            Text(
-                                text = feedbacksTypeNeutralLabel,
-                                modifier = Modifier,
-                                color = colors.grayText
-                            )
-                        }
-                        Row(modifier = Modifier.clickable {
-                            feedbackType.value = 0
-                        },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                        ) {
-                            RadioButton(
-                                selected = feedbackType.value == 0, // negative
-                                onClick = {
+                                Text(
+                                    text = feedbacksTypeNeutralLabel,
+                                    modifier = Modifier,
+                                    color = colors.grayText
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.clickable {
                                     feedbackType.value = 0
                                 },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = colors.inactiveBottomNavIconColor,
-                                    unselectedColor = colors.black
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                RadioButton(
+                                    selected = feedbackType.value == 0, // negative
+                                    onClick = {
+                                        feedbackType.value = 0
+                                    },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = colors.inactiveBottomNavIconColor,
+                                        unselectedColor = colors.black
+                                    )
                                 )
-                            )
-                            Text(
-                                text = feedbacksTypeNegativeLabel,
-                                modifier = Modifier,
-                                color = colors.negativeRed
-                            )
+                                Text(
+                                    text = feedbacksTypeNegativeLabel,
+                                    modifier = Modifier,
+                                    color = colors.negativeRed
+                                )
+                            }
                         }
-
-                        Spacer(modifier = Modifier.height(dimens.smallPadding))
                     }
 
-                    OutlinedTextField(
-                        value = commentText.value,
-                        onValueChange = {
-                            if (charsLeft > 0){
-                                commentText.value = it
+                    item {
+                        OutlinedTextField(
+                            value = commentText.value,
+                            onValueChange = {
+                                if (charsLeft > 0){
+                                    commentText.value = it
+                                }
+                            },
+                            label = {
+                                Text(
+                                    if (orderType == -2) stringResource(strings.trackIdLabel)
+                                    else stringResource(strings.messageLabel),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.textA0AE
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            supportingText = {
+                                Text(
+                                    text = stringResource(strings.charactersLeftLabel) + " $charsLeft",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.grayText
+                                )
                             }
-                        },
-                        label = {
-                            Text(
-                                if (orderType == -2) stringResource(strings.trackIdLabel)
-                                else stringResource(strings.messageLabel),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textA0AE
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        supportingText = {
-                            Text(
-                                text = stringResource(strings.charactersLeftLabel) + " $charsLeft",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.grayText
-                            )
-                        }
-                    )
+                        )
+                    }
+
                 }
             },
             containerColor = colors.white,

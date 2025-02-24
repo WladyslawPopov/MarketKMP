@@ -87,7 +87,9 @@ class DefaultHomeComponent(
 
     private fun updateModel() {
         homeViewModel.onError(ServerErrorException())
-        homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true)
+        homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true){
+            homeViewModel.setCategory(it)
+        }
         homeViewModel.getOffersPromotedOnMainPage(0, 16)
         homeViewModel.getOffersPromotedOnMainPage(1, 16)
     }

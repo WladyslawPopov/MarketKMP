@@ -94,7 +94,7 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.dialogs.AddBidDialog
-import market.engine.widgets.dialogs.CreateOfferDialog
+import market.engine.widgets.dialogs.OfferMessagingDialog
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
@@ -606,7 +606,7 @@ fun OfferContent(
                                         )
 
                                         if (isShowMesDialog.value){
-                                            CreateOfferDialog(
+                                            OfferMessagingDialog(
                                                 isShowMesDialog.value,
                                                 offer,
                                                 onSuccess = { dialogId ->

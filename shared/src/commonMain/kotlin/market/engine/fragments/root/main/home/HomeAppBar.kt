@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.home
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -83,7 +84,8 @@ fun HomeAppBar(
         actions = {
             Row(
                 modifier = modifier.padding(end = dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.End)
             ) {
                 listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){

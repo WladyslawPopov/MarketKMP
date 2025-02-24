@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.network.networkObjects.Category
 import market.engine.fragments.base.BaseViewModel
 
 class HomeViewModel : BaseViewModel() {
@@ -20,6 +21,13 @@ class HomeViewModel : BaseViewModel() {
 
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<Offer>>(emptyList())
     val responseOffersPromotedOnMainPage2: StateFlow<List<Offer>> = _responseOffersPromotedOnMainPage2.asStateFlow()
+
+    private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
+    val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
+
+    fun setCategory(category: List<Category>) {
+        _responseCategory.value = category
+    }
 
     fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
         viewModelScope.launch {

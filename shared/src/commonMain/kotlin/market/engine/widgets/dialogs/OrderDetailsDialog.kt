@@ -1,13 +1,17 @@
 package market.engine.widgets.dialogs
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.jsonPrimitive
@@ -24,6 +28,17 @@ fun OrderDetailsDialog(
     order: Order,
     onDismiss: () -> Unit,
 ) {
+    val address = remember { order.deliveryAddress?.address.orEmpty() }
+    val city = remember { order.deliveryAddress?.city?.jsonPrimitive?.content.orEmpty() }
+    val comment = remember { order.comment.orEmpty() }
+    val dealType = remember { order.dealType?.name.orEmpty() }
+    val deliveryMethod = remember { order.deliveryMethod?.name.orEmpty() }
+    val name = remember { order.deliveryAddress?.name.orEmpty() }
+    val country = remember { order.deliveryAddress?.country.orEmpty() }
+    val paymentMethod = remember { order.paymentMethod?.name.orEmpty() }
+    val phone = remember { order.deliveryAddress?.phone.orEmpty() }
+    val index = remember { order.deliveryAddress?.zip.orEmpty() }
+
     if (isDialogOpen) {
         AlertDialog(
             onDismissRequest = { onDismiss() },
@@ -31,28 +46,23 @@ fun OrderDetailsDialog(
                 Text(stringResource(strings.paymentAndDeliveryLabel))
             },
             text = {
-                Column(modifier = Modifier.fillMaxWidth().heightIn(max = 800.dp)) {
-                    val address = order.deliveryAddress?.address.orEmpty()
-                    val city = order.deliveryAddress?.city?.jsonPrimitive?.content.orEmpty()
-                    val comment = order.comment.orEmpty()
-                    val dealType = order.dealType?.name.orEmpty()
-                    val deliveryMethod = order.deliveryMethod?.name.orEmpty()
-                    val name = order.deliveryAddress?.name.orEmpty()
-                    val country = order.deliveryAddress?.country.orEmpty()
-                    val paymentMethod = order.paymentMethod?.name.orEmpty()
-                    val phone = order.deliveryAddress?.phone.orEmpty()
-                    val index = order.deliveryAddress?.zip.orEmpty()
-
-                    InfoRow(label = stringResource(strings.paymentMethodLabel), value = paymentMethod)
-                    InfoRow(label = stringResource(strings.deliveryMethodLabel), value = deliveryMethod)
-                    InfoRow(label = stringResource(strings.dealTypeLabel), value = dealType)
-                    InfoRow(label = stringResource(strings.dialogFio), value = name)
-                    InfoRow(label = stringResource(strings.dialogCountry), value = country)
-                    InfoRow(label = stringResource(strings.dialogPhone), value = phone)
-                    InfoRow(label = stringResource(strings.dialogCity), value = city)
-                    InfoRow(label = stringResource(strings.dialogZip), value = index)
-                    InfoRow(label = stringResource(strings.dialogAddress), value = address)
-                    InfoRow(label = stringResource(strings.dialogComment), value = comment)
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                ) {
+                    item {
+                        InfoRow(label = stringResource(strings.paymentMethodLabel), value = paymentMethod)
+                        InfoRow(label = stringResource(strings.deliveryMethodLabel), value = deliveryMethod)
+                        InfoRow(label = stringResource(strings.dealTypeLabel), value = dealType)
+                        InfoRow(label = stringResource(strings.dialogFio), value = name)
+                        InfoRow(label = stringResource(strings.dialogCountry), value = country)
+                        InfoRow(label = stringResource(strings.dialogPhone), value = phone)
+                        InfoRow(label = stringResource(strings.dialogCity), value = city)
+                        InfoRow(label = stringResource(strings.dialogZip), value = index)
+                        InfoRow(label = stringResource(strings.dialogAddress), value = address)
+                        InfoRow(label = stringResource(strings.dialogComment), value = comment)
+                    }
                 }
             },
             confirmButton = {

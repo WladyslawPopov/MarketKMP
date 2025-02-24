@@ -40,7 +40,9 @@ import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerResponse
+import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.UserOperations
+import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
@@ -65,13 +67,11 @@ open class BaseViewModel: ViewModel() {
     val userRepository: UserRepository = getKoin().get()
     val offerOperations : OfferOperations = getKoin().get()
     val categoryOperations : CategoryOperations = getKoin().get()
+    val conversationsOperations: ConversationsOperations = getKoin().get()
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val userOperations : UserOperations = getKoin().get()
-
-    private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
-    val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
 
     private val _errorMessage = MutableStateFlow(ServerErrorException())
     val errorMessage: StateFlow<ServerErrorException> = _errorMessage.asStateFlow()
@@ -84,6 +84,14 @@ open class BaseViewModel: ViewModel() {
     val viewModelScope = CoroutineScope(Dispatchers.Default)
 
     val settings : SettingsRepository = getKoin().get()
+
+    val catDef = mutableStateOf("")
+
+    init {
+        viewModelScope.launch {
+            catDef.value = getString(strings.categoryMain)
+        }
+    }
 
     fun onError(exception: ServerErrorException) {
         _errorMessage.value = exception
@@ -101,64 +109,49 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun getCategories(searchData : SD, listingData : LD, withoutCounter : Boolean = false) {
-        setLoading(true)
+    fun getCategories(
+        searchData : SD,
+        listingData : LD,
+        withoutCounter : Boolean = false,
+        onSuccess: (List<Category>) -> Unit = {}
+    ) {
         viewModelScope.launch {
             try {
                 val id = searchData.searchCategoryID
+                val response =
+                    withContext(Dispatchers.IO) { apiService.getPublicCategories(id) }
 
-                if (!searchData.searchIsLeaf) {
-                    val response =
-                        withContext(Dispatchers.IO) { apiService.getPublicCategories(id) }
+                val serializer = Payload.serializer(Category.serializer())
+                val payload: Payload<Category> =
+                    deserializePayload(response.payload, serializer)
 
-                    val serializer = Payload.serializer(Category.serializer())
-                    val payload: Payload<Category> =
-                        deserializePayload(response.payload, serializer)
-                    if (!withoutCounter) {
-                        val category = withContext(Dispatchers.IO) {
-                            val categoriesWithLotCounts = payload.objects.map { category ->
-                                async {
-                                    val sd = searchData.copy()
-                                    sd.searchCategoryID = category.id
-                                    val lotCount =
-                                        categoryOperations.getTotalCount(sd, listingData)
-                                    category.copy(
-                                        estimatedActiveOffersCount = lotCount.success ?: 0
-                                    )
-                                }
+                if (!withoutCounter) {
+                    val category = withContext(Dispatchers.IO) {
+                        val categoriesWithLotCounts = payload.objects.map { category ->
+                            async {
+                                val sd = searchData.copy()
+                                sd.searchCategoryID = category.id
+                                val lotCount =
+                                    categoryOperations.getTotalCount(sd, listingData)
+                                category.copy(
+                                    estimatedActiveOffersCount = lotCount.success ?: 0
+                                )
                             }
-                            categoriesWithLotCounts.awaitAll()
-                                .filter { it.estimatedActiveOffersCount > 0 }
                         }
+                        categoriesWithLotCounts.awaitAll()
+                            .filter { it.estimatedActiveOffersCount > 0 }
+                    }
 
-                        withContext(Dispatchers.Main) {
-                            _responseCategory.value = category
-                        }
-                    } else {
-                        _responseCategory.value = payload.objects
+                    withContext(Dispatchers.Main) {
+                        onSuccess(category)
                     }
                 } else {
-                    withContext(Dispatchers.IO) {
-                        if (activeFiltersType.value == "categories") {
-                            val category = onCatBack(searchData.searchParentID ?: 1L)
-                            if (category != null) {
-                                val sd = searchData.copy(
-                                    searchCategoryID = category.id,
-                                    searchCategoryName = category.name ?: getString(strings.categoryMain),
-                                    searchParentID = category.parentId,
-                                    searchIsLeaf = category.isLeaf
-                                )
-                                getCategories(sd, listingData, withoutCounter)
-                            }
-                        }
-                    }
+                    onSuccess(payload.objects)
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message ?: "Unknown error", ""))
-            }finally {
-                setLoading(false)
             }
         }
     }
@@ -170,15 +163,20 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    suspend fun onCatBack(
+    fun onCatBack(
         uploadId: Long,
-    ) : Category? {
-        val response = withContext(Dispatchers.IO) {
-            categoryOperations.getCategoryInfo(
-                uploadId
-            )
+        onSuccess: (Category) -> Unit
+    ) {
+        viewModelScope.launch {
+            val response = withContext(Dispatchers.IO) {
+                categoryOperations.getCategoryInfo(
+                    uploadId
+                )
+            }
+            if (response.success != null){
+                onSuccess(response.success!!)
+            }
         }
-        return response.success
     }
 
     suspend fun getOfferById(offerId: Long) : Offer? {
@@ -331,7 +329,7 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun uploadFile(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
+    fun uploadPhotoTemp(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
         viewModelScope.launch {
             val res = uploadFile(item)
 
@@ -843,6 +841,54 @@ open class BaseViewModel: ViewModel() {
                         onError(resErr)
                     }
                 }
+            }
+        }
+    }
+
+    suspend fun getConversation(id : Long) : Conversations? {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                conversationsOperations.getConversation(id)
+            }
+
+            return withContext(Dispatchers.Main) {
+                return@withContext res
+            }
+        }catch (e : ServerErrorException){
+            onError(e)
+            return null
+        }catch (e : Exception){
+            onError(ServerErrorException(e.message ?: "", ""))
+            return null
+        }
+    }
+
+    fun deleteConversation(id : Long, onSuccess : () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                conversationsOperations.postDeleteForInterlocutor(id)
+            }
+
+            withContext(Dispatchers.Main) {
+                if(res != null){
+                    onSuccess()
+                }else{
+                    showToast(errorToastItem.copy(message = getString(strings.operationFailed)))
+                }
+            }
+        }
+    }
+
+    fun markReadConversation(id : Long) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.Unconfined) {
+                    conversationsOperations.postMarkAsReadByInterlocutor(id)
+                }
+            } catch (e: ServerErrorException) {
+                onError(e)
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "", ""))
             }
         }
     }

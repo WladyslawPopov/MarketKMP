@@ -134,6 +134,7 @@ class CreateOfferViewModel : BaseViewModel() {
                                 val mergedFields = ArrayList(updatedFields + newFields)
                                 currentPayload.copy(fields = mergedFields)
                             }
+                            updateItemTrigger.value++
                         }
                     } catch (e: Exception) {
                         throw ServerErrorException(

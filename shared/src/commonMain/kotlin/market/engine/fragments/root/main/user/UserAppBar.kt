@@ -2,6 +2,7 @@ package market.engine.fragments.root.main.user
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -55,7 +56,8 @@ fun UserAppBar(
         actions = {
             Row(
                 modifier = Modifier.padding(end = dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.End)
             ) {
                 listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){

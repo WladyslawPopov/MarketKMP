@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.listing.search
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -53,7 +54,8 @@ fun SearchAppBar(
         actions = {
             Row(
                 modifier = Modifier.padding(end = dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.End)
             ) {
                 if(searchItem.isVisible && searchItem.icon != null){
                     SmallIconButton(

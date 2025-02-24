@@ -102,10 +102,11 @@ fun FeedbacksContent(
 
     val refreshPage = {
         if(type != ReportPageType.ABOUT_ME){
+            ReportFilters.clearTypeFilter(type)
             listingData.value.filters = ReportFilters.getByTypeFilter(type)
             listingData.value.filters.find { it.key == "user_id" }?.value = userId.toString()
         }
-        component.onRefresh()
+        viewModel.refresh()
         viewModel.updateItemTrigger.value++
     }
 
@@ -164,7 +165,7 @@ fun FeedbacksContent(
                     selects = filters,
                     onClearItem = {
                         viewModel.currentFilter.value = filters[0]
-                        component.onRefresh()
+                        refreshPage()
                     },
                     onItemClick = { filter ->
 
@@ -193,7 +194,7 @@ fun FeedbacksContent(
                         }
 
                         viewModel.resetScroll()
-                        component.onRefresh()
+                        viewModel.refresh()
                     }
                 )
             }

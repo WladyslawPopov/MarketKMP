@@ -3,6 +3,7 @@ package market.engine.widgets.dropdown_menu
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -34,6 +35,10 @@ fun DynamicSelect(
     }
 
     val textSelect = remember {
+        mutableStateOf("")
+    }
+
+    LaunchedEffect(Unit){
         val data = field.data?.jsonPrimitive?.intOrNull
         if (data != null){
             if (itemClick != null) {
@@ -45,7 +50,7 @@ fun DynamicSelect(
             (choice.code?.intOrNull) == data
         }?.name ?: selectDef
 
-        mutableStateOf(name)
+        textSelect.value = name
     }
 
     val error = remember {  mutableStateOf(processInput(field.errors)) }

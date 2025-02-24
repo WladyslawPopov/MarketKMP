@@ -12,6 +12,7 @@ import androidx.compose.material.BottomSheetState
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ fun SearchContent(
     bottomSheetState: BottomSheetState,
     focusRequester : FocusRequester,
     searchViewModel : ListingViewModel,
+    catBack : MutableState<Boolean>,
     closeSearch : () -> Unit,
     goToListing : () -> Unit,
 ) {
@@ -180,6 +182,7 @@ fun SearchContent(
                     baseViewModel = searchViewModel,
                     isRefresh = refreshFromCategory,
                     isFilters = true,
+                    onBackClicked = catBack
                 ){
                     openCategory.value = false
                 }

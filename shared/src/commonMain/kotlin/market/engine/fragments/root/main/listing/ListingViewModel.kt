@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
@@ -26,7 +25,6 @@ import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
 import market.engine.shared.SearchHistory
-import org.jetbrains.compose.resources.getString
 
 class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
 
@@ -48,7 +46,7 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
          this.listingData.value = listingData
          viewModelScope.launch {
              if (listingData.searchData.value.searchCategoryName == "") {
-                 listingData.searchData.value.searchCategoryName = getString(strings.categoryMain)
+                 listingData.searchData.value.searchCategoryName = catDef.value
              }
          }
 

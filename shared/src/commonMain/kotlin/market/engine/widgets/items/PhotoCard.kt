@@ -45,7 +45,7 @@ fun PhotoCard(
 
     LaunchedEffect(item.tempId){
         if (item.tempId == null){
-            viewModel.uploadFile(item){
+            viewModel.uploadPhotoTemp(item){
                 item.uri = it.uri
                 item.tempId = it.tempId
                 isLoading.value = false

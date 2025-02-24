@@ -68,7 +68,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import market.engine.common.getPermissionHandler
-import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -121,6 +120,7 @@ fun CreateOfferContent(
 
     val createOfferResponse = viewModel.responseCreateOffer.collectAsState()
     val dynamicPayloadState = viewModel.responseDynamicPayload.collectAsState()
+
     val catHistory = viewModel.responseCatHistory.collectAsState()
     val images = viewModel.responseImages.collectAsState()
     val deleteImages = remember { mutableStateOf(arrayListOf<JsonPrimitive>()) }
@@ -161,43 +161,30 @@ fun CreateOfferContent(
         )
     )
 
+    val catBack = remember { mutableStateOf(false) }
+
     BackHandler(model.value.backHandler){
         if (viewModel.activeFiltersType.value == "") {
             component.onBackClicked()
         }else{
-            viewModel.viewModelScope.launch {
-                val newCat =
-                    viewModel.onCatBack(viewModel.selectedParentId.value ?: 1L)
-                if (newCat != null) {
-                    viewModel.selectedCategoryId.value = newCat.id
-                    viewModel.selectedCategoryName.value = newCat.name ?: ""
-                    viewModel.selectedParentId.value = newCat.parentId
-                    viewModel.searchIsLeaf.value = newCat.isLeaf
-
-                    val sd = SD(
-                        searchCategoryID = newCat.id,
-                        searchCategoryName = newCat.name ?: "",
-                        searchParentID = newCat.parentId,
-                        searchIsLeaf = newCat.isLeaf
-                    )
-                    viewModel.getCategories(
-                        sd,
-                        LD(),
-                        true
-                    )
-                }else{
-                    component.onBackClicked()
-                }
-            }
+            catBack.value = true
         }
     }
 
     val refresh = {
+        searchData.value = searchData.value.copy(
+            searchCategoryID = viewModel.selectedCategoryId.value,
+            searchCategoryName = viewModel.selectedCategoryName.value,
+            searchParentID = viewModel.selectedParentId.value,
+            searchIsLeaf = viewModel.searchIsLeaf.value
+        )
+
         viewModel.onError(ServerErrorException())
         if(categoryID.value != 1L) {
             viewModel.getCategoriesHistory(categoryID.value)
+
+            // update params after category change
             if (isEditCat.value) {
-                // update params
                 viewModel.updateParams(categoryID.value)
                 isEditCat.value = false
             } else {
@@ -283,6 +270,13 @@ fun CreateOfferContent(
         }
 
         futureTime.value = dynamicPayloadState.value?.fields?.find { it.key == "future_time" }
+
+        val sd = dynamicPayloadState.value?.fields?.find { it.key == "session_start" }
+
+        if (selectedDate.value != null && sd?.data == null){
+            sd?.data = JsonPrimitive(2)
+            selectedDate.value = futureTime.value?.data?.jsonPrimitive?.longOrNull
+        }
     }
 
     LaunchedEffect(viewModel.activeFiltersType){
@@ -291,6 +285,9 @@ fun CreateOfferContent(
         }.collect { filter ->
             if (filter == "") {
                 scaffoldState.bottomSheetState.collapse()
+                if(!viewModel.searchIsLeaf.value){
+                    component.onBackClicked()
+                }
             } else {
                 scaffoldState.bottomSheetState.expand()
             }
@@ -354,6 +351,7 @@ fun CreateOfferContent(
                     searchData = searchData.value,
                     baseViewModel = viewModel,
                     isCreateOffer = true,
+                    onBackClicked = catBack
                 ){
                     viewModel.selectedCategoryId.value = searchData.value.searchCategoryID
                     viewModel.selectedCategoryName.value = searchData.value.searchCategoryName
@@ -471,8 +469,7 @@ fun CreateOfferContent(
                         }
 
                         item {
-                            val titleField =
-                                dynamicPayloadState.value?.fields?.find { it.key == "title" }
+                            val titleField = remember { dynamicPayloadState.value?.fields?.find { it.key == "title" } }
 
                             if (titleField != null) {
                                 SeparatorLabel(titleField.shortDescription ?: "")
@@ -547,16 +544,17 @@ fun CreateOfferContent(
                         }
 
                         item {
-                            val paramList =
-                                dynamicPayloadState.value?.fields?.filter { it.key?.contains("par_") == true }
-                                    ?: emptyList()
+                            if (viewModel.updateItemTrigger.value >= 0) {
+                                val paramList =
+                                    dynamicPayloadState.value?.fields?.filter { it.key?.contains("par_") == true }
+                                        ?: emptyList()
+                                SeparatorLabel(stringResource(strings.parametersLabel))
 
-                            SeparatorLabel(stringResource(strings.parametersLabel))
-
-                            SetUpDynamicFields(
-                                paramList,
-                                Modifier.fillMaxWidth()
-                            )
+                                SetUpDynamicFields(
+                                    paramList,
+                                    Modifier.fillMaxWidth()
+                                )
+                            }
                         }
 
                         val sortList = listOf(
@@ -742,18 +740,13 @@ fun CreateOfferContent(
 
                                         "session_start" -> {
                                             item {
-                                                SeparatorLabel(
-                                                    stringResource(strings.offersGroupStartTSTile)
-                                                )
+                                                if(!(type == CreateOfferType.EDIT && field.data?.jsonPrimitive?.intOrNull == 0)) {
+                                                    SeparatorLabel(
+                                                        stringResource(strings.offersGroupStartTSTile)
+                                                    )
 
-                                               if (selectedDate.value != null && field.data == null){
-                                                   field.data = JsonPrimitive(2)
-                                                   selectedDate.value = futureTime.value?.data?.jsonPrimitive?.longOrNull
-                                               }else{
-                                                   field.data = JsonPrimitive(0)
-                                               }
-
-                                                SessionStartContent(selectedDate, field)
+                                                    SessionStartContent(selectedDate, field)
+                                                }
                                             }
                                         }
                                         "description" -> {

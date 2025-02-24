@@ -92,7 +92,7 @@ fun ListingAppBar(
             Row(
                 modifier = modifier.padding(end = dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.End)
             ) {
                 listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){

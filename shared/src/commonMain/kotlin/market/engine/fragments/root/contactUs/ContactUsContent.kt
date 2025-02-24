@@ -100,7 +100,7 @@ fun ContactUsContent(
                 id = Uuid.random().toString(),
                 file = file,
             )
-            model.uploadFile(photo){ result->
+            model.uploadPhotoTemp(photo){ result->
                 responseGetFields.value?.fields?.find { it.widgetType == "attachment" }?.data = JsonPrimitive(result.tempId)
                 dataImage.value = file.name
             }

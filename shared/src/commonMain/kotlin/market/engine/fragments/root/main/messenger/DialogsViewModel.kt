@@ -30,8 +30,6 @@ import market.engine.core.data.items.DialogsData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.MessageType
-import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.functions.PrivateMessagesOperation
 import market.engine.core.network.networkObjects.Conversations
@@ -48,7 +46,6 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class DialogsViewModel(
-    private val conversationsOperations: ConversationsOperations,
     private val privateMessagesOperation: PrivateMessagesOperation,
     private val orderOperations: OrderOperations,
 ) : BaseViewModel() {
@@ -70,10 +67,19 @@ class DialogsViewModel(
 
     val messageTextState = mutableStateOf("")
 
+    private val dialogID = mutableStateOf(0L)
+
     fun init(dialogId: Long): Flow<PagingData<DialogsData>> {
+        dialogID.value = dialogId
         setLoading(true)
 
-        getConversation(dialogId)
+        viewModelScope.launch {
+            val res = getConversation(dialogId)
+            if (res != null) {
+                updateDialogInfo(res)
+                _responseGetConversation.value = res
+            }
+        }
 
         listingData.value.data.value.filters = arrayListOf(
             Filter(
@@ -138,6 +144,7 @@ class DialogsViewModel(
     }
 
     fun onRefresh() {
+        markReadConversation(dialogID.value)
         dialogsPagingRepository.refresh()
     }
 
@@ -226,24 +233,6 @@ class DialogsViewModel(
         }
     }
 
-    private fun getConversation(id: Long) {
-        viewModelScope.launch {
-            try {
-                val res = withContext(Dispatchers.IO) {
-                    conversationsOperations.getConversation(id)
-                }
-                if (res != null) {
-                    updateDialogInfo(res)
-                    _responseGetConversation.value = res
-                }
-            } catch (e: ServerErrorException) {
-                onError(e)
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "", ""))
-            }
-        }
-    }
-
     private fun updateDialogInfo(
         conversations: Conversations,
     ) {
@@ -259,31 +248,6 @@ class DialogsViewModel(
                 val res = buf.success
                 res.let {
                     _responseGetOrderInfo.value = it
-                }
-            }
-        }
-    }
-
-    fun deleteConversation(id: Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val res = withContext(Dispatchers.IO) {
-                conversationsOperations.postDeleteForInterlocutor(id)
-            }
-            withContext(Dispatchers.Main) {
-                if (res != null) {
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-                    delay(2000)
-                    onSuccess()
-                } else {
-                    showToast(
-                        errorToastItem.copy(
-                            message = getString(strings.operationFailed)
-                        )
-                    )
                 }
             }
         }

@@ -31,7 +31,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.dialogs.CreateOfferDialog
+import market.engine.widgets.dialogs.OfferMessagingDialog
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.bars.HeaderOfferBar
 import market.engine.widgets.rows.UserRow
@@ -270,7 +270,7 @@ fun MyProposalItem(
                     showMesDialog.value = true
                 }
 
-                CreateOfferDialog(
+                OfferMessagingDialog(
                     showMesDialog.value,
                     offer,
                     onSuccess = { dialogId ->

@@ -1,8 +1,5 @@
 package market.engine.fragments.root.main.profile.myOrders
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +36,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.dialogs.CreateOrderDialog
+import market.engine.widgets.dialogs.OrderMessageDialog
 import market.engine.widgets.dialogs.OrderDetailsDialog
 import market.engine.widgets.dialogs.ReportDialog
 import market.engine.widgets.dropdown_menu.getOrderOperations
@@ -79,13 +76,14 @@ fun MyOrderItem(
         }
 
     Column(
-        modifier = Modifier.background(colors.white, MaterialTheme.shapes.medium).fillMaxWidth(),
+        modifier = Modifier.background(colors.white, MaterialTheme.shapes.medium).fillMaxWidth().padding(
+            dimens.smallPadding),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ){
         //header
         Row(
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ){
@@ -116,35 +114,33 @@ fun MyOrderItem(
                     color = colors.black
                 )
 
-                SmallIconButton(
-                    drawables.menuIcon,
-                    colors.black,
-                ){
-                    showMenu.value = true
-                }
+                Column {
+                    SmallIconButton(
+                        drawables.menuIcon,
+                        colors.black,
+                    ){
+                        showMenu.value = true
+                    }
 
-                AnimatedVisibility(
-                    showMenu.value,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    getOrderOperations(
-                        order,
-                        baseViewModel,
-                        onUpdateMenuItem = {
-                            onUpdateItem()
-                        },
-                        onClose = {
-                            showMenu.value = false
-                        }
-                    )
+                    if(showMenu.value) {
+                        getOrderOperations(
+                            order,
+                            baseViewModel,
+                            onUpdateMenuItem = {
+                                onUpdateItem()
+                            },
+                            onClose = {
+                                showMenu.value = false
+                            }
+                        )
+                    }
                 }
             }
         }
 
         //user and price info
         Column(
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
@@ -237,7 +233,7 @@ fun MyOrderItem(
 
         //offers parts
         Column(
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
         ) {
@@ -465,7 +461,7 @@ fun MyOrderItem(
         //tags
         if (order.marks?.isNotEmpty() == true) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -501,7 +497,7 @@ fun MyOrderItem(
         //track id
         if (order.trackId?.isNotBlank() == true) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -540,8 +536,8 @@ fun MyOrderItem(
 
         // letter and delivery btn
         Row(
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             val mes = if (typeGroup == typeDef) {
@@ -551,7 +547,6 @@ fun MyOrderItem(
             }
 
             Row(
-                modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -566,14 +561,16 @@ fun MyOrderItem(
                             modifier = Modifier.size(dimens.extraSmallIconSize)
                         )
                     },
-                    textStyle = MaterialTheme.typography.labelSmall,
+                    textStyle = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = dimens.mediumText
+                    ),
                     backgroundColor = colors.steelBlue,
                     textColor = colors.alwaysWhite
                 ) {
                     showDialog.value = true
                 }
 
-                CreateOrderDialog(
+                OrderMessageDialog(
                     showDialog.value,
                     order,
                     type = typeGroup,
@@ -590,7 +587,6 @@ fun MyOrderItem(
             }
 
             Row(
-                modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -606,7 +602,9 @@ fun MyOrderItem(
                         )
                     },
                     backgroundColor = colors.steelBlue,
-                    textStyle = MaterialTheme.typography.bodySmall,
+                    textStyle = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = dimens.mediumText
+                    ),
                     textColor = colors.alwaysWhite
                 ) {
                     showDialog.value = true

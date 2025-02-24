@@ -19,8 +19,6 @@ interface FeedbacksComponent {
         var pagingDataFlow : Flow<PagingData<Reports>>
     )
 
-    fun onRefresh()
-
     fun goToOrder(orderId: Long, type: DealTypeGroup)
 
     fun goToSnapshot(snapshotId : Long)
@@ -49,10 +47,6 @@ class DefaultFeedbacksComponent(
     )
 
     override val model = _model
-
-    override fun onRefresh() {
-        model.value.feedbacksViewModel.refresh()
-    }
 
     override fun goToOrder(orderId: Long, type: DealTypeGroup) {
         navigateToOrder(orderId, type)

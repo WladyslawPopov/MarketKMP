@@ -19,13 +19,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
-import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
@@ -33,6 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.network.networkObjects.Category
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
@@ -53,6 +51,7 @@ fun CategoryContent(
     isRefresh: MutableState<Boolean>? = null,
     isFilters: Boolean = false,
     isCreateOffer: Boolean = false,
+    onBackClicked:  MutableState<Boolean>? = null,
     complete: () -> Unit = {},
 ) {
     val searchCategoryName = remember { mutableStateOf("") }
@@ -62,16 +61,22 @@ fun CategoryContent(
 
     val isSelected = remember { mutableStateOf(1L) }
 
-    val focus = LocalFocusManager.current
-
     val catDef = if (isFilters || isCreateOffer) {
         stringResource(strings.selectCategory)
     }else{
         stringResource(strings.categoryMain)
     }
 
-    val isLoading = baseViewModel.isShowProgress.collectAsState()
-    val categories = baseViewModel.responseCategory.collectAsState()
+    val isLoading = remember { mutableStateOf(false) }
+    val categories = remember { mutableStateOf(emptyList<Category>()) }
+
+    val setUpNewParams: (Category) -> Unit = { newCat ->
+        searchCategoryId.value = newCat.id
+        searchCategoryName.value = newCat.name ?: catDef
+        searchParentID.value = newCat.parentId
+        searchIsLeaf.value = newCat.isLeaf
+        isSelected.value = 1L
+    }
 
     val onComplete = {
         searchData.searchCategoryID = searchCategoryId.value
@@ -84,6 +89,7 @@ fun CategoryContent(
     }
 
     val refresh = {
+        isLoading.value = true
         val sd = searchData.copy(
             searchCategoryID = searchCategoryId.value,
             searchCategoryName = searchCategoryName.value,
@@ -94,22 +100,21 @@ fun CategoryContent(
             filters = filters
         )
 
-        baseViewModel.getCategories(sd, ld, (isFilters || isCreateOffer))
+        baseViewModel.getCategories(sd, ld, (isFilters || isCreateOffer), onSuccess = {
+            isLoading.value = false
+            categories.value = it
+        })
     }
 
     val onBack = {
-        baseViewModel.viewModelScope.launch {
-            val newCat = baseViewModel.onCatBack(searchParentID.value ?: 1L)
-            if (newCat != null) {
-                searchCategoryId.value = newCat.id
-                searchCategoryName.value = newCat.name ?: catDef
-                searchParentID.value = newCat.parentId
-                searchIsLeaf.value = newCat.isLeaf
-                isSelected.value = 1L
+        if (searchCategoryId.value != 1L) {
+            isLoading.value = true
+            baseViewModel.onCatBack(searchParentID.value ?: 1L) { newCat ->
+                setUpNewParams(newCat)
                 refresh()
-            }else{
-                complete()
             }
+        }else{
+            complete()
         }
     }
 
@@ -125,12 +130,35 @@ fun CategoryContent(
         baseViewModel.updateItemTrigger.value++
     }
 
+    LaunchedEffect(onBackClicked?.value){
+        if(onBackClicked?.value == true){
+            onBack()
+            onBackClicked.value = false
+        }
+    }
+
     LaunchedEffect(Unit){
         searchCategoryId.value = searchData.searchCategoryID
         searchCategoryName.value = searchData.searchCategoryName
         searchParentID.value = searchData.searchParentID
         searchIsLeaf.value = searchData.searchIsLeaf
-        refresh()
+
+        if(searchIsLeaf.value){
+            isLoading.value = true
+            baseViewModel.onCatBack(searchParentID.value ?: 1L) { newCat ->
+                val cat = if(searchParentID.value == newCat.id){
+                    newCat.copy(
+                        id = newCat.parentId
+                    )
+                }else{
+                    newCat
+                }
+                setUpNewParams(cat)
+                refresh()
+            }
+        }else {
+            refresh()
+        }
     }
 
     val noFound : @Composable () -> Unit = {
@@ -188,7 +216,9 @@ fun CategoryContent(
                             exit = fadeOut()
                         ) {
                             NavigationArrowButton {
-                                onBack()
+                                if(!isLoading.value) {
+                                    onBack()
+                                }
                             }
                         }
 
@@ -220,11 +250,7 @@ fun CategoryContent(
                         image = getCategoryIcon(category.name),
                         badgeCount = if (!(isFilters || isCreateOffer)) category.estimatedActiveOffersCount else null,
                         onClick = {
-                            focus.clearFocus()
-                            searchCategoryId.value = category.id
-                            searchCategoryName.value = category.name ?: catDef
-                            searchParentID.value = category.parentId
-                            searchIsLeaf.value = category.isLeaf
+                            setUpNewParams(category)
 
                             if (!category.isLeaf) {
                                 refresh()

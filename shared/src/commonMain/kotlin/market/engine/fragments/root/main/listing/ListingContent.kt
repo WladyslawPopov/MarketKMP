@@ -23,7 +23,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.filtersObjects.ListingFilters
@@ -109,41 +108,21 @@ fun ListingContent(
 
     val err = listingViewModel.errorMessage.collectAsState()
 
-    val categoryBackClick = {
-        listingViewModel.viewModelScope.launch {
-            val newCat = listingViewModel.onCatBack(searchData.value.searchParentID ?: 1L)
-            if (newCat != null) {
-
-                val sd = searchData.value.copy(
-                    searchCategoryID = newCat.id,
-                    searchCategoryName = newCat.name ?: catDef,
-                    searchParentID = newCat.parentId,
-                    searchIsLeaf = newCat.isLeaf
-                )
-
-                listingViewModel.getCategories(
-                    sd,
-                    listingData.value,
-                    false
-                )
-            }else{
-                listingViewModel.activeFiltersType.value = ""
-            }
-        }
-    }
+    val catBack = remember { mutableStateOf(false) }
 
     BackHandler(model.backHandler){
         when{
             listingViewModel.activeFiltersType.value == "categories" -> {
-                categoryBackClick()
+                catBack.value = true
             }
             listingViewModel.isOpenSearch.value -> {
                 if (openSearchCategoryBottomSheet.value){
-                    categoryBackClick()
+                    catBack.value = true
                 }else{
                     listingViewModel.isOpenSearch.value = false
                 }
             }
+
             listingViewModel.activeFiltersType.value != "" ->{
                 listingViewModel.activeFiltersType.value = ""
             }
@@ -249,6 +228,7 @@ fun ListingContent(
                 scaffoldStateSearch.bottomSheetState,
                 focusRequester,
                 listingViewModel,
+                catBack,
                 closeSearch = {
                     listingViewModel.isOpenSearch.value = false
                 },
@@ -360,6 +340,7 @@ fun ListingContent(
                                 filters = listingData.value.filters,
                                 isRefresh = isRefreshingFromFilters,
                                 baseViewModel = listingViewModel,
+                                onBackClicked = catBack
                             ){
                                 listingViewModel.activeFiltersType.value = ""
                             }

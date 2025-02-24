@@ -1,15 +1,10 @@
 package market.engine.fragments.root.main.basket
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -21,7 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -80,47 +74,44 @@ fun BasketAppBar(
                 }
             },
             actions = {
-                Row(
-                    modifier = modifier.padding(end = dimens.smallPadding),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    listItems.forEachIndexed{ _, item ->
-                        if(item.isVisible){
-                            BadgedButton(item)
+                Column {
+                    Row(
+                        modifier = modifier.padding(end = dimens.smallPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.End)
+                    ) {
+                        listItems.forEachIndexed{ _, item ->
+                            if(item.isVisible){
+                                BadgedButton(item)
+                            }
+                        }
+                    }
+
+                    if(showMenu.value){
+                        DropdownMenu(
+                            expanded = showMenu.value,
+                            onDismissRequest = { showMenu.value = false },
+                            containerColor = colors.white,
+                        ) {
+                            val s = stringResource(strings.actionClearBasket)
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = s,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colors.black
+                                    )
+                                },
+                                onClick = {
+                                    showMenu.value = false
+                                    clearBasket()
+                                }
+                            )
                         }
                     }
                 }
             }
         )
-
-        AnimatedVisibility(
-            showMenu.value,
-            modifier = modifier.align(Alignment.End),
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            DropdownMenu(
-                modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp).align(Alignment.End),
-                expanded = showMenu.value,
-                onDismissRequest = { showMenu.value = false },
-                containerColor = colors.white,
-            ) {
-                val s = stringResource(strings.actionClearBasket)
-
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = s,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.black
-                        )
-                    },
-                    onClick = {
-                        showMenu.value = false
-                        clearBasket()
-                    }
-                )
-            }
-        }
     }
 }
