@@ -70,7 +70,11 @@ fun FavoritesContent(
     BackHandler(model.backHandler){
         when{
             favViewModel.activeFiltersType.value != "" ->{
-                favViewModel.activeFiltersType.value = ""
+                if (favViewModel.openFiltersCat.value){
+                    favViewModel.catBack.value = true
+                }else {
+                    favViewModel.activeFiltersType.value = ""
+                }
             }
             else -> {
 
@@ -152,6 +156,8 @@ fun FavoritesContent(
             filtersContent = { isRefreshingFromFilters , onClose ->
                 when (favViewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
+                        favViewModel.openFiltersCat,
+                        favViewModel.catBack,
                         isRefreshingFromFilters,
                         ld.value.filters,
                         favViewModel,

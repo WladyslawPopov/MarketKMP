@@ -70,7 +70,7 @@ class DefaultCreateOfferComponent(
         }
         when(type){
             CreateOfferType.CREATE -> {
-                createOfferViewModel.openCategory.value = true
+                createOfferViewModel.openFiltersCat.value = true
                 createOfferViewModel.activeFiltersType.value = "category"
                 createOfferViewModel.analyticsHelper.reportEvent("add_offer_start", mapOf())
             }

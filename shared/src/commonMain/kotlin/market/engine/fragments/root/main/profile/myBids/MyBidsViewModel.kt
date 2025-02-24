@@ -19,6 +19,8 @@ class MyBidsViewModel(
 
     val listingData = mutableStateOf(ListingData())
 
+
+
     fun init(): Flow<PagingData<Offer>> {
         listingData.value.data.value.filters = OfferFilters.getByTypeFilter(type)
         listingData.value.data.value.methodServer = "get_cabinet_listing_with_my_bids"

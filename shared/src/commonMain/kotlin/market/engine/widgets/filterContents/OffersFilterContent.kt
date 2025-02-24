@@ -47,6 +47,8 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfferFilterContent(
+    openBottomSheet : MutableState<Boolean>,
+    catBack : MutableState<Boolean>,
     isRefreshing: MutableState<Boolean>,
     listingData: ArrayList<Filter>,
     baseViewModel: BaseViewModel,
@@ -115,7 +117,6 @@ fun OfferFilterContent(
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
-    val openBottomSheet = remember { mutableStateOf(false) }
 
     val defCat = stringResource(strings.categoryMain)
 
@@ -174,6 +175,7 @@ fun OfferFilterContent(
                 searchData = searchData.value,
                 baseViewModel = baseViewModel,
                 isRefresh = isRefreshing,
+                onBackClicked = catBack,
                 isFilters = true,
             ){
                 if (isRefreshing.value && searchData.value.searchCategoryID != 1L) {

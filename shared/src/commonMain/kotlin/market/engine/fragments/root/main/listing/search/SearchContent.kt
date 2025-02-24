@@ -31,6 +31,7 @@ import market.engine.widgets.filterContents.CategoryContent
 
 @Composable
 fun SearchContent(
+    openSearch: MutableState<Boolean>,
     openSearchCategory: MutableState<Boolean>,
     searchData: SD,
     focusRequester : FocusRequester,
@@ -107,13 +108,18 @@ fun SearchContent(
         searchViewModel.searchAnalytic(searchData)
     }
 
-    LaunchedEffect(Unit){
-        searchString.value = searchData.searchString
-        selectedUser.value = searchData.userSearch
-        selectedUserLogin.value = searchData.userLogin
-        selectedUserFinished.value = searchData.searchFinished
-        categoryId.value = searchData.searchCategoryID
-        categoryName.value = searchData.searchCategoryName
+    LaunchedEffect(openSearch.value){
+        if (openSearch.value) {
+            searchString.value = searchData.searchString
+            selectedUser.value = searchData.userSearch
+            selectedUserLogin.value = searchData.userLogin
+            selectedUserFinished.value = searchData.searchFinished
+            categoryId.value = searchData.searchCategoryID
+            categoryName.value = searchData.searchCategoryName
+
+            searchViewModel.getHistory(searchString.value)
+            openSearch.value = false
+        }
     }
 
     LaunchedEffect(openSearchCategory.value){

@@ -49,7 +49,6 @@ class CreateOfferViewModel : BaseViewModel() {
     val futureTime = mutableStateOf(responseDynamicPayload.value?.fields?.find { it.key == "future_time" })
     val selectedDate =  mutableStateOf(futureTime.value?.data?.jsonPrimitive?.longOrNull)
 
-    val openCategory = mutableStateOf(false)
     val selectedCategoryId = mutableStateOf(1L)
     val selectedParentId = mutableStateOf<Long?>(null)
     val selectedCategoryName = mutableStateOf("")

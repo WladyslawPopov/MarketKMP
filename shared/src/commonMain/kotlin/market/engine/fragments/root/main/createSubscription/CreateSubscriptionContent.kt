@@ -33,6 +33,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
+import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.FilterButton
@@ -78,8 +79,6 @@ fun CreateSubscriptionContent(
 
     val searchData = remember { mutableStateOf(SD()) }
 
-    val openCategory = remember { mutableStateOf(false) }
-
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
             scaffoldState.bottomSheetState.expand()
@@ -96,6 +95,21 @@ fun CreateSubscriptionContent(
                 it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
         }
     }
+
+    val onBack = {
+        if (openBottomSheet.value) {
+            viewModel.catBack.value = true
+        } else {
+            component.onBackClicked()
+        }
+    }
+
+    BackHandler(
+        backHandler = model.value.backHandler,
+        onBack = {
+            onBack()
+        }
+    )
 
     val title = stringResource(
         if (model.value.editId == null)
@@ -122,7 +136,7 @@ fun CreateSubscriptionContent(
             CreateSubscriptionAppBar(
                 title,
                 onBackClick = {
-                    component.onBackClicked()
+                    onBack()
                 }
             )
         },
@@ -147,9 +161,10 @@ fun CreateSubscriptionContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
-                    isOpen = openCategory,
+                    isOpen = viewModel.openFiltersCat,
                     searchData = searchData.value,
                     baseViewModel = viewModel,
+                    onBackClicked = viewModel.catBack,
                     isFilters = true,
                 ){
                     responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.value.searchCategoryName
@@ -202,7 +217,7 @@ fun CreateSubscriptionContent(
                                                         searchParentID = searchCategoryID
                                                     }
 
-                                                    openCategory.value = true
+                                                    viewModel.openFiltersCat.value = true
                                                 },
                                                 onCancelClick =
                                                     if (selectedCategoryID.value != 1L) {

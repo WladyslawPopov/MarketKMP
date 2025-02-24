@@ -58,6 +58,8 @@ open class BaseViewModel: ViewModel() {
     val updateItem : MutableState<Long?> = mutableStateOf(null)
 
     //filters params
+    val catBack = mutableStateOf(false)
+    val openFiltersCat = mutableStateOf(false)
     var activeFiltersType : MutableState<String> = mutableStateOf("")
     var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed)
     var scrollItem : MutableState<Int> = mutableStateOf(0)

@@ -59,7 +59,11 @@ fun MyProposalsContent(
     BackHandler(model.backHandler){
         when{
             viewModel.activeFiltersType.value != "" ->{
-                viewModel.activeFiltersType.value = ""
+                if (viewModel.openFiltersCat.value){
+                    viewModel.catBack.value = true
+                } else {
+                    viewModel.activeFiltersType.value = ""
+                }
             }
             else -> {
                 component.goToBack()
@@ -150,6 +154,8 @@ fun MyProposalsContent(
             filtersContent = { isRefreshingFromFilters , onClose ->
                 when(viewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
+                        viewModel.openFiltersCat,
+                        viewModel.catBack,
                         isRefreshingFromFilters,
                         listingData.value.filters,
                         viewModel,

@@ -161,15 +161,11 @@ fun CreateOfferContent(
         )
     )
 
-    val catBack = remember { mutableStateOf(false) }
-
-    val openCategory = remember { viewModel.openCategory }
-
     BackHandler(model.value.backHandler){
         if (viewModel.activeFiltersType.value == "") {
             component.onBackClicked()
         }else{
-            catBack.value = true
+            viewModel.catBack.value = true
         }
     }
 
@@ -350,11 +346,11 @@ fun CreateOfferContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
-                    isOpen = openCategory,
+                    isOpen = viewModel.openFiltersCat,
                     searchData = searchData.value,
                     baseViewModel = viewModel,
                     isCreateOffer = true,
-                    onBackClicked = catBack
+                    onBackClicked = viewModel.catBack
                 ){
                     viewModel.selectedCategoryId.value = searchData.value.searchCategoryID
                     viewModel.selectedCategoryName.value = searchData.value.searchCategoryName
@@ -466,7 +462,7 @@ fun CreateOfferContent(
                                     ) {
                                         isEditCat.value = true
                                         viewModel.activeFiltersType.value = "categories"
-                                        openCategory.value = true
+                                        viewModel.openFiltersCat.value = true
                                     }
                                 }
                             }

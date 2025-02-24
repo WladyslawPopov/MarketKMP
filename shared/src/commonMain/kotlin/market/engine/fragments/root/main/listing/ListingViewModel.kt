@@ -35,8 +35,9 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
     val listingData = mutableStateOf(ListingData())
 
     val openCategory = mutableStateOf(false)
+    val openSearch = mutableStateOf(false)
 
-    val isOpenSearch : MutableState<Boolean> = mutableStateOf(false) // first open search
+    val bottomTriggerSearch : MutableState<Boolean> = mutableStateOf(false) // first open search
 
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()

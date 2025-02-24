@@ -142,7 +142,7 @@ fun CategoryContent(
             if(searchIsLeaf.value){
                 isLoading.value = true
                 baseViewModel.onCatBack(searchParentID.value ?: 1L) { newCat ->
-                    val cat = if(searchParentID.value == newCat.id){
+                    val cat = if(searchParentID.value == newCat.id && newCat.isLeaf){
                         newCat.copy(
                             id = newCat.parentId
                         )

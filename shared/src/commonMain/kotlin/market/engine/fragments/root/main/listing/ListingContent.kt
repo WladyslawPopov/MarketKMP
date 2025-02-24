@@ -73,14 +73,12 @@ fun ListingContent(
 
     val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
 
-    val openCategory = remember { listingViewModel.openCategory }
-
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
 
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
-            initialValue = if (listingViewModel.isOpenSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
+            initialValue = if (listingViewModel.bottomTriggerSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
 
@@ -95,6 +93,10 @@ fun ListingContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
+    val err = listingViewModel.errorMessage.collectAsState()
+
+    val searchCatBack = remember { mutableStateOf(false) }
+
     val refresh = {
         listingViewModel.resetScroll()
 
@@ -108,22 +110,16 @@ fun ListingContent(
         updateFilters.value++
     }
 
-    val err = listingViewModel.errorMessage.collectAsState()
-
-    val catBack = remember { mutableStateOf(false) }
-
-    val searchCatBack = remember { mutableStateOf(false) }
-
     BackHandler(model.backHandler){
         when{
             listingViewModel.activeFiltersType.value == "categories" -> {
-                catBack.value = true
+                listingViewModel.catBack.value = true
             }
-            listingViewModel.isOpenSearch.value -> {
+            listingViewModel.bottomTriggerSearch.value -> {
                 if (openSearchCategoryBottomSheet.value){
                     searchCatBack.value = true
                 }else{
-                    listingViewModel.isOpenSearch.value = false
+                    listingViewModel.bottomTriggerSearch.value = false
                 }
             }
 
@@ -142,12 +138,28 @@ fun ListingContent(
         null
     }
 
-    LaunchedEffect(listingViewModel.isOpenSearch.value) {
-        snapshotFlow { listingViewModel.isOpenSearch.value }.collectLatest { isOpen ->
-            if (isOpen) {
-                //init new search params
-                listingViewModel.getHistory()
+    val noFound = @Composable {
+        if (listingData.value.filters.any {it.interpretation != null && it.interpretation != "" } ||
+            searchData.value.userSearch || searchData.value.searchString.isNotEmpty()
+        ){
+            showNoItemLayout(
+                textButton = stringResource(strings.resetLabel)
+            ){
+                searchData.value.clear(catDef)
+                listingData.value.filters = ListingFilters.getEmpty()
+                searchData.value.isRefreshing = true
+                refresh()
+            }
+        }else {
+            showNoItemLayout {
+                refresh()
+            }
+        }
+    }
 
+    LaunchedEffect(listingViewModel.bottomTriggerSearch.value) {
+        snapshotFlow { listingViewModel.bottomTriggerSearch.value }.collectLatest { isOpen ->
+            if (isOpen) {
                 val eventParameters = mapOf(
                     "search_string" to searchData.value.searchString,
                     "category_id" to searchData.value.searchCategoryID,
@@ -168,7 +180,6 @@ fun ListingContent(
         }
     }
 
-
     LaunchedEffect(listingViewModel.activeFiltersType.value){
         if (listingViewModel.activeFiltersType.value == "categories"){
             val eventParameters = mapOf(
@@ -176,25 +187,6 @@ fun ListingContent(
                 "category_id" to searchData.value.searchCategoryID,
             )
             analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
-        }
-    }
-
-    val noFound = @Composable {
-        if (listingData.value.filters.any {it.interpretation != null && it.interpretation != "" } ||
-            searchData.value.userSearch || searchData.value.searchString.isNotEmpty()
-        ){
-            showNoItemLayout(
-                textButton = stringResource(strings.resetLabel)
-            ){
-                searchData.value.clear(catDef)
-                listingData.value.filters = ListingFilters.getEmpty()
-                searchData.value.isRefreshing = true
-                refresh()
-            }
-        }else {
-            showNoItemLayout {
-                refresh()
-            }
         }
     }
     //update item when we back
@@ -228,16 +220,17 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
+                listingViewModel.openSearch,
                 openSearchCategoryBottomSheet,
                 searchData.value,
                 focusRequester,
                 listingViewModel,
                 searchCatBack,
                 closeSearch = {
-                    listingViewModel.isOpenSearch.value = false
+                    listingViewModel.bottomTriggerSearch.value = false
                 },
                 goToListing = {
-                    listingViewModel.isOpenSearch.value = false
+                    listingViewModel.bottomTriggerSearch.value = false
                     listingViewModel.activeFiltersType.value = ""
 
                     if (searchData.value.isRefreshing) {
@@ -258,7 +251,7 @@ fun ListingContent(
                     onBackClick = {
                         if (listingViewModel.activeFiltersType.value.isEmpty()) {
                                 component.goBack()
-                                listingViewModel.isOpenSearch.value = true
+                                listingViewModel.bottomTriggerSearch.value = true
                         }else{
                             listingViewModel.activeFiltersType.value = ""
                         }
@@ -268,12 +261,13 @@ fun ListingContent(
                             listingViewModel.activeFiltersType.value = ""
                         }else {
                             listingViewModel.activeFiltersType.value = "categories"
-                            openCategory.value = true
+                            listingViewModel.openCategory.value = true
                         }
                     },
                     isShowSubscribes = (searchData.value.searchCategoryID != 1L || searchData.value.userSearch || searchData.value.searchString != ""),
                     onSearchClick = {
-                        listingViewModel.isOpenSearch.value = true
+                        listingViewModel.bottomTriggerSearch.value = true
+                        listingViewModel.openSearch.value = true
                     },
                     onSubscribesClick = {
                         if(UserData.token != "") {
@@ -341,12 +335,12 @@ fun ListingContent(
                         }
                         "categories" ->{
                             CategoryContent(
-                                isOpen = openCategory,
+                                isOpen = listingViewModel.openCategory,
                                 searchData = searchData.value,
                                 filters = listingData.value.filters,
                                 isRefresh = isRefreshingFromFilters,
                                 baseViewModel = listingViewModel,
-                                onBackClicked = catBack
+                                onBackClicked = listingViewModel.catBack
                             ){
                                 listingViewModel.activeFiltersType.value = ""
                             }
@@ -381,7 +375,7 @@ fun ListingContent(
                             listingViewModel.activeFiltersType.value = "sorting"
                         },
                         onSearchClick = {
-                            listingViewModel.isOpenSearch.value = true
+                            listingViewModel.bottomTriggerSearch.value = true
                         },
                         onRefresh = {
                             searchData.value.isRefreshing = true
