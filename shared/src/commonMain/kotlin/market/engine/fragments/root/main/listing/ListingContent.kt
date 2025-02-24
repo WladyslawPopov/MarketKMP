@@ -73,6 +73,8 @@ fun ListingContent(
 
     val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
 
+    val openCategory = remember { listingViewModel.openCategory }
+
     val windowClass = getWindowType()
     val isBigScreen = windowClass == WindowType.Big
 
@@ -110,6 +112,8 @@ fun ListingContent(
 
     val catBack = remember { mutableStateOf(false) }
 
+    val searchCatBack = remember { mutableStateOf(false) }
+
     BackHandler(model.backHandler){
         when{
             listingViewModel.activeFiltersType.value == "categories" -> {
@@ -117,7 +121,7 @@ fun ListingContent(
             }
             listingViewModel.isOpenSearch.value -> {
                 if (openSearchCategoryBottomSheet.value){
-                    catBack.value = true
+                    searchCatBack.value = true
                 }else{
                     listingViewModel.isOpenSearch.value = false
                 }
@@ -224,11 +228,11 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
+                openSearchCategoryBottomSheet,
                 searchData.value,
-                scaffoldStateSearch.bottomSheetState,
                 focusRequester,
                 listingViewModel,
-                catBack,
+                searchCatBack,
                 closeSearch = {
                     listingViewModel.isOpenSearch.value = false
                 },
@@ -248,7 +252,7 @@ fun ListingContent(
                 val errorString = remember { mutableStateOf("") }
 
                 ListingAppBar(
-                    title = title.value,
+                    title = if(title.value != "") title.value else catDef,
                     modifier,
                     isOpenCategory = listingViewModel.activeFiltersType.value != "categories",
                     onBackClick = {
@@ -264,6 +268,7 @@ fun ListingContent(
                             listingViewModel.activeFiltersType.value = ""
                         }else {
                             listingViewModel.activeFiltersType.value = "categories"
+                            openCategory.value = true
                         }
                     },
                     isShowSubscribes = (searchData.value.searchCategoryID != 1L || searchData.value.userSearch || searchData.value.searchString != ""),
@@ -336,6 +341,7 @@ fun ListingContent(
                         }
                         "categories" ->{
                             CategoryContent(
+                                isOpen = openCategory,
                                 searchData = searchData.value,
                                 filters = listingData.value.filters,
                                 isRefresh = isRefreshingFromFilters,

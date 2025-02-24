@@ -34,6 +34,8 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
 
     val listingData = mutableStateOf(ListingData())
 
+    val openCategory = mutableStateOf(false)
+
     val isOpenSearch : MutableState<Boolean> = mutableStateOf(false) // first open search
 
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
@@ -44,11 +46,6 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
 
      fun init(listingData: ListingData) : Flow<PagingData<Offer>> {
          this.listingData.value = listingData
-         viewModelScope.launch {
-             if (listingData.searchData.value.searchCategoryName == "") {
-                 listingData.searchData.value.searchCategoryName = catDef.value
-             }
-         }
 
          listingData.data.value.methodServer = "get_public_listing"
          listingData.data.value.objServer = "offers"
@@ -62,8 +59,6 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
          getRegions()
 
          getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID)
-
-         //getCategories(listingData.searchData.value, listingData.data.value)
 
          return pagingRepository.getListing(listingData, apiService, Offer.serializer())
              .cachedIn(viewModelScope)

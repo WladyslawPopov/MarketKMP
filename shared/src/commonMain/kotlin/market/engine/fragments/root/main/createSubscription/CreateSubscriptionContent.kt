@@ -73,10 +73,12 @@ fun CreateSubscriptionContent(
 
     val defCat = stringResource(strings.selectCategory)
 
-    val selectedCategory = remember { mutableStateOf("") }
-    val selectedCategoryID = remember { mutableStateOf(1L) }
+    val selectedCategory = remember { viewModel.selectedCategory }
+    val selectedCategoryID = remember { viewModel.selectedCategoryID }
 
     val searchData = remember { mutableStateOf(SD()) }
+
+    val openCategory = remember { mutableStateOf(false) }
 
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
@@ -88,19 +90,10 @@ fun CreateSubscriptionContent(
 
     LaunchedEffect(responseGetPage.value){
         if (responseGetPage.value != null){
-            searchData.value.searchCategoryName = responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription ?: defCat
-            searchData.value.searchCategoryID = responseGetPage.value?.fields?.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
-            selectedCategory.value = searchData.value.searchCategoryName
-            selectedCategoryID.value = searchData.value.searchCategoryID
-        }
-    }
-
-    LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed){
-        if (scaffoldState.bottomSheetState.isCollapsed){
-            responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.value.searchCategoryName
-            responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.value.searchCategoryID)
-            selectedCategory.value = searchData.value.searchCategoryName
-            selectedCategoryID.value = searchData.value.searchCategoryID
+            viewModel.selectedCategory.value = responseGetPage.value?.fields?.find {
+                it.key == "category_id" }?.shortDescription ?: defCat
+            viewModel.selectedCategoryID.value = responseGetPage.value?.fields?.find {
+                it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
         }
     }
 
@@ -112,7 +105,7 @@ fun CreateSubscriptionContent(
 
     val clear = remember {
         {
-            searchData.value = SD()
+            searchData.value.clear(defCat)
 
             selectedCategory.value = defCat
             selectedCategoryID.value = 1L
@@ -154,10 +147,16 @@ fun CreateSubscriptionContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
+                    isOpen = openCategory,
                     searchData = searchData.value,
                     baseViewModel = viewModel,
                     isFilters = true,
                 ){
+                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.value.searchCategoryName
+                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.value.searchCategoryID)
+                    selectedCategory.value = searchData.value.searchCategoryName
+                    selectedCategoryID.value = searchData.value.searchCategoryID
+
                     openBottomSheet.value = false
                 }
             },
@@ -196,6 +195,14 @@ fun CreateSubscriptionContent(
                                                     colors.simpleButtonColors else colors.themeButtonColors,
                                                 onClick = {
                                                     openBottomSheet.value = !openBottomSheet.value
+
+                                                    searchData.value.run {
+                                                        searchCategoryName = selectedCategory.value
+                                                        searchCategoryID = selectedCategoryID.value
+                                                        searchParentID = searchCategoryID
+                                                    }
+
+                                                    openCategory.value = true
                                                 },
                                                 onCancelClick =
                                                     if (selectedCategoryID.value != 1L) {

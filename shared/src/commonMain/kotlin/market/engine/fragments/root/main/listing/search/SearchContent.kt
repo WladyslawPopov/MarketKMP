@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.BottomSheetState
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,8 +31,8 @@ import market.engine.widgets.filterContents.CategoryContent
 
 @Composable
 fun SearchContent(
+    openSearchCategory: MutableState<Boolean>,
     searchData: SD,
-    bottomSheetState: BottomSheetState,
     focusRequester : FocusRequester,
     searchViewModel : ListingViewModel,
     catBack : MutableState<Boolean>,
@@ -67,11 +66,10 @@ fun SearchContent(
     val sd = remember {
         mutableStateOf(
             SD(
-                searchString = searchString.value,
-                userSearch = selectedUser.value,
-                userLogin = selectedUserLogin.value,
-                searchFinished = selectedUserFinished.value,
-                searchCategoryID = categoryId.value,
+                searchCategoryID = searchData.searchCategoryID,
+                searchCategoryName = searchData.searchCategoryName,
+                searchParentID = searchData.searchParentID,
+                searchIsLeaf = searchData.searchIsLeaf,
             )
         )
     }
@@ -106,37 +104,24 @@ fun SearchContent(
             searchData.isRefreshing = true
         }
 
-        if (searchData.searchCategoryID != categoryId.value){
-            searchData.searchCategoryID = categoryId.value
-            searchData.searchCategoryName = categoryName.value
-            searchData.isRefreshing = true
-        }
-
         searchViewModel.searchAnalytic(searchData)
     }
 
-    LaunchedEffect(bottomSheetState.isExpanded){
-        if (bottomSheetState.isExpanded){
-            searchString.value = searchData.searchString
-            selectedUser.value = searchData.userSearch
-            selectedUserLogin.value = searchData.userLogin
-            selectedUserFinished.value = searchData.searchFinished
-            categoryId.value = searchData.searchCategoryID
-            categoryName.value = searchData.searchCategoryName
-        }
+    LaunchedEffect(Unit){
+        searchString.value = searchData.searchString
+        selectedUser.value = searchData.userSearch
+        selectedUserLogin.value = searchData.userLogin
+        selectedUserFinished.value = searchData.searchFinished
+        categoryId.value = searchData.searchCategoryID
+        categoryName.value = searchData.searchCategoryName
     }
 
-    LaunchedEffect(openCategory.value){
-        if (openCategory.value){
+    LaunchedEffect(openSearchCategory.value){
+        if (openSearchCategory.value){
             scaffoldState.bottomSheetState.expand()
             focusManager.clearFocus()
         }else{
             scaffoldState.bottomSheetState.collapse()
-            if (refreshFromCategory.value){
-                categoryId.value = sd.value.searchCategoryID
-                categoryName.value = sd.value.searchCategoryName
-                refreshFromCategory.value = false
-            }
         }
     }
 
@@ -158,7 +143,7 @@ fun SearchContent(
                 },
                 onBeakClick = {
                     if (scaffoldState.bottomSheetState.isExpanded){
-                        searchViewModel.activeFiltersType.value = ""
+                        openSearchCategory.value = false
                     }else {
                         closeSearch()
                     }
@@ -178,13 +163,25 @@ fun SearchContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
+                    isOpen = openCategory,
                     searchData = sd.value,
                     baseViewModel = searchViewModel,
                     isRefresh = refreshFromCategory,
                     isFilters = true,
                     onBackClicked = catBack
                 ){
-                    openCategory.value = false
+                    if (refreshFromCategory.value){
+                        categoryId.value = sd.value.searchCategoryID
+                        categoryName.value = sd.value.searchCategoryName
+
+                        searchData.searchCategoryID = sd.value.searchCategoryID
+                        searchData.searchCategoryName = sd.value.searchCategoryName
+                        searchData.searchParentID = sd.value.searchParentID
+                        searchData.searchIsLeaf = sd.value.searchIsLeaf
+
+                        refreshFromCategory.value = false
+                    }
+                    openSearchCategory.value = false
                 }
             },
         ) {
@@ -209,15 +206,20 @@ fun SearchContent(
                     selectedUserFinished = selectedUserFinished,
                     goToCategory = {
                         sd.value = SD(
-                            searchString = searchString.value,
-                            userSearch = selectedUser.value,
-                            userLogin = selectedUserLogin.value,
-                            searchFinished = selectedUserFinished.value,
-                            searchCategoryID = categoryId.value,
+                            searchCategoryID = searchData.searchCategoryID,
+                            searchCategoryName = searchData.searchCategoryName,
+                            searchParentID = searchData.searchParentID,
+                            searchIsLeaf = searchData.searchIsLeaf,
                         )
 
                         openCategory.value = true
+                        openSearchCategory.value = true
                     },
+                    clearCategory = {
+                        categoryId.value = 1L
+                        categoryName.value = searchViewModel.catDef.value
+                        searchData.clear(searchViewModel.catDef.value)
+                    }
                 )
 
                 HistoryLayout(

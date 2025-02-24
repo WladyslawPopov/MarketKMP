@@ -22,16 +22,10 @@ fun FiltersSearchBar(
     selectedUserLogin: MutableState<String?>,
     selectedUserFinished: MutableState<Boolean>,
     goToCategory: () -> Unit,
+    clearCategory: () -> Unit,
 ) {
     val us = stringResource(strings.searchUsersSearch)
     val catDef = stringResource(strings.categoryMain)
-
-    val clearCategory = remember {
-        {
-            selectedCategoryID.value = 1L
-            selectedCategory.value = catDef
-        }
-    }
 
     val clearUser = remember {
         {

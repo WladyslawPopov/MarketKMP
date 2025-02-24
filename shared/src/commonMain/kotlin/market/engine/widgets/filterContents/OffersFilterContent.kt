@@ -119,6 +119,8 @@ fun OfferFilterContent(
 
     val defCat = stringResource(strings.categoryMain)
 
+    val openCategory = remember { mutableStateOf(false) }
+
     val activeCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
     val selectedCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.interpretation ?: defCat) }
     val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpretation ?: offersType[0].second) }
@@ -139,23 +141,23 @@ fun OfferFilterContent(
 
     val searchData = remember {
         mutableStateOf(
-            SD(
-                searchCategoryID = listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L,
-                searchCategoryName = listingData.find { it.key == "category" }?.interpretation ?: defCat,
-                searchParentID = listingData.find { it.key == "category" }?.value?.toLongOrNull(),
-                searchIsLeaf = listingData.find { it.key == "category" }?.operation?.toBoolean() ?: false
-            )
+            SD()
         )
     }
 
-    LaunchedEffect(openBottomSheet.value){
+    LaunchedEffect(openBottomSheet.value) {
         if (openBottomSheet.value) {
             scaffoldState.bottomSheetState.expand()
-        }else{
+        } else {
             scaffoldState.bottomSheetState.collapse()
         }
     }
 
+    LaunchedEffect(openCategory.value){
+        if (openCategory.value) {
+            openBottomSheet.value = true
+        }
+    }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -168,12 +170,13 @@ fun OfferFilterContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             CategoryContent(
+                isOpen = openCategory,
                 searchData = searchData.value,
                 baseViewModel = baseViewModel,
                 isRefresh = isRefreshing,
                 isFilters = true,
             ){
-                if (isRefreshing.value) {
+                if (isRefreshing.value && searchData.value.searchCategoryID != 1L) {
                     listingData.find { it.key == "category" }?.value = searchData.value.searchCategoryID.toString()
                     listingData.find { it.key == "category" }?.interpretation = searchData.value.searchCategoryName
                     listingData.find { it.key == "category" }?.operation = searchData.value.searchIsLeaf.toString()
@@ -182,6 +185,7 @@ fun OfferFilterContent(
                     listingData.find { it.key == "category" }?.interpretation = null
                     listingData.find { it.key == "category" }?.operation = null
                 }
+
                 selectedCategory.value = searchData.value.searchCategoryName
                 activeCategory.value = searchData.value.searchCategoryID
 
@@ -280,8 +284,9 @@ fun OfferFilterContent(
 
                 item {
                     InputsOfferFilterContent(
+                        searchData.value,
+                        openCategory,
                         listingData,
-                        openBottomSheet,
                         selectedCategory,
                         activeCategory,
                         baseViewModel.updateItemTrigger.value
@@ -349,8 +354,9 @@ fun OfferFilterContent(
 
 @Composable
 fun InputsOfferFilterContent(
+    searchData: SD,
+    openCategory: MutableState<Boolean>,
     filters: List<Filter>,
-    openBottomSheet: MutableState<Boolean>,
     activeCategory: MutableState<String>,
     selectedCategoryID: MutableState<Long>,
     updateTrigger : Int,
@@ -367,6 +373,10 @@ fun InputsOfferFilterContent(
         {
             filters.find { it.key == "category" }?.value = ""
             filters.find { it.key == "category" }?.interpretation = null
+            filters.find { it.key == "category" }?.operation = null
+
+            searchData.clear(defCat)
+
             activeCategory.value = defCat
             selectedCategoryID.value = 1L
 
@@ -475,7 +485,19 @@ fun InputsOfferFilterContent(
                     color = if (selectedCategoryID.value == 1L)
                         colors.simpleButtonColors else colors.themeButtonColors,
                     onClick = {
-                        openBottomSheet.value = !openBottomSheet.value
+                        searchData.run {
+                            searchCategoryID =
+                                filters.find { it.key == "category" }?.value?.toLongOrNull()
+                                    ?: 1L
+                            searchCategoryName =
+                                filters.find { it.key == "category" }?.interpretation ?: defCat
+                            searchParentID =
+                                filters.find { it.key == "category" }?.value?.toLongOrNull()
+                            searchIsLeaf =
+                                filters.find { it.key == "category" }?.operation?.toBoolean()
+                                    ?: false
+                        }
+                        openCategory.value = true
                     },
                     onCancelClick = if(selectedCategoryID.value != 1L){
                        clear

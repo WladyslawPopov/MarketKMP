@@ -38,13 +38,13 @@ import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.items.getNavigationItem
-import market.engine.widgets.bars.FilterContentHeaderBar
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CategoryContent(
+    isOpen : MutableState<Boolean>,
     searchData: SD,
     filters: ArrayList<Filter> = arrayListOf(),
     baseViewModel: BaseViewModel,
@@ -52,12 +52,12 @@ fun CategoryContent(
     isFilters: Boolean = false,
     isCreateOffer: Boolean = false,
     onBackClicked:  MutableState<Boolean>? = null,
-    complete: () -> Unit = {},
+    onClose: () -> Unit = {},
 ) {
-    val searchCategoryName = remember { mutableStateOf("") }
-    val searchCategoryId = remember { mutableStateOf(0L) }
-    val searchParentID = remember { mutableStateOf<Long?>(null) }
-    val searchIsLeaf = remember { mutableStateOf(false) }
+    val searchCategoryName = remember { mutableStateOf(searchData.searchCategoryName) }
+    val searchCategoryId = remember { mutableStateOf(searchData.searchCategoryID) }
+    val searchParentID = remember { mutableStateOf(searchData.searchParentID) }
+    val searchIsLeaf = remember { mutableStateOf(searchData.searchIsLeaf) }
 
     val isSelected = remember { mutableStateOf(1L) }
 
@@ -85,7 +85,7 @@ fun CategoryContent(
         searchData.searchIsLeaf = searchIsLeaf.value
         searchData.isRefreshing = true
         isRefresh?.value = true
-        complete()
+        onClose()
     }
 
     val refresh = {
@@ -114,20 +114,15 @@ fun CategoryContent(
                 refresh()
             }
         }else{
-            complete()
+            onClose()
         }
     }
 
     val reset = {
         if(searchCategoryId.value != 1L) {
-            searchCategoryId.value = 1L
-            searchCategoryName.value = catDef
-            searchParentID.value = null
-            searchIsLeaf.value = false
+            setUpNewParams(Category(id = 1L, name = catDef))
         }
-
         refresh()
-        baseViewModel.updateItemTrigger.value++
     }
 
     LaunchedEffect(onBackClicked?.value){
@@ -137,27 +132,30 @@ fun CategoryContent(
         }
     }
 
-    LaunchedEffect(Unit){
-        searchCategoryId.value = searchData.searchCategoryID
-        searchCategoryName.value = searchData.searchCategoryName
-        searchParentID.value = searchData.searchParentID
-        searchIsLeaf.value = searchData.searchIsLeaf
+    LaunchedEffect(isOpen.value){
+        if(isOpen.value){
+            searchCategoryId.value = searchData.searchCategoryID
+            searchCategoryName.value = searchData.searchCategoryName
+            searchParentID.value = searchData.searchParentID
+            searchIsLeaf.value = searchData.searchIsLeaf
 
-        if(searchIsLeaf.value){
-            isLoading.value = true
-            baseViewModel.onCatBack(searchParentID.value ?: 1L) { newCat ->
-                val cat = if(searchParentID.value == newCat.id){
-                    newCat.copy(
-                        id = newCat.parentId
-                    )
-                }else{
-                    newCat
+            if(searchIsLeaf.value){
+                isLoading.value = true
+                baseViewModel.onCatBack(searchParentID.value ?: 1L) { newCat ->
+                    val cat = if(searchParentID.value == newCat.id){
+                        newCat.copy(
+                            id = newCat.parentId
+                        )
+                    }else{
+                        newCat
+                    }
+                    setUpNewParams(cat)
+                    refresh()
                 }
-                setUpNewParams(cat)
+            }else {
                 refresh()
             }
-        }else {
-            refresh()
+            isOpen.value = false
         }
     }
 
@@ -183,19 +181,6 @@ fun CategoryContent(
         modifier = Modifier.fillMaxSize(),
     ) {
         Column {
-            if (isFilters) {
-                FilterContentHeaderBar(
-                    title = stringResource(strings.selectCategory),
-                    isShowClearBtn = searchCategoryId.value != 1L,
-                    onClear = {
-                       reset()
-                    },
-                    onClosed = {
-                        complete()
-                    }
-                )
-            }
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -233,7 +218,7 @@ fun CategoryContent(
                             modifier = Modifier.fillMaxWidth(0.7f),
                         )
 
-                        if (!isFilters && !isCreateOffer && searchCategoryId.value != 1L) {
+                        if (searchCategoryId.value != 1L) {
                             ActionButton(
                                 strings.clear,
                                 fontSize = dimens.mediumText,

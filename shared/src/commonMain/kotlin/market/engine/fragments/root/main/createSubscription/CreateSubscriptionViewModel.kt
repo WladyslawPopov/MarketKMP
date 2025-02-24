@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.createSubscription
 
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -27,6 +28,9 @@ class CreateSubscriptionViewModel(
 
     private var _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseGetPage : StateFlow<DynamicPayload<OperationResult>?> = _responseGetPage.asStateFlow()
+
+    val selectedCategory = mutableStateOf("")
+    val selectedCategoryID = mutableStateOf(1L)
 
     fun getPage(editId : Long?){
         setLoading(true)

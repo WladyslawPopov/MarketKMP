@@ -60,8 +60,8 @@ class DefaultListingComponent(
 
         if(isOpenCategory)
             listingViewModel.activeFiltersType.value = "categories"
+
         listingViewModel.isOpenSearch.value = isOpenSearch
-//        backHandler.register(model.value.backCallback)
     }
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
