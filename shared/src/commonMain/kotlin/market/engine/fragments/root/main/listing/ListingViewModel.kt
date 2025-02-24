@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
@@ -21,8 +24,11 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
+import market.engine.shared.MarketDB
+import market.engine.shared.SearchHistory
+import org.jetbrains.compose.resources.getString
 
-class ListingViewModel : BaseViewModel() {
+class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
@@ -35,8 +41,16 @@ class ListingViewModel : BaseViewModel() {
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
+    private val _responseHistory = MutableStateFlow<List<SearchHistory>>(emptyList())
+    val responseHistory: StateFlow<List<SearchHistory>> = _responseHistory.asStateFlow()
+
      fun init(listingData: ListingData) : Flow<PagingData<Offer>> {
          this.listingData.value = listingData
+         viewModelScope.launch {
+             if (listingData.searchData.value.searchCategoryName == "") {
+                 listingData.searchData.value.searchCategoryName = getString(strings.categoryMain)
+             }
+         }
 
          listingData.data.value.methodServer = "get_public_listing"
          listingData.data.value.objServer = "offers"
@@ -51,9 +65,10 @@ class ListingViewModel : BaseViewModel() {
 
          getOffersRecommendedInListing(listingData.searchData.value.searchCategoryID)
 
-         getCategories(listingData.searchData.value, listingData.data.value)
+         //getCategories(listingData.searchData.value, listingData.data.value)
 
-        return pagingRepository.getListing(listingData, apiService, Offer.serializer()).cachedIn(viewModelScope)
+         return pagingRepository.getListing(listingData, apiService, Offer.serializer())
+             .cachedIn(viewModelScope)
      }
 
     fun refresh(){
@@ -99,6 +114,53 @@ class ListingViewModel : BaseViewModel() {
                     res.firstOrNull()?.options?.sortedBy { it.weight }?.let { regionOptions.value.addAll(it) }
                 }
             }
+        }
+    }
+
+    fun getHistory(searchString : String = ""){
+        try {
+            val sh = db.searchHistoryQueries
+            val searchHistory : List<SearchHistory> =
+                sh.selectSearch("${searchString.trim()}%", UserData.login).executeAsList()
+
+            _responseHistory.value = searchHistory
+        }catch (e : Exception){
+            onError(ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    fun deleteHistory() {
+        val sh = db.searchHistoryQueries
+        sh.deleteAll()
+        getHistory()
+    }
+
+    fun deleteItemHistory(id: Long) {
+        val sh = db.searchHistoryQueries
+        sh.deleteById(id, UserData.login)
+        getHistory()
+    }
+
+    fun addHistory(searchString: String) {
+        if (searchString != "") {
+            val sh = db.searchHistoryQueries
+            if (sh.selectSearch("${searchString.trim()}%", UserData.login).executeAsList().isEmpty()){
+                sh.insertEntry(searchString, UserData.login)
+            }
+        }
+    }
+
+    fun searchAnalytic(searchData : SD){
+        if (searchData.isRefreshing) {
+            val event = mapOf(
+                "search_query" to searchData.searchString,
+                "visitor_id" to UserData.login,
+                "search_cat_id" to searchData.searchCategoryID,
+                "user_search" to searchData.userSearch,
+                "user_search_login" to searchData.userLogin,
+                "user_search_id" to searchData.userID
+            )
+            analyticsHelper.reportEvent("search_for_item", event)
         }
     }
 }

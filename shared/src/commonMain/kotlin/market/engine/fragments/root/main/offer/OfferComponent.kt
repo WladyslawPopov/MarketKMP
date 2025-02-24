@@ -104,7 +104,7 @@ class DefaultOfferComponent(
     override fun goToCategory(cat: Category) {
         val ld = ListingData()
         ld.searchData.value.searchCategoryID = cat.id
-        ld.searchData.value.searchCategoryName = cat.name
+        ld.searchData.value.searchCategoryName = cat.name ?: ""
         ld.searchData.value.searchParentID = cat.parentId
         ld.searchData.value.searchIsLeaf = cat.isLeaf
         navigationListing(ld)

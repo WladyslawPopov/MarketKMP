@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +16,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.texts.TextAppBar
@@ -97,12 +96,7 @@ fun ListingAppBar(
             ) {
                 listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){
-                        IconButton(
-                            modifier = modifier.size(dimens.smallIconSize),
-                            onClick = { item.onClick() }
-                        ) {
-                            getBadgedBox(modifier = modifier, item)
-                        }
+                        BadgedButton(item)
                     }
                 }
             }

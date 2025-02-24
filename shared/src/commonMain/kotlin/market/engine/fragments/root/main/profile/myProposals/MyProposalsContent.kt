@@ -147,7 +147,7 @@ fun MyProposalsContent(
                     }
                 )
             },
-            filtersContent = { isRefreshingFromFilters, onClose ->
+            filtersContent = { isRefreshingFromFilters , onClose ->
                 when(viewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
                         isRefreshingFromFilters,

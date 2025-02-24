@@ -2,7 +2,6 @@ package market.engine.widgets.filterContents
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.MutableState
-import market.engine.core.data.baseFilters.LD
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -120,13 +119,9 @@ fun OfferFilterContent(
 
     val defCat = stringResource(strings.categoryMain)
 
+    val activeCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
     val selectedCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.interpretation ?: defCat) }
-    val selectedCategoryID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
-    val selectedCategoryParentID = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull()) }
-    val selectedCategoryIsLeaf = remember { mutableStateOf(listingData.find { it.key == "category" }?.operation?.toBoolean() ?: false) }
     val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpretation ?: offersType[0].second) }
-    val isRefreshingFromCategories = remember { mutableStateOf(false) }
-
 
     val selectedFilterKey = remember {
         mutableStateOf(
@@ -142,40 +137,25 @@ fun OfferFilterContent(
         )
     }
 
+    val searchData = remember {
+        mutableStateOf(
+            SD(
+                searchCategoryID = listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L,
+                searchCategoryName = listingData.find { it.key == "category" }?.interpretation ?: defCat,
+                searchParentID = listingData.find { it.key == "category" }?.value?.toLongOrNull(),
+                searchIsLeaf = listingData.find { it.key == "category" }?.operation?.toBoolean() ?: false
+            )
+        )
+    }
+
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
-            val sd = SD(
-                searchCategoryID = selectedCategoryID.value,
-                searchCategoryName = selectedCategory.value,
-                searchParentID = selectedCategoryParentID.value,
-                searchIsLeaf = selectedCategoryIsLeaf.value
-            )
-            baseViewModel.setLoading(true)
-            baseViewModel.getCategories(sd, LD(),true)
-
             scaffoldState.bottomSheetState.expand()
         }else{
             scaffoldState.bottomSheetState.collapse()
         }
     }
 
-    LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed) {
-        if (scaffoldState.bottomSheetState.isCollapsed) {
-            if (selectedCategoryID.value != 1L) {
-                listingData.find { it.key == "category" }?.value =
-                    selectedCategoryID.value.toString()
-                listingData.find { it.key == "category" }?.interpretation =
-                    selectedCategory.value
-                listingData.find { it.key == "category" }?.operation =
-                    selectedCategoryIsLeaf.value.toString()
-            }else{
-                listingData.find { it.key == "category" }?.value = ""
-                listingData.find { it.key == "category" }?.interpretation = null
-                listingData.find { it.key == "category" }?.operation = null
-            }
-            selectedCategory.value = selectedCategory.value
-        }
-    }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -188,15 +168,23 @@ fun OfferFilterContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             CategoryContent(
+                searchData = searchData.value,
                 baseViewModel = baseViewModel,
-                searchCategoryId = selectedCategoryID,
-                searchCategoryName = selectedCategory,
-                searchParentID = selectedCategoryParentID,
-                searchIsLeaf = selectedCategoryIsLeaf,
-                isRefreshingFromFilters = isRefreshingFromCategories,
+                isRefresh = isRefreshing,
                 isFilters = true,
             ){
-                isRefreshing.value = true
+                if (isRefreshing.value) {
+                    listingData.find { it.key == "category" }?.value = searchData.value.searchCategoryID.toString()
+                    listingData.find { it.key == "category" }?.interpretation = searchData.value.searchCategoryName
+                    listingData.find { it.key == "category" }?.operation = searchData.value.searchIsLeaf.toString()
+                }else{
+                    listingData.find { it.key == "category" }?.value = ""
+                    listingData.find { it.key == "category" }?.interpretation = null
+                    listingData.find { it.key == "category" }?.operation = null
+                }
+                selectedCategory.value = searchData.value.searchCategoryName
+                activeCategory.value = searchData.value.searchCategoryID
+
                 openBottomSheet.value = false
             }
         },
@@ -293,11 +281,12 @@ fun OfferFilterContent(
                 item {
                     InputsOfferFilterContent(
                         listingData,
-                        selectedCategory,
-                        selectedCategoryID,
-                        selectedCategoryParentID,
                         openBottomSheet,
+                        selectedCategory,
+                        activeCategory,
+                        baseViewModel.updateItemTrigger.value
                     ){
+                        baseViewModel.updateItemTrigger.value++
                         isRefreshing.value = true
                         isShowClear.value = checkSize()
                     }
@@ -361,12 +350,14 @@ fun OfferFilterContent(
 @Composable
 fun InputsOfferFilterContent(
     filters: List<Filter>,
+    openBottomSheet: MutableState<Boolean>,
     activeCategory: MutableState<String>,
     selectedCategoryID: MutableState<Long>,
-    selectedParentId : MutableState<Long?>,
-    openBottomSheet: MutableState<Boolean>,
+    updateTrigger : Int,
     onFiltersUpdated: () -> Unit,
 ) {
+    if (updateTrigger < 0) return
+
     val defCat = stringResource(strings.categoryMain)
     val idTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
     val nameTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
@@ -378,7 +369,7 @@ fun InputsOfferFilterContent(
             filters.find { it.key == "category" }?.interpretation = null
             activeCategory.value = defCat
             selectedCategoryID.value = 1L
-            selectedParentId.value = null
+
             onFiltersUpdated()
         }
     }

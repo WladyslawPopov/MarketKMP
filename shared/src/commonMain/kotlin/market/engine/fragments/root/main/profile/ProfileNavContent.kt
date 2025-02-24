@@ -33,6 +33,7 @@ import org.jetbrains.compose.resources.stringResource
 fun ProfileNavContent(
     list: List<NavigationItem>,
     activeTitle: String? = null,
+    goToSettings: ((String) -> Unit)? = null,
     goToAllLots: (() -> Unit)? = null,
     goToAboutMe: (() -> Unit)? = null,
     goToSubscriptions: (() -> Unit)? = null,
@@ -62,6 +63,9 @@ fun ProfileNavContent(
                     },
                     goToSubscriptions = {
                         goToSubscriptions?.invoke()
+                    },
+                    goToSettings = {
+                        goToSettings?.invoke(it)
                     },
                     isBlackList = arrayListOf()
                 )

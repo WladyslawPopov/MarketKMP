@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.createOffer
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
@@ -45,16 +44,15 @@ class CreateOfferViewModel : BaseViewModel() {
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
     val positionList = mutableStateOf(0)
-
     val isEditCat = mutableStateOf(false)
-    val categoryName = mutableStateOf("")
-    val categoryID = mutableStateOf( 1L)
-    val parentID : MutableState<Long?> = mutableStateOf(1L)
-    val isLeaf = mutableStateOf(true)
-    val isRefreshingFromFilters =  mutableStateOf(true)
     val choiceCodeSaleType = mutableStateOf<Int?>(null)
     val futureTime = mutableStateOf(responseDynamicPayload.value?.fields?.find { it.key == "future_time" })
     val selectedDate =  mutableStateOf(futureTime.value?.data?.jsonPrimitive?.longOrNull)
+
+    val selectedCategoryId = mutableStateOf(1L)
+    val selectedParentId = mutableStateOf<Long?>(null)
+    val selectedCategoryName = mutableStateOf("")
+    val searchIsLeaf = mutableStateOf(false)
 
     @OptIn(ExperimentalUuidApi::class)
     fun getImages(pickImagesRaw : PlatformFiles) {
@@ -76,6 +74,7 @@ class CreateOfferViewModel : BaseViewModel() {
             }
         }
     }
+
     fun setImages(images: List<PhotoTemp>) {
         _responseImages.value = images
     }

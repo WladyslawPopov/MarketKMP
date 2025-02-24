@@ -28,7 +28,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
-import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -72,25 +71,15 @@ fun CreateSubscriptionContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openBottomSheet = remember { mutableStateOf(false) }
 
-    val defCat = stringResource(strings.categoryEnter)
+    val defCat = stringResource(strings.selectCategory)
 
-    val selectedCategory = remember { mutableStateOf(defCat) }
+    val selectedCategory = remember { mutableStateOf("") }
     val selectedCategoryID = remember { mutableStateOf(1L) }
-    val selectedCategoryParentID = remember { mutableStateOf<Long?>(null) }
-    val selectedCategoryIsLeaf = remember { mutableStateOf(false) }
-    val isRefreshingFromFilters = remember { mutableStateOf(false) }
+
+    val searchData = remember { mutableStateOf(SD()) }
 
     LaunchedEffect(openBottomSheet.value){
         if (openBottomSheet.value) {
-            val sd = SD(
-                searchCategoryID = selectedCategoryID.value,
-                searchCategoryName = selectedCategory.value,
-                searchParentID = selectedCategoryParentID.value,
-                searchIsLeaf = selectedCategoryIsLeaf.value
-            )
-            viewModel.setLoading(true)
-            viewModel.getCategories(sd, LD(),true)
-
             scaffoldState.bottomSheetState.expand()
         }else{
             scaffoldState.bottomSheetState.collapse()
@@ -99,15 +88,19 @@ fun CreateSubscriptionContent(
 
     LaunchedEffect(responseGetPage.value){
         if (responseGetPage.value != null){
-            selectedCategory.value = responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription ?: defCat
-            selectedCategoryID.value = responseGetPage.value?.fields?.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
+            searchData.value.searchCategoryName = responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription ?: defCat
+            searchData.value.searchCategoryID = responseGetPage.value?.fields?.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
+            selectedCategory.value = searchData.value.searchCategoryName
+            selectedCategoryID.value = searchData.value.searchCategoryID
         }
     }
 
     LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed){
         if (scaffoldState.bottomSheetState.isCollapsed){
-            responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = selectedCategory.value
-            responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(selectedCategoryID.value)
+            responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.value.searchCategoryName
+            responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.value.searchCategoryID)
+            selectedCategory.value = searchData.value.searchCategoryName
+            selectedCategoryID.value = searchData.value.searchCategoryID
         }
     }
 
@@ -119,9 +112,11 @@ fun CreateSubscriptionContent(
 
     val clear = remember {
         {
+            searchData.value = SD()
+
             selectedCategory.value = defCat
             selectedCategoryID.value = 1L
-            selectedCategoryParentID.value = null
+
             responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription =
                 defCat
             responseGetPage.value?.fields?.find { it.key == "category_id" }?.data =
@@ -159,12 +154,8 @@ fun CreateSubscriptionContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
+                    searchData = searchData.value,
                     baseViewModel = viewModel,
-                    searchCategoryId = selectedCategoryID,
-                    searchCategoryName = selectedCategory,
-                    searchParentID = selectedCategoryParentID,
-                    searchIsLeaf = selectedCategoryIsLeaf,
-                    isRefreshingFromFilters = isRefreshingFromFilters,
                     isFilters = true,
                 ){
                     openBottomSheet.value = false

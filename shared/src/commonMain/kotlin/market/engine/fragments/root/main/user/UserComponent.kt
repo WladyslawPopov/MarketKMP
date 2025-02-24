@@ -14,6 +14,7 @@ import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.User
 import market.engine.core.data.types.ReportPageType
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.main.user.feedbacks.DefaultFeedbacksComponent
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksComponent
 
@@ -40,6 +41,8 @@ interface UserComponent {
     fun onTabSelect(index: Int)
 
     fun goToSubscriptions()
+
+    fun goToSettings(key: String)
 }
 
 class DefaultUserComponent(
@@ -146,6 +149,10 @@ class DefaultUserComponent(
 
     override fun goToSubscriptions() {
         navigateToSubscriptions()
+    }
+
+    override fun goToSettings(key: String) {
+        goToDynamicSettings(key, null, null)
     }
 
     override fun selectFeedbackPage(type: ReportPageType) {

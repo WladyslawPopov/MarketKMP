@@ -7,12 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -30,7 +28,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.network.networkObjects.Conversations
-import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.TextAppBar
@@ -115,14 +113,7 @@ fun DialogsAppBar(
                     horizontalArrangement = Arrangement.End
                 ) {
                     listItems.forEachIndexed { _, item ->
-                        if (item.isVisible) {
-                            IconButton(
-                                modifier = modifier.size(50.dp),
-                                onClick = { item.onClick() }
-                            ) {
-                                getBadgedBox(modifier = modifier, item)
-                            }
-                        }
+                        BadgedButton(item)
                     }
                 }
 

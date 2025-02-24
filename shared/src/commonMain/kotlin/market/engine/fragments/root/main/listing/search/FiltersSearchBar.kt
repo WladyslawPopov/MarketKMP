@@ -32,6 +32,7 @@ fun FiltersSearchBar(
             selectedCategory.value = catDef
         }
     }
+
     val clearUser = remember {
         {
             selectedUser.value = false
@@ -47,7 +48,13 @@ fun FiltersSearchBar(
         item {  }
         item{
             FilterButton(
-                text = selectedCategory.value,
+                text = buildString {
+                    if(selectedCategoryID.value == 1L){
+                        append(catDef)
+                    }else{
+                        append(selectedCategory.value)
+                    }
+                },
                 color =  if (selectedCategoryID.value == 1L)
                     colors.simpleButtonColors
                 else
@@ -70,7 +77,7 @@ fun FiltersSearchBar(
                     selectedUser.value = !selectedUser.value
                     selectedUserLogin.value = selectedUserLogin.value
                 },
-                onCancelClick = if(selectedUser.value) clearUser else null
+                onCancelClick = if(selectedUserLogin.value != null) clearUser else null
             )
         }
 

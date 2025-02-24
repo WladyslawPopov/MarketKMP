@@ -28,7 +28,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.bars.ActiveFilterListing
+import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.showNoItemLayout
@@ -133,7 +133,7 @@ fun SubscriptionsContent(
             },
             noFound = noFound,
             columns = columns,
-            filtersContent = { isRefreshingFromFilters, onClose ->
+            filtersContent = { isRefreshingFromFilters , onClose ->
                 when (subViewModel.activeFiltersType.value){
                     "sorting" -> SortingOrdersContent(
                         isRefreshingFromFilters,
@@ -157,7 +157,7 @@ fun SubscriptionsContent(
 
                     if (listingData.value.sort != null){
                         if (listingData.value.sort != null){
-                            ActiveFilterListing(
+                            ActiveFilterListingItem(
                                 text = listingData.value.sort?.interpretation ?: "",
                                 removeFilter = {
                                     listingData.value.sort = null

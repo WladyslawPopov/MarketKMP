@@ -109,7 +109,7 @@ fun MainNavigation(
     val profileNavigation = component.modelNavigation.value.profileNavigation
 
     Scaffold(
-        bottomBar = { getBottomNavBar(modifier, listItems, currentScreen) },
+        bottomBar = { getBottomNavBar(listItems, currentScreen) },
     ) { innerPadding ->
         Children(
             stack = childStack,

@@ -11,11 +11,10 @@ import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.NavigationItem
-import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.badges.BadgedButton
 
 @Composable
 fun getBottomNavBar(
-    modifier: Modifier = Modifier,
     listItems: List<NavigationItem>,
     currentScreen: Int,
 ){
@@ -32,7 +31,7 @@ fun getBottomNavBar(
                     selected = isSelected,
                     onClick = item.onClick,
                     icon = {
-                        getBadgedBox(modifier, item, isSelected)
+                        BadgedButton(item, isSelected)
                     },
                     label = {
                         if(isSelected) {

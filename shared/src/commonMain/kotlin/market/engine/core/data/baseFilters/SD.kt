@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SD(
-    var searchCategoryName: String? = null,
+    var searchCategoryName: String = "",
     var searchCategoryID: Long = 1L,
     var searchParentID: Long? = 1L,
     var searchParentName: String? = null,
@@ -19,8 +19,8 @@ data class SD(
     var isRefreshing : Boolean = false
 )
 {
-    fun clear(){
-        searchCategoryName = null
+    fun clear(catDef : String = ""){
+        searchCategoryName = catDef
         searchCategoryID = 1L
         searchParentID = 1L
         searchParentName = null

@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetState
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,27 +21,20 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
+import market.engine.fragments.root.main.listing.ListingViewModel
 import market.engine.widgets.filterContents.CategoryContent
 
 @Composable
 fun SearchContent(
+    searchData: SD,
+    bottomSheetState: BottomSheetState,
     focusRequester : FocusRequester,
-    searchString : MutableState<String>,
-    selectedCategory : MutableState<String>,
-    selectedCategoryID : MutableState<Long>,
-    selectedCategoryParentID : MutableState<Long?>,
-    selectedCategoryIsLeaf : MutableState<Boolean>,
-    selectedUser : MutableState<Boolean>,
-    selectedUserLogin : MutableState<String?>,
-    selectedUserFinished : MutableState<Boolean>,
-    openBottomSheet : MutableState<Boolean>,
-    searchViewModel : SearchViewModel,
+    searchViewModel : ListingViewModel,
     closeSearch : () -> Unit,
     goToListing : () -> Unit,
 ) {
@@ -51,37 +44,97 @@ fun SearchContent(
 
     val history = searchViewModel.responseHistory.collectAsState()
 
+    val searchString = remember { mutableStateOf(searchData.searchString) }
+    val selectedUser = remember { mutableStateOf(searchData.userSearch) }
+    val selectedUserLogin = remember { mutableStateOf(searchData.userLogin) }
+    val selectedUserFinished = remember { mutableStateOf(searchData.searchFinished) }
+
+    val categoryName = remember { mutableStateOf(searchData.searchCategoryName) }
+    val categoryId = remember { mutableStateOf(searchData.searchCategoryID) }
+    val refreshFromCategory = remember { mutableStateOf(false) }
+
+    val scaffoldState = rememberBottomSheetScaffoldState()
+    val openCategory = remember { mutableStateOf(false) }
+
     val errorSearch: (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
         { onError(isErrorSearch) { } }
     } else {
         null
     }
 
-    val scaffoldState = rememberBottomSheetScaffoldState()
+    val sd = remember {
+        mutableStateOf(
+            SD(
+                searchString = searchString.value,
+                userSearch = selectedUser.value,
+                userLogin = selectedUserLogin.value,
+                searchFinished = selectedUserFinished.value,
+                searchCategoryID = categoryId.value,
+            )
+        )
+    }
 
+    val getSearchFilters = {
+        if (selectedUser.value && selectedUserLogin.value == null){
+            if (searchString.value != "") {
+                searchData.isRefreshing = true
+                searchData.userLogin = searchString.value
+                searchData.userSearch = selectedUser.value
+                searchString.value = ""
+            }
+        }else{
+            if (searchData.userLogin != selectedUserLogin.value){
+                searchData.userLogin = selectedUserLogin.value
+                searchData.isRefreshing = true
+            }
 
-    val isRefreshingFromFilters = remember { mutableStateOf(false) }
+            if (searchData.userSearch != selectedUser.value){
+                searchData.userSearch = selectedUser.value
+                searchData.isRefreshing = true
+            }
+        }
 
-    val searchData = SD(
-        searchString = searchString.value,
-        searchCategoryID = selectedCategoryID.value,
-        userSearch = selectedUser.value,
-        userLogin = selectedUserLogin.value,
-        searchFinished = selectedUserFinished.value,
-        searchCategoryName = selectedCategory.value,
-        searchParentID = selectedCategoryParentID.value,
-        searchIsLeaf = selectedCategoryIsLeaf.value
-    )
+        if (searchData.searchString != searchString.value) {
+            searchData.searchString = searchString.value
+            searchData.isRefreshing = true
+        }
 
-    LaunchedEffect(openBottomSheet.value) {
-        if (openBottomSheet.value) {
-            searchViewModel.getCategories(searchData, LD(), true)
-            focusManager.clearFocus()
+        if (searchData.searchFinished != selectedUserFinished.value){
+            searchData.searchFinished = selectedUserFinished.value
+            searchData.isRefreshing = true
+        }
+
+        if (searchData.searchCategoryID != categoryId.value){
+            searchData.searchCategoryID = categoryId.value
+            searchData.searchCategoryName = categoryName.value
+            searchData.isRefreshing = true
+        }
+
+        searchViewModel.searchAnalytic(searchData)
+    }
+
+    LaunchedEffect(bottomSheetState.isExpanded){
+        if (bottomSheetState.isExpanded){
+            searchString.value = searchData.searchString
+            selectedUser.value = searchData.userSearch
+            selectedUserLogin.value = searchData.userLogin
+            selectedUserFinished.value = searchData.searchFinished
+            categoryId.value = searchData.searchCategoryID
+            categoryName.value = searchData.searchCategoryName
+        }
+    }
+
+    LaunchedEffect(openCategory.value){
+        if (openCategory.value){
             scaffoldState.bottomSheetState.expand()
-        } else {
-            searchViewModel.activeFiltersType.value = ""
+            focusManager.clearFocus()
+        }else{
             scaffoldState.bottomSheetState.collapse()
-            selectedCategory.value = selectedCategory.value
+            if (refreshFromCategory.value){
+                categoryId.value = sd.value.searchCategoryID
+                categoryName.value = sd.value.searchCategoryName
+                refreshFromCategory.value = false
+            }
         }
     }
 
@@ -91,10 +144,10 @@ fun SearchContent(
         toastItem = searchViewModel.toastItem,
         topBar = {
             SearchAppBar(
-                searchString,
+                searchString = searchString,
                 focusRequester,
                 onSearchClick = {
-                    searchViewModel.searchAnalytic(searchData)
+                    getSearchFilters()
                     searchViewModel.addHistory(searchString.value)
                     goToListing()
                 },
@@ -102,8 +155,8 @@ fun SearchContent(
                     searchViewModel.getHistory(searchString.value)
                 },
                 onBeakClick = {
-                    if (openBottomSheet.value){
-                        openBottomSheet.value = false
+                    if (scaffoldState.bottomSheetState.isExpanded){
+                        searchViewModel.activeFiltersType.value = ""
                     }else {
                         closeSearch()
                     }
@@ -123,15 +176,12 @@ fun SearchContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
+                    searchData = sd.value,
                     baseViewModel = searchViewModel,
+                    isRefresh = refreshFromCategory,
                     isFilters = true,
-                    searchCategoryId = selectedCategoryID,
-                    searchCategoryName = selectedCategory,
-                    searchParentID = selectedCategoryParentID,
-                    searchIsLeaf = selectedCategoryIsLeaf,
-                    isRefreshingFromFilters = isRefreshingFromFilters
                 ){
-                    openBottomSheet.value = false
+                    openCategory.value = false
                 }
             },
         ) {
@@ -149,14 +199,21 @@ fun SearchContent(
                 Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
 
                 FiltersSearchBar(
-                    selectedCategory = selectedCategory,
-                    selectedCategoryID = selectedCategoryID,
+                    selectedCategory = categoryName,
+                    selectedCategoryID = categoryId,
                     selectedUser = selectedUser,
                     selectedUserLogin = selectedUserLogin,
                     selectedUserFinished = selectedUserFinished,
                     goToCategory = {
-                        searchViewModel.activeFiltersType.value = "categories"
-                        openBottomSheet.value = true
+                        sd.value = SD(
+                            searchString = searchString.value,
+                            userSearch = selectedUser.value,
+                            userLogin = selectedUserLogin.value,
+                            searchFinished = selectedUserFinished.value,
+                            searchCategoryID = categoryId.value,
+                        )
+
+                        openCategory.value = true
                     },
                 )
 
@@ -175,7 +232,7 @@ fun SearchContent(
                     },
                     goToListing = {
                         searchString.value = it
-                        searchViewModel.searchAnalytic(searchData)
+                        getSearchFilters()
                         goToListing()
                     }
                 )

@@ -5,8 +5,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.core.data.baseFilters.LD
-import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.CreateOfferType
 
@@ -65,36 +63,33 @@ class DefaultCreateOfferComponent(
         }
         when(type){
             CreateOfferType.CREATE -> {
-                createOfferViewModel.activeFiltersType.value = "categories"
-                val searchData = SD()
-                searchData.searchCategoryID = catPath?.get(0) ?: 1L
-                createOfferViewModel.getCategories(searchData, LD(), withoutCounter = true)
+                createOfferViewModel.activeFiltersType.value = "category"
                 createOfferViewModel.analyticsHelper.reportEvent("add_offer_start", mapOf())
             }
             CreateOfferType.EDIT -> {
-                createOfferViewModel.categoryID.value = catPath?.firstOrNull() ?: 1L
-                createOfferViewModel.parentID.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedCategoryId.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedParentId.value = catPath?.firstOrNull() ?: 1L
                 createOfferViewModel.getCategoriesHistory(catPath?.firstOrNull())
                 createOfferViewModel.getPage("offers/$offerId/operations/edit_offer")
                 createOfferViewModel.analyticsHelper.reportEvent("edit_offer_start", mapOf())
             }
             CreateOfferType.COPY -> {
-                createOfferViewModel.categoryID.value = catPath?.firstOrNull() ?: 1L
-                createOfferViewModel.parentID.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedCategoryId.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedParentId.value = catPath?.firstOrNull() ?: 1L
                 createOfferViewModel.getCategoriesHistory(catPath?.firstOrNull())
                 createOfferViewModel.getPage("offers/$offerId/operations/copy_offer")
                 createOfferViewModel.analyticsHelper.reportEvent("copy_offer_start", mapOf())
             }
             CreateOfferType.COPY_WITHOUT_IMAGE ->{
-                createOfferViewModel.categoryID.value = catPath?.firstOrNull() ?: 1L
-                createOfferViewModel.parentID.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedCategoryId.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedParentId.value = catPath?.firstOrNull() ?: 1L
                 createOfferViewModel.getCategoriesHistory(catPath?.firstOrNull())
                 createOfferViewModel.getPage("offers/$offerId/operations/copy_offer_without_old_photo")
                 createOfferViewModel.analyticsHelper.reportEvent("copy_offer_without_image_start", mapOf())
             }
             CreateOfferType.COPY_PROTOTYPE ->{
-                createOfferViewModel.categoryID.value = catPath?.firstOrNull() ?: 1L
-                createOfferViewModel.parentID.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedCategoryId.value = catPath?.firstOrNull() ?: 1L
+                createOfferViewModel.selectedParentId.value = catPath?.firstOrNull() ?: 1L
                 createOfferViewModel.getCategoriesHistory(catPath?.firstOrNull())
                 createOfferViewModel.getPage("offers/$offerId/operations/copy_offer_from_prototype")
                 createOfferViewModel.analyticsHelper.reportEvent("copy_offer_prototype_start", mapOf())

@@ -12,7 +12,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,7 +37,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
-import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.painterResource
@@ -116,12 +115,7 @@ fun OfferAppBar(
                 ) {
                     listItems.forEachIndexed { _, item ->
                         if (item.isVisible) {
-                            IconButton(
-                                modifier = modifier.size(50.dp),
-                                onClick = { item.onClick() }
-                            ) {
-                                getBadgedBox(modifier = modifier, item)
-                            }
+                            BadgedButton(item)
                         }
                     }
                 }

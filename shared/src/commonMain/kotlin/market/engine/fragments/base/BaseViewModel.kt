@@ -102,58 +102,62 @@ open class BaseViewModel: ViewModel() {
     }
 
     fun getCategories(searchData : SD, listingData : LD, withoutCounter : Boolean = false) {
-
-        viewModelScope.launch(Dispatchers.IO) {
+        setLoading(true)
+        viewModelScope.launch {
             try {
-                if (!searchData.searchIsLeaf) {
-                    val id = searchData.searchCategoryID
+                val id = searchData.searchCategoryID
 
-                    val response = apiService.getPublicCategories(id)
+                if (!searchData.searchIsLeaf) {
+                    val response =
+                        withContext(Dispatchers.IO) { apiService.getPublicCategories(id) }
 
                     val serializer = Payload.serializer(Category.serializer())
                     val payload: Payload<Category> =
                         deserializePayload(response.payload, serializer)
-
-                    val categories = if (!withoutCounter) {
-                        val categoriesWithLotCounts = payload.objects.map { category ->
-                            async {
-                                val sd = searchData.copy()
-                                sd.searchCategoryID = category.id
-                                val lotCount = categoryOperations.getTotalCount(
-                                    sd, listingData
-                                )
-                                category.copy(estimatedActiveOffersCount = lotCount.success ?: 0)
+                    if (!withoutCounter) {
+                        val category = withContext(Dispatchers.IO) {
+                            val categoriesWithLotCounts = payload.objects.map { category ->
+                                async {
+                                    val sd = searchData.copy()
+                                    sd.searchCategoryID = category.id
+                                    val lotCount =
+                                        categoryOperations.getTotalCount(sd, listingData)
+                                    category.copy(
+                                        estimatedActiveOffersCount = lotCount.success ?: 0
+                                    )
+                                }
                             }
+                            categoriesWithLotCounts.awaitAll()
+                                .filter { it.estimatedActiveOffersCount > 0 }
                         }
 
-                        categoriesWithLotCounts.awaitAll()
-                            .filter { it.estimatedActiveOffersCount > 0 }
+                        withContext(Dispatchers.Main) {
+                            _responseCategory.value = category
+                        }
                     } else {
-                        payload.objects
+                        _responseCategory.value = payload.objects
                     }
-
-                    _responseCategory.value = categories
-                }else{
-                    if(activeFiltersType.value == "categories") {
-                        val category = onCatBack(searchData.searchParentID ?: 1L)
-                        if (category != null) {
-                            val sd = searchData.copy(
-                                searchCategoryID = category.id,
-                                searchCategoryName = category.name,
-                                searchParentID = category.parentId,
-                                searchIsLeaf = category.isLeaf
-                            )
-                            getCategories(sd, listingData, withoutCounter)
+                } else {
+                    withContext(Dispatchers.IO) {
+                        if (activeFiltersType.value == "categories") {
+                            val category = onCatBack(searchData.searchParentID ?: 1L)
+                            if (category != null) {
+                                val sd = searchData.copy(
+                                    searchCategoryID = category.id,
+                                    searchCategoryName = category.name ?: getString(strings.categoryMain),
+                                    searchParentID = category.parentId,
+                                    searchIsLeaf = category.isLeaf
+                                )
+                                getCategories(sd, listingData, withoutCounter)
+                            }
                         }
                     }
                 }
-
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message ?: "Unknown error", ""))
-            }
-            finally {
+            }finally {
                 setLoading(false)
             }
         }

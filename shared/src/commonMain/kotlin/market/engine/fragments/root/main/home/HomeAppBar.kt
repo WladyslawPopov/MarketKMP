@@ -3,24 +3,21 @@ package market.engine.fragments.root.main.home
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.MenuHamburgerButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -90,18 +87,7 @@ fun HomeAppBar(
             ) {
                 listItems.forEachIndexed{ _, item ->
                     if(item.isVisible){
-                        var modIB = modifier
-                        if(item.badgeCount != null){
-                            val dynamicFontSize = (30 + (item.badgeCount / 10)).coerceAtMost(35).dp
-                            modIB = modifier.size(dimens.smallIconSize + dynamicFontSize)
-                        }
-                        IconButton(
-                            modifier = modIB,
-                            onClick = item.onClick
-
-                        ) {
-                            getBadgedBox(modifier = modifier, item)
-                        }
+                        BadgedButton(item)
                     }
                 }
             }

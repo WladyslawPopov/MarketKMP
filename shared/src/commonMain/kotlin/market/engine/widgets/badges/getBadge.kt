@@ -21,11 +21,12 @@ fun getBadge(badgeCount: Int?, hasNews: Boolean, color: Color = colors.negativeR
             contentColor = colors.alwaysWhite
         ){
             Text(
-                text = badgeCount.toString(),
+                text = if (badgeCount > 99) "99+" else badgeCount.toString(),
                 fontSize = dimens.smallText,
                 color = colors.alwaysWhite,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
+                maxLines = 1,
             )
         }
     } else {

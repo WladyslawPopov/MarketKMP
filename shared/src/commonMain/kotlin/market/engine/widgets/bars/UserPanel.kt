@@ -9,13 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
@@ -23,8 +19,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -33,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -62,25 +59,22 @@ fun UserPanel(
     goToAboutMe: () -> Unit,
     addToSubscriptions: () -> Unit,
     goToSubscriptions: () -> Unit,
-    goToSettings: (() -> Unit)? = null,
+    goToSettings: ((String) -> Unit),
     isBlackList: ArrayList<String> // Suspend function to check black/white lists
 ) {
     if (user != null && updateTrigger >= 0) {
         val userMod = if (goToUser != null){
             Modifier
+                .clickable { goToUser() }
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(dimens.smallPadding).clickable { goToUser() }
         }else{
             Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(dimens.smallPadding)
         }
 
         Column(
-            modifier = modifier,
-            verticalArrangement = Arrangement.Center,
+            modifier = modifier.padding(dimens.smallPadding),
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header row with user details
@@ -92,35 +86,29 @@ fun UserPanel(
                 Row(
                     modifier = Modifier.wrapContentSize().padding(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
                 ) {
-                    val image = user.avatar?.thumb?.content ?: ""
                     Card(
-                        modifier = Modifier.padding(dimens.extraSmallPadding),
                         shape = CircleShape
                     ) {
                         LoadImage(
-                            url = image,
+                            url = user.avatar?.thumb?.content ?: "",
                             isShowLoading = false,
                             isShowEmpty = true,
                             size = 60.dp
                         )
                     }
-                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
 
                     Column(
                         modifier = Modifier.fillMaxWidth(0.6f),
-                        verticalArrangement = Arrangement.Center,
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = user.login ?: "",
                             style = MaterialTheme.typography.titleMedium,
-                            color = colors.brightBlue,
-                            modifier = Modifier.padding(dimens.smallPadding)
+                            color = colors.brightBlue
                         )
-
-                        Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
                         FlowRow(
                             verticalArrangement = Arrangement.Center,
@@ -170,48 +158,46 @@ fun UserPanel(
                 }
 
                 user.feedbackTotal?.let {
-                    val s = if ((it.percentOfPositiveFeedbacks.mod(1.0)) > 0) {
-                        it.percentOfPositiveFeedbacks.toString() + " %"
-                    } else {
-                        it.percentOfPositiveFeedbacks.roundToInt()
-                            .toString() + " %"
+                    val s = remember {
+                        if ((it.percentOfPositiveFeedbacks.mod(1.0)) > 0) {
+                            it.percentOfPositiveFeedbacks.toString() + " %"
+                        } else {
+                            it.percentOfPositiveFeedbacks.roundToInt()
+                                .toString() + " %"
+                        }
                     }
+
                     Column(
-                       modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
+                       modifier = Modifier.wrapContentSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                     ){
                         DiscountBadge(s)
 
                         Text(
                             stringResource(strings.positiveFeedbackLabel),
                             color = colors.black,
-                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 8.sp),
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = dimens.smallText),
                             textAlign = TextAlign.Center,
                         )
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
+                            horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
                         ) {
                             Image(
                                 painterResource(drawables.miniLikeImage),
                                 contentDescription = "",
                             )
-                            Spacer(modifier = Modifier.width(dimens.smallSpacer))
                             Text(
                                 it.totalPercentage.roundToInt().toString(),
                                 color = colors.black,
                                 style = MaterialTheme.typography.labelSmall
                             )
-                            Spacer(modifier = Modifier.width(dimens.smallSpacer))
                             Image(
                                 painterResource(drawables.miniDislikeImage),
                                 contentDescription = "",
                             )
-
-                            Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
                             Text(
                                 (it.totalPercentage - it.positiveFeedbacksCount).roundToInt()
                                     .toString(),
@@ -222,13 +208,11 @@ fun UserPanel(
                     }
                 }
             }
-
+            // Buttons
             Row(
-                modifier = Modifier
-                    .padding(horizontal = dimens.smallPadding)
-                    .align(Alignment.CenterHorizontally),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
                 // Button: "All Offers"
                 SimpleTextButton(
@@ -236,9 +220,6 @@ fun UserPanel(
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     onClick = goToAllLots
                 )
-
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-
                 // Button: "About Me"
                 SimpleTextButton(
                     text = stringResource(strings.aboutMeLabel),
@@ -246,10 +227,6 @@ fun UserPanel(
                     textColor = colors.alwaysWhite,
                     onClick = goToAboutMe
                 )
-
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                // Button: "Subscriptions"
-
                 if (user.followersCount != null) {
                     val subLabel = if (UserData.login == user.id){
                         stringResource(strings.subscribersLabel)
@@ -258,41 +235,35 @@ fun UserPanel(
                     }
 
                     FlowRow(
-                        modifier = Modifier.wrapContentSize()
-                            .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
-                            .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
-                            .clickable {
-                                if (UserData.login == user.id){
-                                    goToSubscriptions()
-                                }else {
-                                    addToSubscriptions()
-                                }
+                        modifier = Modifier.clickable {
+                            if (UserData.login == user.id){
+                                goToSubscriptions()
+                            }else {
+                                addToSubscriptions()
                             }
-                            .padding(dimens.extraSmallPadding),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalArrangement = Arrangement.Center
+                        }.shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
+                            .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
+                            .padding(dimens.smallPadding),
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.CenterVertically),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.CenterHorizontally)
                     ) {
                         Text(
                             text = subLabel,
                             color = colors.black,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(dimens.smallPadding),
                         )
+
                         Row(
-                            modifier = Modifier.wrapContentSize()
-                                .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
-                                .padding(dimens.extraSmallPadding)
-                                .align(Alignment.CenterVertically),
+                            modifier = Modifier.background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
+                                .padding(dimens.extraSmallPadding),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
+                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
                             Icon(
                                 painterResource(drawables.vectorManSubscriptionIcon),
                                 contentDescription = null,
                                 tint = colors.alwaysWhite,
-                                modifier = Modifier.size(dimens.extraSmallIconSize)
                             )
-                            Spacer(modifier = Modifier.width(dimens.smallPadding))
                             Text(
                                 text = user.followersCount.toString(),
                                 color = colors.alwaysWhite,
@@ -310,24 +281,21 @@ fun UserPanel(
                 }
             }
 
-            Spacer(modifier = Modifier.height(dimens.smallPadding))
-
             // Check if the user is in the black list
             // Status annotation display based on the list type
             isBlackList.forEach { status ->
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .clickable {
                             when (status) {
-                                "blacklist_users" -> goToSettings?.invoke() // Blacklist users action
-                                "blacklist_buyers" -> goToSettings?.invoke() // Blacklist buyers action
-                                "whitelist_buyers" -> goToSettings?.invoke() // Whitelist buyers action
+                                "blacklist_sellers" -> goToSettings("add_to_seller_blacklist") // Blacklist sellers action
+                                "blacklist_buyers" -> goToSettings("add_to_buyer_blacklist") // Blacklist buyers action
+                                "whitelist_buyers" -> goToSettings("add_to_whitelist" ) // Whitelist buyers action
                             }
                         }
-                        .padding(dimens.smallPadding),
+                        .fillMaxWidth().padding(dimens.mediumPadding),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     Icon(
                         painter = painterResource(drawables.infoIcon),
@@ -339,9 +307,6 @@ fun UserPanel(
                         },
                         modifier = Modifier.size(dimens.smallIconSize)
                     )
-
-                    Spacer(modifier = Modifier.width(dimens.smallPadding))
-
                     Text(
                         text = buildAnnotatedString {
                             append(stringResource(strings.publicBlockUserLabel))
@@ -377,9 +342,14 @@ fun UserPanel(
             if (user.vacationEnabled) {
                 Box(
                     modifier = Modifier
-                        .background(colors.transparentGrayColor, shape = MaterialTheme.shapes.medium)
-                        .clickable { goToSettings?.invoke() }
-                        .padding(dimens.smallPadding)
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable {
+                            if (UserData.login == user.id) {
+                                goToSettings("set_vacation")
+                            }
+                        }
+                        .background(colors.transparentGrayColor)
+                        .padding(dimens.mediumPadding)
                 ) {
                     val vacationMessage = buildAnnotatedString {
                         // Header
@@ -431,10 +401,9 @@ fun UserPanel(
             //registration date
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimens.smallPadding),
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
             ) {
                 Text(
                     stringResource(strings.createdUserLabel) + " " +
@@ -442,8 +411,6 @@ fun UserPanel(
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.black
                 )
-
-                Spacer(modifier = Modifier.height(dimens.smallPadding))
 
                 Text(
                     stringResource(strings.lastActiveUserLabel) + " " +

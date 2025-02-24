@@ -121,15 +121,16 @@ class DefaultHomeComponent(
     override fun goToAllPromo() {
         listingData.data.value.filters = ListingFilters.getEmpty()
         model.value.homeViewModel.viewModelScope.launch {
+            val allPromo = getString(strings.allPromoOffersBtn)
+
             listingData.data.value.filters.find {
                     filter -> filter.key == "promo_main_page"
             }?.value = "promo_main_page"
             listingData.data.value.filters.find {
                     filter -> filter.key == "promo_main_page"
-            }?.interpretation = getString(strings.allPromoOffersBtn)
+            }?.interpretation = allPromo
 
-            listingData.searchData.value.clear()
-
+            listingData.searchData.value.clear(allPromo)
 
             listingData.searchData.value.isRefreshing = true
 

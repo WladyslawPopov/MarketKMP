@@ -149,7 +149,7 @@ fun FavoritesContent(
                 favViewModel.resetScroll()
                 data.refresh()
             },
-            filtersContent = { isRefreshingFromFilters, onClose ->
+            filtersContent = { isRefreshingFromFilters , onClose ->
                 when (favViewModel.activeFiltersType.value){
                     "filters" -> OfferFilterContent(
                         isRefreshingFromFilters,

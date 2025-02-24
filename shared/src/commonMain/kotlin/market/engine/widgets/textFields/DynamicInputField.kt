@@ -130,6 +130,7 @@ fun DynamicInputField(
                 }
             },
             singleLine = singleLine,
+            minLines = if (singleLine) 1 else 2,
             enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,

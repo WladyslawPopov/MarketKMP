@@ -348,29 +348,31 @@ fun OfferContent(
                         }
                         //count and views label
                         item {
-                            val countString =
-                                getCountString(offerState.value, offer)
+                            if (offerState.value == OfferStates.ACTIVE || isMyOffer.value) {
+                                val countString =
+                                    getCountString(offerState.value, offer)
 
-                            FlowRow(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                if (countString.isNotEmpty()) {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.Start,
+                                    verticalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    if (countString.isNotEmpty()) {
+                                        Text(
+                                            text = countString,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = colors.grayText,
+                                            modifier = Modifier.padding(dimens.smallPadding)
+                                        )
+                                    }
+
                                     Text(
-                                        text = countString,
+                                        text = stringResource(strings.viewsParams) + ": " + offer.viewsCount,
                                         style = MaterialTheme.typography.titleSmall,
                                         color = colors.grayText,
                                         modifier = Modifier.padding(dimens.smallPadding)
                                     )
                                 }
-
-                                Text(
-                                    text = stringResource(strings.viewsParams) + ": " + offer.viewsCount,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = colors.grayText,
-                                    modifier = Modifier.padding(dimens.smallPadding)
-                                )
                             }
                         }
                         //title
@@ -471,7 +473,6 @@ fun OfferContent(
                                 }
                             }
                         }
-
                         //bids price
                         if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
                             item {
@@ -722,10 +723,10 @@ fun OfferContent(
                             val errorString = remember { mutableStateOf("") }
 
                             UserPanel(
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
                                     .clip(MaterialTheme.shapes.medium)
                                     .background(colors.white)
-                                    .padding(vertical = dimens.smallPadding),
+                                    .fillMaxWidth(),
                                 offer.sellerData,
                                 updateTrigger = offerViewModel.updateItemTrigger.value,
                                 goToUser = {
@@ -761,6 +762,9 @@ fun OfferContent(
                                 },
                                 goToSubscriptions = {
                                     component.goToSubscribes()
+                                },
+                                goToSettings = {
+                                    component.goToDynamicSettings(it, null)
                                 },
                                 isBlackList = blackList.value
                             )

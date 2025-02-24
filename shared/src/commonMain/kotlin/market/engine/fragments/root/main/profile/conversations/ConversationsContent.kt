@@ -181,7 +181,7 @@ fun ConversationsContent(
                         }
                     )
                 },
-                filtersContent = { isRefreshingFromFilters, onClose ->
+                filtersContent = { isRefreshingFromFilters , onClose ->
                     when (viewModel.activeFiltersType.value) {
                         "filters" -> {
                             DialogsFilterContent(

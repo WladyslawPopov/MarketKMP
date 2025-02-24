@@ -18,7 +18,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.widgets.badges.getBadgedBox
+import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -86,7 +86,7 @@ fun getRailNavBar(
                 selected = isSelected,
                 onClick = item.onClick,
                 icon = {
-                    getBadgedBox(modifier = modifier, item, isSelected)
+                    BadgedButton(item, isSelected)
                 },
                 label = {
                     if(isSelected) {

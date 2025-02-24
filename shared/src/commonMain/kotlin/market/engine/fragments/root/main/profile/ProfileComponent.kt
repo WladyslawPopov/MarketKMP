@@ -14,6 +14,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 
 interface ProfileComponent {
     val model : Value<Model>
@@ -26,6 +27,7 @@ interface ProfileComponent {
     fun goToAllMyOfferListing()
     fun goToAboutMe()
     fun goToSubscribe()
+    fun goToSettings(key: String)
 }
 
 class DefaultProfileComponent(
@@ -96,5 +98,9 @@ class DefaultProfileComponent(
 
     override fun goToSubscribe() {
         navigateToSubscriptions()
+    }
+
+    override fun goToSettings(key: String) {
+        goToDynamicSettings(key, null, null)
     }
 }

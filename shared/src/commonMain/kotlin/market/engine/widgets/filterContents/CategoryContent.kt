@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -42,33 +41,50 @@ import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.bars.FilterContentHeaderBar
+import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CategoryContent(
+    searchData: SD,
     filters: ArrayList<Filter> = arrayListOf(),
     baseViewModel: BaseViewModel,
+    isRefresh: MutableState<Boolean>? = null,
     isFilters: Boolean = false,
     isCreateOffer: Boolean = false,
-    searchCategoryName : MutableState<String>,
-    searchCategoryId : MutableState<Long>,
-    searchParentID : MutableState<Long?>,
-    searchIsLeaf : MutableState<Boolean>,
-    isRefreshingFromFilters: MutableState<Boolean>,
     complete: () -> Unit = {},
 ) {
+    val searchCategoryName = remember { mutableStateOf("") }
+    val searchCategoryId = remember { mutableStateOf(0L) }
+    val searchParentID = remember { mutableStateOf<Long?>(null) }
+    val searchIsLeaf = remember { mutableStateOf(false) }
+
+    val isSelected = remember { mutableStateOf(1L) }
+
     val focus = LocalFocusManager.current
-    val catDef = stringResource(strings.categoryMain)
-    if (searchCategoryName.value == ""){
-        searchCategoryName.value = catDef
+
+    val catDef = if (isFilters || isCreateOffer) {
+        stringResource(strings.selectCategory)
+    }else{
+        stringResource(strings.categoryMain)
     }
 
     val isLoading = baseViewModel.isShowProgress.collectAsState()
     val categories = baseViewModel.responseCategory.collectAsState()
 
+    val onComplete = {
+        searchData.searchCategoryID = searchCategoryId.value
+        searchData.searchCategoryName = searchCategoryName.value
+        searchData.searchParentID = searchParentID.value
+        searchData.searchIsLeaf = searchIsLeaf.value
+        searchData.isRefreshing = true
+        isRefresh?.value = true
+        complete()
+    }
+
     val refresh = {
-        val sd = SD(
+        val sd = searchData.copy(
             searchCategoryID = searchCategoryId.value,
             searchCategoryName = searchCategoryName.value,
             searchParentID = searchParentID.value,
@@ -77,12 +93,11 @@ fun CategoryContent(
         val ld = LD(
             filters = filters
         )
-        baseViewModel.setLoading(true)
+
         baseViewModel.getCategories(sd, ld, (isFilters || isCreateOffer))
     }
 
     val onBack = {
-        focus.clearFocus()
         baseViewModel.viewModelScope.launch {
             val newCat = baseViewModel.onCatBack(searchParentID.value ?: 1L)
             if (newCat != null) {
@@ -90,6 +105,7 @@ fun CategoryContent(
                 searchCategoryName.value = newCat.name ?: catDef
                 searchParentID.value = newCat.parentId
                 searchIsLeaf.value = newCat.isLeaf
+                isSelected.value = 1L
                 refresh()
             }else{
                 complete()
@@ -97,32 +113,36 @@ fun CategoryContent(
         }
     }
 
-    LaunchedEffect(isRefreshingFromFilters.value){
-        if (isRefreshingFromFilters.value){
-            refresh()
-            isRefreshingFromFilters.value = false
+    val reset = {
+        if(searchCategoryId.value != 1L) {
+            searchCategoryId.value = 1L
+            searchCategoryName.value = catDef
+            searchParentID.value = null
+            searchIsLeaf.value = false
         }
+
+        refresh()
+        baseViewModel.updateItemTrigger.value++
+    }
+
+    LaunchedEffect(Unit){
+        searchCategoryId.value = searchData.searchCategoryID
+        searchCategoryName.value = searchData.searchCategoryName
+        searchParentID.value = searchData.searchParentID
+        searchIsLeaf.value = searchData.searchIsLeaf
+        refresh()
     }
 
     val noFound : @Composable () -> Unit = {
         if (categories.value.isEmpty()) {
             showNoItemLayout(
-                textButton = if(searchCategoryId.value != 1L) stringResource(strings.resetLabel) else stringResource(strings.refreshButton),
+                textButton = if(searchCategoryId.value != 1L) stringResource(strings.resetLabel)
+                else stringResource(strings.refreshButton),
             ) {
-                if(searchCategoryId.value != 1L) {
-                    searchCategoryId.value = 1L
-                    searchCategoryName.value = catDef
-                    searchParentID.value = null
-                    searchIsLeaf.value = false
-                }
-
-                refresh()
-                baseViewModel.updateItemTrigger.value++
+                reset()
             }
         }
     }
-
-    val isSelected = remember { mutableStateOf(1L) }
 
     BaseContent(
         topBar = null,
@@ -140,12 +160,7 @@ fun CategoryContent(
                     title = stringResource(strings.selectCategory),
                     isShowClearBtn = searchCategoryId.value != 1L,
                     onClear = {
-                        searchCategoryId.value = 1L
-                        searchCategoryName.value = catDef
-                        searchParentID.value = null
-                        searchIsLeaf.value = false
-                        refresh()
-                        baseViewModel.updateItemTrigger.value++
+                       reset()
                     },
                     onClosed = {
                         complete()
@@ -164,7 +179,7 @@ fun CategoryContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.Start,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         AnimatedVisibility(
@@ -177,12 +192,25 @@ fun CategoryContent(
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
                         TextAppBar(
-                            searchCategoryName.value,
+                            buildString {
+                                if (searchCategoryId.value == 1L){
+                                    append(catDef)
+                                } else {
+                                    append(searchCategoryName.value)
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth(0.7f),
                         )
+
+                        if (!isFilters && !isCreateOffer && searchCategoryId.value != 1L) {
+                            ActionButton(
+                                strings.clear,
+                                fontSize = dimens.mediumText,
+                            ){
+                                reset()
+                            }
+                        }
                     }
                 }
                 item { noFound() }
@@ -202,8 +230,7 @@ fun CategoryContent(
                                 refresh()
                             } else {
                                 if (!isFilters && !isCreateOffer) {
-                                    isRefreshingFromFilters.value = true
-                                    complete()
+                                    onComplete()
                                 }else{
                                     isSelected.value = category.id
                                 }
@@ -240,8 +267,7 @@ fun CategoryContent(
                 .padding(dimens.mediumPadding).align(Alignment.BottomCenter),
             enabled = !(isCreateOffer && isSelected.value == 1L)
         ) {
-            isRefreshingFromFilters.value = true
-            complete()
+            onComplete()
         }
     }
 }

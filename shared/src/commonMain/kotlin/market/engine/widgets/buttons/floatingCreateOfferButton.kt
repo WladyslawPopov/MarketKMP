@@ -1,5 +1,6 @@
 package market.engine.widgets.buttons
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import org.jetbrains.compose.resources.painterResource
@@ -36,6 +38,7 @@ fun floatingCreateOfferButton(
             tint = colors.inactiveBottomNavIconColor,
             painter = painterResource(drawables.newLotIcon),
             contentDescription = stringResource(strings.createNewOfferTitle),
+            modifier = Modifier.size(dimens.mediumIconSize)
         )
     }
 }

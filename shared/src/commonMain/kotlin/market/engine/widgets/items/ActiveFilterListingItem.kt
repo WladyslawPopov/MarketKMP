@@ -1,4 +1,4 @@
-package market.engine.widgets.bars
+package market.engine.widgets.items
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilterChip
@@ -13,7 +13,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.widgets.buttons.SmallIconButton
 
 @Composable
-fun ActiveFilterListing(
+fun ActiveFilterListingItem(
     text : String,
     removeFilter : () -> Unit,
     itemClick : () -> Unit

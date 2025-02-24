@@ -83,7 +83,7 @@ fun <T : Any> BoxScope.PagingList(
     LazyColumn(
         state = state,
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         reverseLayout = isReversingPaging,
         modifier = Modifier
             .fillMaxSize().align(align).padding(horizontal = dimens.smallPadding)

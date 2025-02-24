@@ -90,7 +90,7 @@ fun <T : Any>ListingBaseContent(
                 baseViewModel.bottomSheetState.value = sheetValue
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
-                        baseViewModel.resetScroll()
+                        searchData.isRefreshing = true
                         onRefresh()
                         isRefreshingFromFilters.value = false
                     }

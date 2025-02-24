@@ -49,6 +49,9 @@ fun ProfileContent(
            },
            goToSubscriptions = {
                 component.goToSubscribe()
+           },
+           goToSettings = {
+               component.goToSettings(it)
            }
        )
    }

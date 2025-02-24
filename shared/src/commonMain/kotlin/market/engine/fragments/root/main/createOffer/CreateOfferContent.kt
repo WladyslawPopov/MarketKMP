@@ -128,16 +128,23 @@ fun CreateOfferContent(
     val focusManager = LocalFocusManager.current
 
     val isEditCat = remember {viewModel.isEditCat }
-    val categoryName = remember { viewModel.categoryName }
-    val categoryID = remember { viewModel.categoryID }
-    val parentID : MutableState<Long?> = remember { viewModel.parentID }
-    val isLeaf = remember { viewModel.isLeaf }
-    val isRefreshingFromFilters = remember { viewModel.isRefreshingFromFilters }
     val choiceCodeSaleType = remember { viewModel.choiceCodeSaleType }
 
+    val categoryID = remember { viewModel.selectedCategoryId }
 
     val futureTime = remember { viewModel.futureTime }
     val selectedDate = remember { viewModel.selectedDate }
+
+    val searchData = remember {
+        mutableStateOf(
+            SD(
+                searchCategoryID = viewModel.selectedCategoryId.value,
+                searchCategoryName = viewModel.selectedCategoryName.value,
+                searchParentID = viewModel.selectedParentId.value,
+                searchIsLeaf = viewModel.searchIsLeaf.value
+            )
+        )
+    }
 
     val richTextState = rememberRichTextState()
 
@@ -160,17 +167,18 @@ fun CreateOfferContent(
         }else{
             viewModel.viewModelScope.launch {
                 val newCat =
-                    viewModel.onCatBack(parentID.value ?: 1L)
+                    viewModel.onCatBack(viewModel.selectedParentId.value ?: 1L)
                 if (newCat != null) {
-                    categoryID.value = newCat.id
-                    categoryName.value = newCat.name ?: ""
-                    parentID.value = newCat.parentId
-                    isLeaf.value = newCat.isLeaf
+                    viewModel.selectedCategoryId.value = newCat.id
+                    viewModel.selectedCategoryName.value = newCat.name ?: ""
+                    viewModel.selectedParentId.value = newCat.parentId
+                    viewModel.searchIsLeaf.value = newCat.isLeaf
+
                     val sd = SD(
-                        searchCategoryID = categoryID.value,
-                        searchCategoryName = categoryName.value,
-                        searchParentID = parentID.value,
-                        searchIsLeaf = isLeaf.value
+                        searchCategoryID = newCat.id,
+                        searchCategoryName = newCat.name ?: "",
+                        searchParentID = newCat.parentId,
+                        searchIsLeaf = newCat.isLeaf
                     )
                     viewModel.getCategories(
                         sd,
@@ -343,14 +351,14 @@ fun CreateOfferContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
+                    searchData = searchData.value,
                     baseViewModel = viewModel,
                     isCreateOffer = true,
-                    searchCategoryId = categoryID,
-                    searchCategoryName = categoryName,
-                    searchParentID = parentID,
-                    searchIsLeaf = isLeaf,
-                    isRefreshingFromFilters = isRefreshingFromFilters,
                 ){
+                    viewModel.selectedCategoryId.value = searchData.value.searchCategoryID
+                    viewModel.selectedCategoryName.value = searchData.value.searchCategoryName
+                    viewModel.selectedParentId.value = searchData.value.searchParentID
+                    viewModel.searchIsLeaf.value = searchData.value.searchIsLeaf
                     refresh()
                     viewModel.activeFiltersType.value = ""
                 }
@@ -457,7 +465,6 @@ fun CreateOfferContent(
                                     ) {
                                         isEditCat.value = true
                                         viewModel.activeFiltersType.value = "categories"
-                                        isRefreshingFromFilters.value = true
                                     }
                                 }
                             }
@@ -578,7 +585,7 @@ fun CreateOfferContent(
                                         "category_id" -> {
                                             field.data?.jsonPrimitive?.longOrNull?.let {
                                                 if (categoryID.value == 1L) {
-                                                    categoryID.value = it
+                                                    viewModel.selectedCategoryId.value = it
                                                 }
                                             }
                                         }
@@ -835,8 +842,7 @@ fun SessionStartContent(
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxWidth()
-            .padding(dimens.mediumPadding),
+        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

@@ -59,11 +59,13 @@ fun ListingContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val listingViewModel = model.listingViewModel
-    val searchViewModel = model.searchViewModel
+
     val searchData = listingViewModel.listingData.value.searchData
     val listingData = listingViewModel.listingData.value.data
 
     val data = remember { component.model.value.pagingDataFlow }.collectAsLazyPagingItems()
+
+    val title = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
     val isLoadingListing : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -90,110 +92,33 @@ fun ListingContent(
 
     val catDef = stringResource(strings.categoryMain)
 
-    val searchString = remember { mutableStateOf(searchData.value.searchString) }
-    val selectedCategory = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
-    val selectedCategoryID = remember { mutableStateOf(searchData.value.searchCategoryID) }
-    val selectedCategoryParentID = remember { mutableStateOf(searchData.value.searchParentID) }
-    val selectedCategoryIsLeaf = remember { mutableStateOf(searchData.value.searchIsLeaf) }
-    val selectedUserLogin = remember { mutableStateOf(searchData.value.userLogin) }
-    val selectedUser = remember { mutableStateOf(searchData.value.userSearch) }
-    val selectedUserFinished = remember { mutableStateOf(searchData.value.searchFinished) }
-
-    val title = remember { mutableStateOf(searchData.value.searchCategoryName ?: catDef) }
-
     val updateFilters = remember { mutableStateOf(0) }
 
     val refresh = {
+        listingViewModel.resetScroll()
+
+        title.value = searchData.value.searchCategoryName
+
+        columns.value =
+            if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2
+
         listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()
         updateFilters.value++
     }
 
     val err = listingViewModel.errorMessage.collectAsState()
-    val refreshSearch = {
-
-        searchViewModel.resetScroll()
-        columns.value =
-            if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2
-
-        if (!searchData.value.isRefreshing) {
-            searchData.value.searchCategoryID = selectedCategoryID.value
-            searchData.value.searchCategoryName = selectedCategory.value
-            searchData.value.searchParentID = selectedCategoryParentID.value
-            searchData.value.searchIsLeaf = selectedCategoryIsLeaf.value
-            searchData.value.userLogin = selectedUserLogin.value
-            searchData.value.userSearch = selectedUser.value
-            searchData.value.searchFinished = selectedUserFinished.value
-            searchData.value.searchString = searchString.value
-        }else{
-            searchData.value.isRefreshing = false
-            searchString.value = searchData.value.searchString
-            selectedUserLogin.value = searchData.value.userLogin
-            selectedUser.value = searchData.value.userSearch
-            selectedUserFinished.value = searchData.value.searchFinished
-            selectedCategoryID.value = searchData.value.searchCategoryID
-            selectedCategory.value = searchData.value.searchCategoryName ?: catDef
-            selectedCategoryID.value = searchData.value.searchCategoryID
-            selectedCategoryParentID.value = searchData.value.searchParentID
-            selectedCategoryIsLeaf.value = searchData.value.searchIsLeaf
-        }
-
-        title.value = searchData.value.searchCategoryName ?: catDef
-
-        listingViewModel.getCategories(searchData.value, listingData.value)
-
-        refresh()
-    }
-
-    val getSearchFilters = {
-        if (selectedUser.value && selectedUserLogin.value == null){
-            if (searchString.value != "") {
-                searchData.value.isRefreshing = true
-                selectedUserLogin.value = searchString.value
-                searchString.value = ""
-            } else {
-                searchData.value.isRefreshing = true
-                selectedUser.value = false
-                selectedUserLogin.value = null
-            }
-        }else{
-            if (searchData.value.searchString != searchString.value) {
-                searchData.value.isRefreshing = true
-            }
-
-            if (searchData.value.searchCategoryID != selectedCategoryID.value){
-                searchData.value.isRefreshing = true
-            }
-
-            if (searchData.value.userLogin != selectedUserLogin.value){
-                searchData.value.isRefreshing = true
-            }
-
-            if (searchData.value.userSearch != selectedUser.value){
-                searchData.value.isRefreshing = true
-            }
-
-            if (searchData.value.searchFinished != selectedUserFinished.value){
-                searchData.value.isRefreshing = true
-            }
-        }
-    }
 
     val categoryBackClick = {
         listingViewModel.viewModelScope.launch {
-            val newCat = listingViewModel.onCatBack(selectedCategoryParentID.value ?: 1L)
+            val newCat = listingViewModel.onCatBack(searchData.value.searchParentID ?: 1L)
             if (newCat != null) {
 
-                selectedCategoryID.value = newCat.id
-                selectedCategory.value = newCat.name ?: catDef
-                selectedCategoryParentID.value = newCat.parentId
-                selectedCategoryIsLeaf.value = newCat.isLeaf
-
                 val sd = searchData.value.copy(
-                    searchCategoryID = selectedCategoryID.value,
-                    searchCategoryName = selectedCategory.value,
-                    searchParentID = selectedCategoryParentID.value,
-                    searchIsLeaf = selectedCategoryIsLeaf.value
+                    searchCategoryID = newCat.id,
+                    searchCategoryName = newCat.name ?: catDef,
+                    searchParentID = newCat.parentId,
+                    searchIsLeaf = newCat.isLeaf
                 )
 
                 listingViewModel.getCategories(
@@ -228,7 +153,6 @@ fun ListingContent(
         }
     }
 
-
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(err) { refresh() } }
     }else{
@@ -238,21 +162,21 @@ fun ListingContent(
     LaunchedEffect(listingViewModel.isOpenSearch.value) {
         snapshotFlow { listingViewModel.isOpenSearch.value }.collectLatest { isOpen ->
             if (isOpen) {
-                scaffoldStateSearch.bottomSheetState.expand()
-
                 //init new search params
-                if (searchViewModel.responseHistory.value.isEmpty()) {
-                    searchViewModel.getHistory()
-                }
+                listingViewModel.getHistory()
+
                 val eventParameters = mapOf(
-                    "search_string" to searchString.value,
-                    "category_id" to selectedCategoryID.value,
-                    "category_name" to selectedCategory.value,
-                    "user_login" to selectedUserLogin.value,
-                    "user_search" to selectedUser.value,
-                    "user_finished" to selectedUserFinished.value
+                    "search_string" to searchData.value.searchString,
+                    "category_id" to searchData.value.searchCategoryID,
+                    "category_name" to searchData.value.searchCategoryName,
+                    "user_login" to searchData.value.userLogin,
+                    "user_search" to searchData.value.userSearch,
+                    "user_finished" to searchData.value.searchFinished
                 )
                 analyticsHelper.reportEvent("open_search_listing", eventParameters)
+
+                scaffoldStateSearch.bottomSheetState.expand()
+
                 focusRequester.requestFocus()
             } else {
                 focusManager.clearFocus()
@@ -261,30 +185,12 @@ fun ListingContent(
         }
     }
 
-    LaunchedEffect(scaffoldStateSearch.bottomSheetState.isCollapsed) {
-        if (scaffoldStateSearch.bottomSheetState.isCollapsed) {
-            focusManager.clearFocus()
-            listingViewModel.isOpenSearch.value = false
-            getSearchFilters()
-            if (searchData.value.isRefreshing) {
-                searchData.value.isRefreshing = false
-                refreshSearch()
-            }
-        }
-    }
 
     LaunchedEffect(listingViewModel.activeFiltersType.value){
         if (listingViewModel.activeFiltersType.value == "categories"){
-            listingViewModel.setLoading(true)
-            selectedCategoryID.value = searchData.value.searchCategoryID
-            selectedCategory.value = searchData.value.searchCategoryName ?: catDef
-            selectedCategoryParentID.value = searchData.value.searchParentID
-            selectedCategoryIsLeaf.value = searchData.value.searchIsLeaf
-            listingViewModel.getCategories(searchData.value, listingData.value)
-
             val eventParameters = mapOf(
-                "category_name" to selectedCategory.value,
-                "category_id" to selectedCategoryID.value,
+                "category_name" to searchData.value.searchCategoryName,
+                "category_id" to searchData.value.searchCategoryID,
             )
             analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
         }
@@ -297,10 +203,9 @@ fun ListingContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ){
-                searchData.value.clear()
+                searchData.value.clear(catDef)
                 listingData.value.filters = ListingFilters.getEmpty()
                 searchData.value.isRefreshing = true
-                refreshSearch()
                 refresh()
             }
         }else {
@@ -340,23 +245,20 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
+                searchData.value,
+                scaffoldStateSearch.bottomSheetState,
                 focusRequester,
-                searchString,
-                selectedCategory,
-                selectedCategoryID,
-                selectedCategoryParentID,
-                selectedCategoryIsLeaf,
-                selectedUser,
-                selectedUserLogin,
-                selectedUserFinished,
-                openSearchCategoryBottomSheet,
-                searchViewModel,
+                listingViewModel,
                 closeSearch = {
                     listingViewModel.isOpenSearch.value = false
                 },
                 goToListing = {
                     listingViewModel.isOpenSearch.value = false
                     listingViewModel.activeFiltersType.value = ""
+
+                    if (searchData.value.isRefreshing) {
+                        refresh()
+                    }
                 },
             )
         },
@@ -433,7 +335,7 @@ fun ListingContent(
                 baseViewModel = listingViewModel,
                 noFound = noFound,
                 onRefresh = {
-                    refreshSearch()
+                    refresh()
                 },
                 filtersContent = { isRefreshingFromFilters, onClose ->
                     when (listingViewModel.activeFiltersType.value){
@@ -454,15 +356,11 @@ fun ListingContent(
                         }
                         "categories" ->{
                             CategoryContent(
+                                searchData = searchData.value,
                                 filters = listingData.value.filters,
+                                isRefresh = isRefreshingFromFilters,
                                 baseViewModel = listingViewModel,
-                                searchCategoryId = selectedCategoryID,
-                                searchCategoryName = selectedCategory,
-                                searchIsLeaf = selectedCategoryIsLeaf,
-                                searchParentID = selectedCategoryParentID,
-                                isRefreshingFromFilters = isRefreshingFromFilters,
                             ){
-                                isRefreshingFromFilters.value = true
                                 listingViewModel.activeFiltersType.value = ""
                             }
                         }
@@ -474,7 +372,7 @@ fun ListingContent(
                         listingData.value,
                         state,
                         onRefresh = {
-                            refreshSearch()
+                            refresh()
                         }
                     )
 
@@ -482,15 +380,12 @@ fun ListingContent(
                         searchData.value,
                         listingData.value,
                         updateFilters.value,
-                        searchString,
-                        selectedUserLogin,
-                        selectedUserFinished,
                         isShowGrid = true,
                         onChangeTypeList = {
                             listingViewModel.settings.setSettingValue("listingType", it)
                             listingData.value.listingType = it
                             searchData.value.isRefreshing = true
-                            refreshSearch()
+                            refresh()
                         },
                         onFilterClick = {
                             listingViewModel.activeFiltersType.value = "filters"
@@ -503,8 +398,8 @@ fun ListingContent(
                         },
                         onRefresh = {
                             searchData.value.isRefreshing = true
-                            refreshSearch()
                             updateFilters.value++
+                            refresh()
                         }
                     )
                 },

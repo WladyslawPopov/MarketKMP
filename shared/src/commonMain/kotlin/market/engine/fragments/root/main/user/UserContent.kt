@@ -152,6 +152,9 @@ fun UserContent(
                     goToSubscriptions = {
                         component.goToSubscriptions()
                     },
+                    goToSettings = {
+                        component.goToSettings(it)
+                    },
                     isBlackList = blackList.value
                 )
 
