@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerState
@@ -41,7 +40,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DrawerContent(
     drawerState: DrawerState,
-    mod: Modifier = Modifier,
     goToLogin: () -> Unit = {},
     goToContactUs: () -> Unit = {},
     goToSettings: () -> Unit = {}
@@ -139,7 +137,7 @@ fun DrawerContent(
         drawerContainerColor = colors.primaryColor,
         drawerContentColor = colors.black,
         drawerTonalElevation = 0.dp,
-        modifier = mod.wrapContentWidth()
+        modifier = Modifier.fillMaxWidth(0.8f),
     ) {
         val scrollState = rememberScrollState()
         Column(

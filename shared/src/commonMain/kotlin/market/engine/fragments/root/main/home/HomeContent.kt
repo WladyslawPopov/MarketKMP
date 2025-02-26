@@ -159,7 +159,6 @@ fun HomeContent(
         drawerContent = {
             DrawerContent(
                 drawerState,
-                modifier,
                 goToContactUs = {
                     component.goToContactUs()
                 },

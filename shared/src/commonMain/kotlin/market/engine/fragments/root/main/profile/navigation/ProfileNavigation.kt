@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -62,6 +63,7 @@ import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserContent
+import market.engine.widgets.dialogs.LogoutDialog
 import org.jetbrains.compose.resources.stringResource
 
 @Serializable
@@ -139,6 +141,8 @@ fun ProfileNavigation(
     profileNavigation: StackNavigation<ProfileConfig>
 ) {
     val stack by childStack.subscribeAsState()
+
+    val showLogoutDialog = remember { mutableStateOf(false) }
 
     val userInfo = UserData.userInfo
     val publicProfileNavigationItems = MutableValue(listOf(
@@ -297,10 +301,19 @@ fun ProfileNavigation(
             hasNews = false,
             badgeCount = null,
             onClick = {
-                goToLogin(true)
+                showLogoutDialog.value = true
             }
         ),
     ))
+
+    LogoutDialog(
+        showLogoutDialog = showLogoutDialog.value,
+        onDismiss = { showLogoutDialog.value = false },
+        goToLogin = {
+            showLogoutDialog.value = false
+            goToLogin(true)
+        }
+    )
 
     Children(
         stack = stack,

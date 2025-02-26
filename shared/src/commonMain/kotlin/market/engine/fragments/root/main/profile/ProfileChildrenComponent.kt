@@ -76,6 +76,7 @@ class DefaultProfileChildrenComponent(
     override val model = _model
 
     private var currentPage = ""
+
     private var searchID : Long? = null
 
 
@@ -83,7 +84,7 @@ class DefaultProfileChildrenComponent(
         lifecycle.doOnResume {
             val params = selectedPage?.split("/", limit = 2)
 
-            val currentPage = params?.firstOrNull() ?: ""
+            currentPage = params?.firstOrNull() ?: ""
             val content = params?.lastOrNull()
 
             when (currentPage) {
@@ -91,9 +92,11 @@ class DefaultProfileChildrenComponent(
                     navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(content))
                 }
                 "purchases" -> {
+                    searchID = content?.toLongOrNull()
                     navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
                 }
                 "sales" -> {
+                    searchID = content?.toLongOrNull()
                     navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
                 }
                 "proposals" -> {

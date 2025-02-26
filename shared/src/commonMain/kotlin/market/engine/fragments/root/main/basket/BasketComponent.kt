@@ -3,17 +3,18 @@ package market.engine.fragments.root.main.basket
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.items.SelectedBasketItem
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface BasketComponent {
     val model : Value<Model>
 
     data class Model(
-        val basketViewModel: BasketViewModel
+        val basketViewModel: BasketViewModel,
+        val backHandler: BackHandler
     )
 
     fun goToListing()
@@ -37,6 +38,7 @@ class DefaultBasketComponent(
 
     private val _model = MutableValue(
         BasketComponent.Model(
+            backHandler = backHandler,
             basketViewModel = basketViewModel
         )
     )
