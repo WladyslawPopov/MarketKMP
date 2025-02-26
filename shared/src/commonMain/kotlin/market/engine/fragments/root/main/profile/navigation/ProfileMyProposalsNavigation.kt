@@ -107,7 +107,7 @@ fun itemMyProposals(
             if (dialogId != null)
                 profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
             else
-                profileNavigation.pushNew(ProfileConfig.ConversationsScreen)
+                profileNavigation.pushNew(ProfileConfig.ConversationsScreen())
         },
         navigateBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())

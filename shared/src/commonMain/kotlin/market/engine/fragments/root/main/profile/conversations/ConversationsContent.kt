@@ -1,9 +1,14 @@
 package market.engine.fragments.root.main.profile.conversations
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,9 +22,9 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.value.MutableValue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.MsgFilters
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
@@ -81,23 +86,24 @@ fun ConversationsContent(
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
-            withContext(Dispatchers.Default) {
-                val res = viewModel.getConversation(viewModel.updateItem.value!!)
-                withContext(Dispatchers.Main) {
-                    if (res != null){
-                        val item = data.itemSnapshotList.find { it?.id == viewModel.updateItem.value }
-                        if (item != null) {
-                            item.interlocutor = res.interlocutor
-                            item.newMessage = res.newMessage
-                            item.newMessageTs = res.newMessageTs
-                            item.countUnreadMessages = res.countUnreadMessages
-                            item.aboutObjectIcon = res.aboutObjectIcon
-                        }
-                        viewModel.updateItemTrigger.value++
+            viewModel.getConversation(
+                viewModel.updateItem.value!!,
+                onSuccess = { res->
+                    val item = data.itemSnapshotList.find { it?.id == viewModel.updateItem.value }
+                    if (item != null) {
+                        item.interlocutor = res.interlocutor
+                        item.newMessage = res.newMessage
+                        item.newMessageTs = res.newMessageTs
+                        item.countUnreadMessages = res.countUnreadMessages
+                        item.aboutObjectIcon = res.aboutObjectIcon
                     }
+                    viewModel.updateItemTrigger.value++
+                    viewModel.updateItem.value = null
+                },
+                error = {
                     viewModel.updateItem.value = null
                 }
-            }
+            )
         }
     }
 
@@ -142,6 +148,19 @@ fun ConversationsContent(
                 },
                 noFound = noFound,
                 additionalBar = {
+                    if(model.message != null){
+                        Row(
+                            modifier = Modifier.background(colors.white).fillMaxWidth()
+                                .padding(dimens.mediumPadding)
+                        ) {
+                            Text(
+                                stringResource(strings.selectDialogLabel),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.black
+                            )
+                        }
+                    }
+
                     DeletePanel(
                         selectedItems.size,
                         onCancel = {

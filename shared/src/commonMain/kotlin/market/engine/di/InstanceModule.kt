@@ -11,7 +11,6 @@ import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
-import market.engine.core.repositories.SAPIRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.shared.MarketDB
@@ -51,7 +50,6 @@ val operationsModule = module {
 }
 
 val repositoryModule = module {
-    singleOf(::SAPIRepository)
     singleOf(::SettingsRepository)
     singleOf(::UserRepository)
 }

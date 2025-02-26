@@ -40,7 +40,7 @@ object KtorHttpClient {
         }
         defaultRequest {
             url(SAPI.API_BASE)
-            header("X-Api-Key", SAPI.getApiKey())
+            header("X-Api-Key", SAPI.secret)
             SAPI.headers.forEach { (key, value) ->
                 header(key, value)
             }

@@ -54,7 +54,6 @@ fun DialogsContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.dialogsViewModel
-    val conversationInfo = viewModel.responseGetConversation.collectAsState()
     val offerInfo = viewModel.responseGetOfferInfo.collectAsState()
     val orderInfo = viewModel.responseGetOrderInfo.collectAsState()
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
@@ -132,9 +131,7 @@ fun DialogsContent(
             isImageViewerVisible.value = false
         }
     }
-
-    val conversation = conversationInfo.value
-
+    val conversation = viewModel.responseGetConversation.value
     if (conversation != null) {
         BaseContent(
             topBar = {

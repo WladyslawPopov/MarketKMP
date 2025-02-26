@@ -6,6 +6,7 @@ import market.engine.core.data.types.DealTypeGroup
 fun messengerFactory(
     componentContext: ComponentContext,
     dialogId : Long,
+    message : String? = null,
     navigateBack : () -> Unit,
     navigateToOrder : (Long, DealTypeGroup) -> Unit,
     navigateToOffer : (Long) -> Unit,
@@ -14,6 +15,7 @@ fun messengerFactory(
     return DefaultDialogsComponent(
         componentContext = componentContext,
         dialogId = dialogId,
+        message = message,
         navigateBack = {
             navigateBack()
         },

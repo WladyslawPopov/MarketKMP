@@ -6,8 +6,6 @@ object SAPI {
 
     var SERVER_BASE: String = ""
 
-    var YA_API_KEY: String = ""
-
     var REVIEW_URL: String = ""
 
     var secret = ""
@@ -18,8 +16,18 @@ object SAPI {
 
     var version = ""
 
-    fun getApiKey(): String {
-        //val sole = "d434ba90-bf1e-4a"
-        return secret
+    fun setUpSAPI(apiBase: String, serverBase: String, reviewUrl: String, key: String) {
+        API_BASE = apiBase
+        SERVER_BASE = serverBase
+        REVIEW_URL = reviewUrl
+        secret = key
+    }
+
+    fun addHeader(key: String, value: String) {
+        headers[key] = value
+    }
+
+    fun removeHeader(key: String) {
+        headers.remove(key)
     }
 }

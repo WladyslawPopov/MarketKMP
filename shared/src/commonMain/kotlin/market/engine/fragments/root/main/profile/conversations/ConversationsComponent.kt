@@ -14,6 +14,7 @@ import market.engine.core.network.networkObjects.Conversations
 interface ConversationsComponent {
     val model : Value<Model>
     data class Model(
+        var message : String?,
         val pagingDataFlow : Flow<PagingData<Conversations>>,
         val viewModel: ConversationsViewModel,
         val backHandler: BackHandler
@@ -24,15 +25,17 @@ interface ConversationsComponent {
 }
 
 class DefaultConversationsComponent(
+    copyMessage: String?,
     componentContext: ComponentContext,
     val navigateBack : () -> Unit,
-    val navigateToMessenger : (Long) -> Unit,
+    val navigateToMessenger : (Long, String?) -> Unit,
 ) : ConversationsComponent, ComponentContext by componentContext {
 
     private val viewModel : ConversationsViewModel = ConversationsViewModel()
 
     private val _model = MutableValue(
         ConversationsComponent.Model(
+            message = copyMessage,
             pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             backHandler = backHandler
@@ -47,7 +50,8 @@ class DefaultConversationsComponent(
         lifecycle.doOnResume {
             viewModel.updateItem.value = conversation.id
         }
-        navigateToMessenger(conversation.id)
+        navigateToMessenger(conversation.id, model.value.message)
+        model.value.message = null
     }
 
     override fun onBack() {

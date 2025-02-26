@@ -81,6 +81,7 @@ sealed class HomeConfig {
     @Serializable
     data class MessagesScreen(
         val dialogId: Long,
+        val text: String? = null,
     ) : HomeConfig()
 
     @Serializable
@@ -338,6 +339,7 @@ fun createHomeChild(
         component = messengerFactory(
             componentContext = componentContext,
             dialogId = config.dialogId,
+            message = config.text,
             navigateBack = {
                 homeNavigation.pop()
             },

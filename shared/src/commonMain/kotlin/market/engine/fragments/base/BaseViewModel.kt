@@ -847,21 +847,25 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    suspend fun getConversation(id : Long) : Conversations? {
-        try {
-            val res = withContext(Dispatchers.IO) {
-                conversationsOperations.getConversation(id)
-            }
+    fun getConversation(id : Long, onSuccess: (Conversations) -> Unit, error: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val res = withContext(Dispatchers.IO) {
+                    conversationsOperations.getConversation(id)
+                }
 
-            return withContext(Dispatchers.Main) {
-                return@withContext res
+                withContext(Dispatchers.Main) {
+                    if (res != null) {
+                        onSuccess(res)
+                    }else{
+                        error()
+                    }
+                }
+            }catch (e : ServerErrorException){
+                onError(e)
+            }catch (e : Exception){
+                onError(ServerErrorException(e.message ?: "", ""))
             }
-        }catch (e : ServerErrorException){
-            onError(e)
-            return null
-        }catch (e : Exception){
-            onError(ServerErrorException(e.message ?: "", ""))
-            return null
         }
     }
 

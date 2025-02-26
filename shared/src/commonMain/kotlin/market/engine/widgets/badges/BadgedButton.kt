@@ -47,7 +47,7 @@ fun BadgedButton(
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable { item.onClick() }
-                    .size(dimens.mediumIconSize + dimens.smallSpacer),
+                    .size(dimens.mediumIconSize),
                 contentAlignment = Alignment.Center
             ) {
                 if (item.icon != null) {

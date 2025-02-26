@@ -311,6 +311,21 @@ class DefaultMainComponent(
             is DeepLink.GoToVerification -> {
                 goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
             }
+            is DeepLink.GoToDialog -> {
+                if(deepLink.dialogId != 1L) {
+                    modelNavigation.value.homeNavigation.pushNew(
+                        HomeConfig.MessagesScreen(
+                            deepLink.dialogId, deepLink.mes
+                        )
+                    )
+                }else{
+                    if (deepLink.mes != null) {
+                        navigateToBottomItem(MainConfig.Profile, "conversations/${deepLink.mes}")
+                    }else{
+                        navigateToBottomItem(MainConfig.Profile, "conversations")
+                    }
+                }
+            }
             is DeepLink.Unknown -> {}
         }
     }

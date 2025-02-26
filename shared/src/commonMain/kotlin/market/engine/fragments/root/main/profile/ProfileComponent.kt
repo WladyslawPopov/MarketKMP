@@ -59,7 +59,8 @@ class DefaultProfileComponent(
 
             when (currentPage) {
                 "conversations" -> {
-                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen)
+                    val mes = selectedPage?.split("/")?.lastOrNull()
+                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(if ( mes != currentPage) mes else null))
                 }
                 "purchases" -> {
                     navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, searchID))

@@ -11,6 +11,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
+import market.engine.common.showReviewManager
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.items.DeepLink
@@ -93,6 +94,8 @@ class DefaultRootComponent(
         val isShowReview = settingsHelper.getSettingValue("isShowReview", false) ?: false
         if (countLaunch > 10 && !isShowReview){
             //check review
+            showReviewManager()
+            settingsHelper.setSettingValue("isShowReview", true)
         }
     }
 

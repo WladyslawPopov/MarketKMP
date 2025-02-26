@@ -53,8 +53,7 @@ class DialogsViewModel(
 
     val listingData = mutableStateOf(ListingData())
 
-    private val _responseGetConversation = MutableStateFlow<Conversations?>(null)
-    val responseGetConversation: StateFlow<Conversations?> = _responseGetConversation.asStateFlow()
+    val responseGetConversation = mutableStateOf<Conversations?>(null)
 
     private val _responseGetOfferInfo = MutableStateFlow<Offer?>(null)
     val responseGetOfferInfo: StateFlow<Offer?> = _responseGetOfferInfo.asStateFlow()
@@ -72,14 +71,6 @@ class DialogsViewModel(
     fun init(dialogId: Long): Flow<PagingData<DialogsData>> {
         dialogID.value = dialogId
         setLoading(true)
-
-        viewModelScope.launch {
-            val res = getConversation(dialogId)
-            if (res != null) {
-                updateDialogInfo(res)
-                _responseGetConversation.value = res
-            }
-        }
 
         listingData.value.data.value.filters = arrayListOf(
             Filter(
@@ -114,7 +105,7 @@ class DialogsViewModel(
                         message = dialog.message.orEmpty(),
                         dateTime = dialog.createdTs ?: 1L,
                         user = if (isIncoming)
-                            responseGetConversation.value?.interlocutor?.login.orEmpty()
+                            responseGetConversation.value?.interlocutor?.id.toString()
                         else
                             UserData.userInfo?.login.toString(),
                         messageType = type,
@@ -233,7 +224,7 @@ class DialogsViewModel(
         }
     }
 
-    private fun updateDialogInfo(
+    fun updateDialogInfo(
         conversations: Conversations,
     ) {
         viewModelScope.launch(Dispatchers.IO) {

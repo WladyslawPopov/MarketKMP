@@ -20,7 +20,7 @@ interface DialogsComponent{
         val dialogId : Long,
         val pagingDataFlow : Flow<PagingData<DialogsData>>,
         val dialogsViewModel: DialogsViewModel,
-        val backHandler: BackHandler
+        val backHandler: BackHandler,
     )
 
     fun onBackClicked()
@@ -35,7 +35,8 @@ class DefaultDialogsComponent(
     val navigateToOffer: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateToOrder: (Long, DealTypeGroup) -> Unit,
-    dialogId : Long
+    dialogId : Long,
+    message : String?,
 ) : DialogsComponent, ComponentContext by componentContext {
 
     private val dialogsViewModel : DialogsViewModel = DialogsViewModel(
@@ -55,6 +56,19 @@ class DefaultDialogsComponent(
     override val model = _model
 
     init {
+        dialogsViewModel.messageTextState.value = message ?: ""
+
+        dialogsViewModel.getConversation(
+            dialogId,
+            onSuccess = { conversation ->
+                dialogsViewModel.responseGetConversation.value = conversation
+                dialogsViewModel.updateDialogInfo(conversation)
+            },
+            error = {
+                onBackClicked()
+            }
+        )
+
         lifecycle.doOnResume {
             dialogsViewModel.updateUserInfo()
 

@@ -131,7 +131,7 @@ fun itemMyOrders(
             if(dialogId != null)
                 profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
             else
-                profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen)
+                profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen())
         },
         navigateToBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())

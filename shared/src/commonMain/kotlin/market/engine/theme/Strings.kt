@@ -479,4 +479,5 @@ interface Strings {
     val cancelAllBidsTitle : StringResource
     val cancelAllBidsHeader : StringResource
     val cancelAllBidsCommentLabel : StringResource
+    val selectDialogLabel : StringResource
 }

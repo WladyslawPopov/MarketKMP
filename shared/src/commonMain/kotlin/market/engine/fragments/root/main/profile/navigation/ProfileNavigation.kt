@@ -79,7 +79,7 @@ sealed class ProfileConfig {
     data object ProfileSettingsScreen : ProfileConfig()
 
     @Serializable
-    data object ConversationsScreen : ProfileConfig()
+    data class ConversationsScreen(val message : String? = null) : ProfileConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : ProfileConfig()
@@ -110,7 +110,7 @@ sealed class ProfileConfig {
     ) : ProfileConfig()
 
     @Serializable
-    data class DialogsScreen(val dialogId : Long) : ProfileConfig()
+    data class DialogsScreen(val dialogId : Long, val message: String? = null) : ProfileConfig()
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String) : ProfileConfig()
 }
@@ -242,7 +242,7 @@ fun ProfileNavigation(
             onClick = {
                 try {
                     profileNavigation.replaceCurrent(
-                        ProfileConfig.ConversationsScreen
+                        ProfileConfig.ConversationsScreen()
                     )
                 } catch ( _ : Exception){
                 }
@@ -397,7 +397,7 @@ fun createProfileChild(
                     if(dialogId != null)
                         profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
                     else
-                        profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen)
+                        profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen())
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()
@@ -529,13 +529,14 @@ fun createProfileChild(
 
         is ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(
             component = conversationsFactory(
+                config.message,
                 componentContext,
                 navigateBack = {
                     profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
                 },
-                navigateToMessenger = {
+                navigateToMessenger = { id, message ->
                     profileNavigation.pushNew(
-                        ProfileConfig.DialogsScreen(it)
+                        ProfileConfig.DialogsScreen(id,message)
                     )
                 },
             )
@@ -553,6 +554,7 @@ fun createProfileChild(
             messengerFactory(
                 componentContext,
                 config.dialogId,
+                config.message,
                 navigateBack = {
                     profileNavigation.pop()
                 },

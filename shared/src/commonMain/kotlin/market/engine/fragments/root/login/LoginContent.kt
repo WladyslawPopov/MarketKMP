@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.additionalAuthorizationContent
+import market.engine.common.requestIntegrityTokenAuth
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -191,6 +192,8 @@ fun LoginContent(
                             backgroundColor = colors.inactiveBottomNavIconColor,
                             textStyle = MaterialTheme.typography.titleMedium
                         ) {
+                            requestIntegrityTokenAuth()
+
                             model.postAuth(
                                 emailTextValue.value.text,
                                 passwordTextValue.value.text,

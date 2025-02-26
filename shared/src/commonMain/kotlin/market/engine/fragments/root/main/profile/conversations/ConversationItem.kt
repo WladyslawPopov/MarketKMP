@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import market.engine.common.setShortcutForDialog
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -50,6 +51,7 @@ fun ConversationItem(
         Row(
             modifier = Modifier.combinedClickable(
                 onClick = {
+                    setShortcutForDialog(conversation)
                     goToMessenger()
                 },
                 onLongClick = {

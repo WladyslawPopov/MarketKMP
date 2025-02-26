@@ -112,7 +112,10 @@ fun DrawerContent(
             tint = colors.black,
             hasNews = false,
             badgeCount = null,
-            isVisible = false
+            isVisible = SAPI.REVIEW_URL != "",
+            onClick = {
+                openUrl(SAPI.REVIEW_URL)
+            }
         ),
         NavigationItem(
             title = stringResource(strings.settingsTitleApp),
