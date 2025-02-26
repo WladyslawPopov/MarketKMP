@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.common.additionalAuthorizationContent
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -128,7 +129,6 @@ fun LoginContent(
                     )
                     Spacer(modifier.height(dimens.mediumSpacer))
                 }
-
                 item {
                     CaptchaView(
                         isVisible = isCaptchaVisible.value,
@@ -139,44 +139,50 @@ fun LoginContent(
                         }
                     )
                 }
-                 item {
-                     OutlinedTextInputField(
-                         value = emailTextValue.value,
-                         onValueChange = {
-                             emailTextValue.value = it
-                         },
-                         label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
-                         keyboardType = KeyboardType.Email,
-                         isEmail = true
-                     )
+                item {
+                    OutlinedTextInputField(
+                        value = emailTextValue.value,
+                        onValueChange = {
+                            emailTextValue.value = it
+                        },
+                        label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
+                        keyboardType = KeyboardType.Email,
+                        isEmail = true
+                    )
 
-                     OutlinedTextInputField(
-                         value = passwordTextValue.value,
-                         onValueChange = {
-                             passwordTextValue.value = it
-                         },
-                         label = stringResource(strings.promptPassword),
-                         keyboardType = KeyboardType.Password,
-                         isPassword = true,
-                     )
-                 }
-                 item {
-                     Row(
-                         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
-                         verticalAlignment = Alignment.CenterVertically
-                     ) {
-                         ActionButton(
-                             strings.forgotPassword
-                         ){
-                             component.goToForgotPassword()
-                         }
-                     }
-                 }
-                 item {
+                    OutlinedTextInputField(
+                        value = passwordTextValue.value,
+                        onValueChange = {
+                            passwordTextValue.value = it
+                        },
+                        label = stringResource(strings.promptPassword),
+                        keyboardType = KeyboardType.Password,
+                        isPassword = true,
+                    )
+                }
+                item {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.mediumSpacer, Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            dimens.smallPadding,
+                            Alignment.End
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ActionButton(
+                            strings.forgotPassword
+                        ) {
+                            component.goToForgotPassword()
+                        }
+                    }
+                }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            dimens.mediumSpacer,
+                            Alignment.End
+                        ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         SimpleTextButton(
@@ -207,11 +213,18 @@ fun LoginContent(
                             backgroundColor = colors.steelBlue,
                             textColor = colors.alwaysWhite,
                             textStyle = MaterialTheme.typography.titleMedium
-                        ){
+                        ) {
                             component.goToRegistration()
                         }
                     }
-                 }
+                }
+                item {
+                    additionalAuthorizationContent{ bodyString ->
+                        model.postAuthExternal(bodyString){
+                            component.onBack()
+                        }
+                    }
+                }
             }
         }
     }

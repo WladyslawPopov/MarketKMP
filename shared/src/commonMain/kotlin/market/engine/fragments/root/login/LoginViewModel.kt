@@ -18,7 +18,6 @@ import org.jetbrains.compose.resources.getString
 class LoginViewModel : BaseViewModel() {
 
 //    var postChangeGoogleAuth = MutableLiveData<GoogleAuthResponse?>()
-
     fun postAuth(
         email : String,
         password : String,
@@ -49,7 +48,7 @@ class LoginViewModel : BaseViewModel() {
                         if (payload.result == "SUCCESS") {
                             setLoading(false)
                             userRepository.setToken(payload.user, payload.token ?: "")
-
+                            updateUserInfo()
                             showToast(
                                 successToastItem.copy(
                                     message = getString(strings.operationSuccess)
@@ -99,32 +98,75 @@ class LoginViewModel : BaseViewModel() {
         }
     }
 
-//    fun postAuthExternal(body: HashMap<String, String>) {
-//        jobPostAuthExternal = viewModelScope.launch {
-//            try {
-//                withContext(Dispatchers.IO) {
-//
-//                    isShowProgress.postValue(true)
-//                    val response = apiService.postAuthExternal(body = body)
-//
-//                    withContext(Dispatchers.Main) {
-//                        try {
-//                            isShowProgress.postValue(false)
-//                            val payload = deserializePayload<UserPayload>(response.payload)
-//                            postResponseAuth.postValue(payload)
-//                        }catch (e : Exception){
-//                            throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-//                        }
-//                    }
-//                }
-//            } catch (exception: ServerErrorException) {
-//                onError(exception)
-//            } catch (exception: Exception) {
-//                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-//            }
-//        }
-//    }
-//
+    fun postAuthExternal(
+        body: HashMap<String, String>,
+        onSuccess: () -> Unit,
+    ) {
+        setLoading(true)
+        viewModelScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    apiService.postAuthExternal(body = body)
+                }
+                withContext(Dispatchers.Main) {
+                    try {
+                        val serializer = UserPayload.serializer()
+                        val payload = deserializePayload(response.payload, serializer)
+                        if (payload.result == "SUCCESS") {
+                            userRepository.setToken(payload.user, payload.token ?: "")
+
+                            updateUserInfo()
+
+                            setLoading(false)
+                            showToast(
+                                successToastItem.copy(
+                                    message = getString(strings.operationSuccess)
+                                )
+                            )
+
+                            val events = mapOf(
+                                "login_type" to "email",
+                                "login_result" to "success",
+                                "login_email" to body["identity"]
+                            )
+                            analyticsHelper.reportEvent("login_success",events)
+
+                            delay(2000)
+
+                            onSuccess()
+                        } else {
+                            val events = mapOf(
+                                "login_type" to "email",
+                                "login_result" to "fail",
+                                "login_email" to body["identity"]
+                            )
+
+                            analyticsHelper.reportEvent("login_fail",events)
+
+                            if(response.humanMessage != "") {
+                                showToast(
+                                    errorToastItem.copy(
+                                        message = response.humanMessage ?: getString(strings.errorLogin)
+                                    )
+                                )
+                            }
+                        }
+                    }catch (e : Exception){
+                        throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+                    }
+                }
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            }
+            finally {
+                setLoading(false)
+            }
+        }
+    }
+
+
 //    fun changeTokenGoogleAuth(body: HashMap<String, String>) {
 //        jobPostChangeGoogleAuth = viewModelScope.launch {
 //            try {
