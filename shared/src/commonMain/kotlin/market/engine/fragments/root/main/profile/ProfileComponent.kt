@@ -45,28 +45,24 @@ class DefaultProfileComponent(
     )
     override val model = _model
 
-
-    private var currentPage = ""
-    private var searchID : Long? = null
-
-
     init {
         lifecycle.doOnResume {
             model.value.profileViewModel.updateUserInfo()
 
-            searchID = selectedPage?.split("/")?.lastOrNull()?.toLongOrNull()
-            currentPage = selectedPage?.split("/")?.firstOrNull() ?: ""
+            val params = selectedPage?.split("/", limit = 2)
+
+            val currentPage = params?.firstOrNull() ?: ""
+            val content = params?.lastOrNull()
 
             when (currentPage) {
                 "conversations" -> {
-                    val mes = selectedPage?.split("/")?.lastOrNull()
-                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(if ( mes != currentPage) mes else null))
+                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(content))
                 }
                 "purchases" -> {
-                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, searchID))
+                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
                 }
                 "sales" -> {
-                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, searchID))
+                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
                 }
                 "proposals" -> {
                     navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
