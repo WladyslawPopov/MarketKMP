@@ -39,7 +39,7 @@ actual fun additionalAuthorizationContent(onSuccess: (HashMap<String, String>) -
                 factory = { additionalAuthContent!! },
                 modifier = Modifier
                     .background(colors.transparent)
-                    .height(46.dp)
+                    .height(44.dp)
                     .fillMaxWidth()
                     .clip(MaterialTheme.shapes.medium)
             )
