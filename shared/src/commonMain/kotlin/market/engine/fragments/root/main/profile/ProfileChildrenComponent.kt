@@ -81,27 +81,26 @@ class DefaultProfileChildrenComponent(
 
 
     init {
-        lifecycle.doOnResume {
-            val params = selectedPage?.split("/", limit = 2)
+        val params = selectedPage?.split("/", limit = 2)
 
-            currentPage = params?.firstOrNull() ?: ""
-            val content = params?.lastOrNull()
+        currentPage = params?.firstOrNull() ?: ""
+        val content = params?.lastOrNull()
 
-            when (currentPage) {
-                "conversations" -> {
-                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(content))
-                }
-                "purchases" -> {
-                    searchID = content?.toLongOrNull()
-                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
-                }
-                "sales" -> {
-                    searchID = content?.toLongOrNull()
-                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
-                }
-                "proposals" -> {
-                    navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
-                }
+        when (currentPage) {
+            "conversations" -> {
+                val mes = if(content != currentPage)content else null
+                navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(mes))
+            }
+            "purchases" -> {
+                searchID = content?.toLongOrNull()
+                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
+            }
+            "sales" -> {
+                searchID = content?.toLongOrNull()
+                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
+            }
+            "proposals" -> {
+                navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
             }
         }
     }

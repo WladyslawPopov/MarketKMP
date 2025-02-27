@@ -48,32 +48,32 @@ class DefaultProfileComponent(
     init {
         lifecycle.doOnResume {
             model.value.profileViewModel.updateUserInfo()
-
-            val params = selectedPage?.split("/", limit = 2)
-
-            val currentPage = params?.firstOrNull() ?: ""
-            val content = params?.lastOrNull()
-
-            when (currentPage) {
-                "conversations" -> {
-                    navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(content))
-                }
-                "purchases" -> {
-                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
-                }
-                "sales" -> {
-                    navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
-                }
-                "proposals" -> {
-                    navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
-                }
-            }
-
-            model.value.profileViewModel.analyticsHelper.reportEvent(
-                "view_profile",
-                mapOf("user_id" to UserData.login)
-            )
         }
+        val params = selectedPage?.split("/", limit = 2)
+
+        val currentPage = params?.firstOrNull() ?: ""
+        val content = params?.lastOrNull()
+
+        when (currentPage) {
+            "conversations" -> {
+                val mes = if(content != currentPage)content else null
+                navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(mes))
+            }
+            "purchases" -> {
+                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
+            }
+            "sales" -> {
+                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
+            }
+            "proposals" -> {
+                navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
+            }
+        }
+
+        model.value.profileViewModel.analyticsHelper.reportEvent(
+            "view_profile",
+            mapOf("user_id" to UserData.login)
+        )
     }
 
     override fun goToAllMyOfferListing() {
