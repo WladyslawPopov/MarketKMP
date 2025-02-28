@@ -54,7 +54,7 @@ fun UserRow(
             color = colors.brightBlue,
         )
 
-        if (user.rating > 0) {
+        if ((user.rating ?: 0) > 0) {
             Box(
                 modifier = Modifier
                     .background(

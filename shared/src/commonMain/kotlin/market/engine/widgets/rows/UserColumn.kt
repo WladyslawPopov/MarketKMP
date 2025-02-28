@@ -65,7 +65,7 @@ fun UserColumn(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally)
         ) {
-            if (user.rating > 0) {
+            if ((user.rating ?: 0) > 0) {
                 Box(
                     modifier = Modifier
                         .background(

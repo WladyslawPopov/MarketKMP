@@ -2,7 +2,6 @@ package market.engine.core.repositories
 
 import market.engine.core.network.functions.UserOperations
 import market.engine.common.AnalyticsFactory
-import market.engine.common.notificationIdentifier
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.UserData
@@ -51,12 +50,11 @@ class UserRepository(
                         val userProfileAttributes = mapOf(
                             "name" to newInfo.login,
                             "gender" to newInfo.gender,
-                            "userRating" to newInfo.rating.toDouble(),
+                            "userRating" to newInfo.rating?.toDouble(),
                             "userVerified" to newInfo.isVerified,
                         )
                         analyticsHelper.setUserProfileID(newInfo.id.toString())
                         analyticsHelper.updateUserProfile(userProfileAttributes)
-                        notificationIdentifier(newInfo.id)
 
                         UserData.updateUserInfo(newInfo)
                     }

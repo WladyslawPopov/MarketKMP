@@ -229,13 +229,13 @@ class DialogsViewModel(
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             if (conversations.aboutObjectClass == "offer") {
-                val buffer = offerOperations.getOffer(conversations.aboutObjectId)
+                val buffer = offerOperations.getOffer(conversations.aboutObjectId ?: 1L)
                 val res = buffer.success
                 res.let { offer ->
                     _responseGetOfferInfo.value = offer
                 }
             } else {
-                val buf = orderOperations.getOrder(conversations.aboutObjectId)
+                val buf = orderOperations.getOrder(conversations.aboutObjectId ?: 1L)
                 val res = buf.success
                 res.let {
                     _responseGetOrderInfo.value = it

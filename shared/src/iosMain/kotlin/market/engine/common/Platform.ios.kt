@@ -7,8 +7,8 @@ actual class Platform {
     actual fun getPlatform(): PlatformType {
         val idiom = UIDevice.currentDevice.name
         println("Platform Type: $idiom")
-        return when (idiom) {
-            "iPhone" -> PlatformType.IOS
+        return when {
+            idiom.contains("iPhone") -> PlatformType.IOS
             else -> PlatformType.DESKTOP
         }
     }

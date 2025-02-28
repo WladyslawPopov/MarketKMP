@@ -182,10 +182,6 @@ fun OfferFilterContent(
                     listingData.find { it.key == "category" }?.value = searchData.value.searchCategoryID.toString()
                     listingData.find { it.key == "category" }?.interpretation = searchData.value.searchCategoryName
                     listingData.find { it.key == "category" }?.operation = searchData.value.searchIsLeaf.toString()
-                }else{
-                    listingData.find { it.key == "category" }?.value = ""
-                    listingData.find { it.key == "category" }?.interpretation = null
-                    listingData.find { it.key == "category" }?.operation = null
                 }
 
                 selectedCategory.value = searchData.value.searchCategoryName

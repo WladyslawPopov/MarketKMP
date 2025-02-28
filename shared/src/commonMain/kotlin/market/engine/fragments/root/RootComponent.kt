@@ -46,6 +46,8 @@ interface RootComponent {
         data class VerificationChildMain(val component: VerificationComponent) : Child()
         data class DynamicSettingsChild(val component: DynamicSettingsComponent) : Child()
     }
+
+    fun updateURL (url : DeepLink)
 }
 
 class DefaultRootComponent(
@@ -73,6 +75,10 @@ class DefaultRootComponent(
     )
 
     override val model = _model
+
+    override fun updateURL(url: DeepLink) {
+        println("URL DeepLink :: $url")
+    }
 
     init {
 

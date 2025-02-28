@@ -117,7 +117,7 @@ fun UserPanel(
                                 alignment = Alignment.CenterHorizontally
                             )
                         ) {
-                            if (user.rating > 0) {
+                            if ((user.rating ?: 0) > 0) {
                                 Box(
                                     modifier = Modifier
                                         .background(
