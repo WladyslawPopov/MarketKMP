@@ -98,11 +98,9 @@ class DefaultMainComponent(
     private var openPage: String? = null
 
     init {
-        if(deepLink != null) {
-            lifecycle.doOnResume {
-                deepLink?.let { handleDeepLink(it) }
-                deepLink = null
-            }
+        lifecycle.doOnResume {
+            deepLink?.let { handleDeepLink(it) }
+            deepLink = null
         }
     }
 

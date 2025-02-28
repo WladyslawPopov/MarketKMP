@@ -826,10 +826,13 @@ fun SessionStartContent(
         2 to stringResource(strings.offerStartInFutureLabel)
     )
 
-    val selectedFilterKey = remember {
-        mutableStateOf(
-            field.data?.jsonPrimitive?.intOrNull ?: 0
-        )
+    val selectedFilterKey = remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit){
+        selectedFilterKey.value = field.data?.jsonPrimitive?.intOrNull ?: 0
+        if(field.data?.jsonPrimitive?.intOrNull == null) {
+            field.data = JsonPrimitive(0)
+        }
     }
 
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }

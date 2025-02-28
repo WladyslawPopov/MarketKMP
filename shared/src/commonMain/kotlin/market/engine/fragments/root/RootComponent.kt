@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -52,7 +53,7 @@ interface RootComponent {
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
-    private val deepLink: DeepLink?
+    deepLink: DeepLink?
 ) : RootComponent, ComponentContext by componentContext {
 
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
@@ -62,7 +63,7 @@ class DefaultRootComponent(
         childStack(
             source = navigation,
             serializer = RootConfig.serializer(),
-            initialConfiguration = RootConfig.Main,
+            initialConfiguration = RootConfig.Main(deepLink),
             handleBackButton = true,
             childFactory = ::createChild
         )
@@ -77,7 +78,7 @@ class DefaultRootComponent(
     override val model = _model
 
     override fun updateURL(url: DeepLink) {
-        println("URL DeepLink :: $url")
+        navigation.replaceCurrent(RootConfig.Main(url))
     }
 
     init {
@@ -107,10 +108,10 @@ class DefaultRootComponent(
 
     private fun createChild(rootConfig: RootConfig, componentContext: ComponentContext): RootComponent.Child =
         when (rootConfig) {
-            RootConfig.Main -> RootComponent.Child.MainChild(
+            is RootConfig.Main -> RootComponent.Child.MainChild(
                 DefaultMainComponent(
                     componentContext,
-                    deepLink = deepLink,
+                    deepLink = rootConfig.deepLink,
                 )
             )
             is RootConfig.Login -> RootComponent.Child.LoginChild(
@@ -185,7 +186,7 @@ class DefaultRootComponent(
         }
 
         val goToMain : () -> Unit = {
-            navigation.replaceAll(RootConfig.Main)
+            navigation.replaceAll(RootConfig.Main())
         }
     }
 }

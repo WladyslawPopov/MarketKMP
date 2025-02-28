@@ -338,7 +338,7 @@ fun content(
                         style = MaterialTheme.typography.bodySmall,
                     )
 
-                    var buyer = offer.buyerData?.login ?: stringResource(strings.noBuyer)
+                    var buyer = offer.buyerData?.login ?: ""
                     var color = colors.grayText
                     if (!offer.isPrototype) {
                         if (offer.currentQuantity < 2) {

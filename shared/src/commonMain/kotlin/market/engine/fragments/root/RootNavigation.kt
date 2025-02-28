@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import market.engine.core.data.items.DeepLink
 import market.engine.fragments.root.contactUs.ContactUsContent
 import market.engine.fragments.root.dynamicSettings.DynamicSettingsContent
 import market.engine.fragments.root.login.LoginContent
@@ -61,7 +62,7 @@ fun RootNavigation(
 @Serializable
 sealed class RootConfig {
     @Serializable
-    data object Main : RootConfig()
+    data class Main(val deepLink: DeepLink? = null) : RootConfig()
 
     @Serializable
     data class Login(val reset : Boolean = false) : RootConfig()
