@@ -77,7 +77,7 @@ class CreateOrderViewModel: BaseViewModel() {
         }
     }
 
-    fun getAdditionalFields(sellerId: Long, lotIds: List<Long>?, lotCounts: List<Int>?) {
+    fun getAdditionalFields(sellerId: Long, lotIds: List<Long>?, lotCounts: List<Int>?, goBack: () -> Unit) {
         viewModelScope.launch {
             setLoading(true)
             try {
@@ -120,8 +120,10 @@ class CreateOrderViewModel: BaseViewModel() {
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
+                goBack()
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+                goBack()
             } finally {
                 setLoading(false)
             }

@@ -7,7 +7,6 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.SelectedBasketItem
-import org.koin.mp.KoinPlatform.getKoin
 
 interface CreateOrderComponent {
     val model : Value<Model>
@@ -60,7 +59,9 @@ class DefaultCreateOrderComponent(
             basketItem.first,
             basketItem.second.map { it.offerId },
             basketItem.second.map { it.selectedQuantity }
-        )
+        ){
+            navigateBack()
+        }
 
         createOrderViewModel.analyticsHelper.reportEvent("view_create_order", mapOf())
     }

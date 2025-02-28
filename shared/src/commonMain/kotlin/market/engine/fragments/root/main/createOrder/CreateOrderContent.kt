@@ -85,7 +85,9 @@ fun CreateOrderContent(
             basketItem.first,
             basketItem.second.map { it.offerId },
             basketItem.second.map { it.selectedQuantity }
-        )
+        ){
+           component.onBackClicked()
+        }
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {

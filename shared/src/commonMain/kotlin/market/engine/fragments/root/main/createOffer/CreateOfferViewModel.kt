@@ -157,53 +157,54 @@ class CreateOfferViewModel : BaseViewModel() {
     }
 
     fun postPage(url: String, body: JsonObject) {
+        setLoading(true)
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    setLoading(true)
-                    val response = apiService.postCreateOfferPage(url, body)
-                    withContext(Dispatchers.Main) {
-                        setLoading(false)
-                        try {
-                            val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                            val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            if (payload.status == "operation_success") {
-                                showToast(
-                                    ToastItem(
-                                        isVisible = true,
-                                        message = payload.operationResult?.message ?: getString(strings.operationSuccess),
-                                        type = ToastType.SUCCESS
-                                    )
+                val response = withContext(Dispatchers.IO) {
+                    apiService.postCreateOfferPage(url, body)
+                }
+                withContext(Dispatchers.Main) {
+                    try {
+                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                        val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                        if (payload.status == "operation_success") {
+                            showToast(
+                                ToastItem(
+                                    isVisible = true,
+                                    message = payload.operationResult?.message ?: getString(strings.operationSuccess),
+                                    type = ToastType.SUCCESS
                                 )
-                                _responsePostPage.value = payload
-                            }else{
-                                val eventParams = mapOf(
-                                    "error_type" to payload.globalErrorMessage,
-                                    "seller_id" to UserData.userInfo?.id
+                            )
+                            _responsePostPage.value = payload
+                        }else{
+                            val eventParams = mapOf(
+                                "error_type" to payload.globalErrorMessage,
+                                "seller_id" to UserData.userInfo?.id
+                            )
+                            analyticsHelper.reportEvent("added_offer_fail", eventParams)
+                            showToast(
+                                ToastItem(
+                                    isVisible = true,
+                                    message = payload.operationResult?.message ?: getString(strings.operationFailed),
+                                    type = ToastType.ERROR
                                 )
-                                analyticsHelper.reportEvent("added_offer_fail", eventParams)
-                                showToast(
-                                    ToastItem(
-                                        isVisible = true,
-                                        message = payload.operationResult?.message ?: getString(strings.operationFailed),
-                                        type = ToastType.ERROR
-                                    )
-                                )
-                                _responseGetPage.value = _responseGetPage.value?.let { currentPayload ->
-                                    val updatedFields = arrayListOf<Fields>()
-                                    updatedFields.addAll(payload.recipe?.fields ?: currentPayload.fields)
-                                    currentPayload.copy(fields = updatedFields)
-                                }
+                            )
+                            _responseGetPage.value = _responseGetPage.value?.let { currentPayload ->
+                                val updatedFields = arrayListOf<Fields>()
+                                updatedFields.addAll(payload.recipe?.fields ?: currentPayload.fields)
+                                currentPayload.copy(fields = updatedFields)
                             }
-                        }catch (e: Exception){
-                            throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                         }
+                    }catch (e: Exception){
+                        throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.humanMessage.toString())
                     }
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+            } finally {
+                setLoading(false)
             }
         }
     }

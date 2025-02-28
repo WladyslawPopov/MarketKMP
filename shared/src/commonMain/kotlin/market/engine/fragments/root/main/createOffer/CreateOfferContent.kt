@@ -215,8 +215,8 @@ fun CreateOfferContent(
         {
             onError(err) {
                 refresh()
+                viewModel.onError(ServerErrorException())
             }
-            viewModel.onError(ServerErrorException())
         }
     } else {
         null
