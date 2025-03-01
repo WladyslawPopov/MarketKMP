@@ -355,6 +355,11 @@ fun createHomeChild(
                 homeNavigation.pushNew(
                     HomeConfig.OfferScreen(it, getCurrentDate())
                 )
+            },
+            navigateToListingSelected = {
+                homeNavigation.pushNew(
+                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
+                )
             }
         )
     )

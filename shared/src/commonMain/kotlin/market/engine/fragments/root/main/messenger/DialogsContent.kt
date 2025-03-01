@@ -378,6 +378,15 @@ fun DialogsContent(
                                                                 )
                                                             }
                                                         }
+                                                    },
+                                                    goToUser = {
+                                                        component.goToUser(it)
+                                                    },
+                                                    goToOffer = {
+                                                        component.goToOffer(it)
+                                                    },
+                                                    goToListing = {
+                                                        component.goToNewSearch(it)
                                                     }
                                                 )
                                             }

@@ -312,6 +312,11 @@ fun createBasketChild(
                 },
                 navigateToOrder = { id, type ->
                     navigateToMyOrders(id, type)
+                },
+                navigateToListingSelected = {
+                    basketNavigation.pushNew(
+                        BasketConfig.ListingScreen(it.data.value, it.searchData.value)
+                    )
                 }
             )
         )

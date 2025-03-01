@@ -587,6 +587,11 @@ fun createProfileChild(
                     profileNavigation.pushNew(
                         ProfileConfig.UserScreen(it, getCurrentDate(), false)
                     )
+                },
+                navigateToListingSelected = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.ListingScreen(it.data.value, it.searchData.value)
+                    )
                 }
             )
         )

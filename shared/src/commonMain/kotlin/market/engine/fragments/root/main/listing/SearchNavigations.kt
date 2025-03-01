@@ -311,6 +311,11 @@ fun createSearchChild(
                 },
                 navigateToOrder = { id, type ->
                     navigateToMyOrders(id, type)
+                },
+                navigateToListingSelected = {
+                    searchNavigation.pushNew(
+                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false)
+                    )
                 }
             )
         )

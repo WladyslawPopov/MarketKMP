@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.messenger
 
 import com.arkivanov.decompose.ComponentContext
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealTypeGroup
 
 fun messengerFactory(
@@ -10,7 +11,8 @@ fun messengerFactory(
     navigateBack : () -> Unit,
     navigateToOrder : (Long, DealTypeGroup) -> Unit,
     navigateToOffer : (Long) -> Unit,
-    navigateToUser : (Long) -> Unit
+    navigateToUser : (Long) -> Unit,
+    navigateToListingSelected : (ListingData) -> Unit
 ) : DialogsComponent {
     return DefaultDialogsComponent(
         componentContext = componentContext,
@@ -28,5 +30,8 @@ fun messengerFactory(
         navigateToOffer = {
             navigateToOffer(it)
         },
+        navigateToListingSelected = {
+            navigateToListingSelected(it)
+        }
     )
 }

@@ -336,6 +336,11 @@ fun createFavoritesChild(
                 favoritesNavigation.pushNew(
                     FavoritesConfig.OfferScreen(it, getCurrentDate())
                 )
+            },
+            navigateToListingSelected = {
+                favoritesNavigation.pushNew(
+                    FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
+                )
             }
         )
     )

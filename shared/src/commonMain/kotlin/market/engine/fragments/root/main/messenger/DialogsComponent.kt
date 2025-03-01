@@ -7,6 +7,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.types.DealTypeGroup
@@ -27,6 +28,7 @@ interface DialogsComponent{
     fun goToOffer(id : Long)
     fun goToUser(id : Long)
     fun goToOrder(id : Long, dealTypeGroup: DealTypeGroup)
+    fun goToNewSearch(userId: Long)
 }
 
 class DefaultDialogsComponent(
@@ -35,6 +37,7 @@ class DefaultDialogsComponent(
     val navigateToOffer: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateToOrder: (Long, DealTypeGroup) -> Unit,
+    val navigateToListingSelected: (ListingData) -> Unit,
     dialogId : Long,
     message : String?,
 ) : DialogsComponent, ComponentContext by componentContext {
@@ -95,5 +98,15 @@ class DefaultDialogsComponent(
 
     override fun goToOrder(id: Long, dealTypeGroup: DealTypeGroup) {
         navigateToOrder(id, dealTypeGroup)
+    }
+
+    override fun goToNewSearch(userId: Long) {
+        val listingData = ListingData()
+        listingData.searchData.value.run {
+            userSearch = true
+            userLogin = ""
+            userID = userId
+        }
+        navigateToListingSelected(listingData)
     }
 }
