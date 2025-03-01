@@ -59,24 +59,107 @@ fun DialogItem(
     val alignment = if (isIncoming) Alignment.Start else Alignment.End
 
     val bubbleColor = if (isIncoming) {
-        colors.incomingBubble
-    } else {
-        colors.outgoingBubble
-    }
+            colors.incomingBubble
+        } else {
+            colors.outgoingBubble
+        }
+
 
     val showMenu = remember { mutableStateOf(false) }
 
-    val listDialogOperations = listOf(
-        "copy" to stringResource(strings.actionCopy),
-        "delete" to stringResource(strings.actionDelete)
-    )
+    val listDialogOperations =
+        listOf(
+            "copy" to stringResource(strings.actionCopy),
+            "delete" to stringResource(strings.actionDelete)
+        )
 
-    val chatBubbleShape = RoundedCornerShape(
-        topStart = if (isIncoming) 4.dp else 20.dp ,
-        topEnd = 20.dp,
-        bottomEnd = if (isIncoming) 20.dp else 4.dp,
-        bottomStart = 20.dp
-    )
+
+    val chatBubbleShape = remember {
+        RoundedCornerShape(
+            topStart = if (isIncoming) 4.dp else 20.dp,
+            topEnd = 20.dp,
+            bottomEnd = if (isIncoming) 20.dp else 4.dp,
+            bottomStart = 20.dp
+        )
+    }
+
+    var url = remember { "" }
+    val text = remember { richText.setHtml(item.message).annotatedString.text }
+    val annotatedString = remember {
+        buildAnnotatedString {
+            append(text)
+            val urlPattern = Regex("${SAPI.SERVER_BASE}[\\w./?=#-]+")
+            urlPattern.findAll(text).forEach { matchResult ->
+                url = matchResult.value
+                val start = matchResult.range.first
+                val end = matchResult.range.last + 1
+
+                addStringAnnotation(
+                    tag = "URL",
+                    annotation = url,
+                    start = start,
+                    end = end
+                )
+
+                addStyle(
+                    style = SpanStyle(
+                        textDecoration = TextDecoration.Underline,
+                        color = colors.brightBlue
+                    ),
+                    start = start,
+                    end = end
+                )
+            }
+        }
+    }
+
+    val modClick = remember {
+        if (url.isNotBlank()) {
+            Modifier.clickable {
+                when (val deepLink = parseDeepLink(url.toUri())) {
+                        is DeepLink.GoToOffer -> {
+                            goToOffer(deepLink.offerId)
+                        }
+
+                        is DeepLink.GoToListing -> {
+                            goToListing(deepLink.ownerId)
+                        }
+
+                        is DeepLink.GoToUser -> {
+                            goToUser(deepLink.userId)
+                        }
+
+                        is DeepLink.GoToAuth -> {
+                            openUrl(url)
+                        }
+
+                        is DeepLink.GoToDialog -> {
+                            openUrl(url)
+                        }
+
+                        is DeepLink.GoToDynamicSettings -> {
+                            openUrl(url)
+                        }
+
+                        DeepLink.GoToRegistration -> {
+                            openUrl(url)
+                        }
+
+                        is DeepLink.GoToVerification -> {
+                            openUrl(url)
+                        }
+
+                        is DeepLink.Unknown -> {
+                            openUrl(url)
+                        }
+
+                        null -> {}
+                    }
+            }
+        }else{
+            Modifier
+        }
+    }
 
     Row(
         modifier = modifier.fillMaxWidth().padding(dimens.smallPadding),
@@ -99,76 +182,12 @@ fun DialogItem(
                     verticalArrangement = Arrangement.SpaceEvenly,
                     horizontalAlignment = Alignment.Start
                 ) {
-
-                    richText.setHtml(item.message)
-                    var url = remember { "" }
-                    val text = remember { richText.annotatedString.text }
-
-                    if (item.message.isNotBlank()) {
-                        val annotatedString = buildAnnotatedString {
-                            append(text)
-                            val urlPattern = Regex("${SAPI.SERVER_BASE}[\\w./?=#-]+")
-                            urlPattern.findAll(text).forEach { matchResult ->
-                                url = matchResult.value
-                                val start = matchResult.range.first
-                                val end = matchResult.range.last + 1
-
-                                addStringAnnotation(
-                                    tag = "URL",
-                                    annotation = url,
-                                    start = start,
-                                    end = end
-                                )
-
-                                addStyle(
-                                    style = SpanStyle(textDecoration = TextDecoration.Underline, color = colors.brightBlue),
-                                    start = start,
-                                    end = end
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = annotatedString,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = colors.black,
-                            modifier = Modifier
-                                .clickable {
-                                    if (url.isNotBlank()) {
-                                        when(val deepLink = parseDeepLink(url.toUri())) {
-                                            is DeepLink.GoToOffer -> {
-                                                goToOffer(deepLink.offerId)
-                                            }
-                                            is DeepLink.GoToListing -> {
-                                                goToListing(deepLink.ownerId)
-                                            }
-                                            is DeepLink.GoToUser -> {
-                                                goToUser(deepLink.userId)
-                                            }
-                                            is DeepLink.GoToAuth -> {
-                                                openUrl(url)
-                                            }
-                                            is DeepLink.GoToDialog -> {
-                                                openUrl(url)
-                                            }
-                                            is DeepLink.GoToDynamicSettings -> {
-                                                openUrl(url)
-                                            }
-                                            DeepLink.GoToRegistration -> {
-                                                openUrl(url)
-                                            }
-                                            is DeepLink.GoToVerification -> {
-                                                openUrl(url)
-                                            }
-                                            is DeepLink.Unknown -> {
-                                                openUrl(url)
-                                            }
-                                            null -> {}
-                                        }
-                                    }
-                                }.padding(dimens.smallPadding)
-                        )
-                    }
+                    Text(
+                        text = annotatedString,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = colors.black,
+                        modifier = modClick.padding(dimens.smallPadding)
+                    )
 
                     if (!item.images.isNullOrEmpty()) {
                         ImagesPreviewGrid(
@@ -226,8 +245,3 @@ fun DialogItem(
         }
     }
 }
-
-
-
-
-
