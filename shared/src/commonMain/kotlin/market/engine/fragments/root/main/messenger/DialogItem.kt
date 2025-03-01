@@ -132,40 +132,41 @@ fun DialogItem(
                             text = annotatedString,
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.black,
-                            modifier = Modifier.padding(dimens.smallPadding).clickable {
-                                if (url.isNotBlank()) {
-                                    when(val deepLink = parseDeepLink(url.toUri())) {
-                                        is DeepLink.GoToOffer -> {
-                                            goToOffer(deepLink.offerId)
+                            modifier = Modifier
+                                .clickable {
+                                    if (url.isNotBlank()) {
+                                        when(val deepLink = parseDeepLink(url.toUri())) {
+                                            is DeepLink.GoToOffer -> {
+                                                goToOffer(deepLink.offerId)
+                                            }
+                                            is DeepLink.GoToListing -> {
+                                                goToListing(deepLink.ownerId)
+                                            }
+                                            is DeepLink.GoToUser -> {
+                                                goToUser(deepLink.userId)
+                                            }
+                                            is DeepLink.GoToAuth -> {
+                                                openUrl(url)
+                                            }
+                                            is DeepLink.GoToDialog -> {
+                                                openUrl(url)
+                                            }
+                                            is DeepLink.GoToDynamicSettings -> {
+                                                openUrl(url)
+                                            }
+                                            DeepLink.GoToRegistration -> {
+                                                openUrl(url)
+                                            }
+                                            is DeepLink.GoToVerification -> {
+                                                openUrl(url)
+                                            }
+                                            is DeepLink.Unknown -> {
+                                                openUrl(url)
+                                            }
+                                            null -> {}
                                         }
-                                        is DeepLink.GoToListing -> {
-                                            goToListing(deepLink.ownerId)
-                                        }
-                                        is DeepLink.GoToUser -> {
-                                            goToUser(deepLink.userId)
-                                        }
-                                        is DeepLink.GoToAuth -> {
-                                            openUrl(url)
-                                        }
-                                        is DeepLink.GoToDialog -> {
-                                            openUrl(url)
-                                        }
-                                        is DeepLink.GoToDynamicSettings -> {
-                                            openUrl(url)
-                                        }
-                                        DeepLink.GoToRegistration -> {
-                                            openUrl(url)
-                                        }
-                                        is DeepLink.GoToVerification -> {
-                                            openUrl(url)
-                                        }
-                                        is DeepLink.Unknown -> {
-                                            openUrl(url)
-                                        }
-                                        null -> {}
                                     }
-                                }
-                            }
+                                }.padding(dimens.smallPadding)
                         )
                     }
 
