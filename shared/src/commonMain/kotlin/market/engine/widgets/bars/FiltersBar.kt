@@ -120,7 +120,7 @@ fun FiltersBar(
             LazyRow(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
-                    .fillMaxWidth(if (isShowFilters) 0.75f else 1f),
+                    .weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -200,7 +200,6 @@ fun FiltersBar(
 
             if (isShowFilters) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End)
                 ) {

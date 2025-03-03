@@ -1,9 +1,10 @@
 package market.engine.widgets.buttons
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -26,11 +28,15 @@ fun FilterButton(
     onCancelClick: (() -> Unit)? = null,
 ) {
     TextButton(
+        modifier = Modifier
+            .wrapContentWidth()
+            .widthIn(max = 300.dp),
         onClick = { onClick() },
         colors = color,
         shape = MaterialTheme.shapes.small
     ) {
         Row(
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -39,7 +45,8 @@ fun FilterButton(
                 color = colors.black,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.extraSmallPadding)
+                modifier = Modifier
+                    .weight(1f, fill = false)
             )
 
             if(onCancelClick != null) {

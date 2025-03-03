@@ -184,6 +184,7 @@ fun SearchContent(
                         searchData.searchCategoryName = sd.value.searchCategoryName
                         searchData.searchParentID = sd.value.searchParentID
                         searchData.searchIsLeaf = sd.value.searchIsLeaf
+                        searchData.isRefreshing = true
 
                         refreshFromCategory.value = false
                     }

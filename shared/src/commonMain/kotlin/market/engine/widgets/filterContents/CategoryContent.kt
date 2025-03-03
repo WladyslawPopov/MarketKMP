@@ -215,7 +215,7 @@ fun CategoryContent(
                                     append(searchCategoryName.value)
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(0.7f),
+                            modifier = Modifier.weight(1f),
                         )
 
                         if (searchCategoryId.value != 1L) {

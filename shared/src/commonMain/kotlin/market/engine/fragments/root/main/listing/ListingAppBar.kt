@@ -68,7 +68,7 @@ fun ListingAppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                TextAppBar(title, modifier = Modifier.fillMaxWidth(0.9f))
+                TextAppBar(title, modifier = Modifier.weight(1f))
 
                 SmallIconButton(
                     if (isOpenCategory)
