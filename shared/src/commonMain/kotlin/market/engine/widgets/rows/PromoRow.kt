@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,13 +38,14 @@ fun PromoRow(
     onItemClick: (String?) -> Unit
 ) {
     if(offer.promoOptions != null ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SeparatorLabel(stringResource(strings.activatePromoParameterName))
+        if(showName) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SeparatorLabel(stringResource(strings.activatePromoParameterName))
+            }
         }
-
         Box(
             modifier = modifier
         ) {
@@ -66,7 +68,7 @@ fun PromoRow(
                             "featured_in_listing" -> {
                                 Text(
                                     text = "TOP",
-                                    color = colors.alwaysWhite,
+                                    color = colors.brightPurple,
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
@@ -78,15 +80,17 @@ fun PromoRow(
                                 Icon(
                                     painter = painterResource(drawables.homeIcon),
                                     contentDescription = "",
-                                    tint = colors.alwaysWhite
+                                    tint = colors.brightPurple,
+                                    modifier = Modifier.size(dimens.mediumIconSize)
                                 )
                             }
 
-                            "recommended_in_listing" -> {
+                           "recommended_in_listing" -> {
                                 Icon(
                                     painter = painterResource(drawables.megaphoneIcon),
                                     contentDescription = "",
-                                    tint = colors.alwaysWhite
+                                    tint = colors.brightPurple,
+                                    modifier = Modifier.size(dimens.mediumIconSize)
                                 )
                             }
 
@@ -94,7 +98,8 @@ fun PromoRow(
                                 Icon(
                                     painter = painterResource(drawables.promoHighlightIcon),
                                     contentDescription = "",
-                                    tint = colors.alwaysWhite
+                                    tint = colors.brightPurple,
+                                    modifier = Modifier.size(dimens.mediumIconSize)
                                 )
                             }
 
@@ -102,7 +107,8 @@ fun PromoRow(
                                 Icon(
                                     painter = painterResource(drawables.adIcon),
                                     contentDescription = "",
-                                    tint = colors.alwaysWhite
+                                    tint = colors.brightPurple,
+                                    modifier = Modifier.size(dimens.mediumIconSize)
                                 )
                             }
                         }
@@ -110,7 +116,7 @@ fun PromoRow(
                     Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
                     if (showName) {
                         Text(
-                            o.name ?: "",
+                             "Promo",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.Bold
                             ),
