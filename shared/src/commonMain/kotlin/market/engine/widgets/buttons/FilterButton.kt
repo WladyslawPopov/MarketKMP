@@ -36,7 +36,7 @@ fun FilterButton(
         shape = MaterialTheme.shapes.small
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
