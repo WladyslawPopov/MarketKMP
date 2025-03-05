@@ -246,8 +246,6 @@ fun ListingContent(
 
                 ListingAppBar(
                     title = if(title.value != "") title.value else catDef,
-                    modifier,
-                    isOpenCategory = listingViewModel.activeFiltersType.value != "categories",
                     onBackClick = {
                         if (listingViewModel.activeFiltersType.value.isEmpty()) {
                                 component.goBack()

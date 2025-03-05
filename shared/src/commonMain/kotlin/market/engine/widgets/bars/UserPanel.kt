@@ -235,19 +235,23 @@ fun UserPanel(
                     }
 
                     FlowRow(
-                        modifier = Modifier.clickable {
-                            if (UserData.login == user.id){
-                                goToSubscriptions()
-                            }else {
-                                addToSubscriptions()
-                            }
-                        }.shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
+                        modifier = Modifier
+                            .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
                             .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
+                            .clip(MaterialTheme.shapes.small)
+                            .clickable {
+                                if (UserData.login == user.id){
+                                    goToSubscriptions()
+                                }else {
+                                    addToSubscriptions()
+                                }
+                            }
                             .padding(dimens.smallPadding),
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.CenterVertically),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.CenterHorizontally)
+                        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, alignment = Alignment.CenterHorizontally)
                     ) {
                         Text(
+                            modifier = Modifier.padding(dimens.extraSmallPadding),
                             text = subLabel,
                             color = colors.black,
                             style = MaterialTheme.typography.bodySmall,
