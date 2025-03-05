@@ -70,7 +70,9 @@ fun showNoItemLayout(
             Spacer(modifier = Modifier.height(dimens.mediumSpacer))
 
             TextButton(
-                onClick = onRefresh,
+                onClick = {
+                    onRefresh()
+                },
                 colors = colors.themeButtonColors,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 shape = MaterialTheme.shapes.small

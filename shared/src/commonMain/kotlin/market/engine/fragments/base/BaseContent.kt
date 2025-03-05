@@ -74,9 +74,17 @@ fun BaseContent(
                 Box(
                     modifier = modifier,
                 ) {
-                    noFound?.invoke()
-                    error?.invoke()
-                    content()
+                    when{
+                        noFound != null -> {
+                            noFound()
+                        }
+                        error != null -> {
+                            error()
+                        }
+                        else -> {
+                            content()
+                        }
+                    }
 
                     if(toastItem != null) {
                         AnimatedVisibility(
