@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.root.main.listing.ListingViewModel
@@ -59,7 +60,11 @@ fun SearchContent(
     val openCategory = remember { mutableStateOf(false) }
 
     val errorSearch: (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
-        { onError(isErrorSearch) { } }
+        {
+            onError(isErrorSearch) {
+                searchViewModel.onError(ServerErrorException())
+            }
+        }
     } else {
         null
     }

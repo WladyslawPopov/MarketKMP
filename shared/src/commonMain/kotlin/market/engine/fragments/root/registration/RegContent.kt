@@ -23,6 +23,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
@@ -52,7 +53,10 @@ fun RegistrationContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err) {  } }
+        { onError(err) {
+            model.getRegFields()
+            model.onError(ServerErrorException())
+        } }
     } else {
         null
     }

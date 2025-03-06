@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -87,7 +88,8 @@ fun OutlinedTextInputField(
                 )
             },
             keyboardOptions = KeyboardOptions(
-                keyboardType = if (isEmail) KeyboardType.Email else keyboardType
+                keyboardType = if (isEmail) KeyboardType.Email else keyboardType,
+                capitalization = if(!(isEmail || isPassword)) KeyboardCapitalization.Unspecified else KeyboardCapitalization.Sentences
             ),
             visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {

@@ -62,7 +62,12 @@ fun CreateSubscriptionContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err) { refresh() } }
+        {
+            onError(err)
+            {
+                refresh()
+            }
+        }
     } else {
         null
     }

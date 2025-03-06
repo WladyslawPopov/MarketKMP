@@ -32,6 +32,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
@@ -68,7 +69,12 @@ fun DynamicSettingsContent(
     val focusManager = LocalFocusManager.current
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err) { component.onBack() } }
+        {
+            onError(err) {
+                viewModel.onError(ServerErrorException())
+                component.updateModel()
+            }
+        }
     } else {
         null
     }

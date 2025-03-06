@@ -65,6 +65,7 @@ fun onError(
                             error.value.errorCode = ""
                             error.value.humanMessage = ""
                             showDialog.value = false
+                            onRefresh()
                         }
                     )
                 }

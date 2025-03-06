@@ -25,6 +25,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ReportPageType
+import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
@@ -52,7 +53,12 @@ fun UserContent(
     val feedbacksPages by component.feedbacksPages.subscribeAsState()
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(isError) { component.updateUserInfo() } }
+        {
+            onError(isError) {
+                userViewModel.onError(ServerErrorException())
+                component.updateUserInfo()
+            }
+        }
     }else{
         null
     }

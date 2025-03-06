@@ -11,7 +11,6 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.MyOfferConfig

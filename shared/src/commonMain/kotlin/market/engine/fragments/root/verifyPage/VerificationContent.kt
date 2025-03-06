@@ -51,7 +51,7 @@ fun VerificationContent(
     val focusManager = LocalFocusManager.current
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err) { component.onBack() } }
+        { onError(err) { viewModel.onError(ServerErrorException()) } }
     } else {
         null
     }

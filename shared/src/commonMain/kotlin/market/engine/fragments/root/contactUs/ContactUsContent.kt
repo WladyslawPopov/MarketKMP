@@ -43,6 +43,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.PhotoTemp
+import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
@@ -75,7 +76,12 @@ fun ContactUsContent(
     val responseGetFields = model.responseGetFields.collectAsState()
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err) {  } }
+        {
+            onError(err) {
+                model.onError(ServerErrorException())
+                model.getFields()
+            }
+        }
     } else {
         null
     }
