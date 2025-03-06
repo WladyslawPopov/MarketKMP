@@ -1,7 +1,6 @@
 package market.engine.widgets.textFields
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,8 +9,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -60,7 +59,8 @@ fun TextFieldWithState(
         leadingIcon = leadingIcon,
         textStyle = textStyle,
         keyboardOptions = KeyboardOptions(
-            keyboardType = if(isNumber) KeyboardType.Number else KeyboardType.Text
+            keyboardType = if(isNumber) KeyboardType.Number else KeyboardType.Text,
+            capitalization = KeyboardCapitalization.Sentences
         )
     )
 }

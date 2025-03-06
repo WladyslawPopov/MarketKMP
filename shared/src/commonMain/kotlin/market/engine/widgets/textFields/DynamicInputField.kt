@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import kotlinx.serialization.json.JsonPrimitive
@@ -155,7 +156,8 @@ fun DynamicInputField(
             visualTransformation = if (field.widgetType == "password") PasswordVisualTransformation() else VisualTransformation.None,
             textStyle = MaterialTheme.typography.titleSmall,
             keyboardOptions = KeyboardOptions(
-                keyboardType = checkNumberKeyBoard(field)
+                keyboardType = checkNumberKeyBoard(field),
+                capitalization = KeyboardCapitalization.Sentences
             ),
             supportingText = {
                 Text(

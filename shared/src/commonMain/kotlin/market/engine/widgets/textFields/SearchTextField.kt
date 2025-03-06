@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -46,13 +47,14 @@ fun SearchTextField(
             .wrapContentSize()
             .focusRequester(focusRequester),
         keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Search
+            imeAction = ImeAction.Search,
+            capitalization = KeyboardCapitalization.Sentences
         ),
         singleLine = true,
         keyboardActions = KeyboardActions(
             onSearch = {
                 goToListing()
-            }
+            },
         ),
         trailingIcon = {
             if (search.value.isNotEmpty()) {
