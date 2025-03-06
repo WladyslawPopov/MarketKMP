@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -19,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -33,6 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.functions.OrderOperations
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -49,9 +49,10 @@ fun CommentDialog(
     val orderOperations: OrderOperations = koinInject()
     val analyticsHelper: AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    val commentText = remember { mutableStateOf(commentTextDefault) }
+    val commentText = remember { mutableStateOf(
+        TextFieldValue(commentTextDefault)) }
 
-    val charsLeft = 200 - commentText.value.length
+    val charsLeft = 200 - commentText.value.text.length
 
     val feedbackType = remember { mutableStateOf(1) }
 
@@ -68,7 +69,7 @@ fun CommentDialog(
     LaunchedEffect(isDialogOpen){
         snapshotFlow{isDialogOpen}.collect{
             if(it)
-                commentText.value = commentTextDefault
+                commentText.value = TextFieldValue(commentTextDefault)
         }
     }
 
@@ -168,29 +169,17 @@ fun CommentDialog(
                     }
 
                     item {
-                        OutlinedTextField(
+                        OutlinedTextInputField(
                             value = commentText.value,
                             onValueChange = {
                                 if (charsLeft > 0){
                                     commentText.value = it
                                 }
                             },
-                            label = {
-                                Text(
-                                    if (orderType == -2) stringResource(strings.trackIdLabel)
-                                    else stringResource(strings.messageLabel),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textA0AE
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            supportingText = {
-                                Text(
-                                    text = stringResource(strings.charactersLeftLabel) + " $charsLeft",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.grayText
-                                )
-                            }
+                            label =  if (orderType == -2) stringResource(strings.trackIdLabel)
+                            else stringResource(strings.messageLabel),
+                            maxSymbols = charsLeft,
+                            singleLine = false
                         )
                     }
 
@@ -203,7 +192,7 @@ fun CommentDialog(
                     text = stringResource(strings.acceptAction),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
-                    enabled = commentText.value.isNotEmpty()
+                    enabled = commentText.value.text.isNotEmpty()
                 ) {
                     val scope = baseViewModel.viewModelScope
 
@@ -212,7 +201,7 @@ fun CommentDialog(
                             -1 -> {
                                 // set_comment
                                 val body = HashMap<String, String>()
-                                body["comment"] = commentText.value
+                                body["comment"] = commentText.value.text
                                 scope.launch(Dispatchers.IO) {
                                     val res = orderOperations.postSetComment(orderID, body)
                                     val buffer = res.success
@@ -235,7 +224,7 @@ fun CommentDialog(
                             -2 -> {
                                 // set_track_id
                                 val body = HashMap<String, String>()
-                                body["track_id"] = commentText.value
+                                body["track_id"] = commentText.value.text
 
                                 scope.launch(Dispatchers.IO) {
                                     val res = orderOperations.postProvideTrackId(orderID, body)
@@ -260,7 +249,7 @@ fun CommentDialog(
                     } else {
                         val body = HashMap<String, String>()
                         body["feedback_type"] = feedbackType.value.toString()
-                        body["comment"] = commentText.value
+                        body["comment"] = commentText.value.text
 
                         scope.launch(Dispatchers.IO) {
                             val response = when (orderType) {

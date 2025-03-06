@@ -43,6 +43,7 @@ fun OutlinedTextInputField(
     maxNumber: Int? = null,
     error: String? = null,
     suffix: String? = null,
+    placeholder: String? = null,
     singleLine: Boolean = true,
     isPassword: Boolean = false,
     isEmail: Boolean = false
@@ -81,6 +82,13 @@ fun OutlinedTextInputField(
                     }
                 }
             },
+            placeholder = {
+                Text(
+                    text = placeholder ?: "",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.grayText
+                )
+            },
             label = {
                 DynamicLabel(
                     text = label,
@@ -89,7 +97,7 @@ fun OutlinedTextInputField(
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = if (isEmail) KeyboardType.Email else keyboardType,
-                capitalization = if(!(isEmail || isPassword)) KeyboardCapitalization.Unspecified else KeyboardCapitalization.Sentences
+                capitalization = if(isEmail || isPassword) KeyboardCapitalization.Unspecified else KeyboardCapitalization.Sentences
             ),
             visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {

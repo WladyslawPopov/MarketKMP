@@ -1,19 +1,17 @@
 package market.engine.widgets.dialogs
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -29,6 +27,7 @@ import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.networkObjects.Order
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -45,9 +44,9 @@ fun OrderMessageDialog(
 
     val orderOperations: OrderOperations = koinInject()
 
-    val messageText = remember { mutableStateOf("") }
+    val messageText = remember { mutableStateOf(TextFieldValue()) }
 
-    val charsLeft = 2000 - messageText.value.length
+    val charsLeft = 2000 - messageText.value.text.length
 
 
     val userName = remember(order.id) {
@@ -124,27 +123,21 @@ fun OrderMessageDialog(
             },
             text = {
                 Column {
-                    OutlinedTextField(
+                    OutlinedTextInputField(
                         value = messageText.value,
                         onValueChange = {
-                            if (it.length <= 2000) {
+                            if (it.text.length <= 2000) {
                                 messageText.value = it
                             }
                         },
-                        label = { Text(stringResource(strings.messageLabel)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        supportingText = {
-                            Text(
-                                text = stringResource(strings.charactersLeftLabel) + " $charsLeft",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.grayText
-                            )
-                        }
+                        label = stringResource(strings.messageLabel),
+                        maxSymbols = charsLeft,
+                        singleLine = false
                     )
                 }
             },
             confirmButton = {
-                val isEnabled = messageText.value.isNotBlank()
+                val isEnabled = messageText.value.text.isNotBlank()
                 val ert = stringResource(strings.operationFailed)
 
                 SimpleTextButton(
@@ -155,7 +148,7 @@ fun OrderMessageDialog(
                 ) {
                     val scope = baseViewModel.viewModelScope
                     scope.launch(Dispatchers.IO) {
-                        val body = hashMapOf("message" to messageText.value)
+                        val body = hashMapOf("message" to messageText.value.text)
                         val res = orderOperations.postOrderOperationsWriteToPartner(
                             order.id,
                             body

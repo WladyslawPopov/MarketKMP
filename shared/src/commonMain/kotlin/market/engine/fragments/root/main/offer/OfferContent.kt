@@ -28,14 +28,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,6 +54,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
@@ -109,6 +106,7 @@ import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
+import market.engine.widgets.textFields.OutlinedTextInputField
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
@@ -1029,9 +1027,12 @@ fun AuctionPriceLayout(
     onAddBidClick: (String) -> Unit
 ) {
     if (updateTrigger < 0) return
-    val focusManager = LocalFocusManager.current
 
-    val myMaximalBid = remember { mutableStateOf(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "") }
+    val myMaximalBid = remember {
+        mutableStateOf(
+            TextFieldValue(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "")
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -1086,36 +1087,16 @@ fun AuctionPriceLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(dimens.smallPadding)
                 ) {
-                    OutlinedTextField(
+                    OutlinedTextInputField(
                         value = myMaximalBid.value,
-                        onValueChange = { newText ->
-                            myMaximalBid.value = newText
+                        onValueChange = {
+                            myMaximalBid.value = it
                         },
-                        modifier = Modifier
-                            .width(120.dp),
-                        textStyle = MaterialTheme.typography.bodyLarge,
-                        placeholder = {
-                            Text(
-                                text = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = colors.grayText
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = colors.white,
-                            focusedContainerColor = colors.white,
-                            unfocusedBorderColor = colors.black,
-                            focusedBorderColor = colors.titleTextColor,
-                            unfocusedTextColor = colors.black,
-                            focusedTextColor = colors.black
-                        ),
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.large,
-                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                        keyboardActions = KeyboardActions(onDone = {
-                            focusManager.clearFocus()
-                        })
+                        label = "",
+                        keyboardType = KeyboardType.Number,
+                        placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: ""
                     )
+
                     Text(
                         text = stringResource(strings.currencySign),
                         style = MaterialTheme.typography.titleLarge,
@@ -1133,7 +1114,7 @@ fun AuctionPriceLayout(
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
                     onClick = {
-                        onAddBidClick(myMaximalBid.value)
+                        onAddBidClick(myMaximalBid.value.text)
                     },
                 )
             }
