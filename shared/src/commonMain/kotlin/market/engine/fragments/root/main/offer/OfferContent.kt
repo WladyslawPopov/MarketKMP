@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -1052,13 +1053,12 @@ fun AuctionPriceLayout(
             Column(
                 modifier = Modifier.padding(dimens.smallPadding),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top
+                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
             ) {
                 Text(
                     text = stringResource(strings.currentPriceParameterName),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = colors.grayText,
-                    modifier = Modifier.padding(dimens.smallPadding)
                 )
 
                 Text(
@@ -1066,35 +1066,29 @@ fun AuctionPriceLayout(
                     style = MaterialTheme.typography.titleLarge,
                     color = colors.titleTextColor,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(dimens.smallPadding)
                 )
             }
 
             // Your maximum bid
             Column(
                 modifier = Modifier.padding(dimens.smallPadding),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.Top)
             ) {
-                Text(
-                    text = stringResource(strings.yourMaxBidParameterName),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.grayText,
-                    modifier = Modifier.padding(dimens.smallPadding)
-                )
-
                 Row(
+                    modifier = Modifier.widthIn(max = 200.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(dimens.smallPadding)
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 ) {
                     OutlinedTextInputField(
                         value = myMaximalBid.value,
                         onValueChange = {
                             myMaximalBid.value = it
                         },
-                        label = "",
+                        label = stringResource(strings.yourBidLabel),
                         keyboardType = KeyboardType.Number,
-                        placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: ""
+                        placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
+                        modifier = Modifier.weight(1f)
                     )
 
                     Text(
@@ -1103,11 +1097,8 @@ fun AuctionPriceLayout(
                         fontWeight = FontWeight.Bold,
                         color = colors.black,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(dimens.smallPadding)
                     )
                 }
-
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
                 SimpleTextButton(
                     text = stringResource(strings.actionAddBid),

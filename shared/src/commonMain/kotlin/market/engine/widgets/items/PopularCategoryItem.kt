@@ -3,9 +3,7 @@ package market.engine.widgets.items
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -19,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.TopCategory
@@ -47,10 +44,9 @@ fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (Top
     ) {
         Column(
             modifier = modifier.align(Alignment.CenterHorizontally),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Image(
                 painterResource(category.icon),
                 contentDescription = null,
@@ -60,12 +56,10 @@ fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (Top
             Text(
                 text = category.name,
                 color = colors.black,
-                letterSpacing = 0.1.sp,
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                textAlign = TextAlign.Center
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 2
             )
-
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
         }
     }
 }

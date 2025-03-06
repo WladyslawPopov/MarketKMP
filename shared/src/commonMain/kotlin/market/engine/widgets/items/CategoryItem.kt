@@ -3,6 +3,7 @@ package market.engine.widgets.items
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +35,8 @@ fun CategoryItem(category: Category, onClick: (Category) -> Unit) {
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             getCategoryIcon(category.name)?.let {
                 Image(
@@ -42,13 +44,11 @@ fun CategoryItem(category: Category, onClick: (Category) -> Unit) {
                     contentDescription = null,
                     modifier = Modifier.size(dimens.smallIconSize)
                 )
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
             }
             Text(
                 text = category.name ?: "",
                 color = colors.black,
-                fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                modifier = Modifier.align(Alignment.CenterVertically)
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }

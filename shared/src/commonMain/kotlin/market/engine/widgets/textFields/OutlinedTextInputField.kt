@@ -47,13 +47,16 @@ fun OutlinedTextInputField(
     placeholder: String? = null,
     singleLine: Boolean = true,
     isPassword: Boolean = false,
-    isEmail: Boolean = false
+    isEmail: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
     val counter = remember { mutableStateOf(maxSymbols) }
 
-    Column {
+    Column(
+        modifier = modifier
+    ) {
         if (maxSymbols != null) {
             Text(
                 "${stringResource(strings.charactersLeftLabel)}: ${counter.value}",
