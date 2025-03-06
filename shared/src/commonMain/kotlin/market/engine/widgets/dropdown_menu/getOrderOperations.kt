@@ -448,6 +448,6 @@ fun getOrderOperations(
             showCommentDialog.value = false
             onClose()
         },
-        baseViewModel = baseViewModel
+        baseViewModel = baseViewModel,
     )
 }

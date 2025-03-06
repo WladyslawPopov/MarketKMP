@@ -46,8 +46,6 @@ fun OrderMessageDialog(
 
     val messageText = remember { mutableStateOf(TextFieldValue()) }
 
-    val charsLeft = 2000 - messageText.value.text.length
-
 
     val userName = remember(order.id) {
         if (type != DealTypeGroup.BUY) {
@@ -126,12 +124,10 @@ fun OrderMessageDialog(
                     OutlinedTextInputField(
                         value = messageText.value,
                         onValueChange = {
-                            if (it.text.length <= 2000) {
-                                messageText.value = it
-                            }
+                            messageText.value = it
                         },
                         label = stringResource(strings.messageLabel),
-                        maxSymbols = charsLeft,
+                        maxSymbols = 2000,
                         singleLine = false
                     )
                 }

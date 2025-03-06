@@ -7,6 +7,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,7 +38,7 @@ fun OutlinedTextInputField(
     onValueChange: (TextFieldValue) -> Unit,
     label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
-    focusRequester: FocusRequester = remember { FocusRequester() },
+    focusRequester: FocusRequester? = null,
     isMandatory: Boolean = false,
     maxSymbols: Int? = null,
     maxNumber: Int? = null,
@@ -54,11 +55,11 @@ fun OutlinedTextInputField(
 
     Column {
         if (maxSymbols != null) {
-
             Text(
                 "${stringResource(strings.charactersLeftLabel)}: ${counter.value}",
-                style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.align(Alignment.End)
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.End),
+                color = colors.grayText
             )
         }
 
@@ -128,9 +129,18 @@ fun OutlinedTextInputField(
                     color = colors.notifyTextColor
                 )
             },
-            modifier = Modifier
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = colors.white,
+                focusedContainerColor = colors.white,
+                unfocusedBorderColor = colors.black,
+                focusedBorderColor = colors.textA0AE,
+                unfocusedTextColor = colors.black,
+                focusedTextColor = colors.black
+            ),
+            modifier =if(focusRequester != null) Modifier
                 .widthIn(500.dp)
-                .focusRequester(focusRequester),
+                .focusRequester(focusRequester) else
+                    Modifier.widthIn(500.dp),
             maxLines = 4,
             singleLine = singleLine
         )

@@ -43,9 +43,6 @@ fun OfferMessagingDialog(
 
     val messageText = remember { mutableStateOf(TextFieldValue()) }
 
-    val charsLeft = 2000 - messageText.value.text.length
-
-
     val userName = offer.sellerData?.login ?: stringResource(strings.sellerLabel)
 
     val conversationTitle = stringResource(strings.createConversationLabel)
@@ -117,12 +114,10 @@ fun OfferMessagingDialog(
                     OutlinedTextInputField(
                         value = messageText.value,
                         onValueChange = {
-                            if (it.text.length <= 2000) {
-                                messageText.value = it
-                            }
+                            messageText.value = it
                         },
                         label = stringResource(strings.messageLabel),
-                        maxSymbols = charsLeft,
+                        maxSymbols = 2000,
                         singleLine = false
                     )
                 }

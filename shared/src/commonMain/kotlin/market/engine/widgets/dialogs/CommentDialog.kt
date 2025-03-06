@@ -52,8 +52,6 @@ fun CommentDialog(
     val commentText = remember { mutableStateOf(
         TextFieldValue(commentTextDefault)) }
 
-    val charsLeft = 200 - commentText.value.text.length
-
     val feedbackType = remember { mutableStateOf(1) }
 
     val commentForYouLabel = stringResource(strings.commentForYouLabel)
@@ -64,7 +62,6 @@ fun CommentDialog(
     val feedbacksTypePositiveLabel = stringResource(strings.feedbackTypePositiveLabel)
     val feedbacksTypeNeutralLabel = stringResource(strings.feedbackTypeNeutralLabel)
     val feedbacksTypeNegativeLabel = stringResource(strings.feedbackTypeNegativeLabel)
-
 
     LaunchedEffect(isDialogOpen){
         snapshotFlow{isDialogOpen}.collect{
@@ -81,12 +78,12 @@ fun CommentDialog(
             title = {
                 Text(
                     text = when (orderType) {
-                            0 -> setReportBuyersLabel
-                            1 -> setReportSellersLabel
-                            -1 -> commentForYouLabel
-                            -2 -> setTrackIdLabel
-                            else -> commentForYouLabel
-                        }
+                        0 -> setReportBuyersLabel
+                        1 -> setReportSellersLabel
+                        -1 -> commentForYouLabel
+                        -2 -> setTrackIdLabel
+                        else -> commentForYouLabel
+                    }
                 )
             },
             text = {
@@ -172,13 +169,11 @@ fun CommentDialog(
                         OutlinedTextInputField(
                             value = commentText.value,
                             onValueChange = {
-                                if (charsLeft > 0){
-                                    commentText.value = it
-                                }
+                                commentText.value = it
                             },
-                            label =  if (orderType == -2) stringResource(strings.trackIdLabel)
+                            label = if (orderType == -2) stringResource(strings.trackIdLabel)
                             else stringResource(strings.messageLabel),
-                            maxSymbols = charsLeft,
+                            maxSymbols = 200,
                             singleLine = false
                         )
                     }
@@ -197,7 +192,7 @@ fun CommentDialog(
                     val scope = baseViewModel.viewModelScope
 
                     if (orderType < 0) {
-                        when(orderType) {
+                        when (orderType) {
                             -1 -> {
                                 // set_comment
                                 val body = HashMap<String, String>()
@@ -221,6 +216,7 @@ fun CommentDialog(
                                     }
                                 }
                             }
+
                             -2 -> {
                                 // set_track_id
                                 val body = HashMap<String, String>()
@@ -257,10 +253,12 @@ fun CommentDialog(
                                     // give_feedback_to_buyer
                                     orderOperations.postGiveFeedbackToBuyer(orderID, body)
                                 }
+
                                 1 -> {
                                     // give_feedback_to_seller
                                     orderOperations.postGiveFeedbackToSeller(orderID, body)
                                 }
+
                                 else -> {
                                     // fallback
                                     orderOperations.postGiveFeedbackToBuyer(orderID, body)
@@ -273,7 +271,7 @@ fun CommentDialog(
                                     val eventMap = mapOf(
                                         "order_id" to orderID.toString(),
                                     )
-                                    val eventName = when(orderType) {
+                                    val eventName = when (orderType) {
                                         0 -> "sent_review_to_buyer"
                                         1 -> "sent_review_to_seller"
                                         else -> "sent_review"
