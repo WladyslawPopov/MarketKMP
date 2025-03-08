@@ -34,7 +34,7 @@ fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopC
     LazyVerticalGrid(
         columns = GridCells.Fixed( if (showNavigationRail) 5 else 3),
         modifier = Modifier
-            .heightIn(100.dp, (250*categoryList.size).dp)
+            .heightIn(max = (250*categoryList.size).dp)
             .padding(dimens.smallPadding)
             .wrapContentHeight(),
         userScrollEnabled = false,
@@ -42,7 +42,7 @@ fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopC
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
         items(categoryList) { category ->
-            PopularCategoryItem(modifier = Modifier.padding(dimens.smallPadding), category) { onCategoryClick(category) }
+            PopularCategoryItem(category) { onCategoryClick(category) }
         }
     }
 

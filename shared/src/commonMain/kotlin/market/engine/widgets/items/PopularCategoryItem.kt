@@ -3,10 +3,8 @@ package market.engine.widgets.items
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,22 +18,11 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.TopCategory
-import market.engine.core.data.types.WindowType
-import market.engine.core.utils.getWindowType
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (TopCategory) -> Unit) {
-    val windowClass = getWindowType()
-    val bs = windowClass == WindowType.Big
-
+fun PopularCategoryItem(category: TopCategory, onClick: (TopCategory) -> Unit) {
     Card(
-        modifier = Modifier.sizeIn(
-            minHeight = 100.dp,
-            minWidth = 100.dp,
-            maxHeight = if (!bs) 200.dp else 200.dp,
-            maxWidth = if (!bs) 200.dp else 300.dp
-        ).fillMaxWidth().wrapContentHeight(),
         colors = CardDefaults.cardColors(
             containerColor = colors.transparent,
         ),
@@ -43,7 +30,7 @@ fun PopularCategoryItem(modifier: Modifier, category: TopCategory, onClick: (Top
         onClick = { onClick(category) },
     ) {
         Column(
-            modifier = modifier.align(Alignment.CenterHorizontally),
+            modifier = Modifier.padding(dimens.smallPadding),
             verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
