@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.offer
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -20,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -89,7 +89,6 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.PopupActionButton
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.dialogs.AddBidDialog
 import market.engine.widgets.dialogs.OfferMessagingDialog
@@ -585,9 +584,10 @@ fun OfferContent(
                         // actions and other status
                         item {
                             Box(
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .background(colors.white, MaterialTheme.shapes.medium)
                                     .clip(MaterialTheme.shapes.medium)
-                                    .background(colors.white)
+                                    .fillMaxWidth()
                                     .padding(dimens.smallPadding)
                             ) {
                                 Column {
@@ -625,10 +625,14 @@ fun OfferContent(
                                         ProposalToSeller(
                                             isMyOffer.value,
                                         ){
-                                            if (UserData.login == offer.sellerData?.id) {
-                                                component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
+                                            if (UserData.token.isNotBlank()) {
+                                                if (UserData.login == offer.sellerData?.id) {
+                                                    component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
+                                                } else {
+                                                    component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
+                                                }
                                             }else{
-                                                component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
+                                                component.goToLogin()
                                             }
                                         }
                                     }
@@ -638,13 +642,13 @@ fun OfferContent(
                                             .fillMaxWidth()
                                             .padding(dimens.smallPadding),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
+                                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                     ) {
-                                        SmallImageButton(
-                                            drawables.deliveryIcon
-                                        ) {
-
-                                        }
+                                        Image(
+                                            painterResource(drawables.deliveryIcon),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(dimens.smallIconSize),
+                                        )
 
                                         Text(
                                             text = stringResource(strings.whoPayForDeliveryLabel),
@@ -667,12 +671,13 @@ fun OfferContent(
                                                 .fillMaxWidth()
                                                 .padding(dimens.smallPadding),
                                             verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Start
+                                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                         ) {
                                             Icon(
                                                 painterResource(drawables.antiSniperIcon),
                                                 contentDescription = null,
-                                                tint = colors.negativeRed
+                                                tint = colors.negativeRed,
+                                                modifier = Modifier.size(dimens.smallIconSize),
                                             )
 
                                             Text(
@@ -688,9 +693,10 @@ fun OfferContent(
                         // state params
                         item {
                             Box(
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .background(colors.white, MaterialTheme.shapes.medium)
                                     .clip(MaterialTheme.shapes.medium)
-                                    .background(colors.white)
+                                    .fillMaxWidth()
                                     .padding(dimens.smallPadding)
                             ) {
                                 Column {
@@ -721,8 +727,8 @@ fun OfferContent(
 
                             UserPanel(
                                 modifier = Modifier
+                                    .background(colors.white, MaterialTheme.shapes.medium)
                                     .clip(MaterialTheme.shapes.medium)
-                                    .background(colors.white)
                                     .fillMaxWidth(),
                                 offer.sellerData,
                                 updateTrigger = offerViewModel.updateItemTrigger.value,
@@ -965,9 +971,10 @@ fun DescriptionHtmlOffer(
     SeparatorLabel(stringResource(strings.description))
 
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .background(colors.white, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
-            .background(colors.white)
+            .fillMaxWidth()
             .padding(dimens.smallPadding)
     ) {
         state.setHtml(offer.description ?: "")
@@ -1035,8 +1042,8 @@ fun AuctionPriceLayout(
 
     Column(
         modifier = Modifier
+            .background(colors.white, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
-            .background(colors.white)
             .fillMaxWidth()
             .padding(dimens.mediumPadding),
         verticalArrangement = Arrangement.Center,
@@ -1122,9 +1129,9 @@ fun BuyNowPriceLayout(
     if (offerState == OfferStates.PROTOTYPE || offerState == OfferStates.ACTIVE) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .background(colors.white,MaterialTheme.shapes.medium)
                 .clip(MaterialTheme.shapes.medium)
-                .background(colors.white)
+                .fillMaxWidth()
                 .padding(dimens.mediumPadding),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -1149,12 +1156,10 @@ fun BuyNowPriceLayout(
                 if (offer.discountPercentage > 0 && offer.buyNowPrice != offer.currentPricePerItem) {
                     Row(
                         modifier = Modifier.padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.Start,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         DiscountText(price = offer.buyNowPrice.toString())
-
-                        Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
 
                         // Discount badge
                         val discountText = "-${offer.discountPercentage}%"
@@ -1211,13 +1216,12 @@ fun BuyNowPriceLayout(
                     if (offerState == OfferStates.ACTIVE) {
                         Box(
                             modifier = Modifier
-                                .clip(MaterialTheme.shapes.small)
                                 .clickable {
                                     onAddToCartClick()
                                 }
-                                .background(colors.brightGreen)
+                                .background(colors.brightGreen,MaterialTheme.shapes.small)
+                                .clip(MaterialTheme.shapes.small)
                                 .padding(dimens.smallPadding)
-
                         ) {
                             Icon(
                                 painter = painterResource(drawables.addToCartIcon),
@@ -1240,20 +1244,20 @@ fun MessageToSeller(
 ){
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(dimens.smallPadding)
             .clickable {
                 onClick()
-            },
+            }
+            .fillMaxWidth()
+            .padding(dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        SmallIconButton(
-            drawables.mail,
-            colors.actionTextColor,
-        ) {
-
-        }
+        Icon(
+            painterResource(drawables.mail),
+            contentDescription = null,
+            tint = colors.actionTextColor,
+            modifier = Modifier.size(dimens.smallIconSize),
+        )
 
         Column {
             Text(
@@ -1282,20 +1286,20 @@ fun ProposalToSeller(
 ){
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(dimens.smallPadding)
             .clickable {
                 goToProposalPage()
-            },
+            }
+            .fillMaxWidth()
+            .padding(dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        SmallIconButton(
-            if(!isMyOffer) drawables.makeProposalIcon else drawables.proposalIcon,
-            colors.priceTextColor,
-        ) {
-            goToProposalPage()
-        }
+        Icon(
+            painterResource(if(!isMyOffer) drawables.makeProposalIcon else drawables.proposalIcon),
+            contentDescription = null,
+            tint = colors.priceTextColor,
+            modifier = Modifier.size(dimens.smallIconSize),
+        )
 
         Text(
             text = if(!isMyOffer) stringResource(strings.actionProposalPriceLabel) else stringResource(strings.proposalTitle),
@@ -1370,19 +1374,19 @@ fun BidsWinnerOrLastBid(
     if ( sourceString.text != "") {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimens.smallPadding)
                 .clickable {
                     onClick()
-                },
+                }
+                .fillMaxWidth()
+                .padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
-            SmallImageButton(
-                drawables.iconGroup,
-            ) {
-
-            }
+            Image(
+                painterResource(drawables.iconGroup),
+                contentDescription = null,
+                modifier = Modifier.size(dimens.smallIconSize)
+            )
 
             Text(
                 text = sourceString,
@@ -1401,16 +1405,17 @@ fun LocationOffer(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(dimens.smallPadding)
             .clickable {
                 goToLocation()
-            },
+            }
+            .padding(dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        SmallImageButton(
-            drawables.locationIcon,
-            onClick = goToLocation
+        Image(
+            painterResource(drawables.locationIcon),
+            contentDescription = null,
+            modifier = Modifier.size(dimens.smallIconSize)
         )
 
         Text(
@@ -1508,14 +1513,14 @@ fun TimeOfferSession(
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .padding(dimens.smallPadding),
-            horizontalArrangement = Arrangement.Start,
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SmallImageButton(
-                drawables.iconClock
-            ) {
-
-            }
+            Image(
+                painterResource(drawables.iconClock),
+                contentDescription = null,
+                modifier = Modifier.size(dimens.smallIconSize)
+            )
             // Display the styled AnnotatedString
             Text(
                 text = buildAnnotatedString {

@@ -37,7 +37,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
@@ -53,8 +52,10 @@ fun ProposalContent(
     val modelState = component.model.subscribeAsState()
     val viewModel = modelState.value.proposalViewModel
     val type = modelState.value.proposalType
-    val offerState = viewModel.responseGetOffer.collectAsState()
-    val proposalState = viewModel.responseGetProposal.collectAsState()
+    val offer = viewModel.responseGetOffer.collectAsState()
+    val proposalState = remember {
+        viewModel.body
+    }
     val isLoading = viewModel.isShowProgress.collectAsState()
     val isError = viewModel.errorMessage.collectAsState()
 
@@ -73,42 +74,38 @@ fun ProposalContent(
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(proposalState.value){
-        if (offerState.value != null) {
-            proposalState.value?.bodyList?.firstOrNull()?.let { prs ->
-                subtitle.value = buildAnnotatedString {
-                    when (type) {
-                        ProposalType.ACT_ON_PROPOSAL -> {
-                            if (offerState.value != null) {
-                                append(offerLeftLabel)
-                                append(" ")
-                                withStyle(
-                                    SpanStyle(
-                                        color = colors.titleTextColor,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                ) {
-                                    append(offerState.value?.currentQuantity.toString())
-                                }
-                                append(" ")
-                                append(countsSign)
-                            }
+        proposalState.value?.bodyList?.firstOrNull()?.let { prs ->
+            subtitle.value = buildAnnotatedString {
+                when (type) {
+                    ProposalType.ACT_ON_PROPOSAL -> {
+                        append(offerLeftLabel)
+                        append(" ")
+                        withStyle(
+                            SpanStyle(
+                                color = colors.titleTextColor,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        ) {
+                            append(offer.value.currentQuantity.toString())
                         }
+                        append(" ")
+                        append(countsSign)
+                    }
 
-                        ProposalType.MAKE_PROPOSAL -> {
-                            val countP =
-                                countProposalMax - (prs.proposals?.filter { !it.isResponserProposal }?.size
-                                    ?: 0)
-                            append(makeSubLabel)
+                    ProposalType.MAKE_PROPOSAL -> {
+                        val countP =
+                            countProposalMax - (prs.proposals?.filter { !it.isResponserProposal }?.size
+                                ?: 0)
+                        append(makeSubLabel)
 
-                            withStyle(
-                                SpanStyle(
-                                    color = colors.priceTextColor,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            ) {
-                                append(" ")
-                                append(countP.toString())
-                            }
+                        withStyle(
+                            SpanStyle(
+                                color = colors.priceTextColor,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        ) {
+                            append(" ")
+                            append(countP.toString())
                         }
                     }
                 }
@@ -124,20 +121,17 @@ fun ProposalContent(
         }
     }
 
-    val refresh = {
-        viewModel.onError(ServerErrorException())
-        viewModel.getProposal(modelState.value.offerId)
-    }
-
-    val noFound = @Composable {
-        if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL){
+    val noFound : (@Composable () -> Unit)? = if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL){
+        {
             showNoItemLayout(
                 icon = drawables.proposalIcon,
                 title = stringResource(strings.notFoundProposalsLabel),
             ){
-                refresh()
+                component.update()
             }
         }
+    }else{
+        null
     }
 
     val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
@@ -145,115 +139,113 @@ fun ProposalContent(
             onError(
                 isError
             ){
-                refresh()
+                component.update()
             }
         }
     }else{
         null
     }
 
-    val offer = offerState.value
-    val bodyList = proposalState.value?.bodyList
-
-    if (offer != null && bodyList != null) {
-        BaseContent(
-            topBar = {
-                ProposalAppBar{
-                    component.goBack()
-                }
-            },
-            onRefresh = {
-                refresh()
-            },
-            error = error,
-            noFound = noFound,
-            isLoading = isLoading.value,
-            toastItem = viewModel.toastItem,
-            modifier = Modifier.fillMaxSize()
+    BaseContent(
+        topBar = {
+            ProposalAppBar{
+                component.goBack()
+            }
+        },
+        onRefresh = {
+            component.update()
+        },
+        error = error,
+        noFound = noFound,
+        isLoading = isLoading.value,
+        toastItem = viewModel.toastItem,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                    })
-                }.fillMaxSize(),
+            val mesHed = MesHeaderItem(
+                title = buildAnnotatedString {
+                    append(offer.value.title)
+                },
+                subtitle = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = colors.grayText,
+                        )
+                    ) {
+                        append(stringResource(strings.priceParameterName))
+                        append(": ")
+                    }
+                    withStyle(
+                        SpanStyle(
+                            color = colors.priceTextColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append(offer.value.currentPricePerItem.toString())
+                        append(" ")
+                        append(stringResource(strings.currencyCode))
+                    }
+                },
+                image = offer.value.getOfferImagePreview(),
+            ) {
+                component.goToOffer(offer.value.id)
+            }
+
+            DialogsHeader(
+                mesHed,
+            )
+
+            LazyColumn(
+                state = state,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val mesHed = MesHeaderItem(
-                    title = buildAnnotatedString {
-                        append(offer.title)
-                    },
-                    subtitle = buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                color = colors.grayText,
-                            )
+                item {
+                    if(subtitle.value.text != "") {
+                        Row(
+                            modifier = Modifier
+                                .padding(dimens.smallPadding)
+                                .align(Alignment.CenterHorizontally)
+                                .background(
+                                    colors.actionTextColor.copy(alpha = 0.25f),
+                                    MaterialTheme.shapes.medium
+                                ).padding(dimens.smallPadding),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            append(stringResource(strings.priceParameterName))
-                            append(": ")
-                        }
-                        withStyle(
-                            SpanStyle(
-                                color = colors.priceTextColor,
-                                fontWeight = FontWeight.Bold
+                            Text(
+                                subtitle.value,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.darkBodyTextColor
                             )
-                        ) {
-                            append(offer.currentPricePerItem.toString())
-                            append(" ")
-                            append(stringResource(strings.currencyCode))
-                        }
-                    },
-                    image = offerState.value?.getOfferImagePreview(),
-                ) {
-                    component.goToOffer(offer.id)
-                }
-
-                DialogsHeader(
-                    mesHed,
-                )
-
-                LazyColumn(
-                    state = state,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item {
-                        if(subtitle.value.text != "") {
-                            Row(
-                                modifier = Modifier
-                                    .padding(dimens.smallPadding)
-                                    .align(Alignment.CenterHorizontally)
-                                    .background(
-                                        colors.actionTextColor.copy(alpha = 0.25f),
-                                        MaterialTheme.shapes.medium
-                                    ).padding(dimens.smallPadding),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    subtitle.value,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = colors.darkBodyTextColor
-                                )
-                            }
                         }
                     }
-
-                    items(bodyList){ body ->
-                        ProposalsItemContent(
-                            offer,
-                            body,
-                            type,
-                            viewModel,
-                            goToUser = {
-                                component.goToUser(it)
-                            }
-                        )
-                    }
-
-                    item {}
                 }
+
+                items(proposalState.value?.bodyList ?: emptyList()){ body ->
+                    ProposalsItemContent(
+                        offer.value,
+                        body,
+                        type,
+                        viewModel,
+                        goToUser = {
+                            component.goToUser(it)
+                        },
+                        refresh = {
+                            component.update()
+                        }
+                    )
+                }
+
+                item {}
             }
         }
     }

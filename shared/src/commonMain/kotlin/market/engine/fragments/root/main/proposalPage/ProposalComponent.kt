@@ -7,6 +7,7 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.ServerErrorException
 
 
 interface ProposalComponent {
@@ -23,10 +24,12 @@ interface ProposalComponent {
     fun goToUser(userId: Long)
 
     fun goBack()
+
+    fun update()
 }
 
 class DefaultProposalComponent(
-    offerId: Long,
+    val offerId: Long,
     proposalType: ProposalType,
     componentContext: ComponentContext,
     val navigateToOffer: (Long) -> Unit,
@@ -58,6 +61,19 @@ class DefaultProposalComponent(
         navigateBack()
     }
 
+    override fun update() {
+        proposalViewModel.onError(ServerErrorException())
+        proposalViewModel.getProposal(
+            offerId,
+            onSuccess = { body ->
+                proposalViewModel.body.value = body
+            },
+            error = {
+                goBack()
+            }
+        )
+    }
+
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     init {
@@ -72,7 +88,7 @@ class DefaultProposalComponent(
                 goBack()
             }
         }
+        update()
 
-        proposalViewModel.getProposal(offerId)
     }
 }

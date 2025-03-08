@@ -7,7 +7,6 @@ import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.ui.graphics.Color
 
 interface Colors {
-    val selected : Color
     val primaryColor : Color
     val titleTextColor: Color
     val priceTextColor: Color

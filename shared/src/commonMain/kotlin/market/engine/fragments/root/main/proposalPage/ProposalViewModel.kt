@@ -27,11 +27,10 @@ import org.jetbrains.compose.resources.getString
 
 class ProposalViewModel: BaseViewModel() {
 
-    private var _responseGetOffer = MutableStateFlow<Offer?>(null)
-    val responseGetOffer : StateFlow<Offer?> = _responseGetOffer.asStateFlow()
+    private var _responseGetOffer = MutableStateFlow(Offer())
+    val responseGetOffer : StateFlow<Offer> = _responseGetOffer.asStateFlow()
 
-    private var _responseGetProposal = MutableStateFlow<BodyListPayload<Proposals>?>(null)
-    val responseGetProposal : StateFlow<BodyListPayload<Proposals>?> = _responseGetProposal.asStateFlow()
+    val body = mutableStateOf<BodyListPayload<Proposals>?>(null)
 
     val firstVisibleItem = MutableStateFlow(0)
 
@@ -39,24 +38,26 @@ class ProposalViewModel: BaseViewModel() {
 
     val rememberChoice = mutableStateOf<MutableMap<Long, Int>>(mutableMapOf())
 
-    fun getProposal(offerId : Long){
+    fun getProposal(offerId : Long, onSuccess: (BodyListPayload<Proposals>) -> Unit, error: () -> Unit){
         viewModelScope.launch {
             setLoading(true)
             try {
                 val response = withContext(Dispatchers.IO) {
-                    _responseGetOffer.value = getOfferById(offerId)
+                    _responseGetOffer.value = getOfferById(offerId) ?: Offer()
                     apiService.getProposal(offerId)
                 }
                 withContext(Dispatchers.Main) {
                     val serializer = BodyListPayload.serializer(Proposals.serializer())
                     val payload: BodyListPayload<Proposals> =
                         deserializePayload(response.payload, serializer)
-                    _responseGetProposal.value = payload
+                    onSuccess(payload)
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
+                error()
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message.toString(), ""))
+                error()
             } finally {
                 setLoading(false)
             }

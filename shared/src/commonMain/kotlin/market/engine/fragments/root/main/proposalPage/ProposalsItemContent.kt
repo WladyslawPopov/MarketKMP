@@ -62,7 +62,8 @@ fun ProposalsItemContent(
     proposals: Proposals,
     type: ProposalType,
     viewModel: ProposalViewModel,
-    goToUser: (Long) -> Unit
+    goToUser: (Long) -> Unit,
+    refresh: () -> Unit
 ) {
     val user = proposals.buyerInfo ?: offer.sellerData
     val countLeft = offer.currentQuantity
@@ -493,7 +494,7 @@ fun ProposalsItemContent(
                     }
 
                     if (showBody.value) {
-                        getBody(offer.id, type, proposals.buyerInfo?.id ?: 1L, viewModel)
+                        getBody(offer.id, type, proposals.buyerInfo?.id ?: 1L, viewModel, refresh)
                     }
 
                     if (showEnd.value) {
@@ -563,7 +564,7 @@ fun ProposalsItemContent(
                         .padding(dimens.mediumPadding)
                         .fillMaxWidth(),
                 ) {
-                    getBody(offer.id, type, proposals.buyerInfo?.id ?: 0L, viewModel)
+                    getBody(offer.id, type, proposals.buyerInfo?.id ?: 0L, viewModel, refresh)
                 }
             }
         }
@@ -576,6 +577,7 @@ fun getBody(
     proposalType: ProposalType,
     buyerId : Long,
     viewModel: ProposalViewModel,
+    refresh : () -> Unit
 ){
     val fieldsState = remember { mutableStateOf(viewModel.rememberFields.value[buyerId]) }
     val fields = fieldsState.value
@@ -762,8 +764,7 @@ fun getBody(
                             fields.clear()
                             viewModel.rememberChoice.value[buyerId] = 0
                             viewModel.rememberFields.value[buyerId] = fields
-                            viewModel.onError(ServerErrorException())
-                            viewModel.getProposal(offerId)
+                            refresh()
                         },
                         onError = { fields ->
                             fieldsState.value = fields

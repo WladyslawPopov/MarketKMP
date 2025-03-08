@@ -146,7 +146,7 @@ fun UserPanel(
                             // Verified user icon
                             if (user.isVerified) {
                                 Image(
-                                    painter = painterResource(drawables.verifySellersIcon),
+                                    painter = painterResource(drawables.verifiedIcon),
                                     contentDescription = null,
                                     modifier = Modifier.size(dimens.mediumIconSize)
                                 )

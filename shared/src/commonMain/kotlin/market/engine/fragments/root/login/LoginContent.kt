@@ -127,7 +127,7 @@ fun LoginContent(
             ) {
                 item {
                     Image(
-                        painter = painterResource(drawables.logo),
+                        painter = painterResource(drawables.logoMain),
                         contentDescription = "",
                         modifier = Modifier
                             .size(height = 100.dp, width = 300.dp)

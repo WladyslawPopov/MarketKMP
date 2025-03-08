@@ -43,7 +43,7 @@ fun ActiveFilterListingItem(
         colors = FilterChipDefaults.filterChipColors(
             containerColor = colors.white,
             labelColor = colors.black,
-            selectedContainerColor = colors.selected,
+            selectedContainerColor = colors.rippleColor,
             selectedLabelColor = colors.black
         )
     )

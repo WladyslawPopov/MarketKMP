@@ -227,7 +227,7 @@ fun globalSettings(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painterResource(drawables.verifySellersIcon),
+                            painterResource(drawables.verifiedIcon),
                             contentDescription = null,
                             modifier = Modifier.size(dimens.mediumIconSize)
                         )

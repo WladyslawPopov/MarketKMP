@@ -19,6 +19,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.ScrollBarsProvider
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.listTopCategory
 import market.engine.core.data.items.TopCategory
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.rows.CategoryList
@@ -36,71 +37,7 @@ fun HomeContent(
     component: HomeComponent,
     modifier: Modifier = Modifier
 ) {
-    val listTopCategory = listOf(
-        TopCategory(
-            id = 48393,
-            parentId = 48341,
-            name = stringResource(strings.categoryCoin),
-            parentName = stringResource(strings.categoryCollection),
-            icon = drawables.coinPng
-        ),
-        TopCategory(
-            id = 48522,
-            parentId = 48341,
-            name = stringResource(strings.categoryBanknotes),
-            parentName = stringResource(strings.categoryCollection),
-            icon = drawables.banknotePng
-        ),
-        TopCategory(
-            id = 48343,
-            parentId = 48341,
-            name = stringResource(strings.categoryMarks),
-            parentName = stringResource(strings.categoryCollection),
-            icon = drawables.markPng
-        ),
-        TopCategory(
-            id = 100247,
-            parentId = 48341,
-            name = stringResource(strings.categoryMedals),
-            parentName = stringResource(strings.categoryCollection),
-            icon = drawables.medalPng
-        ),
-        TopCategory(
-            id = 100236,
-            parentId = 48260,
-            name = stringResource(strings.categoryPorcelain),
-            parentName = stringResource(strings.categoryArt),
-            icon = drawables.porcelainPng
-        ),
-        TopCategory(
-            id = 108682,
-            parentId = 1,
-            name = stringResource(strings.categoryBooks),
-            parentName = stringResource(strings.categoryMain),
-            icon = drawables.booksPng
-        ),
-        TopCategory(
-            id = 64823,
-            parentId = 64821,
-            name = stringResource(strings.categoryPhone),
-            parentName = stringResource(strings.categoryPhone),
-            icon = drawables.phonesPng
-        ),
-        TopCategory(
-            id = 48302,
-            parentId = 11,
-            name = stringResource(strings.categoryNotebooks),
-            parentName = stringResource(strings.categoryElectronic),
-            icon = drawables.notebookPng
-        ),
-        TopCategory(
-            id = 124975,
-            parentId = 11,
-            name = stringResource(strings.categoryAppliances),
-            parentName = stringResource(strings.categoryElectronic),
-            icon = drawables.appliancesPng
-        )
-    )
+
     val listFooterItem = listOf(
         TopCategory(
             id = 1,

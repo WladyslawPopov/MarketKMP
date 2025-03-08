@@ -10,10 +10,12 @@ interface Drawables {
    val menuHamburger : DrawableResource
    val historyIcon : DrawableResource
    val logo : DrawableResource
+   val logoMain : DrawableResource
    val notification : DrawableResource
    val mail : DrawableResource
    val currencyIcon : DrawableResource
    val newLotIcon : DrawableResource
+   val verifiedIcon : DrawableResource
    val favoritesIcon : DrawableResource
    val favoritesIconSelected : DrawableResource
    val profileIcon : DrawableResource
