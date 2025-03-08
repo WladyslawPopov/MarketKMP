@@ -262,7 +262,7 @@ fun ContactUsContent(
 
                                              SmallIconButton(
                                                  drawables.deleteIcon,
-                                                 color = colors.inactiveBottomNavIconColor,
+                                                 color = colors.negativeRed,
                                                  modifierIconSize = Modifier.size(dimens.smallIconSize),
                                              ){
                                                  dataImage.value = ""

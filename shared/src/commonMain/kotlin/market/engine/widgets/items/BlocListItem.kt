@@ -62,7 +62,7 @@ fun BlocListItem(
 
             SmallIconButton(
                 drawables.deleteIcon,
-                color = colors.inactiveBottomNavIconColor,
+                color = colors.negativeRed,
             ){
                 deleteClick()
             }

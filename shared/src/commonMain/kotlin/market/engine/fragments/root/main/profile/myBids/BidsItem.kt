@@ -292,7 +292,7 @@ fun BidsItem(
                 Text(
                     offer.currentPricePerItem + stringResource(strings.currencySign),
                     style = MaterialTheme.typography.titleSmall,
-                    color = colors.titleTextColor
+                    color = colors.priceTextColor
                 )
             }
 

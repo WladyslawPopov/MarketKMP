@@ -68,7 +68,7 @@ fun PhotoCard(
             ) {
                 SmallIconButton(
                     drawables.recycleIcon,
-                    color = colors.titleTextColor,
+                    color = colors.negativeRed,
                     modifierIconSize = Modifier.size(dimens.smallIconSize),
                     modifier = Modifier
                         .size(dimens.smallIconSize)
@@ -86,7 +86,7 @@ fun PhotoCard(
             ) {
                 SmallIconButton(
                     drawables.cancelIcon,
-                    color = colors.titleTextColor,
+                    color = colors.negativeRed,
                     modifierIconSize = Modifier.size(dimens.smallIconSize),
                     modifier = Modifier.size(dimens.smallIconSize)
                 ) {

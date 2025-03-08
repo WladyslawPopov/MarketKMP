@@ -30,7 +30,7 @@ fun dismissBackground() {
         Icon(
             painterResource(drawables.deleteIcon),
             contentDescription = null,
-            tint = colors.inactiveBottomNavIconColor,
+            tint = colors.negativeRed,
             modifier = Modifier.size(dimens.smallIconSize)
         )
 

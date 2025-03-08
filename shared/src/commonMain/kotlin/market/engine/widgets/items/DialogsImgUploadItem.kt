@@ -41,7 +41,7 @@ fun DialogsImgUploadItem(
             ) {
                 SmallIconButton(
                     drawables.cancelIcon,
-                    color = colors.titleTextColor,
+                    color = colors.negativeRed,
                     modifierIconSize = Modifier.size(dimens.smallIconSize),
                     modifier = Modifier.size(dimens.smallIconSize)
                 ) {

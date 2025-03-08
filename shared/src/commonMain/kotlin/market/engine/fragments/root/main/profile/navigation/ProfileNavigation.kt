@@ -149,7 +149,7 @@ fun ProfileNavigation(
         NavigationItem(
             title = stringResource(strings.createNewOfferTitle),
             icon = drawables.newLotIcon,
-            tint = colors.inactiveBottomNavIconColor,
+            tint = colors.actionItemColors,
             hasNews = false,
             badgeCount = null,
             onClick = {

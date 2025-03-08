@@ -393,7 +393,7 @@ fun OfferContent(
                                         text = (offer.currentPricePerItem ?: "") +
                                                 " " + stringResource(strings.currencySign),
                                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                        color = colors.titleTextColor
+                                        color = colors.priceTextColor
                                     )
 
 //                                    if(offerState.value == OfferStates.SNAPSHOT){
@@ -638,7 +638,7 @@ fun OfferContent(
                                             .fillMaxWidth()
                                             .padding(dimens.smallPadding),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Start
+                                        horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
                                     ) {
                                         SmallImageButton(
                                             drawables.deliveryIcon
@@ -649,10 +649,9 @@ fun OfferContent(
                                         Text(
                                             text = stringResource(strings.whoPayForDeliveryLabel),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = colors.grayText
+                                            color = colors.grayText,
+                                            modifier = Modifier.fillMaxWidth(0.5f)
                                         )
-
-                                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                                         Text(
                                             text = offer.whoPaysForDelivery?.name ?: "",
@@ -670,12 +669,11 @@ fun OfferContent(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Start
                                         ) {
-                                            SmallIconButton(
-                                                drawables.antiSniperIcon,
-                                                colors.inactiveBottomNavIconColor,
-                                            ) {
-
-                                            }
+                                            Icon(
+                                                painterResource(drawables.antiSniperIcon),
+                                                contentDescription = null,
+                                                tint = colors.negativeRed
+                                            )
 
                                             Text(
                                                 text = stringResource(strings.antiSniperEnabledLabel),
@@ -1064,7 +1062,7 @@ fun AuctionPriceLayout(
                 Text(
                     text = offer.currentPricePerItem.toString() + " " + stringResource(strings.currencySign),
                     style = MaterialTheme.typography.titleLarge,
-                    color = colors.titleTextColor,
+                    color = colors.priceTextColor,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -1176,7 +1174,7 @@ fun BuyNowPriceLayout(
                         text = (offer.buyNowPrice ?: "") + " "
                                 + stringResource(strings.currencySign),
                         style = MaterialTheme.typography.titleLarge,
-                        color = colors.titleTextColor,
+                        color = colors.priceTextColor,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -1294,7 +1292,7 @@ fun ProposalToSeller(
     ) {
         SmallIconButton(
             if(!isMyOffer) drawables.makeProposalIcon else drawables.proposalIcon,
-            colors.inactiveBottomNavIconColor,
+            colors.priceTextColor,
         ) {
             goToProposalPage()
         }
@@ -1302,7 +1300,7 @@ fun ProposalToSeller(
         Text(
             text = if(!isMyOffer) stringResource(strings.actionProposalPriceLabel) else stringResource(strings.proposalTitle),
             style = MaterialTheme.typography.bodyMedium,
-            color = colors.inactiveBottomNavIconColor
+            color = colors.priceTextColor
         )
     }
 }
@@ -1332,7 +1330,7 @@ fun BidsWinnerOrLastBid(
                 append("${stringResource(strings.winnerParameterName)} ")
             }
 
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.titleTextColor)) {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.priceTextColor)) {
                 append(leadingBidder)
             }
         }
@@ -1358,7 +1356,7 @@ fun BidsWinnerOrLastBid(
                     withStyle(
                         style = SpanStyle(
                             fontWeight = FontWeight.Bold,
-                            color = colors.titleTextColor
+                            color = colors.priceTextColor
                         )
                     ) {
                         append(stringResource(strings.yourBidsFirstLabel))

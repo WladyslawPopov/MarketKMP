@@ -221,7 +221,7 @@ fun MyProposalItem(
                         Text(
                             offer.currentPricePerItem + " " + stringResource(strings.currencySign),
                             style = MaterialTheme.typography.titleMedium,
-                            color = colors.titleTextColor
+                            color = colors.priceTextColor
                         )
                     }
                 }

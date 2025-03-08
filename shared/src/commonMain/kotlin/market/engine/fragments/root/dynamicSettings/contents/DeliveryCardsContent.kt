@@ -246,7 +246,7 @@ fun DeliveryCardsContent(
             AnimatedVisibility(showFields.value) {
                 SimpleTextButton(
                     stringResource(strings.actionCancel),
-                    backgroundColor = colors.notifyTextColor,
+                    backgroundColor = colors.negativeRed,
                     textColor = colors.alwaysWhite
                 ) {
                     showFields.value = false
@@ -257,7 +257,7 @@ fun DeliveryCardsContent(
             AnimatedVisibility(!showFields.value && selectedCards.value != null) {
                 SimpleTextButton(
                     stringResource(strings.actionDelete),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
+                    backgroundColor = colors.negativeRed,
                     textColor = colors.alwaysWhite
                 ) {
                     cards.find { it.id == selectedCards.value }?.let {

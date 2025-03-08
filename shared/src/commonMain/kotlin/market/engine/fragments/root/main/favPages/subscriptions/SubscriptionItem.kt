@@ -286,7 +286,7 @@ fun SubscriptionItem(
                         checkedThumbColor = colors.positiveGreen,
                         checkedTrackColor = colors.transparentGrayColor,
                         uncheckedBorderColor = colors.transparent,
-                        uncheckedThumbColor = colors.notifyTextColor,
+                        uncheckedThumbColor = colors.negativeRed,
                         uncheckedTrackColor = colors.transparentGrayColor,
                     ),
                 )

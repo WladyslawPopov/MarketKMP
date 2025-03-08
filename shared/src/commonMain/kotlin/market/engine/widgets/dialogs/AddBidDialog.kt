@@ -39,7 +39,7 @@ fun AddBidDialog(
 
         withStyle(
             SpanStyle(
-            color = colors.titleTextColor,
+            color = colors.priceTextColor,
             fontWeight = FontWeight.Bold
         )
         ) {

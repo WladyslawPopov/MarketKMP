@@ -86,7 +86,7 @@ fun PromoOfferRowItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
 
             Text(
                 text = offer.currentPricePerItem.toString() + stringResource(strings.currencySign),
-                color = colors.titleTextColor,
+                color = colors.priceTextColor,
                 modifier = Modifier.align(Alignment.End),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold

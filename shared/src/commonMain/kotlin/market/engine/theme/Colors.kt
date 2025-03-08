@@ -10,6 +10,8 @@ interface Colors {
     val selected : Color
     val primaryColor : Color
     val titleTextColor: Color
+    val priceTextColor: Color
+    val actionItemColors: Color
     val inactiveBottomNavIconColor: Color
     val ratingBlue: Color
     val promoHighlight: Color
@@ -34,7 +36,6 @@ interface Colors {
     val rippleColor: Color
     val solidGreen: Color
     val yellowSun: Color
-    val crimsonRed: Color
     val steelBlue: Color
     val transparentGrayColor: Color
     val brightGreen: Color

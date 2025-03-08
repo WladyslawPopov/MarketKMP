@@ -53,7 +53,7 @@ fun DeletePanel(
             ) {
                 SmallIconButton(
                     drawables.deleteIcon,
-                    colors.inactiveBottomNavIconColor,
+                    colors.negativeRed,
                     onClick = onDelete
                 )
                 ActionButton(

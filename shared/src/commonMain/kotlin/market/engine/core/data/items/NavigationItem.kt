@@ -11,7 +11,7 @@ data class NavigationItem(
     var image : DrawableResource? = null,
     val imageString: String? = null,
     val tint : Color = colors.black,
-    val tintSelected : Color = colors.notifyTextColor,
+    val tintSelected : Color = colors.titleTextColor,
     val hasNews : Boolean = false,
     val badgeCount : Int? = null,
     val isVisible: Boolean = true,

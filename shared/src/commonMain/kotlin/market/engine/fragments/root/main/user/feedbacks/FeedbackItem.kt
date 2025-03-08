@@ -197,7 +197,7 @@ fun FeedbackItem(
                         append(snap.title ?: "")
                         withStyle(
                             SpanStyle(
-                                color = colors.titleTextColor,
+                                color = colors.priceTextColor,
                             )
                         ) {
                             append("  ${snap.pricePerItem} ${stringResource(strings.currencySign)}")
@@ -206,7 +206,7 @@ fun FeedbackItem(
                         append("${(snap.title?.take(18) ?: "")}...  ")
                         withStyle(
                             SpanStyle(
-                                color = colors.titleTextColor,
+                                color = colors.priceTextColor,
                             )
                         ) {
                             append(

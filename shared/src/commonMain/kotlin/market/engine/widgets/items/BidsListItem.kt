@@ -87,7 +87,7 @@ fun BidsListItem(
                     isRebidShown = true
                     SimpleTextButton(
                         text = stringResource(strings.rebidLabel),
-                        backgroundColor = colors.notifyTextColor,
+                        backgroundColor = colors.priceTextColor,
                         textColor = colors.alwaysWhite,
                         textStyle = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold

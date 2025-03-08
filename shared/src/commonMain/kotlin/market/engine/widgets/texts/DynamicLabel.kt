@@ -21,7 +21,7 @@ fun DynamicLabel(
     val label = buildAnnotatedString {
         append(text)
         if (isMandatory) {
-            withStyle(SpanStyle(color = colors.notifyTextColor)){
+            withStyle(SpanStyle(color = colors.negativeRed)){
                 append(" *")
             }
         }

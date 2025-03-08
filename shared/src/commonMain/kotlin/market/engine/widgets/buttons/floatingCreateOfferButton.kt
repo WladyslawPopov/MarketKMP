@@ -35,7 +35,7 @@ fun floatingCreateOfferButton(
         ),
     ){
         Icon(
-            tint = colors.inactiveBottomNavIconColor,
+            tint = colors.actionItemColors,
             painter = painterResource(drawables.newLotIcon),
             contentDescription = stringResource(strings.createNewOfferTitle),
             modifier = Modifier.size(dimens.mediumIconSize)

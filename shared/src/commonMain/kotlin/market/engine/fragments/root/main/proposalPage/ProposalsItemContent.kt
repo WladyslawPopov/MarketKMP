@@ -394,7 +394,7 @@ fun ProposalsItemContent(
                         append(" ")
                         withStyle(
                             SpanStyle(
-                                color = colors.titleTextColor,
+                                color = colors.priceTextColor,
                                 fontWeight = FontWeight.Bold
                             )
                         ) {
@@ -786,12 +786,12 @@ fun formatProposalLabel(
     return buildAnnotatedString {
         append(stringResource(prefixRes))
         append(" ")
-        withStyle(style = SpanStyle(color = colors.notifyTextColor)) {
+        withStyle(style = SpanStyle(color = colors.priceTextColor)) {
             append(price)
             append(stringResource(strings.currencySign))
         }
         append(" ${stringResource(strings.forLabel)} ")
-        withStyle(style = SpanStyle(color = colors.notifyTextColor)) {
+        withStyle(style = SpanStyle(color = colors.priceTextColor)) {
             append(quantity)
             append(stringResource(strings.countsSign))
         }

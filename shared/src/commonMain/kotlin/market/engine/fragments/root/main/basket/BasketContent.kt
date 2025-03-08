@@ -103,8 +103,8 @@ fun BasketContent(
         }
     }
 
-    val error = @Composable {
-        if (isError.value.humanMessage.isNotBlank()){
+    val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
+        {
             onError(
                 isError
             ){
@@ -112,6 +112,8 @@ fun BasketContent(
                 viewModel.getUserCart()
             }
         }
+    }else{
+        null
     }
 
     val refresh = {

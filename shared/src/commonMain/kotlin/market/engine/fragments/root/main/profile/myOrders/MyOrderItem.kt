@@ -69,7 +69,7 @@ fun MyOrderItem(
     val showMenu = remember { mutableStateOf(false) }
 
     val idOrderText = buildAnnotatedString {
-            withStyle(SpanStyle(color = colors.titleTextColor)) {
+            withStyle(SpanStyle(color = colors.actionItemColors)) {
                 append(stringResource(strings.orderLabel))
             }
             append(" #${order.id}")
@@ -210,14 +210,14 @@ fun MyOrderItem(
                 val textCommissions = buildAnnotatedString {
                     append(stringResource(strings.feeOrderLabel))
                     append(": ")
-                    withStyle(SpanStyle(color = colors.titleTextColor)) {
+                    withStyle(SpanStyle(color = colors.priceTextColor)) {
                         append(order.successFee.toString())
                         append(" ")
                         append(stringResource(strings.currencyCode))
                     }
                     if (order.refundWasMade == true) {
                         append("\n")
-                        withStyle(SpanStyle(color = colors.titleTextColor)) {
+                        withStyle(SpanStyle(color = colors.priceTextColor)) {
                             append(stringResource(strings.feeWasRefund))
                         }
                     }

@@ -102,7 +102,7 @@ fun ProposalContent(
 
                             withStyle(
                                 SpanStyle(
-                                    color = colors.titleTextColor,
+                                    color = colors.priceTextColor,
                                     fontWeight = FontWeight.Bold,
                                 )
                             ) {
@@ -140,14 +140,16 @@ fun ProposalContent(
         }
     }
 
-    val error = @Composable {
-        if (isError.value.humanMessage.isNotBlank()){
+    val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
+        {
             onError(
                 isError
             ){
                 refresh()
             }
         }
+    }else{
+        null
     }
 
     val offer = offerState.value
@@ -192,7 +194,7 @@ fun ProposalContent(
                         }
                         withStyle(
                             SpanStyle(
-                                color = colors.titleTextColor,
+                                color = colors.priceTextColor,
                                 fontWeight = FontWeight.Bold
                             )
                         ) {

@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
@@ -15,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.ScrollBarsProvider
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -131,6 +131,8 @@ fun HomeContent(
 
     val scrollState = rememberScrollState()
 
+    val defCat = stringResource(strings.categoryMain)
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -198,21 +200,16 @@ fun HomeContent(
             modifier = Modifier.fillMaxSize()
         ) {
             Box(
-                modifier.fillMaxSize()
+                modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
             ) {
-                Column(
-                    modifier = modifier.verticalScroll(scrollState)
-                ) {
-                    SearchBar(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .wrapContentHeight()
-                            .wrapContentWidth(),
-                        onSearchClick = {
-                            component.goToNewSearch()
-                        }
-                    )
+                SearchBar {
+                    component.goToNewSearch()
+                }
 
-                    val defCat = stringResource(strings.categoryMain)
+                Column(
+                    modifier = modifier.verticalScroll(scrollState).padding(top = 60.dp)
+                ) {
                     CategoryList(
                         categories = categories.value
                     ) { category ->

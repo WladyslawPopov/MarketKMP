@@ -108,7 +108,7 @@ fun BasketItemContent(
                 ) {
                     SmallIconButton(
                         drawables.deleteIcon,
-                        color = colors.inactiveBottomNavIconColor,
+                        color = colors.negativeRed,
                         modifierIconSize = Modifier.size(dimens.smallIconSize),
                         modifier = Modifier
                     ) {

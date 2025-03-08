@@ -141,12 +141,14 @@ fun ProfileSettingsContent(
         }
     }
 
-    val error : @Composable () -> Unit = {
-        if (err.value.humanMessage.isNotBlank()){
+    val error : (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()){
+        {
             onError(err){
                 refresh()
             }
         }
+    }else{
+        null
     }
 
     BaseContent(

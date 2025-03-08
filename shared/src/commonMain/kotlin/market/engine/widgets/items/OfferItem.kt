@@ -160,7 +160,7 @@ fun OfferItem(
                     painter = painterResource(drawables.recycleIcon),
                     contentDescription = "",
                     modifier = Modifier.size(dimens.smallIconSize),
-                    tint = colors.inactiveBottomNavIconColor
+                    tint = colors.negativeRed
                 )
 
                 Spacer(modifier = Modifier.width(dimens.smallSpacer))
@@ -457,7 +457,7 @@ fun content(
         Text(
             text = priceText,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = colors.titleTextColor,
+            color = colors.priceTextColor,
         )
     }
 }

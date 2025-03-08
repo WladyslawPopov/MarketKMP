@@ -218,7 +218,7 @@ fun CreateOrderContent(
                     Text(
                         text = totalPriceText,
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = colors.titleTextColor,
+                        color = colors.priceTextColor,
                     )
                 }
             }

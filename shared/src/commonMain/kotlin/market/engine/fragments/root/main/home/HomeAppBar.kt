@@ -39,7 +39,7 @@ fun HomeAppBar(
         NavigationItem(
             title = stringResource(strings.proposalTitle),
             icon = drawables.currencyIcon,
-            tint = colors.notifyTextColor,
+            tint = colors.titleTextColor,
             hasNews = false,
             badgeCount = userInfo?.countUnreadPriceProposals,
             isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,

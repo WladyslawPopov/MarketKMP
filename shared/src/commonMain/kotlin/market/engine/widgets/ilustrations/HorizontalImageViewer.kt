@@ -122,7 +122,7 @@ fun HorizontalImageViewer(
                                 color = if (pagerState.currentPage != page)
                                     colors.textA0AE
                                 else
-                                    colors.inactiveBottomNavIconColor,
+                                    colors.actionItemColors,
                                 shape = CircleShape
                             )
                     )

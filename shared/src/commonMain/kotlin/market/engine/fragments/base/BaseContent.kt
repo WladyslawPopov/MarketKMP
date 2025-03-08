@@ -59,7 +59,7 @@ fun BaseContent(
                         .size(dimens.mediumIconSize),
                     isRefreshing = isLoading,
                     state = pullToRefreshState,
-                    color = colors.notifyTextColor,
+                    color = colors.inactiveBottomNavIconColor,
                     containerColor = colors.white
                 )
 

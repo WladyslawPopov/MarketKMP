@@ -250,7 +250,7 @@ fun DialogsContent(
                                         val s = buildAnnotatedString {
                                             withStyle(
                                                 SpanStyle(
-                                                    color = colors.titleTextColor
+                                                    color = colors.priceTextColor
                                                 )
                                             ) {
                                                 append(offer.currentPricePerItem.toString())
