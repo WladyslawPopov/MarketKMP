@@ -72,8 +72,7 @@ class DefaultBasketComponent(
 
         lifecycle.doOnResume {
             basketViewModel.updateUserInfo()
+            basketViewModel.getUserCart()
         }
-
-        basketViewModel.getUserCart()
     }
 }

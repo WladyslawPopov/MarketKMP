@@ -90,17 +90,15 @@ fun BasketContent(
         }
     }
 
-    val noFound: (@Composable () ->Unit)? =if (isError.value.humanMessage.isNotBlank()){
+    val noFound: (@Composable () ->Unit)? = if (userBasket.value.isEmpty()){
         {
-            if (userBasket.value.isEmpty()) {
-                showNoItemLayout(
-                    image = drawables.cartEmptyIcon,
-                    title = stringResource(strings.cardIsEmptyLabel),
-                    textButton = stringResource(strings.startShoppingLabel),
-                ) {
-                    //go to listing
-                    component.goToListing()
-                }
+            showNoItemLayout(
+                image = drawables.cartEmptyIcon,
+                title = stringResource(strings.cardIsEmptyLabel),
+                textButton = stringResource(strings.startShoppingLabel),
+            ) {
+                //go to listing
+                component.goToListing()
             }
         }
     }else{
