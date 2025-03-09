@@ -3,11 +3,13 @@ package market.engine.fragments.base
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -62,7 +64,6 @@ fun BaseContent(
                     color = colors.inactiveBottomNavIconColor,
                     containerColor = colors.white
                 )
-
             }
         ){
             AnimatedVisibility(
@@ -76,10 +77,26 @@ fun BaseContent(
                 ) {
                     when{
                         noFound != null -> {
-                            noFound()
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                item {
+                                    noFound()
+                                }
+                            }
                         }
                         error != null -> {
-                            error()
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                item {
+                                    error()
+                                }
+                            }
                         }
                         else -> {
                             content()
