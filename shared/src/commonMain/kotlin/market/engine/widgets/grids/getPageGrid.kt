@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
-import app.cash.paging.compose.itemKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -81,13 +80,6 @@ fun <T : Any> BoxScope.PagingList(
         showUpButton = (state.firstVisibleItemIndex >= PAGE_SIZE)
         showDownButton = listingData.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
-    }
-
-    LaunchedEffect(data.itemCount) {
-        println("PagingList: itemCount = ${data.itemCount}")
-        data.itemSnapshotList.items.forEachIndexed { index, item ->
-            println("Item[$index] = $item")
-        }
     }
 
     LazyColumn(
