@@ -8,10 +8,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.Card
@@ -59,10 +57,10 @@ fun ConversationItem(
                 }
             ).fillMaxWidth().padding(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
                 AnimatedVisibility(
@@ -94,36 +92,22 @@ fun ConversationItem(
             }
 
             Column(
-                modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.smallPadding),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
             ) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-
-                    Text(
-                        text = conversation.interlocutor?.login ?: "",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = colors.black,
-                    )
-
-                    Spacer(Modifier.width(dimens.mediumSpacer))
-
-                    Text(
-                        conversation.newMessageTs.toString().convertDateWithMinutes(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.black,
-                    )
-                }
+                Text(
+                    text = conversation.interlocutor?.login ?: "",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.black,
+                )
 
                 Row(
                     Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     Row(
+                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
@@ -137,18 +121,28 @@ fun ConversationItem(
 
                         Text(
                             text = conversation.newMessage ?: "...",
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             color = colors.black,
                             maxLines = 2,
                             minLines = 2,
-                            modifier = Modifier.fillMaxWidth(0.7f)
                         )
                     }
-
 
                     if (conversation.countUnreadMessages > 0) {
                         getBadge(conversation.countUnreadMessages, false)
                     }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        conversation.newMessageTs.toString().convertDateWithMinutes(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.black,
+                    )
                 }
             }
 

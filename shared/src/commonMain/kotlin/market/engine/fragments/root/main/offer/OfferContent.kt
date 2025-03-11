@@ -722,67 +722,69 @@ fun OfferContent(
                         }
                         // seller panel
                         item {
-                            SeparatorLabel(stringResource(strings.sellerLabel))
-                            val errorString = remember { mutableStateOf("") }
+                            if (offer.sellerData != null) {
+                                SeparatorLabel(stringResource(strings.sellerLabel))
+                                val errorString = remember { mutableStateOf("") }
 
-                            UserPanel(
-                                modifier = Modifier
-                                    .background(colors.white, MaterialTheme.shapes.medium)
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .fillMaxWidth(),
-                                offer.sellerData,
-                                updateTrigger = offerViewModel.updateItemTrigger.value,
-                                goToUser = {
-                                    component.goToUser(offer.sellerData?.id ?: 1L, false)
-                                },
-                                goToAllLots = {
-                                    component.goToUsersListing(offer.sellerData)
-                                },
-                                goToAboutMe = {
-                                    component.goToUser(offer.sellerData?.id ?: 1L, true)
-                                },
-                                addToSubscriptions = {
-                                    if(UserData.token != "") {
-                                        offerViewModel.addNewSubscribe(
-                                            LD(),
-                                            SD().copy(
-                                                userLogin = offer.sellerData?.login,
-                                                userID = offer.sellerData?.id ?: 1L,
-                                                userSearch = true
-                                            ),
-                                            onSuccess = {
-                                                offerViewModel.getUserInfo(
-                                                    offer.sellerData?.id ?: 1L
-                                                )
-                                            },
-                                            onError = { es ->
-                                                errorString.value = es
-                                            }
-                                        )
-                                    }else{
-                                        component.goToLogin()
+                                UserPanel(
+                                    modifier = Modifier
+                                        .background(colors.white, MaterialTheme.shapes.medium)
+                                        .clip(MaterialTheme.shapes.medium)
+                                        .fillMaxWidth(),
+                                    offer.sellerData,
+                                    updateTrigger = offerViewModel.updateItemTrigger.value,
+                                    goToUser = {
+                                        component.goToUser(offer.sellerData?.id ?: 1L, false)
+                                    },
+                                    goToAllLots = {
+                                        component.goToUsersListing(offer.sellerData)
+                                    },
+                                    goToAboutMe = {
+                                        component.goToUser(offer.sellerData?.id ?: 1L, true)
+                                    },
+                                    addToSubscriptions = {
+                                        if (UserData.token != "") {
+                                            offerViewModel.addNewSubscribe(
+                                                LD(),
+                                                SD().copy(
+                                                    userLogin = offer.sellerData?.login,
+                                                    userID = offer.sellerData?.id ?: 1L,
+                                                    userSearch = true
+                                                ),
+                                                onSuccess = {
+                                                    offerViewModel.getUserInfo(
+                                                        offer.sellerData?.id ?: 1L
+                                                    )
+                                                },
+                                                onError = { es ->
+                                                    errorString.value = es
+                                                }
+                                            )
+                                        } else {
+                                            component.goToLogin()
+                                        }
+                                    },
+                                    goToSubscriptions = {
+                                        component.goToSubscribes()
+                                    },
+                                    goToSettings = {
+                                        component.goToDynamicSettings(it, null)
+                                    },
+                                    isBlackList = blackList.value
+                                )
+
+                                CreateSubscribeDialog(
+                                    errorString.value != "",
+                                    errorString.value,
+                                    onDismiss = {
+                                        errorString.value = ""
+                                    },
+                                    goToSubscribe = {
+                                        component.goToSubscribes()
+                                        errorString.value = ""
                                     }
-                                },
-                                goToSubscriptions = {
-                                    component.goToSubscribes()
-                                },
-                                goToSettings = {
-                                    component.goToDynamicSettings(it, null)
-                                },
-                                isBlackList = blackList.value
-                            )
-
-                            CreateSubscribeDialog(
-                                errorString.value != "",
-                                errorString.value,
-                                onDismiss = {
-                                    errorString.value = ""
-                                },
-                                goToSubscribe = {
-                                    component.goToSubscribes()
-                                    errorString.value = ""
-                                }
-                            )
+                                )
+                            }
                         }
                         //payment and delivery
                         if (offerState.value != OfferStates.PROTOTYPE) {

@@ -1,5 +1,6 @@
 package market.engine.fragments.base
 
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,14 +44,13 @@ fun <T : Any>ListingBaseContent(
     promoContent : (@Composable (Offer) -> Unit)? = null,
     promoList :  ArrayList<Offer>? = null,
     isReversingPaging : Boolean = false,
+    scrollState:  LazyListState = rememberLazyListState(
+        initialFirstVisibleItemIndex = baseViewModel.scrollItem.value,
+        initialFirstVisibleItemScrollOffset = baseViewModel.offsetScrollItem.value
+    ),
     modifier : Modifier = Modifier
 ){
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
-
-    val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = baseViewModel.scrollItem.value,
-        initialFirstVisibleItemScrollOffset = baseViewModel.offsetScrollItem.value
-    )
 
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(baseViewModel.bottomSheetState.value)
@@ -58,8 +58,8 @@ fun <T : Any>ListingBaseContent(
 
     LaunchedEffect(data.loadState.refresh){
         if((data.loadState.refresh as? LoadStateError)?.error?.message != null){
-                baseViewModel.onError(
-                    ServerErrorException(
+            baseViewModel.onError(
+                ServerErrorException(
                     (data.loadState.refresh as? LoadStateError)?.error?.message ?: "", ""
                 )
             )

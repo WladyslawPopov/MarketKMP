@@ -145,6 +145,18 @@ class DynamicSettingsViewModel : BaseViewModel() {
                 }
             }
 
+            if (body.isEmpty()){
+                setLoading(false)
+                showToast(
+                    errorToastItem.copy(
+                        message = getString(
+                            strings.operationFailed
+                        )
+                    )
+                )
+                return@launch
+            }
+
             val buf = withContext(Dispatchers.IO) {
                 when (settingsType) {
                     "set_login" -> userOperations.postUsersOperationsSetLogin(

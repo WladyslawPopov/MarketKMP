@@ -2,13 +2,13 @@ package market.engine.fragments.root.main.messenger
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -67,22 +67,9 @@ fun DialogsContent(
 
     val isLoading = viewModel.isShowProgress.collectAsState()
 
-    LaunchedEffect(data.loadState.refresh){
-        viewModel.setLoading(data.loadState.refresh is LoadStateLoading)
-    }
-
-    BackHandler(model.backHandler){
-        component.onBackClicked()
-    }
-
     val messageTextState = remember { viewModel.messageTextState }
 
     val focusManager = LocalFocusManager.current
-
-    val refresh = {
-        viewModel.resetScroll()
-        viewModel.onRefresh()
-    }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
     val isImageViewerVisible = remember { mutableStateOf(false) }
@@ -99,6 +86,27 @@ fun DialogsContent(
 
     val copyId = stringResource(strings.idCopied)
     val textCopied = stringResource(strings.textCopied)
+
+    val scrollState = rememberLazyListState(
+        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
+        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
+    )
+
+    LaunchedEffect(data.loadState.refresh){
+        viewModel.setLoading(data.loadState.refresh is LoadStateLoading)
+
+        if (data.loadState.refresh !is LoadStateLoading){
+            scrollState.scrollToItem(0)
+        }
+    }
+
+    BackHandler(model.backHandler){
+        component.onBackClicked()
+    }
+
+    val refresh = {
+        viewModel.onRefresh()
+    }
 
     val noFound = @Composable {
         if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
@@ -131,6 +139,7 @@ fun DialogsContent(
             isImageViewerVisible.value = false
         }
     }
+
     val conversation = viewModel.responseGetConversation.value
     if (conversation != null) {
         BaseContent(
@@ -338,58 +347,53 @@ fun DialogsContent(
                                 }
                             },
                             filtersContent = null,
+                            scrollState = scrollState,
                             item = { messageItem ->
                                 val isDeleteItem = remember { mutableStateOf(false) }
                                 when (messageItem) {
                                     is DialogsData.MessageItem -> {
-                                        Column {
-                                            AnimatedVisibility (
-                                                !isDeleteItem.value,
-                                                enter = fadeIn(),
-                                                exit = fadeOut()
-                                            ) {
-                                                DialogItem(
-                                                    messageItem,
-                                                    openImage = { index ->
-                                                        scope.launch {
-                                                            images.clear()
-                                                            images.addAll(messageItem.images?.map {
-                                                                it.url ?: ""
-                                                            } ?: emptyList())
-                                                            imageSize.value = images.size
-                                                            pagerFullState.scrollToPage(index)
-                                                            isImageViewerVisible.value = true
-                                                        }
-                                                    },
-                                                    onMenuClick = { key ->
-                                                        when (key) {
-                                                            "delete" -> {
-                                                                viewModel.deleteMessage(messageItem.id){
-                                                                    isDeleteItem.value = true
-                                                                }
-                                                            }
-
-                                                            "copy" -> {
-                                                                clipBoardEvent(messageItem.message)
-                                                                viewModel.showToast(
-                                                                    successToastItem.copy(
-                                                                        message = textCopied
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    },
-                                                    goToUser = {
-                                                        component.goToUser(it)
-                                                    },
-                                                    goToOffer = {
-                                                        component.goToOffer(it)
-                                                    },
-                                                    goToListing = {
-                                                        component.goToNewSearch(it)
+                                        if(!isDeleteItem.value){
+                                            DialogItem(
+                                                messageItem,
+                                                openImage = { index ->
+                                                    scope.launch {
+                                                        images.clear()
+                                                        images.addAll(messageItem.images?.map {
+                                                            it.url ?: ""
+                                                        } ?: emptyList())
+                                                        imageSize.value = images.size
+                                                        pagerFullState.scrollToPage(index)
+                                                        isImageViewerVisible.value = true
                                                     }
-                                                )
-                                            }
+                                                },
+                                                onMenuClick = { key ->
+                                                    when (key) {
+                                                        "delete" -> {
+                                                            viewModel.deleteMessage(messageItem.id){
+                                                                isDeleteItem.value = true
+                                                            }
+                                                        }
+
+                                                        "copy" -> {
+                                                            clipBoardEvent(messageItem.message)
+                                                            viewModel.showToast(
+                                                                successToastItem.copy(
+                                                                    message = textCopied
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                                goToUser = {
+                                                    component.goToUser(it)
+                                                },
+                                                goToOffer = {
+                                                    component.goToOffer(it)
+                                                },
+                                                goToListing = {
+                                                    component.goToNewSearch(it)
+                                                }
+                                            )
                                         }
                                     }
 

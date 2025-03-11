@@ -150,6 +150,9 @@ fun DynamicSettingsContent(
                             AcceptedPageButton(
                                 strings.actionChangeLabel
                             ) {
+                                builderDescription?.fields?.find { it.widgetType == "text_area" }?.let {
+                                    it.data = JsonPrimitive(KsoupEntities.decodeHtml(richTextState.toHtml()))
+                                }
                                 viewModel.postSubmit(settingsType, owner) {
                                     component.onBack()
                                 }

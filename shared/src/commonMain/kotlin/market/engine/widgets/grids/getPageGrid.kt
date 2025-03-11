@@ -37,7 +37,10 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
+import market.engine.core.network.networkObjects.Conversations
+import market.engine.core.network.networkObjects.Dialog
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.network.networkObjects.Order
 import market.engine.widgets.bars.PagingCounterBar
 import org.jetbrains.compose.resources.stringResource
 
@@ -78,6 +81,13 @@ fun <T : Any> BoxScope.PagingList(
         showUpButton = (state.firstVisibleItemIndex >= PAGE_SIZE)
         showDownButton = listingData.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
+    }
+
+    LaunchedEffect(data.itemCount) {
+        println("PagingList: itemCount = ${data.itemCount}")
+        data.itemSnapshotList.items.forEachIndexed { index, item ->
+            println("Item[$index] = $item")
+        }
     }
 
     LazyColumn(
@@ -124,7 +134,18 @@ fun <T : Any> BoxScope.PagingList(
             }
         }
 
-        items(data.itemCount, key = data.itemKey()) { index ->
+        items(data.itemCount, key = { index ->
+                when (val item = data.peek(index)) {
+                    is DialogsData.MessageItem -> item.id
+                    is DialogsData.SeparatorItem -> "separator_${item.dateTime}"
+                    is Offer -> item.id
+                    is Order -> item.id
+                    is Conversations -> item.id
+                    is Dialog -> item.id
+                    else -> index
+                }
+            }
+        ) { index ->
             if (promoContent != null && searchData?.userSearch == false && searchData.searchString.isEmpty()) {
                 if (index > 0) {
                     val item = data[index] as? Offer

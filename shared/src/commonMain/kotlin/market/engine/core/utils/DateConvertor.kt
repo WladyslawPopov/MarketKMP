@@ -71,7 +71,7 @@ fun String.convertHoursAndMinutes(): String {
 fun String.convertDateYear(): String{
     try {
         // Validate that the input date string is not empty
-        if (this.isEmpty()) {
+        if (this.isEmpty() || this == "null") {
             return ""
         }
 
