@@ -533,6 +533,24 @@ fun MyOrderItem(
                 )
             }
         }
+        if (order.comment?.isNotBlank() == true) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(strings.dialogComment),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black
+                )
+                Text(
+                    text = order.comment.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.grayText
+                )
+            }
+        }
 
         // letter and delivery btn
         Row(
@@ -613,6 +631,7 @@ fun MyOrderItem(
                 OrderDetailsDialog(
                     isDialogOpen = showDialog.value,
                     order = order,
+                    updateTrigger = trigger,
                     onDismiss = {
                         showDialog.value = false
                     }

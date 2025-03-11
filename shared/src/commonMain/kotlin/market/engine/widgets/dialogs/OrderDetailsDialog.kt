@@ -26,11 +26,13 @@ import org.jetbrains.compose.resources.stringResource
 fun OrderDetailsDialog(
     isDialogOpen: Boolean,
     order: Order,
+    updateTrigger: Int,
     onDismiss: () -> Unit,
 ) {
+    if (updateTrigger < 0) return
+
     val address = remember { order.deliveryAddress?.address.orEmpty() }
     val city = remember { order.deliveryAddress?.city?.jsonPrimitive?.content.orEmpty() }
-    val comment = remember { order.comment.orEmpty() }
     val dealType = remember { order.dealType?.name.orEmpty() }
     val deliveryMethod = remember { order.deliveryMethod?.name.orEmpty() }
     val name = remember { order.deliveryAddress?.name.orEmpty() }
@@ -61,7 +63,6 @@ fun OrderDetailsDialog(
                         InfoRow(label = stringResource(strings.dialogCity), value = city)
                         InfoRow(label = stringResource(strings.dialogZip), value = index)
                         InfoRow(label = stringResource(strings.dialogAddress), value = address)
-                        InfoRow(label = stringResource(strings.dialogComment), value = comment)
                     }
                 }
             },
