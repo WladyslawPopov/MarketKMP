@@ -45,7 +45,8 @@ fun CancelAllBidsContent(
     )
 
     AcceptedPageButton(
-        strings.actionConfirm
+        strings.actionConfirm,
+        enabled = !viewModel.isShowProgress.value
     ) {
         viewModel.cancelAllBids(offerId, field.data?.jsonPrimitive?.content ?: ""){
             onClose()

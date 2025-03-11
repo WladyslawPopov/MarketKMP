@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.profile.profileSettings
 import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +25,11 @@ class ProfileSettingsViewModel : BaseViewModel() {
     val genderSelects : StateFlow<List<Choices>> = _genderSelects.asStateFlow()
 
     fun refresh(){
-        updateUserInfo()
+        viewModelScope.launch {
+            updateUserInfo()
+            delay(2000)
+            setLoading(false)
+        }
     }
 
     fun getGenderSelects(){

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -140,7 +141,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
 
             val body = HashMap<String, JsonElement>()
             builderDescription.value?.fields?.forEach { field ->
-                if (field.data != null && field.key != "verifiedbycaptcha" && field.key != "captcha_image") {
+                if (field.data != null && field.key != "verifiedbycaptcha" && field.key != "captcha_image" && field.data?.jsonPrimitive?.content?.isNotBlank() == true) {
                     body[field.key ?: ""] = field.data!!
                 }
             }

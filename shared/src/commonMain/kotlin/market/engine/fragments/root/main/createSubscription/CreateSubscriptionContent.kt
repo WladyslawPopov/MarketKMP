@@ -260,7 +260,8 @@ fun CreateSubscriptionContent(
                                 strings.editLabel,
                             Modifier.align(Alignment.BottomCenter)
                                 .wrapContentWidth()
-                                .padding(dimens.mediumPadding)
+                                .padding(dimens.mediumPadding),
+                            enabled = !isLoading.value
                         ) {
                             viewModel.postPage(model.value.editId){
                                 component.onBackClicked()

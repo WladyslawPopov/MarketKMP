@@ -227,7 +227,8 @@ fun DeliveryCardsContent(
                 SimpleTextButton(
                     stringResource(strings.saveDataLabel),
                     backgroundColor = colors.textA0AE,
-                    textColor = colors.alwaysWhite
+                    textColor = colors.alwaysWhite,
+                    enabled = !viewModel.isShowProgress.value
                 ) {
                     viewModel.saveDeliveryCard(
                         fields,

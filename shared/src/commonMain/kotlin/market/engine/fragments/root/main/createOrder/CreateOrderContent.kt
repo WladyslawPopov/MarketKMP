@@ -312,6 +312,7 @@ fun CreateOrderContent(
                     strings.actionComplete,
                     modifier = Modifier.fillMaxWidth(0.6f)
                         .padding(dimens.mediumPadding),
+                    enabled = !isLoading.value
                 ){
                     viewModel.postPage(deliveryFields.value, basketItem)
                 }

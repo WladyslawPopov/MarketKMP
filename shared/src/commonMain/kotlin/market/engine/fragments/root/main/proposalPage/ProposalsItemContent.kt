@@ -748,6 +748,7 @@ fun getBody(
                     stringResource(strings.actionConfirm),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
+                    enabled = !viewModel.isShowProgress.value
                 ) {
                     if (fields.find { it.key == "type" }?.data == null){
                         fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice.value)

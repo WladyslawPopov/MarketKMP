@@ -505,6 +505,7 @@ open class BaseViewModel: ViewModel() {
     }
 
     fun saveDeliveryCard(deliveryFields: List<Fields>, cardId: Long?, onSaved: () -> Unit, onError: (List<Fields>) -> Unit) {
+        setLoading(true)
         viewModelScope.launch {
             val jsonBody = buildJsonObject {
                 deliveryFields.forEach { field ->
@@ -531,6 +532,7 @@ open class BaseViewModel: ViewModel() {
             }
 
             withContext(Dispatchers.Main) {
+                setLoading(false)
                 val payload = res.success
                 val err = res.error
 

@@ -148,7 +148,8 @@ fun DynamicSettingsContent(
                             }
 
                             AcceptedPageButton(
-                                strings.actionChangeLabel
+                                strings.actionChangeLabel,
+                                enabled = !isLoading.value
                             ) {
                                 builderDescription?.fields?.find { it.widgetType == "text_area" }?.let {
                                     it.data = JsonPrimitive(KsoupEntities.decodeHtml(richTextState.toHtml()))
@@ -236,7 +237,8 @@ fun DynamicSettingsContent(
                                 }
 
                                 AcceptedPageButton(
-                                    strings.actionAddEnterLabel
+                                    strings.actionAddEnterLabel,
+                                    enabled = !isLoading.value
                                 ) {
                                     viewModel.postSubmit(settingsType, owner) {
                                         viewModel.init(settingsType, owner)

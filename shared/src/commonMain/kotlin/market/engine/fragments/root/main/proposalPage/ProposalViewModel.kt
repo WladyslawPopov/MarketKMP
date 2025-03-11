@@ -92,6 +92,7 @@ class ProposalViewModel: BaseViewModel() {
     }
 
     fun confirmProposal(offerId : Long, proposalType : ProposalType, fields: ArrayList<Fields>, onSuccess: () -> Unit, onError: (ArrayList<Fields>) -> Unit) {
+        setLoading(true)
         viewModelScope.launch {
             val bodyProposals = HashMap<String,JsonElement>()
 
@@ -175,6 +176,8 @@ class ProposalViewModel: BaseViewModel() {
                 onError(e)
             } catch (e : Exception){
                  onError(ServerErrorException(e.message.toString(), ""))
+            }finally {
+                setLoading(false)
             }
         }
     }

@@ -770,6 +770,7 @@ fun CreateOfferContent(
                                 text = label,
                                 modifier = Modifier.fillMaxWidth()
                                     .padding(dimens.mediumPadding),
+                                enabled = !isLoading.value
                             ) {
                                 val dataFields =
                                     dynamicPayloadState.value?.fields?.filter { it.data != null }
@@ -1075,7 +1076,7 @@ fun SuccessContent(
                 strings.createSimilarOfferLabel,
                 Modifier.weight(1f)
                     .padding(dimens.smallPadding),
-                containerColor = colors.brightGreen
+                containerColor = colors.brightGreen,
             ) {
                 addSimilarOffer()
             }
@@ -1083,7 +1084,7 @@ fun SuccessContent(
             AcceptedPageButton(
                 strings.createNewOfferTitle,
                 Modifier.weight(1f)
-                    .padding(dimens.smallPadding)
+                    .padding(dimens.smallPadding),
             ) {
                 createNewOffer()
             }
