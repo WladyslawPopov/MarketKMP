@@ -25,6 +25,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
     val genderSelects : StateFlow<List<Choices>> = _genderSelects.asStateFlow()
 
     fun refresh(){
+        setLoading(true)
         viewModelScope.launch {
             updateUserInfo()
             delay(2000)
