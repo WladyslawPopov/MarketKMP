@@ -62,7 +62,7 @@ fun WatermarkAndBlockRatingContent(
                         }
                     }
                 }else{
-                    if (!isEnabled.value) {
+                    if (isEnabled.value) {
                         viewModel.disabledBlockRating {
                             isEnabled.value = false
                             UserData.userInfo?.blockRatingEnabled = false
