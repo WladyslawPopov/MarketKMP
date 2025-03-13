@@ -26,7 +26,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import coil3.toUri
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import market.engine.common.openUrl
 import market.engine.core.data.globalData.SAPI
@@ -116,7 +115,7 @@ fun DialogItem(
     val modClick = remember {
         if (url.isNotBlank()) {
             Modifier.clickable {
-                when (val deepLink = parseDeepLink(url.toUri())) {
+                when (val deepLink = parseDeepLink(url)) {
                         is DeepLink.GoToOffer -> {
                             goToOffer(deepLink.offerId)
                         }
