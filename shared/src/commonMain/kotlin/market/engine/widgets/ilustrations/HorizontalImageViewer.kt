@@ -4,12 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
@@ -36,47 +36,45 @@ import market.engine.core.utils.printLogD
 fun HorizontalImageViewer(
     images: List<String>,
     pagerState: PagerState,
+    modifier: Modifier = Modifier,
     isUpdate: Boolean = false,
 ) {
-    if (isUpdate)
-        images.size
-
-    Box(
-        modifier = Modifier.background(colors.transparentGrayColor, MaterialTheme.shapes.small)
+    if (isUpdate) images.size
+    Column(
+        modifier = Modifier
+            .background(colors.transparentGrayColor, MaterialTheme.shapes.small)
             .padding(dimens.smallPadding),
-        contentAlignment = Alignment.Center
-    ){
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
         HorizontalPager(
             pageSize = PageSize.Fill,
             state = pagerState,
             snapPosition = SnapPosition.Center,
+            modifier = Modifier.weight(1f)
         ) { index ->
             val imageLoadFailed = remember { mutableStateOf(false) }
             val loading = remember { mutableStateOf(true) }
             val imageUrl = images[index]
 
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(dimens.smallPadding),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageLoadFailed.value || images.isEmpty() ){
+                if (imageLoadFailed.value || images.isEmpty()) {
                     getImage(imageUrl)
-                }else {
+                } else {
                     if (loading.value) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            CircularProgressIndicator(
-                                color = colors.inactiveBottomNavIconColor
-                            )
-                        }
+                        CircularProgressIndicator(
+                            color = colors.inactiveBottomNavIconColor
+                        )
                     }
 
                     AsyncImage(
                         model = imageUrl,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                        modifier = modifier
+                            .fillMaxWidth(),
                         imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
                             .crossfade(true)
                             .components {
@@ -95,38 +93,29 @@ fun HorizontalImageViewer(
             }
         }
 
-        Box(
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(bottom = dimens.smallPadding)
-                .align(Alignment.BottomCenter)
+                .background(
+                    color = colors.white.copy(alpha = 0.4f),
+                    shape = MaterialTheme.shapes.medium
+                )
+                .padding(dimens.smallPadding),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Top
         ) {
-            Row(
-                modifier = Modifier
-                    .background(
-                        color = colors.white.copy(alpha = 0.4f),
-                        shape = MaterialTheme.shapes.medium
-                    )
-                    .align(Alignment.Center)
-                    .padding(dimens.smallPadding),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.Top
-            ) {
-                repeat(pagerState.pageCount) { page ->
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = dimens.extraSmallPadding)
-                            .size(if (pagerState.currentPage != page) 6.dp else 8.dp)
-                            .background(
-                                color = if (pagerState.currentPage != page)
-                                    colors.textA0AE
-                                else
-                                    colors.actionItemColors,
-                                shape = CircleShape
-                            )
-                    )
-                }
+            repeat(pagerState.pageCount) { page ->
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = dimens.extraSmallPadding)
+                        .size(if (pagerState.currentPage != page) 6.dp else 8.dp)
+                        .background(
+                            color = if (pagerState.currentPage != page)
+                                colors.textA0AE
+                            else
+                                colors.actionItemColors,
+                            shape = CircleShape
+                        )
+                )
             }
         }
     }

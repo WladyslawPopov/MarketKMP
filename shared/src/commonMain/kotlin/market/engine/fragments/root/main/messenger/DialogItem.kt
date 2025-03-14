@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -111,7 +109,6 @@ fun DialogItem(
             }
         }
     }
-
     val modClick = remember {
         if (url.isNotBlank()) {
             Modifier.clickable {
@@ -216,29 +213,29 @@ fun DialogItem(
                             modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)
                         )
                     }
-                }
-            }
 
-            DropdownMenu(
-                modifier = modifier.widthIn(max = 350.dp).heightIn(max = 400.dp),
-                expanded = showMenu.value,
-                onDismissRequest = { showMenu.value = false },
-                containerColor = colors.white,
-                offset = DpOffset(40.dp, 0.dp)
-            ) {
-                listDialogOperations.forEach { action ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = action.second,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.black
+                    DropdownMenu(
+                        expanded = showMenu.value,
+                        onDismissRequest = { showMenu.value = false },
+                        containerColor = colors.white,
+                        offset = DpOffset(40.dp, 0.dp)
+                    ) {
+                        listDialogOperations.forEach { action ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = action.second,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colors.black
+                                    )
+                                },
+                                onClick = {
+                                    onMenuClick(action.first)
+                                    showMenu.value = false
+                                }
                             )
-                        },
-                        onClick = {
-                            onMenuClick(action.first)
                         }
-                    )
+                    }
                 }
             }
         }

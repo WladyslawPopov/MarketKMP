@@ -35,7 +35,7 @@ class DefaultFeedbacksComponent(
     private val navigateToUser : (Long) -> Unit
 ) : FeedbacksComponent, ComponentContext by componentContext {
 
-    private  val feedbacksViewModel : FeedbacksViewModel = FeedbacksViewModel()
+    private val feedbacksViewModel : FeedbacksViewModel = FeedbacksViewModel()
 
     private val _model = MutableValue(
         FeedbacksComponent.Model(

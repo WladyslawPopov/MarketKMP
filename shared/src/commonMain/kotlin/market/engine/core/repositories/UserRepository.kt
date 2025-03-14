@@ -2,6 +2,7 @@ package market.engine.core.repositories
 
 import market.engine.core.network.functions.UserOperations
 import market.engine.common.AnalyticsFactory
+import market.engine.common.removeShortcuts
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.UserData
@@ -36,6 +37,7 @@ class UserRepository(
         SAPI.removeHeader("Authorization")
 
         //remove screenshots
+        removeShortcuts()
     }
 
     suspend fun updateUserInfo(){
@@ -45,6 +47,7 @@ class UserRepository(
                 if (newInfo != null){
                     if (newInfo.markedAsDeleted){
                         //delete screenshots
+                        removeShortcuts()
                         delete()
                     }else{
                         val userProfileAttributes = mapOf(

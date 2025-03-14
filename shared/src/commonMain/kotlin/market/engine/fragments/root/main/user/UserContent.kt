@@ -205,7 +205,10 @@ fun UserContent(
             ) { _, page ->
                 FeedbacksContent(
                     component = page,
-                    aboutMe = user.value?.aboutMe
+                    aboutMe = user.value?.aboutMe,
+                    onScrollDirectionChange = { isAtTop ->
+                        isVisibleUserPanel.value = isAtTop
+                    }
                 )
             }
         }

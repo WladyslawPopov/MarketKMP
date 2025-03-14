@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.launch
 import market.engine.common.clipBoardEvent
 import market.engine.core.data.constants.successToastItem
@@ -86,6 +87,7 @@ fun DialogsContent(
 
     val copyId = stringResource(strings.idCopied)
     val textCopied = stringResource(strings.textCopied)
+    val richText = rememberRichTextState()
 
     val scrollState = rememberLazyListState(
         initialFirstVisibleItemIndex = viewModel.scrollItem.value,
@@ -375,7 +377,7 @@ fun DialogsContent(
                                                         }
 
                                                         "copy" -> {
-                                                            clipBoardEvent(messageItem.message)
+                                                            clipBoardEvent(richText.setHtml(messageItem.message).annotatedString.text)
                                                             viewModel.showToast(
                                                                 successToastItem.copy(
                                                                     message = textCopied

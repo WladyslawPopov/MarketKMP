@@ -50,12 +50,18 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FeedbacksContent(
     aboutMe : String? = null,
-    component : FeedbacksComponent
+    component : FeedbacksComponent,
+    onScrollDirectionChange: (isAtTop: Boolean) -> Unit
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.feedbacksViewModel
     val listingData = viewModel.listingData.value.data
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
+
+    val state = rememberLazyListState(
+        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
+        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
+    )
 
     val type = model.type
     val userId = model.userId
@@ -67,11 +73,6 @@ fun FeedbacksContent(
         stringResource(strings.positiveFilterParams),
         stringResource(strings.negativeFilterParams),
         stringResource(strings.neutralFilterParams)
-    )
-
-    val state = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
-        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
     )
 
     var showUpButton by remember { mutableStateOf(false) }
@@ -139,13 +140,18 @@ fun FeedbacksContent(
         }
     }
 
+
     LaunchedEffect(state.firstVisibleItemIndex){
+        val isAtTop = currentIndex < 3
+        onScrollDirectionChange(isAtTop)
         showUpButton = 2 < (state.firstVisibleItemIndex / PAGE_SIZE)
         showDownButton = listingData.value.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.value.prevIndex ?: 0)
     }
 
     LaunchedEffect(Unit){
+        state.scrollToItem( viewModel.scrollItem.value, viewModel.offsetScrollItem.value)
+
         viewModel.currentFilter.value = if (listingData.value.filters.find { it.key == "evaluation" }?.value == "" || listingData.value.filters.find { it.key == "evaluation" }?.value == null) {
             filters[0]
         }else{

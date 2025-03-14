@@ -85,7 +85,7 @@ fun getDropdownMenu(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    if (selectedText != selectedTextDef && onClearItem != null) {
+                    if (selectedText != selectedTextDef && onClearItem != null && selectedText != "") {
                         SmallIconButton(
                             drawables.cancelIcon,
                             colors.black,

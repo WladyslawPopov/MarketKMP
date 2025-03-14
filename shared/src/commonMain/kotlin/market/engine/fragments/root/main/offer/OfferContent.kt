@@ -284,9 +284,9 @@ fun OfferContent(
                         item {
                             Box(
                                 modifier = Modifier
+                                    .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  }
                                     .fillMaxWidth()
-                                    .height(300.dp)
-                                    .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  },
+                                    .height(300.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 HorizontalImageViewer(
