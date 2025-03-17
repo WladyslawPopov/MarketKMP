@@ -40,6 +40,7 @@ import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.Dialog
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
+import market.engine.core.network.networkObjects.Subscription
 import market.engine.widgets.bars.PagingCounterBar
 import org.jetbrains.compose.resources.stringResource
 
@@ -134,6 +135,7 @@ fun <T : Any> BoxScope.PagingList(
                     is Order -> item.id
                     is Conversations -> item.id
                     is Dialog -> item.id
+                    is Subscription -> item.id
                     else -> index
                 }
             }

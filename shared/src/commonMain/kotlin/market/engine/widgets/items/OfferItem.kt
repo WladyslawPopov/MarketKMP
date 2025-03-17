@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -68,17 +69,19 @@ fun OfferItem(
 
     val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    if (offer.promoOptions != null && offer.sellerData?.id != UserData.login) {
-        val isBackLight = offer.promoOptions.find { it.id == "backlignt_in_listing" }
-        if (isBackLight != null) {
-            isPromo = true
-            val eventParameters = mapOf(
-                "catalog_category" to offer.catpath.lastOrNull(),
-                "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
-                "offer_id" to offer.id,
-            )
+    LaunchedEffect(Unit){
+        if (offer.promoOptions != null && offer.sellerData?.id != UserData.login) {
+            val isBackLight = offer.promoOptions.find { it.id == "backlignt_in_listing" }
+            if (isBackLight != null) {
+                isPromo = true
+                val eventParameters = mapOf(
+                    "catalog_category" to offer.catpath.lastOrNull(),
+                    "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
+                    "offer_id" to offer.id,
+                )
 
-            analyticsHelper.reportEvent("show_top_lots", eventParameters)
+                analyticsHelper.reportEvent("show_top_lots", eventParameters)
+            }
         }
     }
 
