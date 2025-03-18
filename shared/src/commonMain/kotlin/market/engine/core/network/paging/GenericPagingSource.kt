@@ -18,9 +18,7 @@ open class GenericPagingSource<T : Any>(
 ) : PagingSource<Int, T>() {
 
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
-        val anchorPosition = state.anchorPosition ?: return null
-        val closestPage = state.closestPageToPosition(anchorPosition)
-        return closestPage?.prevKey?.plus(1) ?: closestPage?.nextKey?.minus(1)
+        return state.anchorPosition
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, T> =
