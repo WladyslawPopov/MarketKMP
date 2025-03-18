@@ -91,6 +91,7 @@ fun <T : Any>ListingBaseContent(
                 if (sheetValue == BottomSheetValue.Collapsed) {
                     if (isRefreshingFromFilters.value) {
                         searchData.isRefreshing = true
+                        scrollState.scrollToItem(0)
                         onRefresh()
                         isRefreshingFromFilters.value = false
                     }
