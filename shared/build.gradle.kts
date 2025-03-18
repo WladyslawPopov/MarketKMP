@@ -34,6 +34,7 @@ kotlin {
     sourceSets {
 
         commonMain.dependencies {
+            implementation(libs.zoomable)
             implementation(compose.ui)
             implementation(compose.runtime)
             implementation(compose.material)

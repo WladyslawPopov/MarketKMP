@@ -27,6 +27,7 @@ sqliteDriver = "2.0.2"
 skiko_version = "0.8.25"
 version = "0.4.1"
 reorderable = "2.4.2"
+zoomableVersion = "2.4.0"
 
 
 [libraries]
@@ -87,6 +88,7 @@ androidx-runtime-desktop = { group = "androidx.compose.runtime", name = "runtime
 
 kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+zoomable = { module = "net.engawapg.lib:zoomable", version.ref = "zoomableVersion" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

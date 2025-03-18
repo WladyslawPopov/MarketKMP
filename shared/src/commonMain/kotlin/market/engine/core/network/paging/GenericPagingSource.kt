@@ -18,7 +18,7 @@ open class GenericPagingSource<T : Any>(
 ) : PagingSource<Int, T>() {
 
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
-        return state.anchorPosition
+        return 0
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, T> =

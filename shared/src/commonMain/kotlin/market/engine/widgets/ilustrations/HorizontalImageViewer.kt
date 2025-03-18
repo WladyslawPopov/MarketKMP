@@ -36,8 +36,8 @@ import market.engine.core.utils.printLogD
 fun HorizontalImageViewer(
     images: List<String>,
     pagerState: PagerState,
-    modifier: Modifier = Modifier,
     isUpdate: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     if (isUpdate) images.size
     Column(
