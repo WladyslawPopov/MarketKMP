@@ -11,6 +11,7 @@ interface ContactUsComponent {
     val model: Value<Model>
 
     data class Model(
+        val selectedType: String?,
         val contactUsViewModel: ContactUsViewModel,
         val backHandler: BackHandler
     )
@@ -19,6 +20,7 @@ interface ContactUsComponent {
 }
 
 class DefaultContactUsComponent(
+    selectedType: String?,
     componentContext: ComponentContext
 ) : ContactUsComponent, ComponentContext by componentContext  {
 
@@ -27,6 +29,7 @@ class DefaultContactUsComponent(
     private val contactUsViewModel = ContactUsViewModel()
     private val _model = MutableValue(
         ContactUsComponent.Model(
+            selectedType = selectedType,
             contactUsViewModel = contactUsViewModel,
             backHandler = backHandler
         )

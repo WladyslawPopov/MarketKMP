@@ -480,4 +480,6 @@ interface Strings {
     val cancelAllBidsHeader : StringResource
     val cancelAllBidsCommentLabel : StringResource
     val selectDialogLabel : StringResource
+    val dataUsagePolicyLabel : StringResource
+    val deleteAccountLabel : StringResource
 }

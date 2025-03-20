@@ -133,8 +133,9 @@ class DefaultRootComponent(
                 )
             )
 
-            RootConfig.ContactUs -> RootComponent.Child.ContactUsChild(
+            is RootConfig.ContactUs -> RootComponent.Child.ContactUsChild(
                 DefaultContactUsComponent(
+                    selectedType = rootConfig.selectedType,
                     componentContext = componentContext,
                 )
             )
@@ -169,8 +170,8 @@ class DefaultRootComponent(
             }
         }
 
-        val goToContactUs : () -> Unit = {
-            navigation.pushNew(RootConfig.ContactUs)
+        val goToContactUs : (selectedType: String?) -> Unit = {
+            navigation.pushNew(RootConfig.ContactUs(selectedType = it))
         }
 
         val goToVerification: (String, Long?, String?) -> Unit = { settingsType, ownerId, code ->

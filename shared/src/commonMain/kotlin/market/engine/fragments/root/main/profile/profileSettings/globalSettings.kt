@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.profileSettings
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Divider
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +33,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToContactUs
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.ilustrations.LoadImage
@@ -157,7 +158,6 @@ fun globalSettings(
                     user?.login ?: "",
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.titleTextColor,
-                    modifier = Modifier.fillMaxWidth(0.6f),
                 )
             }
         ){
@@ -171,7 +171,6 @@ fun globalSettings(
                     user?.email ?: "",
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.titleTextColor,
-                    modifier = Modifier.fillMaxWidth(0.6f),
                 )
             }
         ){
@@ -185,7 +184,6 @@ fun globalSettings(
                     "**************",
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.titleTextColor,
-                    modifier = Modifier.fillMaxWidth(0.6f),
                 )
             }
         ){
@@ -204,7 +202,6 @@ fun globalSettings(
                     onClearItem = {
                         selectedGender.value = choose
                     },
-                    modifier = Modifier.fillMaxWidth(0.5f)
                 )
             }
         ){
@@ -218,7 +215,6 @@ fun globalSettings(
                     user?.phone ?: stringResource(strings.notSetParameterName),
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.titleTextColor,
-                    modifier = Modifier.fillMaxWidth(0.6f)
                 )
                 if (user?.phone != null) {
                     Row(
@@ -247,6 +243,21 @@ fun globalSettings(
         ){
             component.navigateToDynamicSettings("set_about_me")
         }
+
+        settingRow(
+            stringResource(strings.deleteAccountLabel),
+            body = {},
+            action = {
+                SimpleTextButton(
+                    text = stringResource(strings.actionDelete),
+                    backgroundColor = colors.notifyTextColor,
+                    textColor = colors.alwaysWhite,
+                    onClick = {it?.invoke()}
+                )
+            }
+        ){
+            goToContactUs("delete_account")
+        }
     }
 }
 
@@ -254,14 +265,28 @@ fun globalSettings(
 fun settingRow(
     label: String,
     body: @Composable () -> Unit,
+    action: @Composable ((() -> Unit)?) -> Unit = { click->
+        if (click != null) {
+            ActionButton(
+                strings.actionChangeLabel,
+                fontSize = MaterialTheme.typography.bodySmall.fontSize,
+            ) {
+                click()
+            }
+        }
+    },
     onClick: (() -> Unit)? = null
 ){
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .background(colors.white, MaterialTheme.shapes.small)
+            .fillMaxWidth()
+            .padding(dimens.smallPadding),
+        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
+            modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -274,17 +299,6 @@ fun settingRow(
             body()
         }
 
-        if (onClick != null) {
-            ActionButton(
-                strings.actionChangeLabel,
-                fontSize = MaterialTheme.typography.bodySmall.fontSize,
-            ) {
-                onClick()
-            }
-        }
+        action(onClick)
     }
-
-    Divider(
-        color = colors.steelBlue
-    )
 }

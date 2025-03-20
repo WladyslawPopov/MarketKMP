@@ -70,6 +70,8 @@ fun ContactUsContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value.contactUsViewModel
 
+    val selectedType = modelState.value.selectedType
+
     val isLoading = model.isShowProgress.collectAsState()
     val err = model.errorMessage.collectAsState()
 
@@ -173,6 +175,7 @@ fun ContactUsContent(
                                          )
                                      }
                                  }else{
+                                     //selected type
                                      DynamicSelect(
                                          field
                                      )

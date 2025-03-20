@@ -10,6 +10,8 @@ object SAPI {
 
     var secret = ""
 
+    var dataPolicyURL = ""
+
     val headers = mutableMapOf<String, String>()
 
     var workstationData = ""

@@ -71,7 +71,7 @@ sealed class RootConfig {
     data object Registration : RootConfig()
 
     @Serializable
-    data object ContactUs : RootConfig()
+    data class ContactUs(val selectedType: String? = null) : RootConfig()
 
     @Serializable
     data class Verification(val settingsType : String, val ownerId: Long? = null, val code: String? = null) : RootConfig()

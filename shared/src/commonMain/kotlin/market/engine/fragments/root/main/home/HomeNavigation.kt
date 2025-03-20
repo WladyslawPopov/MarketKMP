@@ -155,7 +155,7 @@ fun createHomeChild(
             componentContext,
             homeNavigation,
             goToLogin = { goToLogin(true) },
-            navigateToContactUs = { goToContactUs() },
+            navigateToContactUs = { goToContactUs(null) },
             navigateToAppSettings = { goToDynamicSettings("app_settings", null, null) },
             navigateToConversations = {
                 navigateToConversations()
