@@ -70,7 +70,7 @@ sealed class SearchConfig {
     ) : SearchConfig()
 
     @Serializable
-    data class MessageScreen(val id: Long) : SearchConfig()
+    data class MessageScreen(val id: Long, val ts: String) : SearchConfig()
 
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : SearchConfig()
@@ -196,7 +196,7 @@ fun createSearchChild(
                 navigateToDialog = { dialogId ->
                     if(dialogId != null)
                         searchNavigation.pushNew(
-                            SearchConfig.MessageScreen(dialogId)
+                            SearchConfig.MessageScreen(dialogId, getCurrentDate())
                         )
                     else
                         navigateToConversations()

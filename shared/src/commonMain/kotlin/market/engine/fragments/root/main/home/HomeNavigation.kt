@@ -82,6 +82,7 @@ sealed class HomeConfig {
     data class MessagesScreen(
         val dialogId: Long,
         val text: String? = null,
+        val ts: String
     ) : HomeConfig()
 
     @Serializable
@@ -213,7 +214,7 @@ fun createHomeChild(
             navigateToDialog = { dialogId ->
                 if (dialogId != null)
                    homeNavigation.pushNew(
-                       HomeConfig.MessagesScreen(dialogId)
+                       HomeConfig.MessagesScreen(dialogId,null, getCurrentDate())
                    )
                 else
                     navigateToConversations()

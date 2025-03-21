@@ -9,8 +9,9 @@ import market.engine.core.data.globalData.ThemeResources.colors
 @Composable
 fun ThemeCheckBox(
     isSelected: Boolean,
+    isEnable: Boolean = true,
     onSelectionChange: (Boolean) -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     Checkbox(
         checked = isSelected,
@@ -20,6 +21,7 @@ fun ThemeCheckBox(
             checkedColor = colors.inactiveBottomNavIconColor,
             uncheckedColor = colors.textA0AE,
             checkmarkColor = colors.alwaysWhite
-        )
+        ),
+        enabled = isEnable
     )
 }

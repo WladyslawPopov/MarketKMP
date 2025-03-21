@@ -37,7 +37,7 @@ fun CheckBoxRow(
             onSelectionChange = {
                 onClickListener(choiceCode)
             },
-            Modifier
+            modifier = Modifier
         )
 
         DynamicLabel(

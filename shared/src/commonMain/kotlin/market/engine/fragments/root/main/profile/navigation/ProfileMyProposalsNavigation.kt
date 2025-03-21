@@ -105,7 +105,7 @@ fun itemMyProposals(
         },
         navigateToDialog = { dialogId ->
             if (dialogId != null)
-                profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
+                profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
             else
                 profileNavigation.pushNew(ProfileConfig.ConversationsScreen())
         },

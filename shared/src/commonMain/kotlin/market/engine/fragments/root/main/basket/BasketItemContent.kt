@@ -92,6 +92,7 @@ fun BasketItemContent(
                                 emptyList()
                             }
                         },
+
                         modifier = Modifier
                     )
 

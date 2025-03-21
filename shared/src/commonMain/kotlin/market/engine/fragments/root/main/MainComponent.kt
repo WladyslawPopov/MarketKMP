@@ -313,7 +313,7 @@ class DefaultMainComponent(
                 if(deepLink.dialogId != 1L) {
                     modelNavigation.value.homeNavigation.pushNew(
                         HomeConfig.MessagesScreen(
-                            deepLink.dialogId, deepLink.mes
+                            deepLink.dialogId, deepLink.mes, getCurrentDate()
                         )
                     )
                 }else{

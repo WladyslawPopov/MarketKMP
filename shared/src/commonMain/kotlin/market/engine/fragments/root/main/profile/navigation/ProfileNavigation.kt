@@ -112,7 +112,7 @@ sealed class ProfileConfig {
     ) : ProfileConfig()
 
     @Serializable
-    data class DialogsScreen(val dialogId : Long, val message: String? = null) : ProfileConfig()
+    data class DialogsScreen(val dialogId : Long, val message: String? = null, val ts: String) : ProfileConfig()
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String) : ProfileConfig()
 }
@@ -408,7 +408,7 @@ fun createProfileChild(
                 },
                 navigateToDialog = { dialogId ->
                     if(dialogId != null)
-                        profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId))
+                        profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
                     else
                         profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen())
                 },
@@ -549,7 +549,7 @@ fun createProfileChild(
                 },
                 navigateToMessenger = { id, message ->
                     profileNavigation.pushNew(
-                        ProfileConfig.DialogsScreen(id,message)
+                        ProfileConfig.DialogsScreen(id,message, getCurrentDate())
                     )
                 },
             )

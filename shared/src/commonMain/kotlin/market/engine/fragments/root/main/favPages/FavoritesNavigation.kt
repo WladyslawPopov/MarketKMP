@@ -86,7 +86,7 @@ sealed class FavoritesConfig {
     ) : FavoritesConfig()
 
     @Serializable
-    data class MessengerScreen( val dialogId: Long) : FavoritesConfig()
+    data class MessengerScreen( val dialogId: Long, val ts: String) : FavoritesConfig()
 
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : FavoritesConfig()
@@ -185,7 +185,7 @@ fun createFavoritesChild(
                 },
                 navigateToDialog = { dialogId ->
                     if (dialogId != null)
-                        favoritesNavigation.pushNew(FavoritesConfig.MessengerScreen(dialogId))
+                        favoritesNavigation.pushNew(FavoritesConfig.MessengerScreen(dialogId, getCurrentDate()))
                     else
                         navigateToConversations()
                 },

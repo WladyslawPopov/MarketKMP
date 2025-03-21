@@ -75,7 +75,7 @@ sealed class BasketConfig {
     ) : BasketConfig()
 
     @Serializable
-    data class MessengerScreen(val id: Long) : BasketConfig()
+    data class MessengerScreen(val id: Long, val ts: String) : BasketConfig()
 
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : BasketConfig()
@@ -197,7 +197,7 @@ fun createBasketChild(
                 },
                 navigateToDialog = { dialogId ->
                     if(dialogId != null)
-                        basketNavigation.pushNew(BasketConfig.MessengerScreen(dialogId))
+                        basketNavigation.pushNew(BasketConfig.MessengerScreen(dialogId, getCurrentDate()))
                     else
                         navigateToConversations()
                 },
