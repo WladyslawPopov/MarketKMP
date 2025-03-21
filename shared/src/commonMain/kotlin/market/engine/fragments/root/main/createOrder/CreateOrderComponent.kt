@@ -71,10 +71,12 @@ class DefaultCreateOrderComponent(
     }
 
     override fun goToOffer(id: Long) {
+        navigateBack()
         navigateToOffer(id)
     }
 
     override fun goToSeller(id: Long) {
+        navigateBack()
         navigateToUser(id)
     }
     override fun goToMyOrders() {
