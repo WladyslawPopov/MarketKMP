@@ -76,7 +76,7 @@ fun BasketOfferItem(
         ) {
             ThemeCheckBox(
                 isSelected = isChecked.value,
-                isEnable = offer.state == "active",
+                //isEnable = offer.state == "active",
                 onSelectionChange = { checked ->
                     isChecked.value = checked
                     if (isChecked.value) {
