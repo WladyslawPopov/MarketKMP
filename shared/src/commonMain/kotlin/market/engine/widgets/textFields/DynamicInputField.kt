@@ -80,11 +80,11 @@ fun DynamicInputField(
                     if (maxSymbols != null) {
                         if(maxSymbols >= it.length) {
                             counter.value = maxSymbols - it.length
-                            field.data = JsonPrimitive(it)
+                            field.data = JsonPrimitive(it.trim())
                             textState.value = it
                         }
                     }else{
-                        field.data = JsonPrimitive(it)
+                        field.data = JsonPrimitive(it.trim())
                         textState.value = it
                     }
                 }else{

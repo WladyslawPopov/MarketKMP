@@ -488,7 +488,6 @@ open class BaseViewModel: ViewModel() {
                                 message = getString(strings.operationSuccess)
                             )
                         )
-                        delay(2000)
                         onSuccess()
                     } else {
                         showToast(
@@ -532,7 +531,6 @@ open class BaseViewModel: ViewModel() {
             }
 
             withContext(Dispatchers.Main) {
-                setLoading(false)
                 val payload = res.success
                 val err = res.error
 
@@ -577,6 +575,8 @@ open class BaseViewModel: ViewModel() {
                 } else {
                     err?.let { onError(it) }
                 }
+
+                setLoading(false)
             }
         }
     }

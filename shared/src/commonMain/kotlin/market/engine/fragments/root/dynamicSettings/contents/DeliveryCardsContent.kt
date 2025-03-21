@@ -43,7 +43,7 @@ fun DeliveryCardsContent(
     onError: (List<Fields>) -> Unit,
     refresh: () -> Unit
 ){
-    val showFields = remember { mutableStateOf(false) }
+    val showFields = remember { mutableStateOf(cards.find { it.isDefault }?.address == null) }
     
     val selectedCards = remember { mutableStateOf(cards.find { it.isDefault }?.id) }
 
@@ -61,7 +61,7 @@ fun DeliveryCardsContent(
             fields.forEach { field ->
                 when (field.key) {
                     "zip" -> {
-                        field.data = JsonPrimitive(card.zip)
+                        field.data = JsonPrimitive(card.zip ?: "")
                     }
 
                     "city" -> {
@@ -69,19 +69,19 @@ fun DeliveryCardsContent(
                     }
 
                     "address" -> {
-                        field.data = JsonPrimitive(card.address)
+                        field.data = JsonPrimitive(card.address ?: "")
                     }
 
                     "phone" -> {
-                        field.data = JsonPrimitive(card.phone)
+                        field.data = JsonPrimitive(card.phone ?: "")
                     }
 
                     "surname" -> {
-                        field.data = JsonPrimitive(card.surname)
+                        field.data = JsonPrimitive(card.surname ?: "")
                     }
 
                     "other_country" -> {
-                        field.data = JsonPrimitive(card.country)
+                        field.data = JsonPrimitive(card.country ?: "")
                     }
 
                     "country" -> {
@@ -219,6 +219,7 @@ fun DeliveryCardsContent(
                     backgroundColor = colors.greenWaterBlue,
                     textColor = colors.alwaysWhite
                 ) {
+                    setFields(selectedCards.value)
                     showFields.value = true
                 }
             }
@@ -230,12 +231,14 @@ fun DeliveryCardsContent(
                     textColor = colors.alwaysWhite,
                     enabled = !viewModel.isShowProgress.value
                 ) {
+                    viewModel.setLoading(true)
                     viewModel.saveDeliveryCard(
                         fields,
                         selectedCards.value,
                         onSaved = {
                             showFields.value = false
                             refresh()
+                            selectedCards.value = cards.find { it.isDefault }?.id
                         },
                         onError = {
                             onError(it)
@@ -252,6 +255,7 @@ fun DeliveryCardsContent(
                 ) {
                     showFields.value = false
                     setFields(cards.find { it.isDefault }?.id)
+                    selectedCards.value = cards.find { it.isDefault }?.id
                 }
             }
 
@@ -261,11 +265,12 @@ fun DeliveryCardsContent(
                     backgroundColor = colors.negativeRed,
                     textColor = colors.alwaysWhite
                 ) {
-                    cards.find { it.id == selectedCards.value }?.let {
+                    cards.find { it.id == selectedCards.value }?.let { address ->
                         viewModel.updateDeleteCard(
-                            it
+                            address
                         ){
-                            setFields(null)
+                            showFields.value = false
+                            selectedCards.value = null
                             refresh()
                         }
                     }
