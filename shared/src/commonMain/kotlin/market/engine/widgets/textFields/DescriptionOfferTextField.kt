@@ -73,7 +73,7 @@ fun DescriptionTextField(
 
         RichTextEditor(
             state = richTextState,
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 300.dp, max = 500.dp),

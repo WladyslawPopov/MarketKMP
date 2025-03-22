@@ -1,8 +1,8 @@
 package market.engine.fragments.root.main.profile.myBids
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -44,26 +44,28 @@ fun MyBidsAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ){
-
-                SimpleTextButton(
-                    active,
-                    backgroundColor = if (currentTab == LotsType.MYBIDLOTS_ACTIVE) colors.rippleColor else colors.white,
-                    textStyle = MaterialTheme.typography.bodySmall
-                ){
-                    navigationClick(LotsType.MYBIDLOTS_ACTIVE)
+                item {
+                    SimpleTextButton(
+                        active,
+                        backgroundColor = if (currentTab == LotsType.MYBIDLOTS_ACTIVE) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    ) {
+                        navigationClick(LotsType.MYBIDLOTS_ACTIVE)
+                    }
                 }
-
-                SimpleTextButton(
-                    inactive,
-                    if (currentTab == LotsType.MYBIDLOTS_UNACTIVE) colors.rippleColor else colors.white,
-                    textStyle = MaterialTheme.typography.bodySmall
-                ){
-                    navigationClick(LotsType.MYBIDLOTS_UNACTIVE)
+                item {
+                    SimpleTextButton(
+                        inactive,
+                        if (currentTab == LotsType.MYBIDLOTS_UNACTIVE) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    ) {
+                        navigationClick(LotsType.MYBIDLOTS_UNACTIVE)
+                    }
                 }
             }
         }

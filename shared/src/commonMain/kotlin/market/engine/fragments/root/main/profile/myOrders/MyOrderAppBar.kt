@@ -1,8 +1,8 @@
 package market.engine.fragments.root.main.profile.myOrders
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -59,18 +59,20 @@ fun MyOrderAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ){
                 tabs.forEach { tab ->
-                    SimpleTextButton(
-                        stringResource(tab.second),
-                        backgroundColor = if (currentTab == tab.first) colors.rippleColor else colors.white,
-                        textStyle = MaterialTheme.typography.bodyMedium,
-                    ) {
-                        navigationClick(tab.first)
+                    item {
+                        SimpleTextButton(
+                            stringResource(tab.second),
+                            backgroundColor = if (currentTab == tab.first) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                        ) {
+                            navigationClick(tab.first)
+                        }
                     }
                 }
             }

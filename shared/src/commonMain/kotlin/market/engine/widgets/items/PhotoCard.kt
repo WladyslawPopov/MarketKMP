@@ -22,13 +22,16 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.utils.printLogD
 import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
 import market.engine.widgets.buttons.SmallIconButton
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PhotoCard(
@@ -43,12 +46,23 @@ fun PhotoCard(
 
     val isLoading = remember{ mutableStateOf(item.tempId == null) }
 
+    val errTost = stringResource(strings.operationFailed)
+
     LaunchedEffect(item.tempId){
         if (item.tempId == null){
             viewModel.uploadPhotoTemp(item){
-                item.uri = it.uri
-                item.tempId = it.tempId
-                isLoading.value = false
+                if (it.tempId != null) {
+                    item.uri = it.uri
+                    item.tempId = it.tempId
+                    isLoading.value = false
+                }else{
+                    viewModel.showToast(
+                        errorToastItem.copy(
+                            message = errTost
+                        )
+                    )
+                    deletePhoto(item)
+                }
             }
         }
     }

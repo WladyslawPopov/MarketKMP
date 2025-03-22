@@ -1,8 +1,8 @@
 package market.engine.fragments.root.main.profile.myProposals
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -44,26 +44,28 @@ fun MyProposalsAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ){
-
-                SimpleTextButton(
-                    allP,
-                    backgroundColor = if (currentTab == LotsType.ALL_PROPOSAL) colors.rippleColor else colors.white,
-                    textStyle = MaterialTheme.typography.bodySmall
-                ){
-                    navigationClick(LotsType.ALL_PROPOSAL)
+                item {
+                    SimpleTextButton(
+                        allP,
+                        backgroundColor = if (currentTab == LotsType.ALL_PROPOSAL) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    ) {
+                        navigationClick(LotsType.ALL_PROPOSAL)
+                    }
                 }
-
-                SimpleTextButton(
-                    needP,
-                    if (currentTab == LotsType.NEED_RESPOSE) colors.rippleColor else colors.white,
-                    textStyle = MaterialTheme.typography.bodySmall
-                ){
-                    navigationClick(LotsType.NEED_RESPOSE)
+                item {
+                    SimpleTextButton(
+                        needP,
+                        if (currentTab == LotsType.NEED_RESPOSE) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    ) {
+                        navigationClick(LotsType.NEED_RESPOSE)
+                    }
                 }
             }
         }

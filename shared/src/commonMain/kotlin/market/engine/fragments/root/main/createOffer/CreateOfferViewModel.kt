@@ -179,7 +179,8 @@ class CreateOfferViewModel : BaseViewModel() {
                         }else{
                             val eventParams = mapOf(
                                 "error_type" to payload.globalErrorMessage,
-                                "seller_id" to UserData.userInfo?.id
+                                "seller_id" to UserData.userInfo?.id,
+                                "body" to body.toString()
                             )
                             analyticsHelper.reportEvent("added_offer_fail", eventParams)
                             showToast(

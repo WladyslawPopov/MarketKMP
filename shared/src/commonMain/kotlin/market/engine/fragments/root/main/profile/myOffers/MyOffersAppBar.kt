@@ -1,8 +1,8 @@
 package market.engine.fragments.root.main.profile.myOffers
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -45,34 +45,38 @@ fun MyOffersAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ){
-
-                SimpleTextButton(
-                    active,
-                    backgroundColor = if (currentTab == LotsType.MYLOT_ACTIVE) colors.rippleColor else colors.white,
-                    textStyle = MaterialTheme.typography.bodySmall
-                ){
-                    navigationClick(LotsType.MYLOT_ACTIVE)
+                item {
+                    SimpleTextButton(
+                        active,
+                        backgroundColor = if (currentTab == LotsType.MYLOT_ACTIVE) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    ) {
+                        navigationClick(LotsType.MYLOT_ACTIVE)
+                    }
+                }
+                item {
+                    SimpleTextButton(
+                        inactive,
+                        if (currentTab == LotsType.MYLOT_UNACTIVE) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    ) {
+                        navigationClick(LotsType.MYLOT_UNACTIVE)
+                    }
                 }
 
-                SimpleTextButton(
-                    inactive,
-                    if (currentTab == LotsType.MYLOT_UNACTIVE) colors.rippleColor else colors.white,
-                    textStyle = MaterialTheme.typography.bodySmall
-                ){
-                    navigationClick(LotsType.MYLOT_UNACTIVE)
-                }
-
-                SimpleTextButton(
-                    future,
-                    if (currentTab == LotsType.MYLOT_FUTURE) colors.rippleColor else colors.white,
-                    textStyle = MaterialTheme.typography.bodySmall
-                ){
-                    navigationClick(LotsType.MYLOT_FUTURE)
+                item {
+                    SimpleTextButton(
+                        future,
+                        if (currentTab == LotsType.MYLOT_FUTURE) colors.rippleColor else colors.white,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    ) {
+                        navigationClick(LotsType.MYLOT_FUTURE)
+                    }
                 }
             }
         }

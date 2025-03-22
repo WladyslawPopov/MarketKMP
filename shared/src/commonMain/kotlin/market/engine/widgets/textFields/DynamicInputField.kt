@@ -154,7 +154,7 @@ fun DynamicInputField(
                 disabledPlaceholderColor = colors.transparent
             ),
             visualTransformation = if (field.widgetType == "password") PasswordVisualTransformation() else VisualTransformation.None,
-            textStyle = MaterialTheme.typography.titleSmall,
+            textStyle = MaterialTheme.typography.titleMedium,
             keyboardOptions = KeyboardOptions(
                 keyboardType = checkNumberKeyBoard(field),
                 capitalization = KeyboardCapitalization.Sentences

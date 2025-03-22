@@ -1,8 +1,8 @@
 package market.engine.fragments.root.main.favPages
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -35,23 +35,26 @@ fun FavPagesAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                SimpleTextButton(
-                    fav,
-                    backgroundColor = if (currentTab == FavScreenType.FAVORITES) colors.rippleColor else colors.white,
-                ){
-                    navigationClick(FavScreenType.FAVORITES)
+            ) {
+                item {
+                    SimpleTextButton(
+                        fav,
+                        backgroundColor = if (currentTab == FavScreenType.FAVORITES) colors.rippleColor else colors.white,
+                    ) {
+                        navigationClick(FavScreenType.FAVORITES)
+                    }
                 }
-
-                SimpleTextButton(
-                    sub,
-                    if (currentTab == FavScreenType.SUBSCRIBED) colors.rippleColor else colors.white,
-                ){
-                    navigationClick(FavScreenType.SUBSCRIBED)
+                item {
+                    SimpleTextButton(
+                        sub,
+                        if (currentTab == FavScreenType.SUBSCRIBED) colors.rippleColor else colors.white,
+                    ) {
+                        navigationClick(FavScreenType.SUBSCRIBED)
+                    }
                 }
             }
         }
