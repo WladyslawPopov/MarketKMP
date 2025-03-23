@@ -57,7 +57,7 @@ private fun Uri.parseQueryParameters(): Map<String, String> {
     return this.query
         ?.split("&")
         ?.mapNotNull {
-            val parts = it.split("=")
+            val parts = it.split("=", limit = 2)
             if (parts.size == 2) parts[0] to parts[1] else null
         }
         ?.toMap()
@@ -71,8 +71,8 @@ private fun Uri.pathLongId(): Long? {
 
 fun Uri.getQueryParam(param: String): String? {
     val queryPairs = query?.split("&")?.associate {
-        val (key, value) = it.split("=")
-        key to value
+        val list = it.split("=")
+        list.firstOrNull() to list.lastOrNull()
     }
     return queryPairs?.get(param)
 }
