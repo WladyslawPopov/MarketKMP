@@ -32,6 +32,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import market.engine.common.additionalAuthorizationContent
 import market.engine.common.openUrl
 import market.engine.common.requestIntegrityTokenAuth
@@ -106,7 +108,11 @@ fun LoginContent(
         error = error,
         isLoading = isLoading.value,
         onRefresh = {
-
+            model.viewModelScope.launch {
+                model.setLoading(true)
+                delay(2000)
+                model.setLoading(false)
+            }
         }
     ) {
         Box(
