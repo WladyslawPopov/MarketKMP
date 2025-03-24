@@ -56,7 +56,8 @@ class BasketViewModel: BaseViewModel() {
                                     sellerData = User(id = item.sellerId),
                                     freeLocation = item.freeLocation,
                                     externalUrl = item.offerImage,
-                                    safeDeal = item.isBuyable ?: false
+                                    safeDeal = item.isBuyable ?: false,
+                                    isWatchedByMe = item.isWatchedByMe ?: false,
                                 )
                             }
                             sellerUser to basketItems

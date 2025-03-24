@@ -100,6 +100,7 @@ data class UserBody(
     @SerialName("freelocation") val freeLocation: String? = null,
     @SerialName("offer_image") val offerImage: String? = null,
     @SerialName("is_buyable") val isBuyable: Boolean? = null,
+    @SerialName("is_watched_by_me") val isWatchedByMe: Boolean? = false,
 )
 
 @Serializable

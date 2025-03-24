@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,6 +94,18 @@ fun ContactUsContent(
     }
 
     val dataImage = remember { mutableStateOf("") }
+
+    LaunchedEffect(responseGetFields.value){
+        if (responseGetFields.value?.fields?.isNotEmpty() == true) {
+            responseGetFields.value?.fields?.forEach { field ->
+                if (field.key == "variant") {
+                    if (selectedType == "delete_account") {
+                        field.data = JsonPrimitive(9)
+                    }
+                }
+            }
+        }
+    }
 
     val launcher = rememberFilePickerLauncher(
         type = PickerType.File(

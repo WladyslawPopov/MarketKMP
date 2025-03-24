@@ -33,6 +33,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.getOfferImagePreview
+import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.ilustrations.LoadImage
@@ -46,13 +47,16 @@ fun BasketOfferItem(
     selectedOffers: MutableState<List<SelectedBasketItem>>,
     goToOffer: (Long) -> Unit,
     changeQuantity: (Long, Int) -> Unit,
-    deleteOffer: (Long) -> Unit
+    deleteOffer: (Long) -> Unit,
+    baseViewModel: BaseViewModel
 ) {
     if (offer == null) return
 
     val isChecked = remember { mutableStateOf(selectedOffers.value.find { it.offerId == offer.id } != null) }
 
     val selectedQuantity = remember { mutableStateOf(offer.quantity) }
+
+    val isFavorites = remember { mutableStateOf(offer.isWatchedByMe) }
 
     LaunchedEffect(selectedOffers){
         snapshotFlow {
@@ -76,7 +80,7 @@ fun BasketOfferItem(
         ) {
             ThemeCheckBox(
                 isSelected = isChecked.value,
-                //isEnable = offer.state == "active",
+                isEnable = offer.safeDeal,
                 onSelectionChange = { checked ->
                     isChecked.value = checked
                     if (isChecked.value) {
@@ -133,8 +137,22 @@ fun BasketOfferItem(
                 ) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         TitleText(
-                            text = offer.title ?: ""
+                            text = offer.title ?: "",
+                            modifier = Modifier.weight(1f)
                         )
+
+                        SmallIconButton(
+                            icon = if (isFavorites.value) drawables.favoritesIconSelected
+                            else drawables.favoritesIcon,
+                            color = colors.inactiveBottomNavIconColor,
+                            modifierIconSize = Modifier.size(dimens.smallIconSize),
+                            modifier = Modifier.align(Alignment.Top).weight(0.2f)
+                        ){
+                            baseViewModel.addToFavorites(offer){
+                                offer.isWatchedByMe = it
+                                isFavorites.value = offer.isWatchedByMe
+                            }
+                        }
                     }
 
 

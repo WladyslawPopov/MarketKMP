@@ -23,6 +23,7 @@ fun CheckBoxRow(
 ) {
     val choiceCode = remember { choice.code?.longOrNull ?: 0 }
 
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),

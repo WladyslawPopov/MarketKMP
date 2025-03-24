@@ -33,6 +33,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.User
+import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
@@ -48,6 +49,7 @@ fun BasketItemContent(
     goToCreateOrder: (Pair<Long, List<SelectedBasketItem>>) -> Unit,
     changeQuantity: (Long, Int) -> Unit,
     deleteOffer: (Long) -> Unit,
+    baseViewModel: BaseViewModel,
     clearUserOffers: (List<Long>) -> Unit
 ) {
     val user = item.first
@@ -137,7 +139,8 @@ fun BasketItemContent(
                             selectedOffers = selectedOffers,
                             goToOffer,
                             changeQuantity,
-                            deleteOffer = deleteOffer
+                            deleteOffer = deleteOffer,
+                            baseViewModel
                         )
                     }
                 }

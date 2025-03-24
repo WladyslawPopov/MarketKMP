@@ -182,7 +182,8 @@ fun BasketContent(
                         },
                         goToCreateOrder = {
                             component.goToCreateOrder(it)
-                        }
+                        },
+                        baseViewModel = viewModel
                     )
                 }
             }

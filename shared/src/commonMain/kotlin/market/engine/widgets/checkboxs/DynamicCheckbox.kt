@@ -37,7 +37,7 @@ fun DynamicCheckbox(
 
     Column(modifier = modifier) {
         val choices = Choices(
-            name = field.longDescription ?: field.shortDescription ?: "",
+            name = field.shortDescription ?: field.longDescription ?: "",
             code = JsonPrimitive(0)
         )
 
