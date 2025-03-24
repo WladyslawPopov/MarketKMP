@@ -1,5 +1,6 @@
 package market.engine.fragments.root
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.Surface
@@ -9,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.items.DeepLink
 import market.engine.fragments.root.contactUs.ContactUsContent
 import market.engine.fragments.root.dynamicSettings.DynamicSettingsContent
@@ -25,7 +27,7 @@ fun RootNavigation(
     val childStack by component.childStack.subscribeAsState()
 
     Surface(
-        modifier = modifier.fillMaxSize().imePadding(),
+        modifier = modifier.background(colors.primaryColor).fillMaxSize().imePadding(),
     ) {
         Children(
             stack = childStack,

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
+import kotlinx.coroutines.delay
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -33,7 +34,7 @@ fun SearchTextField(
     search : MutableState<TextFieldValue>,
     onUpdateHistory: (String) -> Unit,
     goToListing: () -> Unit,
-){
+) {
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(openSearch.value) {
@@ -43,6 +44,7 @@ fun SearchTextField(
                     selection = TextRange(search.value.text.length)
                 )
             }
+            delay(300)
             focusRequester.requestFocus()
         }
     }
