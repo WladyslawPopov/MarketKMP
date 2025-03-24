@@ -17,9 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -35,7 +35,6 @@ fun SearchContent(
     openSearch: MutableState<Boolean>,
     openSearchCategory: MutableState<Boolean>,
     searchData: SD,
-    focusRequester : FocusRequester,
     searchViewModel : ListingViewModel,
     catBack : MutableState<Boolean>,
     closeSearch : () -> Unit,
@@ -47,6 +46,7 @@ fun SearchContent(
 
     val history = searchViewModel.responseHistory.collectAsState()
 
+    val searchStringTextField = remember { mutableStateOf(TextFieldValue(searchData.searchString)) }
     val searchString = remember { mutableStateOf(searchData.searchString) }
     val selectedUser = remember { mutableStateOf(searchData.userSearch) }
     val selectedUserLogin = remember { mutableStateOf(searchData.userLogin) }
@@ -87,6 +87,7 @@ fun SearchContent(
                 searchData.userLogin = searchString.value
                 searchData.userSearch = selectedUser.value
                 searchString.value = ""
+                searchStringTextField.value = TextFieldValue()
             }
         }else{
             if (searchData.userLogin != selectedUserLogin.value){
@@ -116,6 +117,7 @@ fun SearchContent(
     LaunchedEffect(openSearch.value){
         if (openSearch.value) {
             searchString.value = searchData.searchString
+            searchStringTextField.value = TextFieldValue(searchData.searchString)
             selectedUser.value = searchData.userSearch
             selectedUserLogin.value = searchData.userLogin
             selectedUserFinished.value = searchData.searchFinished
@@ -123,7 +125,6 @@ fun SearchContent(
             categoryName.value = searchData.searchCategoryName
 
             searchViewModel.getHistory(searchString.value)
-            openSearch.value = false
         }
     }
 
@@ -142,16 +143,17 @@ fun SearchContent(
         toastItem = searchViewModel.toastItem,
         topBar = {
             SearchAppBar(
-                searchString = searchString,
-                focusRequester,
+                searchString = searchStringTextField,
                 onSearchClick = {
                     getSearchFilters()
                     searchViewModel.addHistory(searchString.value)
                     goToListing()
                 },
                 onUpdateHistory = {
-                    searchViewModel.getHistory(searchString.value)
+                    searchString.value = it
+                    searchViewModel.addHistory(it)
                 },
+                openSearch = openSearch,
                 onBeakClick = {
                     if (scaffoldState.bottomSheetState.isExpanded){
                         openSearchCategory.value = false
@@ -239,16 +241,17 @@ fun SearchContent(
                     modifier = Modifier.padding(horizontal = dimens.smallPadding),
                     onItemClick = {
                         searchString.value = it
+                        searchStringTextField.value = TextFieldValue(it)
                     },
                     onClearHistory = {
                         searchViewModel.deleteHistory()
                     },
                     onDeleteItem = {
                         searchViewModel.deleteItemHistory(it)
-                        searchViewModel.getHistory(searchString.value)
                     },
                     goToListing = {
                         searchString.value = it
+                        searchStringTextField.value = TextFieldValue(it)
                         getSearchFilters()
                         goToListing()
                     }

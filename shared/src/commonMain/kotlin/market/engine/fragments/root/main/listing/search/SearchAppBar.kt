@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -24,8 +24,8 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchAppBar(
-    searchString: MutableState<String>,
-    focusRequester: FocusRequester,
+    openSearch: MutableState<Boolean>,
+    searchString: MutableState<TextFieldValue>,
     onSearchClick: () -> Unit,
     onUpdateHistory: (String) -> Unit,
     onBeakClick: () -> Unit
@@ -43,7 +43,7 @@ fun SearchAppBar(
             .fillMaxWidth(),
         title = {
            SearchTextField(
-               searchString,focusRequester,onUpdateHistory,onSearchClick,
+               openSearch,searchString,onUpdateHistory,onSearchClick,
            )
         },
         navigationIcon = {

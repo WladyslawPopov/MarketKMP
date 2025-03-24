@@ -9,13 +9,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -25,16 +29,29 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchTextField(
-    search : MutableState<String>,
-    focusRequester: FocusRequester,
+    openSearch: MutableState<Boolean>,
+    search : MutableState<TextFieldValue>,
     onUpdateHistory: (String) -> Unit,
     goToListing: () -> Unit,
 ){
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(openSearch.value) {
+        if (openSearch.value) {
+            if (search.value.text.isNotEmpty()) {
+                search.value = search.value.copy(
+                    selection = TextRange(search.value.text.length)
+                )
+            }
+            focusRequester.requestFocus()
+        }
+    }
+
     TextField(
         value = search.value,
         onValueChange = {
             search.value = it
-            onUpdateHistory(it)
+            onUpdateHistory(it.text)
         },
         placeholder = {
             Text(
@@ -57,14 +74,14 @@ fun SearchTextField(
             },
         ),
         trailingIcon = {
-            if (search.value.isNotEmpty()) {
+            if (search.value.text.isNotEmpty()) {
                 SmallIconButton(
                     icon = drawables.cancelIcon,
                     contentDescription = stringResource(strings.actionClose),
                     color = colors.steelBlue,
                     modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
                 ) {
-                    search.value = ""
+                    search.value = TextFieldValue()
                     onUpdateHistory("")
                 }
             }

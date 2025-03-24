@@ -61,7 +61,7 @@ class DefaultListingComponent(
         if(isOpenCategory)
             listingViewModel.activeFiltersType.value = "categories"
 
-        listingViewModel.bottomTriggerSearch.value = isOpenSearch
+        listingViewModel.openSearch.value = isOpenSearch
     }
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {

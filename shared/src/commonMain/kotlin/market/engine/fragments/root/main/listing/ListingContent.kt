@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
@@ -78,12 +77,11 @@ fun ListingContent(
 
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
-            initialValue = if (listingViewModel.bottomTriggerSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
+            initialValue = if (listingViewModel.openSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-    val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
     val columns =
@@ -115,11 +113,11 @@ fun ListingContent(
             listingViewModel.activeFiltersType.value == "categories" -> {
                 listingViewModel.catBack.value = true
             }
-            listingViewModel.bottomTriggerSearch.value -> {
+            listingViewModel.openSearch.value -> {
                 if (openSearchCategoryBottomSheet.value){
                     searchCatBack.value = true
                 }else{
-                    listingViewModel.bottomTriggerSearch.value = false
+                    listingViewModel.openSearch.value = false
                 }
             }
 
@@ -157,8 +155,8 @@ fun ListingContent(
         }
     }
 
-    LaunchedEffect(listingViewModel.bottomTriggerSearch.value) {
-        snapshotFlow { listingViewModel.bottomTriggerSearch.value }.collectLatest { isOpen ->
+    LaunchedEffect(listingViewModel.openSearch.value) {
+        snapshotFlow { listingViewModel.openSearch.value }.collectLatest { isOpen ->
             if (isOpen) {
                 val eventParameters = mapOf(
                     "search_string" to searchData.value.searchString,
@@ -171,11 +169,10 @@ fun ListingContent(
                 analyticsHelper.reportEvent("open_search_listing", eventParameters)
 
                 scaffoldStateSearch.bottomSheetState.expand()
-
-                focusRequester.requestFocus()
             } else {
-                focusManager.clearFocus()
+                listingViewModel.openSearch.value = false
                 scaffoldStateSearch.bottomSheetState.collapse()
+                focusManager.clearFocus()
             }
         }
     }
@@ -223,14 +220,13 @@ fun ListingContent(
                 listingViewModel.openSearch,
                 openSearchCategoryBottomSheet,
                 searchData.value,
-                focusRequester,
                 listingViewModel,
                 searchCatBack,
                 closeSearch = {
-                    listingViewModel.bottomTriggerSearch.value = false
+                    listingViewModel.openSearch.value = false
                 },
                 goToListing = {
-                    listingViewModel.bottomTriggerSearch.value = false
+                    listingViewModel.openSearch.value = false
                     listingViewModel.activeFiltersType.value = ""
 
                     if (searchData.value.isRefreshing) {
@@ -249,7 +245,7 @@ fun ListingContent(
                     onBackClick = {
                         if (listingViewModel.activeFiltersType.value.isEmpty()) {
                                 component.goBack()
-                                listingViewModel.bottomTriggerSearch.value = true
+                                listingViewModel.openSearch.value = true
                         }else{
                             listingViewModel.activeFiltersType.value = ""
                         }
@@ -264,7 +260,7 @@ fun ListingContent(
                     },
                     isShowSubscribes = (searchData.value.searchCategoryID != 1L || searchData.value.userSearch || searchData.value.searchString != ""),
                     onSearchClick = {
-                        listingViewModel.bottomTriggerSearch.value = true
+                        listingViewModel.openSearch.value = true
                         listingViewModel.openSearch.value = true
                     },
                     onSubscribesClick = {
@@ -373,7 +369,7 @@ fun ListingContent(
                             listingViewModel.activeFiltersType.value = "sorting"
                         },
                         onSearchClick = {
-                            listingViewModel.bottomTriggerSearch.value = true
+                            listingViewModel.openSearch.value = true
                         },
                         onRefresh = {
                             searchData.value.isRefreshing = true

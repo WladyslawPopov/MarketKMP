@@ -129,14 +129,14 @@ fun <T : Any> BoxScope.PagingList(
 
         items(data.itemCount, key = { index ->
                 when (val item = data.peek(index)) {
-                    is DialogsData.MessageItem -> item.id
-                    is DialogsData.SeparatorItem -> "separator_${item.dateTime}"
-                    is Offer -> item.id
-                    is Order -> item.id
-                    is Conversations -> item.id
-                    is Dialog -> item.id
-                    is Subscription -> item.id
-                    else -> index
+                    is DialogsData.MessageItem -> "msg_${item.id}_$index"
+                    is DialogsData.SeparatorItem -> "separator_${item.dateTime}_$index"
+                    is Offer -> "offer_${item.id}_$index"
+                    is Order -> "order_${item.id}_$index"
+                    is Conversations -> "conv_${item.id}_$index"
+                    is Dialog -> "dialog_${item.id}_$index"
+                    is Subscription -> "sub_${item.id}_$index"
+                    else -> "unknown_$index"
                 }
             }
         ) { index ->
