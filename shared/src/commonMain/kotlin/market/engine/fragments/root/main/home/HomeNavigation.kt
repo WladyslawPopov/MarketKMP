@@ -60,7 +60,7 @@ sealed class HomeConfig {
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : HomeConfig()
 
     @Serializable
-    data class ListingScreen(val isOpenSearch : Boolean, val listingData: LD, val searchData : SD) : HomeConfig()
+    data class ListingScreen(val isOpenSearch : Boolean, val listingData: LD, val searchData : SD, val ts : String?) : HomeConfig()
 
     @Serializable
     data class UserScreen(val userId: Long, val ts: String, val aboutMe : Boolean) : HomeConfig()
@@ -180,7 +180,7 @@ fun createHomeChild(
             },
             onListingSelected = {
                 homeNavigation.pushNew(
-                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
+                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
                 )
             },
             onUserSelected = { ui, about ->
@@ -262,7 +262,7 @@ fun createHomeChild(
             config.aboutMe,
             goToLogin = {
                 homeNavigation.pushNew(
-                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
+                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
                 )
             },
             goBack = {
@@ -359,7 +359,7 @@ fun createHomeChild(
             },
             navigateToListingSelected = {
                 homeNavigation.pushNew(
-                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value)
+                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
                 )
             }
         )
@@ -406,7 +406,8 @@ fun itemHome(
                 HomeConfig.ListingScreen(
                     isNewSearch,
                     ld.data.value,
-                    ld.searchData.value
+                    ld.searchData.value,
+                    getCurrentDate()
                 )
             )
         },

@@ -83,7 +83,7 @@ class DefaultProfileComponent(
         searchData.value.userLogin = UserData.userInfo?.login
         searchData.value.userSearch = true
         navigationProfile.pushNew(
-            ProfileConfig.ListingScreen(ld.data.value, ld.searchData.value)
+            ProfileConfig.ListingScreen(ld.data.value, ld.searchData.value, getCurrentDate())
         )
     }
 

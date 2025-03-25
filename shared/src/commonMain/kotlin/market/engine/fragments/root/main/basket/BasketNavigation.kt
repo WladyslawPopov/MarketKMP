@@ -54,7 +54,7 @@ sealed class BasketConfig {
     data object BasketScreen : BasketConfig()
 
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD) : BasketConfig()
+    data class ListingScreen(val listingData: LD, val searchData : SD, val ts : String?) : BasketConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnap: Boolean = false) : BasketConfig()
@@ -168,7 +168,7 @@ fun createBasketChild(
                 },
                 onListingSelected = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data.value, it.searchData.value)
+                        BasketConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
@@ -245,7 +245,7 @@ fun createBasketChild(
                 config.aboutMe,
                 goToLogin = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data.value, it.searchData.value)
+                        BasketConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                     )
                 },
                 goBack = {
@@ -315,7 +315,7 @@ fun createBasketChild(
                 },
                 navigateToListingSelected = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data.value, it.searchData.value)
+                        BasketConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                     )
                 }
             )
@@ -344,7 +344,7 @@ fun itemBasket(componentContext: ComponentContext, basketNavigation : StackNavig
     return DefaultBasketComponent(
         componentContext = componentContext,
         navigateToListing = {
-            basketNavigation.pushNew(BasketConfig.ListingScreen(LD(), SD()))
+            basketNavigation.pushNew(BasketConfig.ListingScreen(LD(), SD(), getCurrentDate()))
         },
         navigateToUser = {
             basketNavigation.pushNew(BasketConfig.UserScreen(it, getCurrentDate(), false))

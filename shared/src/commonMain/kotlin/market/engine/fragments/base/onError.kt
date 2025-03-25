@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import market.engine.common.AnalyticsFactory
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
@@ -53,6 +54,7 @@ fun onError(
                 goToDynamicSettings(humanMessage, null, null)
             }
             else -> {
+                val richTextState = rememberRichTextState()
                 if (humanMessage != "" && (humanMessage != "null" && humanMessage != "Unknown error" && humanMessage != "")) {
                     if (errorCode.isNotEmpty() && humanMessage.isNotEmpty()) {
                         showDialog.value = true
@@ -60,7 +62,7 @@ fun onError(
 
                     CustomDialog(
                         showDialog = showDialog.value,
-                        title = humanMessage,
+                        title = richTextState.setHtml(humanMessage).annotatedString.text,
                         onDismiss = {
                             error.value.errorCode = ""
                             error.value.humanMessage = ""

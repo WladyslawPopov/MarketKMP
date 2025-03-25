@@ -87,7 +87,7 @@ sealed class ProfileConfig {
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : ProfileConfig()
 
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD) : ProfileConfig()
+    data class ListingScreen(val listingData: LD, val searchData : SD, val ts : String?) : ProfileConfig()
 
     @Serializable
     data class UserScreen(val userId: Long, val ts: String, val aboutMe: Boolean) : ProfileConfig()
@@ -380,7 +380,8 @@ fun createProfileChild(
                     profileNavigation.pushNew(
                         ProfileConfig.ListingScreen(
                             ld.data.value,
-                            ld.searchData.value
+                            ld.searchData.value,
+                            getCurrentDate()
                         )
                     )
                 },
@@ -456,7 +457,7 @@ fun createProfileChild(
                     config.aboutMe,
                     goToLogin = {
                         profileNavigation.pushNew(
-                            ProfileConfig.ListingScreen(it.data.value, it.searchData.value)
+                            ProfileConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                         )
                     },
                     goBack = {
@@ -590,7 +591,7 @@ fun createProfileChild(
                 },
                 navigateToListingSelected = {
                     profileNavigation.pushNew(
-                        ProfileConfig.ListingScreen(it.data.value, it.searchData.value)
+                        ProfileConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                     )
                 }
             )

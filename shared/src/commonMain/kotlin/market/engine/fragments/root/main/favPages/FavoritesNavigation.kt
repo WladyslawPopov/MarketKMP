@@ -62,7 +62,7 @@ sealed class FavoritesConfig {
     data class OfferScreen(val id: Long, val ts: String, val isSnap: Boolean = false) : FavoritesConfig()
 
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD) : FavoritesConfig()
+    data class ListingScreen(val listingData: LD, val searchData : SD, val ts : String?) : FavoritesConfig()
 
     @Serializable
     data class UserScreen(val userId: Long, val ts: String, val aboutMe : Boolean) : FavoritesConfig()
@@ -156,7 +156,7 @@ fun createFavoritesChild(
                 },
                 onListingSelected = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
+                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
@@ -232,7 +232,7 @@ fun createFavoritesChild(
                 config.aboutMe,
                 goToLogin = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
+                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                     )
                 },
                 goBack = {
@@ -339,7 +339,7 @@ fun createFavoritesChild(
             },
             navigateToListingSelected = {
                 favoritesNavigation.pushNew(
-                    FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
+                    FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                 )
             }
         )

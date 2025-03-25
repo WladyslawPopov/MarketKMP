@@ -63,6 +63,7 @@ fun DynamicSettingsContent(
     val errorSettings by viewModel.errorSettings.collectAsState()
     val settingsType = model.settingsType
     val owner = model.owner
+    val code = model.code
 
     val titleText = remember { mutableStateOf("") }
 
@@ -317,18 +318,20 @@ fun DynamicSettingsContent(
                         // set_message_to_buyer, set_outgoing_address
                         else -> {
                             if (errorSettings != null) {
-                                titleText.value = stringResource(strings.setLoginTitle)
-                                Text(
-                                    errorSettings?.first!!,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.black
-                                )
+                                if (settingsType == "set_login") {
+                                    titleText.value = stringResource(strings.setLoginTitle)
+                                    Text(
+                                        errorSettings?.first!!,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = colors.black
+                                    )
 
-                                Text(
-                                    errorSettings?.second!!,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = colors.black
-                                )
+                                    Text(
+                                        errorSettings?.second!!,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = colors.black
+                                    )
+                                }
                             } else {
                                 titleText.value =
                                     builderDescription?.title ?: builderDescription?.description
@@ -362,7 +365,7 @@ fun DynamicSettingsContent(
                                     }
 
                                     builderDescription?.fields?.let {
-                                        SetUpDynamicFields(it)
+                                        SetUpDynamicFields(it, code)
                                     }
 
                                     AcceptedPageButton(

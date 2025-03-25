@@ -151,7 +151,8 @@ class DefaultMainComponent(
             initialConfiguration = SearchConfig.ListingScreen(
                 categoryData.data.value,
                 categoryData.searchData.value,
-                true
+                true,
+                getCurrentDate()
             ),
             serializer = SearchConfig.serializer(),
             handleBackButton = true,
@@ -284,6 +285,7 @@ class DefaultMainComponent(
                         false,
                         categoryData.data.value,
                         categoryData.searchData.value,
+                        getCurrentDate()
                     )
                 )
             }
@@ -349,7 +351,8 @@ class DefaultMainComponent(
                         SearchConfig.ListingScreen(
                             categoryData.data.value,
                             categoryData.searchData.value,
-                            true
+                            true,
+                            getCurrentDate()
                         )
                     )
                 }

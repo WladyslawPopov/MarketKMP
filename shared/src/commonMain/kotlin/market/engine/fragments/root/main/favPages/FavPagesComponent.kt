@@ -95,7 +95,7 @@ class DefaultFavPagesComponent(
                                 },
                                 navigateToListing = {
                                     favoritesNavigation.pushNew(
-                                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value)
+                                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
                                     )
                                 }
                             )

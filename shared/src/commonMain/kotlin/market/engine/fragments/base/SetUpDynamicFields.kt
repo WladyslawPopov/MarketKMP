@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.unit.dp
 import io.ktor.util.decodeBase64Bytes
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.common.decodeToImageBitmap
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -24,6 +25,7 @@ import market.engine.widgets.textFields.DynamicInputField
 @Composable
 fun SetUpDynamicFields(
     fields: List<Fields>,
+    code: String? = null,
     modifier: Modifier = Modifier.fillMaxWidth(0.9f),
 ){
     Column(
@@ -62,6 +64,10 @@ fun SetUpDynamicFields(
                                 .width(250.dp)
                                 .height(100.dp)
                         )
+                    }
+
+                    if (field.key == "resetcode" && code != null){
+                        field.data = JsonPrimitive(code)
                     }
                 }
 

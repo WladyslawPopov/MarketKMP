@@ -7,7 +7,6 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -78,7 +77,7 @@ class DefaultRootComponent(
     override val model = _model
 
     override fun updateURL(url: DeepLink) {
-        navigation.replaceCurrent(RootConfig.Main(url))
+        navigation.replaceAll(RootConfig.Main(url))
     }
 
     init {

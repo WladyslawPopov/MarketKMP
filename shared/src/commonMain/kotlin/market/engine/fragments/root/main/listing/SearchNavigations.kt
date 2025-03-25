@@ -48,7 +48,7 @@ import market.engine.fragments.root.main.user.UserContent
 @Serializable
 sealed class SearchConfig {
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD, val isOpenSearch : Boolean) : SearchConfig()
+    data class ListingScreen(val listingData: LD, val searchData : SD, val isOpenSearch : Boolean, val ts : String?) : SearchConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : SearchConfig()
@@ -166,7 +166,7 @@ fun createSearchChild(
                 },
                 onListingSelected = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false)
+                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
@@ -218,7 +218,7 @@ fun createSearchChild(
                 config.aboutMe,
                 goToLogin = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false)
+                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false, getCurrentDate())
                     )
                 },
                 goBack = {
@@ -314,7 +314,7 @@ fun createSearchChild(
                 },
                 navigateToListingSelected = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false)
+                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false, getCurrentDate())
                     )
                 }
             )

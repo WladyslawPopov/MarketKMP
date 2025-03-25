@@ -573,7 +573,7 @@ fun CreateOfferContent(
 
                                             SetUpDynamicFields(
                                                 paramList,
-                                                Modifier.fillMaxWidth()
+                                                modifier = Modifier.fillMaxWidth()
                                             )
                                         }
                                     }
