@@ -29,33 +29,35 @@ fun DynamicLabel(
 
     val annotatedString = remember {
         buildAnnotatedString {
-            append(htmlText.setHtml(text).annotatedString.text)
+            val mainText = htmlText.setHtml(text).annotatedString.text
+            append(mainText)
+            val urlPattern = Regex("${SAPI.SERVER_BASE}[\\w./?=#-]+")
+            urlPattern.findAll(text).forEach { matchResult ->
+                val start = matchResult.range.first
+                val end = matchResult.range.last + 1
+                if (start >= 0 && end < mainText.length) {
+                    url = matchResult.value
+                    addStringAnnotation(
+                        tag = "URL",
+                        annotation = url,
+                        start = start,
+                        end = end
+                    )
+
+                    addStyle(
+                        style = SpanStyle(
+                            textDecoration = TextDecoration.Underline,
+                            color = colors.brightBlue
+                        ),
+                        start = start,
+                        end = end
+                    )
+                }
+            }
             if (isMandatory) {
                 withStyle(SpanStyle(color = colors.negativeRed)){
                     append(" *")
                 }
-            }
-            val urlPattern = Regex("${SAPI.SERVER_BASE}[\\w./?=#-]+")
-            urlPattern.findAll(text).forEach { matchResult ->
-                url = matchResult.value
-                val start = matchResult.range.first
-                val end = matchResult.range.last + 1
-
-                addStringAnnotation(
-                    tag = "URL",
-                    annotation = url,
-                    start = start,
-                    end = end
-                )
-
-                addStyle(
-                    style = SpanStyle(
-                        textDecoration = TextDecoration.Underline,
-                        color = colors.brightBlue
-                    ),
-                    start = start,
-                    end = end
-                )
             }
         }
     }
