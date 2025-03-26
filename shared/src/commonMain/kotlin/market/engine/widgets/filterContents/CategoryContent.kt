@@ -98,10 +98,9 @@ fun CategoryContent(
         val ld = LD(
             filters = filters
         )
-
         baseViewModel.getCategories(sd, ld, (isFilters || isCreateOffer), onSuccess = {
-            isLoading.value = false
             categories.value = it
+            isLoading.value = false
         })
     }
 
