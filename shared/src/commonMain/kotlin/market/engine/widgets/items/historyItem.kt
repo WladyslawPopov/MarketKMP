@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -25,10 +26,11 @@ fun historyItem(
 ){
     Row(
         modifier = Modifier
+            .background(colors.white, MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.small)
             .clickable {
                 onSearchClick(history.query)
             }
-            .background(colors.white, MaterialTheme.shapes.small)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

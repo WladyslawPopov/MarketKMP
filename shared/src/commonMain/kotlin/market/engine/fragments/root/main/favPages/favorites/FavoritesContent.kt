@@ -89,6 +89,7 @@ fun FavoritesContent(
         favViewModel.onError(ServerErrorException())
         favViewModel.resetScroll()
         favViewModel.refresh()
+        data.refresh()
         updateFilters.value++
     }
 

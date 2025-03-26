@@ -89,7 +89,9 @@ fun <T : Any> BoxScope.PagingList(
         horizontalAlignment = Alignment.Start,
         reverseLayout = isReversingPaging,
         modifier = Modifier
-            .fillMaxSize().align(align).padding(horizontal = dimens.smallPadding)
+            .fillMaxSize()
+            .align(align)
+            .padding(horizontal = dimens.smallPadding)
     ) {
         if (!promoList.isNullOrEmpty() && promoContent != null) {
             item {

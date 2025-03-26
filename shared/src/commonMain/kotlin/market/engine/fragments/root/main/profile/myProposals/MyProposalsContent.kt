@@ -53,6 +53,7 @@ fun MyProposalsContent(
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        data.refresh()
         updateFilters.value++
     }
 

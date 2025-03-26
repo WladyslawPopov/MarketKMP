@@ -54,6 +54,7 @@ fun MyBidsContent(
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        data.refresh()
         updateFilters.value++
     }
 
@@ -79,16 +80,14 @@ fun MyBidsContent(
             ) {
                 OfferFilters.clearTypeFilter(component.model.value.type)
                 listingData.value.filters = OfferFilters.getByTypeFilter(component.model.value.type)
-                viewModel.onRefresh()
-                updateFilters.value++
+                refresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.bidsIcon
             ) {
-                viewModel.resetScroll()
-                viewModel.onRefresh()
+                refresh()
             }
         }
     }

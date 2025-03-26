@@ -21,6 +21,7 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
@@ -28,9 +29,8 @@ import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.types.WindowType
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
-import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -72,9 +72,6 @@ fun ListingContent(
 
     val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
 
-    val windowClass = getWindowType()
-    val isBigScreen = windowClass == WindowType.Big
-
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
             initialValue = if (listingViewModel.openSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
@@ -105,6 +102,8 @@ fun ListingContent(
 
         listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()
+        data.refresh()
+        searchData.value.isRefreshing = false
         updateFilters.value++
     }
 
@@ -145,7 +144,6 @@ fun ListingContent(
             ){
                 searchData.value.clear(catDef)
                 listingData.value.filters = ListingFilters.getEmpty()
-                searchData.value.isRefreshing = true
                 refresh()
             }
         }else {
@@ -172,6 +170,7 @@ fun ListingContent(
             } else {
                 listingViewModel.openSearch.value = false
                 scaffoldStateSearch.bottomSheetState.collapse()
+                delay(300)
                 focusManager.clearFocus()
             }
         }
@@ -359,7 +358,6 @@ fun ListingContent(
                         onChangeTypeList = {
                             listingViewModel.settings.setSettingValue("listingType", it)
                             listingData.value.listingType = it
-                            searchData.value.isRefreshing = true
                             refresh()
                         },
                         onFilterClick = {
@@ -372,7 +370,6 @@ fun ListingContent(
                             listingViewModel.openSearch.value = true
                         },
                         onRefresh = {
-                            searchData.value.isRefreshing = true
                             updateFilters.value++
                             refresh()
                         }

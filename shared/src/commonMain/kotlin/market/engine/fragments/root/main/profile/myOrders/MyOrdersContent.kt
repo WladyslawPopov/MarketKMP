@@ -65,6 +65,7 @@ fun MyOrdersContent(
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        data.refresh()
         updateFilters.value++
     }
 

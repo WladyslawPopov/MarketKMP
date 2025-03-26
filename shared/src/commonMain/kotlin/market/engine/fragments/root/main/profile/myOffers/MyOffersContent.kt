@@ -62,6 +62,7 @@ fun MyOffersContent(
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        data.refresh()
     }
 
     BackHandler(model.backHandler){

@@ -61,6 +61,7 @@ fun ConversationsContent(
     val refresh = {
         viewModel.resetScroll()
         viewModel.onRefresh()
+        data.refresh()
         updateFilters.value++
     }
 
@@ -176,7 +177,7 @@ fun ConversationsContent(
                             if (updateFilters.value == 0){
                                 viewModel.selectItems.clear()
                                 viewModel.updateUserInfo()
-                                viewModel.onRefresh()
+                                refresh()
                                 isSelectedMode.value = false
                             }
                         }

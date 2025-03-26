@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -159,6 +158,10 @@ fun CategoryContent(
         }
     }
 
+    LaunchedEffect(Unit){
+        refresh()
+    }
+
     val noFound : @Composable () -> Unit = {
         if (categories.value.isEmpty()) {
             showNoItemLayout(
@@ -180,96 +183,96 @@ fun CategoryContent(
         isLoading = isLoading.value,
         modifier = Modifier.fillMaxSize(),
     ) {
-        Column {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.85f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                        verticalAlignment = Alignment.CenterVertically
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimens.smallPadding),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AnimatedVisibility(
+                        visible = searchCategoryId.value != 1L,
+                        enter = fadeIn(),
+                        exit = fadeOut()
                     ) {
-                        AnimatedVisibility(
-                            visible = searchCategoryId.value != 1L,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            NavigationArrowButton {
-                                if(!isLoading.value) {
-                                    onBack()
-                                }
-                            }
-                        }
-
-                        TextAppBar(
-                            buildString {
-                                if (searchCategoryId.value == 1L){
-                                    append(catDef)
-                                } else {
-                                    append(searchCategoryName.value)
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-
-                        if (searchCategoryId.value != 1L) {
-                            ActionButton(
-                                strings.clear,
-                                fontSize = dimens.mediumText,
-                            ){
-                                reset()
+                        NavigationArrowButton {
+                            if(!isLoading.value) {
+                                onBack()
                             }
                         }
                     }
-                }
-                item { noFound() }
-                items(categories.value) { category ->
-                    val item = NavigationItem(
-                        title = category.name ?: catDef,
-                        image = getCategoryIcon(category.name),
-                        badgeCount = if (!(isFilters || isCreateOffer)) category.estimatedActiveOffersCount else null,
-                        onClick = {
-                            setUpNewParams(category)
 
-                            if (!category.isLeaf) {
-                                refresh()
+                    TextAppBar(
+                        buildString {
+                            if (searchCategoryId.value == 1L){
+                                append(catDef)
                             } else {
-                                if (!isFilters && !isCreateOffer) {
-                                    onComplete()
-                                }else{
-                                    isSelected.value = category.id
-                                }
+                                append(searchCategoryName.value)
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    if (searchCategoryId.value != 1L) {
+                        ActionButton(
+                            strings.clear,
+                            fontSize = dimens.mediumText,
+                        ){
+                            reset()
+                        }
+                    }
+                }
+            }
+            item { noFound() }
+            items(categories.value) { category ->
+                val item = NavigationItem(
+                    title = category.name ?: catDef,
+                    image = getCategoryIcon(category.name),
+                    badgeCount = if (!(isFilters || isCreateOffer)) category.estimatedActiveOffersCount else null,
+                    onClick = {
+                        setUpNewParams(category)
+
+                        if (!category.isLeaf) {
+                            refresh()
+                        } else {
+                            if (!isFilters && !isCreateOffer) {
+                                onComplete()
+                            }else{
+                                isSelected.value = category.id
                             }
                         }
-                    )
-                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
-                    getNavigationItem(
-                        item,
-                        label = {
-                            Text(
-                                category.name ?: "",
-                                color = colors.black,
-                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                lineHeight = dimens.largeText
-                            )
-                        },
-                        isSelected = if(isFilters || isCreateOffer) isSelected.value == category.id else category.isLeaf,
-                        badgeColor = colors.steelBlue
-                    )
-                }
+                    }
+                )
+                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+                getNavigationItem(
+                    item,
+                    label = {
+                        Text(
+                            category.name ?: "",
+                            color = colors.black,
+                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                            lineHeight = dimens.largeText
+                        )
+                    },
+                    isSelected = if(isFilters || isCreateOffer) isSelected.value == category.id else category.isLeaf,
+                    badgeColor = colors.steelBlue
+                )
             }
         }
 
-        val btn = when{
-            isFilters -> strings.actionAcceptFilters
-            isCreateOffer -> strings.continueLabel
-            else -> strings.categoryEnter
+        val btn = remember {
+            when {
+                isFilters -> strings.actionAcceptFilters
+                isCreateOffer -> strings.continueLabel
+                else -> strings.categoryEnter
+            }
         }
 
         AcceptedPageButton(

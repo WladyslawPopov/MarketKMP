@@ -9,13 +9,13 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.TopCategory
-import market.engine.core.data.types.WindowType
-import market.engine.core.utils.getWindowType
 import market.engine.widgets.items.PopularCategoryItem
 import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.stringResource
@@ -23,22 +23,19 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopCategory) -> Unit) {
 
-    val windowClass = getWindowType()
-    val showNavigationRail = windowClass == WindowType.Big
-
     Spacer(modifier = Modifier.heightIn(dimens.mediumPadding))
 
     SeparatorLabel(
         stringResource(strings.homeTopCategory))
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed( if (showNavigationRail) 5 else 3),
+        columns = GridCells.Fixed( if (isBigScreen) 5 else 3),
         modifier = Modifier
-            .heightIn(max = (250*categoryList.size).dp)
+            .heightIn(max = ((if(isBigScreen)400 else 250)*categoryList.size).dp)
             .padding(dimens.smallPadding)
             .wrapContentHeight(),
         userScrollEnabled = false,
-        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
         items(categoryList) { category ->

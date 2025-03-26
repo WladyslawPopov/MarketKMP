@@ -115,7 +115,6 @@ class DefaultHomeComponent(
         listingData.searchData.value.searchParentID = category.parentId
         listingData.searchData.value.searchCategoryName = category.name
         listingData.searchData.value.searchParentName = category.parentName
-        listingData.searchData.value.isRefreshing = true
 
         navigateToListingSelected(listingData, false)
     }
@@ -133,8 +132,6 @@ class DefaultHomeComponent(
             }?.interpretation = allPromo
 
             listingData.searchData.value.clear(allPromo)
-
-            listingData.searchData.value.isRefreshing = true
 
             navigateToListingSelected(listingData, false)
         }

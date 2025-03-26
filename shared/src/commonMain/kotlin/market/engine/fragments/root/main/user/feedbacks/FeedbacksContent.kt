@@ -107,7 +107,9 @@ fun FeedbacksContent(
             listingData.value.filters = ReportFilters.getByTypeFilter(type)
             listingData.value.filters.find { it.key == "user_id" }?.value = userId.toString()
         }
+
         viewModel.refresh()
+        data.refresh()
         viewModel.updateItemTrigger.value++
     }
 
@@ -198,9 +200,7 @@ fun FeedbacksContent(
                                 listingData.value.filters.find { it.key == "evaluation" }?.interpretation = ""
                             }
                         }
-
-                        viewModel.resetScroll()
-                        viewModel.refresh()
+                        refreshPage()
                     }
                 )
             }
@@ -211,7 +211,7 @@ fun FeedbacksContent(
             isLoading = if (model.type == ReportPageType.ABOUT_ME) false else isLoading.value,
             onRefresh = {
                 viewModel.onError(ServerErrorException())
-                viewModel.refresh()
+                refreshPage()
             },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {

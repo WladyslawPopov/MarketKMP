@@ -107,7 +107,9 @@ fun DialogsContent(
     }
 
     val refresh = {
+        viewModel.resetScroll()
         viewModel.onRefresh()
+        data.refresh()
     }
 
     val noFound = @Composable {
@@ -115,15 +117,15 @@ fun DialogsContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
-                viewModel.onRefresh()
+                refresh()
             }
         } else {
             showNoItemLayout(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.dialogIcon
             ) {
-                viewModel.resetScroll()
-                viewModel.onRefresh()
+
+                refresh()
             }
         }
     }

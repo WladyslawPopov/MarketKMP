@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerState
@@ -31,6 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.dialogs.LogoutDialog
 import market.engine.widgets.items.getNavigationItem
@@ -137,7 +139,7 @@ fun DrawerContent(
         drawerContainerColor = colors.primaryColor,
         drawerContentColor = colors.black,
         drawerTonalElevation = 0.dp,
-        modifier = Modifier.fillMaxWidth(0.8f),
+        modifier = if(!isBigScreen) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentWidth(),
     ) {
         val scrollState = rememberScrollState()
         Column(

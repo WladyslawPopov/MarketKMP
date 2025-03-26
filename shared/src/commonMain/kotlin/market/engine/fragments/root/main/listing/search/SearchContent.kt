@@ -2,13 +2,18 @@ package market.engine.fragments.root.main.listing.search
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -24,12 +29,17 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.root.main.listing.ListingViewModel
+import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.filterContents.CategoryContent
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchContent(
     openSearch: MutableState<Boolean>,
@@ -142,26 +152,41 @@ fun SearchContent(
         noFound = null,
         toastItem = searchViewModel.toastItem,
         topBar = {
-            SearchAppBar(
-                searchString = searchStringTextField,
-                onSearchClick = {
-                    getSearchFilters()
-                    searchViewModel.addHistory(searchString.value)
-                    goToListing()
-                },
-                onUpdateHistory = {
-                    searchString.value = it
-                    searchViewModel.addHistory(it)
-                },
-                openSearch = openSearch,
-                onBeakClick = {
-                    if (scaffoldState.bottomSheetState.isExpanded){
-                        openSearchCategory.value = false
-                    }else {
+            if (!scaffoldState.bottomSheetState.isExpanded) {
+                SearchAppBar(
+                    searchString = searchStringTextField,
+                    onSearchClick = {
+                        getSearchFilters()
+                        searchViewModel.addHistory(searchString.value)
+                        goToListing()
+                    },
+                    onUpdateHistory = {
+                        searchString.value = it
+                        searchViewModel.getHistory(searchString.value)
+                    },
+                    openSearch = openSearch,
+                    onBeakClick = {
                         closeSearch()
                     }
-                }
-            )
+                )
+            }else{
+                TopAppBar(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = colors.primaryColor
+                    ),
+                    title = {},
+                    navigationIcon = {
+                        SmallIconButton(
+                            drawables.closeBtn,
+                            colors.black
+                        ){
+                            openSearchCategory.value = false
+                        }
+                    }
+                )
+            }
         },
         modifier = Modifier.fillMaxSize()
     ) {
@@ -198,64 +223,80 @@ fun SearchContent(
                     openSearchCategory.value = false
                 }
             },
-        ) {
-            Column(
+        ) { padding ->
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = {
-                            focusManager.clearFocus()
-                        })
-                    },
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
+                    .padding(padding)
+            ){
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight(0.85f)
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                focusManager.clearFocus()
+                            })
+                        },
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
 
-                FiltersSearchBar(
-                    selectedCategory = categoryName,
-                    selectedCategoryID = categoryId,
-                    selectedUser = selectedUser,
-                    selectedUserLogin = selectedUserLogin,
-                    selectedUserFinished = selectedUserFinished,
-                    goToCategory = {
-                        sd.value = SD(
-                            searchCategoryID = searchData.searchCategoryID,
-                            searchCategoryName = searchData.searchCategoryName,
-                            searchParentID = searchData.searchParentID,
-                            searchIsLeaf = searchData.searchIsLeaf,
-                        )
+                    FiltersSearchBar(
+                        selectedCategory = categoryName,
+                        selectedCategoryID = categoryId,
+                        selectedUser = selectedUser,
+                        selectedUserLogin = selectedUserLogin,
+                        selectedUserFinished = selectedUserFinished,
+                        goToCategory = {
+                            sd.value = SD(
+                                searchCategoryID = searchData.searchCategoryID,
+                                searchCategoryName = searchData.searchCategoryName,
+                                searchParentID = searchData.searchParentID,
+                                searchIsLeaf = searchData.searchIsLeaf,
+                            )
 
-                        openCategory.value = true
-                        openSearchCategory.value = true
-                    },
-                    clearCategory = {
-                        categoryId.value = 1L
-                        categoryName.value = searchViewModel.catDef.value
-                        searchData.clear(searchViewModel.catDef.value)
-                    }
-                )
+                            openCategory.value = true
+                            openSearchCategory.value = true
+                        },
+                        clearCategory = {
+                            categoryId.value = 1L
+                            categoryName.value = searchViewModel.catDef.value
+                            searchData.clear(searchViewModel.catDef.value)
+                        }
+                    )
 
-                HistoryLayout(
-                    historyItems = history.value,
-                    modifier = Modifier.padding(horizontal = dimens.smallPadding),
-                    onItemClick = {
-                        searchString.value = it
-                        searchStringTextField.value = TextFieldValue(it)
-                    },
-                    onClearHistory = {
-                        searchViewModel.deleteHistory()
-                    },
-                    onDeleteItem = {
-                        searchViewModel.deleteItemHistory(it)
-                    },
-                    goToListing = {
-                        searchString.value = it
-                        searchStringTextField.value = TextFieldValue(it)
-                        getSearchFilters()
-                        goToListing()
-                    }
-                )
+                    HistoryLayout(
+                        historyItems = history.value,
+                        modifier = Modifier.padding(horizontal = dimens.smallPadding),
+                        onItemClick = {
+                            searchString.value = it
+                            searchStringTextField.value = TextFieldValue(it)
+                        },
+                        onClearHistory = {
+                            searchViewModel.deleteHistory()
+                        },
+                        onDeleteItem = {
+                            searchViewModel.deleteItemHistory(it)
+                        },
+                        goToListing = {
+                            searchString.value = it
+                            searchStringTextField.value = TextFieldValue(it)
+                            getSearchFilters()
+                            goToListing()
+                        }
+                    )
+                }
+
+                AcceptedPageButton(
+                    strings.categoryEnter,
+                    Modifier.fillMaxWidth()
+                        .padding(dimens.mediumPadding).align(Alignment.BottomCenter),
+                ) {
+                    getSearchFilters()
+                    searchViewModel.addHistory(searchString.value)
+                    goToListing()
+                }
             }
         }
     }

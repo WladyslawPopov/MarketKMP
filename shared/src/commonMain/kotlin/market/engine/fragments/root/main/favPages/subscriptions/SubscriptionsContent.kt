@@ -65,6 +65,7 @@ fun SubscriptionsContent(
         subViewModel.onError(ServerErrorException())
         subViewModel.resetScroll()
         subViewModel.refresh()
+        data.refresh()
     }
 
     val noFound = @Composable {
