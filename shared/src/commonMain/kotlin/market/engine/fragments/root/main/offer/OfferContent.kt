@@ -14,14 +14,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -72,6 +71,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.DealType
 import market.engine.core.network.networkObjects.DeliveryMethod
@@ -286,7 +286,7 @@ fun OfferContent(
                                 modifier = Modifier
                                     .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  }
                                     .fillMaxWidth()
-                                    .height(300.dp)
+                                    .height(if(isBigScreen) 600.dp else 300.dp)
                                     .zIndex(6f),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -381,20 +381,26 @@ fun OfferContent(
                                 modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
                             )
                         }
-                        //simple Price
-                        if ((offerState.value != OfferStates.ACTIVE && offerState.value != OfferStates.PROTOTYPE) || isMyOffer.value ) {
-                            item {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = (offer.currentPricePerItem ?: "") +
-                                                " " + stringResource(strings.currencySign),
-                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                        color = colors.priceTextColor
-                                    )
+
+                        item {
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically)
+                            ) {
+                                //simple Price
+                                if ((offerState.value != OfferStates.ACTIVE && offerState.value != OfferStates.PROTOTYPE) || isMyOffer.value ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = (offer.currentPricePerItem ?: "") +
+                                                    " " + stringResource(strings.currencySign),
+                                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                            color = colors.priceTextColor
+                                        )
 
 //                                    if(offerState.value == OfferStates.SNAPSHOT){
 //                                        ActionButton(
@@ -403,406 +409,430 @@ fun OfferContent(
 //                                            component.navigateToOffers(offer.id)
 //                                        }
 //                                    }
-                                }
-                            }
-                        }
-                        //action seller mode and active promo options
-                        if (isMyOffer.value && offerState.value != OfferStates.SNAPSHOT) {
-                            item {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(0.9f),
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                ) {
-
-                                    SeparatorLabel(stringResource(strings.actionsOffersParameterName))
-
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        PopupActionButton(
-                                            stringResource(strings.operationsParameterName),
-                                            color = colors.steelBlue,
-                                            tint = colors.alwaysWhite,
-                                            isShowOptions = isShowOptions
-                                        )
-                                    }
-
-                                    AnimatedVisibility(
-                                        isShowOptions.value,
-                                        enter = expandIn(),
-                                        exit = fadeOut()
-                                    ) {
-                                        getOfferOperations(
-                                            offer,
-                                            offerViewModel,
-                                            offset = DpOffset(20.dp, 0.dp),
-                                            showCopyId = false,
-                                            onUpdateMenuItem = { offer ->
-                                                component.updateOffer(offer.id, model.isSnapshot)
-                                            },
-                                            goToCreateOffer = { type ->
-                                                component.goToCreateOffer(type, offer.catpath, offer.id, null)
-                                            },
-                                            onClose = {
-                                                isShowOptions.value = false
-                                            },
-                                            onBack = {
-                                                component.onBackClick()
-                                            },
-                                            goToProposals = { type ->
-                                                component.goToProposalPage(type)
-                                            },
-                                            goToDynamicSettings = { type, offerId ->
-                                                component.goToDynamicSettings(type, offerId)
-                                            }
-                                        )
                                     }
                                 }
-                            }
+                                //action seller mode and active promo options
+                                if (isMyOffer.value && offerState.value != OfferStates.SNAPSHOT) {
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                    ) {
+                                        SeparatorLabel(stringResource(strings.actionsOffersParameterName))
 
-                            item {
-                                PromoRow(
-                                    offer,
-                                    showName = true,
-                                    modifier = Modifier.padding(dimens.mediumPadding)
-                                ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = dimens.smallPadding),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            PopupActionButton(
+                                                stringResource(strings.operationsParameterName),
+                                                color = colors.steelBlue,
+                                                tint = colors.alwaysWhite,
+                                                isShowOptions = isShowOptions
+                                            )
+                                        }
 
-                                }
-                            }
-                        }
-                        //bids price
-                        if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
-                            item {
-                                AuctionPriceLayout(
-                                    offer = offer,
-                                    offerViewModel.updateItemTrigger.value,
-                                    onAddBidClick = { bid ->
-                                        if (UserData.token != "") {
-                                            myMaximalBid.value = bid
-                                            showBidDialog.value = true
-                                        }else{
-                                            component.goToLogin()
+                                        AnimatedVisibility(
+                                            isShowOptions.value,
+                                            enter = expandIn(),
+                                            exit = fadeOut()
+                                        ) {
+                                            getOfferOperations(
+                                                offer,
+                                                offerViewModel,
+                                                offset = DpOffset(20.dp, 0.dp),
+                                                showCopyId = false,
+                                                onUpdateMenuItem = { offer ->
+                                                    component.updateOffer(offer.id, model.isSnapshot)
+                                                },
+                                                goToCreateOffer = { type ->
+                                                    component.goToCreateOffer(type, offer.catpath, offer.id, null)
+                                                },
+                                                onClose = {
+                                                    isShowOptions.value = false
+                                                },
+                                                onBack = {
+                                                    component.onBackClick()
+                                                },
+                                                goToProposals = { type ->
+                                                    component.goToProposalPage(type)
+                                                },
+                                                goToDynamicSettings = { type, offerId ->
+                                                    component.goToDynamicSettings(type, offerId)
+                                                }
+                                            )
                                         }
                                     }
-                                )
-                            }
-                        }
-                        //buy now price
-                        if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
-                            item {
-                                val showDialog = remember { mutableStateOf(false) }
-                                val values = remember { (1..offer.originalQuantity).map { it.toString() } }
-                                val valuesPickerState = rememberPickerState()
 
-                                BuyNowPriceLayout(
-                                    offer = offer,
-                                    offerState.value,
-                                    onBuyNowClick = {
-                                        if (UserData.token != "") {
-                                            if (offer.originalQuantity > 1) {
-                                                showDialog.value = true
-                                            } else {
-                                                val item = Pair(
-                                                    offer.sellerData?.id ?: 1L, listOf(
-                                                        SelectedBasketItem(
-                                                            offerId = offer.id,
-                                                            pricePerItem = offer.currentPricePerItem?.toDouble()
-                                                                ?: 0.0,
-                                                            selectedQuantity = 1
+                                    PromoRow(
+                                        offer,
+                                        showName = true,
+                                        modifier = Modifier.weight(1f, false).padding(dimens.mediumPadding)
+                                    ) {
+
+                                    }
+                                }
+                                //bids price
+                                if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
+                                    AuctionPriceLayout(
+                                        offer = offer,
+                                        offerViewModel.updateItemTrigger.value,
+                                        onAddBidClick = { bid ->
+                                            if (UserData.token != "") {
+                                                myMaximalBid.value = bid
+                                                showBidDialog.value = true
+                                            }else{
+                                                component.goToLogin()
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f, !isBigScreen)
+                                    )
+                                }
+                                //buy now price
+                                if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
+                                    val showDialog = remember { mutableStateOf(false) }
+                                    val values = remember { (1..offer.originalQuantity).map { it.toString() } }
+                                    val valuesPickerState = rememberPickerState()
+
+                                    BuyNowPriceLayout(
+                                        offer = offer,
+                                        offerState.value,
+                                        onBuyNowClick = {
+                                            if (UserData.token != "") {
+                                                if (offer.originalQuantity > 1) {
+                                                    showDialog.value = true
+                                                } else {
+                                                    val item = Pair(
+                                                        offer.sellerData?.id ?: 1L, listOf(
+                                                            SelectedBasketItem(
+                                                                offerId = offer.id,
+                                                                pricePerItem = offer.currentPricePerItem?.toDouble()
+                                                                    ?: 0.0,
+                                                                selectedQuantity = 1
+                                                            )
                                                         )
                                                     )
-                                                )
-                                                component.goToCreateOrder(item)
-                                            }
-                                        }else{
-                                            component.goToLogin()
-                                        }
-                                    },
-                                    onAddToCartClick = {
-                                        if (UserData.token != "") {
-                                            offerViewModel.addToBasket(offer.id)
-                                        }else{
-                                            component.goToLogin()
-                                        }
-                                    },
-                                    onSaleClick = {
-                                        component.goToCreateOffer(
-                                            CreateOfferType.COPY_PROTOTYPE,
-                                            offer.catpath,
-                                            offer.id,
-                                            images
-                                        )
-                                    }
-                                )
-
-                                CustomDialog(
-                                    showDialog = showDialog.value,
-                                    title = "",
-                                    body = {
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            verticalArrangement = Arrangement.Center
-                                        ) {
-                                            SeparatorLabel(
-                                                stringResource(strings.chooseAmountLabel)
-                                            )
-
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth()
-                                                    .padding(dimens.mediumPadding),
-                                                horizontalArrangement = Arrangement.Center,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                ListPicker(
-                                                    state = valuesPickerState,
-                                                    items = values,
-                                                    visibleItemsCount = 3,
-                                                    modifier = Modifier.fillMaxWidth(0.5f),
-                                                    textModifier = Modifier.padding(dimens.smallPadding),
-                                                    textStyle = MaterialTheme.typography.titleLarge,
-                                                    dividerColor = colors.textA0AE
-                                                )
-                                            }
-                                        }
-                                    },
-                                    onSuccessful = {
-                                        val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
-                                            offerId = offer.id,
-                                            pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
-                                            selectedQuantity = valuesPickerState.selectedItem.toIntOrNull() ?: 1
-                                        )))
-                                        component.goToCreateOrder(item)
-                                        showDialog.value = false
-                                    },
-                                    onDismiss = {
-                                        showDialog.value = false
-                                    }
-                                )
-                            }
-                        }
-                        // actions and other status
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .background(colors.white, MaterialTheme.shapes.medium)
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .fillMaxWidth()
-                                    .padding(dimens.smallPadding)
-                            ) {
-                                Column {
-                                    //mail to seller
-                                    if (offer.sellerData != null && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
-                                        MessageToSeller(
-                                            offer,
-                                            onClick = {
-                                                if (UserData.token != "") {
-                                                    isShowMesDialog.value = true
-                                                }else{
-                                                    component.goToLogin()
-                                                }
-                                            }
-                                        )
-
-                                        if (isShowMesDialog.value){
-                                            OfferMessagingDialog(
-                                                isShowMesDialog.value,
-                                                offer,
-                                                onSuccess = { dialogId ->
-                                                    component.goToDialog(dialogId)
-                                                    isShowMesDialog.value = false
-                                                },
-                                                onDismiss = {
-                                                    isShowMesDialog.value = false
-                                                },
-                                                baseViewModel = offerViewModel
-                                            )
-                                        }
-                                    }
-
-                                    //make proposal to seller
-                                    if (offer.isProposalEnabled && (offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now")) {
-                                        ProposalToSeller(
-                                            isMyOffer.value,
-                                        ){
-                                            if (UserData.token.isNotBlank()) {
-                                                if (UserData.login == offer.sellerData?.id) {
-                                                    component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
-                                                } else {
-                                                    component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
+                                                    component.goToCreateOrder(item)
                                                 }
                                             }else{
                                                 component.goToLogin()
                                             }
+                                        },
+                                        onAddToCartClick = {
+                                            if (UserData.token != "") {
+                                                offerViewModel.addToBasket(offer.id)
+                                            }else{
+                                                component.goToLogin()
+                                            }
+                                        },
+                                        onSaleClick = {
+                                            component.goToCreateOffer(
+                                                CreateOfferType.COPY_PROTOTYPE,
+                                                offer.catpath,
+                                                offer.id,
+                                                images
+                                            )
+                                        },
+                                        modifier = Modifier.weight(1f, !isBigScreen)
+                                    )
+
+                                    CustomDialog(
+                                        showDialog = showDialog.value,
+                                        title = "",
+                                        body = {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                SeparatorLabel(
+                                                    stringResource(strings.chooseAmountLabel)
+                                                )
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                        .padding(dimens.mediumPadding),
+                                                    horizontalArrangement = Arrangement.Center,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    ListPicker(
+                                                        state = valuesPickerState,
+                                                        items = values,
+                                                        visibleItemsCount = 3,
+                                                        modifier = Modifier.fillMaxWidth(0.5f),
+                                                        textModifier = Modifier.padding(dimens.smallPadding),
+                                                        textStyle = MaterialTheme.typography.titleLarge,
+                                                        dividerColor = colors.textA0AE
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        onSuccessful = {
+                                            val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
+                                                offerId = offer.id,
+                                                pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
+                                                selectedQuantity = valuesPickerState.selectedItem.toIntOrNull() ?: 1
+                                            )))
+                                            component.goToCreateOrder(item)
+                                            showDialog.value = false
+                                        },
+                                        onDismiss = {
+                                            showDialog.value = false
                                         }
-                                    }
-                                    // who pays for delivery
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(dimens.smallPadding),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                    )
+                                }
+
+                                // seller panel
+                                if (offer.sellerData != null && !isMyOffer.value) {
+                                    Column(
+                                        modifier = Modifier.weight(1f, !isBigScreen).wrapContentHeight(),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                     ) {
-                                        Image(
-                                            painterResource(drawables.deliveryIcon),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(dimens.smallIconSize),
+                                       // SeparatorLabel(stringResource(strings.sellerLabel))
+                                        val errorString = remember { mutableStateOf("") }
+
+                                        UserPanel(
+                                            modifier = Modifier
+                                                .background(
+                                                    colors.white,
+                                                    MaterialTheme.shapes.medium
+                                                )
+                                                .clip(MaterialTheme.shapes.medium)
+                                                .weight(1f)
+                                                .wrapContentHeight(),
+                                            offer.sellerData,
+                                            updateTrigger = offerViewModel.updateItemTrigger.value,
+                                            goToUser = {
+                                                component.goToUser(
+                                                    offer.sellerData?.id ?: 1L,
+                                                    false
+                                                )
+                                            },
+                                            goToAllLots = {
+                                                component.goToUsersListing(offer.sellerData)
+                                            },
+                                            goToAboutMe = {
+                                                component.goToUser(offer.sellerData?.id ?: 1L, true)
+                                            },
+                                            addToSubscriptions = {
+                                                if (UserData.token != "") {
+                                                    offerViewModel.addNewSubscribe(
+                                                        LD(),
+                                                        SD().copy(
+                                                            userLogin = offer.sellerData?.login,
+                                                            userID = offer.sellerData?.id ?: 1L,
+                                                            userSearch = true
+                                                        ),
+                                                        onSuccess = {
+                                                            offerViewModel.getUserInfo(
+                                                                offer.sellerData?.id ?: 1L
+                                                            )
+                                                        },
+                                                        onError = { es ->
+                                                            errorString.value = es
+                                                        }
+                                                    )
+                                                } else {
+                                                    component.goToLogin()
+                                                }
+                                            },
+                                            goToSubscriptions = {
+                                                component.goToSubscribes()
+                                            },
+                                            goToSettings = {
+                                                component.goToDynamicSettings(it, null)
+                                            },
+                                            isBlackList = blackList.value
                                         )
 
-                                        Text(
-                                            text = stringResource(strings.whoPayForDeliveryLabel),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = colors.grayText,
-                                            modifier = Modifier.fillMaxWidth(0.5f)
-                                        )
-
-                                        Text(
-                                            text = offer.whoPaysForDelivery?.name ?: "",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = colors.black,
-                                            fontStyle = FontStyle.Italic
+                                        CreateSubscribeDialog(
+                                            errorString.value != "",
+                                            errorString.value,
+                                            onDismiss = {
+                                                errorString.value = ""
+                                            },
+                                            goToSubscribe = {
+                                                component.goToSubscribes()
+                                                errorString.value = ""
+                                            }
                                         )
                                     }
+                                }
 
-                                    if (offer.antisniper) {
+                                // actions and other status
+                                val contentActions : @Composable (Modifier) -> Unit = { modifier->
+                                    Column(
+                                        modifier = modifier
+                                            .background(
+                                                colors.white,
+                                                MaterialTheme.shapes.medium
+                                            )
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .padding(dimens.smallPadding),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                    ) {
+                                        //mail to seller
+                                        if (offer.sellerData != null && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
+                                            MessageToSeller(
+                                                offer,
+                                                onClick = {
+                                                    if (UserData.token != "") {
+                                                        isShowMesDialog.value = true
+                                                    } else {
+                                                        component.goToLogin()
+                                                    }
+                                                }
+                                            )
+
+                                            if (isShowMesDialog.value) {
+                                                OfferMessagingDialog(
+                                                    isShowMesDialog.value,
+                                                    offer,
+                                                    onSuccess = { dialogId ->
+                                                        component.goToDialog(dialogId)
+                                                        isShowMesDialog.value = false
+                                                    },
+                                                    onDismiss = {
+                                                        isShowMesDialog.value = false
+                                                    },
+                                                    baseViewModel = offerViewModel
+                                                )
+                                            }
+                                        }
+
+                                        //make proposal to seller
+                                        if (offer.isProposalEnabled && (offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now")) {
+                                            ProposalToSeller(
+                                                isMyOffer.value,
+                                            ) {
+                                                if (UserData.token.isNotBlank()) {
+                                                    if (UserData.login == offer.sellerData?.id) {
+                                                        component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
+                                                    } else {
+                                                        component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
+                                                    }
+                                                } else {
+                                                    component.goToLogin()
+                                                }
+                                            }
+                                        }
+                                        // who pays for delivery
                                         Row(
                                             modifier = Modifier
-                                                .fillMaxWidth()
                                                 .padding(dimens.smallPadding),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                         ) {
-                                            Icon(
-                                                painterResource(drawables.antiSniperIcon),
+                                            Image(
+                                                painterResource(drawables.deliveryIcon),
                                                 contentDescription = null,
-                                                tint = colors.negativeRed,
                                                 modifier = Modifier.size(dimens.smallIconSize),
                                             )
 
                                             Text(
-                                                text = stringResource(strings.antiSniperEnabledLabel),
+                                                text = stringResource(strings.whoPayForDeliveryLabel),
                                                 style = MaterialTheme.typography.bodyMedium,
-                                                color = colors.inactiveBottomNavIconColor
+                                                color = colors.grayText,
+                                                modifier = Modifier.fillMaxWidth(0.5f)
                                             )
+
+                                            Text(
+                                                text = offer.whoPaysForDelivery?.name ?: "",
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = colors.black,
+                                                fontStyle = FontStyle.Italic
+                                            )
+                                        }
+
+                                        if (offer.antisniper) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .padding(dimens.smallPadding),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(
+                                                    dimens.smallPadding
+                                                )
+                                            ) {
+                                                Icon(
+                                                    painterResource(drawables.antiSniperIcon),
+                                                    contentDescription = null,
+                                                    tint = colors.negativeRed,
+                                                    modifier = Modifier.size(dimens.smallIconSize),
+                                                )
+
+                                                Text(
+                                                    text = stringResource(strings.antiSniperEnabledLabel),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = colors.inactiveBottomNavIconColor
+                                                )
+                                            }
+                                        }
+                                    }
+                                    // state params
+                                    Column(
+                                        modifier = modifier
+                                            .background(
+                                                colors.white,
+                                                MaterialTheme.shapes.medium
+                                            )
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .padding(dimens.smallPadding),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                    ) {
+                                        //bids winner or last bid
+                                        BidsWinnerOrLastBid(offer, offerState.value) {
+                                            scope.launch {
+                                                stateColumn.animateScrollToItem(goToBids)
+                                            }
+                                        }
+
+                                        TimeOfferSession(
+                                            offer,
+                                            remainingTime.value,
+                                            offerState.value,
+                                        )
+
+                                        LocationOffer(offer) {
+                                            //go to Listing
+                                            component.goToRegion(offer.region)
                                         }
                                     }
                                 }
-                            }
-                        }
-                        // state params
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .background(colors.white, MaterialTheme.shapes.medium)
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .fillMaxWidth()
-                                    .padding(dimens.smallPadding)
-                            ) {
-                                Column {
-                                    //bids winner or last bid
-                                    BidsWinnerOrLastBid(offer, offerState.value){
-                                        scope.launch {
-                                            stateColumn.animateScrollToItem(goToBids)
-                                        }
-                                    }
 
-                                    TimeOfferSession(
-                                        offer,
-                                        remainingTime.value,
-                                        offerState.value,
+                                if(!isBigScreen){
+                                    Column(
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                    ) {
+                                        contentActions(Modifier.fillMaxWidth())
+                                    }
+                                } else {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        contentActions(Modifier.weight(1f, false))
+                                    }
+                                }
+
+                                //payment and delivery
+                                if (offerState.value != OfferStates.PROTOTYPE) {
+                                    PaymentAndDeliverySection(
+                                        offer.dealTypes,
+                                        offer.paymentMethods,
+                                        offer.deliveryMethods,
+                                        Modifier.weight(1f, isBigScreen)
                                     )
-
-                                    LocationOffer(offer) {
-                                        //go to Listing
-                                        component.goToRegion(offer.region)
+                                    //Parameters
+                                    offer.params?.let {
+                                        ParametersSection(it, Modifier.weight(1f, isBigScreen))
                                     }
                                 }
                             }
                         }
-                        // seller panel
-                        item {
-                            if (offer.sellerData != null) {
-                                SeparatorLabel(stringResource(strings.sellerLabel))
-                                val errorString = remember { mutableStateOf("") }
 
-                                UserPanel(
-                                    modifier = Modifier
-                                        .background(colors.white, MaterialTheme.shapes.medium)
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .fillMaxWidth(),
-                                    offer.sellerData,
-                                    updateTrigger = offerViewModel.updateItemTrigger.value,
-                                    goToUser = {
-                                        component.goToUser(offer.sellerData?.id ?: 1L, false)
-                                    },
-                                    goToAllLots = {
-                                        component.goToUsersListing(offer.sellerData)
-                                    },
-                                    goToAboutMe = {
-                                        component.goToUser(offer.sellerData?.id ?: 1L, true)
-                                    },
-                                    addToSubscriptions = {
-                                        if (UserData.token != "") {
-                                            offerViewModel.addNewSubscribe(
-                                                LD(),
-                                                SD().copy(
-                                                    userLogin = offer.sellerData?.login,
-                                                    userID = offer.sellerData?.id ?: 1L,
-                                                    userSearch = true
-                                                ),
-                                                onSuccess = {
-                                                    offerViewModel.getUserInfo(
-                                                        offer.sellerData?.id ?: 1L
-                                                    )
-                                                },
-                                                onError = { es ->
-                                                    errorString.value = es
-                                                }
-                                            )
-                                        } else {
-                                            component.goToLogin()
-                                        }
-                                    },
-                                    goToSubscriptions = {
-                                        component.goToSubscribes()
-                                    },
-                                    goToSettings = {
-                                        component.goToDynamicSettings(it, null)
-                                    },
-                                    isBlackList = blackList.value
-                                )
-
-                                CreateSubscribeDialog(
-                                    errorString.value != "",
-                                    errorString.value,
-                                    onDismiss = {
-                                        errorString.value = ""
-                                    },
-                                    goToSubscribe = {
-                                        component.goToSubscribes()
-                                        errorString.value = ""
-                                    }
-                                )
-                            }
-                        }
-                        //payment and delivery
-                        if (offerState.value != OfferStates.PROTOTYPE) {
-                            item {
-                                PaymentAndDeliverySection(
-                                    offer.dealTypes,
-                                    offer.paymentMethods,
-                                    offer.deliveryMethods,
-                                )
-                            }
-                            //Parameters
-                            offer.params?.let {
-                                item {
-                                    ParametersSection(it)
-                                }
-                            }
-                        }
                         //descriptions offer
                         item {
                             DescriptionHtmlOffer(offer)
@@ -912,7 +942,6 @@ fun OfferContent(
                 }
             }
         }
-
     }
 }
 
@@ -1033,7 +1062,8 @@ fun getCountString(offerState: OfferStates, offer: Offer): String {
 fun AuctionPriceLayout(
     offer: Offer,
     updateTrigger: Int,
-    onAddBidClick: (String) -> Unit
+    onAddBidClick: (String) -> Unit,
+    modifier: Modifier
 ) {
     if (updateTrigger < 0) return
 
@@ -1043,80 +1073,74 @@ fun AuctionPriceLayout(
         )
     }
 
-    Column(
-        modifier = Modifier
+    Row(
+        modifier = modifier
+            .fillMaxSize()
             .background(colors.white, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
-            .fillMaxWidth()
             .padding(dimens.mediumPadding),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
+        verticalAlignment = Alignment.Top
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+        // Current price
+        Column(
+            modifier = Modifier.padding(dimens.smallPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.Top)
         ) {
-            // Current price
-            Column(
-                modifier = Modifier.padding(dimens.smallPadding),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
+            Text(
+                text = stringResource(strings.currentPriceParameterName),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.grayText,
+            )
+
+            Text(
+                text = offer.currentPricePerItem.toString() + " " + stringResource(strings.currencySign),
+                style = MaterialTheme.typography.titleLarge,
+                color = colors.priceTextColor,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        // Your maximum bid
+        Column(
+            modifier = Modifier.weight(1f).padding(dimens.smallPadding),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.Top)
+        ) {
+            Row(
+                modifier = Modifier.width(200.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             ) {
-                Text(
-                    text = stringResource(strings.currentPriceParameterName),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.grayText,
-                )
-
-                Text(
-                    text = offer.currentPricePerItem.toString() + " " + stringResource(strings.currencySign),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = colors.priceTextColor,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-
-            // Your maximum bid
-            Column(
-                modifier = Modifier.padding(dimens.smallPadding),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.Top)
-            ) {
-                Row(
-                    modifier = Modifier.widthIn(max = 200.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                ) {
-                    OutlinedTextInputField(
-                        value = myMaximalBid.value,
-                        onValueChange = {
-                            myMaximalBid.value = it
-                        },
-                        label = stringResource(strings.yourBidLabel),
-                        keyboardType = KeyboardType.Number,
-                        placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Text(
-                        text = stringResource(strings.currencySign),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.black,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-
-                SimpleTextButton(
-                    text = stringResource(strings.actionAddBid),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
-                    textColor = colors.alwaysWhite,
-                    onClick = {
-                        onAddBidClick(myMaximalBid.value.text)
+                OutlinedTextInputField(
+                    value = myMaximalBid.value,
+                    onValueChange = {
+                        myMaximalBid.value = it
                     },
+                    label = stringResource(strings.yourBidLabel),
+                    keyboardType = KeyboardType.Number,
+                    placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
+                    modifier = Modifier.width(200.dp)
+                )
+
+                Text(
+                    text = stringResource(strings.currencySign),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.black,
+                    textAlign = TextAlign.Center,
                 )
             }
+
+            SimpleTextButton(
+                text = stringResource(strings.actionAddBid),
+                backgroundColor = colors.inactiveBottomNavIconColor,
+                textColor = colors.alwaysWhite,
+                onClick = {
+                    onAddBidClick(myMaximalBid.value.text)
+                },
+            )
         }
     }
 }
@@ -1127,112 +1151,100 @@ fun BuyNowPriceLayout(
     offerState: OfferStates,
     onBuyNowClick: () -> Unit,
     onSaleClick: () -> Unit = {},
-    onAddToCartClick: () -> Unit
+    onAddToCartClick: () -> Unit,
+    modifier: Modifier
 ) {
     if (offerState == OfferStates.PROTOTYPE || offerState == OfferStates.ACTIVE) {
         Column(
-            modifier = Modifier
+            modifier = modifier
+                .fillMaxSize()
                 .background(colors.white,MaterialTheme.shapes.medium)
                 .clip(MaterialTheme.shapes.medium)
-                .fillMaxWidth()
                 .padding(dimens.mediumPadding),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimens.smallPadding)
+            Row(
+                modifier = Modifier.padding(vertical = dimens.smallPadding),
             ) {
+                Text(
+                    text = stringResource(strings.buyNowPriceParameterName),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.grayText,
+                )
+            }
+
+            // Current price row with discount
+            if (offer.discountPercentage > 0 && offer.buyNowPrice != offer.currentPricePerItem) {
                 Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(vertical = dimens.smallPadding),
-                ) {
-                    Text(
-                        text = stringResource(strings.buyNowPriceParameterName),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.grayText,
-                    )
-                }
-
-                // Current price row with discount
-                if (offer.discountPercentage > 0 && offer.buyNowPrice != offer.currentPricePerItem) {
-                    Row(
-                        modifier = Modifier.padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        DiscountText(price = offer.buyNowPrice.toString())
-
-                        // Discount badge
-                        val discountText = "-${offer.discountPercentage}%"
-                        DiscountBadge(
-                            text = discountText
-                        )
-                    }
-                }
-
-                // Current price display
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.padding(dimens.smallPadding),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    DiscountText(price = offer.buyNowPrice.toString())
 
-                    Text(
-                        text = (offer.buyNowPrice ?: "") + " "
-                                + stringResource(strings.currencySign),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = colors.priceTextColor,
-                        fontWeight = FontWeight.Bold
+                    // Discount badge
+                    val discountText = "-${offer.discountPercentage}%"
+                    DiscountBadge(
+                        text = discountText
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+            // Current price display
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = (offer.buyNowPrice ?: "") + " "
+                            + stringResource(strings.currencySign),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = colors.priceTextColor,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                SimpleTextButton(
+                    text = stringResource(strings.buyNow),
+                    backgroundColor = colors.inactiveBottomNavIconColor,
+                    modifier = Modifier
+                        .padding(horizontal = dimens.mediumPadding),
+                    textColor = colors.alwaysWhite,
+                    onClick = onBuyNowClick,
+                )
 
+
+                if (offerState == OfferStates.PROTOTYPE) {
                     SimpleTextButton(
-                        text = stringResource(strings.buyNow),
-                        backgroundColor = colors.inactiveBottomNavIconColor,
+                        text = stringResource(strings.saleLabel),
+                        backgroundColor = colors.brightGreen,
                         modifier = Modifier
                             .padding(horizontal = dimens.mediumPadding),
                         textColor = colors.alwaysWhite,
-                        onClick = onBuyNowClick,
+                        onClick = onSaleClick,
                     )
+                }
 
-
-                    if (offerState == OfferStates.PROTOTYPE) {
-                        SimpleTextButton(
-                            text = stringResource(strings.saleLabel),
-                            backgroundColor = colors.brightGreen,
-                            modifier = Modifier
-                                .padding(horizontal = dimens.mediumPadding),
-                            textColor = colors.alwaysWhite,
-                            onClick = onSaleClick,
+                if (offerState == OfferStates.ACTIVE) {
+                    Box(
+                        modifier = Modifier
+                            .background(colors.brightGreen,MaterialTheme.shapes.small)
+                            .clip(MaterialTheme.shapes.small)
+                            .clickable {
+                                onAddToCartClick()
+                            }
+                            .padding(dimens.smallPadding)
+                    ) {
+                        Icon(
+                            painter = painterResource(drawables.addToCartIcon),
+                            contentDescription = "",
+                            modifier = Modifier.size(dimens.mediumIconSize),
+                            tint = colors.alwaysWhite
                         )
-                    }
-
-                    if (offerState == OfferStates.ACTIVE) {
-                        Box(
-                            modifier = Modifier
-                                .clickable {
-                                    onAddToCartClick()
-                                }
-                                .background(colors.brightGreen,MaterialTheme.shapes.small)
-                                .clip(MaterialTheme.shapes.small)
-                                .padding(dimens.smallPadding)
-                        ) {
-                            Icon(
-                                painter = painterResource(drawables.addToCartIcon),
-                                contentDescription = "",
-                                modifier = Modifier.size(dimens.mediumIconSize),
-                                tint = colors.alwaysWhite
-                            )
-                        }
                     }
                 }
             }
@@ -1597,32 +1609,42 @@ fun formatRemainingTimeAnnotated(
 fun PaymentAndDeliverySection(
     dealTypes: List<DealType>?,
     paymentMethods: List<PaymentMethod>?,
-    deliveryMethods: List<DeliveryMethod>?
+    deliveryMethods: List<DeliveryMethod>?,
+    modifier: Modifier
 ) {
-    SeparatorLabel(stringResource(strings.paymentAndDeliveryLabel))
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(color = colors.white, shape = MaterialTheme.shapes.medium)
-            .padding(dimens.smallPadding)
+        modifier = modifier,
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        // Deal Types
-        InfoBlock(
-            title = stringResource(strings.dealTypeLabel),
-            content = dealTypes?.joinToString(separator = ". ") { it.name ?: ""  } ?: ""
-        )
+        SeparatorLabel(stringResource(strings.paymentAndDeliveryLabel))
 
-        // Payment Methods
-        InfoBlock(
-            title = stringResource(strings.paymentMethodLabel),
-            content = paymentMethods?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = colors.white, shape = MaterialTheme.shapes.medium)
+                .padding(dimens.smallPadding),
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalAlignment = Alignment.Start
+        ) {
+            // Deal Types
+            InfoBlock(
+                title = stringResource(strings.dealTypeLabel),
+                content = dealTypes?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
+            )
 
-        // Delivery Methods
-        InfoBlock(
-            title = stringResource(strings.deliveryMethodLabel),
-            content = formatDeliveryMethods(deliveryMethods)
-        )
+            // Payment Methods
+            InfoBlock(
+                title = stringResource(strings.paymentMethodLabel),
+                content = paymentMethods?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
+            )
+
+            // Delivery Methods
+            InfoBlock(
+                title = stringResource(strings.deliveryMethodLabel),
+                content = formatDeliveryMethods(deliveryMethods)
+            )
+        }
     }
 }
 
@@ -1630,8 +1652,9 @@ fun PaymentAndDeliverySection(
 fun InfoBlock(title: String, content: String) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = dimens.smallPadding)
+            .padding(vertical = dimens.smallPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        horizontalAlignment = Alignment.Start
     ) {
         // Title
         Text(
@@ -1639,7 +1662,6 @@ fun InfoBlock(title: String, content: String) {
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = colors.grayText,
-            modifier = Modifier.padding(dimens.extraSmallPadding)
         )
 
         // Content
@@ -1647,7 +1669,6 @@ fun InfoBlock(title: String, content: String) {
             text = content,
             style = MaterialTheme.typography.bodyMedium,
             color = colors.black,
-            modifier = Modifier.padding(dimens.smallPadding)
         )
     }
 }
@@ -1687,22 +1708,29 @@ fun formatDeliveryMethods(deliveryMethods: List<DeliveryMethod>?): String {
 
 @Composable
 fun ParametersSection(
-    parameters: List<Param>?
+    parameters: List<Param>?,
+    modifier: Modifier
 ) {
     if (!parameters.isNullOrEmpty()) {
-        SeparatorLabel(stringResource(strings.parametersLabel))
-
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = colors.white, shape = MaterialTheme.shapes.medium)
-                .padding(dimens.smallPadding)
+            modifier = modifier,
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
-            parameters.forEach { parameter ->
-                InfoBlock(
-                    title = parameter.name ?: "",
-                    content = formatParameterValue(parameter.value)
-                )
+            SeparatorLabel(stringResource(strings.parametersLabel))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color = colors.white, shape = MaterialTheme.shapes.medium)
+                    .padding(dimens.smallPadding)
+            ) {
+                parameters.forEach { parameter ->
+                    InfoBlock(
+                        title = parameter.name ?: "",
+                        content = formatParameterValue(parameter.value)
+                    )
+                }
             }
         }
     }

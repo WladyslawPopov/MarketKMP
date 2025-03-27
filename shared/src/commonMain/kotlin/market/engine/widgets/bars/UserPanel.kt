@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
@@ -65,23 +66,23 @@ fun UserPanel(
     if (user != null && updateTrigger >= 0) {
         val userMod = if (goToUser != null){
             Modifier
+                .clip(MaterialTheme.shapes.medium)
                 .clickable { goToUser() }
-                .fillMaxWidth()
+                .padding(dimens.smallPadding)
         }else{
             Modifier
-                .fillMaxWidth()
         }
 
         Column(
-            modifier = modifier.padding(dimens.smallPadding),
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            modifier = modifier.fillMaxWidth().padding(dimens.smallPadding).wrapContentHeight(),
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.Top),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header row with user details
             FlowRow(
                 modifier = userMod,
                 verticalArrangement = Arrangement.Center,
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally)
             ) {
                 Row(
                     modifier = Modifier.wrapContentSize().padding(dimens.extraSmallPadding),
@@ -100,7 +101,7 @@ fun UserPanel(
                     }
 
                     Column(
-                        modifier = Modifier.fillMaxWidth(0.6f),
+                        modifier = Modifier.weight(1f, fill = false),
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -210,9 +211,9 @@ fun UserPanel(
             }
             // Buttons
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f, false),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
                 // Button: "All Offers"
                 SimpleTextButton(
@@ -296,8 +297,7 @@ fun UserPanel(
                                 "blacklist_buyers" -> goToSettings("add_to_buyer_blacklist") // Blacklist buyers action
                                 "whitelist_buyers" -> goToSettings("add_to_whitelist" ) // Whitelist buyers action
                             }
-                        }
-                        .fillMaxWidth().padding(dimens.mediumPadding),
+                        }.weight(1f, false).padding(dimens.mediumPadding),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
@@ -346,13 +346,14 @@ fun UserPanel(
             if (user.vacationEnabled) {
                 Box(
                     modifier = Modifier
+                        .background(colors.transparentGrayColor)
                         .clip(MaterialTheme.shapes.small)
                         .clickable {
                             if (UserData.login == user.id) {
                                 goToSettings("set_vacation")
                             }
                         }
-                        .background(colors.transparentGrayColor)
+                        .weight(1f, false)
                         .padding(dimens.mediumPadding)
                 ) {
                     val vacationMessage = buildAnnotatedString {
@@ -404,8 +405,7 @@ fun UserPanel(
 
             //registration date
             Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.weight(1f, false),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
             ) {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -116,14 +117,14 @@ fun UserContent(
         Column {
             AnimatedVisibility(
                 isVisibleUserPanel.value,
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
                 val errorString = remember { mutableStateOf("") }
 
                 UserPanel(
-                    modifier = Modifier.background(colors.white)
-                        .fillMaxWidth(),
+                    modifier = Modifier.background(colors.white).fillMaxWidth().wrapContentHeight(),
                     user = user.value,
                     updateTrigger = userViewModel.updateItemTrigger.value,
                     goToUser = null,
