@@ -1,6 +1,5 @@
 package market.engine.widgets.texts
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,11 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import market.engine.common.openUrl
-import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.colors
 
 @Composable
@@ -25,49 +21,16 @@ fun DynamicLabel(
     style: TextStyle = MaterialTheme.typography.labelMedium
 ) {
     val htmlText = rememberRichTextState()
-    var url = remember { "" }
 
     val annotatedString = remember {
         buildAnnotatedString {
             val mainText = htmlText.setHtml(text).annotatedString.text
             append(mainText)
-            val urlPattern = Regex("${SAPI.SERVER_BASE}[\\w./?=#-]+")
-            urlPattern.findAll(text).forEach { matchResult ->
-                val start = matchResult.range.first
-                val end = matchResult.range.last + 1
-                if (start >= 0 && end < mainText.length) {
-                    url = matchResult.value
-                    addStringAnnotation(
-                        tag = "URL",
-                        annotation = url,
-                        start = start,
-                        end = end
-                    )
-
-                    addStyle(
-                        style = SpanStyle(
-                            textDecoration = TextDecoration.Underline,
-                            color = colors.brightBlue
-                        ),
-                        start = start,
-                        end = end
-                    )
-                }
-            }
             if (isMandatory) {
                 withStyle(SpanStyle(color = colors.negativeRed)){
                     append(" *")
                 }
             }
-        }
-    }
-    val modClick = remember {
-        if (url.isNotBlank()) {
-            Modifier.clickable {
-                openUrl(url)
-            }
-        }else{
-            Modifier
         }
     }
 
@@ -77,7 +40,6 @@ fun DynamicLabel(
         Text(
             annotatedString,
             style = style,
-            modifier = modClick
         )
     }
 }
