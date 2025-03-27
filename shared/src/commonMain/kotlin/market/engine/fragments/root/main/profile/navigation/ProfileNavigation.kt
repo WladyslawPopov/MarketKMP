@@ -411,7 +411,7 @@ fun createProfileChild(
                     if(dialogId != null)
                         profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
                     else
-                        profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen())
+                        profileNavigation.replaceAll(ProfileConfig.ConversationsScreen())
                 },
                 navigationSubscribes = {
                     navigateToSubscribe()

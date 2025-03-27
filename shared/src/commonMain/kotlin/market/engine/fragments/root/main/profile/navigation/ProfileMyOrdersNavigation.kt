@@ -13,6 +13,7 @@ import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
@@ -131,7 +132,7 @@ fun itemMyOrders(
             if(dialogId != null)
                 profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
             else
-                profileNavigation.replaceCurrent(ProfileConfig.ConversationsScreen())
+                profileNavigation.replaceAll(ProfileConfig.ConversationsScreen())
         },
         navigateToBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
