@@ -234,7 +234,7 @@ fun DynamicSettingsContent(
                                 )
 
                                 builderDescription?.fields?.let {
-                                    SetUpDynamicFields(it)
+                                    SetUpDynamicFields(it, showRating = true)
                                 }
 
                                 AcceptedPageButton(

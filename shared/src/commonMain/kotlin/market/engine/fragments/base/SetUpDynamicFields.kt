@@ -26,6 +26,7 @@ import market.engine.widgets.textFields.DynamicInputField
 fun SetUpDynamicFields(
     fields: List<Fields>,
     code: String? = null,
+    showRating: Boolean = false,
     modifier: Modifier = Modifier.fillMaxWidth(0.9f),
 ){
     Column(
@@ -87,7 +88,7 @@ fun SetUpDynamicFields(
                 "checkbox_group" -> {
                     DynamicCheckboxGroup(
                         field,
-                        showRating = true
+                        showRating = showRating
                     )
                 }
                 "select" -> {

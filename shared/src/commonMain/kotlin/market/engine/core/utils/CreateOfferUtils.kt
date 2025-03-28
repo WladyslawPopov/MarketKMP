@@ -43,13 +43,13 @@ fun checkValidation(field : Fields, value : String): JsonPrimitive {
                     JsonPrimitive(value.toFloatOrNull() ?: 0f)
                 }
                 else -> {
-                    JsonPrimitive(value)
+                    JsonPrimitive(value.trim())
                 }
            }
         }
         return data
     }else{
-        return JsonPrimitive(value)
+        return JsonPrimitive(value.trim())
     }
 }
 

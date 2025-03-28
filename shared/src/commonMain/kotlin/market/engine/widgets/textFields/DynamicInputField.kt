@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -76,24 +75,25 @@ fun DynamicInputField(
         TextField(
             value = textState.value,
             onValueChange = {
+                val addNewValue : (String) -> Unit = { newValue ->
+                    field.data = checkValidation(field, newValue.trim())
+                    textState.value = newValue
+                }
+
                 if (maxNumber == null) {
                     if (maxSymbols != null) {
                         if(maxSymbols >= it.length) {
                             counter.value = maxSymbols - it.length
-                            field.data = JsonPrimitive(it.trim())
-                            textState.value = it
+                            addNewValue(it)
                         }
                     }else{
-                        field.data = JsonPrimitive(it.trim())
-                        textState.value = it
+                        addNewValue(it)
                     }
                 }else{
                     if ((it.toIntOrNull() ?:0) >= maxNumber) {
-                        field.data = checkValidation(field, maxNumber.toString())
-                        textState.value = maxNumber.toString()
+                        addNewValue(maxNumber.toString())
                     }else{
-                        field.data = checkValidation(field, it)
-                        textState.value = it
+                        addNewValue(it)
                     }
                 }
             },
