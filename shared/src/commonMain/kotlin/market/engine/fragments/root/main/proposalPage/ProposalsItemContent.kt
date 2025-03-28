@@ -177,7 +177,7 @@ fun ProposalsItemContent(
                             "proposal_reject" -> {
                                 showEnd.value = false
                                 showBody.value = (proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs &&
-                                        countLeft < countProposalMax)
+                                        proposalsToDisplay.size < countProposalMax)
                                 statusIcon.value = drawables.dislikeIcon
                                 statusColor.value = colors.negativeRed
                                 iconColor.value = colors.negativeRed
@@ -749,7 +749,7 @@ fun getBody(
                     stringResource(strings.actionConfirm),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
-                    enabled = !viewModel.isShowProgress.value
+                    enabled = !viewModel.isShowProgress.value && (selectedChoice.value != 2 || priceTextState.value.text.isNotBlank())
                 ) {
                     if (fields.find { it.key == "type" }?.data == null){
                         fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice.value)

@@ -1180,7 +1180,7 @@ fun BuyNowPriceLayout(
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DiscountText(price = offer.buyNowPrice.toString())
+                    DiscountText(price = offer.currentPricePerItem.toString())
 
                     // Discount badge
                     val discountText = "-${offer.discountPercentage}%"
