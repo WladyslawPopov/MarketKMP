@@ -2,9 +2,11 @@ package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
@@ -47,28 +49,32 @@ fun ProfileNavContent(
     ) {
         if(goToAllLots != null || goToAboutMe != null || goToSubscriptions != null) {
             item {
-                UserPanel(
-                    modifier = Modifier.fillMaxWidth(),
-                    userInfo,
-                    updateTrigger = 1,
-                    goToUser = null,
-                    goToAllLots = {
-                        goToAllLots?.invoke()
-                    },
-                    goToAboutMe = {
-                        goToAboutMe?.invoke()
-                    },
-                    addToSubscriptions = {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    UserPanel(
+                        modifier = Modifier.weight(1f, false).padding(dimens.mediumPadding),
+                        userInfo,
+                        updateTrigger = 1,
+                        goToUser = null,
+                        goToAllLots = {
+                            goToAllLots?.invoke()
+                        },
+                        goToAboutMe = {
+                            goToAboutMe?.invoke()
+                        },
+                        addToSubscriptions = {
 
-                    },
-                    goToSubscriptions = {
-                        goToSubscriptions?.invoke()
-                    },
-                    goToSettings = {
-                        goToSettings?.invoke(it)
-                    },
-                    isBlackList = arrayListOf()
-                )
+                        },
+                        goToSubscriptions = {
+                            goToSubscriptions?.invoke()
+                        },
+                        goToSettings = {
+                            goToSettings?.invoke(it)
+                        },
+                        isBlackList = arrayListOf()
+                    )
+                }
             }
         }
         itemsIndexed(list) { _, item ->

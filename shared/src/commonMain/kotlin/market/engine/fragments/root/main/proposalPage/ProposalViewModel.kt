@@ -47,6 +47,9 @@ class ProposalViewModel: BaseViewModel() {
                     apiService.getProposal(offerId)
                 }
                 withContext(Dispatchers.Main) {
+                    if (!response.success) {
+                        throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+                    }
                     val serializer = BodyListPayload.serializer(Proposals.serializer())
                     val payload: BodyListPayload<Proposals> =
                         deserializePayload(response.payload, serializer)

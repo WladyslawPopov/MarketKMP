@@ -66,9 +66,12 @@ class OfferViewModel(
                     val serializer = ListSerializer(Offer.serializer())
                     deserializePayload(response.payload, serializer).firstOrNull()
                 }
-                offer?.let {
-                    _responseOffer.value = it
-                    initializeOfferData(it, isSnapshot)
+                offer?.let { data ->
+                    val res = offerOperations.getOperationsOffer(data.id)
+                    val buf = res.success
+                    _responseOffer.value = data
+                    _responseOffer.value?.isProposalEnabled = buf?.find { it.id == "make_proposal" } != null
+                    initializeOfferData(data, isSnapshot)
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))

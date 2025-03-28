@@ -69,7 +69,7 @@ class DefaultProposalComponent(
                 proposalViewModel.body.value = body
             },
             error = {
-                goBack()
+
             }
         )
     }

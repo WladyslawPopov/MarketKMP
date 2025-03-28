@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
@@ -74,18 +72,18 @@ fun UserPanel(
         }
 
         Column(
-            modifier = modifier.fillMaxWidth().padding(dimens.smallPadding).wrapContentHeight(),
+            modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.Top),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header row with user details
-            FlowRow(
+            Row(
                 modifier = userMod,
-                verticalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally)
             ) {
                 Row(
-                    modifier = Modifier.wrapContentSize().padding(dimens.extraSmallPadding),
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
                 ) {
@@ -101,7 +99,7 @@ fun UserPanel(
                     }
 
                     Column(
-                        modifier = Modifier.weight(1f, fill = false),
+                        modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {

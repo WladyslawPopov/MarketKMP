@@ -231,7 +231,7 @@ fun MyProposalItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(dimens.smallPadding),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SimpleTextButton(
@@ -246,11 +246,11 @@ fun MyProposalItem(
                     },
                     textStyle = MaterialTheme.typography.labelSmall,
                     backgroundColor = colors.steelBlue,
-                    textColor = colors.alwaysWhite
+                    textColor = colors.alwaysWhite,
+                    modifier = Modifier.weight(1f)
                 ) {
                     goToProposal(if(offer.sellerData?.id == UserData.login) ProposalType.ACT_ON_PROPOSAL else ProposalType.MAKE_PROPOSAL)
                 }
-
 
                 SimpleTextButton(
                     stringResource(strings.writeSellerLabel),
@@ -265,7 +265,8 @@ fun MyProposalItem(
                     },
                     textStyle = MaterialTheme.typography.labelSmall,
                     backgroundColor = colors.steelBlue,
-                    textColor = colors.alwaysWhite
+                    textColor = colors.alwaysWhite,
+                    modifier = Modifier.weight(1f)
                 ) {
                     showMesDialog.value = true
                 }

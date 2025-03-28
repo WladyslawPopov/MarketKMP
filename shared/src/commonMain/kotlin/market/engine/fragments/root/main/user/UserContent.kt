@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
@@ -23,6 +26,7 @@ import kotlinx.coroutines.flow.collectLatest
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ReportPageType
@@ -117,14 +121,14 @@ fun UserContent(
         Column {
             AnimatedVisibility(
                 isVisibleUserPanel.value,
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                modifier = Modifier.background(colors.white).fillMaxWidth().wrapContentHeight(),
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
                 val errorString = remember { mutableStateOf("") }
 
                 UserPanel(
-                    modifier = Modifier.background(colors.white).fillMaxWidth().wrapContentHeight(),
+                    modifier = Modifier.wrapContentSize().align(Alignment.CenterHorizontally).padding(dimens.mediumPadding),
                     user = user.value,
                     updateTrigger = userViewModel.updateItemTrigger.value,
                     goToUser = null,

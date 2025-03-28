@@ -144,7 +144,7 @@ fun OfferContent(
 
     val scaffoldState = rememberBottomSheetScaffoldState()
 
-    val goToBids = 11
+    val goToBids = 6
 
     val focusManager = LocalFocusManager.current
 
@@ -270,7 +270,7 @@ fun OfferContent(
                     LazyColumn(
                         state = stateColumn,
                         modifier = Modifier.background(color = colors.primaryColor)
-                            .fillMaxSize()
+                            .wrapContentHeight()
                             .pointerInput(Unit) {
                                 detectTapGestures(onTap = {
                                     isShowOptions.value = false
@@ -286,7 +286,7 @@ fun OfferContent(
                                 modifier = Modifier
                                     .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  }
                                     .fillMaxWidth()
-                                    .height(if(isBigScreen) 600.dp else 300.dp)
+                                    .height(if(isBigScreen) 500.dp else 300.dp)
                                     .zIndex(6f),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -584,7 +584,7 @@ fun OfferContent(
                                 // seller panel
                                 if (offer.sellerData != null && !isMyOffer.value) {
                                     Column(
-                                        modifier = Modifier.weight(1f, !isBigScreen).wrapContentHeight(),
+                                        modifier = Modifier.weight(1f, false),
                                         horizontalAlignment = Alignment.Start,
                                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                     ) {
@@ -598,8 +598,7 @@ fun OfferContent(
                                                     MaterialTheme.shapes.medium
                                                 )
                                                 .clip(MaterialTheme.shapes.medium)
-                                                .weight(1f)
-                                                .wrapContentHeight(),
+                                                .fillMaxSize(),
                                             offer.sellerData,
                                             updateTrigger = offerViewModel.updateItemTrigger.value,
                                             goToUser = {
@@ -702,7 +701,7 @@ fun OfferContent(
                                         }
 
                                         //make proposal to seller
-                                        if (offer.isProposalEnabled && (offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now")) {
+                                        if (offer.isProposalEnabled) {
                                             ProposalToSeller(
                                                 isMyOffer.value,
                                             ) {
@@ -819,15 +818,16 @@ fun OfferContent(
 
                                 //payment and delivery
                                 if (offerState.value != OfferStates.PROTOTYPE) {
+                                    val mod = remember { if(!isBigScreen) Modifier.fillMaxWidth() else Modifier.weight(1f, false) }
                                     PaymentAndDeliverySection(
                                         offer.dealTypes,
                                         offer.paymentMethods,
                                         offer.deliveryMethods,
-                                        Modifier.weight(1f, isBigScreen)
+                                        mod
                                     )
                                     //Parameters
                                     offer.params?.let {
-                                        ParametersSection(it, Modifier.weight(1f, isBigScreen))
+                                        ParametersSection(it, mod)
                                     }
                                 }
                             }
@@ -1075,7 +1075,6 @@ fun AuctionPriceLayout(
 
     Row(
         modifier = modifier
-            .fillMaxSize()
             .background(colors.white, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
             .padding(dimens.mediumPadding),
@@ -1104,7 +1103,7 @@ fun AuctionPriceLayout(
 
         // Your maximum bid
         Column(
-            modifier = Modifier.weight(1f).padding(dimens.smallPadding),
+            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.Top)
         ) {
@@ -1121,7 +1120,7 @@ fun AuctionPriceLayout(
                     label = stringResource(strings.yourBidLabel),
                     keyboardType = KeyboardType.Number,
                     placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
-                    modifier = Modifier.width(200.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Text(
@@ -1161,8 +1160,8 @@ fun BuyNowPriceLayout(
                 .background(colors.white,MaterialTheme.shapes.medium)
                 .clip(MaterialTheme.shapes.medium)
                 .padding(dimens.mediumPadding),
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.Top),
+            horizontalAlignment = Alignment.Start
         ) {
             Row(
                 modifier = Modifier.padding(vertical = dimens.smallPadding),
@@ -1205,6 +1204,7 @@ fun BuyNowPriceLayout(
             }
 
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {

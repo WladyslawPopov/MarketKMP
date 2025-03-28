@@ -39,7 +39,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.checkValidation
@@ -587,6 +586,8 @@ fun getBody(
             fieldsState.value = viewModel.getFieldsProposal(offerId, buyerId, proposalType)
             viewModel.rememberFields.value.remove(buyerId)
             viewModel.rememberFields.value[buyerId] = fieldsState.value
+        }else{
+            fieldsState.value?.find { it.key == "quantity" }?.data = JsonPrimitive(1)
         }
     }
 
