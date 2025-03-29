@@ -67,10 +67,7 @@ class OfferViewModel(
                     deserializePayload(response.payload, serializer).firstOrNull()
                 }
                 offer?.let { data ->
-                    val res = offerOperations.getOperationsOffer(data.id)
-                    val buf = res.success
                     _responseOffer.value = data
-                    _responseOffer.value?.isProposalEnabled = buf?.find { it.id == "make_proposal" } != null
                     initializeOfferData(data, isSnapshot)
                 }
             } catch (e: Exception) {
@@ -143,6 +140,11 @@ class OfferViewModel(
                                 OfferStates.PROTOTYPE
                             }
                             offer.state == "active" -> {
+                                val res = offerOperations.getOperationsOffer(offer.id)
+                                val buf = res.success
+
+                                _responseOffer.value?.isProposalEnabled = buf?.find { it.id == "make_proposal" } != null
+
                                 analyticsHelper.reportEvent("view_item", eventParameters)
                                 when {
                                     (offer.session?.start?.toLongOrNull()

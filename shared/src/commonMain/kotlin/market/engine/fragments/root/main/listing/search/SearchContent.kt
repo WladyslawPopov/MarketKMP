@@ -162,7 +162,7 @@ fun SearchContent(
                     },
                     onUpdateHistory = {
                         searchString.value = it
-                        searchViewModel.getHistory(searchString.value)
+                        searchViewModel.getHistory(it)
                     },
                     openSearch = openSearch,
                     onBeakClick = {

@@ -13,3 +13,8 @@ fun Offer.getOfferImagePreview(): String {
     }
 }
 
+fun String.cleanSearchString(): String {
+    return this.replace(Regex("[^a-zA-Zа-яА-Я0-9]"), "_")
+}
+
+

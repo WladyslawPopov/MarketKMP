@@ -51,9 +51,9 @@ fun SearchTextField(
 
     TextField(
         value = search.value,
-        onValueChange = {
-            search.value = it
-            onUpdateHistory(it.text)
+        onValueChange = { newValue ->
+            search.value = newValue
+            onUpdateHistory(newValue.text)
         },
         placeholder = {
             Text(

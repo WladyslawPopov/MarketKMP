@@ -5,6 +5,7 @@ import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.utils.cleanSearchString
 import market.engine.core.utils.getCurrentDate
 
 class UrlBuilder {
@@ -37,7 +38,7 @@ class UrlBuilder {
                     queryParams["filter_${counter}_value"] = searchData.userID.toString()
 
                     if (searchData.searchString.isNotEmpty()) {
-                        val search = replaceSpecialCharacters(searchData.searchString)
+                        val search = searchData.searchString.cleanSearchString()
                         if (search != "") {
                             counter++
                             queryParams["filter_${counter}_key"] = "search"
@@ -46,14 +47,14 @@ class UrlBuilder {
                     }
                 } else {
                     if (searchData.userLogin != null) {
-                        val s = replaceSpecialCharacters(searchData.userLogin.toString())
+                        val s = searchData.userLogin.toString().cleanSearchString()
                         if (s != "") {
                             queryParams["filter_${counter}_key"] = "seller_login"
                             queryParams["filter_${counter}_value"] = s
                         }
 
                         if (searchData.searchString.isNotEmpty()) {
-                            val search = replaceSpecialCharacters(searchData.searchString)
+                            val search = searchData.searchString.cleanSearchString()
                             if (search != "") {
                                 counter++
                                 queryParams["filter_${counter}_key"] = "search"
@@ -73,7 +74,7 @@ class UrlBuilder {
                 counter++
             }else {
                 if (searchData.searchString.isNotEmpty()) {
-                    val search = replaceSpecialCharacters(searchData.searchString)
+                    val search = searchData.searchString.cleanSearchString()
                     if (search != "") {
                         queryParams["filter_${counter}_key"] = "search"
                         queryParams["filter_${counter}_value"] = search
@@ -117,7 +118,7 @@ class UrlBuilder {
                     }
                     queryParams["filter_${counter}_key"] = it.key
                     if (it.value != "") {
-                        queryParams["filter_${counter}_value"] = it.value
+                        queryParams["filter_${counter}_value"] = it.value.cleanSearchString()
                     }
                     val operation = it.operation
                     if (operation != null && it.key != "category") {
@@ -142,11 +143,6 @@ class UrlBuilder {
 
         return this
     }
-
-    private fun replaceSpecialCharacters(input: String): String {
-        return input.replace(Regex("[^a-zA-Zа-яА-Я0-9]"), "_")
-    }
-
 
     fun build(): String {
         val path = pathSegments.joinToString("/")
