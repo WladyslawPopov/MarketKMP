@@ -30,9 +30,7 @@ kotlin {
     iosSimulatorArm64()
     jvm()
 
-
     sourceSets {
-
         commonMain.dependencies {
             implementation(libs.zoomable)
             implementation(compose.ui)
@@ -124,5 +122,3 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
 }
-
-

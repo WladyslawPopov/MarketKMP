@@ -9,7 +9,6 @@ import market.engine.core.data.items.DeepLink
 fun parseDeepLink(fullPath: String): DeepLink? {
     val uri = fullPath.toUri()
     val path = uri.pathSegments.firstOrNull()
-    printLogD("DeepLink", path.toString())
     return when (path) {
         "user" -> {
             uri.pathLongId()?.let { DeepLink.GoToUser(it) }

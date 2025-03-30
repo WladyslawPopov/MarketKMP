@@ -2,11 +2,9 @@ package market.engine.fragments.base
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,58 +29,52 @@ fun showNoItemLayout(
     image : DrawableResource = drawables.notFoundListingIcon,
     title: String = stringResource(strings.notFoundListingTitle),
     textButton: String = stringResource(strings.refreshButton),
-    modifier: Modifier = Modifier.fillMaxSize().background(colors.primaryColor),
+    modifier: Modifier = Modifier.background(color = colors.primaryColor).fillMaxSize(),
     onRefresh: () -> Unit
 ) {
-    Box(
+    Column(
         modifier = modifier,
-        contentAlignment = Alignment.Center
-    ){
-        Column {
-            when{
-                icon != null -> {
-                    Icon(
-                        painterResource(icon),
-                        contentDescription = null,
-                        modifier = Modifier.size(90.dp).align(Alignment.CenterHorizontally),
-                        tint = colors.textA0AE
-                    )
-                }
-                else -> {
-                    Image(
-                        painterResource(image),
-                        contentDescription = null,
-                        modifier = Modifier.size(200.dp).align(Alignment.CenterHorizontally),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
-            Text(
-                text = title,
-                textAlign = TextAlign.Center,
-                color = colors.darkBodyTextColor,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            Spacer(modifier = Modifier.height(dimens.mediumSpacer))
-
-            TextButton(
-                onClick = {
-                    onRefresh()
-                },
-                colors = colors.themeButtonColors,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                shape = MaterialTheme.shapes.small
-            ){
-                Text(
-                    text = textButton,
-                    textAlign = TextAlign.Center,
-                    color = colors.black
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(dimens.mediumSpacer)
+    ) {
+        when {
+            icon != null -> {
+                Icon(
+                    painterResource(icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(90.dp),
+                    tint = colors.textA0AE
                 )
             }
+
+            else -> {
+                Image(
+                    painterResource(image),
+                    contentDescription = null,
+                    modifier = Modifier.size(200.dp),
+                )
+            }
+        }
+
+        Text(
+            text = title,
+            textAlign = TextAlign.Center,
+            color = colors.darkBodyTextColor,
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        TextButton(
+            onClick = {
+                onRefresh()
+            },
+            colors = colors.themeButtonColors,
+            shape = MaterialTheme.shapes.small
+        ) {
+            Text(
+                text = textButton,
+                textAlign = TextAlign.Center,
+                color = colors.black
+            )
         }
     }
 }

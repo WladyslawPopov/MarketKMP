@@ -1,7 +1,31 @@
 package market.engine.core.utils
 
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
+
+fun<T> deserializePayload(
+    jsonElement: JsonElement?,
+    serializer: KSerializer<T>
+): T {
+    if (jsonElement != null) {
+        try {
+            val json = Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+                encodeDefaults = true
+            }
+            return json.decodeFromJsonElement(serializer, jsonElement)
+        } catch (e: Exception) {
+            throw ServerErrorException(e.message.toString(), "")
+        }
+    } else {
+        throw ServerErrorException("empty_payload", "empty payload!")
+    }
+}
 
 fun Offer.getOfferImagePreview(): String {
     return when {

@@ -15,7 +15,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.utils.deserializePayload
 import market.engine.core.data.types.OfferStates
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel

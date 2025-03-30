@@ -36,7 +36,7 @@ import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerResponse
@@ -160,8 +160,14 @@ open class BaseViewModel: ViewModel() {
 
     fun updateUserInfo(){
         viewModelScope.launch {
-            userRepository.updateToken()
-            userRepository.updateUserInfo()
+            try {
+                userRepository.updateToken()
+                userRepository.updateUserInfo()
+            }  catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
+            }
         }
     }
 

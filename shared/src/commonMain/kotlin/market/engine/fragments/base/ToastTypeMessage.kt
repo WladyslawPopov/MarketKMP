@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,16 +32,20 @@ fun ToastTypeMessage(
     val state = rememberRichTextState()
     state.setHtml(message)
 
-    val icon = when (toastType) {
-        ToastType.SUCCESS -> painterResource(drawables.successIcon)
-        ToastType.ERROR -> painterResource(drawables.closeBtn)
-        ToastType.WARNING -> painterResource(drawables.warningIcon)
+    val icon = remember {
+        when (toastType) {
+            ToastType.SUCCESS -> drawables.successIcon
+            ToastType.ERROR -> drawables.closeBtn
+            ToastType.WARNING -> drawables.warningIcon
+        }
     }
 
-    val color = when (toastType) {
-        ToastType.SUCCESS -> colors.positiveGreen
-        ToastType.ERROR -> colors.negativeRed
-        ToastType.WARNING -> colors.yellowSun
+    val color = remember {
+        when (toastType) {
+            ToastType.SUCCESS -> colors.positiveGreen
+            ToastType.ERROR -> colors.negativeRed
+            ToastType.WARNING -> colors.yellowSun
+        }
     }
 
     Box(
@@ -62,7 +67,7 @@ fun ToastTypeMessage(
             horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.Start)
         ) {
             Icon(
-                painter = icon,
+                painter = painterResource(icon),
                 contentDescription = null,
                 modifier = Modifier.sizeIn(minWidth = 60.dp, maxWidth = 80.dp),
                 tint = color

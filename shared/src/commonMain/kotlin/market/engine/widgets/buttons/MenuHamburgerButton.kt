@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -26,33 +27,36 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MenuHamburgerButton(
     drawerState: DrawerState,
+    showMenu: Boolean? = null,
     modifier: Modifier = Modifier,
+    openMenu : ((CoroutineScope) -> Unit)? = null
 ) {
     val scope = rememberCoroutineScope()
-    fun openMenu() {
-        scope.launch {
-            if (drawerState.currentValue == DrawerValue.Closed) {
-                drawerState.open()
-            }else{
-                drawerState.close()
-            }
-        }
-    }
 
     IconButton(
         modifier = modifier,
         onClick = {
-            openMenu()
+            if (openMenu == null) {
+                scope.launch {
+                    if (drawerState.currentValue == DrawerValue.Closed) {
+                        drawerState.open()
+                    } else {
+                        drawerState.close()
+                    }
+                }
+            }else {
+                openMenu(scope)
+            }
         }
     ){
         AnimatedContent(
-            targetState = drawerState.isAnimationRunning,
+            targetState = showMenu ?: drawerState.isAnimationRunning,
             transitionSpec = {
                 fadeIn(animationSpec = tween(200)) togetherWith
                         fadeOut(animationSpec = tween(200))
             }
         ) { _ ->
-            if (drawerState.isOpen) {
+            if (showMenu ?: drawerState.isOpen) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(strings.menuTitle),

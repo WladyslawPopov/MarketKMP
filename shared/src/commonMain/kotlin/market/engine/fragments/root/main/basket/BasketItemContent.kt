@@ -83,10 +83,11 @@ fun BasketItemContent(
                         isSelected = selectedOffers.value.size == bodes.size,
                         onSelectionChange = { checked ->
                             selectedOffers.value = if (checked) {
-                                bodes.mapNotNull { it }.map { offer ->
+                                bodes.filter { it?.safeDeal == true }.mapNotNull { it }.map { offer ->
                                     SelectedBasketItem(
                                         offerId = offer.id,
-                                        pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
+                                        pricePerItem = offer.currentPricePerItem?.toDouble()
+                                            ?: 0.0,
                                         selectedQuantity = 1
                                     )
                                 }

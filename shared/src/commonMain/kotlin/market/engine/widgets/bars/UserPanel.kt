@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -68,7 +69,7 @@ fun UserPanel(
                 .clickable { goToUser() }
                 .padding(dimens.smallPadding)
         }else{
-            Modifier
+            Modifier.fillMaxWidth()
         }
 
         Column(
@@ -207,136 +208,147 @@ fun UserPanel(
                     }
                 }
             }
-            // Buttons
-            Row(
-                modifier = Modifier.weight(1f, false),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
-                // Button: "All Offers"
-                SimpleTextButton(
-                    text = stringResource(strings.allOffers),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
-                    onClick = goToAllLots
-                )
-                // Button: "About Me"
-                SimpleTextButton(
-                    text = stringResource(strings.aboutMeLabel),
-                    backgroundColor = colors.steelBlue,
-                    textColor = colors.alwaysWhite,
-                    onClick = goToAboutMe
-                )
-                if (user.followersCount != null) {
-                    val subLabel = if (UserData.login == user.id){
-                        stringResource(strings.subscribersLabel)
-                    }else{
-                        stringResource(strings.subscriptionsLabel)
-                    }
-
-                    FlowRow(
-                        modifier = Modifier
-                            .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
-                            .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
-                            .clip(MaterialTheme.shapes.small)
-                            .clickable {
-                                if (UserData.login == user.id){
-                                    goToSubscriptions()
-                                }else {
-                                    addToSubscriptions()
-                                }
-                            }
-                            .padding(dimens.smallPadding),
-                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, alignment = Alignment.CenterVertically),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, alignment = Alignment.CenterHorizontally)
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(dimens.extraSmallPadding),
-                            text = subLabel,
-                            color = colors.black,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-
-                        Row(
-                            modifier = Modifier.background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
-                                .padding(dimens.extraSmallPadding),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                        ) {
-                            Icon(
-                                painterResource(drawables.vectorManSubscriptionIcon),
-                                contentDescription = null,
-                                tint = colors.alwaysWhite,
-                            )
-                            Text(
-                                text = user.followersCount.toString(),
-                                color = colors.alwaysWhite,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                }else{
-                    SmallIconButton(
-                        drawables.subscriptionIcon,
-                        color = colors.brightGreen
-                    ){
-                        addToSubscriptions()
-                    }
-                }
-            }
-
-            // Check if the user is in the black list
-            // Status annotation display based on the list type
-            isBlackList.forEach { status ->
+            if(goToUser != null) {
+                // Buttons
                 Row(
-                    modifier = Modifier
-                        .clickable {
-                            when (status) {
-                                "blacklist_sellers" -> goToSettings("add_to_seller_blacklist") // Blacklist sellers action
-                                "blacklist_buyers" -> goToSettings("add_to_buyer_blacklist") // Blacklist buyers action
-                                "whitelist_buyers" -> goToSettings("add_to_whitelist" ) // Whitelist buyers action
-                            }
-                        }.weight(1f, false).padding(dimens.mediumPadding),
+                    modifier = Modifier,
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
-                    Icon(
-                        painter = painterResource(drawables.infoIcon),
-                        contentDescription = null,
-                        tint = when (status) {
-                            "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
-                            "whitelist_buyers" -> colors.actionTextColor
-                            else -> colors.notifyTextColor
-                        },
-                        modifier = Modifier.size(dimens.smallIconSize)
+                    // Button: "All Offers"
+                    SimpleTextButton(
+                        text = stringResource(strings.allOffers),
+                        backgroundColor = colors.inactiveBottomNavIconColor,
+                        onClick = goToAllLots
                     )
-                    Text(
-                        text = buildAnnotatedString {
-                            append(stringResource(strings.publicBlockUserLabel))
-                            append(" ")
-                            withStyle(
-                                style = SpanStyle(
-                                    color = colors.black,
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = FontStyle.Italic
-                                )
-                            ) {
-                                append(
-                                    when (status) {
-                                        "blacklist_sellers" -> stringResource(strings.blackListUserLabel)
-                                        "blacklist_buyers" -> stringResource(strings.blackListUserLabel)
-                                        "whitelist_buyers" -> stringResource(strings.whiteListUserLabel)
-                                        else -> ""
+                    // Button: "About Me"
+                    SimpleTextButton(
+                        text = stringResource(strings.aboutMeLabel),
+                        backgroundColor = colors.steelBlue,
+                        textColor = colors.alwaysWhite,
+                        onClick = goToAboutMe
+                    )
+                    if (user.followersCount != null) {
+                        val subLabel = if (UserData.login == user.id) {
+                            stringResource(strings.subscribersLabel)
+                        } else {
+                            stringResource(strings.subscriptionsLabel)
+                        }
+
+                        FlowRow(
+                            modifier = Modifier
+                                .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
+                                .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
+                                .clip(MaterialTheme.shapes.small)
+                                .clickable {
+                                    if (UserData.login == user.id) {
+                                        goToSubscriptions()
+                                    } else {
+                                        addToSubscriptions()
                                     }
+                                }
+                                .padding(dimens.smallPadding),
+                            verticalArrangement = Arrangement.spacedBy(
+                                dimens.smallPadding,
+                                alignment = Alignment.CenterVertically
+                            ),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                dimens.extraSmallPadding,
+                                alignment = Alignment.CenterHorizontally
+                            )
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(dimens.extraSmallPadding),
+                                text = subLabel,
+                                color = colors.black,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+
+                            Row(
+                                modifier = Modifier.background(
+                                    colors.brightGreen,
+                                    shape = MaterialTheme.shapes.medium
+                                )
+                                    .padding(dimens.extraSmallPadding),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                Icon(
+                                    painterResource(drawables.vectorManSubscriptionIcon),
+                                    contentDescription = null,
+                                    tint = colors.alwaysWhite,
+                                )
+                                Text(
+                                    text = user.followersCount.toString(),
+                                    color = colors.alwaysWhite,
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
                             }
-                        },
-                        color = when (status) {
-                            "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
-                            "whitelist_buyers" -> colors.actionTextColor
-                            else -> colors.notifyTextColor
-                        },
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                    )
+                        }
+                    } else {
+                        SmallIconButton(
+                            drawables.subscriptionIcon,
+                            color = colors.brightGreen
+                        ) {
+                            addToSubscriptions()
+                        }
+                    }
+                }
+
+                // Check if the user is in the black list
+                // Status annotation display based on the list type
+                isBlackList.forEach { status ->
+                    Row(
+                        modifier = Modifier
+                            .clickable {
+                                when (status) {
+                                    "blacklist_sellers" -> goToSettings("add_to_seller_blacklist") // Blacklist sellers action
+                                    "blacklist_buyers" -> goToSettings("add_to_buyer_blacklist") // Blacklist buyers action
+                                    "whitelist_buyers" -> goToSettings("add_to_whitelist" ) // Whitelist buyers action
+                                }
+                            }.padding(dimens.mediumPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    ) {
+                        Icon(
+                            painter = painterResource(drawables.infoIcon),
+                            contentDescription = null,
+                            tint = when (status) {
+                                "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
+                                "whitelist_buyers" -> colors.actionTextColor
+                                else -> colors.notifyTextColor
+                            },
+                            modifier = Modifier.size(dimens.smallIconSize)
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                append(stringResource(strings.publicBlockUserLabel))
+                                append(" ")
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = colors.black,
+                                        fontWeight = FontWeight.Bold,
+                                        fontStyle = FontStyle.Italic
+                                    )
+                                ) {
+                                    append(
+                                        when (status) {
+                                            "blacklist_sellers" -> stringResource(strings.blackListUserLabel)
+                                            "blacklist_buyers" -> stringResource(strings.blackListUserLabel)
+                                            "whitelist_buyers" -> stringResource(strings.whiteListUserLabel)
+                                            else -> ""
+                                        }
+                                    )
+                                }
+                            },
+                            color = when (status) {
+                                "blacklist_sellers", "blacklist_buyers" -> colors.notifyTextColor
+                                "whitelist_buyers" -> colors.actionTextColor
+                                else -> colors.notifyTextColor
+                            },
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
                 }
             }
 
@@ -351,7 +363,6 @@ fun UserPanel(
                                 goToSettings("set_vacation")
                             }
                         }
-                        .weight(1f, false)
                         .padding(dimens.mediumPadding)
                 ) {
                     val vacationMessage = buildAnnotatedString {
@@ -401,25 +412,26 @@ fun UserPanel(
                 }
             }
 
-            //registration date
-            Column(
-                modifier = Modifier.weight(1f, false),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
-            ) {
-                Text(
-                    stringResource(strings.createdUserLabel) + " " +
-                            user.createdTs.toString().convertDateWithMinutes(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.black
-                )
+            if(goToUser != null) {
+                //registration date
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
+                ) {
+                    Text(
+                        stringResource(strings.createdUserLabel) + " " +
+                                user.createdTs.toString().convertDateWithMinutes(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.black
+                    )
 
-                Text(
-                    stringResource(strings.lastActiveUserLabel) + " " +
-                            user.lastActiveTs.toString().convertDateWithMinutes(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.black
-                )
+                    Text(
+                        stringResource(strings.lastActiveUserLabel) + " " +
+                                user.lastActiveTs.toString().convertDateWithMinutes(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.black
+                    )
+                }
             }
         }
     }

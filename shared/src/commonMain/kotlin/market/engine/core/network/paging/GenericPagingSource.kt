@@ -7,9 +7,9 @@ import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.UrlBuilder
 import market.engine.core.network.APIService
+import market.engine.core.utils.deserializePayload
 
 open class GenericPagingSource<T : Any>(
     private val apiService: APIService,

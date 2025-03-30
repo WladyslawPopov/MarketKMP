@@ -7,6 +7,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.CoroutineScope
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.MenuHamburgerButton
@@ -17,7 +18,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ConversationsAppBar(
     modifier: Modifier = Modifier,
-    drawerState: DrawerState
+    drawerState: DrawerState,
+    showMenu : Boolean? = null,
+    openMenu : ((CoroutineScope) -> Unit)? = null,
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -28,7 +31,9 @@ fun ConversationsAppBar(
         ) ,
         navigationIcon = {
             MenuHamburgerButton(
-                drawerState
+                drawerState = drawerState,
+                openMenu = openMenu,
+                showMenu = showMenu
             )
         },
         modifier = modifier

@@ -14,7 +14,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.UrlBuilder
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
 

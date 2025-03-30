@@ -13,7 +13,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.PayloadExistence
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.utils.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive

@@ -1,6 +1,9 @@
 package market.engine.fragments.root.main.profile.navigation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
@@ -17,6 +20,7 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
@@ -42,49 +46,86 @@ fun ProfileMyOffersNavigation(
     modifier: Modifier,
     publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if(isBigScreen) DrawerValue.Open else DrawerValue.Closed)
+
+    val hideDrawer = remember { mutableStateOf(isBigScreen) }
+
+    val content : @Composable (Modifier) -> Unit = { mod ->
+            val select = remember {
+                mutableStateOf(LotsType.MYLOT_UNACTIVE)
+            }
+            Column(
+                modifier = mod
+            ) {
+                MyOffersAppBar(
+                    select.value,
+                    drawerState = drawerState,
+                    showMenu = hideDrawer.value,
+                    openMenu = if (isBigScreen) {
+                        {
+                            hideDrawer.value = !hideDrawer.value
+                        }
+                    }else{
+                        null
+                    },
+                    navigationClick = { newType ->
+                        component.selectOfferPage(newType)
+                    }
+                )
+
+                ChildPages(
+                    pages = component.myOffersPages,
+                    scrollAnimation = PagesScrollAnimation.Default,
+                    onPageSelected = {
+                        select.value = when (it) {
+                            0 -> LotsType.MYLOT_ACTIVE
+                            1 -> LotsType.MYLOT_UNACTIVE
+                            2 -> LotsType.MYLOT_FUTURE
+                            else -> {
+                                LotsType.MYLOT_ACTIVE
+                            }
+                        }
+                        component.selectOfferPage(select.value)
+                    }
+                ) { _, page ->
+                    MyOffersContent(
+                        component = page,
+                        modifier = modifier
+                    )
+                }
+            }
+        }
 
     ModalNavigationDrawer(
         modifier = modifier,
         drawerState = drawerState,
         drawerContent = {
-            ProfileDrawer(stringResource(strings.myOffersTitle), publicProfileNavigationItems.value)
-        },
-        gesturesEnabled = drawerState.isOpen,
-    ) {
-        val select = remember {
-            mutableStateOf(LotsType.MYLOT_UNACTIVE)
-        }
-        Column {
-
-            MyOffersAppBar(
-                select.value,
-                drawerState = drawerState,
-                navigationClick = { newType->
-                    component.selectOfferPage(newType)
-                }
-            )
-
-            ChildPages(
-                pages = component.myOffersPages,
-                scrollAnimation = PagesScrollAnimation.Default,
-                onPageSelected = {
-                    select.value = when(it){
-                        0 -> LotsType.MYLOT_ACTIVE
-                        1 -> LotsType.MYLOT_UNACTIVE
-                        2 -> LotsType.MYLOT_FUTURE
-                        else -> {
-                            LotsType.MYLOT_ACTIVE
-                        }
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isBigScreen) {
+                    AnimatedVisibility(hideDrawer.value) {
+                        ProfileDrawer(
+                            stringResource(strings.myOffersTitle),
+                            publicProfileNavigationItems.value
+                        )
                     }
-                    component.selectOfferPage(select.value)
+                }else{
+                    ProfileDrawer(
+                        stringResource(strings.myOffersTitle),
+                        publicProfileNavigationItems.value
+                    )
                 }
-            ) { _, page ->
-                MyOffersContent(
-                    component = page,
-                    modifier = modifier
-                )
+
+                if (isBigScreen) {
+                   content(Modifier.weight(1f))
+                }
             }
+        },
+        gesturesEnabled = drawerState.isOpen && !isBigScreen,
+    ) {
+        if(!isBigScreen) {
+            content(Modifier.fillMaxWidth())
         }
     }
 }

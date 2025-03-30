@@ -3,7 +3,7 @@ package market.engine.fragments.root.main.home
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -2,11 +2,9 @@ package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
@@ -36,47 +34,31 @@ fun ProfileNavContent(
     list: List<NavigationItem>,
     activeTitle: String? = null,
     goToSettings: ((String) -> Unit)? = null,
-    goToAllLots: (() -> Unit)? = null,
-    goToAboutMe: (() -> Unit)? = null,
-    goToSubscriptions: (() -> Unit)? = null,
 ) {
-    val userInfo = UserData.userInfo
-
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if(goToAllLots != null || goToAboutMe != null || goToSubscriptions != null) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    UserPanel(
-                        modifier = Modifier.weight(1f, false).padding(dimens.mediumPadding),
-                        userInfo,
-                        updateTrigger = 1,
-                        goToUser = null,
-                        goToAllLots = {
-                            goToAllLots?.invoke()
-                        },
-                        goToAboutMe = {
-                            goToAboutMe?.invoke()
-                        },
-                        addToSubscriptions = {
+        item {
+            UserPanel(
+                modifier = Modifier.wrapContentSize().padding(dimens.mediumPadding),
+                UserData.userInfo,
+                updateTrigger = 1,
+                goToUser = null,
+                addToSubscriptions = {
 
-                        },
-                        goToSubscriptions = {
-                            goToSubscriptions?.invoke()
-                        },
-                        goToSettings = {
-                            goToSettings?.invoke(it)
-                        },
-                        isBlackList = arrayListOf()
-                    )
-                }
-            }
+                },
+                goToSettings = {
+                    goToSettings?.invoke(it)
+                },
+                goToSubscriptions = {},
+                goToAboutMe = {},
+                goToAllLots = {},
+                isBlackList = arrayListOf()
+            )
         }
+
         itemsIndexed(list) { _, item ->
             val showLogoutDialog = remember { mutableStateOf(false) }
             if (item.isVisible) {
@@ -143,8 +125,6 @@ fun ProfileNavContent(
                         }
                     )
                 }
-
-                Spacer(modifier = Modifier.height(dimens.smallPadding))
             }
         }
     }

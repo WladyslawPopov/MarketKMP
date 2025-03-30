@@ -43,26 +43,26 @@ class UserRepository(
     suspend fun updateUserInfo(){
         val res = userOperations.getUsers(login)
         if (res.success != null){
-                val newInfo = res.success?.firstOrNull()
-                if (newInfo != null){
-                    if (newInfo.markedAsDeleted){
-                        //delete screenshots
-                        removeShortcuts()
-                        delete()
-                    }else{
-                        val userProfileAttributes = mapOf(
-                            "name" to newInfo.login,
-                            "gender" to newInfo.gender,
-                            "userRating" to newInfo.rating?.toDouble(),
-                            "userVerified" to newInfo.isVerified,
-                        )
-                        analyticsHelper.setUserProfileID(newInfo.id.toString())
-                        analyticsHelper.updateUserProfile(userProfileAttributes)
+            val newInfo = res.success?.firstOrNull()
+            if (newInfo != null){
+                if (newInfo.markedAsDeleted){
+                    //delete screenshots
+                    removeShortcuts()
+                    delete()
+                }else{
+                    val userProfileAttributes = mapOf(
+                        "name" to newInfo.login,
+                        "gender" to newInfo.gender,
+                        "userRating" to newInfo.rating?.toDouble(),
+                        "userVerified" to newInfo.isVerified,
+                    )
+                    analyticsHelper.setUserProfileID(newInfo.id.toString())
+                    analyticsHelper.updateUserProfile(userProfileAttributes)
 
-                        UserData.updateUserInfo(newInfo)
-                    }
+                    UserData.updateUserInfo(newInfo)
                 }
             }
+        }
     }
 
 }

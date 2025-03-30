@@ -15,6 +15,7 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
@@ -228,7 +229,7 @@ class DefaultMainComponent(
     override val childProfileStack: Value<ChildStack<*, ChildProfile>> by lazy {
         childStack(
             source = modelNavigation.value.profileNavigation,
-            initialConfiguration = ProfileConfig.ProfileScreen(openPage = openPage),
+            initialConfiguration = if(isBigScreen) ProfileConfig.MyOffersScreen else ProfileConfig.ProfileScreen(openPage = openPage),
             serializer = ProfileConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
@@ -393,14 +394,14 @@ class DefaultMainComponent(
                 }else{
                     if(activeCurrent == "Profile"){
                         modelNavigation.value.profileNavigation.replaceAll(
-                            ProfileConfig.ProfileScreen(openPage)
+                            if(isBigScreen) ProfileConfig.MyOffersScreen else ProfileConfig.ProfileScreen(openPage)
                         )
                     }
                     activeCurrent = "Profile"
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
                     if(openPage != null) {
                         modelNavigation.value.profileNavigation.replaceAll(
-                            ProfileConfig.ProfileScreen(openPage)
+                            if(isBigScreen) ProfileConfig.MyOffersScreen else ProfileConfig.ProfileScreen(openPage)
                         )
                     }
                 }

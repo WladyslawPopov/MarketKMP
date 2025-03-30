@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.profile.conversations
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
@@ -57,6 +59,8 @@ fun ConversationsContent(
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     val updateFilters = remember { mutableStateOf(0) }
+
+    val hideDrawer = remember { mutableStateOf(isBigScreen) }
 
     val refresh = {
         viewModel.resetScroll()
@@ -112,19 +116,20 @@ fun ConversationsContent(
         component.onBack()
     }
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if(isBigScreen) DrawerValue.Open else DrawerValue.Closed)
 
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            ProfileDrawer(stringResource(strings.messageTitle), publicProfileNavigationItems.value)
-        },
-        gesturesEnabled = drawerState.isOpen,
-    ) {
+    val content : @Composable (Modifier) -> Unit = {
         BaseContent(
             topBar = {
                 ConversationsAppBar(
+                    showMenu = hideDrawer.value,
+                    openMenu = if (isBigScreen) {
+                        {
+                            hideDrawer.value = !hideDrawer.value
+                        }
+                    }else{
+                        null
+                    },
                     drawerState = drawerState,
                     modifier = modifier
                 )
@@ -252,6 +257,40 @@ fun ConversationsContent(
                     }
                 }
             )
+        }
+    }
+
+    ModalNavigationDrawer(
+        modifier = modifier,
+        drawerState = drawerState,
+        drawerContent = {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isBigScreen) {
+                    AnimatedVisibility(hideDrawer.value) {
+                        ProfileDrawer(
+                            stringResource(strings.messageTitle),
+                            publicProfileNavigationItems.value
+                        )
+                    }
+                }else {
+                    ProfileDrawer(
+                        stringResource(strings.myOffersTitle),
+                        publicProfileNavigationItems.value
+                    )
+                }
+
+                if (isBigScreen) {
+                    content(Modifier.weight(1f))
+                }
+            }
+
+        },
+        gesturesEnabled = drawerState.isOpen,
+    ) {
+        if(!isBigScreen) {
+            content(Modifier.fillMaxWidth())
         }
     }
 }

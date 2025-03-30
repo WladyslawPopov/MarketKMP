@@ -131,7 +131,9 @@ fun UserContent(
                     modifier = Modifier.wrapContentSize().align(Alignment.CenterHorizontally).padding(dimens.mediumPadding),
                     user = user.value,
                     updateTrigger = userViewModel.updateItemTrigger.value,
-                    goToUser = null,
+                    goToUser = {
+                        isVisibleUserPanel.value = !isVisibleUserPanel.value
+                    },
                     goToAllLots = {
                         if (user.value != null) {
                             component.selectAllOffers(user.value!!)

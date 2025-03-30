@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,13 +32,12 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.data.types.WindowType
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getOfferImagePreview
-import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
@@ -187,14 +187,13 @@ fun contentStructure(
     updateTrigger : Int,
 ){
     val imageSize =
-        if (getWindowType() == WindowType.Big){
-            if (isGrid) 300.dp else 400.dp
+        if (isBigScreen){
+            300.dp
         } else {
-            if (isGrid) 250.dp else 180.dp
+            if (isGrid) 250.dp else 165.dp
         }
-
     Box(
-        modifier = Modifier.padding(dimens.extraSmallPadding),
+        modifier = Modifier.wrapContentHeight().padding(dimens.smallPadding),
     ) {
         LoadImage(
             url = offer.getOfferImagePreview(),

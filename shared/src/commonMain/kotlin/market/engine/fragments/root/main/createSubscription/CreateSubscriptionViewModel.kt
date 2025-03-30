@@ -18,7 +18,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.utils.deserializePayload
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 

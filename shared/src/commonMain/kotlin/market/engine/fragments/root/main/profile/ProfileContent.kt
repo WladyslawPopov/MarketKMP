@@ -41,15 +41,6 @@ fun ProfileContent(
    ) {
        ProfileNavContent(
            publicProfileNavigationItems.value,
-           goToAllLots = {
-               component.goToAllMyOfferListing()
-           },
-           goToAboutMe = {
-               component.goToAboutMe()
-           },
-           goToSubscriptions = {
-                component.goToSubscribe()
-           },
            goToSettings = {
                component.goToSettings(it)
            }

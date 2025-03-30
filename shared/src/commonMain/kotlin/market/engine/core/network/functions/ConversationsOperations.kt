@@ -4,7 +4,7 @@ package market.engine.core.network.functions
 import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Conversations
-import market.engine.core.network.networkObjects.deserializePayload
+import market.engine.core.utils.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonObject
 

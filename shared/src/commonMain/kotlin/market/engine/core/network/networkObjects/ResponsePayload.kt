@@ -1,10 +1,7 @@
 package market.engine.core.network.networkObjects
 
-import kotlinx.serialization.KSerializer
-import market.engine.core.network.ServerErrorException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
 
@@ -15,27 +12,6 @@ data class AppResponse(
     @SerialName("payload") val payload: JsonElement? = null,
     @SerialName("human_message") val humanMessage: String? = null,
 )
-
-fun<T> deserializePayload(
-    jsonElement: JsonElement?,
-    serializer: KSerializer<T>
-): T {
-    if (jsonElement != null) {
-        try {
-            val json = Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-                encodeDefaults = true
-            }
-            return json.decodeFromJsonElement(serializer, jsonElement)
-        } catch (e: Exception) {
-            throw ServerErrorException(e.message.toString(), "")
-        }
-    } else {
-        throw ServerErrorException("empty_payload", "empty payload!")
-    }
-}
-
 
 @Serializable
 data class Payload<T>(

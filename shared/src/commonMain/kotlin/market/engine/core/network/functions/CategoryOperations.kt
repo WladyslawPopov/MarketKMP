@@ -9,8 +9,8 @@ import market.engine.core.network.UrlBuilder
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.RegionOptions
-import market.engine.core.network.networkObjects.deserializePayload
 import market.engine.core.network.APIService
+import market.engine.core.utils.deserializePayload
 
 
 class CategoryOperations(private val apiService : APIService) {
