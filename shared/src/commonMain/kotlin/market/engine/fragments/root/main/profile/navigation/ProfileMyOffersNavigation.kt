@@ -51,50 +51,51 @@ fun ProfileMyOffersNavigation(
     val hideDrawer = remember { mutableStateOf(isBigScreen) }
 
     val content : @Composable (Modifier) -> Unit = { mod ->
-            val select = remember {
-                mutableStateOf(LotsType.MYLOT_UNACTIVE)
-            }
-            Column(
-                modifier = mod
-            ) {
-                MyOffersAppBar(
-                    select.value,
-                    drawerState = drawerState,
-                    showMenu = hideDrawer.value,
-                    openMenu = if (isBigScreen) {
-                        {
-                            hideDrawer.value = !hideDrawer.value
-                        }
-                    }else{
-                        null
-                    },
-                    navigationClick = { newType ->
-                        component.selectOfferPage(newType)
-                    }
-                )
+        val select = remember {
+            mutableStateOf(LotsType.MYLOT_UNACTIVE)
+        }
 
-                ChildPages(
-                    pages = component.myOffersPages,
-                    scrollAnimation = PagesScrollAnimation.Default,
-                    onPageSelected = {
-                        select.value = when (it) {
-                            0 -> LotsType.MYLOT_ACTIVE
-                            1 -> LotsType.MYLOT_UNACTIVE
-                            2 -> LotsType.MYLOT_FUTURE
-                            else -> {
-                                LotsType.MYLOT_ACTIVE
-                            }
-                        }
-                        component.selectOfferPage(select.value)
+        Column(
+            modifier = mod
+        ) {
+            MyOffersAppBar(
+                select.value,
+                drawerState = drawerState,
+                showMenu = hideDrawer.value,
+                openMenu = if (isBigScreen) {
+                    {
+                        hideDrawer.value = !hideDrawer.value
                     }
-                ) { _, page ->
-                    MyOffersContent(
-                        component = page,
-                        modifier = modifier
-                    )
+                }else{
+                    null
+                },
+                navigationClick = { newType ->
+                    component.selectOfferPage(newType)
                 }
+            )
+
+            ChildPages(
+                pages = component.myOffersPages,
+                scrollAnimation = PagesScrollAnimation.Default,
+                onPageSelected = {
+                    select.value = when (it) {
+                        0 -> LotsType.MYLOT_ACTIVE
+                        1 -> LotsType.MYLOT_UNACTIVE
+                        2 -> LotsType.MYLOT_FUTURE
+                        else -> {
+                            LotsType.MYLOT_ACTIVE
+                        }
+                    }
+                    component.selectOfferPage(select.value)
+                }
+            ) { _, page ->
+                MyOffersContent(
+                    component = page,
+                    modifier = modifier
+                )
             }
         }
+    }
 
     ModalNavigationDrawer(
         modifier = modifier,

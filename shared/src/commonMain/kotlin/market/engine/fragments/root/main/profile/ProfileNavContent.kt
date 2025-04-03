@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +26,7 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.dialogs.LogoutDialog
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.items.getNavigationItem
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -35,8 +35,9 @@ fun ProfileNavContent(
     activeTitle: String? = null,
     goToSettings: ((String) -> Unit)? = null,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
+    val showLogoutDialog = remember { mutableStateOf(false) }
+
+    LazyColumnWithScrollBars(
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -60,9 +61,7 @@ fun ProfileNavContent(
         }
 
         itemsIndexed(list) { _, item ->
-            val showLogoutDialog = remember { mutableStateOf(false) }
             if (item.isVisible) {
-
                 getNavigationItem(
                     item,
                     label = {
@@ -113,18 +112,20 @@ fun ProfileNavContent(
                     },
                     isSelected = item.title == activeTitle
                 )
+            }
+        }
 
-                if(showLogoutDialog.value) {
-                    LogoutDialog(
-                        showLogoutDialog.value,
-                        onDismiss = {
-                            showLogoutDialog.value = false
-                        },
-                        goToLogin = {
-                            item.onClick()
-                        }
-                    )
-                }
+        item {
+            if(showLogoutDialog.value) {
+                LogoutDialog(
+                    showLogoutDialog.value,
+                    onDismiss = {
+                        showLogoutDialog.value = false
+                    },
+                    goToLogin = {
+                        list.find { it.icon == drawables.logoutIcon }?.onClick?.invoke()
+                    }
+                )
             }
         }
     }

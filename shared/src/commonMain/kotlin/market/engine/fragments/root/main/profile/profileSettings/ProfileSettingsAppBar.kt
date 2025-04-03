@@ -7,6 +7,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.CoroutineScope
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.MenuHamburgerButton
@@ -20,6 +21,8 @@ fun ProfileSettingsAppBar(
     currentTab : Int,
     modifier: Modifier = Modifier,
     drawerState: DrawerState,
+    showMenu : Boolean? = null,
+    openMenu : ((CoroutineScope) -> Unit)? = null,
     navigationClick : (Int) -> Unit,
 ) {
     val tabs = listOf(
@@ -37,7 +40,9 @@ fun ProfileSettingsAppBar(
         ) ,
         navigationIcon = {
             MenuHamburgerButton(
-                drawerState
+                drawerState,
+                showMenu = showMenu,
+                openMenu = openMenu
             )
         },
         modifier = modifier

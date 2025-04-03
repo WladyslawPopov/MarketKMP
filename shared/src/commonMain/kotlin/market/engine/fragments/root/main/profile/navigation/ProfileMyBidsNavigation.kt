@@ -1,6 +1,9 @@
 package market.engine.fragments.root.main.profile.navigation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
@@ -18,6 +21,7 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.LotsType
@@ -43,24 +47,26 @@ fun ProfileMyBidsNavigation(
     modifier: Modifier,
     publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if(isBigScreen) DrawerValue.Open else DrawerValue.Closed)
 
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            ProfileDrawer(stringResource(strings.myBidsTitle), publicProfileNavigationItems.value)
-        },
-        gesturesEnabled = drawerState.isOpen,
-    ) {
+    val hideDrawer = remember { mutableStateOf(isBigScreen) }
+
+    val content : @Composable (Modifier) -> Unit = {
         val select = remember {
             mutableStateOf(LotsType.MYBIDLOTS_ACTIVE)
         }
         Column {
-
             MyBidsAppBar(
                 select.value,
                 drawerState = drawerState,
+                showMenu = hideDrawer.value,
+                openMenu = if (isBigScreen) {
+                    {
+                        hideDrawer.value = !hideDrawer.value
+                    }
+                }else{
+                    null
+                },
                 navigationClick = { newType->
                     component.selectOfferPage(newType)
                 }
@@ -85,6 +91,39 @@ fun ProfileMyBidsNavigation(
                     modifier = modifier
                 )
             }
+        }
+    }
+
+    ModalNavigationDrawer(
+        modifier = modifier,
+        drawerState = drawerState,
+        drawerContent = {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isBigScreen) {
+                    AnimatedVisibility(hideDrawer.value) {
+                        ProfileDrawer(
+                            stringResource(strings.myBidsTitle),
+                            publicProfileNavigationItems.value
+                        )
+                    }
+                }else{
+                    ProfileDrawer(
+                        stringResource(strings.myBidsTitle),
+                        publicProfileNavigationItems.value
+                    )
+                }
+
+                if (isBigScreen) {
+                    content(Modifier.weight(1f))
+                }
+            }
+        },
+        gesturesEnabled = drawerState.isOpen && !isBigScreen,
+    ) {
+        if(!isBigScreen) {
+            content(Modifier.fillMaxWidth())
         }
     }
 }

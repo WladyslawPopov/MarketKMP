@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,6 +40,8 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.widgets.bars.PagingCounterBar
+import market.engine.widgets.rows.LazyColumnWithScrollBars
+import market.engine.widgets.rows.LazyRowWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -83,23 +83,24 @@ fun <T : Any> BoxScope.PagingList(
                 state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
     }
 
-    LazyColumn(
+    LazyColumnWithScrollBars(
         state = state,
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         horizontalAlignment = Alignment.Start,
+        contentPadding = dimens.smallPadding,
         reverseLayout = isReversingPaging,
-        modifier = Modifier
+        modifierList = Modifier
             .fillMaxSize()
             .align(align)
-            .padding(horizontal = dimens.smallPadding)
-    ) {
+    ){
         if (!promoList.isNullOrEmpty() && promoContent != null) {
             item {
-                LazyRow(
-                    modifier = Modifier.height(250.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                LazyRowWithScrollBars(
+                    heightMod = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp),
                     horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
-                ) {
+                ){
                     items(promoList) { offer ->
                         promoContent(offer)
                     }
@@ -130,17 +131,17 @@ fun <T : Any> BoxScope.PagingList(
         }
 
         items(data.itemCount, key = { index ->
-                when (val item = data.peek(index)) {
-                    is DialogsData.MessageItem -> "msg_${item.id}_$index"
-                    is DialogsData.SeparatorItem -> "separator_${item.dateTime}_$index"
-                    is Offer -> "offer_${item.id}_$index"
-                    is Order -> "order_${item.id}_$index"
-                    is Conversations -> "conv_${item.id}_$index"
-                    is Dialog -> "dialog_${item.id}_$index"
-                    is Subscription -> "sub_${item.id}_$index"
-                    else -> "unknown_$index"
-                }
+            when (val item = data.peek(index)) {
+                is DialogsData.MessageItem -> "msg_${item.id}_$index"
+                is DialogsData.SeparatorItem -> "separator_${item.dateTime}_$index"
+                is Offer -> "offer_${item.id}_$index"
+                is Order -> "order_${item.id}_$index"
+                is Conversations -> "conv_${item.id}_$index"
+                is Dialog -> "dialog_${item.id}_$index"
+                is Subscription -> "sub_${item.id}_$index"
+                else -> "unknown_$index"
             }
+        }
         ) { index ->
             if (promoContent != null && searchData?.userSearch == false && searchData.searchString.isEmpty()) {
                 if (index > 0) {

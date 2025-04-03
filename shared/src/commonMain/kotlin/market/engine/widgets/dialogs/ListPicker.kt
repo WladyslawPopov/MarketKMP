@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
@@ -34,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 
 @Composable
 fun rememberPickerState() = remember { PickerState() }
@@ -84,11 +84,11 @@ fun ListPicker(
     }
 
     Box(modifier = modifier) {
-        LazyColumn(
+        LazyColumnWithScrollBars(
             state = listState,
-            flingBehavior = flingBehavior,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
+            flingBehavior = flingBehavior,
+            heightMod = Modifier
                 .fillMaxWidth()
                 .height(itemHeightDp * visibleItemsCount)
                 .fadingEdge(fadingEdgeGradient)

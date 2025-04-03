@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -32,6 +31,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.functions.OrderOperations
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -87,10 +87,10 @@ fun CommentDialog(
                 )
             },
             text = {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 500.dp),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                LazyColumnWithScrollBars(
+                    heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    horizontalAlignment = Alignment.Start
                 ) {
                     item {
                         if (orderType >= 0) {
@@ -177,7 +177,6 @@ fun CommentDialog(
                             singleLine = false
                         )
                     }
-
                 }
             },
             containerColor = colors.white,

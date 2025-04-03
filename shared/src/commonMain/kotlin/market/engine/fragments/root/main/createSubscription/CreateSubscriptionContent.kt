@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -32,6 +36,7 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
@@ -189,86 +194,96 @@ fun CreateSubscriptionContent(
                 },
                 contentAlignment = Alignment.TopCenter
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(dimens.mediumPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    val items = responseGetPage.value?.fields
-                    if (items != null) {
-                        items(
-                            items.size,
-                            key = { items[it].key ?: it }
-                        ) { index ->
-                            val field = items[index]
-                            when (field.widgetType) {
-                                "input" -> {
-                                    if (field.key == "category_id"){
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Start,
-                                            modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.mediumPadding)
-                                        ){
-                                            FilterButton(
-                                                selectedCategory.value,
-                                                color = if(selectedCategoryID.value == 1L)
-                                                    colors.simpleButtonColors else colors.themeButtonColors,
-                                                onClick = {
-                                                    openBottomSheet.value = !openBottomSheet.value
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+                    modifier = Modifier.pointerInput(Unit){
+                        detectTapGestures {
+                            focusManager.clearFocus()
+                        }
+                    }.fillMaxSize().padding(dimens.mediumPadding),
+                    userScrollEnabled = true,
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.smallPadding,
+                        Alignment.CenterHorizontally
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    content = {
+                        val items = responseGetPage.value?.fields
+                        if (items != null) {
+                            items(
+                                items.size,
+                                key = { items[it].key ?: it }
+                            ) { index ->
+                                val field = items[index]
+                                when (field.widgetType) {
+                                    "input" -> {
+                                        if (field.key == "category_id"){
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.mediumPadding)
+                                            ){
+                                                FilterButton(
+                                                    selectedCategory.value,
+                                                    color = if(selectedCategoryID.value == 1L)
+                                                        colors.simpleButtonColors else colors.themeButtonColors,
+                                                    onClick = {
+                                                        openBottomSheet.value = !openBottomSheet.value
 
-                                                    searchData.value.run {
-                                                        searchCategoryName = selectedCategory.value
-                                                        searchCategoryID = selectedCategoryID.value
-                                                        searchParentID = searchCategoryID
-                                                    }
+                                                        searchData.value.run {
+                                                            searchCategoryName = selectedCategory.value
+                                                            searchCategoryID = selectedCategoryID.value
+                                                            searchParentID = searchCategoryID
+                                                        }
 
-                                                    viewModel.openFiltersCat.value = true
-                                                },
-                                                onCancelClick =
-                                                    if (selectedCategoryID.value != 1L) {
-                                                        clear
-                                                    }else{
-                                                        null
-                                                    }
-                                            )
+                                                        viewModel.openFiltersCat.value = true
+                                                    },
+                                                    onCancelClick =
+                                                        if (selectedCategoryID.value != 1L) {
+                                                            clear
+                                                        }else{
+                                                            null
+                                                        }
+                                                )
+                                            }
+                                        }else{
+                                            DynamicInputField(field)
                                         }
-                                    }else{
-                                        DynamicInputField(field)
+                                    }
+                                    "checkbox" -> {
+                                        DynamicCheckbox(field)
+                                    }
+                                    "select" -> {
+                                        DynamicSelect(field)
+                                    }
+                                    "checkbox_group" -> {
+                                        DynamicCheckboxGroup(field)
+                                    }
+                                    else -> {
+
                                     }
                                 }
-                                "checkbox" -> {
-                                    DynamicCheckbox(field)
-                                }
-                                "select" -> {
-                                    DynamicSelect(field)
-                                }
-                                "checkbox_group" -> {
-                                    DynamicCheckboxGroup(field)
-                                }
-                                else -> {
+                            }
+                        }
 
+                        item {
+                            AcceptedPageButton(
+                                if (model.value.editId == null)
+                                    strings.createNewSubscriptionTitle
+                                else
+                                    strings.editLabel,
+                                Modifier.align(Alignment.BottomCenter)
+                                    .wrapContentWidth()
+                                    .padding(dimens.mediumPadding),
+                                enabled = !isLoading.value
+                            ) {
+                                viewModel.postPage(model.value.editId){
+                                    component.onBackClicked()
                                 }
                             }
                         }
                     }
-
-                    item {
-                        AcceptedPageButton(
-                            if (model.value.editId == null)
-                                strings.createNewSubscriptionTitle
-                            else
-                                strings.editLabel,
-                            Modifier.align(Alignment.BottomCenter)
-                                .wrapContentWidth()
-                                .padding(dimens.mediumPadding),
-                            enabled = !isLoading.value
-                        ) {
-                            viewModel.postPage(model.value.editId){
-                                component.onBackClicked()
-                            }
-                        }
-                    }
-                }
+                )
 
                 Spacer(modifier = Modifier.height(dimens.mediumSpacer))
             }

@@ -1,12 +1,9 @@
 package market.engine.fragments.root.main.basket
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +28,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -144,92 +142,88 @@ fun BasketContent(
         toastItem = viewModel.toastItem,
         modifier = Modifier.fillMaxSize()
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumnWithScrollBars(
+            modifierList = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            state = state,
+            contentPadding = dimens.smallPadding
+        ) {
+            items(userBasket.value.size, key = { userBasket.value[it].first?.id ?: it }) { index ->
+                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+                BasketItemContent(
+                    userBasket.value[index],
+                    goToUser = { userId ->
+                        component.goToUser(userId)
+                    },
+                    goToOffer = { offerId ->
+                        component.goToOffer(offerId)
+                    },
+                    changeQuantity = { offerId, quantity ->
+                        val bodyAddB = HashMap<String, String>()
+                        bodyAddB["offer_id"] = offerId.toString()
+                        bodyAddB["quantity"] = quantity.toString()
 
-            LazyColumn(
-                state = state,
-                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = dimens.smallPadding)
-            ) {
-                items(userBasket.value.size, key = { userBasket.value[it].first?.id ?: it }) { index ->
-                    Spacer(modifier = Modifier.height(dimens.smallSpacer))
-                    BasketItemContent(
-                        userBasket.value[index],
-                        goToUser = { userId ->
-                            component.goToUser(userId)
-                        },
-                        goToOffer = { offerId ->
-                            component.goToOffer(offerId)
-                        },
-                        changeQuantity = { offerId, quantity ->
-                            val bodyAddB = HashMap<String,String>()
-                            bodyAddB["offer_id"] = offerId.toString()
-                            bodyAddB["quantity"] = quantity.toString()
+                        viewModel.addOfferToBasket(bodyAddB, offerId)
+                    },
+                    deleteOffer = { offerId ->
+                        listOffers.value = buildList {
+                            add(offerId)
+                        }
+                    },
+                    clearUserOffers = { offers ->
+                        listOffers.value = buildList {
+                            addAll(offers)
+                        }
+                    },
+                    goToCreateOrder = {
+                        component.goToCreateOrder(it)
+                    },
+                    baseViewModel = viewModel
+                )
+            }
+        }
 
-                            viewModel.addOfferToBasket(bodyAddB, offerId)
-                        },
-                        deleteOffer = { offerId ->
-                            listOffers.value = buildList {
-                                add(offerId)
-                            }
-                        },
-                        clearUserOffers = { offers ->
-                            listOffers.value = buildList {
-                                addAll(offers)
-                            }
-                        },
-                        goToCreateOrder = {
-                            component.goToCreateOrder(it)
-                        },
-                        baseViewModel = viewModel
+        AccessDialog(
+            listOffers.value.isNotEmpty(),
+            if (listOffers.value.size == 1) {
+                stringResource(strings.warningDeleteOfferBasket)
+            } else {
+                stringResource(strings.warningDeleteSelectedOfferFromBasket)
+            },
+            onDismiss = {
+                listOffers.value = emptyList()
+            },
+            onSuccess = {
+                val offerIds = arrayListOf<JsonPrimitive>()
+
+                listOffers.value.forEach {
+                    offerIds.add(JsonPrimitive(it))
+                }
+
+                val jsonArray = JsonArray(offerIds)
+
+                val body = JsonObject(
+                    mapOf(
+                        "offer_ids" to jsonArray
+                    )
+                )
+
+                viewModel.deleteItem(
+                    body,
+                    userBasket.value.find { pair ->
+                        pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
+                    }?.second?.find { it?.id == listOffers.value.firstOrNull() },
+                    userBasket.value.find { pair ->
+                        pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
+                    }?.first?.id ?: 1L
+                ) {
+                    refresh()
+                    listOffers.value = emptyList()
+                    viewModel.showToast(
+                        successToastItem.copy(message = successToast)
                     )
                 }
             }
-
-            AccessDialog(
-                listOffers.value.isNotEmpty(),
-                if (listOffers.value.size == 1){
-                    stringResource(strings.warningDeleteOfferBasket)
-                }else{
-                    stringResource(strings.warningDeleteSelectedOfferFromBasket)
-                },
-                onDismiss = {
-                    listOffers.value = emptyList()
-                },
-                onSuccess = {
-                    val offerIds = arrayListOf<JsonPrimitive>()
-
-                    listOffers.value.forEach {
-                        offerIds.add(JsonPrimitive(it))
-                    }
-
-                    val jsonArray = JsonArray(offerIds)
-
-                    val body = JsonObject(
-                        mapOf(
-                            "offer_ids" to jsonArray
-                        )
-                    )
-
-                    viewModel.deleteItem(
-                        body,
-                        userBasket.value.find { pair ->
-                            pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
-                        }?.second?.find { it?.id == listOffers.value.firstOrNull() },
-                        userBasket.value.find { pair ->
-                            pair.second.find { it?.id == listOffers.value.firstOrNull() } != null
-                        }?.first?.id ?: 1L
-                    ){
-                        refresh()
-                        listOffers.value = emptyList()
-                        viewModel.showToast(
-                            successToastItem.copy(message = successToast)
-                        )
-                    }
-                }
-            )
-        }
+        )
     }
 }

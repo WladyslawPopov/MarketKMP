@@ -49,12 +49,7 @@ fun MyOffersContent(
     val searchData = viewModel.listingData.value.searchData
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
-
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-    val windowClass = getWindowType()
-    val isBigScreen = windowClass == WindowType.Big
-
-    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
     val successToast = stringResource(strings.operationSuccess)
     val updateFilters = remember { mutableStateOf(0) }
@@ -145,7 +140,6 @@ fun MyOffersContent(
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            columns = columns,
             listingData = listingData.value,
             searchData = searchData.value,
             data = data,
@@ -216,7 +210,7 @@ fun MyOffersContent(
                 AnimatedVisibility(checkItemSession, enter = fadeIn(), exit = fadeOut()) {
                     OfferItem(
                         offer,
-                        isGrid = (columns.value > 1),
+                        isGrid = false,
                         baseViewModel = viewModel,
                         goToCreateOffer = { type ->
                             component.goToCreateOffer(type, offer.id, offer.catpath)

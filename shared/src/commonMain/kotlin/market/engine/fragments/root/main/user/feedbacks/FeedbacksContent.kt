@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.user.feedbacks
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -39,12 +37,14 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.bars.PagingCounterBar
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -142,7 +142,6 @@ fun FeedbacksContent(
         }
     }
 
-
     LaunchedEffect(state.firstVisibleItemIndex){
         val isAtTop = currentIndex < 3
         onScrollDirectionChange(isAtTop)
@@ -164,7 +163,7 @@ fun FeedbacksContent(
     Column {
         AnimatedVisibility (model.type != ReportPageType.ABOUT_ME) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 getDropdownMenu(
@@ -215,14 +214,7 @@ fun FeedbacksContent(
             },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(
-                    state = state,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = dimens.smallPadding)
-                        .animateContentSize()
-                ) {
+                LazyColumnWithScrollBars{
                     when {
                         error != null -> item { error?.invoke() }
                         noItem != null -> item { noItem?.invoke() }
@@ -269,6 +261,7 @@ fun FeedbacksContent(
                         }
                     }
                 }
+
                 if (listingData.value.totalCount > 0) {
                     PagingCounterBar(
                         currentPage = currentIndex,

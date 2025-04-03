@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -28,12 +27,14 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.stringResource
 
@@ -76,8 +77,8 @@ fun VerificationContent(
         toastItem = viewModel.toastItem,
         error = error
     ) {
-        LazyColumn(
-            modifier = Modifier.pointerInput(Unit){
+        LazyColumnWithScrollBars(
+            modifierList = Modifier.pointerInput(Unit){
                 detectTapGestures {
                     focusManager.clearFocus()
                 }
@@ -87,7 +88,7 @@ fun VerificationContent(
         ) {
             item {
                 when(settingsType) {
-                     "set_password" -> {
+                    "set_password" -> {
                         DynamicLabel(
                             stringResource(strings.verificationSmsLabel),
                             true
@@ -99,7 +100,7 @@ fun VerificationContent(
 
 
                         Column(
-                            modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                            modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.mediumPadding),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
@@ -141,7 +142,7 @@ fun VerificationContent(
                             }
                         }
                     }
-                     "set_phone" -> {
+                    "set_phone" -> {
                         DynamicLabel(
                             stringResource(strings.htmlVerifyLabel),
                             false
@@ -153,7 +154,7 @@ fun VerificationContent(
 
 
                         Column(
-                            modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                            modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.mediumPadding),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
@@ -195,73 +196,73 @@ fun VerificationContent(
                             }
                         }
                     }
-                      else -> {
-                          if (model.owner != null && model.code != null && viewModel.action.value == "change_email") {
-                              DynamicLabel(
-                                  stringResource(strings.verificationSmsLabel),
-                                  true
-                              )
+                    else -> {
+                        if (model.owner != null && model.code != null && viewModel.action.value == "change_email") {
+                            DynamicLabel(
+                                stringResource(strings.verificationSmsLabel),
+                                true
+                            )
 
-                              val textState = remember {
-                                  mutableStateOf("")
-                              }
-
-
-                              Column(
-                                  modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
-                                  horizontalAlignment = Alignment.CenterHorizontally,
-                                  verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                              ) {
-                                  TextField(
-                                      value = textState.value,
-                                      onValueChange = {
-                                          textState.value = it
-                                      },
-                                      singleLine = true,
-                                      shape = MaterialTheme.shapes.medium,
-                                      colors = TextFieldDefaults.colors(
-                                          focusedTextColor = colors.black,
-                                          unfocusedTextColor = colors.black,
-
-                                          focusedContainerColor = colors.white,
-                                          unfocusedContainerColor = colors.white,
-
-                                          focusedIndicatorColor = colors.transparent,
-                                          unfocusedIndicatorColor = colors.transparent,
-                                          disabledIndicatorColor = colors.transparent,
-                                          errorIndicatorColor = colors.transparent,
-
-                                          errorContainerColor = colors.white,
-
-                                          focusedPlaceholderColor = colors.steelBlue,
-                                          unfocusedPlaceholderColor = colors.steelBlue,
-                                          disabledPlaceholderColor = colors.transparent
-                                      ),
-                                      textStyle = MaterialTheme.typography.titleSmall,
-                                  )
-                              }
+                            val textState = remember {
+                                mutableStateOf("")
+                            }
 
 
-                              AcceptedPageButton(
-                                  strings.actionChangeLabel
-                              ) {
-                                  viewModel.postSetEmail(textState.value) {
-                                      component.onBack()
-                                  }
-                              }
-                          } else {
-                              viewModel.viewModelScope.launch {
-                                  delay(2000)
-                                  withContext(Dispatchers.Main) {
-                                      if (viewModel.action.value == "login" && UserData.token == "") {
-                                          goToLogin(true)
-                                      } else {
-                                          component.onBack()
-                                      }
-                                  }
-                              }
-                          }
-                      }
+                            Column(
+                                modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.mediumPadding),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                TextField(
+                                    value = textState.value,
+                                    onValueChange = {
+                                        textState.value = it
+                                    },
+                                    singleLine = true,
+                                    shape = MaterialTheme.shapes.medium,
+                                    colors = TextFieldDefaults.colors(
+                                        focusedTextColor = colors.black,
+                                        unfocusedTextColor = colors.black,
+
+                                        focusedContainerColor = colors.white,
+                                        unfocusedContainerColor = colors.white,
+
+                                        focusedIndicatorColor = colors.transparent,
+                                        unfocusedIndicatorColor = colors.transparent,
+                                        disabledIndicatorColor = colors.transparent,
+                                        errorIndicatorColor = colors.transparent,
+
+                                        errorContainerColor = colors.white,
+
+                                        focusedPlaceholderColor = colors.steelBlue,
+                                        unfocusedPlaceholderColor = colors.steelBlue,
+                                        disabledPlaceholderColor = colors.transparent
+                                    ),
+                                    textStyle = MaterialTheme.typography.titleSmall,
+                                )
+                            }
+
+
+                            AcceptedPageButton(
+                                strings.actionChangeLabel
+                            ) {
+                                viewModel.postSetEmail(textState.value) {
+                                    component.onBack()
+                                }
+                            }
+                        } else {
+                            viewModel.viewModelScope.launch {
+                                delay(2000)
+                                withContext(Dispatchers.Main) {
+                                    if (viewModel.action.value == "login" && UserData.token == "") {
+                                        goToLogin(true)
+                                    } else {
+                                        component.onBack()
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

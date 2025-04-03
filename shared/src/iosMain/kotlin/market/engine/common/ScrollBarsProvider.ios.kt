@@ -9,14 +9,16 @@ actual class ScrollBarsProvider {
     @Composable
     actual fun getVerticalScrollbar(
         scrollState: Any,
-        modifier: Modifier
+        modifier: Modifier,
+        isReversed: Boolean
     ) {
     }
 
     @Composable
     actual fun getHorizontalScrollbar(
         scrollState: Any,
-        modifier: Modifier
+        modifier: Modifier,
+        isReversed: Boolean
     ) {
     }
 }

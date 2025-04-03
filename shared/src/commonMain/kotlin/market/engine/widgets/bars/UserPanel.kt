@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -54,7 +53,7 @@ fun UserPanel(
     modifier: Modifier,
     user: User?,
     updateTrigger: Int,
-    goToUser: (() -> Unit) ?= null,
+    goToUser: (() -> Unit)? = null,
     goToAllLots: () -> Unit,
     goToAboutMe: () -> Unit,
     addToSubscriptions: () -> Unit,
@@ -69,13 +68,13 @@ fun UserPanel(
                 .clickable { goToUser() }
                 .padding(dimens.smallPadding)
         }else{
-            Modifier.fillMaxWidth()
+            Modifier.padding(dimens.smallPadding)
         }
 
-        Column(
+        FlowRow(
             modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.Top),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally)
         ) {
             // Header row with user details
             Row(
@@ -84,7 +83,7 @@ fun UserPanel(
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally)
             ) {
                 Row(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f, false),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
                 ) {
@@ -100,7 +99,6 @@ fun UserPanel(
                     }
 
                     Column(
-                        modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -208,93 +206,124 @@ fun UserPanel(
                     }
                 }
             }
+
             if(goToUser != null) {
-                // Buttons
-                Row(
-                    modifier = Modifier,
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                Column(
+                    modifier = Modifier.padding(dimens.smallPadding),
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Button: "All Offers"
-                    SimpleTextButton(
-                        text = stringResource(strings.allOffers),
-                        backgroundColor = colors.inactiveBottomNavIconColor,
-                        onClick = goToAllLots
-                    )
-                    // Button: "About Me"
-                    SimpleTextButton(
-                        text = stringResource(strings.aboutMeLabel),
-                        backgroundColor = colors.steelBlue,
-                        textColor = colors.alwaysWhite,
-                        onClick = goToAboutMe
-                    )
-                    if (user.followersCount != null) {
-                        val subLabel = if (UserData.login == user.id) {
-                            stringResource(strings.subscribersLabel)
-                        } else {
-                            stringResource(strings.subscriptionsLabel)
-                        }
+                    // Buttons
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    ) {
+                        // Button: "All Offers"
+                        SimpleTextButton(
+                            text = stringResource(strings.allOffers),
+                            backgroundColor = colors.inactiveBottomNavIconColor,
+                            onClick = goToAllLots
+                        )
+                        // Button: "About Me"
+                        SimpleTextButton(
+                            text = stringResource(strings.aboutMeLabel),
+                            backgroundColor = colors.steelBlue,
+                            textColor = colors.alwaysWhite,
+                            onClick = goToAboutMe
+                        )
+                        if (user.followersCount != null) {
+                            val subLabel = if (UserData.login == user.id) {
+                                stringResource(strings.subscribersLabel)
+                            } else {
+                                stringResource(strings.subscriptionsLabel)
+                            }
 
-                        FlowRow(
-                            modifier = Modifier
-                                .shadow(dimens.smallElevation, shape = MaterialTheme.shapes.small)
-                                .background(colors.grayLayout, shape = MaterialTheme.shapes.small)
-                                .clip(MaterialTheme.shapes.small)
-                                .clickable {
-                                    if (UserData.login == user.id) {
-                                        goToSubscriptions()
-                                    } else {
-                                        addToSubscriptions()
+                            FlowRow(
+                                modifier = Modifier
+                                    .shadow(
+                                        dimens.smallElevation,
+                                        shape = MaterialTheme.shapes.small
+                                    )
+                                    .background(
+                                        colors.grayLayout,
+                                        shape = MaterialTheme.shapes.small
+                                    )
+                                    .clip(MaterialTheme.shapes.small)
+                                    .clickable {
+                                        if (UserData.login == user.id) {
+                                            goToSubscriptions()
+                                        } else {
+                                            addToSubscriptions()
+                                        }
                                     }
-                                }
-                                .padding(dimens.smallPadding),
-                            verticalArrangement = Arrangement.spacedBy(
-                                dimens.smallPadding,
-                                alignment = Alignment.CenterVertically
-                            ),
-                            horizontalArrangement = Arrangement.spacedBy(
-                                dimens.extraSmallPadding,
-                                alignment = Alignment.CenterHorizontally
-                            )
-                        ) {
-                            Text(
-                                modifier = Modifier.padding(dimens.extraSmallPadding),
-                                text = subLabel,
-                                color = colors.black,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-
-                            Row(
-                                modifier = Modifier.background(
-                                    colors.brightGreen,
-                                    shape = MaterialTheme.shapes.medium
+                                    .padding(dimens.smallPadding),
+                                verticalArrangement = Arrangement.spacedBy(
+                                    dimens.smallPadding,
+                                    alignment = Alignment.CenterVertically
+                                ),
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    dimens.extraSmallPadding,
+                                    alignment = Alignment.CenterHorizontally
                                 )
-                                    .padding(dimens.extraSmallPadding),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                             ) {
-                                Icon(
-                                    painterResource(drawables.vectorManSubscriptionIcon),
-                                    contentDescription = null,
-                                    tint = colors.alwaysWhite,
-                                )
                                 Text(
-                                    text = user.followersCount.toString(),
-                                    color = colors.alwaysWhite,
+                                    modifier = Modifier.padding(dimens.extraSmallPadding),
+                                    text = subLabel,
+                                    color = colors.black,
                                     style = MaterialTheme.typography.bodySmall,
                                 )
+
+                                Row(
+                                    modifier = Modifier.background(
+                                        colors.brightGreen,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
+                                        .padding(dimens.extraSmallPadding),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                ) {
+                                    Icon(
+                                        painterResource(drawables.vectorManSubscriptionIcon),
+                                        contentDescription = null,
+                                        tint = colors.alwaysWhite,
+                                    )
+                                    Text(
+                                        text = user.followersCount.toString(),
+                                        color = colors.alwaysWhite,
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                            }
+                        } else {
+                            SmallIconButton(
+                                drawables.subscriptionIcon,
+                                color = colors.brightGreen
+                            ) {
+                                addToSubscriptions()
                             }
                         }
-                    } else {
-                        SmallIconButton(
-                            drawables.subscriptionIcon,
-                            color = colors.brightGreen
-                        ) {
-                            addToSubscriptions()
-                        }
+                    }
+
+                    //registration date
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
+                    ) {
+                        Text(
+                            stringResource(strings.createdUserLabel) + " " +
+                                    user.createdTs.toString().convertDateWithMinutes(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.black
+                        )
+
+                        Text(
+                            stringResource(strings.lastActiveUserLabel) + " " +
+                                    user.lastActiveTs.toString().convertDateWithMinutes(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.black
+                        )
                     }
                 }
-
                 // Check if the user is in the black list
                 // Status annotation display based on the list type
                 isBlackList.forEach { status ->
@@ -408,28 +437,6 @@ fun UserPanel(
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.notifyTextColor,
                         textAlign = TextAlign.Center
-                    )
-                }
-            }
-
-            if(goToUser != null) {
-                //registration date
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
-                ) {
-                    Text(
-                        stringResource(strings.createdUserLabel) + " " +
-                                user.createdTs.toString().convertDateWithMinutes(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black
-                    )
-
-                    Text(
-                        stringResource(strings.lastActiveUserLabel) + " " +
-                                user.lastActiveTs.toString().convertDateWithMinutes(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black
                     )
                 }
             }

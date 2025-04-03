@@ -1,6 +1,9 @@
 package market.engine.fragments.root.main.profile.navigation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
@@ -18,6 +21,7 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
@@ -47,22 +51,11 @@ fun ProfileMyOrdersNavigation(
     modifier: Modifier,
     publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if(isBigScreen) DrawerValue.Open else DrawerValue.Closed)
 
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            ProfileDrawer(
-                stringResource(if(typeGroup == DealTypeGroup.SELL)
-                    strings.mySalesTitle
-                else
-                    strings.myPurchasesTitle),
-                publicProfileNavigationItems.value
-            )
-        },
-        gesturesEnabled = drawerState.isOpen,
-    ) {
+    val hideDrawer = remember { mutableStateOf(isBigScreen) }
+
+    val content : @Composable (Modifier) -> Unit = {
         val select = remember {
             mutableStateOf(if(typeGroup == DealTypeGroup.SELL) DealType.SELL_ALL else DealType.BUY_IN_WORK)
         }
@@ -71,6 +64,14 @@ fun ProfileMyOrdersNavigation(
                 select.value,
                 typeGroup,
                 drawerState = drawerState,
+                showMenu = hideDrawer.value,
+                openMenu = if (isBigScreen) {
+                    {
+                        hideDrawer.value = !hideDrawer.value
+                    }
+                }else{
+                    null
+                },
                 navigationClick = { newType->
                     component.selectMyOrderPage(newType)
                 }
@@ -105,6 +106,45 @@ fun ProfileMyOrdersNavigation(
                     modifier = modifier
                 )
             }
+        }
+    }
+
+    ModalNavigationDrawer(
+        modifier = modifier,
+        drawerState = drawerState,
+        drawerContent = {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isBigScreen) {
+                    AnimatedVisibility(hideDrawer.value) {
+                        ProfileDrawer(
+                            stringResource(if(typeGroup == DealTypeGroup.SELL)
+                                strings.mySalesTitle
+                            else
+                                strings.myPurchasesTitle),
+                            publicProfileNavigationItems.value
+                        )
+                    }
+                }else{
+                    ProfileDrawer(
+                        stringResource(if(typeGroup == DealTypeGroup.SELL)
+                            strings.mySalesTitle
+                        else
+                            strings.myPurchasesTitle),
+                        publicProfileNavigationItems.value
+                    )
+                }
+
+                if (isBigScreen) {
+                    content(Modifier.weight(1f))
+                }
+            }
+        },
+        gesturesEnabled = drawerState.isOpen && !isBigScreen,
+    ) {
+        if(!isBigScreen) {
+            content(Modifier.fillMaxWidth())
         }
     }
 }

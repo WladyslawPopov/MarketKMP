@@ -1,11 +1,9 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +38,7 @@ import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.bars.FilterContentHeaderBar
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -145,6 +144,7 @@ fun FilterListingContent(
             ) != null
         )
     }
+
     var isExpanded3 by remember { mutableStateOf(checkActiveTimeFilter(listingData) != null) }
 
     LaunchedEffect(isExpanded3){
@@ -153,13 +153,14 @@ fun FilterListingContent(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
-        }.padding(dimens.smallPadding).animateContentSize(),
-        contentAlignment = Alignment.TopCenter
+        }.padding(dimens.smallPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         FilterContentHeaderBar(
             title = stringResource(strings.filter),
@@ -175,9 +176,8 @@ fun FilterListingContent(
                 onClosed()
             }
         )
-
-        LazyColumn(
-            modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
+        LazyColumnWithScrollBars(
+            modifierList = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             state = scrollState
@@ -228,13 +228,13 @@ fun FilterListingContent(
                         Column {
                             specialFilters.forEach { filter ->
                                 val isCheckedFilter = remember {
-                                   mutableStateOf(
-                                       listingData.find {
-                                           it.key == filter.first &&
-                                           it.interpretation != null &&
-                                           it.interpretation != ""
-                                       }?.value
-                                   )
+                                    mutableStateOf(
+                                        listingData.find {
+                                            it.key == filter.first &&
+                                                    it.interpretation != null &&
+                                                    it.interpretation != ""
+                                        }?.value
+                                    )
                                 }
 
                                 RadioOptionRow(
@@ -262,7 +262,6 @@ fun FilterListingContent(
             // Region
             item {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
@@ -453,11 +452,9 @@ fun FilterListingContent(
             }
         }
 
-
         AcceptedPageButton(
             strings.actionAcceptFilters,
             Modifier.wrapContentWidth().padding(dimens.smallPadding)
-                .align(Alignment.BottomCenter)
         ) {
             onClosed()
         }

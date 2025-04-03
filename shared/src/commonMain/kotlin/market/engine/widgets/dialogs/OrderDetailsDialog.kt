@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +19,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Order
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -48,8 +48,8 @@ fun OrderDetailsDialog(
                 Text(stringResource(strings.paymentAndDeliveryLabel))
             },
             text = {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+                LazyColumnWithScrollBars(
+                    heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {

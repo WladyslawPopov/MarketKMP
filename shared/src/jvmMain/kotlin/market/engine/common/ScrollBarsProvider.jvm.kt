@@ -22,7 +22,8 @@ actual class ScrollBarsProvider {
     @Composable
     actual fun getVerticalScrollbar(
         scrollState: Any,
-        modifier: Modifier
+        modifier: Modifier,
+        isReversed: Boolean,
     ) {
         val state = when (scrollState) {
             is ScrollState -> rememberScrollbarAdapter(scrollState)
@@ -35,6 +36,7 @@ actual class ScrollBarsProvider {
         VerticalScrollbar(
             adapter = state,
             modifier = modifier,
+            reverseLayout = isReversed,
             style = ScrollbarStyle(
                 unhoverColor = colors.steelBlue,
                 hoverColor = colors.rippleColor,
@@ -51,7 +53,8 @@ actual class ScrollBarsProvider {
     @Composable
     actual fun getHorizontalScrollbar(
         scrollState: Any,
-        modifier: Modifier
+        modifier: Modifier,
+        isReversed: Boolean,
     ) {
         val state = when (scrollState) {
             is ScrollState -> rememberScrollbarAdapter(scrollState)
@@ -64,6 +67,7 @@ actual class ScrollBarsProvider {
         HorizontalScrollbar(
             adapter = state,
             modifier = modifier,
+            reverseLayout = isReversed,
             style = ScrollbarStyle(
                 unhoverColor = colors.steelBlue,
                 hoverColor = colors.rippleColor,

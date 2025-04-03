@@ -11,6 +11,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.CoroutineScope
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
@@ -26,6 +27,8 @@ fun MyOrderAppBar(
     typeGroup : DealTypeGroup,
     modifier: Modifier = Modifier,
     drawerState: DrawerState,
+    showMenu : Boolean? = null,
+    openMenu : ((CoroutineScope) -> Unit)? = null,
     navigationClick : (DealType) -> Unit,
 ) {
     val tabs = when (typeGroup){
@@ -53,7 +56,9 @@ fun MyOrderAppBar(
         ) ,
         navigationIcon = {
             MenuHamburgerButton(
-                drawerState
+                drawerState,
+                showMenu = showMenu,
+                openMenu = openMenu
             )
         },
         modifier = modifier

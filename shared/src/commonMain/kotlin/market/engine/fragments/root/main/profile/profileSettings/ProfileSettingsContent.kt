@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,6 +19,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -160,11 +160,7 @@ fun ProfileSettingsContent(
         error = error,
         toastItem = viewModel.toastItem
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
-        ) {
+        LazyColumnWithScrollBars{
             item {
                 when(settingsType){
                     ProfileSettingsTypes.GLOBAL_SETTINGS -> globalSettings(component, viewModel)

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +37,7 @@ import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.buttons.ActionButton
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
@@ -182,11 +182,11 @@ fun CategoryContent(
         isLoading = isLoading.value,
         modifier = Modifier.fillMaxSize(),
     ) {
-        LazyColumn(
-            modifier = Modifier
+        LazyColumnWithScrollBars(
+            modifierList = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Row(

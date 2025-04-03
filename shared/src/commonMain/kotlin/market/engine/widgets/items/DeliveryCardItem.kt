@@ -4,13 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.jsonPrimitive
@@ -18,6 +16,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.DeliveryAddress
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -44,9 +43,8 @@ fun DeliveryCardItem(
             setActiveCard(card)
         }
     ) {
-        LazyColumn(
-            modifier = Modifier.width(230.dp).height(250.dp).padding(dimens.smallPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        LazyColumnWithScrollBars(
+            heightMod = Modifier.width(230.dp).height(250.dp).padding(dimens.smallPadding),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             item {

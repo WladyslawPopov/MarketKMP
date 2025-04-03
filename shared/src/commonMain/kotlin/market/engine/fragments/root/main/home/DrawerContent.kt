@@ -9,8 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,7 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.dialogs.LogoutDialog
 import market.engine.widgets.items.getNavigationItem
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -141,58 +141,55 @@ fun DrawerContent(
         drawerTonalElevation = 0.dp,
         modifier = if(!isBigScreen) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentWidth(),
     ) {
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .verticalScroll(scrollState)
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(dimens.mediumPadding),
-                horizontalArrangement = Arrangement.End
-            ) {
-                if (UserData.token != "") {
-                    TextButton(
-                        onClick = {
-                            isShowDialog.value = true
-                        },
-                        modifier = Modifier.padding(dimens.smallPadding),
-                        colors = colors.simpleButtonColors
-                    ) {
-                        Text(stringResource(strings.logoutTitle), color = colors.black)
-                        Icon(
-                            painter = painterResource(drawables.logoutIcon),
-                            tint = colors.black,
-                            contentDescription = stringResource(strings.logoutTitle)
-                        )
-                    }
+        LazyColumnWithScrollBars {
+            item {
+                Row(
+                    modifier = Modifier
+                        .padding(dimens.mediumPadding),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    if (UserData.token != "") {
+                        TextButton(
+                            onClick = {
+                                isShowDialog.value = true
+                            },
+                            modifier = Modifier.padding(dimens.smallPadding),
+                            colors = colors.simpleButtonColors
+                        ) {
+                            Text(stringResource(strings.logoutTitle), color = colors.black)
+                            Icon(
+                                painter = painterResource(drawables.logoutIcon),
+                                tint = colors.black,
+                                contentDescription = stringResource(strings.logoutTitle)
+                            )
+                        }
 
-                    LogoutDialog(
-                        isShowDialog.value,
-                        onDismiss = {
-                            isShowDialog.value = false
-                        },
-                        goToLogin
-                    )
-                } else {
-                    TextButton(
-                        onClick = {
-                            goToLogin()
-                        },
-                        modifier = Modifier.padding(dimens.smallPadding),
-                        colors = colors.simpleButtonColors
-                    ) {
-                        Text(stringResource(strings.loginTitle), color = colors.black)
-                        Icon(
-                            painter = painterResource(drawables.loginIcon),
-                            tint = colors.black,
-                            contentDescription = stringResource(strings.loginTitle)
+                        LogoutDialog(
+                            isShowDialog.value,
+                            onDismiss = {
+                                isShowDialog.value = false
+                            },
+                            goToLogin
                         )
+                    } else {
+                        TextButton(
+                            onClick = {
+                                goToLogin()
+                            },
+                            modifier = Modifier.padding(dimens.smallPadding),
+                            colors = colors.simpleButtonColors
+                        ) {
+                            Text(stringResource(strings.loginTitle), color = colors.black)
+                            Icon(
+                                painter = painterResource(drawables.loginIcon),
+                                tint = colors.black,
+                                contentDescription = stringResource(strings.loginTitle)
+                            )
+                        }
                     }
                 }
             }
-
-            list.forEachIndexed { _, item ->
+            items(list) { item ->
                 if (item.isVisible) {
                     Spacer(modifier = Modifier.height(dimens.mediumSpacer))
                     getNavigationItem(
@@ -222,17 +219,18 @@ fun DrawerContent(
                     )
                 }
             }
-
-            Box(
-                modifier = Modifier
-                    .padding(dimens.mediumPadding),
-                contentAlignment = Alignment.BottomEnd
-            ) {
-                Text(
-                    text = SAPI.version,
-                    color = colors.grayText,
-                    fontSize = MaterialTheme.typography.labelMedium.fontSize
-                )
+            item {
+                Box(
+                    modifier = Modifier
+                        .padding(dimens.mediumPadding),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    Text(
+                        text = SAPI.version,
+                        color = colors.grayText,
+                        fontSize = MaterialTheme.typography.labelMedium.fontSize
+                    )
+                }
             }
         }
     }

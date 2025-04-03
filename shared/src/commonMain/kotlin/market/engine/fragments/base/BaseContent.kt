@@ -3,13 +3,11 @@ package market.engine.fragments.base
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -25,6 +23,7 @@ import androidx.compose.ui.zIndex
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.ToastItem
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,22 +76,14 @@ fun BaseContent(
                 ) {
                     when{
                         noFound != null -> {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
+                            LazyColumnWithScrollBars {
                                 item {
                                     noFound()
                                 }
                             }
                         }
                         error != null -> {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
+                            LazyColumnWithScrollBars {
                                 item {
                                     error()
                                 }
@@ -124,4 +115,3 @@ fun BaseContent(
         }
     }
 }
-

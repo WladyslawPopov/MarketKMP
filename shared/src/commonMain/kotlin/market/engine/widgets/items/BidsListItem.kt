@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -42,7 +43,7 @@ fun BidsListItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = dimens.smallPadding),
-        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -67,7 +68,8 @@ fun BidsListItem(
                 if(bid.moverLogin != null) {
                     goToUser(bid.moverId)
                 }
-            }.weight(1f)
+            }.weight(1f),
+            textAlign = TextAlign.Center
         )
 
         Column(
@@ -79,6 +81,7 @@ fun BidsListItem(
                 text = "${bid.curprice} ${stringResource(strings.currencySign)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.black,
+                textAlign = TextAlign.Center
             )
 
             // Rebid Button logic
@@ -116,7 +119,8 @@ fun BidsListItem(
             text = bid.ts?.convertDateWithMinutes() ?: "",
             style = MaterialTheme.typography.bodySmall,
             color = colors.black,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center
         )
     }
 }

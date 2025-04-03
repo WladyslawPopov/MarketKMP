@@ -73,7 +73,6 @@ fun MyOffersAppBar(
                         navigationClick(LotsType.MYLOT_UNACTIVE)
                     }
                 }
-
                 item {
                     SimpleTextButton(
                         future,

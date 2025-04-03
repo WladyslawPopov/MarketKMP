@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +41,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.fragments.root.main.messenger.DialogsHeader
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -202,12 +202,12 @@ fun ProposalContent(
                 mesHed,
             )
 
-            LazyColumn(
+            LazyColumnWithScrollBars(
                 state = state,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
+                modifierList = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            ){
                 item {
                     if(subtitle.value.text != "") {
                         Row(

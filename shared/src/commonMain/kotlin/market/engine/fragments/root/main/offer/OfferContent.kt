@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,11 +21,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -106,6 +105,8 @@ import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
+import market.engine.widgets.rows.LazyColumnWithScrollBars
+import market.engine.widgets.rows.LazyRowWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
@@ -266,141 +267,145 @@ fun OfferContent(
                     )
                 },
             ) {
-                Box(modifier.fillMaxSize()) {
-                    LazyColumn(
-                        state = stateColumn,
-                        modifier = Modifier.background(color = colors.primaryColor)
-                            .wrapContentHeight()
-                            .pointerInput(Unit) {
-                                detectTapGestures(onTap = {
-                                    isShowOptions.value = false
-                                    focusManager.clearFocus()
-                                })
-                            },
-                        contentPadding = PaddingValues(dimens.smallPadding),
-                        verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
-                    ) {
-                        //images offer
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  }
-                                    .fillMaxWidth()
-                                    .height(if(isBigScreen) 500.dp else 300.dp)
-                                    .zIndex(6f),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                HorizontalImageViewer(
-                                    images = images,
-                                    pagerState = pagerState,
-                                )
+                LazyColumnWithScrollBars(
+                    state = stateColumn,
+                    modifierList = modifier.background(color = colors.primaryColor)
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                isShowOptions.value = false
+                                focusManager.clearFocus()
+                            })
+                        },
+                    contentPadding = dimens.smallPadding
+                ) {
+                    //images offer
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .clip(MaterialTheme.shapes.small)
+                                .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  }
+                                .fillMaxWidth()
+                                .height(if(isBigScreen) 500.dp else 300.dp)
+                                .zIndex(6f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            HorizontalImageViewer(
+                                images = images,
+                                pagerState = pagerState,
+                            )
 
-                                if (offer.videoUrls?.isNotEmpty() == true) {
-                                    SmallImageButton(
-                                        drawables.iconYouTubeSmall,
-                                        modifierIconSize = Modifier.size(dimens.largeIconSize),
-                                        modifier = Modifier
-                                            .size(90.dp)
-                                            .align(Alignment.TopEnd)
-                                            .zIndex(1f), // Higher priority
-                                    ) {
-                                        // Open web view YouTube
-                                        openUrl(offer.videoUrls[0])
-                                    }
+                            if (offer.videoUrls?.isNotEmpty() == true) {
+                                SmallImageButton(
+                                    drawables.iconYouTubeSmall,
+                                    modifierIconSize = Modifier.size(dimens.largeIconSize),
+                                    modifier = Modifier
+                                        .size(90.dp)
+                                        .align(Alignment.TopEnd)
+                                        .zIndex(1f), // Higher priority
+                                ) {
+                                    // Open web view YouTube
+                                    openUrl(offer.videoUrls[0])
                                 }
                             }
                         }
-                        if (offer.hasTempImages) {
-                            item {
-                                Text(
-                                    stringResource(strings.tempPhotoLabel),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.grayText
-                                )
+                    }
+                    if (offer.hasTempImages) {
+                        item {
+                            Text(
+                                stringResource(strings.tempPhotoLabel),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.grayText
+                            )
+                        }
+                    }
+                    //category stack
+                    item {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalArrangement = Arrangement.SpaceAround,
+                        ) {
+                            if (catHistory.value.isNotEmpty()) {
+                                catHistory.value.forEachIndexed { index, cat ->
+                                    Text(
+                                        text = if (catHistory.value.size - 1 == index)
+                                            cat.name ?: ""
+                                        else (cat.name ?: "") + "->",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        color = if (catHistory.value.size - 1 == index) colors.black else colors.grayText,
+                                        modifier = Modifier.padding(dimens.smallPadding)
+                                            .clickable {
+                                                //go to Listing
+                                                component.goToCategory(cat)
+                                            }
+                                    )
+                                }
                             }
                         }
-                        //category stack
-                        item {
+                    }
+                    //count and views label
+                    item {
+                        if (offerState.value == OfferStates.ACTIVE || isMyOffer.value) {
+                            val countString =
+                                getCountString(offerState.value, offer)
+
                             FlowRow(
                                 horizontalArrangement = Arrangement.Start,
-                                verticalArrangement = Arrangement.SpaceAround,
+                                verticalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                if (catHistory.value.isNotEmpty()) {
-                                    catHistory.value.forEachIndexed { index, cat ->
-                                        Text(
-                                            text = if (catHistory.value.size - 1 == index)
-                                                cat.name ?: ""
-                                            else (cat.name ?: "") + "->",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                fontWeight = FontWeight.Bold
-                                            ),
-                                            color = if (catHistory.value.size - 1 == index) colors.black else colors.grayText,
-                                            modifier = Modifier.padding(dimens.smallPadding)
-                                                .clickable {
-                                                    //go to Listing
-                                                    component.goToCategory(cat)
-                                                }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        //count and views label
-                        item {
-                            if (offerState.value == OfferStates.ACTIVE || isMyOffer.value) {
-                                val countString =
-                                    getCountString(offerState.value, offer)
-
-                                FlowRow(
-                                    horizontalArrangement = Arrangement.Start,
-                                    verticalArrangement = Arrangement.SpaceBetween,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    if (countString.isNotEmpty()) {
-                                        Text(
-                                            text = countString,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = colors.grayText,
-                                            modifier = Modifier.padding(dimens.smallPadding)
-                                        )
-                                    }
-
+                                if (countString.isNotEmpty()) {
                                     Text(
-                                        text = stringResource(strings.viewsParams) + ": " + offer.viewsCount,
+                                        text = countString,
                                         style = MaterialTheme.typography.titleSmall,
                                         color = colors.grayText,
                                         modifier = Modifier.padding(dimens.smallPadding)
                                     )
                                 }
+
+                                Text(
+                                    text = stringResource(strings.viewsParams) + ": " + offer.viewsCount,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = colors.grayText,
+                                    modifier = Modifier.padding(dimens.smallPadding)
+                                )
                             }
                         }
-                        //title
-                        item {
-                            TitleText(
-                                offer.title ?: "",
-                                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
-                            )
-                        }
+                    }
+                    //title
+                    item {
+                        TitleText(
+                            offer.title ?: "",
+                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
+                        )
+                    }
 
-                        item {
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
-                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically)
-                            ) {
-                                //simple Price
-                                if ((offerState.value != OfferStates.ACTIVE && offerState.value != OfferStates.PROTOTYPE) || isMyOffer.value ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = (offer.currentPricePerItem ?: "") +
-                                                    " " + stringResource(strings.currencySign),
-                                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                            color = colors.priceTextColor
-                                        )
+                    item {
+                        val columns = remember { if (isBigScreen) StaggeredGridCells.Adaptive(300.dp) else StaggeredGridCells.Fixed(1) }
+                        LazyVerticalStaggeredGrid(
+                            columns = columns,
+                            modifier = Modifier
+                                .heightIn(200.dp, 5000.dp)
+                                .wrapContentHeight(),
+                            userScrollEnabled = false,
+                            verticalItemSpacing = dimens.smallPadding,
+                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
+                            content = {
+                                item {
+                                    //simple Price
+                                    if ((offerState.value != OfferStates.ACTIVE && offerState.value != OfferStates.PROTOTYPE) || isMyOffer.value ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = (offer.currentPricePerItem ?: "") +
+                                                        " " + stringResource(strings.currencySign),
+                                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                                color = colors.priceTextColor
+                                            )
 
 //                                    if(offerState.value == OfferStates.SNAPSHOT){
 //                                        ActionButton(
@@ -409,259 +414,270 @@ fun OfferContent(
 //                                            component.navigateToOffers(offer.id)
 //                                        }
 //                                    }
-                                    }
-                                }
-                                //action seller mode and active promo options
-                                if (isMyOffer.value && offerState.value != OfferStates.SNAPSHOT) {
-                                    Column(
-                                        modifier = Modifier.weight(1f),
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                    ) {
-                                        SeparatorLabel(stringResource(strings.actionsOffersParameterName))
-
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = dimens.smallPadding),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            PopupActionButton(
-                                                stringResource(strings.operationsParameterName),
-                                                color = colors.steelBlue,
-                                                tint = colors.alwaysWhite,
-                                                isShowOptions = isShowOptions
-                                            )
-                                        }
-
-                                        AnimatedVisibility(
-                                            isShowOptions.value,
-                                            enter = expandIn(),
-                                            exit = fadeOut()
-                                        ) {
-                                            getOfferOperations(
-                                                offer,
-                                                offerViewModel,
-                                                offset = DpOffset(20.dp, 0.dp),
-                                                showCopyId = false,
-                                                onUpdateMenuItem = { offer ->
-                                                    component.updateOffer(offer.id, model.isSnapshot)
-                                                },
-                                                goToCreateOffer = { type ->
-                                                    component.goToCreateOffer(type, offer.catpath, offer.id, null)
-                                                },
-                                                onClose = {
-                                                    isShowOptions.value = false
-                                                },
-                                                onBack = {
-                                                    component.onBackClick()
-                                                },
-                                                goToProposals = { type ->
-                                                    component.goToProposalPage(type)
-                                                },
-                                                goToDynamicSettings = { type, offerId ->
-                                                    component.goToDynamicSettings(type, offerId)
-                                                }
-                                            )
                                         }
                                     }
-
-                                    PromoRow(
-                                        offer,
-                                        showName = true,
-                                        modifier = Modifier.weight(1f, false).padding(dimens.mediumPadding)
-                                    ) {
-
-                                    }
                                 }
-                                //bids price
-                                if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
-                                    AuctionPriceLayout(
-                                        offer = offer,
-                                        offerViewModel.updateItemTrigger.value,
-                                        onAddBidClick = { bid ->
-                                            if (UserData.token != "") {
-                                                myMaximalBid.value = bid
-                                                showBidDialog.value = true
-                                            }else{
-                                                component.goToLogin()
-                                            }
-                                        },
-                                        modifier = Modifier.weight(1f, !isBigScreen)
-                                    )
-                                }
-                                //buy now price
-                                if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
-                                    val showDialog = remember { mutableStateOf(false) }
-                                    val values = remember { (1..offer.originalQuantity).map { it.toString() } }
-                                    val valuesPickerState = rememberPickerState()
 
-                                    BuyNowPriceLayout(
-                                        offer = offer,
-                                        offerState.value,
-                                        onBuyNowClick = {
-                                            if (UserData.token != "") {
-                                                if (offer.originalQuantity > 1) {
-                                                    showDialog.value = true
-                                                } else {
-                                                    val item = Pair(
-                                                        offer.sellerData?.id ?: 1L, listOf(
-                                                            SelectedBasketItem(
-                                                                offerId = offer.id,
-                                                                pricePerItem = offer.currentPricePerItem?.toDouble()
-                                                                    ?: 0.0,
-                                                                selectedQuantity = 1
-                                                            )
-                                                        )
-                                                    )
-                                                    component.goToCreateOrder(item)
-                                                }
-                                            }else{
-                                                component.goToLogin()
-                                            }
-                                        },
-                                        onAddToCartClick = {
-                                            if (UserData.token != "") {
-                                                offerViewModel.addToBasket(offer.id)
-                                            }else{
-                                                component.goToLogin()
-                                            }
-                                        },
-                                        onSaleClick = {
-                                            component.goToCreateOffer(
-                                                CreateOfferType.COPY_PROTOTYPE,
-                                                offer.catpath,
-                                                offer.id,
-                                                images
-                                            )
-                                        },
-                                        modifier = Modifier.weight(1f, !isBigScreen)
-                                    )
+                                item {
+                                    //action seller mode and active promo options
+                                    if (isMyOffer.value && offerState.value != OfferStates.SNAPSHOT) {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                                            horizontalAlignment = Alignment.Start,
+                                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                        ) {
+                                            SeparatorLabel(stringResource(strings.actionsOffersParameterName))
 
-                                    CustomDialog(
-                                        showDialog = showDialog.value,
-                                        title = "",
-                                        body = {
                                             Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
+                                                modifier = Modifier.padding(horizontal = dimens.smallPadding),
+                                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                                horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                SeparatorLabel(
-                                                    stringResource(strings.chooseAmountLabel)
+                                                PopupActionButton(
+                                                    stringResource(strings.operationsParameterName),
+                                                    color = colors.steelBlue,
+                                                    tint = colors.alwaysWhite,
+                                                    isShowOptions = isShowOptions
                                                 )
 
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth()
-                                                        .padding(dimens.mediumPadding),
-                                                    horizontalArrangement = Arrangement.Center,
-                                                    verticalAlignment = Alignment.CenterVertically
+                                                PromoRow(
+                                                    offer,
+                                                    showName = true,
+                                                    modifier = Modifier.padding(dimens.mediumPadding)
                                                 ) {
-                                                    ListPicker(
-                                                        state = valuesPickerState,
-                                                        items = values,
-                                                        visibleItemsCount = 3,
-                                                        modifier = Modifier.fillMaxWidth(0.5f),
-                                                        textModifier = Modifier.padding(dimens.smallPadding),
-                                                        textStyle = MaterialTheme.typography.titleLarge,
-                                                        dividerColor = colors.textA0AE
-                                                    )
+
                                                 }
                                             }
-                                        },
-                                        onSuccessful = {
-                                            val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
-                                                offerId = offer.id,
-                                                pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
-                                                selectedQuantity = valuesPickerState.selectedItem.toIntOrNull() ?: 1
-                                            )))
-                                            component.goToCreateOrder(item)
-                                            showDialog.value = false
-                                        },
-                                        onDismiss = {
-                                            showDialog.value = false
+
+                                            AnimatedVisibility(
+                                                isShowOptions.value,
+                                                enter = expandIn(),
+                                                exit = fadeOut()
+                                            ) {
+                                                getOfferOperations(
+                                                    offer,
+                                                    offerViewModel,
+                                                    offset = DpOffset(20.dp, 0.dp),
+                                                    showCopyId = false,
+                                                    onUpdateMenuItem = { offer ->
+                                                        component.updateOffer(offer.id, model.isSnapshot)
+                                                    },
+                                                    goToCreateOffer = { type ->
+                                                        component.goToCreateOffer(type, offer.catpath, offer.id, null)
+                                                    },
+                                                    onClose = {
+                                                        isShowOptions.value = false
+                                                    },
+                                                    onBack = {
+                                                        component.onBackClick()
+                                                    },
+                                                    goToProposals = { type ->
+                                                        component.goToProposalPage(type)
+                                                    },
+                                                    goToDynamicSettings = { type, offerId ->
+                                                        component.goToDynamicSettings(type, offerId)
+                                                    }
+                                                )
+                                            }
                                         }
-                                    )
+                                    }
                                 }
 
-                                // seller panel
-                                if (offer.sellerData != null && !isMyOffer.value) {
-                                    Column(
-                                        modifier = Modifier.weight(1f, false),
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                    ) {
-                                       // SeparatorLabel(stringResource(strings.sellerLabel))
-                                        val errorString = remember { mutableStateOf("") }
-
-                                        UserPanel(
-                                            modifier = Modifier
-                                                .background(
-                                                    colors.white,
-                                                    MaterialTheme.shapes.medium
-                                                )
-                                                .clip(MaterialTheme.shapes.medium)
-                                                .fillMaxSize(),
-                                            offer.sellerData,
-                                            updateTrigger = offerViewModel.updateItemTrigger.value,
-                                            goToUser = {
-                                                component.goToUser(
-                                                    offer.sellerData?.id ?: 1L,
-                                                    false
-                                                )
-                                            },
-                                            goToAllLots = {
-                                                component.goToUsersListing(offer.sellerData)
-                                            },
-                                            goToAboutMe = {
-                                                component.goToUser(offer.sellerData?.id ?: 1L, true)
-                                            },
-                                            addToSubscriptions = {
+                                item {
+                                    //bids price
+                                    if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
+                                        AuctionPriceLayout(
+                                            offer = offer,
+                                            offerViewModel.updateItemTrigger.value,
+                                            onAddBidClick = { bid ->
                                                 if (UserData.token != "") {
-                                                    offerViewModel.addNewSubscribe(
-                                                        LD(),
-                                                        SD().copy(
-                                                            userLogin = offer.sellerData?.login,
-                                                            userID = offer.sellerData?.id ?: 1L,
-                                                            userSearch = true
-                                                        ),
-                                                        onSuccess = {
-                                                            offerViewModel.getUserInfo(
-                                                                offer.sellerData?.id ?: 1L
-                                                            )
-                                                        },
-                                                        onError = { es ->
-                                                            errorString.value = es
-                                                        }
-                                                    )
-                                                } else {
+                                                    myMaximalBid.value = bid
+                                                    showBidDialog.value = true
+                                                }else{
                                                     component.goToLogin()
                                                 }
                                             },
-                                            goToSubscriptions = {
-                                                component.goToSubscribes()
+                                            modifier = Modifier
+                                        )
+                                    }
+                                }
+
+                                item {
+                                    //buy now price
+                                    if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
+                                        val showDialog = remember { mutableStateOf(false) }
+                                        val values = remember { (1..offer.originalQuantity).map { it.toString() } }
+                                        val valuesPickerState = rememberPickerState()
+
+                                        BuyNowPriceLayout(
+                                            offer = offer,
+                                            offerState.value,
+                                            onBuyNowClick = {
+                                                if (UserData.token != "") {
+                                                    if (offer.originalQuantity > 1) {
+                                                        showDialog.value = true
+                                                    } else {
+                                                        val item = Pair(
+                                                            offer.sellerData?.id ?: 1L, listOf(
+                                                                SelectedBasketItem(
+                                                                    offerId = offer.id,
+                                                                    pricePerItem = offer.currentPricePerItem?.toDouble()
+                                                                        ?: 0.0,
+                                                                    selectedQuantity = 1
+                                                                )
+                                                            )
+                                                        )
+                                                        component.goToCreateOrder(item)
+                                                    }
+                                                }else{
+                                                    component.goToLogin()
+                                                }
                                             },
-                                            goToSettings = {
-                                                component.goToDynamicSettings(it, null)
+                                            onAddToCartClick = {
+                                                if (UserData.token != "") {
+                                                    offerViewModel.addToBasket(offer.id)
+                                                }else{
+                                                    component.goToLogin()
+                                                }
                                             },
-                                            isBlackList = blackList.value
+                                            onSaleClick = {
+                                                component.goToCreateOffer(
+                                                    CreateOfferType.COPY_PROTOTYPE,
+                                                    offer.catpath,
+                                                    offer.id,
+                                                    images
+                                                )
+                                            },
+                                            modifier = Modifier
                                         )
 
-                                        CreateSubscribeDialog(
-                                            errorString.value != "",
-                                            errorString.value,
-                                            onDismiss = {
-                                                errorString.value = ""
+                                        CustomDialog(
+                                            showDialog = showDialog.value,
+                                            title = "",
+                                            body = {
+                                                Column(
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.Center
+                                                ) {
+                                                    SeparatorLabel(
+                                                        stringResource(strings.chooseAmountLabel)
+                                                    )
+
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth()
+                                                            .padding(dimens.mediumPadding),
+                                                        horizontalArrangement = Arrangement.Center,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        ListPicker(
+                                                            state = valuesPickerState,
+                                                            items = values,
+                                                            visibleItemsCount = 3,
+                                                            modifier = Modifier.fillMaxWidth(0.5f),
+                                                            textModifier = Modifier.padding(dimens.smallPadding),
+                                                            textStyle = MaterialTheme.typography.titleLarge,
+                                                            dividerColor = colors.textA0AE
+                                                        )
+                                                    }
+                                                }
                                             },
-                                            goToSubscribe = {
-                                                component.goToSubscribes()
-                                                errorString.value = ""
+                                            onSuccessful = {
+                                                val item = Pair(offer.sellerData?.id ?: 1L, listOf(SelectedBasketItem(
+                                                    offerId = offer.id,
+                                                    pricePerItem = offer.currentPricePerItem?.toDouble() ?: 0.0,
+                                                    selectedQuantity = valuesPickerState.selectedItem.toIntOrNull() ?: 1
+                                                )))
+                                                component.goToCreateOrder(item)
+                                                showDialog.value = false
+                                            },
+                                            onDismiss = {
+                                                showDialog.value = false
                                             }
                                         )
                                     }
                                 }
 
-                                // actions and other status
-                                val contentActions : @Composable (Modifier) -> Unit = { modifier->
+                                item {
+                                    // seller panel
+                                    if (offer.sellerData != null && !isMyOffer.value) {
+                                        Column(
+                                            modifier = Modifier,
+                                            horizontalAlignment = Alignment.Start,
+                                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                        ) {
+                                            // SeparatorLabel(stringResource(strings.sellerLabel))
+                                            val errorString = remember { mutableStateOf("") }
+
+                                            UserPanel(
+                                                modifier = Modifier
+                                                    .background(
+                                                        colors.white,
+                                                        MaterialTheme.shapes.medium
+                                                    )
+                                                    .clip(MaterialTheme.shapes.medium).fillMaxSize(),
+                                                offer.sellerData,
+                                                updateTrigger = offerViewModel.updateItemTrigger.value,
+                                                goToUser = {
+                                                    component.goToUser(
+                                                        offer.sellerData?.id ?: 1L,
+                                                        false
+                                                    )
+                                                },
+                                                goToAllLots = {
+                                                    component.goToUsersListing(offer.sellerData)
+                                                },
+                                                goToAboutMe = {
+                                                    component.goToUser(offer.sellerData?.id ?: 1L, true)
+                                                },
+                                                addToSubscriptions = {
+                                                    if (UserData.token != "") {
+                                                        offerViewModel.addNewSubscribe(
+                                                            LD(),
+                                                            SD().copy(
+                                                                userLogin = offer.sellerData?.login,
+                                                                userID = offer.sellerData?.id ?: 1L,
+                                                                userSearch = true
+                                                            ),
+                                                            onSuccess = {
+                                                                offerViewModel.getUserInfo(
+                                                                    offer.sellerData?.id ?: 1L
+                                                                )
+                                                            },
+                                                            onError = { es ->
+                                                                errorString.value = es
+                                                            }
+                                                        )
+                                                    } else {
+                                                        component.goToLogin()
+                                                    }
+                                                },
+                                                goToSubscriptions = {
+                                                    component.goToSubscribes()
+                                                },
+                                                goToSettings = {
+                                                    component.goToDynamicSettings(it, null)
+                                                },
+                                                isBlackList = blackList.value
+                                            )
+
+                                            CreateSubscribeDialog(
+                                                errorString.value != "",
+                                                errorString.value,
+                                                onDismiss = {
+                                                    errorString.value = ""
+                                                },
+                                                goToSubscribe = {
+                                                    component.goToSubscribes()
+                                                    errorString.value = ""
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                                item {
+                                    // actions and other status
                                     Column(
-                                        modifier = modifier
+                                        modifier = Modifier
                                             .background(
                                                 colors.white,
                                                 MaterialTheme.shapes.medium
@@ -669,7 +685,9 @@ fun OfferContent(
                                             .clip(MaterialTheme.shapes.medium)
                                             .padding(dimens.smallPadding),
                                         horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                        verticalArrangement = Arrangement.spacedBy(
+                                            dimens.smallPadding
+                                        )
                                     ) {
                                         //mail to seller
                                         if (offer.sellerData != null && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
@@ -707,9 +725,13 @@ fun OfferContent(
                                             ) {
                                                 if (UserData.token.isNotBlank()) {
                                                     if (UserData.login == offer.sellerData?.id) {
-                                                        component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
+                                                        component.goToProposalPage(
+                                                            ProposalType.ACT_ON_PROPOSAL
+                                                        )
                                                     } else {
-                                                        component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
+                                                        component.goToProposalPage(
+                                                            ProposalType.MAKE_PROPOSAL
+                                                        )
                                                     }
                                                 } else {
                                                     component.goToLogin()
@@ -721,7 +743,9 @@ fun OfferContent(
                                             modifier = Modifier
                                                 .padding(dimens.smallPadding),
                                             verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                            horizontalArrangement = Arrangement.spacedBy(
+                                                dimens.smallPadding
+                                            )
                                         ) {
                                             Image(
                                                 painterResource(drawables.deliveryIcon),
@@ -737,7 +761,8 @@ fun OfferContent(
                                             )
 
                                             Text(
-                                                text = offer.whoPaysForDelivery?.name ?: "",
+                                                text = offer.whoPaysForDelivery?.name
+                                                    ?: "",
                                                 style = MaterialTheme.typography.titleSmall,
                                                 color = colors.black,
                                                 fontStyle = FontStyle.Italic
@@ -768,9 +793,11 @@ fun OfferContent(
                                             }
                                         }
                                     }
+                                }
+                                item {
                                     // state params
                                     Column(
-                                        modifier = modifier
+                                        modifier = Modifier
                                             .background(
                                                 colors.white,
                                                 MaterialTheme.shapes.medium
@@ -800,146 +827,135 @@ fun OfferContent(
                                     }
                                 }
 
-                                if(!isBigScreen){
-                                    Column(
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                    ) {
-                                        contentActions(Modifier.fillMaxWidth())
-                                    }
-                                } else {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                                        verticalAlignment = Alignment.Top
-                                    ) {
-                                        contentActions(Modifier.weight(1f, false))
+                                item {
+                                    //payment and delivery
+                                    if (offerState.value != OfferStates.PROTOTYPE) {
+                                        PaymentAndDeliverySection(
+                                            offer.dealTypes,
+                                            offer.paymentMethods,
+                                            offer.deliveryMethods,
+                                            if(!isBigScreen) Modifier.fillMaxWidth() else Modifier
+                                        )
                                     }
                                 }
-
-                                //payment and delivery
-                                if (offerState.value != OfferStates.PROTOTYPE) {
-                                    val mod = remember { if(!isBigScreen) Modifier.fillMaxWidth() else Modifier.weight(1f, false) }
-                                    PaymentAndDeliverySection(
-                                        offer.dealTypes,
-                                        offer.paymentMethods,
-                                        offer.deliveryMethods,
-                                        mod
-                                    )
-                                    //Parameters
-                                    offer.params?.let {
-                                        ParametersSection(it, mod)
+                                item {
+                                    if (offerState.value != OfferStates.PROTOTYPE) {
+                                        //Parameters
+                                        offer.params?.let {
+                                            ParametersSection(it, if(!isBigScreen) Modifier.fillMaxWidth() else Modifier)
+                                        }
                                     }
                                 }
                             }
-                        }
+                        )
+                    }
 
-                        //descriptions offer
-                        item {
-                            DescriptionHtmlOffer(offer)
-                        }
-                        //bids list
-                        item {
-                            if (offerState.value == OfferStates.ACTIVE) {
-                                AuctionBidsSection(
-                                    offer,
-                                    offerViewModel.updateItemTrigger.value,
-                                    isDeletesBids = false,
-                                    onRebidClick = {
-                                        if (UserData.token != "") {
-                                            showBidDialog.value = true
-                                        }else{
-                                            component.goToLogin()
-                                        }
-                                    },
-                                    goToUser = {
-                                        component.goToUser(it, false)
+                    //descriptions offer
+                    item {
+                        DescriptionHtmlOffer(offer)
+                    }
+                    //bids list
+                    item {
+                        if (offerState.value == OfferStates.ACTIVE) {
+                            AuctionBidsSection(
+                                offer,
+                                offerViewModel.updateItemTrigger.value,
+                                isDeletesBids = false,
+                                onRebidClick = {
+                                    if (UserData.token != "") {
+                                        showBidDialog.value = true
+                                    }else{
+                                        component.goToLogin()
                                     }
-                                )
-                            }
+                                },
+                                goToUser = {
+                                    component.goToUser(it, false)
+                                }
+                            )
                         }
-                        // removed bids
-                        item {
-                            if (offerState.value == OfferStates.ACTIVE) {
-                                AuctionBidsSection(
-                                    offer,
-                                    offerViewModel.updateItemTrigger.value,
-                                    isDeletesBids = true,
-                                    onRebidClick = {
-                                        if (UserData.token != "") {
-                                            showBidDialog.value = true
-                                        }else{
-                                            component.goToLogin()
-                                        }
+                    }
+                    // removed bids
+                    item {
+                        if (offerState.value == OfferStates.ACTIVE) {
+                            AuctionBidsSection(
+                                offer,
+                                offerViewModel.updateItemTrigger.value,
+                                isDeletesBids = true,
+                                onRebidClick = {
+                                    if (UserData.token != "") {
+                                        showBidDialog.value = true
+                                    }else{
+                                        component.goToLogin()
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
-                        //recommended list offers
-                        item {
-                            if (ourChoiceList.value.isNotEmpty()) {
-                                SeparatorLabel(stringResource(strings.ourChoice))
-
-                                LazyRow(
-                                    modifier = Modifier.height(300.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    }
+                    //recommended list offers
+                    item {
+                       if (ourChoiceList.value.isNotEmpty()) {
+                           SeparatorLabel(stringResource(strings.ourChoice))
+                           LazyRowWithScrollBars(
+                               heightMod = Modifier.fillMaxSize().heightIn(max = 300.dp).padding(
+                                   bottom = dimens.largePadding,
+                                   top = dimens.mediumPadding
+                               ),
+                           ) {
+                               items(ourChoiceList.value) { offer ->
+                                   PromoOfferRowItem(
+                                       offer
+                                   ) {
+                                       component.navigateToOffers(offer.id)
+                                   }
+                               }
+                           }
+                       }
+                    }
+                    // visited list offers
+                    item {
+                        if (visitedHistory.value.isNotEmpty()) {
+                            SeparatorLabel(stringResource(strings.lastViewedOffers))
+                        }
+                        LazyRowWithScrollBars(
+                            heightMod = Modifier.fillMaxSize().heightIn(max = 300.dp).padding(
+                                bottom = dimens.largePadding,
+                                top = dimens.mediumPadding
+                            ),
+                        ) {
+                            items(visitedHistory.value) { offer ->
+                                PromoOfferRowItem(
+                                    offer
                                 ) {
-                                    items(ourChoiceList.value) { offer ->
-                                        PromoOfferRowItem(
-                                            offer
-                                        ) {
-                                            component.navigateToOffers(offer.id)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        // visited list offers
-                        item {
-                            if (visitedHistory.value.isNotEmpty()) {
-                                SeparatorLabel(stringResource(strings.lastViewedOffers))
-                            }
-
-                            LazyRow(
-                                modifier = Modifier.height(300.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                items(visitedHistory.value) { offer ->
-                                    PromoOfferRowItem(
-                                        offer
-                                    ) {
-                                        component.navigateToOffers(offer.id)
-                                    }
+                                    component.navigateToOffers(offer.id)
                                 }
                             }
                         }
                     }
-
-                    AddBidDialog(
-                        showBidDialog.value,
-                        myMaximalBid.value,
-                        onDismiss = {
-                            showBidDialog.value = false
-                        },
-                        onSuccess = {
-                            offerViewModel.addBid(
-                                myMaximalBid.value,
-                                offer,
-                                onSuccess = {
-                                    offerViewModel.updateBidsInfo(offer)
-                                    showBidDialog.value = false
-                                    scope.launch {
-                                        stateColumn.animateScrollToItem(goToBids)
-                                    }
-                                },
-                                onDismiss = {
-                                    showBidDialog.value = false
-                                }
-                            )
-                        },
-                    )
                 }
+
+                AddBidDialog(
+                    showBidDialog.value,
+                    myMaximalBid.value,
+                    onDismiss = {
+                        showBidDialog.value = false
+                    },
+                    onSuccess = {
+                        offerViewModel.addBid(
+                            myMaximalBid.value,
+                            offer,
+                            onSuccess = {
+                                offerViewModel.updateBidsInfo(offer)
+                                showBidDialog.value = false
+                                scope.launch {
+                                    stateColumn.animateScrollToItem(goToBids)
+                                }
+                            },
+                            onDismiss = {
+                                showBidDialog.value = false
+                            }
+                        )
+                    },
+                )
             }
         }
     }
@@ -1782,13 +1798,14 @@ fun AuctionBidsSection(
                 null
             }
         )
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 400.dp)
+        LazyColumnWithScrollBars(
+            heightMod =  Modifier
                 .background(color = colors.white, shape = MaterialTheme.shapes.medium)
-                .padding(dimens.smallPadding)
+                .heightIn(max = 400.dp)
+                .padding(bottom = dimens.largePadding, top = dimens.mediumPadding),
+            modifierList = Modifier
+                .fillMaxSize()
+                .padding(dimens.smallPadding),
         ) {
             // Header row
             item {

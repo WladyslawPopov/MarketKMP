@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 
 expect class ScrollBarsProvider() {
     @Composable
-    fun getVerticalScrollbar(scrollState : Any, modifier : Modifier)
+    fun getVerticalScrollbar(scrollState : Any, modifier : Modifier, isReversed : Boolean = false)
     @Composable
-    fun getHorizontalScrollbar(scrollState : Any, modifier : Modifier)
+    fun getHorizontalScrollbar(scrollState : Any, modifier : Modifier, isReversed : Boolean = false)
 }

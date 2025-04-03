@@ -5,16 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontStyle
@@ -49,6 +47,7 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.ilustrations.CaptchaView
 import market.engine.fragments.base.onError
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -115,9 +114,8 @@ fun LoginContent(
             }
         }
     ) {
-        Box(
-            contentAlignment = Alignment.TopCenter,
-            modifier = modifier
+        LazyColumnWithScrollBars(
+            modifierList = Modifier
                 .background(color = colors.white)
                 .fillMaxSize()
                 .pointerInput(Unit) {
@@ -126,146 +124,146 @@ fun LoginContent(
                             focusManager.clearFocus()
                         }
                     )
-                },
-        ) {
-            LazyColumn(
-                state = scrollState,
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(dimens.mediumPadding),
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                item {
-                    Image(
-                        painter = painterResource(drawables.logoMain),
-                        contentDescription = "",
-                        modifier = Modifier
-                            .size(height = 100.dp, width = 300.dp)
-                            .padding(dimens.mediumPadding)
-                    )
-                    Spacer(modifier.height(dimens.mediumSpacer))
                 }
-                item {
-                    CaptchaView(
-                        isVisible = isCaptchaVisible.value,
-                        captchaImage = captchaImage.value,
-                        captchaTextValue = captchaTextValue.value,
-                        onCaptchaTextChange = {
-                            captchaTextValue.value = it
-                        }
-                    )
-                }
-                item {
-                    OutlinedTextInputField(
-                        value = emailTextValue.value,
-                        onValueChange = {
-                            emailTextValue.value = it
-                        },
-                        label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
-                        keyboardType = KeyboardType.Email,
-                        isEmail = true
-                    )
+                .padding(dimens.mediumPadding),
+            state = scrollState,
+            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            item {
+                Image(
+                    painter = painterResource(drawables.logoMain),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(height = 100.dp, width = 300.dp)
+                        .padding(dimens.mediumPadding)
+                )
+                Spacer(modifier.height(dimens.mediumSpacer))
+            }
 
-                    OutlinedTextInputField(
-                        value = passwordTextValue.value,
-                        onValueChange = {
-                            passwordTextValue.value = it
-                        },
-                        label = stringResource(strings.promptPassword),
-                        keyboardType = KeyboardType.Password,
-                        isPassword = true,
-                    )
-                }
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            dimens.smallPadding,
-                            Alignment.End
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
+            item {
+                CaptchaView(
+                    isVisible = isCaptchaVisible.value,
+                    captchaImage = captchaImage.value,
+                    captchaTextValue = captchaTextValue.value,
+                    onCaptchaTextChange = {
+                        captchaTextValue.value = it
+                    }
+                )
+            }
+
+            item {
+                OutlinedTextInputField(
+                    value = emailTextValue.value,
+                    onValueChange = {
+                        emailTextValue.value = it
+                    },
+                    label = stringResource(strings.promptEmail) + " / " + stringResource(strings.loginParameterName),
+                    keyboardType = KeyboardType.Email,
+                    isEmail = true
+                )
+
+                OutlinedTextInputField(
+                    value = passwordTextValue.value,
+                    onValueChange = {
+                        passwordTextValue.value = it
+                    },
+                    label = stringResource(strings.promptPassword),
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true,
+                )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.widthIn(min = 500.dp).padding(dimens.smallPadding),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.smallPadding,
+                        Alignment.End
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ActionButton(
+                        strings.forgotPassword
                     ) {
-                        ActionButton(
-                            strings.forgotPassword
-                        ) {
-                            component.goToForgotPassword()
-                        }
+                        component.goToForgotPassword()
                     }
                 }
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            dimens.mediumSpacer,
-                            Alignment.End
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
+            }
+            item {
+                Row(
+                    modifier = Modifier.widthIn(min = 500.dp).padding(dimens.smallPadding),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.mediumSpacer,
+                        Alignment.End
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SimpleTextButton(
+                        text = stringResource(strings.enterLogin),
+                        textColor = colors.alwaysWhite,
+                        backgroundColor = colors.inactiveBottomNavIconColor,
+                        textStyle = MaterialTheme.typography.titleMedium
                     ) {
-                        SimpleTextButton(
-                            text = stringResource(strings.enterLogin),
-                            textColor = colors.alwaysWhite,
-                            backgroundColor = colors.inactiveBottomNavIconColor,
-                            textStyle = MaterialTheme.typography.titleMedium
-                        ) {
-                            requestIntegrityTokenAuth()
+                        requestIntegrityTokenAuth()
 
-                            model.postAuth(
-                                emailTextValue.value.text,
-                                passwordTextValue.value.text,
-                                captchaTextValue.value.text,
-                                captchaKey.value,
-                                onSuccess = {
-                                    isCaptchaVisible.value = false
-                                    component.onBack()
-                                },
-                                onError = { image, key ->
-                                    captchaImage.value = image
-                                    captchaKey.value = key
-                                    isCaptchaVisible.value = true
-                                }
-                            )
-                        }
-
-                        SimpleTextButton(
-                            text = stringResource(strings.registration),
-                            backgroundColor = colors.steelBlue,
-                            textColor = colors.alwaysWhite,
-                            textStyle = MaterialTheme.typography.titleMedium
-                        ) {
-                            component.goToRegistration()
-                        }
-                    }
-                }
-                item {
-                    additionalAuthorizationContent{ bodyString ->
-                        model.postAuthExternal(bodyString){
-                            component.onBack()
-                        }
-                    }
-                }
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding).clickable {
-                            openUrl(SAPI.dataPolicyURL)
-                        },
-                        horizontalArrangement = Arrangement.spacedBy(
-                            dimens.mediumSpacer,
-                            Alignment.CenterHorizontally
-                        ),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ){
-                        Text(
-                            stringResource(strings.dataUsagePolicyLabel),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.actionTextColor,
-                            fontStyle = FontStyle.Italic
+                        model.postAuth(
+                            emailTextValue.value.text,
+                            passwordTextValue.value.text,
+                            captchaTextValue.value.text,
+                            captchaKey.value,
+                            onSuccess = {
+                                isCaptchaVisible.value = false
+                                component.onBack()
+                            },
+                            onError = { image, key ->
+                                captchaImage.value = image
+                                captchaKey.value = key
+                                isCaptchaVisible.value = true
+                            }
                         )
                     }
+
+                    SimpleTextButton(
+                        text = stringResource(strings.registration),
+                        backgroundColor = colors.steelBlue,
+                        textColor = colors.alwaysWhite,
+                        textStyle = MaterialTheme.typography.titleMedium
+                    ) {
+                        component.goToRegistration()
+                    }
+                }
+            }
+            item {
+                additionalAuthorizationContent{ bodyString ->
+                    model.postAuthExternal(bodyString){
+                        component.onBack()
+                    }
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable {
+                            openUrl(SAPI.dataPolicyURL)
+                        }
+                        .widthIn(min = 500.dp)
+                        .padding(dimens.mediumPadding),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.mediumSpacer,
+                        Alignment.CenterHorizontally
+                    ),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    Text(
+                        stringResource(strings.dataUsagePolicyLabel),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.actionTextColor,
+                        fontStyle = FontStyle.Italic
+                    )
                 }
             }
         }
     }
 }
-
-

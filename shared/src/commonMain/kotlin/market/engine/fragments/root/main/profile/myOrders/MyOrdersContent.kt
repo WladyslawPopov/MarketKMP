@@ -24,8 +24,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.data.types.WindowType
-import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
@@ -47,16 +45,12 @@ fun MyOrdersContent(
     val searchData = viewModel.listingData.value.searchData
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-    val windowClass = getWindowType()
-    val isBigScreen = windowClass == WindowType.Big
 
     val typeGroup = remember {  if (dealType in arrayOf(
             DealType.BUY_ARCHIVE,
             DealType.BUY_IN_WORK
         )
     ) DealTypeGroup.SELL else DealTypeGroup.BUY }
-
-    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
 
     val successToast = stringResource(strings.operationSuccess)
 
@@ -141,7 +135,6 @@ fun MyOrdersContent(
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            columns = columns,
             listingData = listingData.value,
             searchData = searchData.value,
             data = data,

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +24,7 @@ import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.items.ActiveFilterListingItem
+import market.engine.widgets.rows.LazyRowWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -117,12 +117,11 @@ fun FiltersBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
-            LazyRow(
-                modifier = Modifier
+            LazyRowWithScrollBars(
+                heightMod = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
             ) {
                 items(filters, key = { it.interpretation ?: it.value }) { filter ->
                     filter.interpretation?.let { text->

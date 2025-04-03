@@ -1,10 +1,7 @@
 package market.engine.widgets.dropdown_menu
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -37,6 +34,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -47,7 +45,7 @@ fun getDropdownMenu(
     selects: List<String>,
     onItemClick: (String) -> Unit,
     onClearItem: (() -> Unit)?,
-    modifier: Modifier = Modifier.fillMaxWidth()
+    modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     val rotationAngle by animateFloatAsState(
@@ -59,18 +57,13 @@ fun getDropdownMenu(
             .shadow(elevation = 1.dp, shape = MaterialTheme.shapes.small, true)
             .background(color = colors.white)
             .clip(MaterialTheme.shapes.small)
-            .animateContentSize(
-                animationSpec = spring(
-                    stiffness = Spring.StiffnessMedium,
-                ),
-            ),
+            .clickable {
+                expanded = !expanded
+            },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.clickable {
-                    expanded = !expanded
-                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

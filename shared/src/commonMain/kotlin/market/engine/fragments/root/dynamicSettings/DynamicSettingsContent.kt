@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +46,7 @@ import market.engine.fragments.root.dynamicSettings.contents.DeliveryCardsConten
 import market.engine.fragments.root.dynamicSettings.contents.VacationSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.WatermarkAndBlockRatingContent
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.DescriptionTextField
 import market.engine.widgets.texts.HeaderAlertText
 import org.jetbrains.compose.resources.stringResource
@@ -115,8 +115,8 @@ fun DynamicSettingsContent(
         error = error,
         toastItem = viewModel.toastItem
     ) {
-        LazyColumn(
-            modifier = Modifier.pointerInput(Unit) {
+        LazyColumnWithScrollBars(
+            modifierList = Modifier.pointerInput(Unit) {
                 detectTapGestures {
                     focusManager.clearFocus()
                 }
@@ -211,7 +211,7 @@ fun DynamicSettingsContent(
                                 deliveryFields.value,
                                 viewModel,
                                 setUpNewFields = { newFields ->
-                                   deliveryFields.value = newFields
+                                    deliveryFields.value = newFields
                                 },
                                 onError = {
                                     deliveryFields.value = it

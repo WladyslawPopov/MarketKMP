@@ -7,8 +7,12 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,6 +25,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseViewModel
@@ -28,6 +33,7 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.widgets.items.DeliveryCardItem
+import market.engine.widgets.rows.LazyRowWithScrollBars
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.stringResource
@@ -43,7 +49,7 @@ fun DeliveryCardsContent(
     onError: (List<Fields>) -> Unit,
     refresh: () -> Unit
 ){
-    val showFields = remember { mutableStateOf(cards.find { it.isDefault }?.address == null) }
+    val showFields = remember { mutableStateOf(cards.find { it.isDefault }?.address?.trim()?.isBlank() ?: true) }
     
     val selectedCards = remember { mutableStateOf(cards.find { it.isDefault }?.id) }
 
@@ -128,11 +134,7 @@ fun DeliveryCardsContent(
 
         //card items
         AnimatedVisibility(!showFields.value) {
-            LazyRow(
-                modifier = Modifier.padding(dimens.smallPadding),
-                horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ){
+            LazyRowWithScrollBars {
                 items(cards.size, key = { cards[it].id }){
                     DeliveryCardItem(
                         cards[it].id == selectedCards.value,
@@ -148,52 +150,62 @@ fun DeliveryCardsContent(
 
         //fields
         AnimatedVisibility(showFields.value) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
-                fields.forEach { field ->
-                    when (field.widgetType) {
-                        "input" -> {
-                            if (field.key != "country" && field.key != "other_country") {
-                                DynamicInputField(
-                                    field = field,
-                                )
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+                modifier = Modifier.heightIn(200.dp, 5000.dp)
+                    .wrapContentHeight(),
+                userScrollEnabled = false,
+                horizontalArrangement = Arrangement.spacedBy(
+                    dimens.smallPadding,
+                    Alignment.CenterHorizontally
+                ),
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                content = {
+                    items(fields) { field ->
+                        when (field.widgetType) {
+                            "input" -> {
+                                if (field.key != "country" && field.key != "other_country") {
+                                    DynamicInputField(
+                                        field = field,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        Column {
+                            val countryField = fields.find { it.key == "country" }
+                            val otherCountryField = fields.find { it.key == "other_country" }
+                            // country
+                            if (countryField != null) {
+                                selectedCountry.value = fields.find {
+                                    it.key == "country"
+                                }?.data?.jsonPrimitive?.intOrNull ?: 0
+
+                                DynamicSelect(
+                                    field = countryField,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                ) { choice ->
+                                    selectedCountry.value = choice?.code?.intOrNull ?: 0
+                                }
+                            }
+
+                            if (otherCountryField != null) {
+                                AnimatedVisibility(visible = selectedCountry.value == 1) {
+                                    DynamicInputField(
+                                        field = otherCountryField
+                                    )
+                                }
                             }
                         }
                     }
                 }
-
-                val countryField = fields.find { it.key == "country" }
-                val otherCountryField = fields.find { it.key == "other_country" }
-
-                // country
-                if (countryField != null) {
-
-                    selectedCountry.value = fields.find {
-                        it.key == "country"
-                    }?.data?.jsonPrimitive?.intOrNull ?: 0
-
-                    DynamicSelect(
-                        field = countryField,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    ) { choice ->
-                        selectedCountry.value = choice?.code?.intOrNull ?: 0
-                    }
-                }
-
-                if (otherCountryField != null) {
-                    AnimatedVisibility(visible = selectedCountry.value == 1) {
-                        DynamicInputField(
-                            field = otherCountryField
-                        )
-                    }
-                }
-            }
+            )
         }
+
         //buttons
         FlowRow(
             modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),

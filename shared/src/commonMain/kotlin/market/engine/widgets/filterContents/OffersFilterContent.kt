@@ -4,14 +4,12 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +40,7 @@ import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.bars.FilterContentHeaderBar
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 
@@ -191,13 +190,14 @@ fun OfferFilterContent(
             }
         },
     ) {
-        Box(
+        Column(
             modifier = Modifier.fillMaxSize().pointerInput(Unit) {
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
                 })
             }.padding(dimens.smallPadding).animateContentSize(),
-            contentAlignment = Alignment.TopCenter
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             //Header Filters
             FilterContentHeaderBar(
@@ -215,12 +215,7 @@ fun OfferFilterContent(
                     onClose()
                 }
             )
-
-            LazyColumn(
-                modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+            LazyColumnWithScrollBars {
                 //Expands
                 when(typeFilters){
                     LotsType.FAVORITES -> {
@@ -340,8 +335,7 @@ fun OfferFilterContent(
 
             AcceptedPageButton(
                 strings.actionAcceptFilters,
-                Modifier.align(Alignment.BottomCenter)
-                    .wrapContentWidth()
+                Modifier.wrapContentWidth()
                     .padding(dimens.mediumPadding)
             ){
                 onClose()

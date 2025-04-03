@@ -4,14 +4,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,6 +34,7 @@ import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.ilustrations.dismissBackground
 import market.engine.widgets.items.historyItem
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -89,15 +88,15 @@ fun HistoryLayout(
         }
     }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(50.dp, 250.dp)
-            .background(color = colors.primaryColor),
-        contentPadding = PaddingValues(dimens.extraSmallPadding),
-        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+    LazyColumnWithScrollBars(
+        heightMod = Modifier.fillMaxWidth()
+        .heightIn(50.dp, 250.dp)
+        .background(color = colors.primaryColor),
+        modifierList = modifier,
+        contentPadding = dimens.smallPadding,
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         horizontalAlignment = Alignment.Start
-    ) {
+    ){
         // List Items
         items(historyItems.reversed(), key = { it.id }) { historyItem ->
             val dismissState = rememberDismissState(

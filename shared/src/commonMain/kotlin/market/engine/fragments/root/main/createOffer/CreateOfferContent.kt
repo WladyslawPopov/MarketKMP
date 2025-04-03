@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
@@ -75,6 +77,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.ServerErrorException
@@ -96,6 +99,7 @@ import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dialogs.DateDialog
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.DescriptionTextField
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
@@ -150,7 +154,7 @@ fun CreateOfferContent(
     val richTextState = rememberRichTextState()
 
     val columnState = rememberLazyListState(
-         initialFirstVisibleItemIndex = viewModel.positionList.value
+        initialFirstVisibleItemIndex = viewModel.positionList.value
     )
 
     val newOfferId = remember { mutableStateOf<Long?>(null) }
@@ -327,7 +331,7 @@ fun CreateOfferContent(
     BaseContent(
         topBar = {
             CreateOfferAppBar(
-                        type,
+                type,
                 onBackClick = {
                     component.onBackClicked()
                 }
@@ -420,154 +424,215 @@ fun CreateOfferContent(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    LazyColumn(
-                        state = columnState,
-                        modifier = Modifier.fillMaxSize()
+                    LazyColumnWithScrollBars(
+                        modifierList = Modifier.fillMaxSize()
                             .pointerInput(Unit) {
                                 detectTapGestures(onTap = {
                                     focusManager.clearFocus()
                                 })
                             }.padding(horizontal = dimens.smallPadding),
+                        state = columnState,
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        val sortList = listOf(
-                            "category_id",
+
+                        val first = listOf(
                             "title",
                             "saletype",
-                            "startingprice",
-                            "buynowprice",
-                            "priceproposaltype",
+                        )
+                        val second = listOf(
                             "params",
+                        )
+
+                        val third = listOf(
                             "length_in_days",
                             "quantity",
                             "relisting_mode",
                             "whopaysfordelivery",
                             "region",
                             "freelocation",
-                            "dealtype",
                             "paymentmethods",
+                            "dealtype",
                             "deliverymethods",
+                        )
+
+                        val end = listOf(
                             "images",
                             "session_start",
                             "description",
                         )
 
-                        sortList.forEach { key ->
-                            when(key){
-                                "category_id" -> {
-                                    //categories
-                                    item {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.Bottom,
-                                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        //categories
+                        item {
+                            LaunchedEffect(Unit) {
+                                dynamicPayloadState.value?.fields?.find { it.key == "category_id" }
+                                    ?.let { field ->
+                                        field.data?.jsonPrimitive?.longOrNull?.let {
+                                            if (categoryID.value == 1L) {
+                                                viewModel.selectedCategoryId.value = it
+                                            }
+                                        }
+                                    }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                if (type != CreateOfferType.COPY_PROTOTYPE) {
+                                    if (catHistory.value.isNotEmpty()) {
+                                        FlowRow(
+                                            horizontalArrangement = Arrangement.Start,
+                                            verticalArrangement = Arrangement.SpaceAround,
+                                            modifier = Modifier.weight(1f)
                                         ) {
-                                            if (type != CreateOfferType.COPY_PROTOTYPE) {
-                                                if (catHistory.value.isNotEmpty()) {
-                                                    FlowRow(
-                                                        horizontalArrangement = Arrangement.Start,
-                                                        verticalArrangement = Arrangement.SpaceAround,
-                                                        modifier = Modifier.weight(1f)
-                                                    ) {
-                                                        catHistory.value.reversed()
-                                                            .forEachIndexed { index, cat ->
-                                                                Text(
-                                                                    text = if (catHistory.value.size - 1 == index)
-                                                                        cat.name ?: ""
-                                                                    else (cat.name ?: "") + "->",
-                                                                    style = MaterialTheme.typography.bodySmall.copy(
-                                                                        fontWeight = FontWeight.Bold
-                                                                    ),
-                                                                    color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
-                                                                    modifier = Modifier.padding(dimens.extraSmallPadding)
+                                            catHistory.value.reversed()
+                                                .forEachIndexed { index, cat ->
+                                                    Text(
+                                                        text = if (catHistory.value.size - 1 == index)
+                                                            cat.name ?: ""
+                                                        else (cat.name ?: "") + "->",
+                                                        style = MaterialTheme.typography.bodySmall.copy(
+                                                            fontWeight = FontWeight.Bold
+                                                        ),
+                                                        color = if (catHistory.value.size - 1 == index) colors.black else colors.steelBlue,
+                                                        modifier = Modifier.padding(
+                                                            dimens.extraSmallPadding
+                                                        )
+                                                    )
+                                                }
+                                        }
+                                    }
+
+                                    ActionButton(
+                                        strings.changeCategory,
+                                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                        alignment = Alignment.TopEnd,
+                                    ) {
+                                        isEditCat.value = true
+                                        viewModel.activeFiltersType.value = "categories"
+                                        viewModel.openFiltersCat.value = true
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+                                modifier = Modifier
+                                    .heightIn(200.dp, 5000.dp)
+                                    .wrapContentHeight(),
+                                userScrollEnabled = false,
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    dimens.smallPadding,
+                                    Alignment.CenterHorizontally
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                content = {
+                                    first.forEach { key ->
+                                        when (key) {
+                                            "title" -> {
+                                                dynamicPayloadState.value?.fields?.find { it.key == key }
+                                                    ?.let { field ->
+                                                        item {
+                                                            Column {
+                                                                SeparatorLabel(
+                                                                    field.shortDescription
+                                                                        ?: ""
+                                                                )
+
+                                                                DynamicInputField(
+                                                                    field
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                            }
+
+
+                                            "saletype" -> {
+                                                item {
+                                                    Column {
+                                                        dynamicPayloadState.value?.fields?.find { it.key == key }
+                                                            ?.let { field ->
+                                                                Column {
+                                                                    SeparatorLabel(
+                                                                        stringResource(strings.saleTypeLabel)
+                                                                    )
+
+                                                                    DynamicSelect(
+                                                                        field,
+                                                                    ) { choice ->
+                                                                        choiceCodeSaleType.value =
+                                                                            choice?.code?.int
+                                                                    }
+                                                                }
+                                                            }
+
+
+                                                        dynamicPayloadState.value?.fields?.find { it.key == "startingprice" }
+                                                            ?.let { field ->
+                                                                AnimatedVisibility(
+                                                                    choiceCodeSaleType.value == 0 || choiceCodeSaleType.value == 1,
+                                                                    enter = fadeIn(),
+                                                                    exit = fadeOut()
+                                                                ) {
+                                                                    DynamicInputField(
+                                                                        field,
+                                                                        suffix = stringResource(
+                                                                            strings.currencySign
+                                                                        ),
+                                                                        mandatory = true
+                                                                    )
+                                                                }
+                                                            }
+
+
+                                                        dynamicPayloadState.value?.fields?.find { it.key == "buynowprice" }
+                                                            ?.let { field ->
+                                                                AnimatedVisibility(
+                                                                    choiceCodeSaleType.value == 2 || choiceCodeSaleType.value == 1,
+                                                                    enter = fadeIn(),
+                                                                    exit = fadeOut()
+                                                                ) {
+                                                                    DynamicInputField(
+                                                                        field,
+                                                                        suffix = stringResource(
+                                                                            strings.currencySign
+                                                                        ),
+                                                                        mandatory = true
+                                                                    )
+                                                                }
+                                                            }
+
+                                                        dynamicPayloadState.value?.fields?.find { it.key == "priceproposaltype" }
+                                                            ?.let { field ->
+                                                                DynamicSelect(
+                                                                    field,
                                                                 )
                                                             }
                                                     }
                                                 }
-
-                                                ActionButton(
-                                                    strings.changeCategory,
-                                                    fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                                    alignment = Alignment.TopEnd,
-                                                ) {
-                                                    isEditCat.value = true
-                                                    viewModel.activeFiltersType.value = "categories"
-                                                    viewModel.openFiltersCat.value = true
-                                                }
                                             }
                                         }
                                     }
                                 }
-                                "images" -> {
-                                    // Images
-                                    item {
-                                        SeparatorLabel(stringResource(strings.photoLabel))
+                            )
+                        }
 
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceAround
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    stringResource(strings.actionAddPhoto),
-                                                    color = colors.black,
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                    modifier = Modifier.padding(dimens.smallPadding)
-                                                )
-
-                                                Icon(
-                                                    painterResource(drawables.addGalleryIcon),
-                                                    contentDescription = stringResource(strings.actionAddPhoto),
-                                                    tint = colors.black
-                                                )
-                                            }
-
-
-                                            ActionButton(
-                                                strings.chooseAction,
-                                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                                alignment = Alignment.TopEnd,
-                                                enabled = images.value.size < MAX_IMAGE_COUNT
-                                            ) {
-                                                if (!getPermissionHandler().checkImagePermissions()) {
-                                                    getPermissionHandler().requestImagePermissions {
-                                                        if (it) {
-                                                            launcher.launch()
-                                                        }
-                                                    }
-                                                } else {
-                                                    launcher.launch()
-                                                }
-                                            }
-                                        }
-
-                                        AnimatedVisibility(
-                                            images.value.isNotEmpty(),
-                                            enter = fadeIn(),
-                                            exit = fadeOut()
-                                        ) {
-                                            PhotoDraggableGrid(images.value, viewModel) {
-                                                if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY){
-                                                    if (it.url != null && it.id != null) {
-                                                        deleteImages.value.add(JsonPrimitive(it.id!!.last().toString()))
-                                                    }
-                                                }
-                                                val newList = images.value.toMutableList()
-                                                newList.remove(it)
-                                                viewModel.setImages(newList)
-                                            }
-                                        }
-                                    }
-                                }
+                        second.forEach { key ->
+                            when (key) {
                                 "params" -> {
                                     item {
                                         if (viewModel.updateItemTrigger.value >= 0) {
                                             val paramList =
-                                                dynamicPayloadState.value?.fields?.filter { it.key?.contains("par_") == true }
+                                                dynamicPayloadState.value?.fields?.filter {
+                                                    it.key?.contains(
+                                                        "par_"
+                                                    ) == true
+                                                }
                                                     ?: emptyList()
                                             SeparatorLabel(stringResource(strings.parametersLabel))
 
@@ -578,205 +643,225 @@ fun CreateOfferContent(
                                         }
                                     }
                                 }
-                                else -> {
-                                    dynamicPayloadState.value?.fields?.find { it.key == key }
-                                        ?.let { field ->
-                                            when (field.key) {
-                                                "category_id" -> {
-                                                    field.data?.jsonPrimitive?.longOrNull?.let {
-                                                        if (categoryID.value == 1L) {
-                                                            viewModel.selectedCategoryId.value = it
-                                                        }
-                                                    }
-                                                }
+                            }
+                        }
 
-                                                "title" -> {
-                                                    item {
-                                                        SeparatorLabel(field.shortDescription ?: "")
-
-                                                        DynamicInputField(
-                                                            field
-                                                        )
-                                                    }
-                                                }
-
-                                                "saletype" -> {
-                                                    item {
-                                                        SeparatorLabel(
-                                                            stringResource(strings.saleTypeLabel)
-                                                        )
-
-                                                        DynamicSelect(
-                                                            field,
-                                                        ) { choice ->
-                                                            choiceCodeSaleType.value = choice?.code?.int
-                                                        }
-                                                    }
-                                                }
-
-                                                "startingprice" ->{
-                                                    item {
-                                                        AnimatedVisibility(
-                                                            choiceCodeSaleType.value == 0 || choiceCodeSaleType.value == 1,
-                                                            enter = fadeIn(),
-                                                            exit = fadeOut()
-                                                        ) {
-                                                            DynamicInputField(
+                        item {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+                                modifier = Modifier
+                                    .heightIn(200.dp, 5000.dp)
+                                    .wrapContentHeight(),
+                                userScrollEnabled = false,
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    dimens.smallPadding,
+                                    Alignment.CenterHorizontally
+                                ),
+                                content = {
+                                    third.forEach { key ->
+                                        dynamicPayloadState.value?.fields?.find { it.key == key }
+                                            ?.let { field ->
+                                                when (field.key) {
+                                                    "length_in_days" -> {
+                                                        item {
+                                                            DynamicSelect(
                                                                 field,
-                                                                suffix = stringResource(
-                                                                    strings.currencySign
-                                                                ),
-                                                                mandatory = true
                                                             )
                                                         }
                                                     }
-                                                }
 
-                                                "buynowprice" ->{
-                                                    item {
-                                                        AnimatedVisibility(
-                                                            choiceCodeSaleType.value == 2 || choiceCodeSaleType.value == 1,
-                                                            enter = fadeIn(),
-                                                            exit = fadeOut()
-                                                        ) {
-                                                            DynamicInputField(
+                                                    "quantity" -> {
+                                                        when (choiceCodeSaleType.value) {
+                                                            1 -> {
+                                                                field.data = JsonPrimitive(1)
+                                                            }
+                                                            //buynow
+                                                            2 -> {
+                                                                item {
+                                                                    DynamicInputField(
+                                                                        field,
+                                                                        mandatory = true
+                                                                    )
+                                                                }
+                                                            }
+
+                                                            0 -> {
+                                                                field.data = JsonPrimitive(1)
+                                                            }
+
+                                                            else -> {}
+                                                        }
+                                                    }
+
+                                                    "relisting_mode" -> {
+                                                        item {
+                                                            DynamicSelect(
                                                                 field,
-                                                                suffix = stringResource(
-                                                                    strings.currencySign
-                                                                ),
-                                                                mandatory = true
                                                             )
                                                         }
                                                     }
-                                                }
 
-                                                "priceproposaltype" -> {
-                                                    item {
-                                                        DynamicSelect(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
-
-                                                "length_in_days" -> {
-                                                    item {
-                                                        DynamicSelect(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
-
-                                                "quantity" -> {
-                                                    when (choiceCodeSaleType.value) {
-                                                        1 -> {
-                                                            field.data = JsonPrimitive(1)
-                                                        }
-                                                        //buynow
-                                                        2 -> {
-                                                            item {
-                                                                DynamicInputField(
+                                                    "whopaysfordelivery" -> {
+                                                        item {
+                                                            Column {
+                                                                SeparatorLabel(
+                                                                    stringResource(strings.paymentAndDeliveryLabel)
+                                                                )
+                                                                DynamicSelect(
                                                                     field,
-                                                                    mandatory = true
+                                                                )
+                                                                dynamicPayloadState.value?.fields?.find { it.key == "region" }
+                                                                    ?.let { field ->
+                                                                        DynamicSelect(
+                                                                            field,
+                                                                        )
+                                                                    }
+                                                                dynamicPayloadState.value?.fields?.find { it.key == "freelocation" }
+                                                                    ?.let { field ->
+                                                                        DynamicInputField(
+                                                                            field,
+                                                                        )
+                                                                    }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    "paymentmethods" -> {
+                                                        item {
+                                                            DynamicCheckboxGroup(
+                                                                field,
+                                                            )
+                                                        }
+                                                    }
+
+                                                    "dealtype" -> {
+                                                        item {
+                                                            DynamicCheckboxGroup(
+                                                                field,
+                                                            )
+                                                        }
+                                                    }
+
+                                                    "deliverymethods" -> {
+                                                        item {
+                                                            Column {
+                                                                SeparatorLabel(
+                                                                    stringResource(strings.deliveryMethodLabel)
+                                                                )
+
+                                                                DeliveryMethods(
+                                                                    field,
                                                                 )
                                                             }
                                                         }
-
-                                                        0 -> {
-                                                            field.data = JsonPrimitive(1)
-                                                        }
-                                                        else ->{}
                                                     }
                                                 }
+                                            }
+                                    }
+                                }
+                            )
+                        }
 
-                                                "relisting_mode" -> {
-                                                    item {
-                                                        DynamicSelect(
-                                                            field,
+                        end.forEach { key ->
+                            dynamicPayloadState.value?.fields?.find { it.key == key }
+                                ?.let { field ->
+                                    when (field.key) {
+                                        "images" -> {
+                                            // Images
+                                            item {
+                                                SeparatorLabel(stringResource(strings.photoLabel))
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                        .padding(dimens.mediumPadding),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceAround
+                                                ) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            stringResource(strings.actionAddPhoto),
+                                                            color = colors.black,
+                                                            style = MaterialTheme.typography.titleSmall,
+                                                            modifier = Modifier.padding(dimens.smallPadding)
+                                                        )
+
+                                                        Icon(
+                                                            painterResource(drawables.addGalleryIcon),
+                                                            contentDescription = stringResource(
+                                                                strings.actionAddPhoto
+                                                            ),
+                                                            tint = colors.black
                                                         )
                                                     }
-                                                }
 
-                                                "whopaysfordelivery" -> {
-                                                    item {
-                                                        SeparatorLabel(
-                                                            stringResource(strings.paymentAndDeliveryLabel)
-                                                        )
-                                                        DynamicSelect(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
 
-                                                "region" -> {
-                                                    item {
-                                                        DynamicSelect(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
-
-                                                "freelocation" -> {
-                                                    item {
-                                                        DynamicInputField(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
-
-                                                "dealtype" -> {
-                                                    item {
-                                                        DynamicCheckboxGroup(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
-
-                                                "paymentmethods" -> {
-                                                    item {
-                                                        DynamicCheckboxGroup(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
-
-                                                "deliverymethods" -> {
-                                                    item {
-                                                        SeparatorLabel(
-                                                            stringResource(strings.deliveryMethodLabel)
-                                                        )
-
-                                                        DeliveryMethods(
-                                                            field,
-                                                        )
-                                                    }
-                                                }
-
-                                                "session_start" -> {
-                                                    item {
-                                                        if(!(type == CreateOfferType.EDIT && field.data?.jsonPrimitive?.intOrNull == 0)) {
-                                                            SeparatorLabel(
-                                                                stringResource(strings.offersGroupStartTSTile)
-                                                            )
-
-                                                            SessionStartContent(selectedDate, field)
+                                                    ActionButton(
+                                                        strings.chooseAction,
+                                                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                                        alignment = Alignment.TopEnd,
+                                                        enabled = images.value.size < MAX_IMAGE_COUNT
+                                                    ) {
+                                                        if (!getPermissionHandler().checkImagePermissions()) {
+                                                            getPermissionHandler().requestImagePermissions {
+                                                                if (it) {
+                                                                    launcher.launch()
+                                                                }
+                                                            }
+                                                        } else {
+                                                            launcher.launch()
                                                         }
                                                     }
                                                 }
-                                                "description" -> {
-                                                    item {
-                                                        SeparatorLabel(
-                                                            stringResource(strings.description)
-                                                        )
 
-                                                        DescriptionTextField(field, richTextState)
+                                                AnimatedVisibility(
+                                                    images.value.isNotEmpty(),
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
+                                                ) {
+                                                    PhotoDraggableGrid(images.value, viewModel) {
+                                                        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
+                                                            if (it.url != null && it.id != null) {
+                                                                deleteImages.value.add(
+                                                                    JsonPrimitive(
+                                                                        it.id!!.last().toString()
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                        val newList = images.value.toMutableList()
+                                                        newList.remove(it)
+                                                        viewModel.setImages(newList)
                                                     }
                                                 }
-
-                                                else -> {}
                                             }
                                         }
+
+                                        "session_start" -> {
+                                            item {
+                                                if (!(type == CreateOfferType.EDIT && field.data?.jsonPrimitive?.intOrNull == 0)) {
+                                                    SeparatorLabel(
+                                                        stringResource(strings.offersGroupStartTSTile)
+                                                    )
+
+                                                    SessionStartContent(selectedDate, field)
+                                                }
+                                            }
+                                        }
+
+                                        "description" -> {
+                                            item {
+                                                SeparatorLabel(
+                                                    stringResource(strings.description)
+                                                )
+
+                                                DescriptionTextField(field, richTextState)
+                                            }
+                                        }
+                                    }
                                 }
-                            }
                         }
 
                         //create btn
@@ -807,15 +892,19 @@ fun CreateOfferContent(
                                         CreateOfferType.CREATE -> {
                                             "categories/${categoryID.value}/operations/create_offer"
                                         }
+
                                         CreateOfferType.EDIT -> {
                                             "offers/$offerId/operations/edit_offer"
                                         }
+
                                         CreateOfferType.COPY -> {
                                             "offers/$offerId/operations/copy_offer"
                                         }
+
                                         CreateOfferType.COPY_WITHOUT_IMAGE -> {
                                             "offers/$offerId/operations/copy_offer_without_old_photo"
                                         }
+
                                         CreateOfferType.COPY_PROTOTYPE -> {
                                             "offers/$offerId/operations/copy_offer_from_prototype"
                                         }
@@ -1049,9 +1138,9 @@ fun SuccessContent(
         val header = buildAnnotatedString {
             if (isActive) {
                 append(stringResource(strings.congratulationsCreateOfferInFutureLabel))
-                 withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = colors.yellowSun)) {
-                     append(" ${futureTime.toString().convertDateWithMinutes()}")
-                 }
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = colors.yellowSun)) {
+                    append(" ${futureTime.toString().convertDateWithMinutes()}")
+                }
             } else{
                 append(
                     stringResource(strings.congratulationsLabel)
