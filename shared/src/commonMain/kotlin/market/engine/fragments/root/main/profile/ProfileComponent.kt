@@ -10,6 +10,7 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.core.utils.getCurrentDate
@@ -67,6 +68,13 @@ class DefaultProfileComponent(
             }
             "proposals" -> {
                 navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
+            }
+            else -> {
+                if(isBigScreen.value){
+                    navigationProfile.replaceAll(ProfileConfig.MyOffersScreen)
+                }else{
+                    navigationProfile.replaceAll(ProfileConfig.ProfileScreen(content))
+                }
             }
         }
 

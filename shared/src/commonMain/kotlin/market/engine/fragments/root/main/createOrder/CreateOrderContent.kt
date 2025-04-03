@@ -271,7 +271,7 @@ fun CreateOrderContent(
                                         ?: 0
                             },
                             onClearItem = null,
-                            modifier = Modifier.fillMaxWidth(if (isBigScreen) 0.4f else 0.9f)
+                            modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
                         )
                     }
                     if (additionalFields.value?.dealTypes != null) {
@@ -292,7 +292,7 @@ fun CreateOrderContent(
                                         ?: 0
                             },
                             onClearItem = null,
-                            modifier = Modifier.fillMaxWidth(if (isBigScreen) 0.4f else 0.9f)
+                            modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
                         )
                     }
                     if (additionalFields.value?.paymentMethods != null) {
@@ -313,7 +313,7 @@ fun CreateOrderContent(
                                         ?: 0
                             },
                             onClearItem = null,
-                            modifier = Modifier.fillMaxWidth(if (isBigScreen) 0.4f else 0.9f)
+                            modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
                         )
                     }
                 }
@@ -328,7 +328,7 @@ fun CreateOrderContent(
                 ) {
                     AcceptedPageButton(
                         strings.actionComplete,
-                        modifier = Modifier.fillMaxWidth(if (isBigScreen) 0.4f else 0.9f)
+                        modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
                             .padding(dimens.mediumPadding),
                         enabled = !isLoading.value
                     ) {

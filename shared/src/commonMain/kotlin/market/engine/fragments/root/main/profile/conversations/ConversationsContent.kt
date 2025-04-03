@@ -60,7 +60,7 @@ fun ConversationsContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
-    val hideDrawer = remember { mutableStateOf(isBigScreen) }
+    val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
 
     val refresh = {
         viewModel.resetScroll()
@@ -116,14 +116,14 @@ fun ConversationsContent(
         component.onBack()
     }
 
-    val drawerState = rememberDrawerState(initialValue = if(isBigScreen) DrawerValue.Open else DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
     val content : @Composable (Modifier) -> Unit = {
         BaseContent(
             topBar = {
                 ConversationsAppBar(
                     showMenu = hideDrawer.value,
-                    openMenu = if (isBigScreen) {
+                    openMenu = if (isBigScreen.value) {
                         {
                             hideDrawer.value = !hideDrawer.value
                         }
@@ -267,7 +267,7 @@ fun ConversationsContent(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (isBigScreen) {
+                if (isBigScreen.value) {
                     AnimatedVisibility(hideDrawer.value) {
                         ProfileDrawer(
                             stringResource(strings.messageTitle),
@@ -281,7 +281,7 @@ fun ConversationsContent(
                     )
                 }
 
-                if (isBigScreen) {
+                if (isBigScreen.value) {
                     content(Modifier.weight(1f))
                 }
             }
@@ -289,7 +289,7 @@ fun ConversationsContent(
         },
         gesturesEnabled = drawerState.isOpen,
     ) {
-        if(!isBigScreen) {
+        if(!isBigScreen.value) {
             content(Modifier.fillMaxWidth())
         }
     }

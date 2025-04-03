@@ -139,7 +139,7 @@ fun DrawerContent(
         drawerContainerColor = colors.primaryColor,
         drawerContentColor = colors.black,
         drawerTonalElevation = 0.dp,
-        modifier = if(!isBigScreen) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentWidth(),
+        modifier = if(!isBigScreen.value) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentWidth(),
     ) {
         LazyColumnWithScrollBars {
             item {

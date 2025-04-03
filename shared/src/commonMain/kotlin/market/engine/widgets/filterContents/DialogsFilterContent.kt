@@ -1,6 +1,5 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -8,10 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +28,7 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.bars.FilterContentHeaderBar
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 
@@ -65,17 +63,15 @@ fun DialogsFilterContent(
         )
     }
 
-
     val userLoginTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_login" }?.value ?: "") }
     val userIdTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_id" }?.value ?: "") }
     val idObjectTextState = remember { mutableStateOf(filters.find { it.key == "object_id"}?.value ?: "") }
-
     Box(
         modifier = Modifier.fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
-        }.padding(dimens.smallPadding).animateContentSize(),
+        }.padding(dimens.smallPadding),
         contentAlignment = Alignment.TopCenter
     ) {
         //Header Filters
@@ -94,11 +90,11 @@ fun DialogsFilterContent(
                 onClose()
             }
         )
-
-        LazyColumn(
-            modifier = Modifier.padding(bottom = 60.dp, top = 60.dp),
+        LazyColumnWithScrollBars(
+            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
+            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            contentPadding = dimens.smallPadding,
         ) {
             //expand
             item {
@@ -139,7 +135,7 @@ fun DialogsFilterContent(
             //user search
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -199,7 +195,7 @@ fun DialogsFilterContent(
             //id object
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -235,12 +231,13 @@ fun DialogsFilterContent(
 
         AcceptedPageButton(
             strings.actionAcceptFilters,
-            Modifier.align(Alignment.BottomCenter)
-                .wrapContentWidth()
+            Modifier
+                .align(Alignment.BottomCenter)
                 .padding(dimens.mediumPadding)
         ){
             onClose()
         }
     }
+
 }
 

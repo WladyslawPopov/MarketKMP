@@ -1,6 +1,6 @@
 package market.engine.fragments.root.main
 
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -15,6 +15,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
@@ -22,6 +23,7 @@ import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.fragments.root.main.favPages.FavoritesNavigation
 import market.engine.widgets.bars.getBottomNavBar
+import market.engine.widgets.bars.getRailNavBar
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -109,32 +111,39 @@ fun MainNavigation(
     val profileNavigation = component.modelNavigation.value.profileNavigation
 
     Scaffold(
-        bottomBar = { getBottomNavBar(listItems, currentScreen) },
+        bottomBar = {   if (!isBigScreen.value){ getBottomNavBar(listItems, currentScreen) }},
     ) { innerPadding ->
-        Children(
-            stack = childStack,
-            modifier = modifier
-                .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding()),
-            animation = stackAnimation(fade())
-        ) { child ->
-            when (child.instance) {
-                is ChildMain.HomeChildMain ->
-                    HomeNavigation(modifier, component.childHomeStack)
+        Row {
+            if (isBigScreen.value){
+                getRailNavBar(listItems = listItems, currentScreen = currentScreen)
+            }
+            Children(
+                stack = childStack,
+                modifier = modifier
+                    .weight(1f)
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
+                animation = stackAnimation(fade())
+            ) { child ->
+                when (child.instance) {
+                    is ChildMain.HomeChildMain ->
+                        HomeNavigation(modifier, component.childHomeStack)
 
-                is ChildMain.CategoryChildMain ->
-                    SearchNavigation(modifier, component.childSearchStack)
+                    is ChildMain.CategoryChildMain ->
+                        SearchNavigation(modifier, component.childSearchStack)
 
-                is ChildMain.BasketChildMain ->
-                    BasketNavigation(modifier, component.childBasketStack)
+                    is ChildMain.BasketChildMain ->
+                        BasketNavigation(modifier, component.childBasketStack)
 
-                is ChildMain.FavoritesChildMain ->
-                    FavoritesNavigation(modifier, component.childFavoritesStack)
+                    is ChildMain.FavoritesChildMain ->
+                        FavoritesNavigation(modifier, component.childFavoritesStack)
 
-                is ChildMain.ProfileChildMain ->
-                    ProfileNavigation(modifier, component.childProfileStack, profileNavigation)
+                    is ChildMain.ProfileChildMain ->
+                        ProfileNavigation(modifier, component.childProfileStack, profileNavigation)
+                }
             }
         }
+
+
     }
 }
 

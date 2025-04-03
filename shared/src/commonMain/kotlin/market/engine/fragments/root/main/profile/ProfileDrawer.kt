@@ -18,11 +18,11 @@ fun ProfileDrawer(
     list: List<NavigationItem>,
 ) {
     ModalDrawerSheet(
-        modifier = if(!isBigScreen) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentWidth(),
+        modifier = if(!isBigScreen.value) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentWidth(),
         drawerContainerColor = colors.primaryColor,
         drawerContentColor = colors.black,
         drawerTonalElevation = 0.dp,
-        drawerShape =if(!isBigScreen) MaterialTheme.shapes.extraSmall else MaterialTheme.shapes.small
+        drawerShape =if(!isBigScreen.value) MaterialTheme.shapes.extraSmall else MaterialTheme.shapes.small
     ) {
         ProfileNavContent(
             list,

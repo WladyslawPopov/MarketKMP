@@ -1,9 +1,10 @@
 package market.engine.common
 
-import market.engine.core.data.types.PlatformType
+import market.engine.core.data.types.PlatformWindowType
+
 
 actual class Platform {
-    actual fun getPlatform(): PlatformType {
-        return PlatformType.DESKTOP
+    actual fun getPlatform(): PlatformWindowType {
+        return PlatformWindowType.DESKTOP
     }
 }

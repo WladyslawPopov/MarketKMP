@@ -8,13 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -194,8 +191,8 @@ fun CreateSubscriptionContent(
                 },
                 contentAlignment = Alignment.TopCenter
             ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(if (isBigScreen.value) 2 else 1),
                     modifier = Modifier.pointerInput(Unit){
                         detectTapGestures {
                             focusManager.clearFocus()
@@ -206,7 +203,7 @@ fun CreateSubscriptionContent(
                         dimens.smallPadding,
                         Alignment.CenterHorizontally
                     ),
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    verticalItemSpacing = dimens.smallPadding,
                     content = {
                         val items = responseGetPage.value?.fields
                         if (items != null) {

@@ -1,6 +1,5 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +27,7 @@ import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.widgets.bars.FilterContentHeaderBar
 import org.jetbrains.compose.resources.stringResource
 
@@ -45,7 +45,9 @@ fun SortingOrdersContent(
     )
 
     Box(
-        modifier = Modifier.fillMaxSize().animateContentSize()
+        modifier = Modifier.fillMaxSize()
+            .padding(dimens.smallPadding),
+        contentAlignment = Alignment.TopCenter
     ) {
         FilterContentHeaderBar(
             stringResource(strings.sort),
@@ -62,7 +64,7 @@ fun SortingOrdersContent(
         LazyColumn(
             modifier = Modifier
                 .padding(top = 60.dp)
-                .fillMaxSize()
+                .fillMaxWidth(if(isBigScreen.value)0.7f else 1f)
         ) {
             // For each section, display the heading and options under it
             sortSections.forEach { (sectionTitle, sortOptions) ->

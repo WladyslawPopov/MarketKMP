@@ -1,8 +1,11 @@
 package market.engine.fragments.root.registration
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,8 +18,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
@@ -85,7 +90,14 @@ fun RegistrationContent(
                     )
                 },
         ) {
-            LazyColumnWithScrollBars {
+            LazyColumnWithScrollBars(
+                modifierList = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f)
+                    .padding(dimens.smallPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 if (!showSuccessReg.value){
                     item(getRegFields.value?.fields?.size) {
                         getRegFields.value?.fields?.let { SetUpDynamicFields(it) }

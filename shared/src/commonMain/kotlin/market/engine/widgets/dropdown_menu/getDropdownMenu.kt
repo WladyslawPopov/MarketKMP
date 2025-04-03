@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -34,7 +33,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.widgets.buttons.SmallIconButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -43,9 +41,9 @@ fun getDropdownMenu(
     selectedText : String,
     selectedTextDef : String = stringResource(strings.chooseAction),
     selects: List<String>,
+    modifier: Modifier = Modifier,
     onItemClick: (String) -> Unit,
     onClearItem: (() -> Unit)?,
-    modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     val rotationAngle by animateFloatAsState(
@@ -70,7 +68,7 @@ fun getDropdownMenu(
             Text(
                 selectedText,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth(0.7f).padding(dimens.mediumPadding)
+                modifier = Modifier.weight(1f).padding(dimens.mediumPadding)
             )
             Row {
                 AnimatedVisibility(

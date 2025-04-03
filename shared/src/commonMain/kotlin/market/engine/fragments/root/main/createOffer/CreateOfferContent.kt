@@ -18,9 +18,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material3.Card
@@ -519,8 +519,8 @@ fun CreateOfferContent(
                         }
 
                         item {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+                            LazyVerticalStaggeredGrid(
+                                columns = StaggeredGridCells.Fixed(if (isBigScreen.value) 2 else 1),
                                 modifier = Modifier
                                     .heightIn(200.dp, 5000.dp)
                                     .wrapContentHeight(),
@@ -529,7 +529,7 @@ fun CreateOfferContent(
                                     dimens.smallPadding,
                                     Alignment.CenterHorizontally
                                 ),
-                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                verticalItemSpacing = dimens.smallPadding,
                                 content = {
                                     first.forEach { key ->
                                         when (key) {
@@ -638,7 +638,7 @@ fun CreateOfferContent(
 
                                             SetUpDynamicFields(
                                                 paramList,
-                                                modifier = Modifier.fillMaxWidth()
+                                                modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f)
                                             )
                                         }
                                     }
@@ -647,13 +647,13 @@ fun CreateOfferContent(
                         }
 
                         item {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+                            LazyVerticalStaggeredGrid(
+                                columns = StaggeredGridCells.Fixed(if (isBigScreen.value) 2 else 1),
                                 modifier = Modifier
                                     .heightIn(200.dp, 5000.dp)
                                     .wrapContentHeight(),
                                 userScrollEnabled = false,
-                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                verticalItemSpacing = dimens.smallPadding,
                                 horizontalArrangement = Arrangement.spacedBy(
                                     dimens.smallPadding,
                                     Alignment.CenterHorizontally
@@ -764,81 +764,80 @@ fun CreateOfferContent(
                         }
 
                         end.forEach { key ->
+                            if (key == "images") {
+                                // Images
+                                item {
+                                    SeparatorLabel(stringResource(strings.photoLabel))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth()
+                                            .padding(dimens.mediumPadding),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceAround
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                stringResource(strings.actionAddPhoto),
+                                                color = colors.black,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                modifier = Modifier.padding(dimens.smallPadding)
+                                            )
+
+                                            Icon(
+                                                painterResource(drawables.addGalleryIcon),
+                                                contentDescription = stringResource(
+                                                    strings.actionAddPhoto
+                                                ),
+                                                tint = colors.black
+                                            )
+                                        }
+
+
+                                        ActionButton(
+                                            strings.chooseAction,
+                                            fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                            alignment = Alignment.TopEnd,
+                                            enabled = images.value.size < MAX_IMAGE_COUNT
+                                        ) {
+                                            if (!getPermissionHandler().checkImagePermissions()) {
+                                                getPermissionHandler().requestImagePermissions {
+                                                    if (it) {
+                                                        launcher.launch()
+                                                    }
+                                                }
+                                            } else {
+                                                launcher.launch()
+                                            }
+                                        }
+                                    }
+
+                                    AnimatedVisibility(
+                                        images.value.isNotEmpty(),
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
+                                    ) {
+                                        PhotoDraggableGrid(images.value, viewModel) {
+                                            if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
+                                                if (it.url != null && it.id != null) {
+                                                    deleteImages.value.add(
+                                                        JsonPrimitive(
+                                                            it.id!!.last().toString()
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                            val newList = images.value.toMutableList()
+                                            newList.remove(it)
+                                            viewModel.setImages(newList)
+                                        }
+                                    }
+                                }
+                            }
                             dynamicPayloadState.value?.fields?.find { it.key == key }
                                 ?.let { field ->
                                     when (field.key) {
-                                        "images" -> {
-                                            // Images
-                                            item {
-                                                SeparatorLabel(stringResource(strings.photoLabel))
-
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth()
-                                                        .padding(dimens.mediumPadding),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.SpaceAround
-                                                ) {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ) {
-                                                        Text(
-                                                            stringResource(strings.actionAddPhoto),
-                                                            color = colors.black,
-                                                            style = MaterialTheme.typography.titleSmall,
-                                                            modifier = Modifier.padding(dimens.smallPadding)
-                                                        )
-
-                                                        Icon(
-                                                            painterResource(drawables.addGalleryIcon),
-                                                            contentDescription = stringResource(
-                                                                strings.actionAddPhoto
-                                                            ),
-                                                            tint = colors.black
-                                                        )
-                                                    }
-
-
-                                                    ActionButton(
-                                                        strings.chooseAction,
-                                                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                                        alignment = Alignment.TopEnd,
-                                                        enabled = images.value.size < MAX_IMAGE_COUNT
-                                                    ) {
-                                                        if (!getPermissionHandler().checkImagePermissions()) {
-                                                            getPermissionHandler().requestImagePermissions {
-                                                                if (it) {
-                                                                    launcher.launch()
-                                                                }
-                                                            }
-                                                        } else {
-                                                            launcher.launch()
-                                                        }
-                                                    }
-                                                }
-
-                                                AnimatedVisibility(
-                                                    images.value.isNotEmpty(),
-                                                    enter = fadeIn(),
-                                                    exit = fadeOut()
-                                                ) {
-                                                    PhotoDraggableGrid(images.value, viewModel) {
-                                                        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
-                                                            if (it.url != null && it.id != null) {
-                                                                deleteImages.value.add(
-                                                                    JsonPrimitive(
-                                                                        it.id!!.last().toString()
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                        val newList = images.value.toMutableList()
-                                                        newList.remove(it)
-                                                        viewModel.setImages(newList)
-                                                    }
-                                                }
-                                            }
-                                        }
-
                                         "session_start" -> {
                                             item {
                                                 if (!(type == CreateOfferType.EDIT && field.data?.jsonPrimitive?.intOrNull == 0)) {

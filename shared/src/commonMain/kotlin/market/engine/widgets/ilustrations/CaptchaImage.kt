@@ -22,6 +22,6 @@ fun CaptchaImage(
         contentDescription = null,
         modifier = Modifier
             .width(250.dp)
-            .height(50.dp)
+            .height(80.dp)
     )
 }

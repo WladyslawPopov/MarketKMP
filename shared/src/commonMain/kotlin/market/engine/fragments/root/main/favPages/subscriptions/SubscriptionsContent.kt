@@ -23,9 +23,8 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.types.WindowType
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
-import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.ActiveFilterListingItem
@@ -49,15 +48,12 @@ fun SubscriptionsContent(
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val windowClass = getWindowType()
-    val isBigScreen = windowClass == WindowType.Big
-
     val price = stringResource(strings.priceParameterName)
     val from = stringResource(strings.fromAboutParameterName)
     val to = stringResource(strings.toAboutParameterName)
     val currency = stringResource(strings.currencyCode)
 
-    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
+    val columns = remember { mutableStateOf(if (isBigScreen.value) 2 else 1) }
 
     val defCat = stringResource(strings.categoryMain)
 

@@ -285,7 +285,7 @@ fun OfferContent(
                                 .clip(MaterialTheme.shapes.small)
                                 .clickable { isImageViewerVisible.value = !isImageViewerVisible.value  }
                                 .fillMaxWidth()
-                                .height(if(isBigScreen) 500.dp else 300.dp)
+                                .height(if(isBigScreen.value) 500.dp else 300.dp)
                                 .zIndex(6f),
                             contentAlignment = Alignment.Center
                         ) {
@@ -382,7 +382,7 @@ fun OfferContent(
                     }
 
                     item {
-                        val columns = remember { if (isBigScreen) StaggeredGridCells.Adaptive(300.dp) else StaggeredGridCells.Fixed(1) }
+                        val columns = remember { if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1) }
                         LazyVerticalStaggeredGrid(
                             columns = columns,
                             modifier = Modifier
@@ -834,7 +834,7 @@ fun OfferContent(
                                             offer.dealTypes,
                                             offer.paymentMethods,
                                             offer.deliveryMethods,
-                                            if(!isBigScreen) Modifier.fillMaxWidth() else Modifier
+                                            if(!isBigScreen.value) Modifier.fillMaxWidth() else Modifier
                                         )
                                     }
                                 }
@@ -842,7 +842,7 @@ fun OfferContent(
                                     if (offerState.value != OfferStates.PROTOTYPE) {
                                         //Parameters
                                         offer.params?.let {
-                                            ParametersSection(it, if(!isBigScreen) Modifier.fillMaxWidth() else Modifier)
+                                            ParametersSection(it, if(!isBigScreen.value) Modifier.fillMaxWidth() else Modifier)
                                         }
                                     }
                                 }

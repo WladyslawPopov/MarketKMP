@@ -2,7 +2,6 @@ package market.engine.widgets.rows
 
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,7 +24,7 @@ fun LazyColumnWithScrollBars(
     modifierList: Modifier = Modifier,
     state: LazyListState = rememberLazyListState(),
     contentPadding : Dp = dimens.zero,
-    verticalArrangement : Arrangement.Vertical = Arrangement.spacedBy(dimens.mediumPadding),
+    verticalArrangement : Arrangement.Vertical = Arrangement.spacedBy(dimens.smallPadding),
     horizontalAlignment : Alignment.Horizontal = Alignment.Start,
     reverseLayout : Boolean = false,
     flingBehavior : FlingBehavior = ScrollableDefaults.flingBehavior(),

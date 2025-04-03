@@ -42,9 +42,9 @@ fun ProfileSettingsNavigation(
     publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
     val drawerState =
-        rememberDrawerState(initialValue = if (isBigScreen) DrawerValue.Open else DrawerValue.Closed)
+        rememberDrawerState(initialValue = if (isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
-    val hideDrawer = remember { mutableStateOf(isBigScreen) }
+    val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
     val selectedTabIndex = remember { mutableStateOf(0) }
     val content: @Composable (Modifier) -> Unit = {
         Column {
@@ -53,7 +53,7 @@ fun ProfileSettingsNavigation(
                 currentTab = selectedTabIndex.value,
                 drawerState = drawerState,
                 showMenu = hideDrawer.value,
-                openMenu = if (isBigScreen) {
+                openMenu = if (isBigScreen.value) {
                     {
                         hideDrawer.value = !hideDrawer.value
                     }
@@ -103,7 +103,7 @@ fun ProfileSettingsNavigation(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (isBigScreen) {
+                if (isBigScreen.value) {
                     AnimatedVisibility(hideDrawer.value) {
                         ProfileDrawer(
                             stringResource(strings.settingsProfileTitle),
@@ -117,14 +117,14 @@ fun ProfileSettingsNavigation(
                     )
                 }
 
-                if (isBigScreen) {
+                if (isBigScreen.value) {
                     content(Modifier.weight(1f))
                 }
             }
         },
-        gesturesEnabled = drawerState.isOpen && !isBigScreen,
+        gesturesEnabled = drawerState.isOpen && !isBigScreen.value,
     ) {
-        if (!isBigScreen) {
+        if (!isBigScreen.value) {
             content(Modifier.fillMaxWidth())
         }
     }

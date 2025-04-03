@@ -82,7 +82,7 @@ fun ListingContent(
     val focusManager = LocalFocusManager.current
 
     val columns =
-        remember { mutableStateOf(if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2) }
+        remember { mutableStateOf(if (listingData.value.listingType == 0) 1 else if (isBigScreen.value) 3 else 2) }
 
     val catDef = stringResource(strings.categoryMain)
 
@@ -98,7 +98,7 @@ fun ListingContent(
         title.value = searchData.value.searchCategoryName
 
         columns.value =
-            if (listingData.value.listingType == 0) 1 else if (isBigScreen) 3 else 2
+            if (listingData.value.listingType == 0) 1 else if (isBigScreen.value) 3 else 2
 
         listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()

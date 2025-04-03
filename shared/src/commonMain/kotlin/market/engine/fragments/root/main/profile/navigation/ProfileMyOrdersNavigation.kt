@@ -51,9 +51,9 @@ fun ProfileMyOrdersNavigation(
     modifier: Modifier,
     publicProfileNavigationItems: MutableValue<List<NavigationItem>>
 ) {
-    val drawerState = rememberDrawerState(initialValue = if(isBigScreen) DrawerValue.Open else DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
-    val hideDrawer = remember { mutableStateOf(isBigScreen) }
+    val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
 
     val content : @Composable (Modifier) -> Unit = {
         val select = remember {
@@ -65,7 +65,7 @@ fun ProfileMyOrdersNavigation(
                 typeGroup,
                 drawerState = drawerState,
                 showMenu = hideDrawer.value,
-                openMenu = if (isBigScreen) {
+                openMenu = if (isBigScreen.value) {
                     {
                         hideDrawer.value = !hideDrawer.value
                     }
@@ -116,7 +116,7 @@ fun ProfileMyOrdersNavigation(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (isBigScreen) {
+                if (isBigScreen.value) {
                     AnimatedVisibility(hideDrawer.value) {
                         ProfileDrawer(
                             stringResource(if(typeGroup == DealTypeGroup.SELL)
@@ -136,14 +136,14 @@ fun ProfileMyOrdersNavigation(
                     )
                 }
 
-                if (isBigScreen) {
+                if (isBigScreen.value) {
                     content(Modifier.weight(1f))
                 }
             }
         },
-        gesturesEnabled = drawerState.isOpen && !isBigScreen,
+        gesturesEnabled = drawerState.isOpen && !isBigScreen.value,
     ) {
-        if(!isBigScreen) {
+        if(!isBigScreen.value) {
             content(Modifier.fillMaxWidth())
         }
     }

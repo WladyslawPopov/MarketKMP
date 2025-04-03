@@ -1,15 +1,15 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
@@ -190,14 +190,13 @@ fun OfferFilterContent(
             }
         },
     ) {
-        Column(
+        Box(
             modifier = Modifier.fillMaxSize().pointerInput(Unit) {
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
                 })
-            }.padding(dimens.smallPadding).animateContentSize(),
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+            }.padding(dimens.smallPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
             //Header Filters
             FilterContentHeaderBar(
@@ -215,7 +214,12 @@ fun OfferFilterContent(
                     onClose()
                 }
             )
-            LazyColumnWithScrollBars {
+            LazyColumnWithScrollBars(
+                modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = dimens.smallPadding,
+            ) {
                 //Expands
                 when(typeFilters){
                     LotsType.FAVORITES -> {
@@ -294,7 +298,6 @@ fun OfferFilterContent(
                     val title = stringResource(strings.saleTypeParameterName)
 
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ){
@@ -307,6 +310,7 @@ fun OfferFilterContent(
                             selectedType.value,
                             offersType[0].second,
                             offersTypeFilterMap,
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                             onItemClick = { type ->
                                 offersType.find { it.second == type }?.let { pair ->
                                     listingData.find { it.key == "sale_type" }?.value =
@@ -335,7 +339,7 @@ fun OfferFilterContent(
 
             AcceptedPageButton(
                 strings.actionAcceptFilters,
-                Modifier.wrapContentWidth()
+                Modifier.align(Alignment.BottomCenter)
                     .padding(dimens.mediumPadding)
             ){
                 onClose()
@@ -377,6 +381,7 @@ fun InputsOfferFilterContent(
     }
 
     Column(
+        modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {

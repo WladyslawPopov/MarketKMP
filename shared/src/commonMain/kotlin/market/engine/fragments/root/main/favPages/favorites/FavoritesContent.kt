@@ -22,12 +22,11 @@ import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ToastType
-import market.engine.core.data.types.WindowType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.utils.getWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.OfferItem
@@ -60,12 +59,9 @@ fun FavoritesContent(
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val windowClass = getWindowType()
-    val isBigScreen = windowClass == WindowType.Big
-
     val successToast = stringResource(strings.operationSuccess)
 
-    val columns = remember { mutableStateOf(if (isBigScreen) 2 else 1) }
+    val columns = remember { mutableStateOf(if (isBigScreen.value) 2 else 1) }
 
     BackHandler(model.backHandler){
         when{

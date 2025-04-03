@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +43,7 @@ import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
 import market.engine.widgets.ilustrations.CaptchaImage
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
@@ -60,7 +58,6 @@ fun ContactUsContent(
     component: ContactUsComponent,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberLazyGridState()
     val focusManager = LocalFocusManager.current
 
     val modelState = component.model.subscribeAsState()
@@ -124,7 +121,7 @@ fun ContactUsContent(
     }
 
     BaseContent(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         topBar = {
             ContactUsAppBar(
                 modifier = modifier,
@@ -138,166 +135,161 @@ fun ContactUsContent(
         isLoading = isLoading.value,
         onRefresh = { model.getFields() }
     ) {
-        LazyVerticalGrid(
-            state = scrollState,
-            columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
-            modifier = Modifier.pointerInput(Unit){
+        LazyColumnWithScrollBars(
+            heightMod = Modifier.pointerInput(Unit){
                 detectTapGestures {
                     focusManager.clearFocus()
                 }
-            }.fillMaxSize().padding(dimens.mediumPadding),
-            userScrollEnabled = false,
-            horizontalArrangement = Arrangement.spacedBy(
-                dimens.smallPadding,
-                Alignment.CenterHorizontally
-            ),
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-            content = {
-
-                items(responseGetFields.value?.fields ?: emptyList()) { field ->
-                    when (field.widgetType) {
-                        "input" -> {
-                            if (UserData.token != "") {
-                                if (field.key == "name") {
-                                    field.data = JsonPrimitive(UserData.userInfo?.login)
-                                }
-                                if (field.key == "email") {
-                                    field.data = JsonPrimitive(UserData.userInfo?.email)
-                                }
+            }.fillMaxSize(),
+            modifierList = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f)
+                .padding(dimens.smallPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items(responseGetFields.value?.fields ?: emptyList()) { field ->
+                when (field.widgetType) {
+                    "input" -> {
+                        if (UserData.token != "") {
+                            if (field.key == "name") {
+                                field.data = JsonPrimitive(UserData.userInfo?.login)
                             }
-
-                            if (field.choices.isNullOrEmpty()) {
-                                if (field.key == "email") {
-                                    DynamicInputField(
-                                        field = field,
-                                        enabled = UserData.token == ""
-                                    )
-                                } else {
-                                    DynamicInputField(
-                                        field = field,
-                                    )
-                                }
-                            } else {
-                                //selected type
-                                DynamicSelect(
-                                    field
-                                )
+                            if (field.key == "email") {
+                                field.data = JsonPrimitive(UserData.userInfo?.email)
                             }
                         }
 
-                        "text_area" -> {
-                            DynamicInputField(
-                                field = field,
-                                singleLine = false
+                        if (field.choices.isNullOrEmpty()) {
+                            if (field.key == "email") {
+                                DynamicInputField(
+                                    field = field,
+                                    enabled = UserData.token == ""
+                                )
+                            } else {
+                                DynamicInputField(
+                                    field = field,
+                                )
+                            }
+                        } else {
+                            //selected type
+                            DynamicSelect(
+                                field
                             )
                         }
+                    }
 
-                        "hidden" -> {
-                            if (field.key == "captcha_image") {
-                                val captchaImage = field.data?.jsonPrimitive?.content ?: ""
-                                CaptchaImage(captchaImage)
-                            }
+                    "text_area" -> {
+                        DynamicInputField(
+                            field = field,
+                            singleLine = false
+                        )
+                    }
+
+                    "hidden" -> {
+                        if (field.key == "captcha_image") {
+                            val captchaImage = field.data?.jsonPrimitive?.content ?: ""
+                            CaptchaImage(captchaImage)
                         }
+                    }
 
-                        "file" -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(dimens.smallPadding),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                DynamicLabel(
-                                    field.shortDescription ?: field.longDescription ?: "",
-                                    isMandatory = false
-                                )
+                    "file" -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(dimens.smallPadding),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            DynamicLabel(
+                                field.shortDescription ?: field.longDescription ?: "",
+                                isMandatory = false
+                            )
 
-                                if (dataImage.value.isBlank()) {
-                                    Card(
-                                        colors = colors.cardColors,
-                                        shape = MaterialTheme.shapes.medium,
-                                        onClick = {
-                                            launcher.launch()
-                                        }
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.padding(dimens.mediumPadding),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            verticalArrangement = Arrangement.spacedBy(
-                                                dimens.mediumPadding
-                                            )
-                                        ) {
-                                            Icon(
-                                                painterResource(drawables.documentIcon),
-                                                contentDescription = null,
-                                                tint = colors.textA0AE,
-                                                modifier = Modifier.size(dimens.mediumIconSize)
-                                            )
-
-                                            Text(
-                                                stringResource(strings.chooseAction),
-                                                style = MaterialTheme.typography.titleSmall,
-                                                color = colors.grayText
-                                            )
-                                        }
+                            if (dataImage.value.isBlank()) {
+                                Card(
+                                    colors = colors.cardColors,
+                                    shape = MaterialTheme.shapes.medium,
+                                    onClick = {
+                                        launcher.launch()
                                     }
-                                } else {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth()
-                                            .padding(dimens.smallPadding),
-                                        horizontalArrangement = Arrangement.SpaceEvenly,
-                                        verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(dimens.mediumPadding),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(
+                                            dimens.mediumPadding
+                                        )
                                     ) {
                                         Icon(
                                             painterResource(drawables.documentIcon),
                                             contentDescription = null,
                                             tint = colors.textA0AE,
-                                            modifier = Modifier.size(dimens.smallIconSize)
+                                            modifier = Modifier.size(dimens.mediumIconSize)
                                         )
 
                                         Text(
-                                            dataImage.value,
+                                            stringResource(strings.chooseAction),
                                             style = MaterialTheme.typography.titleSmall,
-                                            color = colors.black,
-                                            modifier = Modifier.fillMaxWidth(0.5f)
+                                            color = colors.grayText
                                         )
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .padding(dimens.smallPadding),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painterResource(drawables.documentIcon),
+                                        contentDescription = null,
+                                        tint = colors.textA0AE,
+                                        modifier = Modifier.size(dimens.smallIconSize)
+                                    )
 
-                                        SmallIconButton(
-                                            drawables.deleteIcon,
-                                            color = colors.negativeRed,
-                                            modifierIconSize = Modifier.size(dimens.smallIconSize),
-                                        ) {
-                                            dataImage.value = ""
-                                            field.data = null
-                                        }
+                                    Text(
+                                        dataImage.value,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = colors.black,
+                                        modifier = Modifier.fillMaxWidth(0.5f)
+                                    )
+
+                                    SmallIconButton(
+                                        drawables.deleteIcon,
+                                        color = colors.negativeRed,
+                                        modifierIconSize = Modifier.size(dimens.smallIconSize),
+                                    ) {
+                                        dataImage.value = ""
+                                        field.data = null
                                     }
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            dimens.smallPadding,
-                            Alignment.End
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.smallPadding,
+                        Alignment.End
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SimpleTextButton(
+                        text = stringResource(strings.actionSend),
+                        backgroundColor = colors.inactiveBottomNavIconColor,
+                        textStyle = MaterialTheme.typography.titleMedium,
+                        textColor = colors.alwaysWhite
                     ) {
-                        SimpleTextButton(
-                            text = stringResource(strings.actionSend),
-                            backgroundColor = colors.inactiveBottomNavIconColor,
-                            textStyle = MaterialTheme.typography.titleMedium,
-                            textColor = colors.alwaysWhite
-                        ) {
-                            model.postContactUs {
-                                component.onBack()
-                            }
+                        model.postContactUs {
+                            component.onBack()
                         }
                     }
                 }
             }
-        )
+        }
     }
 }

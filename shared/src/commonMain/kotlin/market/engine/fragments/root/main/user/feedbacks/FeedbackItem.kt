@@ -7,13 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -53,33 +51,39 @@ fun FeedbackItem(
 ) {
     var showAnswer by remember { mutableStateOf(false) }
 
-    val repTypeIcon = when(report.type) {
-        "positive" -> drawables.likeIcon
-        "negative" -> drawables.dislikeIcon
-        else -> drawables.likeIcon// neutral
+    val repTypeIcon =  remember {
+        when (report.type) {
+            "positive" -> drawables.likeIcon
+            "negative" -> drawables.dislikeIcon
+            else -> drawables.likeIcon// neutral
+        }
     }
     
-    val reColorType = when(report.type) {
-        "positive" -> colors.positiveGreen
-        "negative" -> colors.negativeRed
-        else -> colors.grayText// neutral
+    val reColorType = remember {
+        when (report.type) {
+            "positive" -> colors.positiveGreen
+            "negative" -> colors.negativeRed
+            else -> colors.grayText// neutral
+        }
     }
   
     Column(
         modifier = Modifier
-            .fillMaxWidth().wrapContentHeight()
+            .fillMaxWidth()
             .background(colors.white, shape = MaterialTheme.shapes.small)
-            .padding(dimens.smallPadding)
+            .padding(dimens.smallPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
+        horizontalAlignment = Alignment.Start
     ) {
         Row(
-           modifier = Modifier.fillMaxWidth()
-               .padding(dimens.smallPadding),
+           modifier = Modifier.clip(MaterialTheme.shapes.small).clickable {
+               onClickReporter(report.fromUser?.id ?: 1L)
+           },
            verticalAlignment = Alignment.CenterVertically,
-           horizontalArrangement = Arrangement.SpaceBetween
+           horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             Card(
-                modifier = Modifier.padding(dimens.smallPadding),
-                shape = MaterialTheme.shapes.extraLarge
+                shape = CircleShape
             ) {
                 LoadImage(
                     url = report.fromUser?.avatar?.thumb?.content ?:"",
@@ -90,10 +94,8 @@ fun FeedbackItem(
             }
 
             FlowRow(
-                modifier = Modifier.fillMaxWidth(0.7f).clickable {
-                    onClickReporter(report.fromUser?.id ?: 1L)
-                },
-                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
@@ -101,8 +103,6 @@ fun FeedbackItem(
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.actionTextColor,
                 )
-
-                Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                 // role + rating
                 val roleLabel = if (report.fromUser?.role == "buyer")
@@ -112,8 +112,6 @@ fun FeedbackItem(
                     text = "(${report.fromUser?.rating})",
                     style = MaterialTheme.typography.titleSmall,
                 )
-
-                Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                 Text(
                     text = roleLabel,
@@ -131,46 +129,40 @@ fun FeedbackItem(
         }
 
         Column(
-            modifier = Modifier.fillMaxWidth()
-                .padding(dimens.mediumPadding),
+            modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+            verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
+            horizontalAlignment = Alignment.Start
         ) {
 
             if (!report.comment.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
                 Text(
                     text = report.comment,
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
 
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
-
             Text(
                 text = report.feedbackTs.toString().convertDateWithMinutes(),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.align(Alignment.End)
             )
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
-            val orderText = buildAnnotatedString {
-                append(stringResource(strings.orderLabel))
-
-
-                withStyle(
-                    if (isMyFeedbacks || report.fromUser?.id == UserData.login)
-                        SpanStyle(
-                            color = colors.actionTextColor,
-                        )
-                    else
-                        SpanStyle(
-                            color = colors.grayText,
-                        )
-                ){
-                    append(" #${report.orderId}")
-                }
-            }
             Text(
-                text = orderText,
+                text = buildAnnotatedString {
+                    append(stringResource(strings.orderLabel))
+                    withStyle(
+                        if (isMyFeedbacks || report.fromUser?.id == UserData.login)
+                            SpanStyle(
+                                color = colors.actionTextColor,
+                            )
+                        else
+                            SpanStyle(
+                                color = colors.grayText,
+                            )
+                    ){
+                        append(" #${report.orderId}")
+                    }
+                },
                 style = MaterialTheme.typography.titleSmall,
                 color = colors.black,
                 modifier = if (isMyFeedbacks || report.fromUser?.id == UserData.login)
@@ -188,7 +180,6 @@ fun FeedbackItem(
                 else
                     Modifier
             )
-            Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
             report.offerSnapshot?.let { snap ->
                 if (snap.pricePerItem?.toDouble() == 0.0) return@let
@@ -230,7 +221,6 @@ fun FeedbackItem(
                 Text(
                     text = response,
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(dimens.smallPadding)
                 )
             }
             val label = if (showAnswer) stringResource(strings.hideAnswerLabel) else

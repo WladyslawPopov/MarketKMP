@@ -29,9 +29,9 @@ fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopC
         stringResource(strings.homeTopCategory))
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed( if (isBigScreen) 5 else 3),
+        columns = GridCells.Fixed( if (isBigScreen.value) 5 else 3),
         modifier = Modifier
-            .heightIn(max = ((if(isBigScreen)400 else 250)*categoryList.size).dp)
+            .heightIn(max = ((if(isBigScreen.value)400 else 250)*categoryList.size).dp)
             .padding(dimens.smallPadding)
             .wrapContentHeight(),
         userScrollEnabled = false,

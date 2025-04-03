@@ -3,7 +3,8 @@ package market.engine.common
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,10 +19,12 @@ import androidx.compose.ui.viewinterop.UIKitView
 import market.engine.core.data.globalData.AuthManager
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.isBigScreen
 import platform.UIKit.UIView
 
 var additionalAuthContent: List<UIView?> = emptyList()
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 actual fun additionalAuthorizationContent(onSuccess: (HashMap<String, String>) -> Unit) {
     DisposableEffect(Unit) {
@@ -36,12 +39,14 @@ actual fun additionalAuthorizationContent(onSuccess: (HashMap<String, String>) -
     }
 
     Box(
-        modifier = Modifier.background(colors.transparent).fillMaxSize()
+        modifier = Modifier.background(colors.transparent).fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.4f else 1f),
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            maxItemsInEachRow = 2
         ) {
             additionalAuthContent.forEach { content ->
                 if (content != null) {
@@ -50,7 +55,7 @@ actual fun additionalAuthorizationContent(onSuccess: (HashMap<String, String>) -
                         modifier = Modifier
                             .background(colors.transparent)
                             .height(44.dp)
-                            .fillMaxWidth(0.7f)
+                            .weight(1f)
                             .clip(MaterialTheme.shapes.medium)
                     )
                 }

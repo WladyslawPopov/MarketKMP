@@ -1,5 +1,5 @@
 package market.engine.core.data.types
 
-enum class PlatformType {
-    ANDROID, IOS, DESKTOP
+enum class PlatformWindowType {
+    MOBILE, TABLET, DESKTOP
 }

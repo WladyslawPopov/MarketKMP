@@ -187,7 +187,7 @@ fun contentStructure(
     updateTrigger : Int,
 ){
     val imageSize =
-        if (isBigScreen){
+        if (isBigScreen.value){
             if(UserData.login == offer.sellerData?.id) 120.dp else 250.dp
         } else {
             if (isGrid) 250.dp else 165.dp

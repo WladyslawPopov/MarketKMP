@@ -1,15 +1,16 @@
 package market.engine.common
 
-import market.engine.core.data.types.PlatformType
+import market.engine.core.data.types.PlatformWindowType
+
 import platform.UIKit.UIDevice
 
 actual class Platform {
-    actual fun getPlatform(): PlatformType {
+    actual fun getPlatform(): PlatformWindowType {
         val idiom = UIDevice.currentDevice.name
         println("Platform Type: $idiom")
         return when {
-            idiom.contains("iPhone") -> PlatformType.IOS
-            else -> PlatformType.DESKTOP
+            idiom.contains("iPhone") -> PlatformWindowType.MOBILE
+            else -> PlatformWindowType.TABLET
         }
     }
 }

@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -150,8 +150,8 @@ fun DeliveryCardsContent(
 
         //fields
         AnimatedVisibility(showFields.value) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(if (isBigScreen) 2 else 1),
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(if (isBigScreen.value) 2 else 1),
                 modifier = Modifier.heightIn(200.dp, 5000.dp)
                     .wrapContentHeight(),
                 userScrollEnabled = false,
@@ -159,7 +159,7 @@ fun DeliveryCardsContent(
                     dimens.smallPadding,
                     Alignment.CenterHorizontally
                 ),
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                verticalItemSpacing = dimens.smallPadding,
                 content = {
                     items(fields) { field ->
                         when (field.widgetType) {

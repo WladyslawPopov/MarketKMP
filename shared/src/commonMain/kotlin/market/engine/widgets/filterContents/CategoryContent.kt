@@ -5,11 +5,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -21,12 +18,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.network.networkObjects.Category
 import market.engine.fragments.base.BaseContent
@@ -184,9 +183,10 @@ fun CategoryContent(
     ) {
         LazyColumnWithScrollBars(
             modifierList = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth(if(isBigScreen.value) 0.8f else 1f)
+                .padding(bottom = 60.dp)
+                .align(Alignment.TopCenter),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
                 Row(
@@ -232,24 +232,24 @@ fun CategoryContent(
             item { noFound() }
             items(categories.value) { category ->
                 val item = NavigationItem(
-                    title = category.name ?: catDef,
-                    image = getCategoryIcon(category.name),
-                    badgeCount = if (!(isFilters || isCreateOffer)) category.estimatedActiveOffersCount else null,
-                    onClick = {
-                        setUpNewParams(category)
+                        title = category.name ?: catDef,
+                        image = getCategoryIcon(category.name),
+                        badgeCount = if (!(isFilters || isCreateOffer)) category.estimatedActiveOffersCount else null,
+                        onClick = {
+                            setUpNewParams(category)
 
-                        if (!category.isLeaf) {
-                            refresh()
-                        } else {
-                            if (!isFilters && !isCreateOffer) {
-                                onComplete()
-                            }else{
-                                isSelected.value = category.id
+                            if (!category.isLeaf) {
+                                refresh()
+                            } else {
+                                if (!isFilters && !isCreateOffer) {
+                                    onComplete()
+                                } else {
+                                    isSelected.value = category.id
+                                }
                             }
                         }
-                    }
-                )
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+                    )
+
                 getNavigationItem(
                     item,
                     label = {
@@ -276,8 +276,7 @@ fun CategoryContent(
 
         AcceptedPageButton(
             btn,
-            Modifier.fillMaxWidth()
-                .padding(dimens.mediumPadding).align(Alignment.BottomCenter),
+            Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f).padding(dimens.smallPadding).align(Alignment.BottomCenter),
             enabled = !(isCreateOffer && isSelected.value == 1L)
         ) {
             onComplete()

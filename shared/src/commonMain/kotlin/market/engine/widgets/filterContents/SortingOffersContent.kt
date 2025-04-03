@@ -3,9 +3,9 @@ package market.engine.widgets.filterContents
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.MutableState
 import market.engine.core.data.baseFilters.LD
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +26,7 @@ import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.widgets.bars.FilterContentHeaderBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
@@ -59,8 +60,10 @@ fun SortingOffersContent(
         )
     )
 
-    Column (
+    Box(
         modifier = Modifier.fillMaxSize()
+            .padding(dimens.smallPadding),
+        contentAlignment = Alignment.TopCenter
     ) {
         FilterContentHeaderBar(
             stringResource(strings.sort),
@@ -71,12 +74,11 @@ fun SortingOffersContent(
                 listingData.sort = null
                 onClose()
             }
-
         )
 
         LazyColumnWithScrollBars(
-            modifierList = Modifier
-                .fillMaxSize()
+            heightMod = Modifier.fillMaxWidth(if (isBigScreen.value) 0.7f else 1f).padding(top = 60.dp),
+            modifierList = Modifier,
         ) {
             // For each section, display the heading and options under it
             sortSections.forEach { (sectionTitle, sortOptions) ->

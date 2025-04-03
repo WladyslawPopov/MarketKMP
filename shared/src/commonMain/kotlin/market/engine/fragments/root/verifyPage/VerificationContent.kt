@@ -100,7 +100,7 @@ fun VerificationContent(
 
 
                         Column(
-                            modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.mediumPadding),
+                            modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f).padding(dimens.mediumPadding),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
@@ -154,7 +154,7 @@ fun VerificationContent(
 
 
                         Column(
-                            modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.mediumPadding),
+                            modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f).padding(dimens.mediumPadding),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
@@ -209,7 +209,7 @@ fun VerificationContent(
 
 
                             Column(
-                                modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.mediumPadding),
+                                modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f).padding(dimens.mediumPadding),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                             ) {

@@ -37,7 +37,7 @@ fun PopularCategoryItem(category: TopCategory, onClick: (TopCategory) -> Unit) {
         Image(
             painterResource(category.icon),
             contentDescription = null,
-            modifier = Modifier.size(if(isBigScreen)160.dp else 100.dp)
+            modifier = Modifier.size(if(isBigScreen.value)160.dp else 100.dp)
         )
 
         Text(

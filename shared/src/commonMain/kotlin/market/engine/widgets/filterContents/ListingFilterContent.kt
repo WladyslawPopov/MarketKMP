@@ -4,11 +4,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -153,14 +155,13 @@ fun FilterListingContent(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
         }.padding(dimens.smallPadding),
-        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.TopCenter
     ) {
         FilterContentHeaderBar(
             title = stringResource(strings.filter),
@@ -176,10 +177,12 @@ fun FilterListingContent(
                 onClosed()
             }
         )
+
         LazyColumnWithScrollBars(
-            modifierList = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
+            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
+            contentPadding = dimens.smallPadding,
             state = scrollState
         ) {
             //SaleType Filters
@@ -271,6 +274,7 @@ fun FilterListingContent(
                     )
 
                     getDropdownMenu(
+                        modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                         selectedText = regionSelected.value ?: stringResource(strings.chooseAction),
                         selects = regionsOptions.map { it.name.toString() },
                         onItemClick = { newRegion ->
@@ -455,11 +459,11 @@ fun FilterListingContent(
         AcceptedPageButton(
             strings.actionAcceptFilters,
             Modifier.wrapContentWidth().padding(dimens.smallPadding)
+                .align(Alignment.BottomCenter)
         ) {
             onClosed()
         }
     }
-
 }
 
 fun applyFilterLogic(filterKey: String, filterName: String, filters: ArrayList<Filter>) {

@@ -130,7 +130,7 @@ fun BasketOfferItem(
                 ) {
                     LoadImage(
                         url = offer.getOfferImagePreview(),
-                        size = if(isBigScreen) 120.dp else 90.dp
+                        size = if(isBigScreen.value) 120.dp else 90.dp
                     )
                 }
 

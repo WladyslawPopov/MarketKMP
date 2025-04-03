@@ -98,49 +98,49 @@ fun HomeContent(
         }
     }
 
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            DrawerContent(
+    BaseContent(
+        topBar = {
+            HomeAppBar(
+                modifier,
                 drawerState,
-                goToContactUs = {
-                    component.goToContactUs()
+                goToMessenger = {
+                    component.goToMessenger()
                 },
-                goToLogin = {
-                    component.goToLogin()
-                },
-                goToSettings = {
-                    component.goToAppSettings()
+                goToMyProposals = {
+                    component.goToMyProposals()
                 }
             )
         },
-        gesturesEnabled = drawerState.isOpen,
+        isLoading = isLoading.value,
+        onRefresh = { component.onRefresh() },
+        floatingActionButton = {
+            floatingCreateOfferButton {
+                component.goToCreateOffer()
+            }
+        },
+        error = errorContent,
+        noFound = null,
+        toastItem = homeViewModel.toastItem,
+        modifier = Modifier.fillMaxSize()
     ) {
-        BaseContent(
-            topBar = {
-                HomeAppBar(
-                    modifier,
+        ModalNavigationDrawer(
+            modifier = modifier,
+            drawerState = drawerState,
+            drawerContent = {
+                DrawerContent(
                     drawerState,
-                    goToMessenger = {
-                        component.goToMessenger()
+                    goToContactUs = {
+                        component.goToContactUs()
                     },
-                    goToMyProposals = {
-                        component.goToMyProposals()
+                    goToLogin = {
+                        component.goToLogin()
+                    },
+                    goToSettings = {
+                        component.goToAppSettings()
                     }
                 )
             },
-            isLoading = isLoading.value,
-            onRefresh = { component.onRefresh() },
-            floatingActionButton = {
-                floatingCreateOfferButton {
-                    component.goToCreateOffer()
-                }
-            },
-            error = errorContent,
-            noFound = null,
-            toastItem = homeViewModel.toastItem,
-            modifier = Modifier.fillMaxSize()
+            gesturesEnabled = drawerState.isOpen,
         ) {
             Column(
                 modifier.fillMaxSize(),

@@ -37,7 +37,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
@@ -151,19 +150,19 @@ fun FeedbacksContent(
     }
 
     LaunchedEffect(Unit){
-        state.scrollToItem( viewModel.scrollItem.value, viewModel.offsetScrollItem.value)
-
         viewModel.currentFilter.value = if (listingData.value.filters.find { it.key == "evaluation" }?.value == "" || listingData.value.filters.find { it.key == "evaluation" }?.value == null) {
             filters[0]
         }else{
             filters[(listingData.value.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
         }
+
+        state.scrollToItem(viewModel.scrollItem.value, viewModel.offsetScrollItem.value)
     }
 
     Column {
         AnimatedVisibility (model.type != ReportPageType.ABOUT_ME) {
             Row(
-                modifier = Modifier.fillMaxWidth(if(isBigScreen) 0.5f else 1f).padding(dimens.smallPadding),
+                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 getDropdownMenu(
@@ -214,7 +213,10 @@ fun FeedbacksContent(
             },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                LazyColumnWithScrollBars{
+                LazyColumnWithScrollBars(
+                    state = state,
+                    contentPadding = dimens.smallPadding
+                ) {
                     when {
                         error != null -> item { error?.invoke() }
                         noItem != null -> item { noItem?.invoke() }

@@ -1,16 +1,15 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -72,14 +72,13 @@ fun OrderFilterContent(
     val fromThisDateTextState = remember { mutableStateOf(filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation ?: from) }
     val toThisDateTextState = remember { mutableStateOf(filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation ?: to) }
 
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
-        }.padding(dimens.smallPadding).animateContentSize(),
-        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-        horizontalAlignment = Alignment.CenterHorizontally
+        }.padding(dimens.smallPadding),
+        contentAlignment = Alignment.TopCenter
     ) {
         //Header Filters
         FilterContentHeaderBar(
@@ -98,10 +97,15 @@ fun OrderFilterContent(
             }
         )
 
-        LazyColumnWithScrollBars {
+        LazyColumnWithScrollBars(
+            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
+            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            contentPadding = dimens.smallPadding,
+        ) {
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -160,7 +164,7 @@ fun OrderFilterContent(
             }
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -212,14 +216,14 @@ fun OrderFilterContent(
                                 isRefreshing.value = true
                                 isShowClear.value = checkSize()
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
             }
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -278,7 +282,7 @@ fun OrderFilterContent(
             }
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -318,7 +322,7 @@ fun OrderFilterContent(
             }
             item {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp).padding(dimens.mediumPadding),
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     horizontalAlignment = Alignment.Start
                 ) {
@@ -328,7 +332,6 @@ fun OrderFilterContent(
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -380,7 +383,7 @@ fun OrderFilterContent(
         AcceptedPageButton(
             strings.actionAcceptFilters,
             Modifier
-                .wrapContentWidth()
+                .align(Alignment.BottomCenter)
                 .padding(dimens.mediumPadding)
         ){
             onClose()
