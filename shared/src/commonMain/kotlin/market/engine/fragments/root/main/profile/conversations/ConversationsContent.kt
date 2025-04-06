@@ -279,7 +279,7 @@ fun ConversationsContent(
                     }
                 }else {
                     ProfileDrawer(
-                        stringResource(strings.myOffersTitle),
+                        stringResource(strings.messageTitle),
                         publicProfileNavigationItems.value
                     )
                 }
