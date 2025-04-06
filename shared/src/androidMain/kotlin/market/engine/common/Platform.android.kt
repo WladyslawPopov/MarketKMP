@@ -12,11 +12,11 @@ actual class Platform {
                 val heightInches = metrics.heightPixels / metrics.ydpi
                 val diagonalInches =
                     sqrt((widthInches * widthInches + heightInches * heightInches).toDouble())
-
+                val isPortrait = metrics.heightPixels > metrics.widthPixels
                 return if (diagonalInches >= 7.0) {
-                    PlatformWindowType.TABLET
+                    if(isPortrait) PlatformWindowType.TABLET_PORTRAIT else PlatformWindowType.TABLET
                 } else {
-                    PlatformWindowType.MOBILE
+                    if(isPortrait) PlatformWindowType.MOBILE_PORTRAIT else PlatformWindowType.MOBILE
                 }
             } else {
                 return PlatformWindowType.MOBILE

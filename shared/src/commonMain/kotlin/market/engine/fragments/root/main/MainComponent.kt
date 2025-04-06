@@ -1,5 +1,7 @@
 package market.engine.fragments.root.main
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
@@ -12,12 +14,14 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
+import market.engine.common.Platform
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -65,10 +69,13 @@ interface MainComponent {
 
     val model : Value<Model>
     data class Model(
-        val backHandler: BackHandler
+        val backHandler: BackHandler,
+        var showBottomBar : MutableState<Boolean>
     )
 
     fun navigateToBottomItem(config: MainConfig, openPage: String? = null)
+
+    fun updateOrientation (orientation : Int)
 }
 
 class DefaultMainComponent(
@@ -87,9 +94,15 @@ class DefaultMainComponent(
         )
     )
 
+    val checkShowBar : () -> Boolean = {
+        val platform = Platform().getPlatform()
+        !isBigScreen.value || (PlatformWindowType.MOBILE_PORTRAIT == platform || PlatformWindowType.TABLET_PORTRAIT == platform)
+    }
+
     private val _model = MutableValue(
         MainComponent.Model(
-            backHandler = backHandler
+            backHandler = backHandler,
+            showBottomBar = mutableStateOf(checkShowBar())
         )
     )
     override val model = _model
@@ -407,5 +420,11 @@ class DefaultMainComponent(
                 }
             }
         }
+    }
+
+    override fun updateOrientation(orientation: Int) {
+        model.value.showBottomBar.value = orientation == 0
+
+        println("showBottomBar: ${model.value.showBottomBar.value}")
     }
 }

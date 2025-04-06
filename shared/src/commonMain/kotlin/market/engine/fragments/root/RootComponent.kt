@@ -48,6 +48,8 @@ interface RootComponent {
     }
 
     fun updateURL (url : DeepLink)
+
+    fun updateOrientation (orientation : Int)
 }
 
 class DefaultRootComponent(
@@ -78,6 +80,15 @@ class DefaultRootComponent(
 
     override fun updateURL(url: DeepLink) {
         navigation.replaceAll(RootConfig.Main(url))
+    }
+
+    override fun updateOrientation(orientation: Int) {
+        val activeChild = childStack.value.active.instance
+        if (activeChild is RootComponent.Child.MainChild) {
+            activeChild.component.updateOrientation(orientation)
+        }
+
+        println("upd orientation: $orientation")
     }
 
     init {

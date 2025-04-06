@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -15,7 +16,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
@@ -109,40 +109,42 @@ fun MainNavigation(
     )
 
     val profileNavigation = component.modelNavigation.value.profileNavigation
+    val model = component.model.subscribeAsState()
 
     Scaffold(
-        bottomBar = {   if (!isBigScreen.value){ getBottomNavBar(listItems, currentScreen) }},
+        bottomBar = {  if (model.value.showBottomBar.value){ getBottomNavBar(listItems, currentScreen) }},
     ) { innerPadding ->
-        Row {
-            if (isBigScreen.value){
-                getRailNavBar(listItems = listItems, currentScreen = currentScreen)
-            }
-            Children(
-                stack = childStack,
-                modifier = modifier
-                    .weight(1f)
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
-                animation = stackAnimation(fade())
-            ) { child ->
+        Children(
+            stack = childStack,
+            modifier = modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding()),
+            animation = stackAnimation(fade())
+        ) { child ->
+            Row {
+                if (!model.value.showBottomBar.value) {
+                    getRailNavBar(listItems = listItems, currentScreen = currentScreen)
+                }
                 when (child.instance) {
                     is ChildMain.HomeChildMain ->
-                        HomeNavigation(modifier, component.childHomeStack)
+                        HomeNavigation(Modifier.weight(1f), component.childHomeStack)
 
                     is ChildMain.CategoryChildMain ->
-                        SearchNavigation(modifier, component.childSearchStack)
+                        SearchNavigation(Modifier.weight(1f), component.childSearchStack)
 
                     is ChildMain.BasketChildMain ->
-                        BasketNavigation(modifier, component.childBasketStack)
+                        BasketNavigation(Modifier.weight(1f), component.childBasketStack)
 
                     is ChildMain.FavoritesChildMain ->
-                        FavoritesNavigation(modifier, component.childFavoritesStack)
+                        FavoritesNavigation(Modifier.weight(1f), component.childFavoritesStack)
 
                     is ChildMain.ProfileChildMain ->
-                        ProfileNavigation(modifier, component.childProfileStack, profileNavigation)
+                        ProfileNavigation(
+                            Modifier.weight(1f),
+                            component.childProfileStack,
+                            profileNavigation
+                        )
                 }
             }
         }
-
 
     }
 }

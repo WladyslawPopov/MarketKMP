@@ -11,5 +11,7 @@ fun getWindowType(): WindowType {
         PlatformWindowType.DESKTOP -> WindowType.Big
         PlatformWindowType.TABLET -> WindowType.Big
         PlatformWindowType.MOBILE -> WindowType.Compact
+        PlatformWindowType.TABLET_PORTRAIT -> WindowType.Big
+        PlatformWindowType.MOBILE_PORTRAIT -> WindowType.Compact
     }
 }
