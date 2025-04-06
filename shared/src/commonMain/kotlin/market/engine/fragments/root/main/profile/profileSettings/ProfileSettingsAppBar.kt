@@ -23,7 +23,7 @@ fun ProfileSettingsAppBar(
     drawerState: DrawerState,
     showMenu : Boolean? = null,
     openMenu : ((CoroutineScope) -> Unit)? = null,
-    navigationClick : (Int) -> Unit,
+    navigationClick : (Int) -> Unit
 ) {
     val tabs = listOf(
         stringResource(strings.profileGlobalSettingsLabel),
@@ -55,6 +55,24 @@ fun ProfileSettingsAppBar(
                     navigationClick(index)
                 }
             )
-        }
+        },
+//        actions = {
+//            Column {
+//                Row(
+//                    modifier = modifier.padding(end = dimens.smallPadding),
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.spacedBy(
+//                        dimens.smallPadding,
+//                        alignment = Alignment.End
+//                    )
+//                ) {
+//                    listItems.forEachIndexed { _, item ->
+//                        if(item.isVisible){
+//                            BadgedButton(item)
+//                        }
+//                    }
+//                }
+//            }
+//        }
     )
 }

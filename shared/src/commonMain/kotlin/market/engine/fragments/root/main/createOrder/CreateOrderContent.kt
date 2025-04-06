@@ -115,6 +115,9 @@ fun CreateOrderContent(
             CreateOrderAppBar(
                 onBackClick = {
                     component.onBackClicked()
+                },
+                onRefresh = {
+                    refresh()
                 }
             )
         },

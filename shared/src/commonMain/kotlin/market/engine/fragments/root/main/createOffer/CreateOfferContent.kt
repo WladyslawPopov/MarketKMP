@@ -334,6 +334,9 @@ fun CreateOfferContent(
                 type,
                 onBackClick = {
                     component.onBackClicked()
+                },
+                onRefresh = {
+                    refresh()
                 }
             )
         },

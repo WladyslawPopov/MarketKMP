@@ -100,7 +100,7 @@ fun LoginContent(
                 modifier = modifier,
                 onBeakClick = {
                     component.onBack()
-                }
+                },
             )
         },
         toastItem = model.toastItem,

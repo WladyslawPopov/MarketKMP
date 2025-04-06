@@ -107,6 +107,10 @@ fun UserContent(
                 },
                 onBackClick = {
                     component.onBack()
+                },
+                onRefresh = {
+                    component.onTabSelect(0)
+                    component.updateUserInfo()
                 }
             )
         },

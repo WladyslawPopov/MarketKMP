@@ -131,7 +131,10 @@ fun ConversationsContent(
                         null
                     },
                     drawerState = drawerState,
-                    modifier = modifier
+                    modifier = modifier,
+                    onRefresh = {
+                        refresh()
+                    }
                 )
             },
             onRefresh = {

@@ -69,6 +69,9 @@ fun ProfileMyBidsNavigation(
                 },
                 navigationClick = { newType->
                     component.selectOfferPage(newType)
+                },
+                onRefresh = {
+                    component.onRefreshBids()
                 }
             )
 

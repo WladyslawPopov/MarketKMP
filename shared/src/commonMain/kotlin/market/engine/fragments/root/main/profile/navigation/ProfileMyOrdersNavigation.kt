@@ -74,6 +74,9 @@ fun ProfileMyOrdersNavigation(
                 },
                 navigationClick = { newType->
                     component.selectMyOrderPage(newType)
+                },
+                onRefresh = {
+                    component.onRefreshOrders()
                 }
             )
 

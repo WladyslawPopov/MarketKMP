@@ -106,6 +106,9 @@ fun DynamicSettingsContent(
                 title = titleText.value,
                 navigateBack = {
                     component.onBack()
+                },
+                onRefresh = {
+                    component.updateModel()
                 }
             )
         },

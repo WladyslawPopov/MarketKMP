@@ -10,8 +10,8 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.types.FavScreenType
+import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface FavoritesComponent {
@@ -25,6 +25,7 @@ interface FavoritesComponent {
 
     fun goToFavScreen()
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
+    fun onRefresh()
 }
 
 class DefaultFavoritesComponent(
@@ -71,5 +72,11 @@ class DefaultFavoritesComponent(
         lifecycle.doOnResume {
             favViewModel.updateItem.value = offer.id
         }
+    }
+
+    override fun onRefresh() {
+        favViewModel.onError(ServerErrorException())
+        favViewModel.resetScroll()
+        favViewModel.refresh()
     }
 }

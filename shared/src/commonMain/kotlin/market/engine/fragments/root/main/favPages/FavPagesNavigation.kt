@@ -36,11 +36,15 @@ fun FavPagesNavigation(
 
     Column {
         FavPagesAppBar(
-            select.value
-        ){
-            select.value = it
-            component.selectPage(select.value)
-        }
+            select.value,
+            navigationClick = {
+                select.value = it
+                component.selectPage(select.value)
+            },
+            onRefresh = {
+                component.onRefresh()
+            }
+        )
 
         ChildPages(
             pages = component.componentsPages,

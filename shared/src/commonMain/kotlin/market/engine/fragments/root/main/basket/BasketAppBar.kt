@@ -16,11 +16,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import market.engine.common.Platform
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
@@ -32,12 +34,22 @@ fun BasketAppBar(
     subtitle : String?,
     modifier: Modifier = Modifier,
     clearBasket: () -> Unit,
+    onRefresh: () -> Unit
 ) {
     val showMenu = remember {
         mutableStateOf(false)
     }
 
     val listItems = listOf(
+        NavigationItem(
+            title = "",
+            icon = drawables.recycleIcon,
+            tint = colors.inactiveBottomNavIconColor,
+            hasNews = false,
+            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+            badgeCount = null,
+            onClick = onRefresh
+        ),
         NavigationItem(
             title = stringResource(strings.menuTitle),
             icon = drawables.menuIcon,

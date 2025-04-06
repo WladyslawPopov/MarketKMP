@@ -53,6 +53,11 @@ interface ProfileChildrenComponent {
     fun selectProfileSettingsPage(type: ProfileSettingsTypes)
     fun selectOfferPage(type: LotsType)
     fun selectMyOrderPage(type: DealType)
+
+    fun onRefreshOffers()
+    fun onRefreshOrders()
+    fun onRefreshBids()
+    fun onRefreshProposals()
 }
 
 class DefaultProfileChildrenComponent(
@@ -101,6 +106,34 @@ class DefaultProfileChildrenComponent(
             "proposals" -> {
                 navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
             }
+        }
+    }
+
+    override fun onRefreshBids() {
+        val index = myBidsPages.value.selectedIndex
+        when(myBidsPages.value.items[index].instance){
+            is MyBidsComponent -> myBidsPages.value.items[index].instance?.onRefresh()
+        }
+    }
+
+    override fun onRefreshProposals() {
+        val index = myProposalsPages.value.selectedIndex
+        when(myProposalsPages.value.items[index].instance){
+            is MyProposalsComponent -> myProposalsPages.value.items[index].instance?.onRefresh()
+        }
+    }
+
+    override fun onRefreshOffers() {
+        val index = myOffersPages.value.selectedIndex
+        when(myOffersPages.value.items[index].instance){
+            is MyOffersComponent -> myOffersPages.value.items[index].instance?.onRefresh()
+        }
+    }
+
+    override fun onRefreshOrders() {
+        val index = myOffersPages.value.selectedIndex
+        when(myOrdersPages.value.items[index].instance){
+            is MyOrdersComponent -> myOrdersPages.value.items[index].instance?.onRefresh()
         }
     }
 
@@ -319,4 +352,3 @@ class DefaultProfileChildrenComponent(
         )
     }
 }
-

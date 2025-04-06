@@ -28,6 +28,7 @@ interface MyBidsComponent {
     fun selectMyBidsPage(select : LotsType)
     fun goToDialog(dialogId : Long?)
     fun goToBack()
+    fun onRefresh()
 }
 
 class DefaultMyBidsComponent(
@@ -87,6 +88,10 @@ class DefaultMyBidsComponent(
 
     override fun goToBack() {
         navigateBack()
+    }
+
+    override fun onRefresh() {
+        viewModel.onRefresh()
     }
 
 

@@ -144,6 +144,9 @@ fun CreateSubscriptionContent(
                 title,
                 onBackClick = {
                     onBack()
+                },
+                onRefresh = {
+                    refresh()
                 }
             )
         },

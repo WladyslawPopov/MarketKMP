@@ -71,6 +71,9 @@ fun ProfileMyOffersNavigation(
                 },
                 navigationClick = { newType ->
                     component.selectOfferPage(newType)
+                },
+                onRefresh = {
+                    component.onRefreshOffers()
                 }
             )
 

@@ -148,9 +148,14 @@ fun ProposalContent(
 
     BaseContent(
         topBar = {
-            ProposalAppBar{
-                component.goBack()
-            }
+            ProposalAppBar(
+                goBack =  {
+                    component.goBack()
+                },
+                 onRefresh = {
+                     component.update()
+                 }
+            )
         },
         onRefresh = {
             component.update()

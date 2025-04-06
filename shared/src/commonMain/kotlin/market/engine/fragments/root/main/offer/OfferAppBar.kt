@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import market.engine.common.Platform
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
 import market.engine.common.openShare
@@ -33,6 +34,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.ToastItem
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.ToastType
 import market.engine.fragments.base.BaseViewModel
@@ -51,6 +53,7 @@ fun OfferAppBar(
     baseViewModel: BaseViewModel,
     modifier: Modifier = Modifier,
     onBeakClick: () -> Unit,
+    onRefresh: () -> Unit
 ) {
     val showMenu = remember { mutableStateOf(false) }
     val onClose = {
@@ -60,6 +63,15 @@ fun OfferAppBar(
     val isFavorite = remember { mutableStateOf(offer.isWatchedByMe) }
 
     val listItems = listOf(
+        NavigationItem(
+            title = "",
+            icon = drawables.recycleIcon,
+            tint = colors.inactiveBottomNavIconColor,
+            hasNews = false,
+            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+            badgeCount = null,
+            onClick = onRefresh
+        ),
         NavigationItem(
             title = stringResource(strings.favoritesTitle),
             icon = if (isFavorite.value) drawables.favoritesIconSelected else drawables.favoritesIcon,

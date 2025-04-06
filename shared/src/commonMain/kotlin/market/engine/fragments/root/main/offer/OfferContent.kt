@@ -239,6 +239,9 @@ fun OfferContent(
                         } else {
                             isImageViewerVisible.value = false
                         }
+                    },
+                    onRefresh = {
+                        component.updateOffer(offer.id, model.isSnapshot)
                     }
                 )
             },

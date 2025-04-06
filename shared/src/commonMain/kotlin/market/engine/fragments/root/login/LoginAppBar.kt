@@ -13,7 +13,7 @@ import market.engine.widgets.texts.TextAppBar
 fun LoginAppBar(
     title : String,
     modifier: Modifier = Modifier,
-    onBeakClick: () -> Unit,
+    onBeakClick: () -> Unit
 ) {
     TopAppBar(
         modifier = modifier

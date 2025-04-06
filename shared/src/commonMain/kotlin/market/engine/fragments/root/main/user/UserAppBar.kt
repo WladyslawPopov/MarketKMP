@@ -11,11 +11,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import market.engine.common.Platform
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import org.jetbrains.compose.resources.stringResource
@@ -26,9 +28,19 @@ fun UserAppBar(
     titleContent : (@Composable () -> Unit)? = null,
     isVisibleUserPanel: Boolean,
     onUserSliderClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onRefresh: () -> Unit
 ) {
     val listItems = listOf(
+        NavigationItem(
+            title = "",
+            icon = drawables.recycleIcon,
+            tint = colors.inactiveBottomNavIconColor,
+            hasNews = false,
+            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+            badgeCount = null,
+            onClick = onRefresh
+        ),
         NavigationItem(
             title = stringResource(strings.searchUserStringChoice),
             icon = if (isVisibleUserPanel) drawables.iconArrowUp else drawables.iconArrowDown,

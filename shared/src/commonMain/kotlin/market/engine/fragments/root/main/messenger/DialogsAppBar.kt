@@ -58,7 +58,7 @@ fun DialogsAppBar(
 
     val listItems = listOf(
         NavigationItem(
-            title = stringResource(strings.favoritesTitle),
+            title = "",
             icon = drawables.recycleIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,

@@ -27,6 +27,7 @@ interface MyOrdersComponent {
     fun selectMyOrderPage(select : DealType)
     fun goToMessenger(dialogId : Long?)
     fun goToBack()
+    fun onRefresh()
 }
 
 class DefaultMyOrdersComponent(
@@ -96,5 +97,9 @@ class DefaultMyOrdersComponent(
 
     override fun goToBack() {
         navigateToBack()
+    }
+
+    override fun onRefresh() {
+        viewModel.onRefresh()
     }
 }

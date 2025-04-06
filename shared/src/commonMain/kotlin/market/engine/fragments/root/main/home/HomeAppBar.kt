@@ -14,12 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import market.engine.common.Platform
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.MenuHamburgerButton
 import org.jetbrains.compose.resources.painterResource
@@ -32,10 +34,20 @@ fun HomeAppBar(
     drawerState: DrawerState,
     goToMessenger: () -> Unit,
     goToMyProposals: () -> Unit,
+    onRefresh: () -> Unit
 ) {
     val userInfo = UserData.userInfo
 
     val listItems = listOf(
+        NavigationItem(
+            title = "",
+            icon = drawables.recycleIcon,
+            tint = colors.inactiveBottomNavIconColor,
+            hasNews = false,
+            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+            badgeCount = null,
+            onClick = onRefresh
+        ),
         NavigationItem(
             title = stringResource(strings.proposalTitle),
             icon = drawables.currencyIcon,

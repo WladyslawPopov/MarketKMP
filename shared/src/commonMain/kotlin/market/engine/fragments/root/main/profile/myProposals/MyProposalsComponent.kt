@@ -28,6 +28,7 @@ interface MyProposalsComponent {
     fun selectMyProposalsPage(select : LotsType)
     fun goToDialog(dialogId : Long?)
     fun goToBack()
+    fun onRefresh()
 }
 
 class DefaultMyProposalsComponent(
@@ -88,6 +89,10 @@ class DefaultMyProposalsComponent(
 
     override fun goToBack() {
         navigateBack()
+    }
+
+    override fun onRefresh() {
+        viewModel.onRefresh()
     }
 
     override fun goToUser(userId: Long) {

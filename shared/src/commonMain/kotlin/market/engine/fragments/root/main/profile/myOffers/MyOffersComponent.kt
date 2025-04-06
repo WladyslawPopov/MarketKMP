@@ -30,6 +30,7 @@ interface MyOffersComponent {
     fun goToProposals(offerId : Long, proposalType: ProposalType)
     fun goToDynamicSettings(type : String, id : Long? = null)
     fun goToBack()
+    fun onRefresh()
 }
 
 class DefaultMyOffersComponent(
@@ -100,5 +101,9 @@ class DefaultMyOffersComponent(
 
     override fun goToBack() {
         navigateToBack()
+    }
+
+    override fun onRefresh() {
+        viewModel.onRefresh()
     }
 }

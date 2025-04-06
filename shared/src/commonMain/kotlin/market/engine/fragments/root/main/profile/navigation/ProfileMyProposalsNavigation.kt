@@ -67,6 +67,9 @@ fun ProfileMyProposalsNavigation(
                 },
                 navigationClick = { newType->
                     component.selectOfferPage(newType)
+                },
+                onRefresh = {
+                    component.onRefreshProposals()
                 }
             )
 

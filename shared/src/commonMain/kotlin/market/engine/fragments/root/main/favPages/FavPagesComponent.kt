@@ -21,6 +21,8 @@ interface FavPagesComponent {
     val favScreenType : FavScreenType
 
     fun selectPage(screenType: FavScreenType)
+
+    fun onRefresh()
 }
 
 class DefaultFavPagesComponent(
@@ -41,6 +43,21 @@ class DefaultFavPagesComponent(
 
             FavScreenType.SUBSCRIBED -> {
                 navigation.select(1)
+            }
+        }
+    }
+
+    override fun onRefresh() {
+        val index = componentsPages.value.selectedIndex
+        when(val item = componentsPages.value.items[index].instance){
+            is FavPagesComponents.FavoritesChild -> {
+                item.component.onRefresh()
+            }
+            is FavPagesComponents.SubscribedChild -> {
+                item.component.model.value.subViewModel.refresh()
+            }
+            null -> {
+
             }
         }
     }

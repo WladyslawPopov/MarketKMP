@@ -275,6 +275,9 @@ fun ListingContent(
                         }else{
                             goToLogin(false)
                         }
+                    },
+                    onRefresh = {
+                        refresh()
                     }
                 )
 

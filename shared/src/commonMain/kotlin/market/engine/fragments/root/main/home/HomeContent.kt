@@ -107,6 +107,9 @@ fun HomeContent(
                 },
                 goToMyProposals = {
                     component.goToMyProposals()
+                },
+                onRefresh = {
+                    component.onRefresh()
                 }
             )
         },

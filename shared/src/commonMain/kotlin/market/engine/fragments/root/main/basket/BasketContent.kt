@@ -130,6 +130,9 @@ fun BasketContent(
                     viewModel.clearBasket{
                         refresh()
                     }
+                },
+                onRefresh = {
+                    refresh()
                 }
             )
         },
