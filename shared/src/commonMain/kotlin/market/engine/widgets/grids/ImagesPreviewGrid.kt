@@ -3,7 +3,7 @@ package market.engine.widgets.grids
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +30,7 @@ fun ImagesPreviewGrid(
         modifier = Modifier
             .clip(MaterialTheme.shapes.medium)
             .heightIn(max = 1200.dp)
-            .wrapContentSize(),
+            .widthIn(max = 400.dp),
         horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
         verticalItemSpacing = dimens.extraSmallPadding
     ) {

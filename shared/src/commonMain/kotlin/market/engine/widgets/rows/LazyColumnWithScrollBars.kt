@@ -48,7 +48,8 @@ fun LazyColumnWithScrollBars(
             state,
             Modifier
                 .align(Alignment.CenterEnd)
-                .fillMaxHeight()
+                .fillMaxHeight(),
+            isReversed = reverseLayout
         )
     }
 }

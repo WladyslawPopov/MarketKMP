@@ -242,7 +242,7 @@ class DefaultMainComponent(
     override val childProfileStack: Value<ChildStack<*, ChildProfile>> by lazy {
         childStack(
             source = modelNavigation.value.profileNavigation,
-            initialConfiguration = if(isBigScreen.value) ProfileConfig.MyOffersScreen else ProfileConfig.ProfileScreen(openPage = openPage),
+            initialConfiguration = ProfileConfig.ProfileScreen(openPage = openPage),
             serializer = ProfileConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
