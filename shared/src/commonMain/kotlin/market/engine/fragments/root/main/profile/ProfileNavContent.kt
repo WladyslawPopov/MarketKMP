@@ -46,17 +46,12 @@ fun ProfileNavContent(
                 modifier = Modifier.wrapContentSize().padding(dimens.mediumPadding),
                 UserData.userInfo,
                 updateTrigger = 1,
-                goToUser = null,
-                addToSubscriptions = {
-
+                goToUser = {
+                    list.find { it.icon == drawables.profileIcon }?.onClick?.invoke()
                 },
                 goToSettings = {
                     goToSettings?.invoke(it)
                 },
-                goToSubscriptions = {},
-                goToAboutMe = {},
-                goToAllLots = {},
-                isBlackList = arrayListOf()
             )
         }
 

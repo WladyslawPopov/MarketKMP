@@ -5,7 +5,6 @@ import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -47,8 +46,7 @@ fun LazyColumnWithScrollBars(
         ScrollBarsProvider().getVerticalScrollbar(
             state,
             Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxHeight(),
+                .align(Alignment.CenterEnd),
             isReversed = reverseLayout
         )
     }

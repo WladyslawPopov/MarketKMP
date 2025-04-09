@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -105,6 +104,7 @@ import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
+import market.engine.widgets.rows.ColumnWithScrollBars
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.rows.LazyRowWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField
@@ -1801,50 +1801,45 @@ fun AuctionBidsSection(
                 null
             }
         )
-        LazyColumnWithScrollBars(
-            heightMod =  Modifier
-                .background(color = colors.white, shape = MaterialTheme.shapes.medium)
-                .heightIn(max = 400.dp)
-                .padding(bottom = dimens.largePadding, top = dimens.mediumPadding),
-            modifierList = Modifier
-                .fillMaxSize()
-                .padding(dimens.smallPadding),
+
+        ColumnWithScrollBars(
+            modifier = Modifier.background(color = colors.white, shape = MaterialTheme.shapes.medium)
+            .heightIn(max = 400.dp)
+            .padding(bottom = dimens.largePadding, top = dimens.mediumPadding)
         ) {
             // Header row
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(strings.bidsUserLabel),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = colors.grayText,
+                )
+                if(!isDeletesBids) {
                     Text(
-                        text = stringResource(strings.bidsUserLabel),
+                        text = stringResource(strings.yourMaxBidParameterName),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = colors.grayText,
                     )
-                    if(!isDeletesBids) {
-                        Text(
-                            text = stringResource(strings.yourMaxBidParameterName),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = colors.grayText,
-                        )
-                        Text(
-                            text = stringResource(strings.dateParameterName),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = colors.grayText,
-                        )
-                    }else{
-                        Text(
-                            text = stringResource(strings.commentLabel),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = colors.grayText,
-                        )
-                    }
+                    Text(
+                        text = stringResource(strings.dateParameterName),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = colors.grayText,
+                    )
+                }else{
+                    Text(
+                        text = stringResource(strings.commentLabel),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = colors.grayText,
+                    )
                 }
             }
 
             // List items
-            itemsIndexed(bids) { i, bid ->
+            bids.forEachIndexed { i, bid ->
                 if (!isDeletesBids) {
                     if (bid is Bids) {
                         BidsListItem(
@@ -1868,14 +1863,12 @@ fun AuctionBidsSection(
             }
 
             if (bids.isEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(strings.noBids),
-                        style = MaterialTheme.typography.titleMedium.copy(fontStyle = FontStyle.Italic),
-                        color = colors.notifyTextColor,
-                        modifier = Modifier.padding(top = dimens.mediumPadding)
-                    )
-                }
+                Text(
+                    text = stringResource(strings.noBids),
+                    style = MaterialTheme.typography.titleMedium.copy(fontStyle = FontStyle.Italic),
+                    color = colors.notifyTextColor,
+                    modifier = Modifier.padding(top = dimens.mediumPadding)
+                )
             }
         }
     }

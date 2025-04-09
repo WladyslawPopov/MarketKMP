@@ -7,8 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -29,6 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.ReportPageType
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
@@ -38,7 +40,9 @@ import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.tabs.SimpleTabs
 import market.engine.fragments.base.onError
+import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.bars.UserPanel
+import market.engine.widgets.rows.ColumnWithScrollBars
 import market.engine.widgets.rows.UserRow
 import org.jetbrains.compose.resources.stringResource
 
@@ -109,7 +113,6 @@ fun UserContent(
                     component.onBack()
                 },
                 onRefresh = {
-                    component.onTabSelect(0)
                     component.updateUserInfo()
                 }
             )
@@ -122,105 +125,122 @@ fun UserContent(
            component.updateUserInfo()
        },
     ) {
-        Column {
-            AnimatedVisibility(
-                isVisibleUserPanel.value,
-                modifier = Modifier.background(colors.white).fillMaxWidth().wrapContentHeight(),
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                val errorString = remember { mutableStateOf("") }
+        if(user.value?.markedAsDeleted != true) {
+            Column {
+                AnimatedVisibility(
+                    isVisibleUserPanel.value,
+                    modifier = Modifier.background(colors.white).fillMaxWidth(),
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    ColumnWithScrollBars(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = if(isBigScreen.value) 250.dp else 320.dp)
+                    ) {
+                        val errorString = remember { mutableStateOf("") }
 
-                UserPanel(
-                    modifier = Modifier.wrapContentSize().align(Alignment.CenterHorizontally).padding(dimens.mediumPadding),
-                    user = user.value,
-                    updateTrigger = userViewModel.updateItemTrigger.value,
-                    goToUser = {
-                        isVisibleUserPanel.value = !isVisibleUserPanel.value
-                    },
-                    goToAllLots = {
-                        if (user.value != null) {
-                            component.selectAllOffers(user.value!!)
-                        }
-                    },
-                    goToAboutMe = {
-                        component.onTabSelect(4)
-                    },
-                    addToSubscriptions = {
-                        if(UserData.token != "") {
-                            userViewModel.addNewSubscribe(
-                                LD(),
-                                SD().copy(
-                                    userLogin = user.value?.login,
-                                    userID = user.value?.id ?: 1L,
-                                    userSearch = true
-                                ),
-                                onSuccess = {
-                                    component.updateUserInfo()
-                                },
-                                onError = { es ->
-                                    errorString.value = es
+                        UserPanel(
+                            modifier = Modifier.wrapContentSize()
+                                .align(Alignment.CenterHorizontally)
+                                .padding(dimens.mediumPadding),
+                            user = user.value,
+                            updateTrigger = userViewModel.updateItemTrigger.value,
+                            goToUser = {
+                                isVisibleUserPanel.value = !isVisibleUserPanel.value
+                            },
+                            goToAllLots = {
+                                if (user.value != null) {
+                                    component.selectAllOffers(user.value!!)
                                 }
-                            )
-                        }else{
-                            goToLogin(false)
-                        }
-                    },
-                    goToSubscriptions = {
-                        component.goToSubscriptions()
-                    },
-                    goToSettings = {
-                        component.goToSettings(it)
-                    },
-                    isBlackList = blackList.value
-                )
+                            },
+                            goToAboutMe = {
+                                component.onTabSelect(4)
+                            },
+                            addToSubscriptions = {
+                                if (UserData.token != "") {
+                                    userViewModel.addNewSubscribe(
+                                        LD(),
+                                        SD().copy(
+                                            userLogin = user.value?.login,
+                                            userID = user.value?.id ?: 1L,
+                                            userSearch = true
+                                        ),
+                                        onSuccess = {
+                                            component.updateUserInfo()
+                                        },
+                                        onError = { es ->
+                                            errorString.value = es
+                                        }
+                                    )
+                                } else {
+                                    goToLogin(false)
+                                }
+                            },
+                            goToSubscriptions = {
+                                component.goToSubscriptions()
+                            },
+                            goToSettings = {
+                                component.goToSettings(it)
+                            },
+                            isBlackList = blackList.value
+                        )
 
-                CreateSubscribeDialog(
-                    errorString.value != "",
-                    errorString.value,
-                    onDismiss = {
-                        errorString.value = ""
-                    },
-                    goToSubscribe = {
-                        component.goToSubscriptions()
-                        errorString.value = ""
+                        CreateSubscribeDialog(
+                            errorString.value != "",
+                            errorString.value,
+                            onDismiss = {
+                                errorString.value = ""
+                            },
+                            goToSubscribe = {
+                                component.goToSubscriptions()
+                                errorString.value = ""
+                            }
+                        )
+                    }
+                }
+
+
+                SimpleTabs(
+                    tabs,
+                    selectedTab = selectedTabIndex.value,
+                    onTabSelected = { index ->
+                        component.onTabSelect(index)
                     }
                 )
+
+                ChildPages(
+                    pages = feedbacksPages,
+                    scrollAnimation = PagesScrollAnimation.Default,
+                    onPageSelected = {
+                        val select = when (it) {
+                            0 -> ReportPageType.ALL_REPORTS
+                            1 -> ReportPageType.FROM_BUYERS
+                            2 -> ReportPageType.FROM_SELLERS
+                            3 -> ReportPageType.FROM_USER
+                            4 -> ReportPageType.ABOUT_ME
+                            else -> {
+                                ReportPageType.ALL_REPORTS
+                            }
+                        }
+                        selectedTabIndex.value = it
+                        component.selectFeedbackPage(select)
+                    }
+                ) { _, page ->
+                    FeedbacksContent(
+                        component = page,
+                        aboutMe = user.value?.aboutMe,
+                        onScrollDirectionChange = { isAtTop ->
+                            isVisibleUserPanel.value = isAtTop
+                        }
+                    )
+                }
             }
-
-            SimpleTabs(
-                tabs,
-                selectedTab = selectedTabIndex.value,
-                onTabSelected = { index ->
-                    component.onTabSelect(index)
-                }
-            )
-
-            ChildPages(
-                pages = feedbacksPages,
-                scrollAnimation = PagesScrollAnimation.Default,
-                onPageSelected = {
-                    val select = when(it){
-                        0 -> ReportPageType.ALL_REPORTS
-                        1 -> ReportPageType.FROM_BUYERS
-                        2 -> ReportPageType.FROM_SELLERS
-                        3 -> ReportPageType.FROM_USER
-                        4 -> ReportPageType.ABOUT_ME
-                        else -> {
-                            ReportPageType.ALL_REPORTS
-                        }
-                    }
-                    selectedTabIndex.value = it
-                    component.selectFeedbackPage(select)
-                }
-            ) { _, page ->
-                FeedbacksContent(
-                    component = page,
-                    aboutMe = user.value?.aboutMe,
-                    onScrollDirectionChange = { isAtTop ->
-                        isVisibleUserPanel.value = isAtTop
-                    }
-                )
+        }else{
+            showNoItemLayout(
+                title = stringResource(strings.userDeletedLabel)
+            ){
+                component.updateUserInfo()
             }
         }
     }

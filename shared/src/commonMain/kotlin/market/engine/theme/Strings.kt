@@ -482,4 +482,5 @@ interface Strings {
     val selectDialogLabel : StringResource
     val dataUsagePolicyLabel : StringResource
     val deleteAccountLabel : StringResource
+    val userDeletedLabel : StringResource
 }
