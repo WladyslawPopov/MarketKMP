@@ -55,16 +55,6 @@ fun <T : Any>ListingBaseContent(
         bottomSheetState = rememberBottomSheetState(baseViewModel.bottomSheetState.value)
     )
 
-    LaunchedEffect(data.loadState.refresh){
-        if((data.loadState.refresh as? LoadStateError)?.error?.message != null){
-            baseViewModel.onError(
-                ServerErrorException(
-                    (data.loadState.refresh as? LoadStateError)?.error?.message ?: "", ""
-                )
-            )
-        }
-    }
-
     var error : (@Composable () -> Unit)? = null
     var noItem : (@Composable () -> Unit)? = null
 
@@ -79,6 +69,15 @@ fun <T : Any>ListingBaseContent(
                 noItem = {
                     noFound?.invoke() ?: showNoItemLayout{onRefresh()}
                 }
+            }
+
+            refresh is LoadStateError -> {
+                baseViewModel.onError(
+                    ServerErrorException(
+                        errorCode = ((refresh as LoadStateError).error as? ServerErrorException)?.errorCode ?: "",
+                        humanMessage = ((refresh as LoadStateError).error as? ServerErrorException)?.humanMessage ?: ""
+                    )
+                )
             }
         }
     }

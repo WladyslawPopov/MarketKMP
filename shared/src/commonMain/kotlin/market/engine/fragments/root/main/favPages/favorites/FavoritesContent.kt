@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -33,6 +34,7 @@ import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
@@ -109,6 +111,12 @@ fun FavoritesContent(
         }
     }
 
+    val err = favViewModel.errorMessage.collectAsState()
+    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+        { onError(err) { refresh() } }
+    }else{
+        null
+    }
 
     //update item when we back
     LaunchedEffect(favViewModel.updateItem.value) {
@@ -133,7 +141,7 @@ fun FavoritesContent(
         onRefresh = {
             refresh()
         },
-        error = null,
+        error = error,
         noFound = null,
         isLoading = isLoading.value,
         toastItem = favViewModel.toastItem,

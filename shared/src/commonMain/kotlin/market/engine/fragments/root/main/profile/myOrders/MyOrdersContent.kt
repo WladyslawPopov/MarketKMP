@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +29,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OrderFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
@@ -93,6 +95,14 @@ fun MyOrdersContent(
         }
     }
 
+    val err = viewModel.errorMessage.collectAsState()
+    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+        { onError(err) { refresh() } }
+    }else{
+        null
+    }
+
+
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
@@ -128,7 +138,7 @@ fun MyOrdersContent(
         onRefresh = {
             refresh()
         },
-        error = null,
+        error = error,
         noFound = null,
         isLoading = isLoading.value,
         toastItem = viewModel.toastItem,

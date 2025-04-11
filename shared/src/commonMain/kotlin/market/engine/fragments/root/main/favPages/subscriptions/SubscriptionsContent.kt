@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -30,6 +31,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.SortingOrdersContent
 import org.jetbrains.compose.resources.stringResource
@@ -73,6 +75,13 @@ fun SubscriptionsContent(
         }
     }
 
+    val err = subViewModel.errorMessage.collectAsState()
+    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+        { onError(err) { refresh() } }
+    }else{
+        null
+    }
+
     BackHandler(modelState.value.backHandler){
         when{
             subViewModel.activeFiltersType.value != "" ->{
@@ -113,7 +122,7 @@ fun SubscriptionsContent(
         onRefresh = {
            refresh()
         },
-        error = null,
+        error = error,
         noFound = null,
         isLoading = isLoading.value,
         toastItem = subViewModel.toastItem,
