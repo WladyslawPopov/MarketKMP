@@ -70,7 +70,7 @@ fun ProfileSettingsNavigation(
                         }
                     }
                     component.selectProfileSettingsPage(type)
-                }
+                },
             )
 
             ChildPages(

@@ -7,6 +7,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -17,6 +18,7 @@ import org.jetbrains.compose.resources.stringResource
 fun CustomDialog(
     showDialog: Boolean,
     title: String,
+    containerColor: Color = colors.white,
     body: @Composable () -> Unit = {},
     onDismiss: () -> Unit,
     onSuccessful: (() -> Unit) ?= null,
@@ -27,7 +29,7 @@ fun CustomDialog(
         exit = fadeOut()
     ) {
         AlertDialog(
-            containerColor = colors.white,
+            containerColor = containerColor,
             tonalElevation = 0.dp,
             onDismissRequest = { onDismiss() },
             title = { Text(title, style = MaterialTheme.typography.labelSmall) },

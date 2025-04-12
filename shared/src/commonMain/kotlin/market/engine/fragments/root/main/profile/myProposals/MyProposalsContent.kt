@@ -15,7 +15,6 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -41,8 +40,6 @@ fun MyProposalsContent(
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
-    val successToast = stringResource(strings.operationSuccess)
 
     val updateFilters = remember { mutableStateOf(0) }
 
@@ -177,12 +174,6 @@ fun MyProposalsContent(
                     offer = offer,
                     onUpdateOfferItem = {
                         viewModel.updateItem.value = it.id
-                        viewModel.showToast(
-                            successToastItem.copy(
-                                message = successToast
-                            )
-                        )
-
                     },
                     updateTrigger = viewModel.updateItemTrigger.value,
                     goToOffer = {

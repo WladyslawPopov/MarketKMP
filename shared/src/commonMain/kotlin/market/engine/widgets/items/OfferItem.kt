@@ -1,6 +1,7 @@
 package market.engine.widgets.items
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,7 @@ fun OfferItem(
     updateTrigger : Int,
     isSelection : Boolean = false,
     isShowFavorites : Boolean = false,
+    notesShow : Boolean = false,
     goToProposal : (ProposalType) -> Unit= { _ -> },
     onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
@@ -132,6 +134,7 @@ fun OfferItem(
                     isGrid,
                     onUpdateOfferItem != null,
                     isShowFavorites,
+                    notesShow,
                     baseViewModel,
                     updateTrigger,
                 )
@@ -147,6 +150,7 @@ fun OfferItem(
                     isGrid,
                     onUpdateOfferItem != null,
                     isShowFavorites,
+                    notesShow,
                     baseViewModel,
                     updateTrigger,
                 )
@@ -183,6 +187,7 @@ fun contentStructure(
     isGrid : Boolean,
     isShowPromo : Boolean,
     isShowFavourite : Boolean,
+    notesShow : Boolean,
     baseViewModel: BaseViewModel,
     updateTrigger : Int,
 ){
@@ -222,10 +227,10 @@ fun contentStructure(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            content(offer, baseViewModel,updateTrigger,isShowPromo, isShowFavourite)
+            content(offer, baseViewModel,updateTrigger,isShowPromo,notesShow, isShowFavourite)
         }
     }else{
-        content(offer, baseViewModel, updateTrigger,isShowPromo, isShowFavourite)
+        content(offer, baseViewModel, updateTrigger,isShowPromo,notesShow, isShowFavourite)
     }
 }
 
@@ -237,6 +242,7 @@ fun content(
     baseViewModel : BaseViewModel,
     updateTrigger : Int = 0,
     isShowPromo : Boolean,
+    notesShow : Boolean,
     isShowFavourite : Boolean,
 ){
     if (updateTrigger < 0) return
@@ -421,12 +427,36 @@ fun content(
                 )
             }
         }
+        if (!notesShow || offer.note == null) {
+            offer.sellerData?.let {
+                if (it.id != UserData.login) {
+                    UserColumn(
+                        it,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }else{
+            Row(
+                modifier = Modifier.background(
+                    colors.white,
+                    MaterialTheme.shapes.small
+                ).padding(dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            ) {
+                Icon(
+                    painterResource(drawables.editNoteIcon),
+                    contentDescription = "",
+                    modifier = Modifier.size(dimens.smallIconSize),
+                    tint = colors.black
+                )
 
-        offer.sellerData?.let {
-            if (it.id != UserData.login) {
-                UserColumn(
-                    it,
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    text = offer.note ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.black,
+                    modifier = Modifier.weight(1f, !isBigScreen.value)
                 )
             }
         }

@@ -12,6 +12,7 @@ import com.arkivanov.decompose.value.Value
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
+import market.engine.fragments.root.main.favPages.notes.NotesComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 
 
@@ -44,6 +45,10 @@ class DefaultFavPagesComponent(
             FavScreenType.SUBSCRIBED -> {
                 navigation.select(1)
             }
+
+            FavScreenType.NOTES -> {
+                navigation.select(2)
+            }
         }
     }
 
@@ -56,9 +61,10 @@ class DefaultFavPagesComponent(
             is FavPagesComponents.SubscribedChild -> {
                 item.component.model.value.subViewModel.refresh()
             }
-            null -> {
-
+            is FavPagesComponents.NotesChild -> {
+                item.component.onRefresh()
             }
+            null -> {}
         }
     }
 
@@ -71,7 +77,8 @@ class DefaultFavPagesComponent(
                 Pages(
                     listOf(
                         FavPagesConfig(FavScreenType.FAVORITES),
-                        FavPagesConfig(FavScreenType.SUBSCRIBED)
+                        FavPagesConfig(FavScreenType.SUBSCRIBED),
+                        FavPagesConfig(FavScreenType.NOTES)
                     ),
                     selectedIndex = if(favType == FavScreenType.FAVORITES) 0 else 1,
                 )
@@ -118,6 +125,25 @@ class DefaultFavPagesComponent(
                             )
                         )
                     }
+
+                    FavScreenType.NOTES -> {
+                        FavPagesComponents.NotesChild(
+                            component = itemNotes(
+                                componentContext,
+                                selectedFavScreen = {
+                                    selectPage(it)
+                                },
+                                navigateToOffer = {
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.OfferScreen(
+                                            it, getCurrentDate()
+                                        )
+                                    )
+                                },
+                                selectedType = config.favType
+                            )
+                        )
+                    }
                 }
             }
         )
@@ -127,4 +153,5 @@ class DefaultFavPagesComponent(
 sealed class FavPagesComponents {
     class FavoritesChild(val component: FavoritesComponent) : FavPagesComponents()
     class SubscribedChild(val component: SubscriptionsComponent) : FavPagesComponents()
+    class NotesChild(val component: NotesComponent) : FavPagesComponents()
 }

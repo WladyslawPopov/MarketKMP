@@ -483,4 +483,5 @@ interface Strings {
     val dataUsagePolicyLabel : StringResource
     val deleteAccountLabel : StringResource
     val userDeletedLabel : StringResource
+    val myNotesTitle: StringResource
 }

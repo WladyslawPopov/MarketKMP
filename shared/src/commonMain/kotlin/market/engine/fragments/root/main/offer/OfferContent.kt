@@ -61,6 +61,7 @@ import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonElement
 import market.engine.common.openUrl
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
@@ -81,6 +82,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Bids
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseContent
@@ -97,10 +99,12 @@ import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.widgets.dropdown_menu.getOfferOperations
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
@@ -395,6 +399,90 @@ fun OfferContent(
                             verticalItemSpacing = dimens.smallPadding,
                             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
                             content = {
+                                if (offer.note != null) {
+                                    item {
+                                        val showDialogString = remember { mutableStateOf("") }
+                                        val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
+                                        val title = remember { mutableStateOf("") }
+
+                                        Row(
+                                            modifier = Modifier.background(
+                                                colors.white,
+                                                MaterialTheme.shapes.small
+                                            ).clip(MaterialTheme.shapes.small).clickable {
+                                                offerViewModel.getOfferOperations(offer.id){ res ->
+                                                    res.firstOrNull { it.id == "create_note" || it.id == "edit_note" }?.let { buf ->
+                                                        showDialogString.value = buf.id ?: ""
+                                                        title.value = buf.name ?: ""
+                                                        offerViewModel.getNotesField(
+                                                            offer.id,
+                                                            showDialogString.value
+                                                        ){ f ->
+                                                            fields.value = f
+                                                        }
+                                                    }
+                                                }
+                                            }.padding(dimens.smallPadding),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                        ) {
+                                            Icon(
+                                                painterResource(drawables.editNoteIcon),
+                                                contentDescription = "",
+                                                modifier = Modifier.size(dimens.smallIconSize),
+                                                tint = colors.black
+                                            )
+
+                                            Text(
+                                                text = offer.note ?: "",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = colors.black,
+                                                modifier = Modifier.weight(1f)
+                                            )
+
+                                            SmallIconButton(
+                                                drawables.cancelIcon,
+                                                colors.grayText
+                                            ) {
+                                                offerViewModel.deleteNote(offer.id){
+                                                    component.updateOffer(offer.id, model.isSnapshot)
+                                                }
+                                            }
+                                        }
+
+                                        CustomDialog(
+                                            showDialog = showDialogString.value != "",
+                                            containerColor = colors.primaryColor,
+                                            title = title.value,
+                                            body = {
+                                                SetUpDynamicFields(fields.value)
+                                            },
+                                            onDismiss = {  showDialogString.value = "" },
+                                            onSuccessful = {
+                                                val bodyPost = HashMap<String, JsonElement>()
+                                                fields.value.forEach { field ->
+                                                    if (field.data != null) {
+                                                        bodyPost[field.key ?: ""] = field.data!!
+                                                    }
+                                                }
+
+                                                offerViewModel.postNotes(
+                                                    offer.id,
+                                                    showDialogString.value,
+                                                    bodyPost,
+                                                    onSuccess = {
+                                                        showDialogString.value = ""
+                                                        component.updateOffer(offer.id, model.isSnapshot)
+                                                    },
+                                                    onError = {
+                                                        fields.value = it
+                                                    }
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+
                                 item {
                                     //simple Price
                                     if ((offerState.value != OfferStates.ACTIVE && offerState.value != OfferStates.PROTOTYPE) || isMyOffer.value ) {
@@ -410,13 +498,13 @@ fun OfferContent(
                                                 color = colors.priceTextColor
                                             )
 
-//                                    if(offerState.value == OfferStates.SNAPSHOT){
-//                                        ActionButton(
-//                                            strings.currentStateOfferLabel
-//                                        ){
-//                                            component.navigateToOffers(offer.id)
-//                                        }
-//                                    }
+    //                                    if(offerState.value == OfferStates.SNAPSHOT){
+    //                                        ActionButton(
+    //                                            strings.currentStateOfferLabel
+    //                                        ){
+    //                                            component.navigateToOffers(offer.id)
+    //                                        }
+    //                                    }
                                         }
                                     }
                                 }

@@ -21,10 +21,8 @@ import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
-import market.engine.core.data.types.ToastType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
@@ -53,7 +51,6 @@ fun MyOffersContent(
 
     val err = viewModel.errorMessage.collectAsState()
 
-    val successToast = stringResource(strings.operationSuccess)
     val updateFilters = remember { mutableStateOf(0) }
 
     val refresh = {
@@ -119,6 +116,7 @@ fun MyOffersContent(
                         item?.currentPricePerItem = offer.currentPricePerItem
                         item?.title = offer.title
                         item?.region = offer.region
+                        item?.note = offer.note
                         item?.relistingMode = offer.relistingMode
                     }else{
                         val item = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
@@ -228,13 +226,6 @@ fun MyOffersContent(
                         },
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id
-                            viewModel.showToast(
-                                ToastItem(
-                                    isVisible = true,
-                                    type = ToastType.SUCCESS,
-                                    message = successToast
-                                )
-                            )
                         },
                         updateTrigger = viewModel.updateItemTrigger.value,
                         onItemClick = {

@@ -182,12 +182,6 @@ fun MyBidsContent(
                         offer = offer,
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it.id
-                            viewModel.showToast(
-                                successToastItem.copy(
-                                    message = successToast
-                                )
-                            )
-
                         },
                         updateTrigger = viewModel.updateItemTrigger.value,
                         goToOffer = {

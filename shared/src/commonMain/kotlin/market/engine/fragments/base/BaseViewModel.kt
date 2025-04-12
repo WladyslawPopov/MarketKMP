@@ -46,6 +46,7 @@ import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
+import market.engine.core.network.networkObjects.Operations
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
@@ -907,6 +908,168 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+
+    fun getNotesField(
+        offerId : Long,
+        type: String,
+        onSuccess: (
+            fields: ArrayList<Fields>
+        ) -> Unit
+    ) {
+        viewModelScope.launch {
+            val postRes = withContext(Dispatchers.IO) {
+                when (type) {
+                    "create_note" -> {
+                        offerOperations.getOfferOperationsCreateNote(offerId)
+                    }
+
+                    "edit_note" -> {
+                        offerOperations.getOfferOperationsEditNote(offerId)
+                    }
+
+                    else -> {
+                        null
+                    }
+                }
+            }
+
+            val bufPost = postRes?.success
+            val err = postRes?.error
+            withContext(Dispatchers.Main) {
+                if (bufPost != null) {
+                    onSuccess(bufPost)
+                }else{
+                    if (err != null) {
+                        onError(err)
+                    }
+                }
+            }
+        }
+    }
+
+    fun postNotes(
+        offerId : Long,
+        type : String,
+        body : HashMap<String, JsonElement>,
+        onSuccess: () -> Unit,
+        onError: (ArrayList<Fields>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val buf = withContext(Dispatchers.IO) {
+                when(type){
+                    "create_note" -> {
+                        offerOperations.postOfferOperationsCreateNote(offerId,body)
+                    }
+                    "edit_note" -> {
+                        offerOperations.postOfferOperationsEditNote(offerId,body)
+                    }
+                    else -> {
+                        null
+                    }
+                }
+            }
+
+            val res = buf?.success
+
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    if (res.status == "operation_success") {
+                        analyticsHelper.reportEvent(
+                            "${type}_note_success",
+                            eventParameters = mapOf(
+                                "lot_id" to offerId,
+                                "body" to body
+                            )
+                        )
+                        showToast(
+                            ToastItem(
+                                isVisible = true,
+                                type = ToastType.SUCCESS,
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        onSuccess()
+                    } else {
+                        res.recipe?.fields?.let { onError(it) }
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteNote(offerId: Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                offerOperations.postOfferOperationsDeleteNote(offerId)
+            }
+            withContext(Dispatchers.Main) {
+                if (res.success != null) {
+                    if (res.success?.success == true) {
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        delay(2000)
+                        onSuccess()
+                    }else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = res.success?.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun getOfferOperations(offerId: Long, onSuccess: (List<Operations>) -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                offerOperations.getOperationsOffer(offerId)
+            }
+            withContext(Dispatchers.Main) {
+                if (res.success != null) {
+                    val buf = res.success?.filter {
+                        it.id in listOf(
+                            "watch",
+                            "unwatch",
+                            "create_note",
+                            "edit_note",
+                            "delete_note",
+                            "prolong_offer",
+                            "activate_offer_for_future",
+                            "activate_offer",
+                            "set_anti_sniper",
+                            "unset_anti_sniper",
+                            "delete_offer",
+                            "cancel_all_bids",
+                            "remove_bids_of_users",
+                            "copy_offer_without_old_photo",
+                            "finalize_session",
+                            "edit_offer",
+                            "copy_offer",
+                            "act_on_proposal",
+                            "make_proposal",
+                            "cancel_all_bids",
+                            "remove_bids_of_users"
+                        )
+                    }
+                    if (buf != null) {
+                        onSuccess(buf)
+                    }else{
+                        onError(
+                            ServerErrorException(
+                                errorCode = res.error?.errorCode ?: "",
+                                humanMessage = res.error?.humanMessage ?: ""
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     fun resetScroll() {
         scrollItem.value = 0

@@ -184,7 +184,7 @@ data class Offer(
     @SerialName("relisting_mode") var relistingMode: RelistingMode? = null,
     @SerialName("public_snapshot_url") val publicSnapshotUrl: String? = null,
     @SerialName("antisniper") val antisniper: Boolean = false,
-    @SerialName("description") val description: String? = null,
+    @SerialName("description") var description: String? = null,
     @SerialName("minimal_acceptable_price") var minimalAcceptablePrice: String? = null,
     @SerialName("is_watched_by_me") var isWatchedByMe: Boolean = false,
     @SerialName("quantity") var quantity: Int = 0,
@@ -196,7 +196,8 @@ data class Offer(
     @SerialName("external_url") val externalUrl : String? = null,
     @SerialName("external_images") val externalImages : List<String>? = listOf(),
     @SerialName("standard_descriptions") val standardDescriptions : List<StandardDescriptions>? = listOf(),
-    @SerialName("added_descriptions") val addedDescriptions : List<AddedDescriptions>? = listOf()
+    @SerialName("added_descriptions") val addedDescriptions : List<AddedDescriptions>? = listOf(),
+    @SerialName("note") var note : String? = null,
 )
 
 @Serializable

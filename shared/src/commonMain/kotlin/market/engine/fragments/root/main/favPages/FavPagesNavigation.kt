@@ -14,6 +14,9 @@ import market.engine.core.data.types.FavScreenType
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
+import market.engine.fragments.root.main.favPages.notes.DefaultNotesComponent
+import market.engine.fragments.root.main.favPages.notes.NotesComponent
+import market.engine.fragments.root.main.favPages.notes.NotesContent
 import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
@@ -53,6 +56,7 @@ fun FavPagesNavigation(
                 select.value = when(it){
                     0 -> FavScreenType.FAVORITES
                     1 -> FavScreenType.SUBSCRIBED
+                    2 -> FavScreenType.NOTES
                     else -> {
                         FavScreenType.FAVORITES
                     }
@@ -73,6 +77,13 @@ fun FavPagesNavigation(
                         modifier
                     )
                 }
+
+                is FavPagesComponents.NotesChild -> {
+                    NotesContent(
+                        page.component,
+                        modifier
+                    )
+                }
             }
         }
     }
@@ -85,6 +96,24 @@ fun itemFavorites(
     navigateToOffer: (id: Long) -> Unit,
 ): FavoritesComponent {
     return DefaultFavoritesComponent(
+        componentContext = componentContext,
+        goToOffer = { id ->
+            navigateToOffer(id)
+        },
+        selectedFavScreen = {
+            selectedFavScreen(it)
+        },
+        favType = selectedType
+    )
+}
+
+fun itemNotes(
+    componentContext: ComponentContext,
+    selectedType : FavScreenType,
+    selectedFavScreen : (FavScreenType) -> Unit,
+    navigateToOffer: (id: Long) -> Unit,
+): NotesComponent {
+    return DefaultNotesComponent(
         componentContext = componentContext,
         goToOffer = { id ->
             navigateToOffer(id)

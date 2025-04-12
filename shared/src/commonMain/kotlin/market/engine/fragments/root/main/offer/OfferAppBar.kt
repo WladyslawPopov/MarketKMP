@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.json.JsonElement
 import market.engine.common.Platform
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
@@ -37,10 +38,13 @@ import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.ToastType
+import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.NavigationArrowButton
+import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -55,10 +59,10 @@ fun OfferAppBar(
     onBeakClick: () -> Unit,
     onRefresh: () -> Unit
 ) {
+    val title = remember { mutableStateOf("") }
+    val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
+    val showCreateNoteDialog = remember { mutableStateOf("") }
     val showMenu = remember { mutableStateOf(false) }
-    val onClose = {
-        showMenu.value = false
-    }
 
     val isFavorite = remember { mutableStateOf(offer.isWatchedByMe) }
 
@@ -71,6 +75,28 @@ fun OfferAppBar(
             isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
             badgeCount = null,
             onClick = onRefresh
+        ),
+        NavigationItem(
+            title = stringResource(strings.myNotesTitle),
+            icon = drawables.editNoteIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            isVisible = UserData.token != "",
+            onClick = {
+                baseViewModel.getOfferOperations(offer.id) { res ->
+                    res.firstOrNull { it.id == "create_note" || it.id == "edit_note" }?.let { buf ->
+                        showCreateNoteDialog.value = buf.id ?: ""
+                        title.value = buf.name ?: ""
+                        baseViewModel.getNotesField(
+                            offer.id,
+                            showCreateNoteDialog.value
+                        ){ f ->
+                            fields.value = f
+                        }
+                    }
+                }
+            }
         ),
         NavigationItem(
             title = stringResource(strings.favoritesTitle),
@@ -106,6 +132,11 @@ fun OfferAppBar(
         "share" to stringResource(strings.shareOffer),
         "calendar" to stringResource(strings.addToCalendar)
     )
+
+    val onClose = {
+        showMenu.value = false
+        showCreateNoteDialog.value = ""
+    }
 
     TopAppBar(
         modifier = modifier
@@ -198,6 +229,38 @@ fun OfferAppBar(
                         )
                     }
                 }
+
+                CustomDialog(
+                    showDialog = showCreateNoteDialog.value != "",
+                    containerColor = colors.primaryColor,
+                    title = title.value,
+                    body = {
+                        SetUpDynamicFields(fields.value)
+                    },
+                    onDismiss = {  showCreateNoteDialog.value = "" },
+                    onSuccessful = {
+                        val bodyPost = HashMap<String, JsonElement>()
+                        fields.value.forEach { field ->
+                            if (field.data != null) {
+                                bodyPost[field.key ?: ""] = field.data!!
+                            }
+                        }
+
+                        baseViewModel.postNotes(
+                            offer.id,
+                            showCreateNoteDialog.value,
+                            bodyPost,
+                            onSuccess = {
+                                showCreateNoteDialog.value = ""
+                                onRefresh()
+                                onClose()
+                            },
+                            onError = {
+                                fields.value = it
+                            }
+                        )
+                    }
+                )
             }
         }
     )

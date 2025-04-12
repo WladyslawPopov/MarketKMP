@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -21,7 +20,7 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.widgets.badges.BadgedButton
-import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.tabs.SimpleTabs
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,6 +33,8 @@ fun FavPagesAppBar(
 ) {
     val fav = stringResource(strings.myFavoritesTitle)
     val sub = stringResource(strings.mySubscribedTitle)
+    val note = stringResource(strings.myNotesTitle)
+    val tabList = listOf(fav, sub, note)
 
     val listItems = listOf(
         NavigationItem(
@@ -57,28 +58,26 @@ fun FavPagesAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                item {
-                    SimpleTextButton(
-                        fav,
-                        backgroundColor = if (currentTab == FavScreenType.FAVORITES) colors.rippleColor else colors.white,
-                    ) {
-                        navigationClick(FavScreenType.FAVORITES)
+            SimpleTabs(
+                tabList,
+                selectedTab = when(currentTab){
+                    FavScreenType.FAVORITES -> 0
+                    FavScreenType.SUBSCRIBED -> 1
+                    FavScreenType.NOTES -> 2
+                },
+                onTabSelected = { index ->
+                    val type = when(index) {
+                        0 -> FavScreenType.FAVORITES
+                        1 -> FavScreenType.SUBSCRIBED
+                        2 -> FavScreenType.NOTES
+                        else -> FavScreenType.FAVORITES
                     }
-                }
-                item {
-                    SimpleTextButton(
-                        sub,
-                        if (currentTab == FavScreenType.SUBSCRIBED) colors.rippleColor else colors.white,
-                    ) {
-                        navigationClick(FavScreenType.SUBSCRIBED)
-                    }
-                }
-            }
+                    navigationClick(type)
+                },
+                edgePadding = dimens.smallPadding,
+                containerColor = colors.transparent,
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         actions = {
             Column {

@@ -18,9 +18,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
 import market.engine.common.AnalyticsFactory
 import market.engine.common.clipBoardEvent
 import market.engine.core.analytics.AnalyticsHelper
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.ToastItem
@@ -30,7 +32,9 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.data.types.ToastType
+import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.dialogs.DateDialog
@@ -64,57 +68,35 @@ fun getOfferOperations(
     val showMenu = remember { mutableStateOf(false) }
     val showActivateOfferDialog = remember { mutableStateOf(false) }
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
+    val showCreateNoteDialog = remember { mutableStateOf("") }
 
     val choices = remember{ mutableListOf<Choices>() }
-    val title = remember { mutableStateOf("") }
+
     val selected = remember { mutableStateOf(choices.firstOrNull()) }
+    val title = remember { mutableStateOf("") }
+    val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
+
+    val successToast = stringResource(strings.operationSuccess)
 
     LaunchedEffect(Unit){
-        scope.launch {
-            val res = offerOperations.getOperationsOffer(offer.id)
-            val buf = res.success?.filter {
-                it.id in listOf(
-                    "watch",
-                    "unwatch",
-                    "prolong_offer",
-                    "activate_offer_for_future",
-                    "activate_offer",
-                    "set_anti_sniper",
-                    "unset_anti_sniper",
-                    "delete_offer",
-                    "cancel_all_bids",
-                    "remove_bids_of_users",
-                    "copy_offer_without_old_photo",
-                    "finalize_session",
-                    "edit_offer",
-                    "copy_offer",
-                    "act_on_proposal",
-                    "make_proposal",
-                    "cancel_all_bids",
-                    "remove_bids_of_users"
-                )
-            }
-            if (buf != null) {
-                listItemMenu.addAll(buf)
-                showMenu.value = true
-            }else{
-                showMenu.value = false
-            }
+        baseViewModel.getOfferOperations(offer.id){ buf ->
+            listItemMenu.addAll(buf)
+            showMenu.value = true
+        }
 
-            if (choices.isEmpty()) {
-                val response = offerOperations.getOfferOperationsActivateOffer(
-                    offer.id
-                )
-                val resChoice = response.success
-                if (resChoice != null) {
-                    resChoice.firstOrNull()?.let { field ->
-                        choices.clear()
-                        title.value = field.shortDescription.toString()
-                        field.choices?.forEach {
-                            choices.add(it)
-                        }
-                        selected.value = choices.firstOrNull()
+        if (choices.isEmpty()) {
+            val response = offerOperations.getOfferOperationsActivateOffer(
+                offer.id
+            )
+            val resChoice = response.success
+            if (resChoice != null) {
+                resChoice.firstOrNull()?.let { field ->
+                    choices.clear()
+                    title.value = field.shortDescription.toString()
+                    field.choices?.forEach {
+                        choices.add(it)
                     }
+                    selected.value = choices.firstOrNull()
                 }
             }
         }
@@ -167,13 +149,55 @@ fun getOfferOperations(
                         "watch" -> {
                             baseViewModel.addToFavorites(offer){
                                 offer.isWatchedByMe = it
+                                baseViewModel.showToast(
+                                    ToastItem(
+                                        isVisible = true,
+                                        type = ToastType.SUCCESS,
+                                        message = successToast
+                                    )
+                                )
                                 onUpdateMenuItem(offer)
                             }
                         }
                         "unwatch" -> {
                             baseViewModel.addToFavorites(offer){
                                 offer.isWatchedByMe = it
+                                baseViewModel.showToast(
+                                    ToastItem(
+                                        isVisible = true,
+                                        type = ToastType.SUCCESS,
+                                        message = successToast
+                                    )
+                                )
                                 onUpdateMenuItem(offer)
+                            }
+                        }
+                        "create_note","edit_note" -> {
+                            baseViewModel.getNotesField(offer.id,operation.id){ f ->
+                                title.value = operation.name.toString()
+                                fields.value = f
+                                showCreateNoteDialog.value = operation.id
+                            }
+                        }
+                        "delete_note" -> {
+                            baseViewModel.deleteNote(
+                                offer.id
+                            ){
+                                val eventParam = mapOf(
+                                    "lot_id" to offer.id,
+                                    "lot_name" to offer.title,
+                                    "lot_city" to offer.freeLocation,
+                                    "lot_category" to offer.catpath.lastOrNull(),
+                                    "seller_id" to offer.sellerData?.id
+                                )
+
+                                analyticsHelper.reportEvent(
+                                    "delete_note",
+                                    eventParam
+                                )
+
+                                onUpdateMenuItem(offer)
+                                onClose()
                             }
                         }
                         "prolong_offer" -> {
@@ -186,6 +210,14 @@ fun getOfferOperations(
                                 withContext(Dispatchers.Main) {
                                     if (r != null) {
                                         if (r.success) {
+                                            baseViewModel.showToast(
+                                                ToastItem(
+                                                    isVisible = true,
+                                                    type = ToastType.SUCCESS,
+                                                    message = successToast
+                                                )
+                                            )
+
                                             onUpdateMenuItem(offer)
                                         } else {
                                             errorMes.value =
@@ -225,6 +257,14 @@ fun getOfferOperations(
                                                 "set_anti_sniper",
                                                 eventParam
                                             )
+                                            baseViewModel.showToast(
+                                                ToastItem(
+                                                    isVisible = true,
+                                                    type = ToastType.SUCCESS,
+                                                    message = successToast
+                                                )
+                                            )
+
                                             onUpdateMenuItem(offer)
                                             onClose()
                                         } else {
@@ -260,6 +300,15 @@ fun getOfferOperations(
                                                 "unset_anti_sniper",
                                                 eventParam
                                             )
+
+                                            baseViewModel.showToast(
+                                                ToastItem(
+                                                    isVisible = true,
+                                                    type = ToastType.SUCCESS,
+                                                    message = successToast
+                                                )
+                                            )
+
                                             onUpdateMenuItem(offer)
                                             onClose()
                                         } else {
@@ -287,6 +336,13 @@ fun getOfferOperations(
                                 withContext(Dispatchers.Main) {
                                     if (r != null) {
                                         if (r.success) {
+                                            baseViewModel.showToast(
+                                                ToastItem(
+                                                    isVisible = true,
+                                                    type = ToastType.SUCCESS,
+                                                    message = successToast
+                                                )
+                                            )
                                             onUpdateMenuItem(offer)
                                         } else {
                                             errorMes.value =
@@ -363,6 +419,11 @@ fun getOfferOperations(
                                 "delete_offer",
                                 eventParameters = eventParam
                             )
+                            baseViewModel.showToast(
+                                successToastItem.copy(
+                                    message = successToast
+                                )
+                            )
                             onUpdateMenuItem(offer)
                             onBack()
                             onClose()
@@ -417,6 +478,13 @@ fun getOfferOperations(
                                         "seller_id" to offer.sellerData?.id
                                     )
                                 )
+                                baseViewModel.showToast(
+                                    ToastItem(
+                                        isVisible = true,
+                                        type = ToastType.SUCCESS,
+                                        message = successToast
+                                    )
+                                )
                                 onUpdateMenuItem(offer)
                                 onClose()
                             } else {
@@ -459,6 +527,13 @@ fun getOfferOperations(
                                         "seller_id" to offer.sellerData?.id
                                     )
                                 )
+                                baseViewModel.showToast(
+                                    ToastItem(
+                                        isVisible = true,
+                                        type = ToastType.SUCCESS,
+                                        message = successToast
+                                    )
+                                )
                                 onUpdateMenuItem(offer)
                                 showActivateOfferForFutureDialog.value = false
                                 onClose()
@@ -470,6 +545,47 @@ fun getOfferOperations(
                     }
                 }
             }
+        }
+    )
+
+    CustomDialog(
+        showDialog = showCreateNoteDialog.value != "",
+        containerColor = colors.primaryColor,
+        title = title.value,
+        body = {
+            SetUpDynamicFields(fields.value)
+        },
+        onDismiss = {  showCreateNoteDialog.value = "" },
+        onSuccessful = {
+            val bodyPost = HashMap<String, JsonElement>()
+            fields.value.forEach { field ->
+                if (field.data != null) {
+                    bodyPost[field.key ?: ""] = field.data!!
+                }
+            }
+            baseViewModel.postNotes(
+                offer.id,
+                showCreateNoteDialog.value,
+                bodyPost,
+                onSuccess = {
+                    analyticsHelper.reportEvent(
+                        showCreateNoteDialog.value,
+                        eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title.orEmpty(),
+                            "lot_city" to offer.freeLocation.orEmpty(),
+                            "lot_category" to offer.catpath.lastOrNull(),
+                            "seller_id" to offer.sellerData?.id,
+                            "body" to bodyPost
+                        )
+                    )
+                    onUpdateMenuItem(offer)
+                    onClose()
+                },
+                onError = {
+                    fields.value = it
+                }
+            )
         }
     )
 }

@@ -89,6 +89,18 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
+    suspend fun postOfferOperationsCreateNote(idOffer: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("offers/$idOffer/operations/create_note") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
+    suspend fun postOfferOperationsEditNote(idOffer: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("offers/$idOffer/operations/edit_note") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
     suspend fun postOfferOperationsActivateOffer(idOffer: Long, body: Map<String, String>): AppResponse =
         client.post("offers/$idOffer/operations/activate_offer") {
             contentType(ContentType.Application.Json)
@@ -100,6 +112,9 @@ class APIService(private val client: HttpClient) {
 
     suspend fun postOfferOperationsUnsetAntiSniper(idOffer: Long): AppResponse =
         client.post("offers/$idOffer/operations/unset_anti_sniper").body()
+
+    suspend fun postOfferOperationsDeleteNote(idOffer: Long): AppResponse =
+        client.post("offers/$idOffer/operations/delete_note").body()
 
     suspend fun postOfferOperationsAddBid(idOffer: Long, body: Map<String, String>): AppResponse =
         client.post("offers/$idOffer/operations/add_bid") {
@@ -403,6 +418,12 @@ class APIService(private val client: HttpClient) {
 
     suspend fun getOfferOperationsActivateOffer(idOffer: Long): AppResponse =
         client.get("offers/$idOffer/operations/activate_offer").body()
+
+    suspend fun getOfferOperationsCreateNote(idOffer: Long): AppResponse =
+        client.get("offers/$idOffer/operations/create_note").body()
+
+    suspend fun getOfferOperationsEditNote(idOffer: Long): AppResponse =
+        client.get("offers/$idOffer/operations/edit_note").body()
 
     suspend fun getOrder(idOrder: Long): AppResponse =
         client.get("orders/$idOrder").body()

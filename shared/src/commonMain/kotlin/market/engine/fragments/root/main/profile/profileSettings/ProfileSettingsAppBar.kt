@@ -7,6 +7,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -51,6 +52,9 @@ fun ProfileSettingsAppBar(
             SimpleTabs(
                 tabs,
                 selectedTab = currentTab,
+                edgePadding = 0.dp,
+                containerColor = colors.white,
+                modifier = Modifier.fillMaxWidth(),
                 onTabSelected = { index ->
                     navigationClick(index)
                 }
