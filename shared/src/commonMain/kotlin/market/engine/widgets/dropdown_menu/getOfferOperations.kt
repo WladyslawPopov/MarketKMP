@@ -78,6 +78,8 @@ fun getOfferOperations(
 
     val successToast = stringResource(strings.operationSuccess)
 
+    val isClicked = remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit){
         baseViewModel.getOfferOperations(offer.id){ buf ->
             listItemMenu.addAll(buf)
@@ -197,8 +199,8 @@ fun getOfferOperations(
                                 )
 
                                 onUpdateMenuItem(offer)
-                                onClose()
                             }
+                            onClose()
                         }
                         "prolong_offer" -> {
                             scope.launch(Dispatchers.IO) {
@@ -397,44 +399,48 @@ fun getOfferOperations(
             onClose()
         },
         onSuccess = {
-            scope.launch {
-                val buf = withContext(Dispatchers.IO) {
-                    offerOperations.postOfferOperationsDeleteOffer(
-                        offer.id
-                    )
-                }
-                val r = buf.success
-                withContext(Dispatchers.Main) {
-                    if (r != null) {
-                        if (r.success) {
-                            val eventParam = mapOf(
-                                "lot_id" to offer.id,
-                                "lot_name" to offer.title,
-                                "lot_city" to offer.freeLocation,
-                                "lot_category" to offer.catpath.lastOrNull(),
-                                "seller_id" to offer.sellerData?.id
-                            )
-
-                            analyticsHelper.reportEvent(
-                                "delete_offer",
-                                eventParameters = eventParam
-                            )
-                            baseViewModel.showToast(
-                                successToastItem.copy(
-                                    message = successToast
+            if(!isClicked.value) {
+                isClicked.value = true
+                scope.launch {
+                    val buf = withContext(Dispatchers.IO) {
+                        offerOperations.postOfferOperationsDeleteOffer(
+                            offer.id
+                        )
+                    }
+                    val r = buf.success
+                    withContext(Dispatchers.Main) {
+                        isClicked.value = false
+                        if (r != null) {
+                            if (r.success) {
+                                val eventParam = mapOf(
+                                    "lot_id" to offer.id,
+                                    "lot_name" to offer.title,
+                                    "lot_city" to offer.freeLocation,
+                                    "lot_category" to offer.catpath.lastOrNull(),
+                                    "seller_id" to offer.sellerData?.id
                                 )
-                            )
-                            onUpdateMenuItem(offer)
-                            onBack()
-                            onClose()
-                        }else{
-                            errorMes.value = r.humanMessage.toString()
-                            showDialog.value = true
+
+                                analyticsHelper.reportEvent(
+                                    "delete_offer",
+                                    eventParameters = eventParam
+                                )
+                                baseViewModel.showToast(
+                                    successToastItem.copy(
+                                        message = successToast
+                                    )
+                                )
+                                onUpdateMenuItem(offer)
+                                onBack()
+                                onClose()
+                            } else {
+                                errorMes.value = r.humanMessage.toString()
+                                showDialog.value = true
+                            }
                         }
                     }
                 }
+                showDeleteOfferDialog.value = false
             }
-            showDeleteOfferDialog.value = false
         }
     )
 
@@ -456,16 +462,20 @@ fun getOfferOperations(
         },
         onDismiss = { showActivateOfferDialog.value = false },
         onSuccessful = {
-            scope.launch {
-                withContext(Dispatchers.IO) {
+            if(!isClicked.value) {
+                isClicked.value = true
+                scope.launch {
                     val body = HashMap<String, String>()
                     body["duration"] = selected.value?.code.toString()
-                    val buf = offerOperations.postOfferOperationsActivateOffer(
-                        offer.id,
-                        body
-                    )
+                    val buf = withContext(Dispatchers.IO) {
+                        offerOperations.postOfferOperationsActivateOffer(
+                            offer.id,
+                            body
+                        )
+                    }
                     val r = buf.success
                     withContext(Dispatchers.Main) {
+                        isClicked.value = false
                         if (r != null) {
                             if (r.success) {
                                 analyticsHelper.reportEvent(
@@ -494,8 +504,8 @@ fun getOfferOperations(
                         }
                     }
                 }
+                showActivateOfferDialog.value = false
             }
-            showActivateOfferDialog.value = false
         }
     )
 
@@ -504,17 +514,20 @@ fun getOfferOperations(
         isSelectableDates = true,
         onDismiss = { showActivateOfferForFutureDialog.value = false },
         onSucceed = { futureTimeInSeconds ->
-            scope.launch {
-                withContext(Dispatchers.IO) {
+            if(!isClicked.value) {
+                isClicked.value = true
+                scope.launch {
                     val body = HashMap<String, Long>()
                     body["future_time"] = futureTimeInSeconds
-                    val buf =
+                    val buf = withContext(Dispatchers.IO) {
                         offerOperations.postOfferOperationsActivateOfferForFuture(
-                            offer.id,
-                            body
+                                offer.id,
+                                body
                         )
+                    }
                     val r = buf.success
                     withContext(Dispatchers.Main) {
+                        isClicked.value = false
                         if (r != null) {
                             if (r.success) {
                                 analyticsHelper.reportEvent(
@@ -557,35 +570,40 @@ fun getOfferOperations(
         },
         onDismiss = {  showCreateNoteDialog.value = "" },
         onSuccessful = {
-            val bodyPost = HashMap<String, JsonElement>()
-            fields.value.forEach { field ->
-                if (field.data != null) {
-                    bodyPost[field.key ?: ""] = field.data!!
+            if(!isClicked.value) {
+                isClicked.value = true
+                val bodyPost = HashMap<String, JsonElement>()
+                fields.value.forEach { field ->
+                    if (field.data != null) {
+                        bodyPost[field.key ?: ""] = field.data!!
+                    }
                 }
-            }
-            baseViewModel.postNotes(
-                offer.id,
-                showCreateNoteDialog.value,
-                bodyPost,
-                onSuccess = {
-                    analyticsHelper.reportEvent(
-                        showCreateNoteDialog.value,
-                        eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "lot_name" to offer.title.orEmpty(),
-                            "lot_city" to offer.freeLocation.orEmpty(),
-                            "lot_category" to offer.catpath.lastOrNull(),
-                            "seller_id" to offer.sellerData?.id,
-                            "body" to bodyPost
+                baseViewModel.postNotes(
+                    offer.id,
+                    showCreateNoteDialog.value,
+                    bodyPost,
+                    onSuccess = {
+                        isClicked.value = false
+                        analyticsHelper.reportEvent(
+                            showCreateNoteDialog.value,
+                            eventParameters = mapOf(
+                                "lot_id" to offer.id,
+                                "lot_name" to offer.title.orEmpty(),
+                                "lot_city" to offer.freeLocation.orEmpty(),
+                                "lot_category" to offer.catpath.lastOrNull(),
+                                "seller_id" to offer.sellerData?.id,
+                                "body" to bodyPost
+                            )
                         )
-                    )
-                    onUpdateMenuItem(offer)
-                    onClose()
-                },
-                onError = {
-                    fields.value = it
-                }
-            )
+                        onUpdateMenuItem(offer)
+                        onClose()
+                    },
+                    onError = {
+                        isClicked.value = false
+                        fields.value = it
+                    }
+                )
+            }
         }
     )
 }

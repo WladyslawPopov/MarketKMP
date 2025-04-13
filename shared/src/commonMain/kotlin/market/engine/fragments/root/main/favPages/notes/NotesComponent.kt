@@ -61,7 +61,7 @@ class DefaultNotesComponent(
             viewModel.updateUserInfo()
         }
 
-        analyticsHelper.reportEvent("open_favorites", mapOf())
+        analyticsHelper.reportEvent("open_notes", mapOf())
     }
 
     //private val searchData = listingData.searchData

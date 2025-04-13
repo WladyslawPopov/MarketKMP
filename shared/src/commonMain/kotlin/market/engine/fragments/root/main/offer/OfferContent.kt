@@ -404,6 +404,7 @@ fun OfferContent(
                                         val showDialogString = remember { mutableStateOf("") }
                                         val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
                                         val title = remember { mutableStateOf("") }
+                                        val isClicked = remember { mutableStateOf(false) }
 
                                         Row(
                                             modifier = Modifier.background(
@@ -444,8 +445,15 @@ fun OfferContent(
                                                 drawables.cancelIcon,
                                                 colors.grayText
                                             ) {
-                                                offerViewModel.deleteNote(offer.id){
-                                                    component.updateOffer(offer.id, model.isSnapshot)
+                                                if (!isClicked.value) {
+                                                    isClicked.value = true
+                                                    offerViewModel.deleteNote(offer.id) {
+                                                        isClicked.value = false
+                                                        component.updateOffer(
+                                                            offer.id,
+                                                            model.isSnapshot
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -459,25 +467,33 @@ fun OfferContent(
                                             },
                                             onDismiss = {  showDialogString.value = "" },
                                             onSuccessful = {
-                                                val bodyPost = HashMap<String, JsonElement>()
-                                                fields.value.forEach { field ->
-                                                    if (field.data != null) {
-                                                        bodyPost[field.key ?: ""] = field.data!!
+                                                if (!isClicked.value) {
+                                                    isClicked.value = true
+                                                    val bodyPost = HashMap<String, JsonElement>()
+                                                    fields.value.forEach { field ->
+                                                        if (field.data != null) {
+                                                            bodyPost[field.key ?: ""] = field.data!!
+                                                        }
                                                     }
-                                                }
 
-                                                offerViewModel.postNotes(
-                                                    offer.id,
-                                                    showDialogString.value,
-                                                    bodyPost,
-                                                    onSuccess = {
-                                                        showDialogString.value = ""
-                                                        component.updateOffer(offer.id, model.isSnapshot)
-                                                    },
-                                                    onError = {
-                                                        fields.value = it
-                                                    }
-                                                )
+                                                    offerViewModel.postNotes(
+                                                        offer.id,
+                                                        showDialogString.value,
+                                                        bodyPost,
+                                                        onSuccess = {
+                                                            isClicked.value = false
+                                                            showDialogString.value = ""
+                                                            component.updateOffer(
+                                                                offer.id,
+                                                                model.isSnapshot
+                                                            )
+                                                        },
+                                                        onError = {
+                                                            isClicked.value = false
+                                                            fields.value = it
+                                                        }
+                                                    )
+                                                }
                                             }
                                         )
                                     }

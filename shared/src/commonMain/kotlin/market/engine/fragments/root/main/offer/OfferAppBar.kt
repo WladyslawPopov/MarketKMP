@@ -138,6 +138,8 @@ fun OfferAppBar(
         showCreateNoteDialog.value = ""
     }
 
+    val isClicked = remember { mutableStateOf(false) }
+
     TopAppBar(
         modifier = modifier
             .fillMaxWidth(),
@@ -239,26 +241,32 @@ fun OfferAppBar(
                     },
                     onDismiss = {  showCreateNoteDialog.value = "" },
                     onSuccessful = {
-                        val bodyPost = HashMap<String, JsonElement>()
-                        fields.value.forEach { field ->
-                            if (field.data != null) {
-                                bodyPost[field.key ?: ""] = field.data!!
-                            }
-                        }
+                        if(!isClicked.value) {
+                            isClicked.value = true
 
-                        baseViewModel.postNotes(
-                            offer.id,
-                            showCreateNoteDialog.value,
-                            bodyPost,
-                            onSuccess = {
-                                showCreateNoteDialog.value = ""
-                                onRefresh()
-                                onClose()
-                            },
-                            onError = {
-                                fields.value = it
+                            val bodyPost = HashMap<String, JsonElement>()
+                            fields.value.forEach { field ->
+                                if (field.data != null) {
+                                    bodyPost[field.key ?: ""] = field.data!!
+                                }
                             }
-                        )
+
+                            baseViewModel.postNotes(
+                                offer.id,
+                                showCreateNoteDialog.value,
+                                bodyPost,
+                                onSuccess = {
+                                    isClicked.value = false
+                                    showCreateNoteDialog.value = ""
+                                    onRefresh()
+                                    onClose()
+                                },
+                                onError = {
+                                    isClicked.value = false
+                                    fields.value = it
+                                }
+                            )
+                        }
                     }
                 )
             }

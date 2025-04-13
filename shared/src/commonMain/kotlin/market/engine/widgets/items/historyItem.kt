@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.Edit
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,8 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.SearchHistoryItem
 import market.engine.widgets.buttons.SmallIconButton
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun historyItem(
@@ -32,16 +36,34 @@ fun historyItem(
             .clickable {
                 onSearchClick(history)
             }
-            .fillMaxWidth(),
+            .fillMaxWidth().padding(start = dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
 
     ) {
+        if(history.isUsersSearch) {
+            Icon(
+                painterResource(drawables.vectorManSubscriptionIcon),
+                contentDescription = "",
+                tint = colors.steelBlue,
+                modifier = Modifier.size(dimens.extraSmallIconSize)
+            )
+        }
+
+        if(history.isFinished) {
+            Icon(
+                painterResource(drawables.historyIcon),
+                contentDescription = "",
+                tint = colors.steelBlue,
+                modifier = Modifier.size(dimens.extraSmallIconSize)
+            )
+        }
+
         Text(
             text = history.query,
             style = MaterialTheme.typography.bodyMedium,
             color = colors.black,
-            modifier = Modifier.padding(dimens.smallPadding)
+            modifier = Modifier.weight(1f)
         )
 
         SmallIconButton(

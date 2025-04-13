@@ -3,6 +3,7 @@ package market.engine.fragments.base
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
@@ -142,8 +143,20 @@ fun <T : Any>ListingBaseContent(
             modifier = Modifier.zIndex(1200f)
         ) {
             when {
-                error != null -> error?.invoke()
-                noItem != null -> noItem?.invoke()
+                error != null -> {
+                    LazyColumn {
+                        item {
+                            error?.invoke()
+                        }
+                    }
+                }
+                noItem != null -> {
+                    LazyColumn {
+                        item {
+                            noItem?.invoke()
+                        }
+                    }
+                }
                 else -> {
                     Box(
                         modifier = modifier
