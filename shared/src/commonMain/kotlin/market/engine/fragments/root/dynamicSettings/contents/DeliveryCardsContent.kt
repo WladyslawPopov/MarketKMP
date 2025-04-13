@@ -67,7 +67,9 @@ fun DeliveryCardsContent(
             fields.forEach { field ->
                 when (field.key) {
                     "zip" -> {
-                        field.data = JsonPrimitive(card.zip ?: "")
+                        if (card.zip != null) {
+                            field.data = JsonPrimitive(card.zip)
+                        }
                     }
 
                     "city" -> {
@@ -75,19 +77,27 @@ fun DeliveryCardsContent(
                     }
 
                     "address" -> {
-                        field.data = JsonPrimitive(card.address ?: "")
+                        if (card.address != null) {
+                            field.data = JsonPrimitive(card.address)
+                        }
                     }
 
                     "phone" -> {
-                        field.data = JsonPrimitive(card.phone ?: "")
+                        if (card.phone != null) {
+                            field.data = JsonPrimitive(card.phone)
+                        }
                     }
 
                     "surname" -> {
-                        field.data = JsonPrimitive(card.surname ?: "")
+                        if (card.surname != null) {
+                            field.data = JsonPrimitive(card.surname)
+                        }
                     }
 
                     "other_country" -> {
-                        field.data = JsonPrimitive(card.country ?: "")
+                        if (card.country != null) {
+                            field.data = JsonPrimitive(card.country)
+                        }
                     }
 
                     "country" -> {

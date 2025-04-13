@@ -29,7 +29,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.shared.SearchHistory
+import market.engine.core.data.items.SearchHistoryItem
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.ilustrations.dismissBackground
@@ -41,12 +41,12 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HistoryLayout(
-    historyItems: List<SearchHistory>,
+    historyItems: List<SearchHistoryItem>,
     modifier: Modifier = Modifier,
-    onItemClick: (String) -> Unit,
+    onItemClick: (SearchHistoryItem) -> Unit,
     onClearHistory: () -> Unit,
     onDeleteItem: (Long) -> Unit,
-    goToListing: (String) -> Unit
+    goToListing: (SearchHistoryItem) -> Unit
 ) {
     val showDialog = remember { mutableStateOf(false) }
 

@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -61,6 +63,8 @@ fun CreateOrderContent(
 
     val isLoading = viewModel.isShowProgress.collectAsState()
     val err = viewModel.errorMessage.collectAsState()
+
+    val scope = rememberCoroutineScope()
 
     val focusManager = LocalFocusManager.current
 
@@ -331,11 +335,28 @@ fun CreateOrderContent(
                 ) {
                     AcceptedPageButton(
                         strings.actionComplete,
-                        modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
+                        modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 1f)
                             .padding(dimens.mediumPadding),
                         enabled = !isLoading.value
                     ) {
-                        viewModel.postPage(deliveryFields.value, basketItem)
+                        if(deliveryCards.value.isEmpty()){
+                            viewModel.saveDeliveryCard(
+                                deliveryFields.value,
+                                deliveryCards.value.find { it.isDefault }?.id,
+                                onSaved = {
+                                    viewModel.postPage(deliveryFields.value, basketItem)
+                                },
+                                onError = {
+                                    deliveryFields.value = it
+                                    scope.launch {
+                                        delay(200)
+                                        state.scrollToItem(0)
+                                    }
+                                }
+                            )
+                        }else{
+                            viewModel.postPage(deliveryFields.value, basketItem)
+                        }
                     }
                 }
             }

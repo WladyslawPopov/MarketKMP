@@ -141,7 +141,7 @@ fun FiltersBar(
                 if (searchData.userSearch && searchData.userLogin != null) {
                     item(key = "search_user") {
                         ActiveFilterListingItem(
-                            text = searchData.userLogin ?: userDef,
+                            text = stringResource(strings.searchUsersSearch) + ": " + (searchData.userLogin ?: userDef),
                             removeFilter = {
                                 searchData.userLogin = null
                                 searchData.userSearch = false
@@ -157,7 +157,7 @@ fun FiltersBar(
                 if (searchData.searchString.isNotEmpty()) {
                     item(key = "search_string") {
                         ActiveFilterListingItem(
-                            text = searchData.searchString,
+                            text = stringResource(strings.searchTitle) + ": " + searchData.searchString,
                             removeFilter = {
                                 searchData.searchString = ""
                                 onRefresh()

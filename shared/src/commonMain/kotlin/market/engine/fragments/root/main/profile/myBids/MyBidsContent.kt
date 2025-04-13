@@ -15,7 +15,6 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -44,8 +43,6 @@ fun MyBidsContent(
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     val columns = remember { mutableStateOf(if (isBigScreen.value) 2 else 1) }
-
-    val successToast = stringResource(strings.operationSuccess)
 
     val updateFilters = remember { mutableStateOf(0) }
 

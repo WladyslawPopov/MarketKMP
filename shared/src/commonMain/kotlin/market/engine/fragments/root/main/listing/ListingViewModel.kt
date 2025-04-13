@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.listing
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
@@ -16,6 +15,7 @@ import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
@@ -40,8 +40,8 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
     private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
     val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
 
-    private val _responseHistory = MutableStateFlow<List<SearchHistory>>(emptyList())
-    val responseHistory: StateFlow<List<SearchHistory>> = _responseHistory.asStateFlow()
+    private val _responseHistory = MutableStateFlow<List<SearchHistoryItem>>(emptyList())
+    val responseHistory: StateFlow<List<SearchHistoryItem>> = _responseHistory.asStateFlow()
 
      fun init(listingData: ListingData) : Flow<PagingData<Offer>> {
          this.listingData.value = listingData
@@ -117,7 +117,14 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
             val searchHistory : List<SearchHistory> =
                 sh.selectSearch("${searchString.trim()}%", UserData.login).executeAsList()
 
-            _responseHistory.value = searchHistory
+            _responseHistory.value = searchHistory.map {
+                SearchHistoryItem(
+                    id = it.id,
+                    query = it.query.split("_", limit = 2)[0].trim(),
+                    isUsersSearch = it.query.contains("_user"),
+                    isFinished = it.query.contains("_finished")
+                )
+            }
         }catch (e : Exception){
             onError(ServerErrorException(e.message.toString(), ""))
         }
@@ -135,11 +142,12 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
         getHistory()
     }
 
-    fun addHistory(searchString: String) {
+    fun addHistory(searchString: String, isUsersSearch : Boolean = false, isFinished : Boolean = false) {
         if (searchString != "") {
             val sh = db.searchHistoryQueries
-            if (sh.selectSearch("${searchString.trim()}%", UserData.login).executeAsList().isEmpty()){
-                sh.insertEntry(searchString, UserData.login)
+            val s = searchString.trim() + if (isUsersSearch) " _user" else "" + if (isFinished) " _finished" else ""
+            if (sh.selectSearch("${s}%", UserData.login).executeAsList().isEmpty()){
+                sh.insertEntry(s, UserData.login)
             }
         }
     }

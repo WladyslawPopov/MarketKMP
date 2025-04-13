@@ -18,7 +18,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
@@ -85,13 +84,12 @@ fun NotesContent(
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ){
-                OfferFilters.clearTypeFilter(LotsType.FAVORITES)
-                listingData.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
+                listingData.data.value.filters.clear()
                 refresh()
             }
         }else {
             showNoItemLayout(
-                title = stringResource(strings.emptyFavoritesLabel),
+                title = stringResource(strings.simpleNotFoundLabel),
                 image = drawables.emptyFavoritesImage
             ) {
                 refresh()

@@ -24,8 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -92,6 +95,8 @@ fun SearchContent(
     }
 
     val getSearchFilters = {
+        searchViewModel.addHistory(searchString.value, selectedUser.value, selectedUserFinished.value)
+
         if (selectedUser.value && selectedUserLogin.value == null){
             if (searchString.value != "") {
                 searchData.isRefreshing = true
@@ -148,8 +153,21 @@ fun SearchContent(
         }
     }
 
+    val isLoading = searchViewModel.isShowProgress.collectAsState()
+
     BaseContent(
         error = errorSearch,
+        isLoading = isLoading.value,
+        onRefresh = {
+            searchViewModel.setLoading(true)
+            searchViewModel.onError(ServerErrorException())
+            getSearchFilters()
+            searchViewModel.getHistory(searchString.value)
+            searchViewModel.viewModelScope.launch {
+                delay(1000)
+                searchViewModel.setLoading(false)
+            }
+        },
         noFound = null,
         toastItem = searchViewModel.toastItem,
         topBar = {
@@ -158,7 +176,6 @@ fun SearchContent(
                     searchString = searchStringTextField,
                     onSearchClick = {
                         getSearchFilters()
-                        searchViewModel.addHistory(searchString.value)
                         goToListing()
                     },
                     onUpdateHistory = {
@@ -270,9 +287,15 @@ fun SearchContent(
                     HistoryLayout(
                         historyItems = history.value,
                         modifier = Modifier.padding(horizontal = dimens.smallPadding),
-                        onItemClick = {
-                            searchString.value = it
-                            searchStringTextField.value = TextFieldValue(it)
+                        onItemClick = { item ->
+                            searchString.value = item.query
+                            selectedUser.value = item.isUsersSearch
+                            selectedUserFinished.value = item.isFinished
+                            searchStringTextField.value = searchStringTextField.value.copy(
+                                text = item.query,
+                                selection = TextRange(item.query.length)
+                            )
+                            searchViewModel.deleteItemHistory(item.id)
                         },
                         onClearHistory = {
                             searchViewModel.deleteHistory()
@@ -280,9 +303,14 @@ fun SearchContent(
                         onDeleteItem = {
                             searchViewModel.deleteItemHistory(it)
                         },
-                        goToListing = {
-                            searchString.value = it
-                            searchStringTextField.value = TextFieldValue(it)
+                        goToListing = { item ->
+                            searchString.value = item.query
+                            selectedUser.value = item.isUsersSearch
+                            selectedUserFinished.value = item.isFinished
+                            searchStringTextField.value = searchStringTextField.value.copy(
+                                text = item.query,
+                                selection = TextRange(item.query.length)
+                            )
                             getSearchFilters()
                             goToListing()
                         }
@@ -294,7 +322,6 @@ fun SearchContent(
                     Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f).padding(dimens.smallPadding).align(Alignment.BottomCenter),
                 ) {
                     getSearchFilters()
-                    searchViewModel.addHistory(searchString.value)
                     goToListing()
                 }
             }

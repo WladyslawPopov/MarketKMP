@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.sharp.Edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,22 +16,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.shared.SearchHistory
+import market.engine.core.data.items.SearchHistoryItem
 import market.engine.widgets.buttons.SmallIconButton
 
 @Composable
 fun historyItem(
-    history: SearchHistory,
-    onItemClick: (String) -> Unit,
-    onSearchClick: (String) -> Unit,
+    history: SearchHistoryItem,
+    onItemClick: (SearchHistoryItem) -> Unit,
+    onSearchClick: (SearchHistoryItem) -> Unit,
 ){
     Row(
         modifier = Modifier
             .background(colors.white, MaterialTheme.shapes.small)
             .clip(MaterialTheme.shapes.small)
             .clickable {
-                onSearchClick(history.query)
+                onSearchClick(history)
             }
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -44,10 +45,10 @@ fun historyItem(
         )
 
         SmallIconButton(
-            drawables.searchIcon,
-            colors.steelBlue,
+            iconVector = Icons.Sharp.Edit,
+            color = colors.steelBlue,
         ){
-            onItemClick(history.query)
+            onItemClick(history)
         }
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import org.jetbrains.compose.resources.DrawableResource
@@ -13,8 +14,9 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SmallIconButton(
-    icon : DrawableResource,
+    icon : DrawableResource? = null,
     color : Color,
+    iconVector : ImageVector? = null,
     contentDescription : String = "",
     modifierIconSize: Modifier = Modifier.size(dimens.smallIconSize),
     modifier: Modifier = Modifier,
@@ -26,11 +28,20 @@ fun SmallIconButton(
         modifier = modifier,
         enabled = enabled
     ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = contentDescription,
-            modifier = modifierIconSize,
-            tint = if (enabled) color else colors.rippleColor
-        )
+        if(icon != null) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = contentDescription,
+                modifier = modifierIconSize,
+                tint = if (enabled) color else colors.rippleColor
+            )
+        }else if (iconVector != null) {
+            Icon(
+                imageVector = iconVector,
+                contentDescription = contentDescription,
+                modifier = modifierIconSize,
+                tint = if (enabled) color else colors.rippleColor
+            )
+        }
     }
 }
