@@ -411,17 +411,12 @@ fun OfferContent(
                                                 colors.white,
                                                 MaterialTheme.shapes.small
                                             ).clip(MaterialTheme.shapes.small).clickable {
-                                                offerViewModel.getOfferOperations(offer.id){ res ->
-                                                    res.firstOrNull { it.id == "create_note" || it.id == "edit_note" }?.let { buf ->
-                                                        showDialogString.value = buf.id ?: ""
-                                                        title.value = buf.name ?: ""
-                                                        offerViewModel.getNotesField(
-                                                            offer.id,
-                                                            showDialogString.value
-                                                        ){ f ->
-                                                            fields.value = f
-                                                        }
-                                                    }
+                                                offerViewModel.getNotesField(
+                                                    offer.id,
+                                                    "edit_note"
+                                                ){ f ->
+                                                    fields.value = f
+                                                    showDialogString.value = "edit_note"
                                                 }
                                             }.padding(dimens.smallPadding),
                                             verticalAlignment = Alignment.CenterVertically,

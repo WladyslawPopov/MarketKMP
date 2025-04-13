@@ -64,6 +64,8 @@ fun OfferAppBar(
     val showCreateNoteDialog = remember { mutableStateOf("") }
     val showMenu = remember { mutableStateOf(false) }
 
+    val type = remember { if(offer.note != null) "edit_note" else "create_note" }
+
     val isFavorite = remember { mutableStateOf(offer.isWatchedByMe) }
 
     val listItems = listOf(
@@ -84,17 +86,12 @@ fun OfferAppBar(
             badgeCount = null,
             isVisible = UserData.token != "",
             onClick = {
-                baseViewModel.getOfferOperations(offer.id) { res ->
-                    res.firstOrNull { it.id == "create_note" || it.id == "edit_note" }?.let { buf ->
-                        showCreateNoteDialog.value = buf.id ?: ""
-                        title.value = buf.name ?: ""
-                        baseViewModel.getNotesField(
-                            offer.id,
-                            showCreateNoteDialog.value
-                        ){ f ->
-                            fields.value = f
-                        }
-                    }
+                baseViewModel.getNotesField(
+                    offer.id,
+                     type,
+                ){ f ->
+                    fields.value = f
+                    showCreateNoteDialog.value = type
                 }
             }
         ),
