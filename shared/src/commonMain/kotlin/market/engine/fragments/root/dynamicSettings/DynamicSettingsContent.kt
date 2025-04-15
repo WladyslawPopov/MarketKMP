@@ -379,12 +379,12 @@ fun DynamicSettingsContent(
                                         viewModel.postSubmit(settingsType, owner) {
                                             when (settingsType) {
                                                 "set_phone" -> {
-                                                    component.goToVerificationPage("set_phone")
+                                                    component.goToVerificationPage("set_phone",owner, code)
                                                 }
 
                                                 "set_password", "forgot_password", "reset_password" -> {
                                                     if (builderDescription?.body != null) {
-                                                        component.goToVerificationPage("set_password")
+                                                        component.goToVerificationPage("set_password",owner, code)
                                                     } else {
                                                         component.onBack()
                                                     }

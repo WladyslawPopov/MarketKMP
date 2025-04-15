@@ -73,6 +73,7 @@ fun VerificationContent(
         isLoading = isLoading.value,
         onRefresh = {
             viewModel.onError(ServerErrorException())
+            viewModel.init(model.settingsType, model.owner, model.code)
         },
         toastItem = viewModel.toastItem,
         error = error
@@ -137,7 +138,7 @@ fun VerificationContent(
                         AcceptedPageButton(
                             strings.actionChangeLabel
                         ){
-                            viewModel.postSetPassword(textState.value) {
+                            viewModel.postSetPassword(model.owner, textState.value) {
                                 component.onBack()
                             }
                         }

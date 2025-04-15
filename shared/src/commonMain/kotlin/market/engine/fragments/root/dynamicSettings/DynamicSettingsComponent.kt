@@ -22,7 +22,7 @@ interface DynamicSettingsComponent {
     )
     fun updateModel()
     fun onBack()
-    fun goToVerificationPage(method : String)
+    fun goToVerificationPage(method : String, owner : Long?, code : String?)
 }
 
 class DefaultDynamicSettingsComponent(
@@ -67,8 +67,8 @@ class DefaultDynamicSettingsComponent(
         goBack()
     }
 
-    override fun goToVerificationPage(method: String) {
-        goToVerification(method, null, null)
+    override fun goToVerificationPage(method: String, owner: Long?, code: String?) {
+        goToVerification(method, owner, code)
         lifecycle.doOnResume {
             onBack()
         }

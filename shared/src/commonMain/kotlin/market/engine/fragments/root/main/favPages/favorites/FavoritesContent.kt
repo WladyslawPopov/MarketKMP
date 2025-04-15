@@ -231,6 +231,7 @@ fun FavoritesContent(
                     OfferItem(
                         offer,
                         isGrid = (columns.value > 1),
+                        notesShow = true,
                         baseViewModel = favViewModel,
                         updateTrigger = favViewModel.updateItemTrigger.value,
                         isSelection = isSelect.value,

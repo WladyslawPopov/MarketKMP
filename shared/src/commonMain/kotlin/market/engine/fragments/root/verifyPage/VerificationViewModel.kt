@@ -3,6 +3,7 @@ package market.engine.fragments.root.verifyPage
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.constants.errorToastItem
@@ -19,7 +20,7 @@ class VerificationViewModel : BaseViewModel() {
     fun init(settingsType: String, owner: Long?, code: String?) {
         when (settingsType) {
             "set_password" -> {
-                getSetPassword()
+                getSetPassword(owner)
             }
 
             else -> {
@@ -105,11 +106,14 @@ class VerificationViewModel : BaseViewModel() {
         }
     }
 
-    private fun getSetPassword() {
+    private fun getSetPassword(owner: Long?) {
         viewModelScope.launch {
             val body = HashMap<String, String>()
             body["action"] = "change_password"
-            val buffer = userOperations.postUsersOperationsRAC(UserData.login, body)
+//            if (code != null) {
+//                body["code"] = code
+//            }
+            val buffer = userOperations.postUsersOperationsRAC(owner ?: UserData.login, body)
             val res = buffer.success
             val resErr = buffer.error
             withContext(Dispatchers.Main) {
@@ -162,6 +166,7 @@ class VerificationViewModel : BaseViewModel() {
                                 message = getString(strings.operationSuccess)
                             )
                         )
+                        delay(2000)
                         onSuccess()
                     } else {
                         showToast(
@@ -181,7 +186,7 @@ class VerificationViewModel : BaseViewModel() {
         }
     }
 
-    fun postSetPassword(code: String, onSuccess: () -> Unit) {
+    fun postSetPassword(owner: Long?,code: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             setLoading(true)
 
@@ -192,7 +197,7 @@ class VerificationViewModel : BaseViewModel() {
             val buf = withContext(Dispatchers.IO) {
 
                 userOperations.postUsersOperationsEACC(
-                    UserData.login, bodySMS
+                    owner?: UserData.login, bodySMS
                 )
             }
             val resE = buf.success
@@ -214,6 +219,7 @@ class VerificationViewModel : BaseViewModel() {
                                 message = getString(strings.operationSuccess)
                             )
                         )
+                        delay(2000)
                         onSuccess()
                     } else {
                         showToast(
@@ -264,6 +270,9 @@ class VerificationViewModel : BaseViewModel() {
                                 message = getString(strings.operationSuccess)
                             )
                         )
+
+                        delay(2000)
+
                         onSuccess()
                     } else {
                         showToast(

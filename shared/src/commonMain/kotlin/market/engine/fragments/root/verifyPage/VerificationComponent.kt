@@ -5,7 +5,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.globalData.UserData
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 
 interface VerificationComponent {
@@ -49,12 +48,7 @@ class DefaultVerificationComponent(
     }
 
     init {
-        verificationViewModel.userRepository.updateToken()
-        if (UserData.token != "") {
-            verificationViewModel.init(settingsType, owner, code)
-        }else{
-            goBack()
-        }
+        verificationViewModel.init(settingsType, owner, code)
         val eventParameters = mapOf("settings_type" to settingsType)
         analyticsHelper.reportEvent("view_verification_page", eventParameters)
     }

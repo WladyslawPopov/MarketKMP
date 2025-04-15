@@ -217,6 +217,7 @@ fun MyOffersContent(
                     OfferItem(
                         offer,
                         isGrid = false,
+                        notesShow = true,
                         baseViewModel = viewModel,
                         goToCreateOffer = { type ->
                             component.goToCreateOffer(type, offer.id, offer.catpath)
