@@ -1017,6 +1017,7 @@ fun SessionStartContent(
 }
 
 
+@OptIn(ExperimentalSerializationApi::class)
 fun createJsonBody(
     fields: List<Fields>,
     categoryID: Long,
@@ -1026,18 +1027,18 @@ fun createJsonBody(
     type: CreateOfferType,
 ) : JsonObject {
     return buildJsonObject {
-        fields.forEach { data ->
-            when (data.key) {
+        fields.forEach { field ->
+            when (field.key) {
                 "deliverymethods" -> {
                     val valuesDelivery = arrayListOf<JsonObject>()
-                    data.data?.jsonArray?.forEach { choices ->
+                    field.data?.jsonArray?.forEach { choices ->
                         val deliveryPart = buildJsonObject {
                             put(
                                 "code",
                                 JsonPrimitive(choices.jsonObject["code"]?.jsonPrimitive?.intOrNull)
                             )
 
-                            data.choices?.find {
+                            field.choices?.find {
                                 it.code?.jsonPrimitive?.intOrNull ==
                                         choices.jsonObject["code"]?.jsonPrimitive?.intOrNull
                             }?.extendedFields?.forEach { field ->
@@ -1051,27 +1052,27 @@ fun createJsonBody(
                         }
                         valuesDelivery.add(deliveryPart)
                     }
-                    put(data.key, JsonArray(valuesDelivery))
+                    put(field.key, JsonArray(valuesDelivery))
                 }
 
                 "category_id" -> {
-                    put(data.key, JsonPrimitive(categoryID))
+                    put(field.key, JsonPrimitive(categoryID))
                 }
 
                 "session_start" -> {
                     if (selectedDate == null) {
-                        put(data.key, data.data!!)
+                        put(field.key, field.data ?: JsonPrimitive(null))
                     }
 
                 }
                 "future_time" ->{
                     if (selectedDate != null) {
-                        put(data.key, data.data!!)
+                        put(field.key, field.data ?: field.data ?: JsonPrimitive(null))
                     }
                 }
 
                 else -> {
-                    put(data.key ?: "", data.data!!)
+                    put(field.key ?: "", field.data ?: field.data ?: JsonPrimitive(null))
                 }
             }
         }

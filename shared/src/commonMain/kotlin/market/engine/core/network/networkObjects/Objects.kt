@@ -103,6 +103,18 @@ data class UserBody(
 )
 
 @Serializable
+data class FavoriteListItem(
+    @SerialName("id") val id: Long = 1L,
+    @SerialName("title") val title: String? = null,
+    @SerialName("marked_as_primary") val markedAsPrimary: Boolean = false,
+    @SerialName("created_ts") val createdTs: Long = 1L,
+    @SerialName("owner") val owner: Long = 1L,
+    @SerialName("images") val images: List<String> = listOf(),
+    @SerialName("offers") val offers: List<Long> = listOf(),
+    var position : Int = 0
+)
+
+@Serializable
 data class Category(
     @SerialName("id") val id: Long = 1L,
     @SerialName("name") val name: String? = null,

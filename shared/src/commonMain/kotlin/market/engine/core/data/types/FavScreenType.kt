@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class FavScreenType {
-    FAVORITES, NOTES, SUBSCRIBED
+    FAV_LIST, FAVORITES, NOTES, SUBSCRIBED
 }

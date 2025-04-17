@@ -12,6 +12,8 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
+import market.engine.fragments.root.main.favPages.FavPagesViewModel
+import org.koin.mp.KoinPlatform.getKoin
 
 
 interface FavoritesComponent {
@@ -19,11 +21,10 @@ interface FavoritesComponent {
     data class Model(
         val favType: FavScreenType,
         val pagingDataFlow : Flow<PagingData<Offer>>,
-        val favViewModel: FavViewModel,
+        val favViewModel: FavPagesViewModel,
         val backHandler: BackHandler
     )
 
-    fun goToFavScreen()
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun onRefresh()
 }
@@ -31,11 +32,10 @@ interface FavoritesComponent {
 class DefaultFavoritesComponent(
     componentContext: ComponentContext,
     favType : FavScreenType,
-    val selectedFavScreen : (FavScreenType) -> Unit,
     val goToOffer : (Long) -> Unit
 ) : FavoritesComponent, ComponentContext by componentContext {
 
-    private val favViewModel : FavViewModel = FavViewModel()
+    private val favViewModel : FavPagesViewModel = FavPagesViewModel(getKoin().get())
 
     val listingData = favViewModel.listingData.value
 
@@ -43,16 +43,12 @@ class DefaultFavoritesComponent(
         FavoritesComponent.Model(
             favType = favType,
             favViewModel = favViewModel,
-            pagingDataFlow = favViewModel.init(),
+            pagingDataFlow = favViewModel.init(favType),
             backHandler = backHandler
         )
     )
 
     override val model: Value<FavoritesComponent.Model> = _model
-
-    override fun goToFavScreen() {
-        selectedFavScreen(model.value.favType)
-    }
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
@@ -61,10 +57,10 @@ class DefaultFavoritesComponent(
             favViewModel.updateUserInfo()
         }
 
-        analyticsHelper.reportEvent("open_favorites", mapOf())
+        analyticsHelper.reportEvent("open_favorites", mapOf("type" to favType.name))
     }
 
-    private val searchData = listingData.searchData
+    //private val searchData = listingData.searchData
     //private val listingData = model.value.listingData.data
 
     override fun goToOffer(offer: Offer, isTopPromo : Boolean) {

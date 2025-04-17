@@ -24,6 +24,7 @@ import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
@@ -180,7 +181,6 @@ fun FavoritesContent(
                 }
             },
             additionalBar = {
-
                 DeletePanel(
                     selectedItems.size,
                     onCancel = {
@@ -221,9 +221,17 @@ fun FavoritesContent(
                 val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
                 val fav =
                     mutableStateOf(
-                        if (favViewModel.updateItemTrigger.value >= 0)
-                            offer.isWatchedByMe
-                        else offer.isWatchedByMe
+                        when(model.favType){
+                            FavScreenType.NOTES -> {
+                                offer.note != null && offer.note != ""
+                            }
+                            FavScreenType.FAVORITES -> {
+                                offer.isWatchedByMe
+                            }
+                            else -> {
+                                true
+                            }
+                        }
                     )
 
 

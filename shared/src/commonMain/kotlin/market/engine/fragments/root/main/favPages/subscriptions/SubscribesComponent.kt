@@ -23,8 +23,6 @@ interface SubscriptionsComponent {
         val backHandler: BackHandler
     )
 
-    fun goToFavScreen()
-
     fun goToCreateNewSubscription(editId : Long? = null)
 
     fun goToListing(listingData: ListingData)
@@ -33,7 +31,6 @@ interface SubscriptionsComponent {
 class DefaultSubscriptionsComponent(
     componentContext: ComponentContext,
     favType : FavScreenType,
-    val selectedFavScreen : (FavScreenType) -> Unit,
     val navigateToCreateNewSubscription : (Long?) -> Unit,
     val navigateToListing : (ListingData) -> Unit,
 ) : SubscriptionsComponent, ComponentContext by componentContext {
@@ -62,10 +59,6 @@ class DefaultSubscriptionsComponent(
     }
 
     override val model: Value<SubscriptionsComponent.Model> = _model
-
-    override fun goToFavScreen() {
-        selectedFavScreen(model.value.favType)
-    }
 
     override fun goToCreateNewSubscription(editId: Long?) {
         navigateToCreateNewSubscription(editId)

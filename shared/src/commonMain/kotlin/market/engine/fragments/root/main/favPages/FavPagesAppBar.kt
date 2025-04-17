@@ -17,8 +17,8 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.PlatformWindowType
+import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.tabs.SimpleTabs
 import org.jetbrains.compose.resources.stringResource
@@ -26,15 +26,13 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavPagesAppBar(
-    currentTab : FavScreenType,
+    currentTab : Int,
+    favTabList: List<FavoriteListItem>,
     modifier: Modifier = Modifier,
-    navigationClick : (FavScreenType) -> Unit,
+    navigationClick : (Int) -> Unit,
     onRefresh: () -> Unit
 ) {
-    val fav = stringResource(strings.myFavoritesTitle)
-    val sub = stringResource(strings.mySubscribedTitle)
-    val note = stringResource(strings.myNotesTitle)
-    val tabList = listOf(fav, sub, note)
+    val offersListTabs = favTabList.map { it.title ?: "" }.toList()
 
     val listItems = listOf(
         NavigationItem(
@@ -43,6 +41,15 @@ fun FavPagesAppBar(
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
             isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+            badgeCount = null,
+            onClick = onRefresh
+        ),
+        NavigationItem(
+            title = stringResource(strings.createNewOffersListLabel),
+            icon = drawables.newLotIcon,
+            tint = colors.steelBlue,
+            hasNews = false,
+            isVisible = false,
             badgeCount = null,
             onClick = onRefresh
         ),
@@ -58,31 +65,23 @@ fun FavPagesAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            SimpleTabs(
-                tabList,
-                selectedTab = when(currentTab){
-                    FavScreenType.FAVORITES -> 0
-                    FavScreenType.SUBSCRIBED -> 1
-                    FavScreenType.NOTES -> 2
-                },
-                onTabSelected = { index ->
-                    val type = when(index) {
-                        0 -> FavScreenType.FAVORITES
-                        1 -> FavScreenType.SUBSCRIBED
-                        2 -> FavScreenType.NOTES
-                        else -> FavScreenType.FAVORITES
-                    }
-                    navigationClick(type)
-                },
-                edgePadding = dimens.smallPadding,
-                containerColor = colors.transparent,
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (offersListTabs.isNotEmpty()) {
+                SimpleTabs(
+                    offersListTabs,
+                    selectedTab = currentTab,
+                    onTabSelected = { index ->
+                        navigationClick(index)
+                    },
+                    edgePadding = dimens.smallPadding,
+                    containerColor = colors.transparent,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         },
         actions = {
             Column {
                 Row(
-                    modifier = modifier.padding(end = dimens.smallPadding),
+                    modifier = Modifier.padding(end = dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(
                         dimens.smallPadding,

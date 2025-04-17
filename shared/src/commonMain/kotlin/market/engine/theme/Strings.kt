@@ -484,4 +484,5 @@ interface Strings {
     val deleteAccountLabel : StringResource
     val userDeletedLabel : StringResource
     val myNotesTitle: StringResource
+    val createNewOffersListLabel: StringResource
 }

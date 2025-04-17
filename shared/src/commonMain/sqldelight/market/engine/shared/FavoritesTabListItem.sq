@@ -1,0 +1,22 @@
+CREATE TABLE FavoritesTabListItem (
+     id INTEGER NOT NULL PRIMARY KEY,
+     itemId INTEGER NOT NULL,
+     position INTEGER NOT NULL,
+     owner  INTEGER NOT NULL,
+     UNIQUE (itemId, owner)
+);
+
+-- Select all search history entries
+selectAll:
+SELECT * FROM FavoritesTabListItem WHERE(owner = ?);
+
+-- Insert a new search entry
+insertEntry:
+INSERT OR REPLACE INTO FavoritesTabListItem(itemId, position, owner) VALUES (?, ?, ?);
+
+-- Delete a specific entry by ID
+deleteById:
+DELETE FROM FavoritesTabListItem WHERE(itemId = ? AND owner = ?);
+
+deleteAll:
+DELETE FROM FavoritesTabListItem;
