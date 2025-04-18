@@ -30,7 +30,7 @@ interface FavPagesComponent {
 
     fun selectPage(p: Int)
 
-    fun getPages()
+    fun getPages(version : String)
 
     fun onRefresh()
 }
@@ -57,7 +57,9 @@ class DefaultFavPagesComponent(
 
     init {
         lifecycle.doOnResume {
-            viewModel.getFavTabList()
+            viewModel.getFavTabList{
+                getPages("first")
+            }
         }
     }
 
@@ -65,7 +67,7 @@ class DefaultFavPagesComponent(
         navigation.select(p)
     }
 
-    override fun getPages() {
+    override fun getPages(version : String) {
         componentsPages = childPages(
             source = navigation,
             serializer = FavPagesConfig.serializer(),
@@ -78,7 +80,7 @@ class DefaultFavPagesComponent(
                     selectedIndex = if(favType == FavScreenType.FAVORITES) 0 else 1,
                 )
             },
-            key = "FavoritesStack",
+            key = "FavoritesStack_$version",
             childFactory = { config, componentContext ->
                 when (config.favItem.id) {
                     222L -> {
@@ -127,6 +129,8 @@ class DefaultFavPagesComponent(
                 }
             }
         )
+
+        viewModel.showPages.value = true
     }
 
     override fun onRefresh() {

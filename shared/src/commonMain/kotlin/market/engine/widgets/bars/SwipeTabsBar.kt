@@ -30,7 +30,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.items.Tab
-import market.engine.core.data.types.TabTypeListing
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -48,11 +47,15 @@ fun SwipeTabsBar(
         }
     }
 
+    val auctionString = stringResource(strings.ordinaryAuction)
+    val buyNowString = stringResource(strings.buyNow)
+    val allString = stringResource(strings.allOffers)
+
     val curTab = remember { mutableStateOf(
         when (listingData.filters.find { filter-> filter.key == "sale_type" }?.value){
-            "auction" -> TabTypeListing.AUCTION
-            "buynow" -> TabTypeListing.BUY_NOW
-            else -> TabTypeListing.ALL
+            "auction" -> auctionString
+            "buynow" -> buyNowString
+            else -> allString
         }
     ) }
 
@@ -75,13 +78,10 @@ fun SwipeTabsBar(
             }
     }
 
-    val auctionString = stringResource(strings.ordinaryAuction)
-    val buyNowString = stringResource(strings.buyNow)
-    val allString = stringResource(strings.allOffers)
+
 
     val tabs = listOf(
         Tab(
-            type = TabTypeListing.ALL,
             title = allString,
             onClick = {
                 listingData.filters.find { filter-> filter.key == "sale_type" }?.value = ""
@@ -90,7 +90,6 @@ fun SwipeTabsBar(
             }
         ),
         Tab(
-            type = TabTypeListing.AUCTION,
             title = auctionString,
             onClick = {
                 listingData.filters.find { filter-> filter.key == "sale_type" }?.value = "auction"
@@ -99,7 +98,6 @@ fun SwipeTabsBar(
             }
         ),
         Tab(
-            type = TabTypeListing.BUY_NOW,
             title = buyNowString,
             onClick = {
                 listingData.filters.find { filter-> filter.key == "sale_type" }?.value = "buynow"
@@ -123,9 +121,9 @@ fun SwipeTabsBar(
             items(tabs) { tab ->
                 FilterChip(
                     modifier = Modifier.padding(dimens.smallPadding),
-                    selected = tab.type == curTab.value,
+                    selected = tab.title == curTab.value,
                     onClick = {
-                        curTab.value = tab.type
+                        curTab.value = tab.title
                         tab.onClick()
                     },
                     label = {

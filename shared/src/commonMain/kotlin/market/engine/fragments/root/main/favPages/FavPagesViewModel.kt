@@ -36,6 +36,10 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
     private val _favoritesTabList = MutableStateFlow(emptyList<FavoriteListItem>())
     val favoritesTabList = _favoritesTabList.asStateFlow()
 
+    val isDragMode = mutableStateOf(false)
+
+    val showPages = mutableStateOf(false)
+
     fun init(type: FavScreenType): Flow<PagingData<Offer>> {
         when(type){
             FavScreenType.FAVORITES -> {
@@ -63,7 +67,7 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
         pagingRepository.refresh()
     }
 
-    fun getFavTabList() {
+    fun getFavTabList(onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
                 val url = UrlBuilder()
@@ -72,45 +76,68 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                     .build()
 
                 val data = withContext(Dispatchers.IO) { apiService.getPage(url) }
-                val serializer = Payload.serializer(FavoriteListItem.serializer())
-                val value = deserializePayload(data.payload, serializer)
 
-                _favoritesTabList.value = buildList {
-                    val newList = arrayListOf(
-                        FavoriteListItem(
-                            id = 111,
-                            title = getString(strings.myFavoritesTitle),
-                            owner = UserData.login,
-                            position = 0
-                        ),
-                        FavoriteListItem(
-                            id = 222,
-                            title = getString(strings.mySubscribedTitle),
-                            owner = UserData.login,
-                            position = 1
-                        ),
-                        FavoriteListItem(
-                            id = 333,
-                            title = getString(strings.myNotesTitle),
-                            owner = UserData.login,
-                            position = 2
+                withContext(Dispatchers.Main) {
+                    val serializer = Payload.serializer(FavoriteListItem.serializer())
+                    val value = deserializePayload(data.payload, serializer)
+
+                    _favoritesTabList.value = buildList {
+                        val newList = arrayListOf(
+                            FavoriteListItem(
+                                id = 111,
+                                title = getString(strings.myFavoritesTitle),
+                                owner = UserData.login,
+                                position = 0
+                            ),
+                            FavoriteListItem(
+                                id = 222,
+                                title = getString(strings.mySubscribedTitle),
+                                owner = UserData.login,
+                                position = 1
+                            ),
+                            FavoriteListItem(
+                                id = 333,
+                                title = getString(strings.myNotesTitle),
+                                owner = UserData.login,
+                                position = 2
+                            )
                         )
-                    )
-                    newList.addAll(value.objects)
+                        newList.addAll(value.objects)
 
-                    val listPosition = db.favoritesTabListItemQueries
-                    val lh = listPosition.selectAll(UserData.login).executeAsList()
-                    lh.forEach { favoritesTabListItem ->
-                        newList.find { it.id == favoritesTabListItem.id }?.position =
-                            favoritesTabListItem.position.toInt()
+                        val listPosition = db.favoritesTabListItemQueries
+                        val lh = listPosition.selectAll(UserData.login).executeAsList()
+                        lh.forEach { favoritesTabListItem ->
+                            newList.find { it.id == favoritesTabListItem.itemId }?.position =
+                                favoritesTabListItem.position.toInt()
+                        }
+
+                        newList.sortBy { it.position }
+
+                        clear()
+                        addAll(newList)
                     }
-
-                    newList.sortBy { it.position }
-
-                    clear()
-                    addAll(newList)
+                    onSuccess()
                 }
             } catch (e: ServerErrorException) {
+                onError(e)
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "", ""))
+            }
+        }
+    }
+
+    fun updateFavTabList(list: List<FavoriteListItem>){
+        viewModelScope.launch {
+            try {
+                list.forEachIndexed { index, it ->
+                    db.favoritesTabListItemQueries.insertEntry(
+                        itemId = it.id,
+                        owner = UserData.login,
+                        position = index.toLong()
+                    )
+                }
+                _favoritesTabList.value = list
+            }  catch (e: ServerErrorException) {
                 onError(e)
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "", ""))

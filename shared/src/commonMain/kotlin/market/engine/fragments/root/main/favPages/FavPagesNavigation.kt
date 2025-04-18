@@ -1,12 +1,14 @@
 package market.engine.fragments.root.main.favPages
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
@@ -15,6 +17,7 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.FavoriteListItem
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
@@ -41,27 +44,27 @@ fun FavPagesNavigation(
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
     val favTabList = viewModel.favoritesTabList.collectAsState()
-    val showPages = remember { mutableStateOf(false) }
-
-    LaunchedEffect(favTabList.value) {
-        if (favTabList.value.isNotEmpty() && component.componentsPages == null){
-            component.getPages()
-            showPages.value = true
-        }
-    }
+    val showPages = remember { viewModel.showPages }
+    val isDragMode = remember { viewModel.isDragMode }
 
     Column {
         FavPagesAppBar(
             select.value,
             favTabList = favTabList.value,
+            isDragMode = isDragMode,
+            modifier = Modifier.fillMaxWidth(),
             navigationClick = {
                 select.value = it
                 component.selectPage(select.value)
+            },
+            onTabsReordered = {
+                viewModel.updateFavTabList(it)
             },
             onRefresh = {
                 component.onRefresh()
             }
         )
+
         if (showPages.value && component.componentsPages != null) {
             ChildPages(
                 pages = component.componentsPages!!,
@@ -75,14 +78,26 @@ fun FavPagesNavigation(
                     is FavPagesComponents.SubscribedChild -> {
                         SubscriptionsContent(
                             page.component,
-                            modifier
+                            modifier.pointerInput(Unit) {
+                                detectTapGestures(onTap = {
+                                    viewModel.isDragMode.value = false
+                                    component.getPages(getCurrentDate())
+                                    select.value = 0
+                                })
+                            }
                         )
                     }
 
                     is FavPagesComponents.FavoritesChild -> {
                         FavoritesContent(
                             page.component,
-                            modifier
+                            modifier.pointerInput(Unit) {
+                                detectTapGestures(onTap = {
+                                    viewModel.isDragMode.value = false
+                                    component.getPages(getCurrentDate())
+                                    select.value = 0
+                                })
+                            }
                         )
                     }
                 }

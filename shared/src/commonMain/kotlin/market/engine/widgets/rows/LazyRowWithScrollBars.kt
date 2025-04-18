@@ -23,6 +23,7 @@ fun LazyRowWithScrollBars(
     state: LazyListState = rememberLazyListState(),
     contentPadding : Dp = dimens.smallPadding,
     horizontalArrangement : Arrangement.Horizontal = Arrangement.spacedBy(dimens.mediumPadding),
+    verticalAlignment : Alignment.Vertical = Alignment.CenterVertically,
     content: LazyListScope.() -> Unit
 ) {
     Box(
@@ -33,6 +34,7 @@ fun LazyRowWithScrollBars(
             modifier = modifierList,
             contentPadding = PaddingValues(contentPadding),
             horizontalArrangement = horizontalArrangement,
+            verticalAlignment = verticalAlignment,
             content = content
         )
 

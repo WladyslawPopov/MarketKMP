@@ -111,7 +111,7 @@ data class FavoriteListItem(
     @SerialName("owner") val owner: Long = 1L,
     @SerialName("images") val images: List<String> = listOf(),
     @SerialName("offers") val offers: List<Long> = listOf(),
-    var position : Int = 0
+    var position : Int = 20
 )
 
 @Serializable

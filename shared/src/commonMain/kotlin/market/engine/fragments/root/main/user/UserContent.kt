@@ -4,12 +4,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,6 +33,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.Tab
 import market.engine.core.data.types.ReportPageType
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
@@ -38,12 +41,13 @@ import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
-import market.engine.widgets.tabs.SimpleTabs
+import market.engine.widgets.tabs.TabRow
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.rows.ColumnWithScrollBars
 import market.engine.widgets.rows.UserRow
+import market.engine.widgets.tabs.PageTab
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -83,12 +87,22 @@ fun UserContent(
     }
 
     val tabs = listOf(
+        Tab(
             stringResource(strings.allFeedbackToUserLabel),
+        ),
+        Tab(
             stringResource(strings.fromBuyerLabel),
+        ),
+        Tab(
             stringResource(strings.fromSellerLabel),
+        ),
+        Tab(
             stringResource(strings.fromUsersLabel),
-            stringResource(strings.aboutMeLabel)
+        ),
+        Tab(
+            stringResource(strings.aboutMeLabel),
         )
+    )
 
 
     LaunchedEffect(isVisibleUserPanel.value) {
@@ -200,14 +214,23 @@ fun UserContent(
                     }
                 }
 
-
-                SimpleTabs(
+                TabRow(
                     tabs,
                     selectedTab = selectedTabIndex.value,
-                    onTabSelected = { index ->
-                        component.onTabSelect(index)
-                    }
-                )
+                    edgePadding = dimens.smallPadding,
+                    containerColor = colors.primaryColor,
+                    modifier = Modifier.fillMaxWidth(),
+                ){ index, tab ->
+                    PageTab(
+                        tab = tab,
+                        selectedTab = selectedTabIndex.value,
+                        currentIndex = index,
+                        textStyle = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.clickable {
+                            component.onTabSelect(index)
+                        },
+                    )
+                }
 
                 ChildPages(
                     pages = feedbacksPages,

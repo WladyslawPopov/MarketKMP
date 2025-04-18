@@ -1,8 +1,10 @@
 package market.engine.fragments.root.main.profile.profileSettings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -11,8 +13,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.Tab
 import market.engine.widgets.buttons.MenuHamburgerButton
-import market.engine.widgets.tabs.SimpleTabs
+import market.engine.widgets.tabs.PageTab
+import market.engine.widgets.tabs.TabRow
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -27,9 +31,15 @@ fun ProfileSettingsAppBar(
     navigationClick : (Int) -> Unit
 ) {
     val tabs = listOf(
-        stringResource(strings.profileGlobalSettingsLabel),
-        stringResource(strings.profileSellerSettingsLabel),
-        stringResource(strings.profileAdditionalSettingsLabel),
+        Tab(
+            title = stringResource(strings.profileGlobalSettingsLabel),
+        ),
+        Tab(
+            title = stringResource(strings.profileSellerSettingsLabel),
+        ),
+        Tab(
+            title = stringResource(strings.profileAdditionalSettingsLabel),
+        )
     )
 
     TopAppBar(
@@ -49,16 +59,23 @@ fun ProfileSettingsAppBar(
         modifier = modifier
             .fillMaxWidth(),
         title = {
-            SimpleTabs(
+            TabRow(
                 tabs,
                 selectedTab = currentTab,
                 edgePadding = 0.dp,
                 containerColor = colors.white,
                 modifier = Modifier.fillMaxWidth(),
-                onTabSelected = { index ->
-                    navigationClick(index)
-                }
-            )
+            ){ index, tab ->
+                PageTab(
+                    tab = tab,
+                    selectedTab = currentTab,
+                    currentIndex = index,
+                    textStyle = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.clickable {
+                        navigationClick(index)
+                    },
+                )
+            }
         },
 //        actions = {
 //            Column {
