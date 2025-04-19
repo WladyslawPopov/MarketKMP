@@ -33,6 +33,8 @@ interface Drawables {
    val filterIcon : DrawableResource
    val sortIcon : DrawableResource
 
+   val reorderIcon : DrawableResource
+
    val iconGroup : DrawableResource
    val iconCountBoxes : DrawableResource
 

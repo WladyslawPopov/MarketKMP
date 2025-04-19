@@ -885,4 +885,45 @@ class UserOperations(val apiService: APIService) {
             ServerResponse(error = ServerErrorException(e.message.toString(), ""))
         }
     }
+
+    suspend fun getCreateBlankOfferList(id: Long): ServerResponse<DynamicPayload<OperationResult>> {
+        return try {
+            val response = apiService.getUsersOperationsCreateBlankOfferList(id)
+            try {
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload: DynamicPayload<OperationResult> =
+                    deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload)
+            } catch (e: Exception) {
+                throw ServerErrorException(
+                    response.errorCode.toString(),
+                    response.humanMessage.toString()
+                )
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun postCreateBlankOfferList(
+        id: Long = 1L,
+        body: HashMap<String, JsonElement>
+    ): ServerResponse<DynamicPayload<OperationResult>> {
+        return try {
+            val response = apiService.postUsersOperationsCreateBlankOfferList(id, body)
+            try {
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
 }

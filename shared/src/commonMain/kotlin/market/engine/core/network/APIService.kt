@@ -47,6 +47,12 @@ class APIService(private val client: HttpClient) {
     suspend fun postOfferOperationsUnwatch(idOffer: Long): AppResponse =
         client.post("offers/$idOffer/operations/unwatch").body()
 
+    suspend fun postOffersListOperationsUnpin(id: Long): AppResponse =
+        client.post("offers_lists/$id/operations/unmark_as_primary_offers_list").body()
+
+    suspend fun postOffersListOperationsPin(id: Long): AppResponse =
+        client.post("offers_lists/$id/operations/mark_as_primary_offers_list").body()
+
     suspend fun postUsersOperationDeleteCart(idUser: Long): AppResponse =
         client.post("users/$idUser/operations/delete_cart").body()
 
@@ -410,6 +416,12 @@ class APIService(private val client: HttpClient) {
     suspend fun getOfferOperations(idOffer: Long): AppResponse =
         client.get("offers/$idOffer/operations").body()
 
+    suspend fun getOffersListItemOperations(idOffer: Long): AppResponse =
+        client.get("offers_lists/$idOffer/operations").body()
+
+    suspend fun getOffersListItem(id: Long): AppResponse =
+        client.get("offers_lists/$id").body()
+
     suspend fun getOrderOperations(idOrder: Long): AppResponse =
         client.get("orders/$idOrder/operations").body()
 
@@ -457,6 +469,36 @@ class APIService(private val client: HttpClient) {
             parameter("pg", page)
             parameter("ipp", ipp)
         }.body()
+
+    suspend fun getUsersOperationsCreateBlankOfferList(idUser: Long): AppResponse =
+        client.get("/users/$idUser/operations/create_blank_offer_list").body()
+
+    suspend fun postUsersOperationsCreateBlankOfferList(idUser: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("/users/$idUser/operations/create_blank_offer_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
+    suspend fun getOffersListOperationRenameOffersList(id: Long): AppResponse =
+        client.get("/offers_lists/$id/operations/rename_offers_list").body()
+
+    suspend fun postOffersListOperationRenameOffersList(id: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("/offers_lists/$id/operations/rename_offers_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
+    suspend fun getOffersListOperationCopyOffersList(id: Long): AppResponse =
+        client.get("/offers_lists/$id/operations/copy_offers_list").body()
+
+    suspend fun postOffersListOperationCopyOffersList(id: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("/offers_lists/$id/operations/copy_offers_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
+    suspend fun postOffersListOperationsDeleteItem(id: Long): AppResponse =
+        client.post("offers_lists/$id/operations/delete_offers_list").body()
 
     suspend fun getSupServViewModel(): AppResponse =
         client.get("send_message_to_support").body()

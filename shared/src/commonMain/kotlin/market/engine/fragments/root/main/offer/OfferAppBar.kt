@@ -236,7 +236,10 @@ fun OfferAppBar(
                     body = {
                         SetUpDynamicFields(fields.value)
                     },
-                    onDismiss = {  showCreateNoteDialog.value = "" },
+                    onDismiss = {
+                        showCreateNoteDialog.value = ""
+                        isClicked.value = false
+                    },
                     onSuccessful = {
                         if(!isClicked.value) {
                             isClicked.value = true

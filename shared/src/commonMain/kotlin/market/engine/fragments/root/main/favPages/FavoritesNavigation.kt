@@ -56,7 +56,7 @@ import market.engine.fragments.root.main.user.UserContent
 @Serializable
 sealed class FavoritesConfig {
     @Serializable
-    data class FavPagesScreen(val favScreenType: FavScreenType) : FavoritesConfig()
+    data class FavPagesScreen(val favScreenType: FavScreenType, val ts: String? = null) : FavoritesConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnap: Boolean = false) : FavoritesConfig()

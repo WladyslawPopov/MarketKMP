@@ -485,4 +485,5 @@ interface Strings {
     val userDeletedLabel : StringResource
     val myNotesTitle: StringResource
     val createNewOffersListLabel: StringResource
+    val reorderTabLabel: StringResource
 }

@@ -12,14 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -29,8 +28,14 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.Tab
+import market.engine.core.network.networkObjects.Operations
+import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.rows.LazyRowWithScrollBars
+import org.jetbrains.compose.resources.stringResource
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -41,13 +46,14 @@ fun ReorderTabRow(
     selectedTab: Int, // Index of the selected tab
     onTabSelected: (Int) -> Unit, // Callback when a tab is clicked
     onTabsReordered: (List<Tab>) -> Unit, // Callback when tabs are reordered
-    isDragMode: MutableState<Boolean>,
-    lazyListState: LazyListState = rememberLazyListState(),
+    getOperations: (Long, (List<Operations>) -> Unit) -> Unit,
+    makeOperation: (String, Long) -> Unit,
+    isDragMode: Boolean,
     modifier: Modifier = Modifier
 ) {
     val currentTabsState = rememberUpdatedState(tabs)
     val listState = rememberUpdatedState(tabs)
-
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(selectedTab) {
         val visible = lazyListState.layoutInfo.visibleItemsInfo.any { it.index == selectedTab }
@@ -58,7 +64,7 @@ fun ReorderTabRow(
     }
 
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        if (isDragMode.value) {
+        if (isDragMode) {
             val newList = listState.value.toMutableList().apply {
                 add(to.index, removeAt(from.index))
             }
@@ -73,25 +79,61 @@ fun ReorderTabRow(
             modifierList = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         ) {
-            itemsIndexed(currentTabsState.value, key = { _, item -> item.title }) { index, item ->
-                ReorderableItem(reorderableState, key = item.title) {
+            itemsIndexed(currentTabsState.value, key = { _, item -> item.id }) { index, item ->
+                ReorderableItem(reorderableState, key = item.id) {
                     val interactionSource = remember { MutableInteractionSource() }
+                    val openPopup = remember { mutableStateOf(false) }
+                    val defReorderMenuItem = MenuItem(
+                        icon = drawables.reorderIcon,
+                        id = "reorder",
+                        title = stringResource(strings.reorderTabLabel),
+                        onClick = {
+                            makeOperation("reorder", 1L)
+                        }
+                    )
+
+                    val menuList = remember {
+                        mutableStateOf(
+                            listOf(
+                                defReorderMenuItem
+                            )
+                        )
+                    }
+
                     PageTab(
                         tab = item,
                         selectedTab = selectedTab,
                         currentIndex = index,
-                        isDragMode = isDragMode.value,
+                        isDragMode = isDragMode,
                         modifier = Modifier
                             .combinedClickable(
                                 onClick = {
                                     onTabSelected(index)
                                 },
                                 onLongClick = {
-                                    isDragMode.value = true
+                                    getOperations(item.id){ operations ->
+                                        menuList.value = buildList {
+                                            addAll(listOf(
+                                                defReorderMenuItem
+                                            ))
+                                            addAll(
+                                                operations.map {
+                                                    MenuItem(
+                                                        id = it.id ?: "",
+                                                        title = it.name ?: "",
+                                                        onClick = {
+                                                            makeOperation(it.id ?: "", item.id)
+                                                        }
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+                                    openPopup.value = true
                                 }
                             )
                             .draggableHandle(
-                            enabled = isDragMode.value,
+                            enabled = isDragMode,
                             onDragStarted = {
 //                                    ViewCompat.performHapticFeedback(
 //                                        view,
@@ -107,6 +149,7 @@ fun ReorderTabRow(
                             interactionSource = interactionSource,
                         )
                     )
+
                     if (selectedTab == index) {
                         val density = LocalDensity.current
 
@@ -140,6 +183,14 @@ fun ReorderTabRow(
                                 .padding(horizontal = dimens.smallPadding)
                         )
                     }
+
+                    PopUpMenu(
+                        openPopup = openPopup.value,
+                        menuList = menuList.value,
+                        onClosed = {
+                            openPopup.value = false
+                        }
+                    )
                 }
             }
         }

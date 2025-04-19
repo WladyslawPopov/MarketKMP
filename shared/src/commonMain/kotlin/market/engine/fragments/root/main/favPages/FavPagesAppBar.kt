@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.common.Platform
@@ -18,11 +18,15 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.Tab
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.FavoriteListItem
+import market.engine.core.network.networkObjects.Operations
 import market.engine.widgets.badges.BadgedButton
+import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.tabs.ReorderTabRow
 import org.jetbrains.compose.resources.stringResource
 
@@ -32,11 +36,31 @@ fun FavPagesAppBar(
     currentTab : Int,
     favTabList: List<FavoriteListItem>,
     modifier: Modifier = Modifier,
-    isDragMode: MutableState<Boolean>,
+    isDragMode: Boolean,
     navigationClick : (Int) -> Unit,
     onTabsReordered: (List<FavoriteListItem>) -> Unit,
+    getOperations: (Long, (List<Operations>) -> Unit) -> Unit,
+    makeOperation: (String, Long) -> Unit,
     onRefresh: () -> Unit
 ) {
+    val openPopup = remember { mutableStateOf(false) }
+    val defReorderMenuItem = MenuItem(
+        icon = drawables.reorderIcon,
+        id = "reorder",
+        title = stringResource(strings.reorderTabLabel),
+        onClick = {
+            makeOperation("reorder", 1L)
+        }
+    )
+
+    val menuList = remember {
+        mutableStateOf(
+            listOf(
+                defReorderMenuItem
+            )
+        )
+    }
+
     val listItems = listOf(
         NavigationItem(
             title = "",
@@ -52,24 +76,42 @@ fun FavPagesAppBar(
             icon = drawables.newLotIcon,
             tint = colors.steelBlue,
             hasNews = false,
-            isVisible = !isDragMode.value,
+            isVisible = !isDragMode,
             badgeCount = null,
-            onClick = onRefresh
+            onClick = {
+                makeOperation("create_blank_offer_list", UserData.login)
+            }
         ),
         NavigationItem(
             title = stringResource(strings.menuTitle),
             icon = drawables.menuIcon,
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
-            isVisible = favTabList.isNotEmpty() && favTabList[currentTab].id > 1000 && !isDragMode.value,
+            isVisible = favTabList.isNotEmpty() && favTabList[currentTab].id > 1000 && !isDragMode,
             badgeCount = null,
             onClick = {
-
+                getOperations(favTabList[currentTab].id){ operations ->
+                    menuList.value = buildList {
+                        addAll(listOf(
+                            defReorderMenuItem
+                        ))
+                        addAll(
+                            operations.map {
+                                MenuItem(
+                                    id = it.id ?: "",
+                                    title = it.name ?: "",
+                                    onClick = {
+                                        makeOperation(it.id ?: "", favTabList[currentTab].id)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                    openPopup.value = true
+                }
             }
         ),
     )
-
-    val lazyListState = rememberLazyListState()
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -84,6 +126,7 @@ fun FavPagesAppBar(
                 ReorderTabRow(
                     tabs = favTabList.map {
                         Tab(
+                            id = it.id,
                             title = it.title ?: "",
                             image = it.images.firstOrNull(),
                         )
@@ -99,7 +142,8 @@ fun FavPagesAppBar(
                         }
                         onTabsReordered(newList)
                     },
-                    lazyListState = lazyListState,
+                    getOperations = getOperations,
+                    makeOperation = makeOperation,
                     modifier = Modifier.fillMaxWidth().padding(end = dimens.smallPadding),
                 )
             }
@@ -120,6 +164,14 @@ fun FavPagesAppBar(
                         }
                     }
                 }
+
+                PopUpMenu(
+                    openPopup = openPopup.value,
+                    menuList = menuList.value,
+                    onClosed = {
+                        openPopup.value = false
+                    }
+                )
             }
         }
     )

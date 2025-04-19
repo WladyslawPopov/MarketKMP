@@ -8,6 +8,7 @@ import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
@@ -19,7 +20,7 @@ import org.koin.mp.KoinPlatform.getKoin
 
 
 interface FavPagesComponent {
-    var componentsPages: Value<ChildPages<*, FavPagesComponents>>?
+    var componentsPages: Value<ChildPages<*, FavPagesComponents>>
 
     val favScreenType : FavScreenType
 
@@ -31,6 +32,8 @@ interface FavPagesComponent {
     fun selectPage(p: Int)
 
     fun getPages(version : String)
+
+    fun fullRefresh()
 
     fun onRefresh()
 }
@@ -58,7 +61,7 @@ class DefaultFavPagesComponent(
     init {
         lifecycle.doOnResume {
             viewModel.getFavTabList{
-                getPages("first")
+                getPages(getCurrentDate())
             }
         }
     }
@@ -129,13 +132,15 @@ class DefaultFavPagesComponent(
                 }
             }
         )
+    }
 
-        viewModel.showPages.value = true
+    override fun fullRefresh() {
+        favoritesNavigation.replaceCurrent(FavoritesConfig.FavPagesScreen(favType, getCurrentDate()))
     }
 
     override fun onRefresh() {
-        val index = componentsPages?.value?.selectedIndex
-        when(val item = componentsPages?.value?.items?.get(index ?: 0)?.instance){
+        val index = componentsPages.value.selectedIndex
+        when(val item = componentsPages.value.items[index].instance){
             is FavPagesComponents.FavoritesChild -> {
                 item.component.onRefresh()
             }
@@ -146,7 +151,67 @@ class DefaultFavPagesComponent(
         }
     }
 
-    override var componentsPages: Value<ChildPages<*, FavPagesComponents>>? = null
+    override var componentsPages: Value<ChildPages<*, FavPagesComponents>> = childPages(
+        source = navigation,
+        serializer = FavPagesConfig.serializer(),
+        handleBackButton = true,
+        initialPages = {
+            Pages(
+                viewModel.favoritesTabList.value.map {
+                    FavPagesConfig(it)
+                },
+                selectedIndex = if(favType == FavScreenType.FAVORITES) 0 else 1,
+            )
+        },
+        key = "FavoritesStack",
+        childFactory = { config, componentContext ->
+            when (config.favItem.id) {
+                222L -> {
+                    FavPagesComponents.SubscribedChild(
+                        component = itemSubscriptions(
+                            componentContext,
+                            selectedType = FavScreenType.SUBSCRIBED,
+                            navigateToCreateNewSubscription = {
+                                favoritesNavigation.pushNew(
+                                    FavoritesConfig.CreateSubscriptionScreen(it)
+                                )
+                            },
+                            navigateToListing = {
+                                favoritesNavigation.pushNew(
+                                    FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                                )
+                            }
+                        )
+                    )
+                }
+                else -> {
+                    FavPagesComponents.FavoritesChild(
+                        component = itemFavorites(
+                            componentContext,
+                            navigateToOffer = {
+                                favoritesNavigation.pushNew(
+                                    FavoritesConfig.OfferScreen(
+                                        it, getCurrentDate()
+                                    )
+                                )
+                            },
+                            selectedType = when(config.favItem.id){
+                                111L -> {
+                                    FavScreenType.FAVORITES
+                                }
+                                333L -> {
+                                    FavScreenType.NOTES
+                                }
+                                else -> {
+                                    FavScreenType.FAV_LIST
+                                }
+                            }
+                        )
+                    )
+                }
+            }
+        }
+    )
 }
 
 sealed class FavPagesComponents {

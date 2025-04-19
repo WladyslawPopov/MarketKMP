@@ -14,16 +14,20 @@ import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.FavoriteListItem
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.network.networkObjects.Fields
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
 import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
+import market.engine.widgets.dialogs.CustomDialog
 
 
 @Serializable
@@ -44,14 +48,18 @@ fun FavPagesNavigation(
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
     val favTabList = viewModel.favoritesTabList.collectAsState()
-    val showPages = remember { viewModel.showPages }
     val isDragMode = remember { viewModel.isDragMode }
+    val showCreatedDialog = remember { mutableStateOf("") }
+    val postId = remember { mutableStateOf(0L) }
+    val isClicked = remember { mutableStateOf(false) }
+    val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
+    val title = remember { mutableStateOf("") }
 
     Column {
         FavPagesAppBar(
             select.value,
             favTabList = favTabList.value,
-            isDragMode = isDragMode,
+            isDragMode = isDragMode.value,
             modifier = Modifier.fillMaxWidth(),
             navigationClick = {
                 select.value = it
@@ -60,46 +68,117 @@ fun FavPagesNavigation(
             onTabsReordered = {
                 viewModel.updateFavTabList(it)
             },
+            getOperations = { id, callback ->
+                viewModel.getOperationFavTab(id, callback)
+            },
+            makeOperation = { type, id ->
+                when(type){
+                    "create_blank_offer_list","copy_offers_list","rename_offers_list" -> {
+                        viewModel.getOperationFields(type, id){ t, f ->
+                            title.value = t
+                            fields.value = f
+                            showCreatedDialog.value = type
+                            postId.value = id
+                        }
+                    }
+                    "reorder" -> {
+                        viewModel.isDragMode.value = true
+                    }
+                    "delete_offers_list" -> {
+                        viewModel.deleteFavTab(id){
+                            component.fullRefresh()
+                        }
+                    }
+                    "mark_as_primary_offers_list" -> {
+                        viewModel.pinFavTab(id){
+                            component.fullRefresh()
+                        }
+                    }
+                    "unmark_as_primary_offers_list" -> {
+                        viewModel.unpinFavTab(id) {
+                            component.fullRefresh()
+                        }
+                    }
+                    else -> {
+
+                    }
+                }
+            },
             onRefresh = {
                 component.onRefresh()
             }
         )
 
-        if (showPages.value && component.componentsPages != null) {
-            ChildPages(
-                pages = component.componentsPages!!,
-                scrollAnimation = PagesScrollAnimation.Default,
-                onPageSelected = {
-                    select.value = it
-                    component.selectPage(select.value)
-                }
-            ) { _, page ->
-                when (page) {
-                    is FavPagesComponents.SubscribedChild -> {
-                        SubscriptionsContent(
-                            page.component,
-                            modifier.pointerInput(Unit) {
-                                detectTapGestures(onTap = {
-                                    viewModel.isDragMode.value = false
-                                    component.getPages(getCurrentDate())
-                                    select.value = 0
-                                })
-                            }
-                        )
+        CustomDialog(
+            showDialog = showCreatedDialog.value != "",
+            containerColor = colors.primaryColor,
+            title = title.value,
+            body = {
+                SetUpDynamicFields(fields.value)
+            },
+            onDismiss = {
+                showCreatedDialog.value = ""
+                isClicked.value = false
+            },
+            onSuccessful = {
+                if (!isClicked.value) {
+                    isClicked.value = true
+                    val bodyPost = HashMap<String, JsonElement>()
+                    fields.value.forEach { field ->
+                        if (field.data != null) {
+                            bodyPost[field.key ?: ""] = field.data!!
+                        }
                     }
 
-                    is FavPagesComponents.FavoritesChild -> {
-                        FavoritesContent(
-                            page.component,
-                            modifier.pointerInput(Unit) {
-                                detectTapGestures(onTap = {
-                                    viewModel.isDragMode.value = false
-                                    component.getPages(getCurrentDate())
-                                    select.value = 0
-                                })
-                            }
-                        )
-                    }
+                    viewModel.postFieldsSend(
+                        showCreatedDialog.value,
+                        postId.value,
+                        bodyPost,
+                        onSuccess = {
+                            showCreatedDialog.value = ""
+                            isClicked.value = false
+                            component.fullRefresh()
+                        },
+                        errorCallback = {
+                            fields.value = it
+                            isClicked.value = false
+                        }
+                    )
+                }
+            }
+        )
+
+        ChildPages(
+            pages = component.componentsPages,
+            scrollAnimation = PagesScrollAnimation.Default,
+            onPageSelected = {
+                select.value = it
+                component.selectPage(select.value)
+            }
+        ) { _, page ->
+            when (page) {
+                is FavPagesComponents.SubscribedChild -> {
+                    SubscriptionsContent(
+                        page.component,
+                        modifier.pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                viewModel.isDragMode.value = false
+                                component.fullRefresh()
+                            })
+                        }
+                    )
+                }
+
+                is FavPagesComponents.FavoritesChild -> {
+                    FavoritesContent(
+                        page.component,
+                        modifier.pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                viewModel.isDragMode.value = false
+                                component.fullRefresh()
+                            })
+                        }
+                    )
                 }
             }
         }

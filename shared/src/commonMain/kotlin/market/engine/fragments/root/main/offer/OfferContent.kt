@@ -460,7 +460,10 @@ fun OfferContent(
                                             body = {
                                                 SetUpDynamicFields(fields.value)
                                             },
-                                            onDismiss = {  showDialogString.value = "" },
+                                            onDismiss = {
+                                                showDialogString.value = ""
+                                                isClicked.value = false
+                                            },
                                             onSuccessful = {
                                                 if (!isClicked.value) {
                                                     isClicked.value = true

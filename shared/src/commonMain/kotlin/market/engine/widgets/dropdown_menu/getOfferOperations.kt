@@ -396,6 +396,7 @@ fun getOfferOperations(
         title = stringResource(strings.messageAboutError),
         onDismiss = {
             showDeleteOfferDialog.value = false
+            isClicked.value = false
             onClose()
         },
         onSuccess = {
@@ -460,7 +461,10 @@ fun getOfferOperations(
                 }
             )
         },
-        onDismiss = { showActivateOfferDialog.value = false },
+        onDismiss = {
+            showActivateOfferDialog.value = false
+            isClicked.value = false
+        },
         onSuccessful = {
             if(!isClicked.value) {
                 isClicked.value = true
@@ -512,7 +516,10 @@ fun getOfferOperations(
     DateDialog(
         showDialog = showActivateOfferForFutureDialog.value,
         isSelectableDates = true,
-        onDismiss = { showActivateOfferForFutureDialog.value = false },
+        onDismiss = {
+            showActivateOfferForFutureDialog.value = false
+            isClicked.value = false
+        },
         onSucceed = { futureTimeInSeconds ->
             if(!isClicked.value) {
                 isClicked.value = true
@@ -568,7 +575,10 @@ fun getOfferOperations(
         body = {
             SetUpDynamicFields(fields.value)
         },
-        onDismiss = {  showCreateNoteDialog.value = "" },
+        onDismiss = {
+            showCreateNoteDialog.value = ""
+            isClicked.value = false
+        },
         onSuccessful = {
             if(!isClicked.value) {
                 isClicked.value = true
