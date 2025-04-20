@@ -250,8 +250,8 @@ fun FavoritesContent(
                                 favViewModel.selectItems.remove(offer.id)
                             }
                         },
-                        onUpdateOfferItem = { selectedOffer ->
-                            favViewModel.updateItem.value = selectedOffer.id
+                        onUpdateOfferItem = { id ->
+                            favViewModel.updateItem.value = id
                             favViewModel.updateItemTrigger.value++
 
                             favViewModel.updateUserInfo()

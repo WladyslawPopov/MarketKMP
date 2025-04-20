@@ -173,7 +173,7 @@ fun MyProposalsContent(
                 MyProposalItem(
                     offer = offer,
                     onUpdateOfferItem = {
-                        viewModel.updateItem.value = it.id
+                        viewModel.updateItem.value = it
                     },
                     updateTrigger = viewModel.updateItemTrigger.value,
                     goToOffer = {

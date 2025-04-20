@@ -28,8 +28,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -110,7 +112,9 @@ fun CreateOrderContent(
     LaunchedEffect(createOrderResponse.value){
         if (createOrderResponse.value?.status == "operation_success"){
             delay(2000)
-            component.goToMyOrders()
+            withContext(Dispatchers.Main) {
+                component.goToMyOrders()
+            }
         }
     }
 

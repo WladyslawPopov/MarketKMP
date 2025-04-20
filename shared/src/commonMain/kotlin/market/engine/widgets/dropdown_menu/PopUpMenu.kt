@@ -26,7 +26,7 @@ fun PopUpMenu(
     onClosed: () -> Unit,
 ) {
     DropdownMenu(
-        modifier = Modifier.widthIn(max = 350.dp).heightIn(max = 400.dp),
+        modifier = Modifier.widthIn(max = 350.dp).heightIn(max = 800.dp),
         expanded = openPopup,
         onDismissRequest = { onClosed() },
         containerColor = colors.white,

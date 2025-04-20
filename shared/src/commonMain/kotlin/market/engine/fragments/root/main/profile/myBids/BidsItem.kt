@@ -42,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun BidsItem(
     offer: Offer,
-    onUpdateOfferItem : (offer: Offer) -> Unit,
+    onUpdateOfferItem : (Long) -> Unit,
     baseViewModel: BaseViewModel,
     updateTrigger : Int,
     goToUser: (Long) -> Unit,

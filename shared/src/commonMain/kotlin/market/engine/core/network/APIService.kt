@@ -101,6 +101,18 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
+    suspend fun postOfferOperationsAddOfferToList(idOffer: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("offers/$idOffer/operations/add_to_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
+    suspend fun postOfferOperationsRemoveOfferToList(idOffer: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("offers/$idOffer/operations/remove_from_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
     suspend fun postOfferOperationsEditNote(idOffer: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("offers/$idOffer/operations/edit_note") {
             contentType(ContentType.Application.Json)
@@ -433,6 +445,12 @@ class APIService(private val client: HttpClient) {
 
     suspend fun getOfferOperationsCreateNote(idOffer: Long): AppResponse =
         client.get("offers/$idOffer/operations/create_note").body()
+
+    suspend fun getOfferOperationsAddOfferToList(idOffer: Long): AppResponse =
+        client.get("offers/$idOffer/operations/add_to_list").body()
+
+    suspend fun getOfferOperationsRemoveOfferToList(idOffer: Long): AppResponse =
+        client.get("offers/$idOffer/operations/remove_from_list").body()
 
     suspend fun getOfferOperationsEditNote(idOffer: Long): AppResponse =
         client.get("offers/$idOffer/operations/edit_note").body()

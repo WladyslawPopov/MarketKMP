@@ -41,9 +41,11 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.ConversationsOperations
+import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.DeliveryAddress
+import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
 import market.engine.core.network.networkObjects.Operations
@@ -227,6 +229,13 @@ open class BaseViewModel: ViewModel() {
                         }
 
                         updateUserInfo()
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+
                         onSuccess(!offer.isWatchedByMe)
                     } else {
                         if (buf.error != null)
@@ -343,7 +352,10 @@ open class BaseViewModel: ViewModel() {
             val res = uploadFile(item)
 
             if (res.success != null) {
-                onSuccess(res.success!!)
+                delay(1000)
+                withContext(Dispatchers.Main){
+                    onSuccess(res.success!!)
+                }
             } else {
                 showToast(
                     errorToastItem.copy(
@@ -947,6 +959,113 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun getOfferListFieldForOffer(
+        offerId : Long,
+        type: String,
+        onSuccess: (
+            fields: ArrayList<Fields>
+        ) -> Unit
+    ) {
+        viewModelScope.launch {
+            val postRes = withContext(Dispatchers.IO) {
+                when (type) {
+                    "add_to_list" -> {
+                        offerOperations.getOfferOperationsAddToList(offerId)
+                    }
+
+                    "remove_from_list" -> {
+                        offerOperations.getOfferOperationsRemoveToList(offerId)
+                    }
+
+                    else -> {
+                        null
+                    }
+                }
+            }
+
+            val bufPost = postRes?.success
+            val err = postRes?.error
+            withContext(Dispatchers.Main) {
+                if (bufPost != null) {
+                    onSuccess(bufPost)
+                }else{
+                    if (err != null) {
+                        onError(err)
+                    }
+                }
+            }
+        }
+    }
+
+    fun postOfferListFieldForOffer(
+        offerId : Long,
+        type : String,
+        body : HashMap<String, JsonElement>,
+        onSuccess: () -> Unit,
+        onError: (ArrayList<Fields>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val buf = withContext(Dispatchers.IO) {
+                when(type){
+                    "add_to_list" -> {
+                        offerOperations.postOfferOperationsAddOfferToList(offerId,body)
+                    }
+                    "remove_from_list" -> {
+                        offerOperations.postOfferOperationsRemoveOfferToList(offerId,body)
+                    }
+                    else -> {
+                        null
+                    }
+                }
+            }
+
+            val res = buf?.success
+
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    if (res.status == "operation_success") {
+                        analyticsHelper.reportEvent(
+                            "${type}_success",
+                            eventParameters = mapOf(
+                                "lot_id" to offerId,
+                                "body" to body
+                            )
+                        )
+                        showToast(
+                            ToastItem(
+                                isVisible = true,
+                                type = ToastType.SUCCESS,
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        onSuccess()
+                    } else {
+                        res.recipe?.fields?.let { onError(it) }
+                    }
+                }
+            }
+        }
+    }
+
+    fun getOffersList(onSuccess: (List<FavoriteListItem>) -> Unit) {
+        val offersListOperations = OffersListOperations(apiService)
+        viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) { offersListOperations.getOffersList() }
+
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                if (res != null) {
+                    val buf = arrayListOf<FavoriteListItem>()
+                    buf.addAll(res)
+                    onSuccess(res)
+                }else{
+                    if (data.error != null)
+                        onError(data.error!!)
+                }
+            }
+        }
+    }
+
     fun postNotes(
         offerId : Long,
         type : String,
@@ -1029,9 +1148,11 @@ open class BaseViewModel: ViewModel() {
             val res = withContext(Dispatchers.IO) {
                 offerOperations.getOperationsOffer(offerId)
             }
+            val buf = res.success
+            val err = res.error
             withContext(Dispatchers.Main) {
-                if (res.success != null) {
-                    val buf = res.success?.filter {
+                if (buf != null) {
+                    val filtered = res.success?.filter {
                         it.id in listOf(
                             "watch",
                             "unwatch",
@@ -1053,18 +1174,15 @@ open class BaseViewModel: ViewModel() {
                             "act_on_proposal",
                             "make_proposal",
                             "cancel_all_bids",
-                            "remove_bids_of_users"
+                            "remove_bids_of_users",
+                            "remove_from_list",
+                            "add_to_list"
                         )
                     }
-                    if (buf != null) {
-                        onSuccess(buf)
-                    }else{
-                        onError(
-                            ServerErrorException(
-                                errorCode = res.error?.errorCode ?: "",
-                                humanMessage = res.error?.humanMessage ?: ""
-                            )
-                        )
+                    onSuccess(filtered ?: emptyList())
+                }else{
+                    if (err != null){
+                        onError(err)
                     }
                 }
             }

@@ -17,6 +17,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.data.types.OfferStates
+import market.engine.core.network.networkObjects.Operations
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
@@ -26,7 +27,7 @@ class OfferViewModel(
     private val dataBase: MarketDB
 ) : BaseViewModel() {
 
-    private val _responseOffer : MutableStateFlow<Offer?> = MutableStateFlow(null)
+    private val _responseOffer: MutableStateFlow<Offer?> = MutableStateFlow(null)
     val responseOffer: StateFlow<Offer?> = _responseOffer.asStateFlow()
 
     private val _responseHistory = MutableStateFlow<ArrayList<Offer>>(arrayListOf())
@@ -51,7 +52,10 @@ class OfferViewModel(
 
     val isMyOffer = mutableStateOf(false)
 
-    var eventParameters : Map<String, Any?> = mapOf()
+    var eventParameters: Map<String, Any?> = mapOf()
+
+    private val _menuList = MutableStateFlow<List<Operations>>(arrayListOf())
+    val menuList: StateFlow<List<Operations>> = _menuList.asStateFlow()
 
     fun getOffer(id: Long, isSnapshot: Boolean = false) {
         viewModelScope.launch {
@@ -62,7 +66,8 @@ class OfferViewModel(
 
                 val offer = withContext(Dispatchers.IO) {
 
-                    val response = if (isSnapshot) apiService.getOfferSnapshots(id) else apiService.getOffer(id)
+                    val response =
+                        if (isSnapshot) apiService.getOfferSnapshots(id) else apiService.getOffer(id)
                     val serializer = ListSerializer(Offer.serializer())
                     deserializePayload(response.payload, serializer).firstOrNull()
                 }
@@ -76,29 +81,34 @@ class OfferViewModel(
         }
     }
 
-    fun getUserInfo(id : Long) {
+    fun getUserInfo(id: Long) {
         viewModelScope.launch {
             try {
-                val res =  withContext(Dispatchers.IO){
+                val res = withContext(Dispatchers.IO) {
                     userOperations.getUsers(id)
                 }
 
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     val user = res.success?.firstOrNull()
                     val error = res.error
-                    if (user != null){
+                    if (user != null) {
                         _responseOffer.value = _responseOffer.value?.copy(
                             sellerData = user
                         )
                         updateItemTrigger.value++
-                    }else{
+                    } else {
                         error?.let { throw it }
                     }
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+                onError(
+                    ServerErrorException(
+                        errorCode = exception.message.toString(),
+                        humanMessage = exception.message.toString()
+                    )
+                )
             }
         }
     }
@@ -110,16 +120,18 @@ class OfferViewModel(
                     launch {
                         updateUserInfo()
                         getUserInfo(offer.sellerData?.id ?: 1L)
+                        getOperations(offer.id)
                     }
                     launch {
                         //init timers
                         val initTimer =
-                            ((offer.session?.end?.toLongOrNull() ?: 1L) - (getCurrentDate().toLongOrNull()
+                            ((offer.session?.end?.toLongOrNull()
+                                ?: 1L) - (getCurrentDate().toLongOrNull()
                                 ?: 1L)) * 1000
 
                         isMyOffer.value = UserData.userInfo?.login == offer.sellerData?.login
 
-                         eventParameters = mapOf(
+                        eventParameters = mapOf(
                             "lot_id" to offer.id,
                             "lot_name" to offer.title,
                             "lot_city" to offer.freeLocation,
@@ -135,16 +147,13 @@ class OfferViewModel(
                                 analyticsHelper.reportEvent("view_item_snapshot", eventParameters)
                                 OfferStates.SNAPSHOT
                             }
+
                             offer.isPrototype -> {
                                 analyticsHelper.reportEvent("view_item_prototype", eventParameters)
                                 OfferStates.PROTOTYPE
                             }
+
                             offer.state == "active" -> {
-                                val res = offerOperations.getOperationsOffer(offer.id)
-                                val buf = res.success
-
-                                _responseOffer.value?.isProposalEnabled = buf?.find { it.id == "make_proposal" } != null
-
                                 analyticsHelper.reportEvent("view_item", eventParameters)
                                 when {
                                     (offer.session?.start?.toLongOrNull()
@@ -159,7 +168,7 @@ class OfferViewModel(
 
                             offer.state == "sleeping" -> {
                                 analyticsHelper.reportEvent("view_item", eventParameters)
-                                if (offer.session == null || offer.buyerData!=null) OfferStates.COMPLETED else OfferStates.INACTIVE
+                                if (offer.session == null || offer.buyerData != null) OfferStates.COMPLETED else OfferStates.INACTIVE
                             }
 
                             else -> {
@@ -176,7 +185,7 @@ class OfferViewModel(
                             startTimer(initTimer) {
                                 getOffer(offer.id)
                             }
-                        }else{
+                        } else {
                             _remainingTime.value = initTimer
                         }
                     }
@@ -190,7 +199,6 @@ class OfferViewModel(
             }
         }
     }
-
 
     private fun getHistory(currentId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -224,9 +232,21 @@ class OfferViewModel(
         }
     }
 
-    fun addHistory(id : Long){
+    fun addHistory(id: Long) {
         val sh = dataBase.offerVisitedHistoryQueries
         sh.insertEntry(id, UserData.login)
+    }
+
+    fun getOperations(id: Long) {
+        viewModelScope.launch {
+            getOfferOperations(
+                id
+            ){ list ->
+                _menuList.value = list
+                _responseOffer.value?.isProposalEnabled =
+                    list.find { it.id == "make_proposal" } != null
+            }
+        }
     }
 
     private fun getOurChoice(id: Long) {
@@ -270,7 +290,9 @@ class OfferViewModel(
     }
 
     private fun startTimerUpdateBids(offer: Offer) {
-        val initialTime = (offer.session?.end?.toLongOrNull()?.let { it - getCurrentDate().toLong() } ?: 0L) * 1000
+        val initialTime =
+            (offer.session?.end?.toLongOrNull()?.let { it - getCurrentDate().toLong() }
+                ?: 0L) * 1000
 
         timerBidsJob?.cancel()
         timerBidsJob = viewModelScope.launch {
@@ -300,7 +322,7 @@ class OfferViewModel(
         }
     }
 
-   fun updateBidsInfo(offer: Offer) {
+    fun updateBidsInfo(offer: Offer) {
         viewModelScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
@@ -329,8 +351,8 @@ class OfferViewModel(
     fun addToBasket(offerId: Long) {
         viewModelScope.launch {
             try {
-                val response = withContext(Dispatchers.IO){
-                    val bodyAddB = HashMap<String,String>()
+                val response = withContext(Dispatchers.IO) {
+                    val bodyAddB = HashMap<String, String>()
                     bodyAddB["offer_id"] = offerId.toString()
                     userOperations.postUsersOperationsAddItemToCart(UserData.login, bodyAddB)
                 }
@@ -354,7 +376,12 @@ class OfferViewModel(
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+                onError(
+                    ServerErrorException(
+                        errorCode = exception.message.toString(),
+                        humanMessage = exception.message.toString()
+                    )
+                )
             }
         }
     }
@@ -364,9 +391,9 @@ class OfferViewModel(
         offer: Offer,
         onSuccess: () -> Unit,
         onDismiss: () -> Unit
-    ){
+    ) {
         viewModelScope.launch {
-            val res =  withContext(Dispatchers.IO) {
+            val res = withContext(Dispatchers.IO) {
                 val body = hashMapOf("price" to sum)
                 offerOperations.postOfferOperationsAddBid(
                     offer.id,

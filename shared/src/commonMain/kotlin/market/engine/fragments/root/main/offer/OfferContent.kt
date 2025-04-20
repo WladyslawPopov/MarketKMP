@@ -1,8 +1,5 @@
 package market.engine.fragments.root.main.offer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,23 +52,30 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonElement
+import kotlinx.coroutines.withContext
+import market.engine.common.clipBoardEvent
+import market.engine.common.openCalendarEvent
+import market.engine.common.openShare
 import market.engine.common.openUrl
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.SelectedBasketItem
+import market.engine.core.data.items.ToastItem
 import market.engine.core.network.networkObjects.DealType
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.Offer
@@ -81,7 +85,9 @@ import market.engine.core.network.networkObjects.Value
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.ProposalType
+import market.engine.core.data.types.ToastType
 import market.engine.core.network.networkObjects.Bids
+import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
@@ -97,15 +103,15 @@ import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
-import market.engine.widgets.dropdown_menu.getOfferOperations
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.onError
 import market.engine.widgets.items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.CustomDialog
+import market.engine.widgets.dialogs.OfferOperationsDialogs
+import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
 import market.engine.widgets.rows.ColumnWithScrollBars
@@ -115,6 +121,7 @@ import market.engine.widgets.textFields.OutlinedTextInputField
 import market.engine.widgets.texts.DiscountText
 import market.engine.widgets.texts.SeparatorLabel
 import market.engine.widgets.texts.TitleText
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -157,6 +164,8 @@ fun OfferContent(
         initialFirstVisibleItemIndex = offerViewModel.scrollItem.value,
     )
 
+    val operationsList = offerViewModel.menuList.collectAsState()
+
     val scope = rememberCoroutineScope()
 
     BackHandler(model.backHandler){
@@ -185,7 +194,28 @@ fun OfferContent(
 
     val showBidDialog = remember { mutableStateOf(false) }
     val myMaximalBid = remember { mutableStateOf("") }
+    
+    val errorMes = remember { mutableStateOf("") }
+    val offerOperations = offerViewModel.offerOperations
+    val analyticsHelper = offerViewModel.analyticsHelper
 
+    val showDialog = remember { mutableStateOf(false) }
+
+    val showDeleteOfferDialog = remember { mutableStateOf(false) }
+    val showActivateOfferDialog = remember { mutableStateOf(false) }
+    val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
+    val showCreateNoteDialog = remember { mutableStateOf("") }
+    val showOffersListDialog = remember { mutableStateOf("") }
+
+    val choices = remember{ mutableListOf<Choices>() }
+    val title = remember { mutableStateOf("") }
+    val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
+
+    val isClicked = remember { mutableStateOf(false) }
+
+    val menuList = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
+
+    val successToast = stringResource(strings.operationSuccess)
 
     LaunchedEffect(isImageViewerVisible.value){
         if (!isImageViewerVisible.value){
@@ -231,12 +261,296 @@ fun OfferContent(
     }
 
     lotState.value?.let { offer ->
+
+        LaunchedEffect(operationsList.value){
+            val copiedString = getString(strings.idCopied)
+            val defOptions = listOf(
+                MenuItem(
+                    id = "copyId",
+                    title = getString(strings.copyOfferId),
+                    icon = drawables.copyIcon,
+                    onClick = {
+                        clipBoardEvent(offer.id.toString())
+                        offerViewModel.showToast(
+                            successToastItem.copy(
+                                message = copiedString
+                            )
+                        )
+                    }
+                ),
+                MenuItem(
+                    id = "share",
+                    title = getString(strings.shareOffer),
+                    icon = drawables.shareIcon,
+                    onClick = {
+                        offer.publicUrl?.let { openShare(it) }
+                    }
+                ),
+                MenuItem(
+                    id = "calendar",
+                    title = getString(strings.addToCalendar),
+                    icon = drawables.calendarIcon,
+                    onClick = {
+                        offer.publicUrl?.let { openCalendarEvent(it) }
+                    }
+                ),
+            )
+            menuList.value = buildList {
+                addAll(defOptions)
+                addAll(operationsList.value.map { operation ->
+                    MenuItem(
+                        id = operation.id ?: "",
+                        title = operation.name ?: "",
+                        onClick = {
+                            when (operation.id) {
+                                "watch" -> {
+                                    offerViewModel.addToFavorites(offer){ isWatchedByMe ->
+                                        lotState.value?.isWatchedByMe = isWatchedByMe
+                                        offerViewModel.getOperations(offer.id)
+                                    }
+                                }
+                                "unwatch" -> {
+                                    offerViewModel.addToFavorites(offer){ isWatchedByMe ->
+                                        lotState.value?.isWatchedByMe = isWatchedByMe
+                                        offerViewModel.getOperations(offer.id)
+                                    }
+                                }
+                                "create_note","edit_note" -> {
+                                    offerViewModel.getNotesField(offer.id, operation.id){ f ->
+                                        title.value = operation.name.toString()
+                                        fields.value = f
+                                        showCreateNoteDialog.value = operation.id
+                                    }
+                                }
+                                "add_to_list", "remove_from_list" -> {
+                                    offerViewModel.getOfferListFieldForOffer(offer.id, operation.id){ f ->
+                                        title.value = operation.name.toString()
+                                        fields.value = f
+                                        showOffersListDialog.value = operation.id
+                                    }
+                                }
+                                "delete_note" -> {
+                                    offerViewModel.deleteNote(
+                                        offer.id
+                                    ){
+                                        val eventParam = mapOf(
+                                            "lot_id" to offer.id,
+                                            "lot_name" to offer.title,
+                                            "lot_city" to offer.freeLocation,
+                                            "lot_category" to offer.catpath.lastOrNull(),
+                                            "seller_id" to offer.sellerData?.id
+                                        )
+
+                                        analyticsHelper.reportEvent(
+                                            "delete_note",
+                                            eventParam
+                                        )
+
+                                        component.updateOffer(offer.id, model.isSnapshot)
+                                    }
+                                }
+                                "prolong_offer" -> {
+                                    scope.launch(Dispatchers.IO) {
+                                        val buf =
+                                            offerOperations.postOfferOperationsProlongOffer(
+                                                offer.id
+                                            )
+                                        val r = buf.success
+                                        withContext(Dispatchers.Main) {
+                                            if (r != null) {
+                                                if (r.success) {
+                                                    offerViewModel.showToast(
+                                                        ToastItem(
+                                                            isVisible = true,
+                                                            type = ToastType.SUCCESS,
+                                                            message = successToast
+                                                        )
+                                                    )
+
+                                                    component.updateOffer(offer.id, model.isSnapshot)
+                                                } else {
+                                                    errorMes.value =
+                                                        r.humanMessage.toString()
+                                                    showDialog.value = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                "activate_offer_for_future" -> {
+                                    showActivateOfferForFutureDialog.value = !showActivateOfferForFutureDialog.value
+                                }
+                                "activate_offer" -> {
+                                    scope.launch {
+                                        val response = withContext(Dispatchers.IO) {
+                                            offerOperations.getOfferOperationsActivateOffer(
+                                                offer.id
+                                            )
+                                        }
+                                        withContext(Dispatchers.Main) {
+                                            val resChoice = response.success
+                                            if (resChoice != null) {
+                                                resChoice.firstOrNull()?.let { field ->
+                                                    choices.clear()
+                                                    title.value =
+                                                        field.shortDescription.toString()
+                                                    field.choices?.forEach {
+                                                        choices.add(it)
+                                                    }
+                                                }
+                                            }
+
+                                            showActivateOfferDialog.value = !showActivateOfferDialog.value
+                                        }
+                                    }
+                                }
+                                "set_anti_sniper" -> {
+                                    scope.launch(Dispatchers.IO) {
+                                        val buf =
+                                            offerOperations.postOfferOperationsSetAntiSniper(
+                                                offer.id
+                                            )
+                                        val r = buf.success
+                                        withContext(Dispatchers.Main) {
+                                            if (r != null) {
+                                                if (r.success) {
+                                                    val eventParam = mapOf(
+                                                        "lot_id" to offer.id,
+                                                        "lot_name" to offer.title,
+                                                        "lot_city" to offer.freeLocation,
+                                                        "lot_category" to offer.catpath.lastOrNull(),
+                                                        "seller_id" to offer.sellerData?.id
+                                                    )
+
+                                                    analyticsHelper.reportEvent(
+                                                        "set_anti_sniper",
+                                                        eventParam
+                                                    )
+                                                    offerViewModel.showToast(
+                                                        ToastItem(
+                                                            isVisible = true,
+                                                            type = ToastType.SUCCESS,
+                                                            message = successToast
+                                                        )
+                                                    )
+
+                                                    component.updateOffer(offer.id, model.isSnapshot)
+                                                } else {
+                                                    errorMes.value =
+                                                        r.humanMessage.toString()
+                                                    showDialog.value = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                "unset_anti_sniper" -> {
+                                    scope.launch(Dispatchers.IO) {
+                                        val buf =
+                                            offerOperations.postOfferOperationsUnsetAntiSniper(
+                                                offer.id
+                                            )
+                                        val r = buf.success
+                                        withContext(Dispatchers.Main) {
+                                            if (r != null) {
+                                                if (r.success) {
+
+                                                    val eventParam = mapOf(
+                                                        "lot_id" to offer.id,
+                                                        "lot_name" to offer.title,
+                                                        "lot_city" to offer.freeLocation,
+                                                        "lot_category" to offer.catpath.lastOrNull(),
+                                                        "seller_id" to offer.sellerData?.id
+                                                    )
+
+                                                    analyticsHelper.reportEvent(
+                                                        "unset_anti_sniper",
+                                                        eventParam
+                                                    )
+
+                                                    offerViewModel.showToast(
+                                                        ToastItem(
+                                                            isVisible = true,
+                                                            type = ToastType.SUCCESS,
+                                                            message = successToast
+                                                        )
+                                                    )
+
+                                                    component.updateOffer(offer.id, model.isSnapshot)
+                                                } else {
+                                                    errorMes.value =
+                                                        r.humanMessage.toString()
+                                                    showDialog.value = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                "delete_offer" -> {
+                                    showDeleteOfferDialog.value =
+                                        !showDeleteOfferDialog.value
+                                }
+                                "finalize_session" -> {
+                                    scope.launch(Dispatchers.IO) {
+                                        val buf =
+                                            offerOperations.postOfferOperationsFinalizeSession(
+                                                offer.id
+                                            )
+                                        val r = buf.success
+                                        withContext(Dispatchers.Main) {
+                                            if (r != null) {
+                                                if (r.success) {
+                                                    offerViewModel.showToast(
+                                                        ToastItem(
+                                                            isVisible = true,
+                                                            type = ToastType.SUCCESS,
+                                                            message = successToast
+                                                        )
+                                                    )
+                                                    component.updateOffer(offer.id, model.isSnapshot)
+                                                } else {
+                                                    errorMes.value =
+                                                        r.humanMessage.toString()
+                                                    showDialog.value = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                "copy_offer_without_old_photo" -> {
+                                    component.goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE, offer.catpath, offer.id, null)
+                                }
+                                "edit_offer" -> {
+                                    component.goToCreateOffer(CreateOfferType.EDIT, offer.catpath, offer.id, null)
+                                }
+                                "copy_offer" -> {
+                                    component.goToCreateOffer(CreateOfferType.COPY, offer.catpath, offer.id, null)
+                                }
+                                "act_on_proposal" -> {
+                                    component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
+                                }
+                                "make_proposal" -> {
+                                    component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
+                                }
+                                "cancel_all_bids" -> {
+                                    component.goToDynamicSettings("cancel_all_bids", offer.id)
+                                }
+                                "remove_bids_of_users" -> {
+                                    component.goToDynamicSettings("remove_bids_of_users", offer.id)
+                                }
+                            }
+                        }
+                    )
+                })
+            }
+        }
+
         BaseContent(
             topBar = {
                 OfferAppBar(
                     offerState.value == OfferStates.SNAPSHOT,
                     offer,
-                    offerViewModel,
+                    menuItems = menuList.value,
                     onBeakClick = {
                         if (!isImageViewerVisible.value) {
                             component.onBackClick()
@@ -401,11 +715,6 @@ fun OfferContent(
                             content = {
                                 if (offer.note != null) {
                                     item {
-                                        val showDialogString = remember { mutableStateOf("") }
-                                        val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
-                                        val title = remember { mutableStateOf("") }
-                                        val isClicked = remember { mutableStateOf(false) }
-
                                         Row(
                                             modifier = Modifier.background(
                                                 colors.white,
@@ -416,7 +725,7 @@ fun OfferContent(
                                                     "edit_note"
                                                 ){ f ->
                                                     fields.value = f
-                                                    showDialogString.value = "edit_note"
+                                                    showCreateNoteDialog.value = "edit_note"
                                                 }
                                             }.padding(dimens.smallPadding),
                                             verticalAlignment = Alignment.CenterVertically,
@@ -452,48 +761,6 @@ fun OfferContent(
                                                 }
                                             }
                                         }
-
-                                        CustomDialog(
-                                            showDialog = showDialogString.value != "",
-                                            containerColor = colors.primaryColor,
-                                            title = title.value,
-                                            body = {
-                                                SetUpDynamicFields(fields.value)
-                                            },
-                                            onDismiss = {
-                                                showDialogString.value = ""
-                                                isClicked.value = false
-                                            },
-                                            onSuccessful = {
-                                                if (!isClicked.value) {
-                                                    isClicked.value = true
-                                                    val bodyPost = HashMap<String, JsonElement>()
-                                                    fields.value.forEach { field ->
-                                                        if (field.data != null) {
-                                                            bodyPost[field.key ?: ""] = field.data!!
-                                                        }
-                                                    }
-
-                                                    offerViewModel.postNotes(
-                                                        offer.id,
-                                                        showDialogString.value,
-                                                        bodyPost,
-                                                        onSuccess = {
-                                                            isClicked.value = false
-                                                            showDialogString.value = ""
-                                                            component.updateOffer(
-                                                                offer.id,
-                                                                model.isSnapshot
-                                                            )
-                                                        },
-                                                        onError = {
-                                                            isClicked.value = false
-                                                            fields.value = it
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                        )
                                     }
                                 }
 
@@ -538,13 +805,21 @@ fun OfferContent(
                                                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                PopupActionButton(
-                                                    stringResource(strings.operationsParameterName),
-                                                    color = colors.steelBlue,
-                                                    tint = colors.alwaysWhite,
-                                                    isShowOptions = isShowOptions
-                                                )
-
+                                                Column {
+                                                    PopupActionButton(
+                                                        stringResource(strings.operationsParameterName),
+                                                        color = colors.steelBlue,
+                                                        tint = colors.alwaysWhite,
+                                                        isShowOptions = isShowOptions
+                                                    )
+                                                    
+                                                    PopUpMenu(
+                                                        openPopup = isShowOptions.value,
+                                                        onClosed = { isShowOptions.value = false },
+                                                        menuList = menuList.value
+                                                    )
+                                                }
+                                                
                                                 PromoRow(
                                                     offer,
                                                     showName = true,
@@ -552,37 +827,6 @@ fun OfferContent(
                                                 ) {
 
                                                 }
-                                            }
-
-                                            AnimatedVisibility(
-                                                isShowOptions.value,
-                                                enter = expandIn(),
-                                                exit = fadeOut()
-                                            ) {
-                                                getOfferOperations(
-                                                    offer,
-                                                    offerViewModel,
-                                                    offset = DpOffset(20.dp, 0.dp),
-                                                    showCopyId = false,
-                                                    onUpdateMenuItem = { offer ->
-                                                        component.updateOffer(offer.id, model.isSnapshot)
-                                                    },
-                                                    goToCreateOffer = { type ->
-                                                        component.goToCreateOffer(type, offer.catpath, offer.id, null)
-                                                    },
-                                                    onClose = {
-                                                        isShowOptions.value = false
-                                                    },
-                                                    onBack = {
-                                                        component.onBackClick()
-                                                    },
-                                                    goToProposals = { type ->
-                                                        component.goToProposalPage(type)
-                                                    },
-                                                    goToDynamicSettings = { type, offerId ->
-                                                        component.goToDynamicSettings(type, offerId)
-                                                    }
-                                                )
                                             }
                                         }
                                     }
@@ -610,7 +854,6 @@ fun OfferContent(
                                 item {
                                     //buy now price
                                     if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer.value) {
-                                        val showDialog = remember { mutableStateOf(false) }
                                         val values = remember { (1..offer.originalQuantity).map { it.toString() } }
                                         val valuesPickerState = rememberPickerState()
 
@@ -954,7 +1197,6 @@ fun OfferContent(
                             }
                         )
                     }
-
                     //descriptions offer
                     item {
                         DescriptionHtmlOffer(offer)
@@ -1061,6 +1303,23 @@ fun OfferContent(
                         )
                     },
                 )
+
+                OfferOperationsDialogs(
+                    offer,
+                    title,
+                    fields,
+                    choices,
+                    errorMes,
+                    showDialog,
+                    showDeleteOfferDialog,
+                    showActivateOfferDialog,
+                    showActivateOfferForFutureDialog,
+                    showCreateNoteDialog,
+                    showOffersListDialog,
+                    offerViewModel,
+                ){ id ->
+                    component.updateOffer(id, model.isSnapshot)
+                }
             }
         }
     }

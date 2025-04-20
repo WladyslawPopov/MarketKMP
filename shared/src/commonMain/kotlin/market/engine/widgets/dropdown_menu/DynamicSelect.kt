@@ -7,8 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -53,7 +51,7 @@ fun DynamicSelect(
         textSelect.value = name
     }
 
-    val error = remember {  mutableStateOf(processInput(field.errors)) }
+    val error = processInput(field.errors)
 
     Column(
         modifier = modifier
@@ -69,7 +67,7 @@ fun DynamicSelect(
             selects = field.choices?.map { it.name ?: "" } ?: emptyList(),
             onItemClick = { item ->
                 val choice = field.choices?.find { it.name == item }
-                field.data = JsonPrimitive(choice?.code?.int)
+                field.data = choice?.code
                 textSelect.value = item
                 itemClick?.invoke(choice)
             },
@@ -80,9 +78,9 @@ fun DynamicSelect(
             }
         )
 
-        if (error.value != null){
+        if (error != null){
             ErrorText(
-                text = error.value ?: "",
+                text = error,
                 modifier = Modifier.padding(dimens.smallPadding)
             )
         }

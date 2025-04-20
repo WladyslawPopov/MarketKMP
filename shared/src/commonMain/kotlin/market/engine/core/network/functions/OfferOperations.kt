@@ -21,7 +21,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 class OfferOperations(private val apiService: APIService) {
 
-    suspend fun getOffer(id: Long = 1L): ServerResponse<Offer> {
+    suspend fun getOffer(id: Long): ServerResponse<Offer> {
         return try {
             val response = apiService.getOffer(id)
             try {
@@ -41,7 +41,7 @@ class OfferOperations(private val apiService: APIService) {
         }
     }
 
-    suspend fun getOperationsOffer(id: Long = 1L): ServerResponse<List<Operations>> {
+    suspend fun getOperationsOffer(id: Long): ServerResponse<List<Operations>> {
         return try {
             val response = apiService.getOfferOperations(id)
             try {
@@ -128,6 +128,40 @@ class OfferOperations(private val apiService: APIService) {
         }
     }
 
+    suspend fun getOfferOperationsAddToList(offerId: Long): ServerResponse<ArrayList<Fields>> {
+        return try {
+            val response = apiService.getOfferOperationsAddOfferToList(offerId)
+            try {
+                val serializer = DynamicPayload.serializer(Fields.serializer())
+                val payload = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload.fields)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun getOfferOperationsRemoveToList(offerId: Long): ServerResponse<ArrayList<Fields>> {
+        return try {
+            val response = apiService.getOfferOperationsRemoveOfferToList(offerId)
+            try {
+                val serializer = DynamicPayload.serializer(Fields.serializer())
+                val payload = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload.fields)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
     suspend fun getOfferOperationsEditNote(offerId: Long): ServerResponse<ArrayList<Fields>> {
         return try {
             val response = apiService.getOfferOperationsEditNote(offerId)
@@ -148,6 +182,40 @@ class OfferOperations(private val apiService: APIService) {
     suspend fun postOfferOperationsCreateNote(offerId: Long, body: HashMap<String, JsonElement>): ServerResponse<DynamicPayload<Fields>> {
         return try {
             val response = apiService.postOfferOperationsCreateNote(offerId, body)
+            try {
+                val serializer = DynamicPayload.serializer(Fields.serializer())
+                val payload = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun postOfferOperationsAddOfferToList(offerId: Long, body: HashMap<String, JsonElement>): ServerResponse<DynamicPayload<Fields>> {
+        return try {
+            val response = apiService.postOfferOperationsAddOfferToList(offerId, body)
+            try {
+                val serializer = DynamicPayload.serializer(Fields.serializer())
+                val payload = deserializePayload(response.payload, serializer)
+                ServerResponse(success = payload)
+            }catch (e : Exception){
+                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+            }
+        } catch (e: ServerErrorException) {
+            ServerResponse(error = e)
+        } catch (e: Exception) {
+            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
+        }
+    }
+
+    suspend fun postOfferOperationsRemoveOfferToList(offerId: Long, body: HashMap<String, JsonElement>): ServerResponse<DynamicPayload<Fields>> {
+        return try {
+            val response = apiService.postOfferOperationsRemoveOfferToList(offerId, body)
             try {
                 val serializer = DynamicPayload.serializer(Fields.serializer())
                 val payload = deserializePayload(response.payload, serializer)

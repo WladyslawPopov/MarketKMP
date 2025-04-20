@@ -61,7 +61,7 @@ fun OfferItem(
     isShowFavorites : Boolean = false,
     notesShow : Boolean = false,
     goToProposal : (ProposalType) -> Unit= { _ -> },
-    onUpdateOfferItem : ((offer: Offer) -> Unit)? = null,
+    onUpdateOfferItem : ((Long) -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
     goToDynamicSettings : (String, Long?) -> Unit = { _, _ -> },

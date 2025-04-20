@@ -226,7 +226,7 @@ fun MyOffersContent(
                             component.goToProposals(offer.id, it)
                         },
                         onUpdateOfferItem = {
-                            viewModel.updateItem.value = it.id
+                            viewModel.updateItem.value = it
                         },
                         updateTrigger = viewModel.updateItemTrigger.value,
                         onItemClick = {

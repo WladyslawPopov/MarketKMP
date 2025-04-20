@@ -54,9 +54,11 @@ import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -399,7 +401,9 @@ fun CreateOfferContent(
                 if (type == CreateOfferType.EDIT) {
                     viewModel.viewModelScope.launch {
                         delay(2000L)
-                        component.onBackClicked()
+                        withContext(Dispatchers.Main) {
+                            component.onBackClicked()
+                        }
                     }
                 } else {
                     AnimatedVisibility(newOfferId.value != null){
