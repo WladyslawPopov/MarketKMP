@@ -215,7 +215,7 @@ class DialogsViewModel(
                     } else {
                         showToast(
                             errorToastItem.copy(
-                                message = res
+                                message = getString(strings.operationFailed)
                             )
                         )
                     }

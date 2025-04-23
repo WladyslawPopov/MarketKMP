@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
+import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
@@ -46,7 +47,7 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
 
     val isDragMode = mutableStateOf(false)
 
-    fun init(type: FavScreenType): Flow<PagingData<Offer>> {
+    fun init(type: FavScreenType, listId: Long?= null): Flow<PagingData<Offer>> {
         when(type){
             FavScreenType.FAVORITES -> {
                 listingData.value.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
@@ -58,11 +59,13 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                 listingData.value.data.value.objServer = "offers"
             }
             FavScreenType.FAV_LIST ->{
-
+                listingData.value.data.value.filters.add(
+                    Filter("list_id", "$listId", "", null),
+                )
+                listingData.value.data.value.methodServer = "get_cabinet_listing_in_list"
+                listingData.value.data.value.objServer = "offers"
             }
-            else -> {
-
-            }
+            else -> {}
         }
 
         return pagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)

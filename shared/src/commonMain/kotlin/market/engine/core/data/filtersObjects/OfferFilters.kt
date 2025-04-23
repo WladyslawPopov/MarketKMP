@@ -12,6 +12,7 @@ object OfferFilters {
         Filter("search", "", null, null),
         Filter("session_start", "time", "", "lte"),
     )
+
     private var filtersMyLotsUnactive = arrayListOf(
         Filter("state", "1", "", null),
         Filter("with_sales", "", null, null),

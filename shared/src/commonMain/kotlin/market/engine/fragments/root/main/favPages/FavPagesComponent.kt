@@ -11,7 +11,6 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
@@ -53,16 +52,13 @@ class DefaultFavPagesComponent(
     private var initialModel = MutableValue(
         FavPagesComponent.Model(
             viewModel = viewModel,
-
         )
     )
     override val model = initialModel
 
     init {
-        lifecycle.doOnResume {
-            viewModel.getFavTabList{
-                getPages(getCurrentDate())
-            }
+        viewModel.getFavTabList{
+            getPages(getCurrentDate())
         }
     }
 
@@ -115,7 +111,8 @@ class DefaultFavPagesComponent(
                                         )
                                     )
                                 },
-                                selectedType = when(config.favItem.id){
+                                selectedType =
+                                    when(config.favItem.id){
                                     111L -> {
                                         FavScreenType.FAVORITES
                                     }
@@ -125,7 +122,8 @@ class DefaultFavPagesComponent(
                                     else -> {
                                         FavScreenType.FAV_LIST
                                     }
-                                }
+                                },
+                                idList = config.favItem.id
                             )
                         )
                     }
@@ -195,7 +193,8 @@ class DefaultFavPagesComponent(
                                     )
                                 )
                             },
-                            selectedType = when(config.favItem.id){
+                            selectedType =
+                                when(config.favItem.id){
                                 111L -> {
                                     FavScreenType.FAVORITES
                                 }
@@ -205,7 +204,8 @@ class DefaultFavPagesComponent(
                                 else -> {
                                     FavScreenType.FAV_LIST
                                 }
-                            }
+                            },
+                            idList = config.favItem.id
                         )
                     )
                 }

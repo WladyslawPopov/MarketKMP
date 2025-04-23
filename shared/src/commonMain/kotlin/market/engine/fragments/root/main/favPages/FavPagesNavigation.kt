@@ -205,6 +205,7 @@ fun FavPagesNavigation(
 fun itemFavorites(
     componentContext: ComponentContext,
     selectedType : FavScreenType,
+    idList : Long?,
     navigateToOffer: (id: Long) -> Unit,
 ): FavoritesComponent {
     return DefaultFavoritesComponent(
@@ -212,7 +213,8 @@ fun itemFavorites(
         goToOffer = { id ->
             navigateToOffer(id)
         },
-        favType = selectedType
+        favType = selectedType,
+        idList = idList
     )
 }
 

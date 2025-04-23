@@ -32,6 +32,7 @@ interface FavoritesComponent {
 class DefaultFavoritesComponent(
     componentContext: ComponentContext,
     favType : FavScreenType,
+    idList : Long?,
     val goToOffer : (Long) -> Unit
 ) : FavoritesComponent, ComponentContext by componentContext {
 
@@ -43,7 +44,7 @@ class DefaultFavoritesComponent(
         FavoritesComponent.Model(
             favType = favType,
             favViewModel = favViewModel,
-            pagingDataFlow = favViewModel.init(favType),
+            pagingDataFlow = favViewModel.init(favType, idList),
             backHandler = backHandler
         )
     )
