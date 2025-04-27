@@ -31,6 +31,7 @@ interface SubscriptionsComponent {
 class DefaultSubscriptionsComponent(
     componentContext: ComponentContext,
     favType : FavScreenType,
+
     val navigateToCreateNewSubscription : (Long?) -> Unit,
     val navigateToListing : (ListingData) -> Unit,
 ) : SubscriptionsComponent, ComponentContext by componentContext {

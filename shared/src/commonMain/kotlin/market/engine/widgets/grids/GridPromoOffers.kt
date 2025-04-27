@@ -57,7 +57,7 @@ fun GridPromoOffers(
     Spacer(modifier = Modifier.heightIn(dimens.smallSpacer))
 
     ActionButton(
-        strings.allPromoOffersBtn,
+        stringResource(strings.allPromoOffersBtn),
         fontSize = MaterialTheme.typography.titleMedium.fontSize,
         modifier = Modifier.padding(horizontal = dimens.smallPadding).fillMaxWidth(),
         alignment = Alignment.BottomEnd

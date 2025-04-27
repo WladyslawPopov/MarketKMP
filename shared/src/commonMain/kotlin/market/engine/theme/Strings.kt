@@ -3,6 +3,7 @@ package market.engine.theme
 import org.jetbrains.compose.resources.StringResource
 
 interface Strings {
+    val popularityParameterName: StringResource
     val continueLabel: StringResource
     val selectCategory: StringResource
     val profileTitleBottom: StringResource
@@ -486,4 +487,6 @@ interface Strings {
     val myNotesTitle: StringResource
     val createNewOffersListLabel: StringResource
     val reorderTabLabel: StringResource
+    val errorExceededLimitOffersList: StringResource
+    val errorTitleInOffersListAlreadyUse: StringResource
 }

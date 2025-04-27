@@ -57,7 +57,7 @@ fun DeletePanel(
                     onClick = onDelete
                 )
                 ActionButton(
-                    strings.resetLabel,
+                    stringResource(strings.resetLabel),
                     fontSize = dimens.mediumText,
                     alignment = Alignment.CenterEnd,
                     onClick = onCancel

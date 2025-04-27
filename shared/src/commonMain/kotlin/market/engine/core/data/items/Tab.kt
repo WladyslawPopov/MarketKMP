@@ -7,6 +7,8 @@ data class Tab(
     val title: String,
     val icon: DrawableResource? = null,
     val image: String? = null,
+    val isPined: Boolean = false,
     val id: Long = getCurrentDate().toLong(),
-    val onClick: () -> Unit = {}
+    val onClick: () -> Unit = {},
+    val onDelete: (() -> Unit)? = null,
 )

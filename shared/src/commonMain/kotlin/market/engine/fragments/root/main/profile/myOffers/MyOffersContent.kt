@@ -187,6 +187,7 @@ fun MyOffersContent(
                     "sorting" -> SortingOffersContent(
                         isRefreshingFromFilters,
                         listingData.value,
+                        isCabinet = true,
                         onClose
                     )
                 }

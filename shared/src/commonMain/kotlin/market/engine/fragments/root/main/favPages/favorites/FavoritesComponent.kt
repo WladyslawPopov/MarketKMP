@@ -27,13 +27,15 @@ interface FavoritesComponent {
 
     fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
     fun onRefresh()
+    fun refreshTabs()
 }
 
 class DefaultFavoritesComponent(
     componentContext: ComponentContext,
     favType : FavScreenType,
     idList : Long?,
-    val goToOffer : (Long) -> Unit
+    val goToOffer : (Long) -> Unit,
+    val updateTabs : () -> Unit,
 ) : FavoritesComponent, ComponentContext by componentContext {
 
     private val favViewModel : FavPagesViewModel = FavPagesViewModel(getKoin().get())
@@ -75,5 +77,10 @@ class DefaultFavoritesComponent(
         favViewModel.onError(ServerErrorException())
         favViewModel.resetScroll()
         favViewModel.refresh()
+        favViewModel.updateFilters.value++
+    }
+
+    override fun refreshTabs() {
+        updateTabs()
     }
 }

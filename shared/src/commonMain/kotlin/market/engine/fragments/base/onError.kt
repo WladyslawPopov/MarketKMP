@@ -6,11 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.dialogs.CustomDialog
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -18,15 +20,15 @@ fun onError(
     error : State<ServerErrorException>,
     onRefresh: () -> Unit,
 ) {
-    val humanMessage = error.value.humanMessage
-    val errorCode = error.value.errorCode
+    val humanMessage = remember {  mutableStateOf(error.value.humanMessage) }
+    val errorCode = remember {  mutableStateOf(error.value.errorCode) }
 
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
+    val analyticsHelper = remember { AnalyticsFactory.getAnalyticsHelper() }
     val userRepository : UserRepository = koinInject()
 
     val showDialog = remember { mutableStateOf(false) }
 
-    errorCode.let {
+    errorCode.value.let {
         when{
             (it.contains("Unable to resolve host") || it.contains("failed to connect to") || it.contains("Failed to connect")) -> {
                 showNoInternetLayout(onRefresh)
@@ -51,18 +53,27 @@ fun onError(
                 showErrLayout(it,onRefresh)
             }
             it == "NEEDS_PASSWORD_RESET" ->{
-                goToDynamicSettings(humanMessage, null, null)
+                goToDynamicSettings(humanMessage.value, null, null)
             }
             else -> {
                 val richTextState = rememberRichTextState()
-                if (humanMessage != "" && (humanMessage != "null" && humanMessage != "Unknown error" && humanMessage != "")) {
-                    if (errorCode.isNotEmpty() && humanMessage.isNotEmpty()) {
+                if (humanMessage.value != "" && (humanMessage.value != "null" && humanMessage.value != "Unknown error" && humanMessage.value != "")) {
+                    if (errorCode.value.isNotEmpty() && humanMessage.value.isNotEmpty()) {
                         showDialog.value = true
+                        
+                        when(humanMessage.value){
+                            "EXCEEDED_LIMIT_OFFERS_LIST" ->{
+                                humanMessage.value = stringResource(strings.errorExceededLimitOffersList)
+                            }
+                             "TITLE_IN_OFFERS_LIST_ALREADY_USE" ->{
+                                humanMessage.value = stringResource(strings.errorTitleInOffersListAlreadyUse)
+                            }
+                        }
                     }
 
                     CustomDialog(
                         showDialog = showDialog.value,
-                        title = richTextState.setHtml(humanMessage).annotatedString.text,
+                        title = richTextState.setHtml(humanMessage.value).annotatedString.text,
                         onDismiss = {
                             error.value.errorCode = ""
                             error.value.humanMessage = ""

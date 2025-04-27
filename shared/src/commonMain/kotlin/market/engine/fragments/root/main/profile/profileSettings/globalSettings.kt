@@ -268,7 +268,7 @@ fun settingRow(
     action: @Composable ((() -> Unit)?) -> Unit = { click->
         if (click != null) {
             ActionButton(
-                strings.actionChangeLabel,
+                stringResource(strings.actionChangeLabel),
                 fontSize = MaterialTheme.typography.bodySmall.fontSize,
             ) {
                 click()

@@ -81,7 +81,7 @@ fun BidsItem(
 
                 },
                 baseViewModel = baseViewModel,
-                onUpdateTrigger = updateTrigger
+                onUpdateTrigger = updateTrigger,
             )
 
 

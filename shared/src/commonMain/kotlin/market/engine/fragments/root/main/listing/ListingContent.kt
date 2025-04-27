@@ -221,6 +221,7 @@ fun ListingContent(
                 searchData.value,
                 listingViewModel,
                 searchCatBack,
+                searchPages = component.searchPages,
                 closeSearch = {
                     listingViewModel.openSearch.value = false
                 },
@@ -232,6 +233,9 @@ fun ListingContent(
                         refresh()
                     }
                 },
+                onTabSelect = {
+                    component.onTabSelect(it)
+                }
             )
         },
     ) {
@@ -326,6 +330,7 @@ fun ListingContent(
                             SortingOffersContent(
                                 isRefreshingFromFilters,
                                 listingData.value,
+                                isCabinet = false,
                                 onClose
                             )
                         }

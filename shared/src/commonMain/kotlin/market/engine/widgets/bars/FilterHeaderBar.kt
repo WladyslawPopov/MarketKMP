@@ -15,6 +15,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SmallIconButton
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilterContentHeaderBar(
@@ -47,7 +48,7 @@ fun FilterContentHeaderBar(
 
         if (isShowClearBtn) {
             ActionButton(
-                strings.clear
+                stringResource(strings.clear)
             ){
                 onClear()
                 onClosed()

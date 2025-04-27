@@ -4,9 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
@@ -54,85 +53,87 @@ fun HistoryLayout(
         return
     }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    Column(
+        modifier = modifier,
     ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                painterResource(drawables.historyIcon),
-                contentDescription = stringResource(strings.searchHistory),
-                tint = colors.black,
-                modifier = Modifier.size(dimens.smallIconSize)
-            )
-            Text(
-                text = stringResource(strings.searchHistory),
-                color = colors.black,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier
-                    .padding(start = dimens.extraSmallPadding)
-            )
-        }
-
-        ActionButton(
-            strings.clear,
-            Modifier.wrapContentWidth(),
-            MaterialTheme.typography.bodySmall.fontSize,
-            alignment = Alignment.BottomEnd
-        ){
-            showDialog.value = true
-        }
-    }
-
-    LazyColumnWithScrollBars(
-        heightMod = Modifier.fillMaxWidth()
-        .heightIn(50.dp, 250.dp)
-        .background(color = colors.primaryColor),
-        modifierList = modifier,
-        contentPadding = dimens.smallPadding,
-        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-        horizontalAlignment = Alignment.Start
-    ){
-        // List Items
-        items(historyItems.reversed(), key = { it.id }) { historyItem ->
-            val dismissState = rememberDismissState(
-                confirmStateChange = { dismissValue ->
-                    if (dismissValue == DismissValue.DismissedToStart) {
-                        onDeleteItem(historyItem.id)
-                        false
-                    } else {
-                        false
-                    }
-                }
-            )
-            AnimatedVisibility(
-                dismissState.currentValue != DismissValue.DismissedToStart,
-                enter = expandIn(),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                SwipeToDismiss(
-                    state = dismissState,
-                    directions = setOf(DismissDirection.EndToStart),
-                    background = { dismissBackground() },
-                    dismissContent = {
-                        historyItem(historyItem, onItemClick, goToListing)
-                    }
+                Icon(
+                    painterResource(drawables.historyIcon),
+                    contentDescription = stringResource(strings.searchHistory),
+                    tint = colors.black,
+                    modifier = Modifier.size(dimens.smallIconSize)
+                )
+                Text(
+                    text = stringResource(strings.searchHistory),
+                    color = colors.black,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .padding(start = dimens.extraSmallPadding)
                 )
             }
-        }
-    }
 
-    AccessDialog(
-        showDialog.value,
-        title = stringResource(strings.warningDeleteHistory),
-        onSuccess = {
-            onClearHistory()
-        },
-        onDismiss = {
-            showDialog.value = false
+            ActionButton(
+                stringResource(strings.clear),
+                Modifier.wrapContentWidth(),
+                MaterialTheme.typography.bodySmall.fontSize,
+                alignment = Alignment.BottomEnd
+            ) {
+                showDialog.value = true
+            }
         }
-    )
+
+        LazyColumnWithScrollBars(
+            heightMod = Modifier.fillMaxWidth()
+                .background(color = colors.primaryColor),
+            modifierList = Modifier.fillMaxWidth(),
+            contentPadding = dimens.smallPadding,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalAlignment = Alignment.Start
+        ) {
+            // List Items
+            items(historyItems.reversed(), key = { it.id }) { historyItem ->
+                val dismissState = rememberDismissState(
+                    confirmStateChange = { dismissValue ->
+                        if (dismissValue == DismissValue.DismissedToStart) {
+                            onDeleteItem(historyItem.id)
+                            false
+                        } else {
+                            false
+                        }
+                    }
+                )
+                AnimatedVisibility(
+                    dismissState.currentValue != DismissValue.DismissedToStart,
+                    enter = expandIn(),
+                ) {
+                    SwipeToDismiss(
+                        state = dismissState,
+                        directions = setOf(DismissDirection.EndToStart),
+                        background = { dismissBackground() },
+                        dismissContent = {
+                            historyItem(historyItem, onItemClick, goToListing)
+                        }
+                    )
+                }
+            }
+        }
+
+        AccessDialog(
+            showDialog.value,
+            title = stringResource(strings.warningDeleteHistory),
+            onSuccess = {
+                onClearHistory()
+            },
+            onDismiss = {
+                showDialog.value = false
+            }
+        )
+    }
 }

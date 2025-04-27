@@ -62,6 +62,7 @@ fun OfferItem(
     notesShow : Boolean = false,
     goToProposal : (ProposalType) -> Unit= { _ -> },
     onUpdateOfferItem : ((Long) -> Unit)? = null,
+    refreshPage : (() -> Unit)? = null,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
     goToDynamicSettings : (String, Long?) -> Unit = { _, _ -> },
@@ -117,7 +118,8 @@ fun OfferItem(
                 },
                 goToDynamicSettings = { type, id ->
                     goToDynamicSettings(type, id)
-                }
+                },
+                refreshPage = refreshPage
             )
         }
 

@@ -3,6 +3,7 @@ package market.engine.theme
 import org.jetbrains.compose.resources.DrawableResource
 
 interface Drawables {
+   val pinIcon: DrawableResource
    val locationIcon: DrawableResource
    val home : DrawableResource
    val iconClock : DrawableResource

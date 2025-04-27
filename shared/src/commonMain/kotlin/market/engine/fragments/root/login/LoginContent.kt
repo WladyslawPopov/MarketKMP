@@ -184,7 +184,7 @@ fun LoginContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     ActionButton(
-                        strings.forgotPassword
+                        stringResource(strings.forgotPassword)
                     ) {
                         component.goToForgotPassword()
                     }

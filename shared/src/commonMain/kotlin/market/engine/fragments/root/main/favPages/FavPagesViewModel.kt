@@ -5,6 +5,7 @@ import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +45,10 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
 
     private val _favoritesTabList = MutableStateFlow(emptyList<FavoriteListItem>())
     val favoritesTabList = _favoritesTabList.asStateFlow()
+
+    val updateFilters = mutableStateOf(0)
+
+    val initPosition = mutableStateOf(0)
 
     val isDragMode = mutableStateOf(false)
 
@@ -105,8 +110,6 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                 val res = data.success
                 val buf = arrayListOf<FavoriteListItem>()
                 buf.addAll(res ?: emptyList())
-                buf.sortBy { !it.markedAsPrimary }
-
 
                 newList.addAll(buf)
 
@@ -118,6 +121,7 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                 }
 
                 newList.sortBy { it.position }
+                newList.sortBy { !it.markedAsPrimary }
 
                 _favoritesTabList.value = newList
 
@@ -264,7 +268,7 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
         id: Long,
         body: HashMap<String, JsonElement>,
         onSuccess: () -> Unit,
-        errorCallback: (List<Fields>) -> Unit
+        errorCallback: (List<Fields>?) -> Unit
     ){
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) {
@@ -275,19 +279,30 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                     else -> ServerResponse<DynamicPayload<OperationResult>>(null, ServerErrorException())
                 }
             }
-            val res = data.success
-            val error = data.error
-            if (res != null) {
-                if (res.operationResult?.result == "ok") {
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(
-                                strings.operationSuccess
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                if (res != null) {
+                    if (res.operationResult?.result == "ok") {
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(
+                                    strings.operationSuccess
+                                )
                             )
                         )
-                    )
+                        delay(2000)
+                        onSuccess()
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(
+                                    strings.operationFailed
+                                )
+                            )
+                        )
 
-                    onSuccess()
+                        errorCallback(res.recipe?.fields ?: res.fields)
+                    }
                 } else {
                     showToast(
                         errorToastItem.copy(
@@ -296,14 +311,10 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                             )
                         )
                     )
-
-                    errorCallback(res.recipe?.fields ?: res.fields)
+                    errorCallback(null)
+                    if (data.error != null)
+                        onError(data.error!!)
                 }
-            }else{
-                if (error != null)
-                    onError(error)
-
-                onSuccess()
             }
         }
     }

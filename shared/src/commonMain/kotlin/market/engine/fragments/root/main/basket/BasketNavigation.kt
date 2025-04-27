@@ -32,6 +32,9 @@ import market.engine.fragments.root.main.createOffer.createOfferFactory
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
+import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
@@ -79,6 +82,11 @@ sealed class BasketConfig {
 
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : BasketConfig()
+
+    @Serializable
+    data class CreateSubscriptionScreen(
+        val editId : Long? = null,
+    ) : BasketConfig()
 }
 
 sealed class ChildBasket {
@@ -90,6 +98,7 @@ sealed class ChildBasket {
     class CreateOrderChild(val component: CreateOrderComponent) : ChildBasket()
     class MessengerChild(val component: DialogsComponent) : ChildBasket()
     class ProposalChild(val component: ProposalComponent) : ChildBasket()
+    class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildBasket()
 }
 
 @Composable
@@ -113,6 +122,7 @@ fun BasketNavigation(
             is ChildBasket.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildBasket.MessengerChild -> DialogsContent(screen.component, modifier)
             is ChildBasket.ProposalChild -> ProposalContent(screen.component)
+            is ChildBasket.CreateSubscriptionChild -> CreateSubscriptionContent(screen.component)
         }
     }
 }
@@ -149,6 +159,20 @@ fun createBasketChild(
                     isOpenCategory = false,
                     navigateToSubscribe = {
                         navigateToSubscribe()
+                    },
+                    navigateToListing = { data ->
+                        basketNavigation.pushNew(
+                            BasketConfig.ListingScreen(
+                                data.data.value,
+                                data.searchData.value,
+                                getCurrentDate()
+                            )
+                        )
+                    },
+                    navigateToNewSubscription = { id->
+                        basketNavigation.pushNew(
+                            BasketConfig.CreateSubscriptionScreen(id)
+                        )
                     }
                 )
             )
@@ -335,6 +359,16 @@ fun createBasketChild(
                     basketNavigation.pushNew(
                         BasketConfig.UserScreen(it, getCurrentDate(), false)
                     )
+                }
+            )
+        )
+
+        is BasketConfig.CreateSubscriptionScreen -> ChildBasket.CreateSubscriptionChild(
+            component = createSubscriptionFactory(
+                componentContext,
+                config.editId,
+                navigateBack = {
+                    basketNavigation.pop()
                 }
             )
         )

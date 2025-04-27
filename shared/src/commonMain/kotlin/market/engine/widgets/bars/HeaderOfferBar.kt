@@ -51,6 +51,7 @@ fun HeaderOfferBar(
     baseViewModel: BaseViewModel,
     onSelectionChange: ((Boolean) -> Unit)? = null,
     onUpdateOfferItem : (Long) -> Unit,
+    refreshPage : (() -> Unit)? = null,
     goToCreateOffer : (CreateOfferType) -> Unit,
     goToDynamicSettings : (String, Long?) -> Unit = {_, _ ->},
     goToProposals : (ProposalType) -> Unit = {},
@@ -445,9 +446,11 @@ fun HeaderOfferBar(
                 title = title,
                 fields = fields,
                 choices = choices,
-            ){
-                onUpdateOfferItem(it)
-            }
+                updateItem = {
+                    onUpdateOfferItem(it)
+                },
+                refreshPage = refreshPage
+            )
         }
     }
 }

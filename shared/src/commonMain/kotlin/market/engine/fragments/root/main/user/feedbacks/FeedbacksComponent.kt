@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Reports
 import market.engine.core.data.types.ReportPageType
+import market.engine.fragments.root.main.user.UserViewModel
 
 interface FeedbacksComponent {
     val model : Value<Model>
@@ -15,7 +16,7 @@ interface FeedbacksComponent {
     data class Model(
         val userId : Long,
         var type : ReportPageType,
-        val feedbacksViewModel: FeedbacksViewModel,
+        val feedbacksViewModel: UserViewModel,
         var pagingDataFlow : Flow<PagingData<Reports>>
     )
 
@@ -30,19 +31,18 @@ class DefaultFeedbacksComponent(
     val type : ReportPageType,
     val userId : Long,
     componentContext: ComponentContext,
+    feedbacksViewModel: UserViewModel,
     private val navigateToOrder : (Long, DealTypeGroup) -> Unit,
     private val navigateToSnapshot : (Long) -> Unit,
-    private val navigateToUser : (Long) -> Unit
+    private val navigateToUser : (Long) -> Unit,
 ) : FeedbacksComponent, ComponentContext by componentContext {
-
-    private val feedbacksViewModel : FeedbacksViewModel = FeedbacksViewModel()
 
     private val _model = MutableValue(
         FeedbacksComponent.Model(
             userId = userId,
             type = type,
             feedbacksViewModel = feedbacksViewModel,
-            pagingDataFlow = feedbacksViewModel.init(type, userId)
+            pagingDataFlow = feedbacksViewModel.initFeedback(type, userId)
         )
     )
 

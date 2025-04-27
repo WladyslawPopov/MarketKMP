@@ -1,17 +1,17 @@
 package market.engine.fragments.root.main.listing.search
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -27,6 +27,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.arkivanov.decompose.extensions.compose.pages.ChildPages
+import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
+import com.arkivanov.decompose.router.pages.ChildPages
+import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.SD
@@ -35,13 +39,19 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.Tab
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
+import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.fragments.root.main.listing.ListingViewModel
+import market.engine.fragments.root.main.listing.SearchPagesComponents
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.filterContents.CategoryContent
+import market.engine.widgets.tabs.PageTab
+import market.engine.widgets.tabs.TabRow
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +61,8 @@ fun SearchContent(
     searchData: SD,
     searchViewModel : ListingViewModel,
     catBack : MutableState<Boolean>,
+    searchPages : Value<ChildPages<*, SearchPagesComponents>>,
+    onTabSelect : (Int) -> Unit,
     closeSearch : () -> Unit,
     goToListing : () -> Unit,
 ) {
@@ -155,6 +167,19 @@ fun SearchContent(
 
     val isLoading = searchViewModel.isShowProgress.collectAsState()
 
+    val selectedTabIndex = remember {
+        mutableStateOf(0)
+    }
+
+    val tabs = listOf(
+        Tab(
+            stringResource(strings.searchHistory),
+        ),
+        Tab(
+            stringResource(strings.mySubscribedTitle),
+        ),
+    )
+
     BaseContent(
         error = errorSearch,
         isLoading = isLoading.value,
@@ -242,14 +267,14 @@ fun SearchContent(
                 }
             },
         ) { padding ->
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
             ){
                 Column(
                     modifier = Modifier
-                        .fillMaxHeight(0.85f)
+                        .weight(1f)
                         .pointerInput(Unit) {
                             detectTapGestures(onTap = {
                                 focusManager.clearFocus()
@@ -284,42 +309,83 @@ fun SearchContent(
                         }
                     )
 
-                    HistoryLayout(
-                        historyItems = history.value,
-                        modifier = Modifier.padding(horizontal = dimens.smallPadding),
-                        onItemClick = { item ->
-                            searchString.value = item.query
-                            selectedUser.value = item.isUsersSearch
-                            selectedUserFinished.value = item.isFinished
-                            searchStringTextField.value = searchStringTextField.value.copy(
-                                text = item.query,
-                                selection = TextRange(item.query.length)
-                            )
-                            searchViewModel.deleteItemHistory(item.id)
-                        },
-                        onClearHistory = {
-                            searchViewModel.deleteHistory()
-                        },
-                        onDeleteItem = {
-                            searchViewModel.deleteItemHistory(it)
-                        },
-                        goToListing = { item ->
-                            searchString.value = item.query
-                            selectedUser.value = item.isUsersSearch
-                            selectedUserFinished.value = item.isFinished
-                            searchStringTextField.value = searchStringTextField.value.copy(
-                                text = item.query,
-                                selection = TextRange(item.query.length)
-                            )
-                            getSearchFilters()
-                            goToListing()
+                    TabRow(
+                        tabs,
+                        selectedTab = selectedTabIndex.value,
+                        edgePadding = dimens.smallPadding,
+                        containerColor = colors.primaryColor,
+                        modifier = Modifier.fillMaxWidth(),
+                    ){ index, tab ->
+                        PageTab(
+                            tab = tab,
+                            selectedTab = selectedTabIndex.value,
+                            currentIndex = index,
+                            textStyle = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.clickable {
+                                onTabSelect(index)
+                            },
+                        )
+                    }
+
+                    ChildPages(
+                        pages = searchPages,
+                        scrollAnimation = PagesScrollAnimation.Default,
+                        onPageSelected = {
+                            onTabSelect(it)
+                            selectedTabIndex.value = it
+                            focusManager.clearFocus()
                         }
-                    )
+                    ) { _, page ->
+                        when(page){
+                            is SearchPagesComponents.HistoryChild -> {
+                                HistoryLayout(
+                                    historyItems = history.value,
+                                    modifier = Modifier.fillMaxSize().padding(horizontal = dimens.smallPadding),
+                                    onItemClick = { item ->
+                                        searchString.value = item.query
+                                        selectedUser.value = item.isUsersSearch
+                                        selectedUserFinished.value = item.isFinished
+                                        searchStringTextField.value =
+                                            searchStringTextField.value.copy(
+                                                text = item.query,
+                                                selection = TextRange(item.query.length)
+                                            )
+                                        searchViewModel.deleteItemHistory(item.id)
+                                    },
+                                    onClearHistory = {
+                                        searchViewModel.deleteHistory()
+                                    },
+                                    onDeleteItem = {
+                                        searchViewModel.deleteItemHistory(it)
+                                    },
+                                    goToListing = { item ->
+                                        searchString.value = item.query
+                                        selectedUser.value = item.isUsersSearch
+                                        selectedUserFinished.value = item.isFinished
+                                        searchStringTextField.value =
+                                            searchStringTextField.value.copy(
+                                                text = item.query,
+                                                selection = TextRange(item.query.length)
+                                            )
+                                        getSearchFilters()
+                                        goToListing()
+                                    }
+                                )
+                            }
+                            is SearchPagesComponents.SubscriptionsChild -> {
+                                SubscriptionsContent(
+                                    page.component,
+                                    Modifier
+                                )
+                            }
+                        }
+                    }
                 }
 
                 AcceptedPageButton(
                     strings.categoryEnter,
-                    Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f).padding(dimens.smallPadding).align(Alignment.BottomCenter),
+                    Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f)
+                        .padding(dimens.smallPadding),
                 ) {
                     getSearchFilters()
                     goToListing()

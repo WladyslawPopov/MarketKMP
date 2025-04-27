@@ -7,8 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Choices
@@ -37,15 +35,15 @@ fun DynamicSelect(
     }
 
     LaunchedEffect(Unit){
-        val data = field.data?.jsonPrimitive?.intOrNull
+        val data = field.data
         if (data != null){
             if (itemClick != null) {
-                itemClick(field.choices?.find { it.code?.intOrNull == data })
+                itemClick(field.choices?.find { it.code == data })
             }
         }
 
         val name = field.choices?.find { choice->
-            (choice.code?.intOrNull) == data
+            choice.code == data
         }?.name ?: selectDef
 
         textSelect.value = name

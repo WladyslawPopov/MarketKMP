@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
-import market.engine.core.network.functions.OfferOperations
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -27,18 +26,17 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 @Composable
 fun FavoritesContent(
@@ -54,13 +52,10 @@ fun FavoritesContent(
     val ld = listingData.data
     val sd = listingData.searchData
 
-    val offerOperations : OfferOperations = koinInject()
-
     val selectedItems = remember { favViewModel.selectItems }
 
-    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
     val columns = remember { mutableStateOf(if (isBigScreen.value) 2 else 1) }
+    val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     BackHandler(model.backHandler){
         when{
@@ -77,15 +72,7 @@ fun FavoritesContent(
         }
     }
 
-    val updateFilters = remember { mutableStateOf(0) }
-
-    val refresh = {
-        favViewModel.onError(ServerErrorException())
-        favViewModel.resetScroll()
-        favViewModel.refresh()
-        data.refresh()
-        updateFilters.value++
-    }
+    val updateFilters = remember { favViewModel.updateFilters }
 
     val noFound = @Composable {
         if (ld.value.filters.any {it.interpretation != null && it.interpretation != "" }){
@@ -94,23 +81,16 @@ fun FavoritesContent(
             ){
                 OfferFilters.clearTypeFilter(LotsType.FAVORITES)
                 listingData.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
-                refresh()
+                component.onRefresh()
             }
         }else {
             showNoItemLayout(
                 title = stringResource(strings.emptyFavoritesLabel),
                 image = drawables.emptyFavoritesImage
             ) {
-                refresh()
+                component.onRefresh()
             }
         }
-    }
-
-    val err = favViewModel.errorMessage.collectAsState()
-    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err) { refresh() } }
-    }else{
-        null
     }
 
     //update item when we back
@@ -139,11 +119,17 @@ fun FavoritesContent(
             }
         }
     }
+    val err = favViewModel.errorMessage.collectAsState()
+    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
+        { onError(err) { component.onRefresh() } }
+    }else{
+        null
+    }
 
     BaseContent(
         topBar = null,
         onRefresh = {
-            refresh()
+            component.onRefresh()
         },
         error = error,
         noFound = null,
@@ -159,11 +145,14 @@ fun FavoritesContent(
             baseViewModel = favViewModel,
             noFound = noFound,
             onRefresh = {
+                favViewModel.onError(ServerErrorException())
                 favViewModel.resetScroll()
+                favViewModel.refresh()
                 data.refresh()
+                updateFilters.value++
             },
-            filtersContent = { isRefreshingFromFilters , onClose ->
-                when (favViewModel.activeFiltersType.value){
+            filtersContent = { isRefreshingFromFilters, onClose ->
+                when (favViewModel.activeFiltersType.value) {
                     "filters" -> OfferFilterContent(
                         favViewModel.openFiltersCat,
                         favViewModel.catBack,
@@ -173,9 +162,11 @@ fun FavoritesContent(
                         LotsType.FAVORITES,
                         onClose
                     )
+
                     "sorting" -> SortingOffersContent(
                         isRefreshingFromFilters,
                         ld.value,
+                        isCabinet = true,
                         onClose
                     )
                 }
@@ -189,7 +180,7 @@ fun FavoritesContent(
                     onDelete = {
                         favViewModel.viewModelScope.launch(Dispatchers.IO) {
                             selectedItems.forEach { item ->
-                                offerOperations.postOfferOperationUnwatch(item)
+                                favViewModel.offerOperations.postOfferOperationUnwatch(item)
                             }
 
                             withContext(Dispatchers.Main) {
@@ -212,8 +203,7 @@ fun FavoritesContent(
                         favViewModel.activeFiltersType.value = "sorting"
                     },
                     onRefresh = {
-                        refresh()
-                        updateFilters.value++
+                        component.onRefresh()
                     }
                 )
             },
@@ -221,13 +211,15 @@ fun FavoritesContent(
                 val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
                 val fav =
                     mutableStateOf(
-                        when(model.favType){
+                        when (model.favType) {
                             FavScreenType.NOTES -> {
                                 offer.note != null && offer.note != ""
                             }
+
                             FavScreenType.FAVORITES -> {
                                 offer.isWatchedByMe
                             }
+
                             else -> {
                                 true
                             }
@@ -256,6 +248,9 @@ fun FavoritesContent(
 
                             favViewModel.updateUserInfo()
                         },
+                        refreshPage = {
+                            component.refreshTabs()
+                        },
                         onItemClick = {
                             if (favViewModel.selectItems.isNotEmpty()) {
                                 if (isSelect.value) {
@@ -268,10 +263,11 @@ fun FavoritesContent(
                                 // set item for update
                                 favViewModel.updateItem.value = offer.id
                             }
-                        }
+                        },
                     )
                 }
-            }
+            },
+            modifier = modifier
         )
     }
 }

@@ -36,7 +36,6 @@ import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.SortingOrdersContent
 import org.jetbrains.compose.resources.stringResource
 
-
 @Composable
 fun SubscriptionsContent(
     component: SubscriptionsComponent,
@@ -154,10 +153,11 @@ fun SubscriptionsContent(
                     horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     SmallIconButton(
                         drawables.newLotIcon,
                         color = colors.positiveGreen
-                    ){
+                    ) {
                         component.goToCreateNewSubscription()
                     }
 

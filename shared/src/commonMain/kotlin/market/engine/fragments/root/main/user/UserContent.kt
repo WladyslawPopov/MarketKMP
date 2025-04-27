@@ -80,7 +80,7 @@ fun UserContent(
         component.onBack()
     }
 
-    val isVisibleUserPanel = remember { mutableStateOf(userViewModel.isVisibleUserPanel.value) }
+    val isVisibleUserPanel = remember { userViewModel.isVisibleUserPanel }
 
     val selectedTabIndex = remember {
         mutableStateOf(0)
@@ -103,7 +103,6 @@ fun UserContent(
             stringResource(strings.aboutMeLabel),
         )
     )
-
 
     LaunchedEffect(isVisibleUserPanel.value) {
         snapshotFlow {

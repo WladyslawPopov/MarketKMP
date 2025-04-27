@@ -169,6 +169,7 @@ fun MyBidsContent(
                     "sorting" -> SortingOffersContent(
                         isRefreshingFromFilters,
                         listingData.value,
+                        isCabinet = true,
                         onClose
                     )
                 }

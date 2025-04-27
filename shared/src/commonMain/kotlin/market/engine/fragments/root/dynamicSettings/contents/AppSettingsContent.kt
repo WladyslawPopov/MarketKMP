@@ -55,7 +55,7 @@ fun AppSettingsContent() {
             )
 
             ActionButton(
-                strings.actionGoToNotificationsSettingsLabel,
+                stringResource(strings.actionGoToNotificationsSettingsLabel),
             ) {
                 navigateToAppSettings()
             }

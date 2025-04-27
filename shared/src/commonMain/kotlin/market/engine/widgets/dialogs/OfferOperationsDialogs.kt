@@ -1,5 +1,7 @@
 package market.engine.widgets.dialogs
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -22,6 +24,7 @@ import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.base.SetUpDynamicFields
+import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 
@@ -40,6 +43,7 @@ fun OfferOperationsDialogs(
     showOffersListDialog: MutableState<String>,
     viewModel : BaseViewModel,
     updateItem: (Long) -> Unit,
+    refreshPage: (() -> Unit)?
 ) {
     val successToast = stringResource(strings.operationSuccess)
 
@@ -274,31 +278,57 @@ fun OfferOperationsDialogs(
         containerColor = colors.primaryColor,
         title = title.value,
         body = {
-            val showFields = remember { mutableStateOf(false) }
-            viewModel.getOffersList { list ->
-                fields.value.firstOrNull()?.choices = buildList {
-                    when(showOffersListDialog.value){
-                        "add_to_list" -> {
-                            list.filter { !it.offers.contains(offer.id) }
-                        }
-                        "remove_from_list" -> {
-                            list.filter { it.offers.contains(offer.id) }
-                        }
-                        else -> list
-                    }.fastForEach { item ->
-                        add(
-                            Choices(
-                                code = JsonPrimitive(item.id),
-                                name = item.title
+            Column {
+                val showFields = remember { mutableStateOf(false) }
+                viewModel.getOffersList { list ->
+                    fields.value.firstOrNull()?.choices = buildList {
+                        when (showOffersListDialog.value) {
+                            "add_to_list" -> {
+                                list.filter { !it.offers.contains(offer.id) }
+                            }
+
+                            "remove_from_list" -> {
+                                list.filter { it.offers.contains(offer.id) }
+                            }
+
+                            else -> list
+                        }.fastForEach { item ->
+                            add(
+                                Choices(
+                                    code = JsonPrimitive(item.id),
+                                    name = item.title
+                                )
                             )
-                        )
+                        }
+                    }
+                    showFields.value = true
+                }
+
+
+                if (showFields.value) {
+                    SetUpDynamicFields(fields.value)
+                }
+                val sc = remember { mutableStateOf(false) }
+                val t = remember { mutableStateOf("") }
+                val f = remember { mutableStateOf(listOf<Fields>()) }
+                if (f.value.isEmpty()) {
+                    viewModel.getFieldsCreateBlankOfferList { title, fields ->
+                        t.value = title
+                        f.value = fields
+                        sc.value = true
                     }
                 }
-                showFields.value = true
-            }
-
-            if (showFields.value) {
-                SetUpDynamicFields(fields.value)
+                if (sc.value) {
+                    ActionButton(
+                        t.value,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize
+                    ) {
+                        title.value = t.value
+                        fields.value = f.value
+                        showOffersListDialog.value = "create_blank_offer_list"
+                        sc.value = false
+                    }
+                }
             }
         },
         onDismiss = {
@@ -322,6 +352,9 @@ fun OfferOperationsDialogs(
                         isClicked.value = false
                         showOffersListDialog.value = ""
                         updateItem(offer.id)
+                        if (refreshPage != null) {
+                            refreshPage()
+                        }
                     },
                     onError = {
                         isClicked.value = false

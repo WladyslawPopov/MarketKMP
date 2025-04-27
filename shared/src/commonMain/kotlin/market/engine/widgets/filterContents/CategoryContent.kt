@@ -221,7 +221,7 @@ fun CategoryContent(
 
                     if (searchCategoryId.value != 1L) {
                         ActionButton(
-                            strings.clear,
+                            stringResource(strings.clear),
                             fontSize = dimens.mediumText,
                         ){
                             reset()

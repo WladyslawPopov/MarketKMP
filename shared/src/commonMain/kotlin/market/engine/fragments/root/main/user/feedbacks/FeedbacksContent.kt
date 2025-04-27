@@ -142,8 +142,10 @@ fun FeedbacksContent(
     }
 
     LaunchedEffect(state.firstVisibleItemIndex){
-        val isAtTop = currentIndex < 3
-        onScrollDirectionChange(isAtTop)
+        if(viewModel.isVisibleUserPanel.value) {
+            val isAtTop = currentIndex < 6
+            onScrollDirectionChange(isAtTop)
+        }
         showUpButton = 2 < (state.firstVisibleItemIndex / PAGE_SIZE)
         showDownButton = listingData.value.prevIndex != null &&
                 state.firstVisibleItemIndex < (listingData.value.prevIndex ?: 0)

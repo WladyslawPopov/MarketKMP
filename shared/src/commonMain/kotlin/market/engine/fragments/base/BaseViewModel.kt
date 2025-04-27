@@ -1013,6 +1013,9 @@ open class BaseViewModel: ViewModel() {
                     "remove_from_list" -> {
                         offerOperations.postOfferOperationsRemoveOfferToList(offerId,body)
                     }
+                    "create_blank_offer_list" -> {
+                        userOperations.postCreateBlankOfferList(UserData.login, body)
+                    }
                     else -> {
                         null
                     }
@@ -1065,6 +1068,22 @@ open class BaseViewModel: ViewModel() {
             }
         }
     }
+
+    fun getFieldsCreateBlankOfferList(onSuccess: (title: String, List<Fields>) -> Unit){
+        viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) {
+                userOperations.getCreateBlankOfferList(UserData.login)
+            }
+
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                if (!res?.fields.isNullOrEmpty()){
+                    onSuccess(res?.description?:"", res?.fields!!)
+                }
+            }
+        }
+    }
+
 
     fun postNotes(
         offerId : Long,

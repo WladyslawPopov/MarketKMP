@@ -220,6 +220,16 @@ fun createFavoritesChild(
                     isOpenCategory = false,
                     navigateToSubscribe = {
                         favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
+                    },
+                    navigateToListing = { data ->
+                        favoritesNavigation.pushNew(
+                            FavoritesConfig.ListingScreen(data.data.value, data.searchData.value, getCurrentDate())
+                        )
+                    },
+                    navigateToNewSubscription = {
+                        favoritesNavigation.pushNew(
+                            FavoritesConfig.CreateSubscriptionScreen(it)
+                        )
                     }
                 )
             )

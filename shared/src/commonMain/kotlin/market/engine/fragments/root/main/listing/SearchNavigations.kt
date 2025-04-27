@@ -33,6 +33,9 @@ import market.engine.fragments.root.main.createOffer.createOfferFactory
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
+import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.messenger.messengerFactory
@@ -74,6 +77,11 @@ sealed class SearchConfig {
 
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : SearchConfig()
+
+    @Serializable
+    data class CreateSubscriptionScreen(
+        val editId : Long? = null,
+    ) : SearchConfig()
 }
 
 sealed class ChildSearch {
@@ -84,6 +92,7 @@ sealed class ChildSearch {
     class CreateOrderChild(val component: CreateOrderComponent) : ChildSearch()
     class MessageChild(val component: DialogsComponent) : ChildSearch()
     class ProposalChild(val component: ProposalComponent) : ChildSearch()
+    class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildSearch()
 }
 
 @Composable
@@ -107,6 +116,7 @@ fun SearchNavigation(
             is ChildSearch.CreateOrderChild -> CreateOrderContent(screen.component)
             is ChildSearch.MessageChild -> DialogsContent(screen.component, modifier)
             is ChildSearch.ProposalChild -> ProposalContent(screen.component)
+            is ChildSearch.CreateSubscriptionChild -> CreateSubscriptionContent(screen.component)
         }
     }
 }
@@ -145,6 +155,21 @@ fun createSearchChild(
                     isOpenSearch = config.isOpenSearch,
                     navigateToSubscribe = {
                         navigateToSubscribe()
+                    },
+                    navigateToListing = { data ->
+                        searchNavigation.pushNew(
+                            SearchConfig.ListingScreen(
+                                data.data.value,
+                                data.searchData.value,
+                                false,
+                                getCurrentDate()
+                            )
+                        )
+                    },
+                    navigateToNewSubscription = {
+                        searchNavigation.pushNew(
+                            SearchConfig.CreateSubscriptionScreen(it)
+                        )
                     }
                 ),
             )
@@ -338,4 +363,16 @@ fun createSearchChild(
                 }
             )
         )
+
+        is SearchConfig.CreateSubscriptionScreen -> {
+            ChildSearch.CreateSubscriptionChild(
+                component = createSubscriptionFactory(
+                    componentContext = componentContext,
+                    editId = config.editId,
+                    navigateBack = {
+                        searchNavigation.pop()
+                    }
+                )
+            )
+        }
     }

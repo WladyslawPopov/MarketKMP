@@ -36,6 +36,9 @@ import market.engine.fragments.root.main.createOffer.createOfferFactory
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
+import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
@@ -87,6 +90,11 @@ sealed class HomeConfig {
 
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : HomeConfig()
+
+    @Serializable
+    data class CreateSubscriptionScreen(
+        val editId : Long? = null,
+    ) : HomeConfig()
 }
 
 sealed class ChildHome {
@@ -98,6 +106,7 @@ sealed class ChildHome {
     class CreateOrderChild(val component: CreateOrderComponent) : ChildHome()
     class MessagesChild(val component: DialogsComponent) : ChildHome()
     class ProposalChild(val component: ProposalComponent) : ChildHome()
+    class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildHome()
 }
 
 @Composable
@@ -137,6 +146,9 @@ fun HomeNavigation(
             }
             is ChildHome.ProposalChild -> {
                 ProposalContent(screen.component)
+            }
+            is ChildHome.CreateSubscriptionChild -> {
+                CreateSubscriptionContent(screen.component)
             }
         }
     }
@@ -250,6 +262,16 @@ fun createHomeChild(
                 isOpenSearch = config.isOpenSearch,
                 navigateToSubscribe = {
                     navigateToSubscribe()
+                },
+                navigateToListing = {
+                    homeNavigation.pushNew(
+                        HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                    )
+                },
+                navigateToNewSubscription = {
+                    homeNavigation.pushNew(
+                        HomeConfig.CreateSubscriptionScreen(it)
+                    )
                 }
             ),
         )
@@ -387,6 +409,18 @@ fun createHomeChild(
             }
         )
     )
+
+    is HomeConfig.CreateSubscriptionScreen -> {
+        ChildHome.CreateSubscriptionChild(
+            component = createSubscriptionFactory(
+                componentContext = componentContext,
+                editId = config.editId,
+                navigateBack = {
+                    homeNavigation.pop()
+                }
+            )
+        )
+    }
 }
 
 fun itemHome(

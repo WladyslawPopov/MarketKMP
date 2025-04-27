@@ -10,12 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.TextUnit
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ActionButton(
-    text: StringResource,
+    text: String,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = dimens.largeText,
     alignment: Alignment? = null,
@@ -36,7 +34,7 @@ fun ActionButton(
             shape = MaterialTheme.shapes.small
         ){
             Text(
-                text = stringResource(text),
+                text = text,
                 fontSize = fontSize,
                 color = if (enabled) colors.actionTextColor else colors.steelBlue,
             )

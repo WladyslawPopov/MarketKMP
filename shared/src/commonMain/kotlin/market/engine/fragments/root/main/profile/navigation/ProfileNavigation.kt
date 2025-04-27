@@ -41,6 +41,9 @@ import market.engine.fragments.root.main.createOffer.createOfferFactory
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
+import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
+import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
@@ -115,6 +118,11 @@ sealed class ProfileConfig {
     data class DialogsScreen(val dialogId : Long, val message: String? = null, val ts: String) : ProfileConfig()
     @Serializable
     data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String) : ProfileConfig()
+
+    @Serializable
+    data class CreateSubscriptionScreen(
+        val editId : Long? = null,
+    ) : ProfileConfig()
 }
 
 sealed class ChildProfile {
@@ -132,6 +140,7 @@ sealed class ChildProfile {
     class DialogsChild(val component: DialogsComponent) : ChildProfile()
     class MyProposalsChild(val component: ProfileChildrenComponent) : ChildProfile()
     class ProposalChild(val component: ProposalComponent) : ChildProfile()
+    class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildProfile()
 }
 
 @Composable
@@ -336,6 +345,7 @@ fun ProfileNavigation(
             is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier, publicProfileNavigationItems)
             is ChildProfile.MyProposalsChild -> ProfileMyProposalsNavigation(screen.component, modifier, publicProfileNavigationItems)
             is ChildProfile.ProposalChild -> ProposalContent(screen.component)
+            is ChildProfile.CreateSubscriptionChild -> CreateSubscriptionContent(screen.component)
         }
     }
 }
@@ -444,6 +454,16 @@ fun createProfileChild(
                     isOpenCategory = false,
                     navigateToSubscribe = {
                         navigateToSubscribe()
+                    },
+                    navigateToListing = {
+                        profileNavigation.pushNew(
+                            ProfileConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                        )
+                    },
+                    navigateToNewSubscription = {
+                        profileNavigation.pushNew(
+                            ProfileConfig.CreateSubscriptionScreen(it)
+                        )
                     }
                 )
             )
@@ -633,6 +653,18 @@ fun createProfileChild(
                 }
             )
         )
+
+        is ProfileConfig.CreateSubscriptionScreen -> {
+            ChildProfile.CreateSubscriptionChild(
+                component = createSubscriptionFactory(
+                    componentContext,
+                    config.editId,
+                    navigateBack = {
+                        profileNavigation.pop()
+                    }
+                )
+            )
+        }
     }
 }
 

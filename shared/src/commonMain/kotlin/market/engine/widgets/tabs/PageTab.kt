@@ -22,7 +22,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.Tab
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
@@ -68,7 +70,6 @@ fun PageTab(
                     painter = painterResource(tab.icon),
                     contentDescription = tab.title,
                     modifier = Modifier.size(dimens.smallIconSize)
-                        .padding(dimens.smallPadding)
                 )
             }
             tab.image != null -> {
@@ -85,5 +86,22 @@ fun PageTab(
             maxLines = 1,
             color = if (selectedTab != currentIndex) colors.grayText else colors.black
         )
+        if (tab.isPined) {
+            Icon(
+                painter = painterResource(drawables.pinIcon),
+                contentDescription = tab.title,
+                modifier = Modifier.size(dimens.smallIconSize)
+            )
+        }
+
+        if (tab.onDelete != null && isDragMode) {
+            SmallIconButton(
+                drawables.cancelIcon,
+                colors.black,
+                modifierIconSize = Modifier.size(dimens.extraSmallIconSize)
+            ){
+                tab.onDelete.invoke()
+            }
+        }
     }
 }

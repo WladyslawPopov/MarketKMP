@@ -120,6 +120,7 @@ class DefaultUserComponent(
             userId = model.value.userId,
             type = config.type,
             componentContext = componentContext,
+            feedbacksViewModel = viewModel,
             navigateToSnapshot = {
                 navigateToSnapshot(it)
             },

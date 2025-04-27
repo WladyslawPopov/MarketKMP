@@ -513,7 +513,7 @@ fun CreateOfferContent(
                                     }
 
                                     ActionButton(
-                                        strings.changeCategory,
+                                        stringResource(strings.changeCategory),
                                         fontSize = MaterialTheme.typography.labelMedium.fontSize,
                                         alignment = Alignment.TopEnd,
                                     ) {
@@ -803,7 +803,7 @@ fun CreateOfferContent(
 
 
                                         ActionButton(
-                                            strings.chooseAction,
+                                            stringResource(strings.chooseAction),
                                             fontSize = MaterialTheme.typography.labelMedium.fontSize,
                                             alignment = Alignment.TopEnd,
                                             enabled = images.value.size < MAX_IMAGE_COUNT
@@ -997,7 +997,7 @@ fun SessionStartContent(
                 }
 
                 ActionButton(
-                    strings.actionChangeLabel,
+                    stringResource(strings.actionChangeLabel),
                     fontSize = MaterialTheme.typography.labelSmall.fontSize,
                     alignment = Alignment.TopEnd,
                 ){

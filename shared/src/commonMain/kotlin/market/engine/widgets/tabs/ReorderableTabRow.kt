@@ -12,9 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +45,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 fun ReorderTabRow(
     tabs: List<Tab>, // Your data class with id and title
     selectedTab: Int, // Index of the selected tab
+    lazyListState: LazyListState,
     onTabSelected: (Int) -> Unit, // Callback when a tab is clicked
     onTabsReordered: (List<Tab>) -> Unit, // Callback when tabs are reordered
     getOperations: (Long, (List<Operations>) -> Unit) -> Unit,
@@ -53,14 +55,36 @@ fun ReorderTabRow(
 ) {
     val currentTabsState = rememberUpdatedState(tabs)
     val listState = rememberUpdatedState(tabs)
-    val lazyListState = rememberLazyListState()
+    val previousSelectedTab = remember { mutableStateOf(selectedTab) } // Track previous tab
 
+    // Programmatic scroll to position selectedTab based on direction
     LaunchedEffect(selectedTab) {
-        val visible = lazyListState.layoutInfo.visibleItemsInfo.any { it.index == selectedTab }
-        if (!visible) {
-            delay(50)
-            lazyListState.scrollToItem(selectedTab)
+        delay(300) // Smooth UX delay
+        if (tabs.isEmpty()) return@LaunchedEffect // Handle empty tabs
+
+        val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
+        val firstVisibleIndex = ((visibleItems.firstOrNull()?.index ?: 0) + 1).coerceAtMost(tabs.size)
+        val lastVisibleIndex = ((visibleItems.lastOrNull()?.index ?: 0) - 1).coerceAtLeast(0)
+
+        // Determine scroll direction
+        val isScrollingForward = selectedTab > previousSelectedTab.value
+
+        if (isScrollingForward) {
+            // Forward: Make selectedTab the first visible item
+            // Only scroll if selectedTab is not close to firstVisibleIndex (avoid flickering)
+            if (selectedTab != firstVisibleIndex && selectedTab !in firstVisibleIndex..lastVisibleIndex) {
+                lazyListState.animateScrollToItem(selectedTab, scrollOffset = 1)
+            }
+        } else {
+            // Backward: Make selectedTab the last visible item
+            // Only scroll if selectedTab is not close to lastVisibleIndex
+            if (selectedTab !in lastVisibleIndex..firstVisibleIndex && selectedTab != lastVisibleIndex) {
+                lazyListState.animateScrollToItem((selectedTab - 1).coerceAtLeast(0))
+            }
         }
+
+        // Update previous tab
+        previousSelectedTab.value = selectedTab
     }
 
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -77,12 +101,13 @@ fun ReorderTabRow(
             state = lazyListState,
             heightMod = Modifier,
             modifierList = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalArrangement = Arrangement.spacedBy(if(isDragMode) dimens.extraLargePadding else dimens.smallPadding),
         ) {
             itemsIndexed(currentTabsState.value, key = { _, item -> item.id }) { index, item ->
                 ReorderableItem(reorderableState, key = item.id) {
                     val interactionSource = remember { MutableInteractionSource() }
                     val openPopup = remember { mutableStateOf(false) }
+
                     val defReorderMenuItem = MenuItem(
                         icon = drawables.reorderIcon,
                         id = "reorder",
@@ -108,46 +133,56 @@ fun ReorderTabRow(
                         modifier = Modifier
                             .combinedClickable(
                                 onClick = {
-                                    onTabSelected(index)
+                                    if (!isDragMode) {
+                                        onTabSelected(index)
+                                    }
                                 },
                                 onLongClick = {
-                                    getOperations(item.id){ operations ->
-                                        menuList.value = buildList {
-                                            addAll(listOf(
-                                                defReorderMenuItem
-                                            ))
-                                            addAll(
-                                                operations.map {
-                                                    MenuItem(
-                                                        id = it.id ?: "",
-                                                        title = it.name ?: "",
-                                                        onClick = {
-                                                            makeOperation(it.id ?: "", item.id)
-                                                        }
+                                    if (!isDragMode) {
+                                        getOperations(item.id) { operations ->
+                                            menuList.value = buildList {
+                                                addAll(
+                                                    listOf(
+                                                        defReorderMenuItem
                                                     )
-                                                }
-                                            )
+                                                )
+                                                addAll(
+                                                    operations.map {
+                                                        MenuItem(
+                                                            id = it.id ?: "",
+                                                            title = it.name ?: "",
+                                                            onClick = {
+                                                                makeOperation(it.id ?: "", item.id)
+                                                            }
+                                                        )
+                                                    }
+                                                )
+                                            }
                                         }
+                                        openPopup.value = true
                                     }
-                                    openPopup.value = true
                                 }
                             )
                             .draggableHandle(
-                            enabled = isDragMode,
-                            onDragStarted = {
-//                                    ViewCompat.performHapticFeedback(
-//                                        view,
-//                                        HapticFeedbackConstantsCompat.GESTURE_START
-//                                    )
-                            },
-                            onDragStopped = {
-//                                    ViewCompat.performHapticFeedback(
-//                                        view,
-//                                        HapticFeedbackConstantsCompat.GESTURE_END
-//                                    )
-                            },
-                            interactionSource = interactionSource,
-                        )
+                                enabled = isDragMode,
+                                onDragStarted = {
+    //                                    ViewCompat.performHapticFeedback(
+    //                                        view,
+    //                                        HapticFeedbackConstantsCompat.GESTURE_START
+    //                                    )
+                                },
+                                onDragStopped = {
+    //                                    ViewCompat.performHapticFeedback(
+    //                                        view,
+    //                                        HapticFeedbackConstantsCompat.GESTURE_END
+    //                                    )
+                                },
+                                interactionSource = interactionSource,
+                            )
+                            .background(
+                                if (isDragMode) colors.steelBlue.copy(alpha = 0.2f) else colors.transparent,
+                                MaterialTheme.shapes.small
+                            )
                     )
 
                     if (selectedTab == index) {
@@ -196,4 +231,3 @@ fun ReorderTabRow(
         }
     }
 }
-

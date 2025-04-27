@@ -1317,9 +1317,11 @@ fun OfferContent(
                     showCreateNoteDialog,
                     showOffersListDialog,
                     offerViewModel,
-                ){ id ->
-                    component.updateOffer(id, model.isSnapshot)
-                }
+                    updateItem = { id ->
+                        component.updateOffer(id, model.isSnapshot)
+                    },
+                    refreshPage = null
+                )
             }
         }
     }

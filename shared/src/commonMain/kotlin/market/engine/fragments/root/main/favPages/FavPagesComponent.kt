@@ -11,7 +11,9 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.types.FavScreenType
+import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
@@ -57,8 +59,10 @@ class DefaultFavPagesComponent(
     override val model = initialModel
 
     init {
-        viewModel.getFavTabList{
-            getPages(getCurrentDate())
+        lifecycle.doOnResume {
+            viewModel.getFavTabList{
+                getPages(getCurrentDate())
+            }
         }
     }
 
@@ -123,7 +127,10 @@ class DefaultFavPagesComponent(
                                         FavScreenType.FAV_LIST
                                     }
                                 },
-                                idList = config.favItem.id
+                                idList = config.favItem.id,
+                                updateTabs = {
+                                    fullRefresh()
+                                }
                             )
                         )
                     }
@@ -137,6 +144,7 @@ class DefaultFavPagesComponent(
     }
 
     override fun onRefresh() {
+        viewModel.onError(ServerErrorException())
         val index = componentsPages.value.selectedIndex
         when(val item = componentsPages.value.items[index].instance){
             is FavPagesComponents.FavoritesChild -> {
@@ -205,7 +213,10 @@ class DefaultFavPagesComponent(
                                     FavScreenType.FAV_LIST
                                 }
                             },
-                            idList = config.favItem.id
+                            idList = config.favItem.id,
+                            updateTabs = {
+                                fullRefresh()
+                            }
                         )
                     )
                 }

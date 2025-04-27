@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -25,6 +26,7 @@ import market.engine.core.data.items.Tab
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Operations
+import market.engine.core.repositories.SettingsRepository
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.tabs.ReorderTabRow
@@ -34,7 +36,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FavPagesAppBar(
     currentTab : Int,
+    settings: SettingsRepository,
     favTabList: List<FavoriteListItem>,
+    lazyListState: LazyListState,
     modifier: Modifier = Modifier,
     isDragMode: Boolean,
     navigationClick : (Int) -> Unit,
@@ -75,10 +79,11 @@ fun FavPagesAppBar(
             title = stringResource(strings.createNewOffersListLabel),
             icon = drawables.newLotIcon,
             tint = colors.steelBlue,
-            hasNews = false,
+            hasNews = settings.getSettingValue("create_blank_offer_list_notify_badge", true) ?: false,
             isVisible = !isDragMode,
             badgeCount = null,
             onClick = {
+                settings.setSettingValue("create_blank_offer_list_notify_badge", false)
                 makeOperation("create_blank_offer_list", UserData.login)
             }
         ),
@@ -129,6 +134,14 @@ fun FavPagesAppBar(
                             id = it.id,
                             title = it.title ?: "",
                             image = it.images.firstOrNull(),
+                            isPined = it.markedAsPrimary,
+                            onDelete = if (it.id > 1000){
+                                {
+                                    makeOperation("delete_offers_list", it.id)
+                                }
+                            }else{
+                                null
+                            }
                         )
                     }.toList(),
                     selectedTab = currentTab,
@@ -142,6 +155,7 @@ fun FavPagesAppBar(
                         }
                         onTabsReordered(newList)
                     },
+                    lazyListState = lazyListState,
                     getOperations = getOperations,
                     makeOperation = makeOperation,
                     modifier = Modifier.fillMaxWidth().padding(end = dimens.smallPadding),
