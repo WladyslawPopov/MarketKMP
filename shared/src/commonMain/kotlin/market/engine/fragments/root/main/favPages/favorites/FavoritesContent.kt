@@ -113,6 +113,9 @@ fun FavoritesContent(
                     item?.region = offer.region
                     item?.note = offer.note
                     item?.relistingMode = offer.relistingMode
+                    item?.isWatchedByMe = offer.isWatchedByMe
+                    item?.viewsCount = offer.viewsCount
+                    item?.bids = offer.bids
                 }
                 favViewModel.updateItemTrigger.value++
                 favViewModel.updateItem.value = null

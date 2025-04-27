@@ -77,7 +77,7 @@ fun FavPagesAppBar(
         ),
         NavigationItem(
             title = stringResource(strings.createNewOffersListLabel),
-            icon = drawables.newLotIcon,
+            icon = drawables.addFolderIcon,
             tint = colors.steelBlue,
             hasNews = settings.getSettingValue("create_blank_offer_list_notify_badge", true) ?: false,
             isVisible = !isDragMode,
@@ -135,13 +135,6 @@ fun FavPagesAppBar(
                             title = it.title ?: "",
                             image = it.images.firstOrNull(),
                             isPined = it.markedAsPrimary,
-                            onDelete = if (it.id > 1000){
-                                {
-                                    makeOperation("delete_offers_list", it.id)
-                                }
-                            }else{
-                                null
-                            }
                         )
                     }.toList(),
                     selectedTab = currentTab,

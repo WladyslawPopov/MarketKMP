@@ -16,6 +16,7 @@ interface Drawables {
    val mail : DrawableResource
    val currencyIcon : DrawableResource
    val newLotIcon : DrawableResource
+   val addFolderIcon : DrawableResource
    val verifiedIcon : DrawableResource
    val favoritesIcon : DrawableResource
    val favoritesIconSelected : DrawableResource

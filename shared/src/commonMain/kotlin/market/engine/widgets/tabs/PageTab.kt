@@ -6,6 +6,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,7 +25,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.Tab
-import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
@@ -59,6 +59,7 @@ fun PageTab(
             .offset(
                 x = if (isDragMode) offsetX.value.dp else 0.dp
             )
+            .height(dimens.mediumIconSize + dimens.smallPadding)
             .clip(MaterialTheme.shapes.small)
             .padding(dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
@@ -92,16 +93,6 @@ fun PageTab(
                 contentDescription = tab.title,
                 modifier = Modifier.size(dimens.smallIconSize)
             )
-        }
-
-        if (tab.onDelete != null && isDragMode) {
-            SmallIconButton(
-                drawables.cancelIcon,
-                colors.black,
-                modifierIconSize = Modifier.size(dimens.extraSmallIconSize)
-            ){
-                tab.onDelete.invoke()
-            }
         }
     }
 }

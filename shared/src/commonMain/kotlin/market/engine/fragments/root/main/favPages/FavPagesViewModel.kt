@@ -5,7 +5,6 @@ import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -123,9 +122,10 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                 newList.sortBy { it.position }
                 newList.sortBy { !it.markedAsPrimary }
 
-                _favoritesTabList.value = newList
-
-                onSuccess()
+                if (newList != _favoritesTabList.value) {
+                    _favoritesTabList.value = newList
+                    onSuccess()
+                }
             }
         }
     }
@@ -140,6 +140,10 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                         position = index.toLong()
                     )
                 }
+                analyticsHelper.reportEvent(
+                    "update_offers_list", mapOf()
+                )
+
                 _favoritesTabList.value = list
             }  catch (e: ServerErrorException) {
                 onError(e)
@@ -206,6 +210,13 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                             )
                         )
                     )
+                    analyticsHelper.reportEvent(
+                        "delete_offers_list",
+                        eventParameters = mapOf(
+                            "id" to id,
+                        )
+                    )
+                    db.favoritesTabListItemQueries.deleteById(itemId = id, owner = UserData.login)
                     onSuccess()
                 } else {
                     if (error != null)
@@ -231,6 +242,12 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                             )
                         )
                     )
+                    analyticsHelper.reportEvent(
+                        "pin_offers_list",
+                        eventParameters = mapOf(
+                            "id" to id,
+                        )
+                    )
                     onSuccess()
                 } else {
                     if (error != null)
@@ -252,6 +269,12 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                             message = getString(
                                 strings.operationSuccess
                             )
+                        )
+                    )
+                    analyticsHelper.reportEvent(
+                        "unpin_offers_list",
+                        eventParameters = mapOf(
+                            "id" to id,
                         )
                     )
                     onSuccess()
@@ -290,9 +313,22 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                                 )
                             )
                         )
-                        delay(2000)
+                        analyticsHelper.reportEvent(
+                            "${type}_success",
+                            eventParameters = mapOf(
+                                "id" to id,
+                                "body" to body.toString()
+                            )
+                        )
                         onSuccess()
                     } else {
+                        analyticsHelper.reportEvent(
+                            "${type}_error",
+                            eventParameters = mapOf(
+                                "id" to id,
+                                "body" to body.toString()
+                            )
+                        )
                         showToast(
                             errorToastItem.copy(
                                 message = getString(
@@ -304,6 +340,14 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                         errorCallback(res.recipe?.fields ?: res.fields)
                     }
                 } else {
+                    analyticsHelper.reportEvent(
+                        "${type}_error",
+                        eventParameters = mapOf(
+                            "id" to id,
+                            "body" to body.toString(),
+                            "error" to (data.error?.message ?: "")
+                        )
+                    )
                     showToast(
                         errorToastItem.copy(
                             message = getString(

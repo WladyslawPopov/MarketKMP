@@ -75,6 +75,7 @@ class DefaultFavoritesComponent(
 
     override fun onRefresh() {
         favViewModel.onError(ServerErrorException())
+        favViewModel.updateUserInfo()
         favViewModel.resetScroll()
         favViewModel.refresh()
         favViewModel.updateFilters.value++

@@ -20,6 +20,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.baseFilters.ListingData
@@ -79,8 +80,14 @@ fun FavPagesNavigation(
     LaunchedEffect(lazyListState){
         snapshotFlow {
             lazyListState.firstVisibleItemIndex
-        }.collect { index ->
+        }.collectLatest { index ->
             viewModel.initPosition.value = index
+        }
+    }
+
+    LaunchedEffect(Unit){
+        viewModel.getFavTabList {
+            component.fullRefresh()
         }
     }
 
@@ -123,6 +130,12 @@ fun FavPagesNavigation(
 
                         "reorder" -> {
                             viewModel.isDragMode.value = true
+
+                            viewModel.analyticsHelper.reportEvent(
+                                "reorder_offers_list", mapOf(
+                                    "list_id" to id
+                                )
+                            )
                         }
 
                         "delete_offers_list" -> {

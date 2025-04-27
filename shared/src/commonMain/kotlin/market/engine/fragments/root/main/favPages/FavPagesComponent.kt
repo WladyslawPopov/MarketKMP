@@ -11,7 +11,6 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getCurrentDate
@@ -31,8 +30,6 @@ interface FavPagesComponent {
     )
 
     fun selectPage(p: Int)
-
-    fun getPages(version : String)
 
     fun fullRefresh()
 
@@ -59,10 +56,8 @@ class DefaultFavPagesComponent(
     override val model = initialModel
 
     init {
-        lifecycle.doOnResume {
-            viewModel.getFavTabList{
-                getPages(getCurrentDate())
-            }
+        viewModel.getFavTabList{
+            componentsPages = pages(getCurrentDate())
         }
     }
 
@@ -70,94 +65,7 @@ class DefaultFavPagesComponent(
         navigation.select(p)
     }
 
-    override fun getPages(version : String) {
-        componentsPages = childPages(
-            source = navigation,
-            serializer = FavPagesConfig.serializer(),
-            handleBackButton = true,
-            initialPages = {
-                Pages(
-                    viewModel.favoritesTabList.value.map {
-                        FavPagesConfig(it)
-                    },
-                    selectedIndex = if(favType == FavScreenType.FAVORITES) 0 else 1,
-                )
-            },
-            key = "FavoritesStack_$version",
-            childFactory = { config, componentContext ->
-                when (config.favItem.id) {
-                    222L -> {
-                        FavPagesComponents.SubscribedChild(
-                            component = itemSubscriptions(
-                                componentContext,
-                                selectedType = FavScreenType.SUBSCRIBED,
-                                navigateToCreateNewSubscription = {
-                                    favoritesNavigation.pushNew(
-                                        FavoritesConfig.CreateSubscriptionScreen(it)
-                                    )
-                                },
-                                navigateToListing = {
-                                    favoritesNavigation.pushNew(
-                                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
-                                    )
-                                }
-                            )
-                        )
-                    }
-                    else -> {
-                        FavPagesComponents.FavoritesChild(
-                            component = itemFavorites(
-                                componentContext,
-                                navigateToOffer = {
-                                    favoritesNavigation.pushNew(
-                                        FavoritesConfig.OfferScreen(
-                                            it, getCurrentDate()
-                                        )
-                                    )
-                                },
-                                selectedType =
-                                    when(config.favItem.id){
-                                    111L -> {
-                                        FavScreenType.FAVORITES
-                                    }
-                                    333L -> {
-                                        FavScreenType.NOTES
-                                    }
-                                    else -> {
-                                        FavScreenType.FAV_LIST
-                                    }
-                                },
-                                idList = config.favItem.id,
-                                updateTabs = {
-                                    fullRefresh()
-                                }
-                            )
-                        )
-                    }
-                }
-            }
-        )
-    }
-
-    override fun fullRefresh() {
-        favoritesNavigation.replaceCurrent(FavoritesConfig.FavPagesScreen(favType, getCurrentDate()))
-    }
-
-    override fun onRefresh() {
-        viewModel.onError(ServerErrorException())
-        val index = componentsPages.value.selectedIndex
-        when(val item = componentsPages.value.items[index].instance){
-            is FavPagesComponents.FavoritesChild -> {
-                item.component.onRefresh()
-            }
-            is FavPagesComponents.SubscribedChild -> {
-                item.component.model.value.subViewModel.refresh()
-            }
-            null -> {}
-        }
-    }
-
-    override var componentsPages: Value<ChildPages<*, FavPagesComponents>> = childPages(
+    fun pages(version: String) : Value<ChildPages<*, FavPagesComponents>> = childPages(
         source = navigation,
         serializer = FavPagesConfig.serializer(),
         handleBackButton = true,
@@ -169,7 +77,7 @@ class DefaultFavPagesComponent(
                 selectedIndex = if(favType == FavScreenType.FAVORITES) 0 else 1,
             )
         },
-        key = "FavoritesStack",
+        key = "FavoritesStack_$version",
         childFactory = { config, componentContext ->
             when (config.favItem.id) {
                 222L -> {
@@ -203,16 +111,16 @@ class DefaultFavPagesComponent(
                             },
                             selectedType =
                                 when(config.favItem.id){
-                                111L -> {
-                                    FavScreenType.FAVORITES
-                                }
-                                333L -> {
-                                    FavScreenType.NOTES
-                                }
-                                else -> {
-                                    FavScreenType.FAV_LIST
-                                }
-                            },
+                                    111L -> {
+                                        FavScreenType.FAVORITES
+                                    }
+                                    333L -> {
+                                        FavScreenType.NOTES
+                                    }
+                                    else -> {
+                                        FavScreenType.FAV_LIST
+                                    }
+                                },
                             idList = config.favItem.id,
                             updateTabs = {
                                 fullRefresh()
@@ -223,6 +131,26 @@ class DefaultFavPagesComponent(
             }
         }
     )
+
+    override fun fullRefresh() {
+        favoritesNavigation.replaceCurrent(FavoritesConfig.FavPagesScreen(favType, getCurrentDate()))
+    }
+
+    override fun onRefresh() {
+        viewModel.onError(ServerErrorException())
+        val index = componentsPages.value.selectedIndex
+        when(val item = componentsPages.value.items[index].instance){
+            is FavPagesComponents.FavoritesChild -> {
+                item.component.onRefresh()
+            }
+            is FavPagesComponents.SubscribedChild -> {
+                item.component.model.value.subViewModel.refresh()
+            }
+            null -> {}
+        }
+    }
+
+    override var componentsPages: Value<ChildPages<*, FavPagesComponents>> = pages("1")
 }
 
 sealed class FavPagesComponents {

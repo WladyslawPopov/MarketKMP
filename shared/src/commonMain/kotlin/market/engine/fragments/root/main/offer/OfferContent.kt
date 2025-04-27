@@ -206,6 +206,7 @@ fun OfferContent(
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
     val showCreateNoteDialog = remember { mutableStateOf("") }
     val showOffersListDialog = remember { mutableStateOf("") }
+    val showCreateBlankOfferListDialog = remember { mutableStateOf("") }
 
     val choices = remember{ mutableListOf<Choices>() }
     val title = remember { mutableStateOf("") }
@@ -292,6 +293,18 @@ fun OfferContent(
                     icon = drawables.calendarIcon,
                     onClick = {
                         offer.publicUrl?.let { openCalendarEvent(it) }
+                    }
+                ),
+                MenuItem(
+                    id = "create_blank_offer_list",
+                    title = getString(strings.createNewOffersListLabel),
+                    icon = drawables.addFolderIcon,
+                    onClick = {
+                        offerViewModel.getFieldsCreateBlankOfferList { t, f ->
+                            title.value = t
+                            fields.value = f
+                            showCreateBlankOfferListDialog.value = "create_blank_offer_list"
+                        }
                     }
                 ),
             )
@@ -1316,6 +1329,7 @@ fun OfferContent(
                     showActivateOfferForFutureDialog,
                     showCreateNoteDialog,
                     showOffersListDialog,
+                    showCreateBlankOfferListDialog,
                     offerViewModel,
                     updateItem = { id ->
                         component.updateOffer(id, model.isSnapshot)

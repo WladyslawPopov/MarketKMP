@@ -119,6 +119,7 @@ fun HeaderOfferBar(
             val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
             val showCreateNoteDialog = remember { mutableStateOf("") }
             val showOffersListDialog = remember { mutableStateOf("") }
+            val showCreatedDialog = remember { mutableStateOf("") }
 
             val choices = remember{ mutableListOf<Choices>() }
             val title = remember { mutableStateOf("") }
@@ -160,12 +161,23 @@ fun HeaderOfferBar(
                         offer.publicUrl?.let { openCalendarEvent(it) }
                     }
                 ),
+                MenuItem(
+                    id = "create_blank_offer_list",
+                    title = stringResource(strings.createNewOffersListLabel),
+                    icon = drawables.addFolderIcon,
+                    onClick = {
+                        baseViewModel.getFieldsCreateBlankOfferList { t, f ->
+                            title.value = t
+                            fields.value = f
+                            showCreatedDialog.value = "create_blank_offer_list"
+                        }
+                    }
+                ),
             )
 
             val menuList = remember {
                 mutableStateOf<List<MenuItem>>(emptyList())
             }
-
 
 
             SmallIconButton(
@@ -441,6 +453,7 @@ fun HeaderOfferBar(
                 showActivateOfferForFutureDialog = showActivateOfferForFutureDialog,
                 showCreateNoteDialog = showCreateNoteDialog,
                 showOffersListDialog = showOffersListDialog,
+                showCreatedDialog = showCreatedDialog,
                 viewModel = baseViewModel,
                 errorMes = errorMes,
                 title = title,

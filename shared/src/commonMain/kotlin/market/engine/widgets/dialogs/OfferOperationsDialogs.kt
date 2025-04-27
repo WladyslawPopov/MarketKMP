@@ -1,7 +1,6 @@
 package market.engine.widgets.dialogs
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -24,7 +23,6 @@ import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 
@@ -41,6 +39,7 @@ fun OfferOperationsDialogs(
     showActivateOfferForFutureDialog: MutableState<Boolean>,
     showCreateNoteDialog: MutableState<String>,
     showOffersListDialog: MutableState<String>,
+    showCreatedDialog: MutableState<String>,
     viewModel : BaseViewModel,
     updateItem: (Long) -> Unit,
     refreshPage: (() -> Unit)?
@@ -304,30 +303,8 @@ fun OfferOperationsDialogs(
                     showFields.value = true
                 }
 
-
                 if (showFields.value) {
                     SetUpDynamicFields(fields.value)
-                }
-                val sc = remember { mutableStateOf(false) }
-                val t = remember { mutableStateOf("") }
-                val f = remember { mutableStateOf(listOf<Fields>()) }
-                if (f.value.isEmpty()) {
-                    viewModel.getFieldsCreateBlankOfferList { title, fields ->
-                        t.value = title
-                        f.value = fields
-                        sc.value = true
-                    }
-                }
-                if (sc.value) {
-                    ActionButton(
-                        t.value,
-                        fontSize = MaterialTheme.typography.labelSmall.fontSize
-                    ) {
-                        title.value = t.value
-                        fields.value = f.value
-                        showOffersListDialog.value = "create_blank_offer_list"
-                        sc.value = false
-                    }
                 }
             }
         },
@@ -380,6 +357,48 @@ fun OfferOperationsDialogs(
                             }
                             fields.value = it
                         }
+                    }
+                )
+            }
+        }
+    )
+
+    CustomDialog(
+        showDialog = showCreatedDialog.value != "",
+        containerColor = colors.primaryColor,
+        title = title.value,
+        body = {
+            SetUpDynamicFields(fields.value)
+        },
+        onDismiss = {
+            showCreatedDialog.value = ""
+            isClicked.value = false
+        },
+        onSuccessful = {
+            if (!isClicked.value) {
+                isClicked.value = true
+                val bodyPost = HashMap<String, JsonElement>()
+                fields.value.forEach { field ->
+                    if (field.data != null) {
+                        bodyPost[field.key ?: ""] = field.data!!
+                    }
+                }
+
+                viewModel.postOfferListFieldForOffer(
+                    offer.id,
+                    showCreatedDialog.value,
+                    bodyPost,
+                    onSuccess = {
+                        showCreatedDialog.value = ""
+                        isClicked.value = false
+                        updateItem(offer.id)
+                        if (refreshPage != null) {
+                            refreshPage()
+                        }
+                    },
+                    onError = { f ->
+                        fields.value = f
+                        isClicked.value = false
                     }
                 )
             }

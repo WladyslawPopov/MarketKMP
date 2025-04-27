@@ -1113,7 +1113,7 @@ open class BaseViewModel: ViewModel() {
                 if (res != null) {
                     if (res.status == "operation_success") {
                         analyticsHelper.reportEvent(
-                            "${type}_note_success",
+                            "${type}_success",
                             eventParameters = mapOf(
                                 "lot_id" to offerId,
                                 "body" to body
@@ -1146,6 +1146,12 @@ open class BaseViewModel: ViewModel() {
                         showToast(
                             successToastItem.copy(
                                 message = getString(strings.operationSuccess)
+                            )
+                        )
+                        analyticsHelper.reportEvent(
+                            "delete_note_success",
+                            eventParameters = mapOf(
+                                "lot_id" to offerId,
                             )
                         )
                         delay(2000)
