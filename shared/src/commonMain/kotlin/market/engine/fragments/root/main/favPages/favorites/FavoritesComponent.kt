@@ -19,6 +19,7 @@ import org.koin.mp.KoinPlatform.getKoin
 interface FavoritesComponent {
     val model : Value<Model>
     data class Model(
+        val listId : Long?,
         val favType: FavScreenType,
         val pagingDataFlow : Flow<PagingData<Offer>>,
         val favViewModel: FavPagesViewModel,
@@ -44,6 +45,7 @@ class DefaultFavoritesComponent(
 
     private val _model = MutableValue(
         FavoritesComponent.Model(
+            listId = idList,
             favType = favType,
             favViewModel = favViewModel,
             pagingDataFlow = favViewModel.init(favType, idList),

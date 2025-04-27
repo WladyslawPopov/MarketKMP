@@ -80,6 +80,19 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
         pagingRepository.refresh()
     }
 
+    fun getList(id: Long, onSuccess: (FavoriteListItem) -> Unit) {
+        viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) { offersListOperations.getOffersListItem(id) }
+
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                if (res != null) {
+                    onSuccess(res)
+                }
+            }
+        }
+    }
+
     fun getFavTabList(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val newList = arrayListOf(

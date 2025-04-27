@@ -96,15 +96,24 @@ fun FavoritesContent(
     //update item when we back
     LaunchedEffect(favViewModel.updateItem.value) {
         if (favViewModel.updateItem.value != null) {
+            component.model.value.listId?.let { id ->
+                favViewModel.getList(id) { item ->
+                    val offer =
+                        data.itemSnapshotList.items.find { it.id == favViewModel.updateItem.value }
+                    if (!item.offers.contains(offer?.id)) {
+                        offer?.session = null
+                    }
+                }
+            }
+
             val offer = withContext(Dispatchers.IO) {
-                    favViewModel.getOfferById(favViewModel.updateItem.value!!)
+                favViewModel.getOfferById(favViewModel.updateItem.value!!)
             }
 
             withContext(Dispatchers.Main) {
                 if (offer != null) {
                     val item = data.itemSnapshotList.items.find { it.id == offer.id }
                     item?.state = offer.state
-                    item?.session = offer.session
                     item?.buyNowPrice = offer.buyNowPrice
                     item?.images = offer.images
                     item?.freeLocation = offer.freeLocation
@@ -122,6 +131,7 @@ fun FavoritesContent(
             }
         }
     }
+
     val err = favViewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(err) { component.onRefresh() } }
@@ -224,7 +234,7 @@ fun FavoritesContent(
                             }
 
                             else -> {
-                                true
+                                offer.session != null
                             }
                         }
                     )

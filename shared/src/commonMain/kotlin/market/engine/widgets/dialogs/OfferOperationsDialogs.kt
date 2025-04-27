@@ -329,9 +329,6 @@ fun OfferOperationsDialogs(
                         isClicked.value = false
                         showOffersListDialog.value = ""
                         updateItem(offer.id)
-                        if (refreshPage != null) {
-                            refreshPage()
-                        }
                     },
                     onError = {
                         isClicked.value = false
