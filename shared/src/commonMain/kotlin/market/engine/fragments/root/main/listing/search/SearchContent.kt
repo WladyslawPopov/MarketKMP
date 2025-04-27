@@ -107,7 +107,11 @@ fun SearchContent(
     }
 
     val getSearchFilters = {
-        searchViewModel.addHistory(searchString.value, selectedUser.value, selectedUserFinished.value)
+        searchViewModel.addHistory(
+            searchString.value,
+            if(selectedUserLogin.value == null) selectedUser.value else false,
+            selectedUserFinished.value
+        )
 
         if (selectedUser.value && selectedUserLogin.value == null){
             if (searchString.value != "") {
