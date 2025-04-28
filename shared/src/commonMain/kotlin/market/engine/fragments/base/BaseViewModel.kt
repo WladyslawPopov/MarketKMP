@@ -1174,7 +1174,6 @@ open class BaseViewModel: ViewModel() {
                 offerOperations.getOperationsOffer(offerId)
             }
             val buf = res.success
-            val err = res.error
             withContext(Dispatchers.Main) {
                 if (buf != null) {
                     val filtered = res.success?.filter {
@@ -1205,10 +1204,6 @@ open class BaseViewModel: ViewModel() {
                         )
                     }
                     onSuccess(filtered ?: emptyList())
-                }else{
-                    if (err != null){
-                        onError(err)
-                    }
                 }
             }
         }

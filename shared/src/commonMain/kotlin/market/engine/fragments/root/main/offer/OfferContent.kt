@@ -294,22 +294,27 @@ fun OfferContent(
                     onClick = {
                         offer.publicUrl?.let { openCalendarEvent(it) }
                     }
-                ),
-                MenuItem(
-                    id = "create_blank_offer_list",
-                    title = getString(strings.createNewOffersListLabel),
-                    icon = drawables.addFolderIcon,
-                    onClick = {
-                        offerViewModel.getFieldsCreateBlankOfferList { t, f ->
-                            title.value = t
-                            fields.value = f
-                            showCreateBlankOfferListDialog.value = "create_blank_offer_list"
-                        }
-                    }
-                ),
+                )
             )
             menuList.value = buildList {
                 addAll(defOptions)
+                if (UserData.token != "") {
+                    add(
+                        MenuItem(
+                            id = "create_blank_offer_list",
+                            title = getString(strings.createNewOffersListLabel),
+                            icon = drawables.addFolderIcon,
+                            onClick = {
+                                offerViewModel.getFieldsCreateBlankOfferList { t, f ->
+                                    title.value = t
+                                    fields.value = f
+                                    showCreateBlankOfferListDialog.value = "create_blank_offer_list"
+                                }
+                            }
+                        )
+
+                    )
+                }
                 addAll(operationsList.value.map { operation ->
                     MenuItem(
                         id = operation.id ?: "",

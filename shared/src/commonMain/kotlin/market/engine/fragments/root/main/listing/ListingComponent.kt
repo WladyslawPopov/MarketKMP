@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.SearchPagesType
 import market.engine.core.network.networkObjects.Offer
@@ -73,10 +74,12 @@ class DefaultListingComponent(
         serializer = SearchPagesConfig.serializer(),
         initialPages = {
             Pages(
-                listOf(
-                    SearchPagesConfig(SearchPagesType.SEARCH_HISTORY),
-                    SearchPagesConfig(SearchPagesType.SUBSCRIBED)
-                ),
+                buildList {
+                    add(SearchPagesConfig(SearchPagesType.SEARCH_HISTORY))
+                    if (UserData.token != "") {
+                        add(SearchPagesConfig(SearchPagesType.SUBSCRIBED))
+                    }
+                },
                 selectedIndex = 0
             )
         },

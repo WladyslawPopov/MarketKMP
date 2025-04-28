@@ -26,6 +26,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.network.networkObjects.Offer
@@ -160,25 +161,14 @@ fun HeaderOfferBar(
                     onClick = {
                         offer.publicUrl?.let { openCalendarEvent(it) }
                     }
-                ),
-                MenuItem(
-                    id = "create_blank_offer_list",
-                    title = stringResource(strings.createNewOffersListLabel),
-                    icon = drawables.addFolderIcon,
-                    onClick = {
-                        baseViewModel.getFieldsCreateBlankOfferList { t, f ->
-                            title.value = t
-                            fields.value = f
-                            showCreatedDialog.value = "create_blank_offer_list"
-                        }
-                    }
-                ),
+                )
             )
 
             val menuList = remember {
                 mutableStateOf<List<MenuItem>>(emptyList())
             }
 
+            val cbol = stringResource(strings.createNewOffersListLabel)
 
             SmallIconButton(
                 drawables.menuIcon,
@@ -189,6 +179,22 @@ fun HeaderOfferBar(
                 baseViewModel.getOfferOperations(offer.id){ listOperations ->
                     menuList.value = buildList {
                         addAll(defOption)
+                        if (UserData.token != "") {
+                            add(
+                                MenuItem(
+                                    id = "create_blank_offer_list",
+                                    title = cbol,
+                                    icon = drawables.addFolderIcon,
+                                    onClick = {
+                                        baseViewModel.getFieldsCreateBlankOfferList { t, f ->
+                                            title.value = t
+                                            fields.value = f
+                                            showCreatedDialog.value = "create_blank_offer_list"
+                                        }
+                                    }
+                                ),
+                            )
+                        }
                         addAll(listOperations.map { operation ->
                             MenuItem(
                                 id = operation.id ?: "",

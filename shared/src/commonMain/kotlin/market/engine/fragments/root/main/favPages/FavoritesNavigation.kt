@@ -134,12 +134,13 @@ fun FavoritesNavigation(
 fun createFavoritesChild(
     config: FavoritesConfig,
     componentContext: ComponentContext,
+    favPagesViewModel: FavPagesViewModel,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,
 ): ChildFavorites = when (config) {
         is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
-            itemFavPages(componentContext, favoritesNavigation, config.favScreenType)
+            itemFavPages(componentContext, favPagesViewModel, favoritesNavigation, config.favScreenType)
         )
 
         is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
@@ -379,12 +380,14 @@ fun createFavoritesChild(
 
 fun itemFavPages(
     componentContext: ComponentContext,
+    favPagesViewModel: FavPagesViewModel,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
     favType: FavScreenType = FavScreenType.FAVORITES
 ): FavPagesComponent {
     return DefaultFavPagesComponent(
         favoritesNavigation = favoritesNavigation,
         componentContext = componentContext,
+        viewModel = favPagesViewModel,
         favType = favType
     )
 }

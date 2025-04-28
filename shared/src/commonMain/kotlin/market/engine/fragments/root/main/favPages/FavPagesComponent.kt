@@ -16,7 +16,6 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface FavPagesComponent {
@@ -38,14 +37,12 @@ interface FavPagesComponent {
 
 class DefaultFavPagesComponent(
     private val favoritesNavigation : StackNavigation<FavoritesConfig>,
+    val viewModel: FavPagesViewModel,
     val favType: FavScreenType,
     componentContext: ComponentContext,
 ) : FavPagesComponent, ComponentContext by componentContext {
 
     private val navigation = PagesNavigation<FavPagesConfig>()
-
-    private val viewModel = FavPagesViewModel(getKoin().get())
-
 
     override val favScreenType: FavScreenType = favType
     private var initialModel = MutableValue(
@@ -54,12 +51,6 @@ class DefaultFavPagesComponent(
         )
     )
     override val model = initialModel
-
-    init {
-        viewModel.getFavTabList{
-            componentsPages = pages(getCurrentDate())
-        }
-    }
 
     override fun selectPage(p: Int) {
         navigation.select(p)
@@ -70,11 +61,21 @@ class DefaultFavPagesComponent(
         serializer = FavPagesConfig.serializer(),
         handleBackButton = true,
         initialPages = {
+            val list = viewModel.favoritesTabList.value.map {
+                FavPagesConfig(it)
+            }
+
             Pages(
-                viewModel.favoritesTabList.value.map {
-                    FavPagesConfig(it)
-                },
-                selectedIndex = if(favType == FavScreenType.FAVORITES) 0 else 1,
+                list,
+                selectedIndex =
+                    when{
+                        favType == FavScreenType.SUBSCRIBED -> {
+                            list.indexOf(list.find { it.favItem.id == 222L })
+                        }
+                        else -> {
+                            (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
+                        }
+                    },
             )
         },
         key = "FavoritesStack_$version",
@@ -133,7 +134,14 @@ class DefaultFavPagesComponent(
     )
 
     override fun fullRefresh() {
-        favoritesNavigation.replaceCurrent(FavoritesConfig.FavPagesScreen(favType, getCurrentDate()))
+        viewModel.getFavTabList {
+            favoritesNavigation.replaceCurrent(
+                FavoritesConfig.FavPagesScreen(
+                    favType,
+                    getCurrentDate()
+                )
+            )
+        }
     }
 
     override fun onRefresh() {
@@ -150,7 +158,7 @@ class DefaultFavPagesComponent(
         }
     }
 
-    override var componentsPages: Value<ChildPages<*, FavPagesComponents>> = pages("1")
+    override var componentsPages: Value<ChildPages<*, FavPagesComponents>> = pages(getCurrentDate())
 }
 
 sealed class FavPagesComponents {

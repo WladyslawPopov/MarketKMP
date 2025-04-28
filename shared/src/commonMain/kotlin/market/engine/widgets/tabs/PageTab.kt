@@ -47,7 +47,7 @@ fun PageTab(
             offsetX.animateTo(
                 targetValue = 1.5f, // Reduced for subtler shake
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 300, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                    animation = tween(durationMillis = 500, easing = androidx.compose.animation.core.FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse
                 )
             )

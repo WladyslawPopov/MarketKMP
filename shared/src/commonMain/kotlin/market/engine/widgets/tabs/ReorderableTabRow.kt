@@ -59,7 +59,7 @@ fun ReorderTabRow(
 
     // Programmatic scroll to position selectedTab based on direction
     LaunchedEffect(selectedTab) {
-        delay(300) // Smooth UX delay
+        delay(30) // Smooth UX delay
         if (tabs.isEmpty()) return@LaunchedEffect // Handle empty tabs
 
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
@@ -185,21 +185,21 @@ fun ReorderTabRow(
                             )
                     )
 
-                    if (selectedTab == index) {
+                    if (selectedTab == index && !isDragMode) {
                         val density = LocalDensity.current
 
                         val selectedTabLayoutInfo =
-                            remember(selectedTab, lazyListState.layoutInfo.visibleItemsInfo) {
+                           // remember(selectedTab, lazyListState.layoutInfo.visibleItemsInfo) {
                                 lazyListState.layoutInfo.visibleItemsInfo.find { it.index == selectedTab }
-                            }
+                          //  }
 
-                        val targetWidthDp = remember(selectedTabLayoutInfo) {
+                        val targetWidthDp = //remember(selectedTabLayoutInfo) {
                             selectedTabLayoutInfo?.size?.let { with(density) { it.toDp() } } ?: 0.dp
-                        }
+                      //  }
 
                         val animatedIndicatorWidth by animateDpAsState(
                             targetValue = targetWidthDp,
-                            animationSpec = tween(durationMillis = 300),
+                            animationSpec = tween(durationMillis = 200),
                             label = "IndicatorWidth"
                         )
 

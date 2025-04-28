@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
@@ -20,7 +18,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.baseFilters.ListingData
@@ -67,7 +64,7 @@ fun FavPagesNavigation(
     val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
     val title = remember { mutableStateOf("") }
     val lazyListState = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.initPosition.value
+        initialFirstVisibleItemIndex = (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
     )
 
     val err = viewModel.errorMessage.collectAsState()
@@ -75,20 +72,6 @@ fun FavPagesNavigation(
         { onError(err) { component.onRefresh() } }
     }else{
         null
-    }
-
-    LaunchedEffect(lazyListState){
-        snapshotFlow {
-            lazyListState.firstVisibleItemIndex
-        }.collectLatest { index ->
-            viewModel.initPosition.value = index
-        }
-    }
-
-    LaunchedEffect(Unit){
-        viewModel.getFavTabList {
-            component.fullRefresh()
-        }
     }
 
     BaseContent(
@@ -109,6 +92,7 @@ fun FavPagesNavigation(
                 modifier = Modifier.fillMaxWidth(),
                 navigationClick = {
                     select.value = it
+                    viewModel.initPosition.value = it
                     component.selectPage(select.value)
                 },
                 onTabsReordered = {
@@ -140,6 +124,7 @@ fun FavPagesNavigation(
 
                         "delete_offers_list" -> {
                             viewModel.deleteFavTab(id) {
+                                select.value = viewModel.initPosition.value
                                 component.fullRefresh()
                             }
                         }
@@ -175,6 +160,7 @@ fun FavPagesNavigation(
                     scrollAnimation = PagesScrollAnimation.Default,
                     onPageSelected = {
                         select.value = it
+                        viewModel.initPosition.value = it
                         component.selectPage(select.value)
                     }
                 ) { _, page ->
@@ -199,7 +185,7 @@ fun FavPagesNavigation(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(colors.black.copy(alpha = 0.3f))
+                            .background(colors.white.copy(alpha = 0.3f))
                             .blur(dimens.extraLargePadding)
                             .pointerInput(Unit) {
                                 detectTapGestures {
@@ -239,6 +225,7 @@ fun FavPagesNavigation(
                             onSuccess = {
                                 showCreatedDialog.value = ""
                                 isClicked.value = false
+                                viewModel.initPosition.value = favTabList.value.lastIndex+1
                                 component.fullRefresh()
                             },
                             errorCallback = { f ->

@@ -51,6 +51,12 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
 
     val isDragMode = mutableStateOf(false)
 
+    init {
+        viewModelScope.launch {
+            getFavTabList {  }
+        }
+    }
+
     fun init(type: FavScreenType, listId: Long?= null): Flow<PagingData<Offer>> {
         when(type){
             FavScreenType.FAVORITES -> {
@@ -230,6 +236,7 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                         )
                     )
                     db.favoritesTabListItemQueries.deleteById(itemId = id, owner = UserData.login)
+                    initPosition.value = initPosition.value.coerceIn(0, favoritesTabList.value.size - 2)
                     onSuccess()
                 } else {
                     if (error != null)

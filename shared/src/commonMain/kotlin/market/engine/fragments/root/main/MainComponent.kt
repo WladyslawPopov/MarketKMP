@@ -34,6 +34,7 @@ import market.engine.fragments.root.main.home.createHomeChild
 import market.engine.fragments.root.main.favPages.ChildFavorites
 import market.engine.fragments.root.main.favPages.FavoritesConfig
 import market.engine.fragments.root.main.basket.createBasketChild
+import market.engine.fragments.root.main.favPages.FavPagesViewModel
 import market.engine.fragments.root.main.favPages.createFavoritesChild
 import market.engine.fragments.root.main.profile.navigation.ChildProfile
 import market.engine.fragments.root.main.profile.navigation.ProfileConfig
@@ -41,6 +42,7 @@ import market.engine.fragments.root.main.profile.navigation.createProfileChild
 import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.listing.SearchConfig
 import market.engine.fragments.root.main.listing.createSearchChild
+import org.koin.mp.KoinPlatform.getKoin
 
 interface MainComponent {
 
@@ -216,6 +218,8 @@ class DefaultMainComponent(
         )
     }
 
+    private val favPagesViewModel = FavPagesViewModel(getKoin().get())
+
     override val childFavoritesStack: Value<ChildStack<*, ChildFavorites>> by lazy {
         childStack(
             source = modelNavigation.value.favoritesNavigation,
@@ -226,6 +230,7 @@ class DefaultMainComponent(
                 createFavoritesChild(
                     config,
                     componentContext,
+                    favPagesViewModel,
                     modelNavigation.value.favoritesNavigation,
                     navigateToMyOrders = { id, type ->
                         navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
@@ -388,17 +393,30 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLogin(true)
                 }else{
-                    if(activeCurrent == "Favorites"){
-                        modelNavigation.value.favoritesNavigation.popToFirst()
+                    when{
+                        activeCurrent == "Favorites" -> {
+                            modelNavigation.value.favoritesNavigation.popToFirst()
+                        }
+                        openPage == "subscribe" -> {
+                            modelNavigation.value.favoritesNavigation.replaceCurrent(
+                                FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED,
+                                    getCurrentDate())
+                            )
+                        }
+                        else -> {
+                            favPagesViewModel.getFavTabList {
+                                modelNavigation.value.favoritesNavigation.replaceCurrent(
+                                    FavoritesConfig.FavPagesScreen(
+                                        FavScreenType.FAVORITES,
+                                        getCurrentDate()
+                                    )
+                                )
+                            }
+                        }
+
                     }
                     activeCurrent = "Favorites"
-
                     modelNavigation.value.mainNavigation.replaceCurrent(config)
-                    if(openPage == "subscribe") {
-                        modelNavigation.value.favoritesNavigation.replaceAll(
-                            FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED)
-                        )
-                    }
                 }
             }
             is MainConfig.Profile -> {

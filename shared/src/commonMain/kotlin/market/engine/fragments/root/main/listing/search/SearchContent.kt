@@ -38,6 +38,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.Tab
 import market.engine.core.network.ServerErrorException
@@ -175,14 +176,14 @@ fun SearchContent(
         mutableStateOf(0)
     }
 
-    val tabs = listOf(
-        Tab(
-            stringResource(strings.searchHistory),
-        ),
-        Tab(
-            stringResource(strings.mySubscribedTitle),
-        ),
-    )
+    val tabs = buildList {
+        add(
+            Tab(stringResource(strings.searchHistory))
+        )
+        if (UserData.token != "") {
+            add(Tab(stringResource(strings.mySubscribedTitle)))
+        }
+    }
 
     BaseContent(
         error = errorSearch,
@@ -274,7 +275,9 @@ fun SearchContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(padding),
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
             ){
                 Column(
                     modifier = Modifier
