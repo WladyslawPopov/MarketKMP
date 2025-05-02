@@ -2,6 +2,7 @@ package market.engine.core.repositories
 
 import market.engine.core.network.functions.UserOperations
 import market.engine.common.AnalyticsFactory
+import market.engine.common.LoginMethods
 import market.engine.common.removeShortcuts
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
@@ -35,6 +36,7 @@ class UserRepository(
         settings.setSettingValue("token", "")
         clear()
         SAPI.removeHeader("Authorization")
+        LoginMethods.logout()
 
         //remove screenshots
         removeShortcuts()
@@ -58,11 +60,10 @@ class UserRepository(
                     )
                     analyticsHelper.setUserProfileID(newInfo.id.toString())
                     analyticsHelper.updateUserProfile(userProfileAttributes)
-
                     UserData.updateUserInfo(newInfo)
+                    LoginMethods.login(newInfo.id.toString())
                 }
             }
         }
     }
-
 }

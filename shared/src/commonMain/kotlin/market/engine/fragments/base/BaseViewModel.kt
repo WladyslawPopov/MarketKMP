@@ -164,8 +164,10 @@ open class BaseViewModel: ViewModel() {
     fun updateUserInfo(){
         viewModelScope.launch {
             try {
-                userRepository.updateToken()
-                userRepository.updateUserInfo()
+                withContext(Dispatchers.Unconfined) {
+                    userRepository.updateToken()
+                    userRepository.updateUserInfo()
+                }
             }  catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
