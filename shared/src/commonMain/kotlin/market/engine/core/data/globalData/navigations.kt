@@ -9,3 +9,7 @@ import market.engine.core.utils.getWindowType
 var listTopCategory : MutableList<TopCategory> = mutableListOf()
 
 val isBigScreen : MutableState<Boolean> = mutableStateOf(getWindowType() == WindowType.Big)
+
+var activeDialog : Long? = null
+
+var updateMessenger : (() ->Unit)? = null

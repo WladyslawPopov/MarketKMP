@@ -5,10 +5,13 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.activeDialog
+import market.engine.core.data.globalData.updateMessenger
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.types.DealTypeGroup
 import org.koin.mp.KoinPlatform.getKoin
@@ -60,6 +63,8 @@ class DefaultDialogsComponent(
 
     init {
         dialogsViewModel.messageTextState.value = message ?: ""
+        //global foreground update param
+        activeDialog = dialogId
 
         dialogsViewModel.getConversation(
             dialogId,
@@ -78,6 +83,11 @@ class DefaultDialogsComponent(
             if (UserData.token == ""){
                 navigateBack()
             }
+        }
+
+        lifecycle.doOnDestroy {
+            updateMessenger = null
+            activeDialog = null
         }
 
         dialogsViewModel.analyticsHelper.reportEvent("view_dialogs", mapOf())

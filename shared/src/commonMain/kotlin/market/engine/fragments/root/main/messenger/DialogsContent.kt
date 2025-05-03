@@ -36,6 +36,7 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.updateMessenger
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.types.DealTypeGroup
@@ -112,6 +113,11 @@ fun DialogsContent(
         data.refresh()
     }
 
+    LaunchedEffect(Unit){
+        //global foreground update
+        updateMessenger = refresh
+    }
+
     val noFound = @Composable {
         if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
@@ -124,7 +130,6 @@ fun DialogsContent(
                 title = stringResource(strings.simpleNotFoundLabel),
                 icon = drawables.dialogIcon
             ) {
-
                 refresh()
             }
         }
