@@ -9,8 +9,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import market.engine.core.repositories.SettingsRepository
-import org.koin.mp.KoinPlatform.getKoin
 
 actual fun getPermissionHandler(): PermissionHandler {
     return PermissionHandlerImpl()
@@ -21,7 +19,6 @@ var requestPermissionLauncher : ActivityResultLauncher<String>? = null
 
 class PermissionHandlerImpl : PermissionHandler {
     private var onPermissionResult: ((Boolean) -> Unit)? = null
-    private val settingsHelper : SettingsRepository = getKoin().get()
 
     private val activity = appContext as Activity
 
@@ -32,10 +29,7 @@ class PermissionHandlerImpl : PermissionHandler {
                 POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            val isPermissionRequested = settingsHelper.getSettingValue("isPermissionRequested", false) ?: false
-            if (!isPermissionRequested) {
-                requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
-            }
+            requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
         }
     }
 

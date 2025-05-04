@@ -5,7 +5,6 @@ import coil3.pathSegments
 import coil3.toUri
 import market.engine.core.data.items.DeepLink
 
-
 fun parseDeepLink(fullPath: String): DeepLink? {
     val uri = fullPath.toUri()
     val path = uri.pathSegments.firstOrNull()
