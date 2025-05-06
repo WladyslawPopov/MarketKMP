@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,10 +20,12 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.widgets.bars.FilterContentHeaderBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -93,7 +93,7 @@ fun ContentSort(
 
                         if (currentSort?.key == sortOption.key && currentSort.value == sortOption.value) {
                             Icon(
-                                imageVector = Icons.Default.Check,
+                                painterResource(drawables.checkIcon),
                                 contentDescription = null,
                                 tint = colors.inactiveBottomNavIconColor
                             )

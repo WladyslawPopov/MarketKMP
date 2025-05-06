@@ -34,6 +34,10 @@ interface Drawables {
    val cancelIcon : DrawableResource
    val filterIcon : DrawableResource
    val sortIcon : DrawableResource
+   val searchClassicIcon : DrawableResource
+   val checkIcon : DrawableResource
+   val editIcon : DrawableResource
+   val arrowBackIcon : DrawableResource
 
    val reorderIcon : DrawableResource
 

@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,7 +17,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.zIndex
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -45,7 +45,7 @@ fun SearchBar(onSearchClick: () -> Unit) {
             )
 
             Icon(
-                imageVector = Icons.Default.Search,
+                painterResource(drawables.searchClassicIcon),
                 contentDescription = stringResource(strings.searchTitle),
                 tint = colors.black,
             )

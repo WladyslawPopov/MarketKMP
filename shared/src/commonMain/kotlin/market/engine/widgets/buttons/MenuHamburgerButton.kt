@@ -6,8 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
@@ -58,7 +56,7 @@ fun MenuHamburgerButton(
         ) { _ ->
             if (showMenu ?: drawerState.isOpen) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
+                    painterResource(drawables.arrowBackIcon),
                     contentDescription = stringResource(strings.menuTitle),
                     modifier = modifier.size(dimens.smallIconSize),
                     tint = colors.black
