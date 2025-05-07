@@ -1,0 +1,15 @@
+-- Удаление старой таблицы, если она существует
+DROP TABLE IF EXISTS notificationsHistory;
+
+-- Создание новой таблицы с актуальной схемой
+CREATE TABLE IF NOT EXISTS notificationsHistory (
+    id TEXT NOT NULL PRIMARY KEY,
+    owner INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    type TEXT NOT NULL,
+    timestemp INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    isRead INTEGER NOT NULL,
+    UNIQUE(id)
+);

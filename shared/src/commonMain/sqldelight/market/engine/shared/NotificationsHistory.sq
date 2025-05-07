@@ -1,5 +1,5 @@
 
-CREATE TABLE notificationsHistory (
+CREATE TABLE NotificationsHistory (
   id TEXT NOT NULL PRIMARY KEY,
   owner  INTEGER NOT NULL,
   title    TEXT NOT NULL,
@@ -13,11 +13,11 @@ CREATE TABLE notificationsHistory (
 
 -- Select all search history entries
 selectAll:
-SELECT * FROM notificationsHistory WHERE(owner=?);
+SELECT * FROM NotificationsHistory WHERE(owner=?);
 
 -- insert All
 insertNotification:
-INSERT INTO notificationsHistory (
+INSERT INTO NotificationsHistory (
   id,
   owner,
   title,
@@ -31,23 +31,23 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Delete a specific entry by ID
 deleteById:
-DELETE FROM notificationsHistory WHERE(id = ? AND owner = ?);
+DELETE FROM NotificationsHistory WHERE(id = ? AND owner = ?);
 
 -- Select by id
 selectNotificationById:
 SELECT *
-FROM notificationsHistory
+FROM NotificationsHistory
 WHERE id = ?;
 
 -- Delete by id
 deleteNotificationById:
 DELETE
-FROM notificationsHistory
+FROM NotificationsHistory
 WHERE id = ?;
 
 -- updateAllFields
 updateNotification:
-UPDATE notificationsHistory
+UPDATE NotificationsHistory
 SET
   title    = ?,
   body     = ?,
