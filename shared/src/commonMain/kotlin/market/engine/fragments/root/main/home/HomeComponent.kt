@@ -41,6 +41,7 @@ interface HomeComponent {
     fun goToContactUs()
     fun goToAppSettings()
     fun goToMyProposals()
+    fun goToNotificationHistory()
 }
 
 class DefaultHomeComponent(
@@ -54,6 +55,7 @@ class DefaultHomeComponent(
     val navigateToContactUsSelected: () -> Unit,
     val navigateToSettingsSelected: () -> Unit,
     val navigateToMyProposalsSelected: () -> Unit,
+    val navigateToNotificationHistorySelected: () -> Unit,
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = HomeViewModel()
@@ -155,5 +157,9 @@ class DefaultHomeComponent(
 
     override fun goToMyProposals() {
         navigateToMyProposalsSelected()
+    }
+
+    override fun goToNotificationHistory() {
+        navigateToNotificationHistorySelected()
     }
 }

@@ -45,7 +45,7 @@ fun NotificationsHistoryAppBar(
             .fillMaxWidth(),
         title = {
             Text(
-                text = stringResource(strings.historyLabel),
+                text = stringResource(strings.notificationsHistoryTitle),
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.titleMedium
             )

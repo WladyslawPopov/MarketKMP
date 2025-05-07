@@ -1,0 +1,56 @@
+-- Удаление старой таблицы, если она существует
+DROP TABLE IF EXISTS notificationsHistory;
+
+-- Создание новой таблицы с актуальной схемой
+CREATE TABLE notificationsHistory (
+    id TEXT NOT NULL PRIMARY KEY,
+    owner INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    type TEXT NOT NULL,
+    timestemp INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    isRead INTEGER NOT NULL,
+    UNIQUE(id)
+);
+
+-- SQL-запрос для выбора всех записей по owner
+-- name: selectAll
+SELECT * FROM notificationsHistory WHERE owner = ?;
+
+-- SQL-запрос для вставки новой записи
+-- name: insertNotification
+INSERT INTO notificationsHistory (
+    id,
+    owner,
+    title,
+    body,
+    type,
+    timestemp,
+    data,
+    isRead
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- SQL-запрос для удаления записи по id и owner
+-- name: deleteById
+DELETE FROM notificationsHistory WHERE id = ? AND owner = ?;
+
+-- SQL-запрос для выбора записи по id
+-- name: selectNotificationById
+SELECT * FROM notificationsHistory WHERE id = ?;
+
+-- SQL-запрос для удаления записи только по id
+-- name: deleteNotificationById
+DELETE FROM notificationsHistory WHERE id = ?;
+
+-- SQL-запрос для обновления всех полей записи
+-- name: updateNotification
+UPDATE notificationsHistory
+SET
+    title = ?,
+    body = ?,
+    type = ?,
+    timestemp = ?,
+    data = ?,
+    isRead = ?
+WHERE id = ?;

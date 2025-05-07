@@ -39,12 +39,17 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.home.ChildHome.*
+import market.engine.fragments.root.main.home.HomeConfig.*
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.listing.listingFactory
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.messenger.messengerFactory
+import market.engine.fragments.root.main.notificationsHistory.DefaultNotificationsHistoryComponent
+import market.engine.fragments.root.main.notificationsHistory.NotificationsHistoryComponent
+import market.engine.fragments.root.main.notificationsHistory.NotificationsHistoryContent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
@@ -95,6 +100,9 @@ sealed class HomeConfig {
     data class CreateSubscriptionScreen(
         val editId : Long? = null,
     ) : HomeConfig()
+    
+    @Serializable
+    data object NotificationHistoryScreen : HomeConfig()
 }
 
 sealed class ChildHome {
@@ -107,6 +115,7 @@ sealed class ChildHome {
     class MessagesChild(val component: DialogsComponent) : ChildHome()
     class ProposalChild(val component: ProposalComponent) : ChildHome()
     class CreateSubscriptionChild(val component: CreateSubscriptionComponent) : ChildHome()
+    class NotificationHistoryChild(val component: NotificationsHistoryComponent) : ChildHome()
 }
 
 @Composable
@@ -123,32 +132,36 @@ fun HomeNavigation(
         animation = stackAnimation(fade())
     ) { child ->
         when (val screen = child.instance) {
-            is ChildHome.HomeChild ->{
+            is HomeChild ->{
                 HomeContent(screen.component, modifier)
             }
-            is ChildHome.OfferChild ->{
+            is OfferChild ->{
                 OfferContent(screen.component, modifier)
             }
-            is ChildHome.ListingChild ->{
+            is ListingChild ->{
                 ListingContent(screen.component, modifier)
             }
-            is ChildHome.UserChild ->{
+            is UserChild ->{
                 UserContent(screen.component, modifier)
             }
-            is ChildHome.CreateOfferChild ->{
+            is CreateOfferChild ->{
                 CreateOfferContent(screen.component)
             }
-            is ChildHome.CreateOrderChild -> {
+            is CreateOrderChild -> {
                 CreateOrderContent(screen.component)
             }
-            is ChildHome.MessagesChild -> {
+            is MessagesChild -> {
                 DialogsContent(screen.component, modifier)
             }
-            is ChildHome.ProposalChild -> {
+            is ProposalChild -> {
                 ProposalContent(screen.component)
             }
-            is ChildHome.CreateSubscriptionChild -> {
+            is CreateSubscriptionChild -> {
                 CreateSubscriptionContent(screen.component)
+            }
+
+            is NotificationHistoryChild -> {
+                NotificationsHistoryContent(screen.component)
             }
         }
     }
@@ -161,9 +174,9 @@ fun createHomeChild(
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,
     navigateToSubscribe: () -> Unit,
-    navigateToMyProposals: () -> Unit
+    navigateToMyProposals: () -> Unit,
 ): ChildHome = when (config) {
-    HomeConfig.HomeScreen -> ChildHome.HomeChild(
+    HomeScreen -> HomeChild(
         itemHome(
             componentContext,
             homeNavigation,
@@ -175,16 +188,21 @@ fun createHomeChild(
             },
             navigateToMyProposals = {
                 navigateToMyProposals()
+            },
+            navigateToNotificationHistory = {
+                homeNavigation.pushNew(
+                    NotificationHistoryScreen
+                )
             }
         )
     )
 
-    is HomeConfig.OfferScreen -> ChildHome.OfferChild(
+    is OfferScreen -> OfferChild(
         component = offerFactory(
             componentContext,
             config.id,
             selectOffer = {
-                val offerConfig = HomeConfig.OfferScreen(it, getCurrentDate())
+                val offerConfig = OfferScreen(it, getCurrentDate())
                 homeNavigation.pushNew(offerConfig)
             },
             onBack = {
@@ -192,19 +210,19 @@ fun createHomeChild(
             },
             onListingSelected = {
                 homeNavigation.pushNew(
-                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                    ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
                 )
             },
             onUserSelected = { ui, about ->
                 homeNavigation.pushNew(
-                    HomeConfig.UserScreen(ui, getCurrentDate(), about)
+                    UserScreen(ui, getCurrentDate(), about)
                 )
             },
             isSnapshot = config.isSnapshot,
             navigateToCreateOffer = { type, catPath, offerId, externalImages ->
                 if (UserData.token != "") {
                     homeNavigation.pushNew(
-                        HomeConfig.CreateOfferScreen(
+                        CreateOfferScreen(
                             catPath,
                             offerId,
                             type,
@@ -217,7 +235,7 @@ fun createHomeChild(
             },
             navigateToCreateOrder = {
                 homeNavigation.pushNew(
-                    HomeConfig.CreateOrderScreen(it)
+                    CreateOrderScreen(it)
                 )
             },
             navigateToLogin = {
@@ -226,7 +244,7 @@ fun createHomeChild(
             navigateToDialog = { dialogId ->
                 if (dialogId != null)
                    homeNavigation.pushNew(
-                       HomeConfig.MessagesScreen(dialogId,null, getCurrentDate())
+                       MessagesScreen(dialogId,null, getCurrentDate())
                    )
                 else
                     navigateToConversations()
@@ -236,23 +254,23 @@ fun createHomeChild(
             },
             navigateToProposalPage = { offerId, type ->
                 homeNavigation.pushNew(
-                    HomeConfig.ProposalScreen(offerId, type, getCurrentDate())
+                    ProposalScreen(offerId, type, getCurrentDate())
                 )
             }
         )
     )
-    is HomeConfig.ListingScreen -> {
+    is ListingScreen -> {
         val ld = ListingData(
             searchData = mutableStateOf(config.searchData),
             data = mutableStateOf(config.listingData)
         )
-        ChildHome.ListingChild(
+        ListingChild(
             component = listingFactory(
                 componentContext,
                 ld,
                 selectOffer = {
                     homeNavigation.pushNew(
-                        HomeConfig.OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 onBack = {
@@ -265,26 +283,26 @@ fun createHomeChild(
                 },
                 navigateToListing = {
                     homeNavigation.pushNew(
-                        HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                        ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
                     )
                 },
                 navigateToNewSubscription = {
                     homeNavigation.pushNew(
-                        HomeConfig.CreateSubscriptionScreen(it)
+                        CreateSubscriptionScreen(it)
                     )
                 }
             ),
         )
     }
 
-    is HomeConfig.UserScreen -> ChildHome.UserChild(
+    is UserScreen -> UserChild(
         component = userFactory(
             componentContext,
             config.userId,
             config.aboutMe,
             goToLogin = {
                 homeNavigation.pushNew(
-                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                    ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
                 )
             },
             goBack = {
@@ -292,12 +310,12 @@ fun createHomeChild(
             },
             goToSnapshot = { id ->
                 homeNavigation.pushNew(
-                    HomeConfig.OfferScreen(id, getCurrentDate(), true)
+                    OfferScreen(id, getCurrentDate(), true)
                 )
             },
             goToUser = {
                 homeNavigation.pushNew(
-                    HomeConfig.UserScreen(it, getCurrentDate(), false)
+                    UserScreen(it, getCurrentDate(), false)
                 )
             },
             goToSubscriptions = {
@@ -308,7 +326,7 @@ fun createHomeChild(
             }
         )
     )
-    is HomeConfig.CreateOfferScreen -> ChildHome.CreateOfferChild(
+    is CreateOfferScreen -> CreateOfferChild(
         component = createOfferFactory(
             componentContext = componentContext,
             catPath = config.catPath,
@@ -317,12 +335,12 @@ fun createHomeChild(
             externalImages = config.externalImages,
             navigateOffer = { id ->
                 homeNavigation.pushNew(
-                    HomeConfig.OfferScreen(id, getCurrentDate())
+                    OfferScreen(id, getCurrentDate())
                 )
             },
             navigateCreateOffer = { id, path, t ->
                 homeNavigation.replaceCurrent(
-                    HomeConfig.CreateOfferScreen(
+                    CreateOfferScreen(
                         catPath = path,
                         offerId = id,
                         createOfferType = t,
@@ -335,18 +353,18 @@ fun createHomeChild(
         )
     )
 
-    is HomeConfig.CreateOrderScreen -> ChildHome.CreateOrderChild(
+    is CreateOrderScreen -> CreateOrderChild(
         component = createOrderFactory(
             componentContext = componentContext,
             selectedItems = config.basketItem,
             navigateUser = {
                 homeNavigation.pushNew(
-                    HomeConfig.UserScreen(it, getCurrentDate(), false)
+                    UserScreen(it, getCurrentDate(), false)
                 )
             },
             navigateOffer = {
                 homeNavigation.pushNew(
-                    HomeConfig.OfferScreen(it, getCurrentDate())
+                    OfferScreen(it, getCurrentDate())
                 )
             },
             navigateBack = {
@@ -358,7 +376,7 @@ fun createHomeChild(
         )
     )
 
-    is HomeConfig.MessagesScreen -> ChildHome.MessagesChild(
+    is MessagesScreen -> MessagesChild(
         component = messengerFactory(
             componentContext = componentContext,
             dialogId = config.dialogId,
@@ -371,23 +389,23 @@ fun createHomeChild(
             },
             navigateToUser = {
                 homeNavigation.pushNew(
-                    HomeConfig.UserScreen(it, getCurrentDate(), false)
+                    UserScreen(it, getCurrentDate(), false)
                 )
             },
             navigateToOffer = {
                 homeNavigation.pushNew(
-                    HomeConfig.OfferScreen(it, getCurrentDate())
+                    OfferScreen(it, getCurrentDate())
                 )
             },
             navigateToListingSelected = {
                 homeNavigation.pushNew(
-                    HomeConfig.ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                    ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
                 )
             }
         )
     )
 
-    is HomeConfig.ProposalScreen -> ChildHome.ProposalChild(
+    is ProposalScreen -> ProposalChild(
         component = proposalFactory(
             componentContext = componentContext,
             offerId = config.offerId,
@@ -398,23 +416,34 @@ fun createHomeChild(
             navigateToOffer = {
                 homeNavigation.pop()
                 homeNavigation.pushNew(
-                    HomeConfig.OfferScreen(it, getCurrentDate(),false)
+                    OfferScreen(it, getCurrentDate(),false)
                 )
             },
             navigateToUser = {
                 homeNavigation.pop()
                 homeNavigation.pushNew(
-                    HomeConfig.UserScreen(it, getCurrentDate(), false)
+                    UserScreen(it, getCurrentDate(), false)
                 )
             }
         )
     )
 
-    is HomeConfig.CreateSubscriptionScreen -> {
-        ChildHome.CreateSubscriptionChild(
+    is CreateSubscriptionScreen -> {
+        CreateSubscriptionChild(
             component = createSubscriptionFactory(
                 componentContext = componentContext,
                 editId = config.editId,
+                navigateBack = {
+                    homeNavigation.pop()
+                }
+            )
+        )
+    }
+
+    NotificationHistoryScreen -> {
+        NotificationHistoryChild(
+            DefaultNotificationsHistoryComponent(
+                componentContext = componentContext,
                 navigateBack = {
                     homeNavigation.pop()
                 }
@@ -430,14 +459,15 @@ fun itemHome(
     navigateToConversations: () -> Unit,
     navigateToContactUs: () -> Unit,
     navigateToAppSettings: ()->Unit,
-    navigateToMyProposals: () -> Unit
+    navigateToMyProposals: () -> Unit,
+    navigateToNotificationHistory: () -> Unit
 ): HomeComponent {
     return DefaultHomeComponent(
         componentContext = componentContext,
         navigation = homeNavigation,
         navigateToListingSelected = { ld, isNewSearch ->
             homeNavigation.pushNew(
-                HomeConfig.ListingScreen(
+                ListingScreen(
                     isNewSearch,
                     ld.data.value,
                     ld.searchData.value,
@@ -449,12 +479,12 @@ fun itemHome(
             goToLogin()
         },
         navigateToOfferSelected = { id ->
-            homeNavigation.pushNew(HomeConfig.OfferScreen(id, getCurrentDate()))
+            homeNavigation.pushNew(OfferScreen(id, getCurrentDate()))
         },
         navigateToCreateOfferSelected = {
             if(UserData.token != "") {
                 homeNavigation.pushNew(
-                    HomeConfig.CreateOfferScreen(
+                    CreateOfferScreen(
                         null,
                         null,
                         CreateOfferType.CREATE,
@@ -476,6 +506,9 @@ fun itemHome(
         },
         navigateToMyProposalsSelected = {
             navigateToMyProposals()
+        },
+        navigateToNotificationHistorySelected = {
+            navigateToNotificationHistory()
         }
     )
 }

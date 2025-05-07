@@ -34,6 +34,7 @@ fun HomeAppBar(
     drawerState: DrawerState,
     goToMessenger: () -> Unit,
     goToMyProposals: () -> Unit,
+    goToNotifications: () -> Unit,
     onRefresh: () -> Unit
 ) {
     val userInfo = UserData.userInfo
@@ -73,9 +74,12 @@ fun HomeAppBar(
             title = stringResource(strings.notificationTitle),
             icon = drawables.notification,
             tint = colors.titleTextColor,
-            isVisible = false,
+            isVisible = true,
             hasNews = false,
-            badgeCount = null
+            badgeCount = null,
+            onClick = {
+                goToNotifications()
+            }
         ),
     )
 

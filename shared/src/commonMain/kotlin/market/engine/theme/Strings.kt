@@ -489,4 +489,5 @@ interface Strings {
     val reorderTabLabel: StringResource
     val errorExceededLimitOffersList: StringResource
     val errorTitleInOffersListAlreadyUse: StringResource
+    val notificationsHistoryTitle: StringResource
 }

@@ -206,7 +206,7 @@ class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
                 val error = data.error
 
                 if (!res?.fields.isNullOrEmpty()){
-                    onSuccess(res?.description?:"", res?.fields!!)
+                    onSuccess(res.description?:"", res.fields)
                 }else{
                     if (error != null)
                         onError(error)

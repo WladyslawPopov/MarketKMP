@@ -14,6 +14,7 @@ import market.engine.core.data.globalData.activeDialog
 import market.engine.core.data.globalData.updateMessenger
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.utils.printLogD
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -71,6 +72,7 @@ class DefaultDialogsComponent(
             onSuccess = { conversation ->
                 dialogsViewModel.responseGetConversation.value = conversation
                 dialogsViewModel.updateDialogInfo(conversation)
+                printLogD("updateDialogInfo", conversation.toString())
             },
             error = {
                 onBackClicked()

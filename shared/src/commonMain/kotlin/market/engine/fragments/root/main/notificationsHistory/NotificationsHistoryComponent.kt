@@ -37,6 +37,7 @@ class DefaultNotificationsHistoryComponent(
     override val model = _model
 
     init {
+        viewModel.getPage()
         analyticsHelper.reportEvent("view_notifications_history", mapOf())
     }
 

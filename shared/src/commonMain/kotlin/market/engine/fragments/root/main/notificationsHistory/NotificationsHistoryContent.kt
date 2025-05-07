@@ -1,7 +1,11 @@
 package market.engine.fragments.root.main.notificationsHistory
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -11,6 +15,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
+import market.engine.fragments.base.showNoItemLayout
 
 @Composable
 fun NotificationsHistoryContent(
@@ -26,18 +31,30 @@ fun NotificationsHistoryContent(
 
     val refresh = {
         viewModel.onError(ServerErrorException())
+        viewModel.getPage()
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
         {
             onError(err)
             {
-                refresh()
+                viewModel.onError(ServerErrorException())
             }
         }
     } else {
         null
     }
+
+    val noFound = if (responseGetPage.value?.isEmpty() == true){
+            @Composable {
+                showNoItemLayout {
+                    refresh()
+                }
+            }
+        }else{
+            null
+        }
+
 
     val onBack = {
         component.onBackClicked()
@@ -61,17 +78,29 @@ fun NotificationsHistoryContent(
             refresh()
         },
         error = error,
-        noFound = null,
+        noFound = noFound,
         isLoading = isLoading.value,
         toastItem = viewModel.toastItem,
         modifier = Modifier.fillMaxSize()
-
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
-
+            LazyColumn {
+                items(responseGetPage.value?.size ?: 0, key = { i ->
+                    responseGetPage.value?.get(i)?.id ?: i
+                }) { i->
+                    responseGetPage.value?.get(i)?.let { item ->
+                        Row {
+                            Column {
+                                Text(item.title)
+                                Text(item.body)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

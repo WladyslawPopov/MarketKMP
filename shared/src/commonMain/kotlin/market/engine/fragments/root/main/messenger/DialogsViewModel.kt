@@ -115,7 +115,7 @@ class DialogsViewModel(
                                 it.url
                             )
                         },
-                        readByReceiver = dialog.readByReceiver ?: false
+                        readByReceiver = dialog.readByReceiver == true
                     )
                 }
                     .insertSeparators { before: DialogsData.MessageItem?, after: DialogsData.MessageItem? ->

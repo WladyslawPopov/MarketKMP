@@ -38,9 +38,10 @@ class DefaultProfileComponent(
     private val navigateToSubscriptions : () -> Unit
 ) : ProfileComponent, ComponentContext by componentContext {
 
+    val viewModel by lazy {  BaseViewModel() }
     private val _model = MutableValue(
         ProfileComponent.Model(
-            profileViewModel = BaseViewModel(),
+            profileViewModel = viewModel,
             backHandler = backHandler
         )
     )
@@ -48,7 +49,7 @@ class DefaultProfileComponent(
 
     init {
         lifecycle.doOnResume {
-            model.value.profileViewModel.updateUserInfo()
+            viewModel.updateUserInfo()
         }
         val params = selectedPage?.split("/", limit = 2)
 

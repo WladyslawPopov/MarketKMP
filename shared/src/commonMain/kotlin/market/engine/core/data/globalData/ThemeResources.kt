@@ -5,7 +5,6 @@ import market.engine.theme.Dimens
 import market.engine.theme.Drawables
 import market.engine.theme.Strings
 
-
 object ThemeResources {
     lateinit var colors: Colors
     lateinit var strings: Strings

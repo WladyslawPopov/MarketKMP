@@ -94,7 +94,11 @@ open class BaseViewModel: ViewModel() {
 
     init {
         viewModelScope.launch {
-            catDef.value = getString(strings.categoryMain)
+            try {
+                catDef.value = getString(strings.categoryMain)
+            }catch (_ : Exception){
+
+            }
         }
     }
 
@@ -626,7 +630,7 @@ open class BaseViewModel: ViewModel() {
 
                 if (buffer != null) {
                     if(!buffer.body?.data.isNullOrEmpty()) {
-                        onSuccess(buffer.body?.data!!)
+                        onSuccess(buffer.body.data)
                     }
                 }else{
                     if (resErr != null) {
@@ -1080,7 +1084,7 @@ open class BaseViewModel: ViewModel() {
             withContext(Dispatchers.Main) {
                 val res = data.success
                 if (!res?.fields.isNullOrEmpty()){
-                    onSuccess(res?.description?:"", res?.fields!!)
+                    onSuccess(res.description?:"", res.fields)
                 }
             }
         }

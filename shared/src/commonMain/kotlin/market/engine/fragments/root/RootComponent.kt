@@ -3,6 +3,7 @@ package market.engine.fragments.root
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
@@ -54,7 +55,7 @@ interface RootComponent {
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
-    deepLink: DeepLink?
+    var deepLink: DeepLink?
 ) : RootComponent, ComponentContext by componentContext {
 
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
@@ -64,7 +65,7 @@ class DefaultRootComponent(
         childStack(
             source = navigation,
             serializer = RootConfig.serializer(),
-            initialConfiguration = RootConfig.Main(deepLink),
+            initialConfiguration = RootConfig.Main,
             handleBackButton = true,
             childFactory = ::createChild
         )
@@ -75,11 +76,19 @@ class DefaultRootComponent(
             backHandler = backHandler
         )
     )
-
     override val model = _model
 
     override fun updateURL(url: DeepLink) {
-        navigation.replaceAll(RootConfig.Main(url))
+        deepLink = url
+        when{
+            childStack.active.instance is RootComponent.Child.MainChild -> {
+                (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(url)
+            }
+            else -> {
+                navigation.replaceAll(RootConfig.Main)
+                (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(url)
+            }
+        }
     }
 
     override fun updateOrientation(orientation: Int) {
@@ -108,7 +117,7 @@ class DefaultRootComponent(
         settingsHelper.setSettingValue("count_launch", ++countLaunch)
 
 
-        val isShowReview = settingsHelper.getSettingValue("isShowReview", false) ?: false
+        val isShowReview = settingsHelper.getSettingValue("isShowReview", false) == true
         if (countLaunch > 10 && !isShowReview){
             //check review
             showReviewManager()
@@ -120,8 +129,7 @@ class DefaultRootComponent(
         when (rootConfig) {
             is RootConfig.Main -> RootComponent.Child.MainChild(
                 DefaultMainComponent(
-                    componentContext,
-                    deepLink = rootConfig.deepLink,
+                    componentContext
                 )
             )
             is RootConfig.Login -> RootComponent.Child.LoginChild(
@@ -197,7 +205,7 @@ class DefaultRootComponent(
         }
 
         val goToMain : () -> Unit = {
-            navigation.replaceAll(RootConfig.Main())
+            navigation.replaceAll(RootConfig.Main)
         }
     }
 }

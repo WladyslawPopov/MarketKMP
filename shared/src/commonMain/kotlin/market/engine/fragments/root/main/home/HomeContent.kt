@@ -108,6 +108,9 @@ fun HomeContent(
                 goToMyProposals = {
                     component.goToMyProposals()
                 },
+                goToNotifications = {
+                    component.goToNotificationHistory()
+                },
                 onRefresh = {
                     component.onRefresh()
                 }
