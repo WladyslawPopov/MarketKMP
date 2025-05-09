@@ -7,26 +7,33 @@ import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.utils.deserializePayload
 import market.engine.core.network.APIService
 import kotlinx.serialization.json.JsonObject
+import market.engine.core.network.ServerResponse
 
 class ConversationsOperations(private val apiService : APIService) {
 
-    suspend fun getConversation(id: Long = 1L): Conversations? {
-        return try {
+    suspend fun getConversation(id: Long = 1L): ServerResponse<Conversations?> {
+        try {
             val response = apiService.getConversation(id)
-            try {
+            if (response.success) {
                 val serializer = ListSerializer(Conversations.serializer())
                 val payload =
                     deserializePayload(
                         response.payload, serializer
                     )
-                payload.firstOrNull()
-            }catch (e : Exception){
-                null
+                return ServerResponse(payload.firstOrNull())
+            }else{
+                throw ServerErrorException(
+                    errorCode = response.errorCode ?: "",
+                    humanMessage = response.humanMessage ?: ""
+                )
             }
         } catch (e: ServerErrorException) {
-            null
+            return ServerResponse(error = e)
         } catch (e: Exception) {
-            null
+            return  ServerResponse( error = ServerErrorException(
+                errorCode = "error",
+                humanMessage = e.message ?: ""
+            ))
         }
     }
 
@@ -34,9 +41,9 @@ class ConversationsOperations(private val apiService : APIService) {
         return try {
             val response = apiService.postConversationsOperationsMarkAsReadByInterlocutor(id)
             response.errorCode == ""
-        } catch (e: ServerErrorException) {
+        } catch (_: ServerErrorException) {
             false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }

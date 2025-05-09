@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.favPages.favorites
 
-
 import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -13,8 +12,6 @@ import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.root.main.favPages.FavPagesViewModel
-import org.koin.mp.KoinPlatform.getKoin
-
 
 interface FavoritesComponent {
     val model : Value<Model>
@@ -39,7 +36,7 @@ class DefaultFavoritesComponent(
     val updateTabs : () -> Unit,
 ) : FavoritesComponent, ComponentContext by componentContext {
 
-    private val favViewModel : FavPagesViewModel = FavPagesViewModel(getKoin().get())
+    private val favViewModel : FavPagesViewModel = FavPagesViewModel()
 
     val listingData = favViewModel.listingData.value
 

@@ -17,7 +17,6 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.printLogD
 import org.koin.mp.KoinPlatform.getKoin
 
-
 interface DialogsComponent{
     val model : Value<Model>
 
@@ -94,7 +93,6 @@ class DefaultDialogsComponent(
 
         dialogsViewModel.analyticsHelper.reportEvent("view_dialogs", mapOf())
     }
-
 
     override fun onBackClicked() {
         navigateBack()

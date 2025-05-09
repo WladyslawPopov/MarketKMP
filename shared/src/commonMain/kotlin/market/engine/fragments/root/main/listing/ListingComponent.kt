@@ -22,7 +22,6 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.printLogD
 import market.engine.fragments.root.main.favPages.itemSubscriptions
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
-import org.koin.mp.KoinPlatform.getKoin
 
 interface ListingComponent {
     val model : Value<Model>
@@ -52,7 +51,7 @@ class DefaultListingComponent(
     private val navigateToNewSubscription: (Long?) -> Unit,
 ) : ListingComponent, ComponentContext by componentContext {
 
-    private val listingViewModel : ListingViewModel = ListingViewModel(getKoin().get())
+    private val listingViewModel : ListingViewModel = ListingViewModel()
 
     private val _model = MutableValue(
         ListingComponent.Model(

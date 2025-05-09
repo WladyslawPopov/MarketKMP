@@ -1,15 +1,23 @@
 package market.engine.core.utils
 
 
+import androidx.compose.ui.util.fastForEach
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import market.engine.common.removeNotification
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
+import market.engine.core.data.items.NotificationItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
+import market.engine.shared.MarketDB
 import market.engine.shared.NotificationsHistory
+import org.jetbrains.compose.resources.DrawableResource
+import org.koin.mp.KoinPlatform.getKoin
 
 fun<T> deserializePayload(
     jsonElement: JsonElement?,
@@ -74,4 +82,83 @@ fun provideByType(notificationItem: NotificationsHistory, onProvide : (DeepLink)
     }
 }
 
+fun NotificationItem.getIconByType() : DrawableResource {
+    return when(type) {
+        "message about offer" -> {
+             drawables.mail
+        }
+        "message about order" -> {
+            drawables.mail
+        }
+        else -> {
+            drawables.notification
+        }
+    }
+}
 
+fun NotificationItem.getDeepLinkByType() : DeepLink? {
+    val db : MarketDB = getKoin().get()
+
+    val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        encodeDefaults = true
+    }
+    val je = json.parseToJsonElement(data)
+
+    return when(type) {
+        "message about offer" -> {
+            unreadIds.forEach {
+                val androidID = db.notificationsHistoryQueries.selectNotificationById(it).executeAsOneOrNull()?.isRead
+                if (androidID != null) {
+                    removeNotification(androidID.toString())
+                }else{
+                    removeNotification(it)
+                }
+                db.notificationsHistoryQueries.deleteNotificationById(it)
+            }
+            val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
+            if (dialogId != null) {
+                DeepLink.GoToDialog(dialogId, null)
+            }else{
+                null
+            }
+        }
+        "message about order" -> {
+            unreadIds.forEach {
+                val androidID = db.notificationsHistoryQueries.selectNotificationById(it).executeAsOneOrNull()?.isRead
+                if (androidID != null) {
+                    removeNotification(androidID.toString())
+                }else{
+                    removeNotification(it)
+                }
+                db.notificationsHistoryQueries.deleteNotificationById(it)
+            }
+
+            val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
+            if (dialogId != null) {
+                DeepLink.GoToDialog(dialogId, null)
+            }else{
+                null
+            }
+        }
+        else -> {
+            null
+        }
+    }
+}
+
+fun List<NotificationsHistory>.deleteReadNotifications() {
+    val db : MarketDB = getKoin().get()
+    db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().
+    filter { it.isRead == 1L }.fastForEach {
+        when(it.type){
+            "message about offer" ->{
+                db.notificationsHistoryQueries.deleteNotificationById(it.id)
+            }
+            "message about order" ->{
+                db.notificationsHistoryQueries.deleteNotificationById(it.id)
+            }
+        }
+    }
+}

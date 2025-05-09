@@ -13,8 +13,10 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.common.Platform
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
@@ -44,7 +46,6 @@ import market.engine.fragments.root.main.profile.navigation.createProfileChild
 import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.listing.SearchConfig
 import market.engine.fragments.root.main.listing.createSearchChild
-import org.koin.mp.KoinPlatform.getKoin
 
 interface MainComponent {
 
@@ -155,12 +156,15 @@ class DefaultMainComponent(
                     },
                     navigateToMyProposals = {
                         navigateToBottomItem(MainConfig.Profile, "proposals")
+                    },
+                    navigateToDeepLink = {
+                        handleDeepLink(it)
                     }
                 )
             },
             key = "HomeStack"
         )
-
+    private val favPagesViewModel by lazy { FavPagesViewModel() }
 
     override val childSearchStack: Value<ChildStack<*, ChildSearch>> by lazy {
         val categoryData = ListingData()
@@ -220,8 +224,6 @@ class DefaultMainComponent(
         )
     }
 
-    private val favPagesViewModel by lazy { FavPagesViewModel(getKoin().get()) }
-
     override val childFavoritesStack: Value<ChildStack<*, ChildFavorites>> by lazy {
         childStack(
             source = modelNavigation.value.favoritesNavigation,
@@ -229,6 +231,7 @@ class DefaultMainComponent(
             serializer = FavoritesConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
+                favPagesViewModel.getFavTabList {  }
                 createFavoritesChild(
                     config,
                     componentContext,
@@ -379,91 +382,93 @@ class DefaultMainComponent(
     override fun handleDeepLink(deepLink: DeepLink) {
         viewModel.viewModelScope.launch {
             delay(300)
-            when (deepLink) {
-                is DeepLink.GoToUser -> {
-                    modelNavigation.value.homeNavigation.pushNew(
-                        HomeConfig.UserScreen(
-                            deepLink.userId,
-                            getCurrentDate(),
-                            false
-                        )
-                    )
-                }
-
-                is DeepLink.GoToListing -> {
-                    val categoryData = ListingData()
-                    categoryData.searchData.value.userSearch = true
-                    categoryData.searchData.value.userID = deepLink.ownerId
-                    categoryData.searchData.value.userLogin = ""
-
-                    modelNavigation.value.homeNavigation.pushNew(
-                        HomeConfig.ListingScreen(
-                            false,
-                            categoryData.data.value,
-                            categoryData.searchData.value,
-                            getCurrentDate()
-                        )
-                    )
-                }
-
-                is DeepLink.GoToOffer -> {
-                    modelNavigation.value.homeNavigation.pushNew(
-                        HomeConfig.OfferScreen(
-                            deepLink.offerId,
-                            getCurrentDate()
-                        )
-                    )
-                }
-
-                is DeepLink.GoToAuth -> {
-                    if (UserData.token == "")
-                        goToLogin(true)
-                }
-
-                is DeepLink.GoToRegistration -> {
-                    if (UserData.token == "")
-                        goToLogin(true)
-                }
-
-                is DeepLink.GoToDynamicSettings -> {
-                    goToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
-                }
-
-                is DeepLink.GoToVerification -> {
-                    goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
-                }
-
-                is DeepLink.GoToDialog -> {
-                    if (deepLink.dialogId != 1L) {
-                        when{
-                            childHomeStack.value.active.instance is ChildHome.MessagesChild -> {
-                                modelNavigation.value.homeNavigation.replaceCurrent(
-                                    HomeConfig.MessagesScreen(
-                                        deepLink.dialogId, deepLink.mes, getCurrentDate()
-                                    )
-                                )
-                            }
-                            else -> {
-                                modelNavigation.value.homeNavigation.pushNew(
-                                    HomeConfig.MessagesScreen(
-                                        deepLink.dialogId, deepLink.mes, getCurrentDate()
-                                    )
-                                )
-                            }
-                        }
-                    } else {
-                        if (deepLink.mes != null) {
-                            navigateToBottomItem(
-                                MainConfig.Profile,
-                                "conversations/${deepLink.mes}"
+            withContext(Dispatchers.Main) {
+                when (deepLink) {
+                    is DeepLink.GoToUser -> {
+                        modelNavigation.value.homeNavigation.pushNew(
+                            HomeConfig.UserScreen(
+                                deepLink.userId,
+                                getCurrentDate(),
+                                false
                             )
+                        )
+                    }
+
+                    is DeepLink.GoToListing -> {
+                        val categoryData = ListingData()
+                        categoryData.searchData.value.userSearch = true
+                        categoryData.searchData.value.userID = deepLink.ownerId
+                        categoryData.searchData.value.userLogin = ""
+
+                        modelNavigation.value.homeNavigation.pushNew(
+                            HomeConfig.ListingScreen(
+                                false,
+                                categoryData.data.value,
+                                categoryData.searchData.value,
+                                getCurrentDate()
+                            )
+                        )
+                    }
+
+                    is DeepLink.GoToOffer -> {
+                        modelNavigation.value.homeNavigation.pushNew(
+                            HomeConfig.OfferScreen(
+                                deepLink.offerId,
+                                getCurrentDate()
+                            )
+                        )
+                    }
+
+                    is DeepLink.GoToAuth -> {
+                        if (UserData.token == "")
+                            goToLogin(true)
+                    }
+
+                    is DeepLink.GoToRegistration -> {
+                        if (UserData.token == "")
+                            goToLogin(true)
+                    }
+
+                    is DeepLink.GoToDynamicSettings -> {
+                        goToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
+                    }
+
+                    is DeepLink.GoToVerification -> {
+                        goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
+                    }
+
+                    is DeepLink.GoToDialog -> {
+                        if (deepLink.dialogId != 1L) {
+                            when{
+                                childHomeStack.value.active.instance is ChildHome.MessagesChild -> {
+                                    modelNavigation.value.homeNavigation.replaceCurrent(
+                                        HomeConfig.MessagesScreen(
+                                            deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                        )
+                                    )
+                                }
+                                else -> {
+                                    modelNavigation.value.homeNavigation.pushNew(
+                                        HomeConfig.MessagesScreen(
+                                            deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                        )
+                                    )
+                                }
+                            }
                         } else {
-                            navigateToBottomItem(MainConfig.Profile, "conversations")
+                            if (deepLink.mes != null) {
+                                navigateToBottomItem(
+                                    MainConfig.Profile,
+                                    "conversations/${deepLink.mes}"
+                                )
+                            } else {
+                                navigateToBottomItem(MainConfig.Profile, "conversations")
+                            }
                         }
                     }
-                }
 
-                is DeepLink.Unknown -> {}
+                    is DeepLink.Unknown -> {}
+                }
             }
         }
     }

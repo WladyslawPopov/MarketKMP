@@ -32,6 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 fun HomeAppBar(
     modifier: Modifier = Modifier,
     drawerState: DrawerState,
+    viewModel: HomeViewModel,
     goToMessenger: () -> Unit,
     goToMyProposals: () -> Unit,
     goToNotifications: () -> Unit,
@@ -76,7 +77,7 @@ fun HomeAppBar(
             tint = colors.titleTextColor,
             isVisible = true,
             hasNews = false,
-            badgeCount = null,
+            badgeCount = viewModel.getUnreadNotificationsCount(),
             onClick = {
                 goToNotifications()
             }

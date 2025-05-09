@@ -31,10 +31,9 @@ import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
-import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
 
-class FavPagesViewModel(private val db : MarketDB) : BaseViewModel() {
+class FavPagesViewModel : BaseViewModel() {
 
     private val offersListOperations = OffersListOperations(apiService)
 

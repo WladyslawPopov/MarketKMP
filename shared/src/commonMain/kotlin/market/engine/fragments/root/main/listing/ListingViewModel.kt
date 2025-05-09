@@ -23,10 +23,9 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
-import market.engine.shared.MarketDB
 import market.engine.shared.SearchHistory
 
-class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
+class ListingViewModel : BaseViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
@@ -81,7 +80,7 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
                         val serializer = Payload.serializer(Offer.serializer())
                         val payload : Payload<Offer> = deserializePayload(response.payload, serializer)
                         _responseOffersRecommendedInListing.value = payload.objects
-                    }catch (e : Exception){
+                    }catch (_ : Exception){
                         throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                     }
                 }
@@ -104,9 +103,7 @@ class ListingViewModel(private val db : MarketDB) : BaseViewModel() {
                 categoryOperations.getRegions()
             }
             withContext(Dispatchers.Main) {
-                if (res != null) {
-                    res.firstOrNull()?.options?.sortedBy { it.weight }?.let { regionOptions.value.addAll(it) }
-                }
+                res?.firstOrNull()?.options?.sortedBy { it.weight }?.let { regionOptions.value.addAll(it) }
             }
         }
     }

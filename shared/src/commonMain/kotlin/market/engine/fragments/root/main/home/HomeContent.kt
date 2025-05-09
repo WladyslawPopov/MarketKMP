@@ -102,6 +102,7 @@ fun HomeContent(
         topBar = {
             HomeAppBar(
                 drawerState = drawerState,
+                viewModel = homeViewModel,
                 goToMessenger = {
                     component.goToMessenger()
                 },

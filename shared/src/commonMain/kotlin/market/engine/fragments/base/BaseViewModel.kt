@@ -51,10 +51,13 @@ import market.engine.core.network.networkObjects.ListItem
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
+import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
+
+    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     //select items and updateItem
     var selectItems : MutableList<Long> = mutableStateListOf()
     val updateItemTrigger = mutableStateOf(0)
@@ -68,15 +71,14 @@ open class BaseViewModel: ViewModel() {
     var scrollItem : MutableState<Int> = mutableStateOf(0)
     var offsetScrollItem : MutableState<Int> = mutableStateOf(0)
 
-    val apiService = getKoin().get<APIService>()
-    val userRepository: UserRepository = getKoin().get()
-    val offerOperations : OfferOperations = getKoin().get()
-    val categoryOperations : CategoryOperations = getKoin().get()
-    val conversationsOperations: ConversationsOperations = getKoin().get()
-
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
-    val userOperations : UserOperations = getKoin().get()
+    val apiService by lazy {  getKoin().get<APIService>() }
+    val userRepository: UserRepository by lazy { getKoin().get() }
+    val offerOperations : OfferOperations by lazy { getKoin().get() }
+    val categoryOperations : CategoryOperations by lazy { getKoin().get() }
+    val conversationsOperations: ConversationsOperations by lazy { getKoin().get() }
+    val userOperations : UserOperations by lazy { getKoin().get() }
+    val settings : SettingsRepository by lazy { getKoin().get() }
+    val db : MarketDB by lazy { getKoin().get() }
 
     private val _errorMessage = MutableStateFlow(ServerErrorException())
     val errorMessage: StateFlow<ServerErrorException> = _errorMessage.asStateFlow()
@@ -88,17 +90,13 @@ open class BaseViewModel: ViewModel() {
 
     val viewModelScope = CoroutineScope(Dispatchers.Default)
 
-    val settings : SettingsRepository = getKoin().get()
-
     val catDef = mutableStateOf("")
 
     init {
         viewModelScope.launch {
             try {
                 catDef.value = getString(strings.categoryMain)
-            }catch (_ : Exception){
-
-            }
+            }catch (_ : Exception){ }
         }
     }
 
@@ -528,6 +526,11 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun getUnreadNotificationsCount() : Int? {
+        val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
+        return if (list.isEmpty()) null else list.filter { it.isRead < 1 || it.isRead > 1 }.size
+    }
+
     fun saveDeliveryCard(deliveryFields: List<Fields>, cardId: Long?, onSaved: () -> Unit, onError: (List<Fields>) -> Unit) {
         setLoading(true)
         viewModelScope.launch {
@@ -880,12 +883,14 @@ open class BaseViewModel: ViewModel() {
                 val res = withContext(Dispatchers.IO) {
                     conversationsOperations.getConversation(id)
                 }
-
+                val buf = res.success
+                val e = res.error
                 withContext(Dispatchers.Main) {
-                    if (res != null) {
-                        onSuccess(res)
+                    if (buf!= null) {
+                        onSuccess(res.success!!)
                     }else{
                         error()
+                        e?.let { throw it }
                     }
                 }
             }catch (e : ServerErrorException){
@@ -925,7 +930,6 @@ open class BaseViewModel: ViewModel() {
             }
         }
     }
-
 
     fun getNotesField(
         offerId : Long,
@@ -1089,7 +1093,6 @@ open class BaseViewModel: ViewModel() {
             }
         }
     }
-
 
     fun postNotes(
         offerId : Long,

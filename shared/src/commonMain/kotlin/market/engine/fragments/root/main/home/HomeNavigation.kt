@@ -21,6 +21,7 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
@@ -175,6 +176,7 @@ fun createHomeChild(
     navigateToConversations: () -> Unit,
     navigateToSubscribe: () -> Unit,
     navigateToMyProposals: () -> Unit,
+    navigateToDeepLink: (DeepLink) -> Unit,
 ): ChildHome = when (config) {
     HomeScreen -> HomeChild(
         itemHome(
@@ -446,6 +448,9 @@ fun createHomeChild(
                 componentContext = componentContext,
                 navigateBack = {
                     homeNavigation.pop()
+                },
+                navigateDeepLink = {
+                    navigateToDeepLink(it)
                 }
             )
         )

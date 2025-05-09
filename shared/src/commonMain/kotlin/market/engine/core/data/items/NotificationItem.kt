@@ -7,5 +7,7 @@ data class NotificationItem (
     var data: String,
     var type: String,
     var timeCreated: Long,
-    var isRead: Boolean
+    var unreadCount: Int,
+    var unreadIds: List<String>,
+    var isRead: Boolean,
 )

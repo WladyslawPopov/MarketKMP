@@ -1,21 +1,21 @@
 package market.engine.fragments.root.main.notificationsHistory
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.ServerErrorException
+import market.engine.core.utils.getDeepLinkByType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
+import market.engine.widgets.rows.LazyColumnWithScrollBars
 
 @Composable
 fun NotificationsHistoryContent(
@@ -87,15 +87,17 @@ fun NotificationsHistoryContent(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
-            LazyColumn {
+            LazyColumnWithScrollBars(
+                modifierList = Modifier.fillMaxSize().padding(dimens.smallPadding)
+            ) {
                 items(responseGetPage.value?.size ?: 0, key = { i ->
                     responseGetPage.value?.get(i)?.id ?: i
                 }) { i->
                     responseGetPage.value?.get(i)?.let { item ->
-                        Row {
-                            Column {
-                                Text(item.title)
-                                Text(item.body)
+                        NotificationsHistoryItem(item){
+                            val link = item.getDeepLinkByType()
+                            if (link != null) {
+                                component.goToDeepLink(link)
                             }
                         }
                     }
