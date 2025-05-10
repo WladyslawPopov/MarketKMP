@@ -5,6 +5,6 @@ import com.russhwolf.settings.Settings
 import platform.Foundation.NSUserDefaults
 
 actual fun createSettings(): Settings {
-    val delegate: NSUserDefaults = NSUserDefaults.standardUserDefaults()
+    val delegate = NSUserDefaults(suiteName = "group.application.market.auction-mobile")
     return NSUserDefaultsSettings(delegate)
 }
