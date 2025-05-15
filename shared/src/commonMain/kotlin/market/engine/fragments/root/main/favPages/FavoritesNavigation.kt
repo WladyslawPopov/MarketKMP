@@ -140,7 +140,12 @@ fun createFavoritesChild(
     navigateToConversations: () -> Unit,
 ): ChildFavorites = when (config) {
         is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
-            itemFavPages(componentContext, favPagesViewModel, favoritesNavigation, config.favScreenType)
+            itemFavPages(
+                componentContext,
+                favPagesViewModel,
+                favoritesNavigation,
+                config.favScreenType
+            )
         )
 
         is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(

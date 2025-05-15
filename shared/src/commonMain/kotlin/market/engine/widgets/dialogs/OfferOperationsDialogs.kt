@@ -50,7 +50,7 @@ fun OfferOperationsDialogs(
     val scope = remember { viewModel.viewModelScope }
     val offerOperations = remember { viewModel.offerOperations }
     val analyticsHelper = remember { viewModel.analyticsHelper }
-    val selected = remember { mutableStateOf(choices.firstOrNull()) }
+    val selected = mutableStateOf(choices.firstOrNull())
     
     CustomDialog(
         showDialog = showDialog.value,

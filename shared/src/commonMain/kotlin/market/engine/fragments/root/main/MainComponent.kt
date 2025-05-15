@@ -164,7 +164,7 @@ class DefaultMainComponent(
             },
             key = "HomeStack"
         )
-    private val favPagesViewModel by lazy { FavPagesViewModel() }
+    private val favPagesViewModel = FavPagesViewModel()
 
     override val childSearchStack: Value<ChildStack<*, ChildSearch>> by lazy {
         val categoryData = ListingData()
@@ -231,7 +231,6 @@ class DefaultMainComponent(
             serializer = FavoritesConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
-                favPagesViewModel.getFavTabList {  }
                 createFavoritesChild(
                     config,
                     componentContext,

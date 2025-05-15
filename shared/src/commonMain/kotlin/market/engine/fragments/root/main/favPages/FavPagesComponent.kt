@@ -19,7 +19,7 @@ import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsCom
 
 
 interface FavPagesComponent {
-    var componentsPages: Value<ChildPages<*, FavPagesComponents>>
+    val componentsPages: Value<ChildPages<*, FavPagesComponents>>
 
     val favScreenType : FavScreenType
 
@@ -56,7 +56,32 @@ class DefaultFavPagesComponent(
         navigation.select(p)
     }
 
-    fun pages(version: String) : Value<ChildPages<*, FavPagesComponents>> = childPages(
+    override fun fullRefresh() {
+        viewModel.getFavTabList {
+            favoritesNavigation.replaceCurrent(
+                FavoritesConfig.FavPagesScreen(
+                    favType,
+                    getCurrentDate()
+                )
+            )
+        }
+    }
+
+    override fun onRefresh() {
+        viewModel.onError(ServerErrorException())
+        val index = componentsPages.value.selectedIndex
+        when(val item = componentsPages.value.items[index].instance){
+            is FavPagesComponents.FavoritesChild -> {
+                item.component.onRefresh()
+            }
+            is FavPagesComponents.SubscribedChild -> {
+                item.component.model.value.subViewModel.refresh()
+            }
+            null -> {}
+        }
+    }
+
+    override val componentsPages: Value<ChildPages<*, FavPagesComponents>> = childPages(
         source = navigation,
         serializer = FavPagesConfig.serializer(),
         handleBackButton = true,
@@ -78,7 +103,7 @@ class DefaultFavPagesComponent(
                     },
             )
         },
-        key = "FavoritesStack_$version",
+        key = "FavoritesStack",
         childFactory = { config, componentContext ->
             when (config.favItem.id) {
                 222L -> {
@@ -132,33 +157,6 @@ class DefaultFavPagesComponent(
             }
         }
     )
-
-    override fun fullRefresh() {
-        viewModel.getFavTabList {
-            favoritesNavigation.replaceCurrent(
-                FavoritesConfig.FavPagesScreen(
-                    favType,
-                    getCurrentDate()
-                )
-            )
-        }
-    }
-
-    override fun onRefresh() {
-        viewModel.onError(ServerErrorException())
-        val index = componentsPages.value.selectedIndex
-        when(val item = componentsPages.value.items[index].instance){
-            is FavPagesComponents.FavoritesChild -> {
-                item.component.onRefresh()
-            }
-            is FavPagesComponents.SubscribedChild -> {
-                item.component.model.value.subViewModel.refresh()
-            }
-            null -> {}
-        }
-    }
-
-    override var componentsPages: Value<ChildPages<*, FavPagesComponents>> = pages(getCurrentDate())
 }
 
 sealed class FavPagesComponents {
