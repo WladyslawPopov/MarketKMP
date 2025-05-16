@@ -29,6 +29,7 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
@@ -205,7 +206,7 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun addToFavorites(offer: Offer, onSuccess: (Boolean) -> Unit) {
+    fun addToFavorites(offer : OfferItem, onSuccess: (Boolean) -> Unit) {
         if(UserData.token != "") {
             viewModelScope.launch {
                 val buf = if (!offer.isWatchedByMe)
@@ -213,19 +214,18 @@ open class BaseViewModel: ViewModel() {
                 else
                     offerOperations.postOfferOperationUnwatch(offer.id)
 
-                val eventParameters = mapOf(
-                    "lot_id" to offer.id,
-                    "lot_name" to offer.name,
-                    "lot_city" to offer.freeLocation,
-                    "auc_delivery" to offer.safeDeal,
-                    "lot_category" to offer.catpath.firstOrNull(),
-                    "seller_id" to offer.sellerData?.id,
-                    "lot_price_start" to offer.currentPricePerItem,
-                )
-
                 val res = buf.success
                 withContext(Dispatchers.Main) {
                     if (res != null && res.success) {
+                        val eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title,
+                            "lot_city" to offer.location,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category" to offer.catPath.firstOrNull(),
+                            "seller_id" to offer.seller.id,
+                            "lot_price_start" to offer.price,
+                        )
                         if (!offer.isWatchedByMe) {
                             analyticsHelper.reportEvent("offer_watch", eventParameters)
                         } else {

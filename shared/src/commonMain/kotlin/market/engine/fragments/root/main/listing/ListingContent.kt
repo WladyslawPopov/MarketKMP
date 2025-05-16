@@ -31,6 +31,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -44,8 +45,9 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.FilterListingContent
 import market.engine.widgets.filterContents.SortingOffersContent
-import market.engine.widgets.items.OfferItem
 import market.engine.widgets.items.PromoOfferRowItem
+import market.engine.widgets.items.PublicOfferItemGrid
+import market.engine.widgets.items.PublicOfferItemList
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -384,14 +386,37 @@ fun ListingContent(
                     )
                 },
                 item = { offer ->
-                    OfferItem(
-                        offer,
-                        isGrid = listingData.value.listingType == 1,
-                        baseViewModel = listingViewModel,
-                        isShowFavorites = true,
-                        updateTrigger = listingViewModel.updateItemTrigger.value,
-                    ) {
-                        component.goToOffer(offer)
+                    when(listingData.value.listingType){
+                        0 -> {
+                            PublicOfferItemList(
+                                offer,
+                                updateTrigger = listingViewModel.updateItemTrigger.value,
+                                onItemClick = {
+                                    component.goToOffer(offer)
+                                },
+                                addToFavorites = {
+                                    listingViewModel.addToFavorites(offer){
+                                        offer.isWatchedByMe = it
+                                        listingViewModel.updateItemTrigger.value++
+                                    }
+                                },
+                            )
+                        }
+                        1 ->{
+                            PublicOfferItemGrid(
+                                offer,
+                                updateTrigger = listingViewModel.updateItemTrigger.value,
+                                onItemClick = {
+                                    component.goToOffer(offer)
+                                },
+                                addToFavorites = {
+                                    listingViewModel.addToFavorites(offer){
+                                        offer.isWatchedByMe = it
+                                        listingViewModel.updateItemTrigger.value++
+                                    }
+                                },
+                            )
+                        }
                     }
                 },
                 promoList = promoList.value,
@@ -399,7 +424,7 @@ fun ListingContent(
                     PromoOfferRowItem(
                         offer
                     ) {
-                        component.goToOffer(offer, true)
+                        component.goToOffer(offer.parseToOfferItem(), true)
                     }
                 }
             )

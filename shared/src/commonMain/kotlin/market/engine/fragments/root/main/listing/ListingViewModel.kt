@@ -1,20 +1,23 @@
 package market.engine.fragments.root.main.listing
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.paging.cachedIn
+import androidx.paging.map
 import app.cash.paging.PagingData
-import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
@@ -22,6 +25,7 @@ import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.SearchHistory
 
@@ -42,7 +46,7 @@ class ListingViewModel : BaseViewModel() {
     private val _responseHistory = MutableStateFlow<List<SearchHistoryItem>>(emptyList())
     val responseHistory: StateFlow<List<SearchHistoryItem>> = _responseHistory.asStateFlow()
 
-     fun init(listingData: ListingData) : Flow<PagingData<Offer>> {
+     fun init(listingData: ListingData) : Flow<PagingData<OfferItem>> {
          this.listingData.value = listingData
 
          listingData.data.value.methodServer = "get_public_listing"
@@ -61,7 +65,24 @@ class ListingViewModel : BaseViewModel() {
          getHistory()
 
          return pagingRepository.getListing(listingData, apiService, Offer.serializer())
-             .cachedIn(viewModelScope)
+             .map { offer ->
+                 offer.map {
+                     if (it.promoOptions != null && it.sellerData?.id != UserData.login) {
+                         val isBackLight = it.promoOptions.find { it.id == "backlignt_in_listing" }
+                         if (isBackLight != null) {
+                             val eventParameters = mapOf(
+                                 "catalog_category" to it.catpath.lastOrNull(),
+                                 "lot_category" to if (it.catpath.isEmpty()) 1 else it.catpath.firstOrNull(),
+                                 "offer_id" to it.id,
+                             )
+
+                             analyticsHelper.reportEvent("show_top_lots", eventParameters)
+                         }
+                     }
+
+                     it.parseToOfferItem()
+                 }
+             }.cachedIn(viewModelScope)
      }
 
     fun refresh(){

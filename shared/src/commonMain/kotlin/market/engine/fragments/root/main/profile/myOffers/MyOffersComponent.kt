@@ -9,8 +9,8 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.CreateOfferType
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
 
@@ -18,13 +18,13 @@ import market.engine.core.data.types.ProposalType
 interface MyOffersComponent {
     val model : Value<Model>
     data class Model(
-        val pagingDataFlow : Flow<PagingData<Offer>>,
+        val pagingDataFlow : Flow<PagingData<OfferItem>>,
         val viewModel: MyOffersViewModel,
         var type : LotsType,
         val backHandler: BackHandler
     )
 
-    fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
+    fun goToOffer(offer: OfferItem, isTopPromo : Boolean = false)
     fun selectMyOfferPage(select : LotsType)
     fun goToCreateOffer(type : CreateOfferType, offerId : Long? = null,  catPath : List<Long>?)
     fun goToProposals(offerId : Long, proposalType: ProposalType)
@@ -71,7 +71,7 @@ class DefaultMyOffersComponent(
         analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
 
-    override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
+    override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
         offerSelected(offer.id)
 
         lifecycle.doOnResume {

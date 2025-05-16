@@ -16,11 +16,11 @@ import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
-import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.dropdown_menu.getDropdownMenu
@@ -28,7 +28,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfferOperationsDialogs(
-    offer: Offer,
+    offer: OfferItem,
     title: MutableState<String>,
     fields: MutableState<List<Fields>>,
     choices: List<Choices>,
@@ -85,9 +85,9 @@ fun OfferOperationsDialogs(
                                 val eventParam = mapOf(
                                     "lot_id" to offer.id,
                                     "lot_name" to offer.title,
-                                    "lot_city" to offer.freeLocation,
-                                    "lot_category" to offer.catpath.lastOrNull(),
-                                    "seller_id" to offer.sellerData?.id
+                                    "lot_city" to offer.location,
+                                    "lot_category" to offer.catPath.lastOrNull(),
+                                    "seller_id" to offer.seller.id
                                 )
 
                                 analyticsHelper.reportEvent(
@@ -153,10 +153,10 @@ fun OfferOperationsDialogs(
                                     "activate_offer",
                                     eventParameters = mapOf(
                                         "lot_id" to offer.id,
-                                        "lot_name" to offer.title.orEmpty(),
-                                        "lot_city" to offer.freeLocation.orEmpty(),
-                                        "lot_category" to offer.catpath.lastOrNull(),
-                                        "seller_id" to offer.sellerData?.id
+                                        "lot_name" to offer.title,
+                                        "lot_city" to offer.location,
+                                        "lot_category" to offer.catPath.lastOrNull(),
+                                        "seller_id" to offer.seller.id
                                     )
                                 )
                                 viewModel.showToast(
@@ -207,10 +207,10 @@ fun OfferOperationsDialogs(
                                     "activate_offer_for_future",
                                     eventParameters = mapOf(
                                         "lot_id" to offer.id,
-                                        "lot_name" to offer.title.orEmpty(),
-                                        "lot_city" to offer.freeLocation.orEmpty(),
-                                        "lot_category" to offer.catpath.lastOrNull(),
-                                        "seller_id" to offer.sellerData?.id
+                                        "lot_name" to offer.title,
+                                        "lot_city" to offer.location,
+                                        "lot_category" to offer.catPath.lastOrNull(),
+                                        "seller_id" to offer.seller.id
                                     )
                                 )
                                 viewModel.showToast(

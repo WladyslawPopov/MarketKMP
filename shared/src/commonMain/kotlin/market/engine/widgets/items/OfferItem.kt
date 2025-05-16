@@ -39,9 +39,9 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
-import market.engine.widgets.bars.HeaderOfferBar
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.ilustrations.LoadImage
@@ -104,24 +104,24 @@ fun OfferItem(
             onItemClick()
         }
     ) {
-        if (onUpdateOfferItem != null) {
-            HeaderOfferBar(
-                offer = offer,
-                isSelected = isSelection,
-                onUpdateTrigger = updateTrigger,
-                baseViewModel = baseViewModel,
-                onSelectionChange = onSelectionChange,
-                onUpdateOfferItem = onUpdateOfferItem,
-                goToCreateOffer = goToCreateOffer,
-                goToProposals = {
-                    goToProposal(it)
-                },
-                goToDynamicSettings = { type, id ->
-                    goToDynamicSettings(type, id)
-                },
-                refreshPage = refreshPage
-            )
-        }
+//        if (onUpdateOfferItem != null) {
+//            HeaderOfferBar(
+//                offer = ,
+//                isSelected = isSelection,
+//                onUpdateTrigger = updateTrigger,
+//                baseViewModel = baseViewModel,
+//                onSelectionChange = onSelectionChange,
+//                onUpdateOfferItem = onUpdateOfferItem,
+//                goToCreateOffer = goToCreateOffer,
+//                goToProposals = {
+//                    goToProposal(it)
+//                },
+//                goToDynamicSettings = { type, id ->
+//                    goToDynamicSettings(type, id)
+//                },
+//                refreshPage = refreshPage
+//            )
+//        }
 
         if (isGrid) {
             Column(
@@ -134,7 +134,6 @@ fun OfferItem(
                 contentStructure(
                     offer,
                     isGrid,
-                    onUpdateOfferItem != null,
                     isShowFavorites,
                     notesShow,
                     baseViewModel,
@@ -150,7 +149,6 @@ fun OfferItem(
                 contentStructure(
                     offer,
                     isGrid,
-                    onUpdateOfferItem != null,
                     isShowFavorites,
                     notesShow,
                     baseViewModel,
@@ -188,7 +186,6 @@ fun contentStructure(
     offer: Offer,
     isGrid : Boolean,
     isShowPromo : Boolean,
-    isShowFavourite : Boolean,
     notesShow : Boolean,
     baseViewModel: BaseViewModel,
     updateTrigger : Int,
@@ -229,10 +226,10 @@ fun contentStructure(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            content(offer, baseViewModel,updateTrigger,isShowPromo,notesShow, isShowFavourite)
+            content(offer, baseViewModel,updateTrigger,isShowPromo,notesShow)
         }
     }else{
-        content(offer, baseViewModel, updateTrigger,isShowPromo,notesShow, isShowFavourite)
+        content(offer, baseViewModel, updateTrigger,isShowPromo,notesShow)
     }
 }
 
@@ -243,7 +240,6 @@ fun content(
     offer: Offer,
     baseViewModel : BaseViewModel,
     updateTrigger : Int = 0,
-    isShowPromo : Boolean,
     notesShow : Boolean,
     isShowFavourite : Boolean,
 ){
@@ -262,7 +258,7 @@ fun content(
                 modifierIconSize = Modifier.size(dimens.smallIconSize),
                 modifier = Modifier.align(Alignment.Top).weight(0.2f)
             ){
-                baseViewModel.addToFavorites(offer){
+                baseViewModel.addToFavorites(offer.parseToOfferItem()){
                     offer.isWatchedByMe = it
                     baseViewModel.updateItemTrigger.value++
                 }
@@ -472,9 +468,11 @@ fun content(
         )
     }
 
-    if (offer.sellerData?.id == UserData.login && isShowPromo) {
-        PromoRow(offer, false){
+    if (offer.sellerData?.id == UserData.login) {
+        offer.promoOptions?.let {
+            PromoRow(it, false){
 
+            }
         }
     }
 

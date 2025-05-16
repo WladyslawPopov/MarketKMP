@@ -165,4 +165,5 @@ interface Drawables {
    val whiteBuyersIcon : DrawableResource
    val blockRatingIcon : DrawableResource
    val editNoteIcon : DrawableResource
+   val promoOptionsIcon : DrawableResource
 }

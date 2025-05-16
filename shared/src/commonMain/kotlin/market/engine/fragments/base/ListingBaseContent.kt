@@ -146,14 +146,14 @@ fun <T : Any>ListingBaseContent(
                 error != null -> {
                     LazyColumn {
                         item {
-                            error?.invoke()
+                            error.invoke()
                         }
                     }
                 }
                 noItem != null -> {
                     LazyColumn {
                         item {
-                            noItem?.invoke()
+                            noItem.invoke()
                         }
                     }
                 }

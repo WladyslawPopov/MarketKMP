@@ -16,9 +16,9 @@ import kotlinx.serialization.Serializable
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.SearchPagesType
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.printLogD
 import market.engine.fragments.root.main.favPages.itemSubscriptions
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
@@ -26,14 +26,14 @@ import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsCom
 interface ListingComponent {
     val model : Value<Model>
     data class Model(
-        var pagingDataFlow : Flow<PagingData<Offer>>,
+        var pagingDataFlow : Flow<PagingData<OfferItem>>,
         val listingViewModel: ListingViewModel,
         val backHandler: BackHandler
     )
 
     val searchPages: Value<ChildPages<*, SearchPagesComponents>>
 
-    fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
+    fun goToOffer(offer: OfferItem, isTopPromo : Boolean = false)
     fun goBack()
     fun goToSubscribe()
     fun onTabSelect(tab: Int)
@@ -120,11 +120,11 @@ class DefaultListingComponent(
         listingViewModel.openSearch.value = isOpenSearch
     }
 
-    override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
+    override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
 
         if (isTopPromo){
             val eventParameters = mapOf(
-                "lot_category" to offer.catpath.lastOrNull(),
+                "lot_category" to offer.catPath.lastOrNull(),
                 "lot_id" to offer.id,
             )
 
@@ -138,11 +138,11 @@ class DefaultListingComponent(
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
                 "lot_name" to offer.title,
-                "lot_city" to offer.freeLocation,
+                "lot_city" to offer.location,
                 "auc_delivery" to offer.safeDeal,
-                "lot_category" to offer.catpath.lastOrNull(),
-                "seller_id" to offer.sellerData?.id,
-                "lot_price_start" to offer.currentPricePerItem
+                "lot_category" to offer.catPath.lastOrNull(),
+                "seller_id" to offer.seller.id,
+                "lot_price_start" to offer.price
             )
             analyticsHelper.reportEvent(
                 "click_search_results_item",
@@ -152,11 +152,11 @@ class DefaultListingComponent(
             val eventParameters = mapOf(
                 "lot_id" to offer.id,
                 "lot_name" to offer.title,
-                "lot_city" to offer.freeLocation,
+                "lot_city" to offer.location,
                 "auc_delivery" to offer.safeDeal,
-                "lot_category" to offer.catpath.lastOrNull(),
-                "seller_id" to offer.sellerData?.id,
-                "lot_price_start" to offer.currentPricePerItem
+                "lot_category" to offer.catPath.lastOrNull(),
+                "seller_id" to offer.seller.id,
+                "lot_price_start" to offer.price
             )
             analyticsHelper.reportEvent(
                 "click_item_at_catalog",

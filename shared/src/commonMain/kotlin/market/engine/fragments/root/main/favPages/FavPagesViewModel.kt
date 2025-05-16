@@ -2,12 +2,14 @@ package market.engine.fragments.root.main.favPages
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
+import androidx.paging.map
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
@@ -18,6 +20,7 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
@@ -30,6 +33,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
@@ -56,7 +60,7 @@ class FavPagesViewModel : BaseViewModel() {
         }
     }
 
-    fun init(type: FavScreenType, listId: Long?= null): Flow<PagingData<Offer>> {
+    fun init(type: FavScreenType, listId: Long?= null): Flow<PagingData<OfferItem>> {
         when(type){
             FavScreenType.FAVORITES -> {
                 listingData.value.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
@@ -77,7 +81,11 @@ class FavPagesViewModel : BaseViewModel() {
             else -> {}
         }
 
-        return pagingRepository.getListing(listingData.value, apiService, Offer.serializer()).cachedIn(viewModelScope)
+        return pagingRepository.getListing(listingData.value, apiService, Offer.serializer()).map {
+            it.map { offer ->
+                offer.parseToOfferItem()
+            }
+        }.cachedIn(viewModelScope)
     }
 
     fun refresh(){

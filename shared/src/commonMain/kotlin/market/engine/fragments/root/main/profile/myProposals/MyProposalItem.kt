@@ -29,6 +29,7 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.OfferMessagingDialog
@@ -69,7 +70,7 @@ fun MyProposalItem(
             horizontalAlignment = Alignment.Start
         ) {
             HeaderOfferBar(
-                offer = offer,
+                offer = offer.parseToOfferItem(),
                 onUpdateOfferItem = {
                     onUpdateOfferItem(it)
                 },

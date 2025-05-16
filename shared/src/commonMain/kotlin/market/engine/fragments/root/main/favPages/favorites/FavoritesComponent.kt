@@ -8,9 +8,9 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.root.main.favPages.FavPagesViewModel
 
 interface FavoritesComponent {
@@ -18,12 +18,12 @@ interface FavoritesComponent {
     data class Model(
         val listId : Long?,
         val favType: FavScreenType,
-        val pagingDataFlow : Flow<PagingData<Offer>>,
+        val pagingDataFlow : Flow<PagingData<OfferItem>>,
         val favViewModel: FavPagesViewModel,
         val backHandler: BackHandler
     )
 
-    fun goToOffer(offer: Offer, isTopPromo : Boolean = false)
+    fun goToOffer(offer: OfferItem, isTopPromo : Boolean = false)
     fun onRefresh()
     fun refreshTabs()
 }
@@ -65,7 +65,7 @@ class DefaultFavoritesComponent(
     //private val searchData = listingData.searchData
     //private val listingData = model.value.listingData.data
 
-    override fun goToOffer(offer: Offer, isTopPromo : Boolean) {
+    override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
         goToOffer(offer.id)
         lifecycle.doOnResume {
             favViewModel.updateItem.value = offer.id

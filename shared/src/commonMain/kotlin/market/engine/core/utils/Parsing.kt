@@ -12,8 +12,10 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.NotificationItem
+import market.engine.core.data.items.OfferItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.network.networkObjects.User
 import market.engine.shared.MarketDB
 import market.engine.shared.NotificationsHistory
 import org.jetbrains.compose.resources.DrawableResource
@@ -161,4 +163,59 @@ fun List<NotificationsHistory>.deleteReadNotifications() {
             }
         }
     }
+}
+
+fun Offer.parseToOfferItem() : OfferItem {
+
+    var isPromo = false
+    if (promoOptions != null && sellerData?.id != UserData.login) {
+        val isBackLight = promoOptions.find { it.id == "backlignt_in_listing" }
+        if (isBackLight != null) {
+            isPromo = true
+        }
+    }
+
+    return OfferItem(
+        id = id,
+        title = title ?: "",
+        images = buildList {
+             when {
+                images?.isNotEmpty() == true -> addAll(images?.map { it.urls?.small?.content ?: "empty" }?.toList() ?: emptyList())
+                externalImages?.isNotEmpty() == true -> addAll(externalImages)
+                externalUrl != null -> add(externalUrl)
+                image?.small?.content != null -> add(image.small.content)
+                else -> listOf("empty")
+            }
+        },
+        note = note,
+        isWatchedByMe = isWatchedByMe,
+        videoUrls = videoUrls,
+        isPrototype = isPrototype,
+        quantity = quantity,
+        price = currentPricePerItem ?: "",
+        type = saleType ?: "",
+        seller = sellerData ?: User(),
+        buyer = buyerData,
+        numParticipants = numParticipants,
+        bids = bids,
+        location = buildString {
+            freeLocation?.let { append(it) }
+            region?.name?.let {
+                if (isNotEmpty()) append(", ")
+                append(it)
+            }
+        },
+        discount = discountPercentage,
+        safeDeal = safeDeal,
+        promoOptions = promoOptions,
+        isPromo = isPromo,
+        createdTs = createdTs,
+        catPath = catpath,
+        publicUrl = publicUrl,
+        watchersCount = watchersCount,
+        viewsCount = viewsCount,
+        relistingMode = relistingMode,
+        session = session,
+        state = state,
+    )
 }

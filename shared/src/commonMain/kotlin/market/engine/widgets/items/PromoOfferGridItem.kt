@@ -31,7 +31,10 @@ import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun PromoOfferGridItem(offer: Offer, onOfferClick: (Offer) -> Unit) {
+fun PromoOfferGridItem(
+    offer: Offer,
+    onOfferClick: (Offer) -> Unit
+) {
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),

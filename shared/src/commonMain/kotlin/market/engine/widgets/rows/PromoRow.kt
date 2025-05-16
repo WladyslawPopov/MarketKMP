@@ -23,7 +23,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.networkObjects.Offer
+import market.engine.core.network.networkObjects.PromoOption
 import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -31,93 +31,91 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PromoRow(
-    offer: Offer,
+    promoOptions: List<PromoOption>,
     showName: Boolean = false,
     modifier: Modifier = Modifier.padding(dimens.smallPadding),
     onItemClick: (String?) -> Unit
 ) {
-    if(offer.promoOptions != null ) {
-        if(showName) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SeparatorLabel(stringResource(strings.activatePromoParameterName))
-            }
+    if(showName) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SeparatorLabel(stringResource(strings.activatePromoParameterName))
         }
-        Box(
+    }
+    Box(
+        modifier = modifier
+    ) {
+        FlowRow(
+            horizontalArrangement = Arrangement.Start,
+            verticalArrangement = Arrangement.SpaceAround,
             modifier = modifier
         ) {
-            FlowRow(
-                horizontalArrangement = Arrangement.Start,
-                verticalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
-            ) {
-                offer.promoOptions.forEach { o ->
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = colors.brightPurple,
-                            contentColor = colors.white
+            promoOptions.forEach { o ->
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = colors.brightPurple,
+                        contentColor = colors.white
+                    ),
+                    modifier = Modifier.clickable {
+                        onItemClick(o.id)
+                    }
+                ) {
+                    when (o.id) {
+                        "featured_in_listing" -> {
+                            Text(
+                                text = "TOP",
+                                color = colors.brightPurple,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(dimens.extraSmallPadding)
+                            )
+                        }
+
+                        "featured_on_main_page" -> {
+                            Image(
+                                painter = painterResource(drawables.homeIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.mediumIconSize)
+                            )
+                        }
+
+                       "recommended_in_listing" -> {
+                           Image(
+                                painter = painterResource(drawables.megaphoneIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.mediumIconSize)
+                            )
+                        }
+
+                        "backlignt_in_listing" -> {
+                            Image(
+                                painter = painterResource(drawables.promoHighlightIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.mediumIconSize)
+                            )
+                        }
+
+                        "featured_in_offer" -> {
+                            Image(
+                                painter = painterResource(drawables.adIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.mediumIconSize)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+                if (showName) {
+                    Text(
+                         o.name.toString(),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold
                         ),
-                        modifier = Modifier.clickable {
-                            onItemClick(o.id)
-                        }
-                    ) {
-                        when (o.id) {
-                            "featured_in_listing" -> {
-                                Text(
-                                    text = "TOP",
-                                    color = colors.brightPurple,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    modifier = Modifier.padding(dimens.extraSmallPadding)
-                                )
-                            }
-
-                            "featured_on_main_page" -> {
-                                Image(
-                                    painter = painterResource(drawables.homeIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.mediumIconSize)
-                                )
-                            }
-
-                           "recommended_in_listing" -> {
-                               Image(
-                                    painter = painterResource(drawables.megaphoneIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.mediumIconSize)
-                                )
-                            }
-
-                            "backlignt_in_listing" -> {
-                                Image(
-                                    painter = painterResource(drawables.promoHighlightIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.mediumIconSize)
-                                )
-                            }
-
-                            "featured_in_offer" -> {
-                                Image(
-                                    painter = painterResource(drawables.adIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.mediumIconSize)
-                                )
-                            }
-                        }
-                    }
+                        modifier = Modifier.padding(dimens.extraSmallPadding)
+                    )
                     Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-                    if (showName) {
-                        Text(
-                             o.name.toString(),
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            modifier = Modifier.padding(dimens.extraSmallPadding)
-                        )
-                        Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
-                    }
                 }
             }
         }

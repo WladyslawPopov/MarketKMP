@@ -27,7 +27,6 @@ import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.items.OfferItem
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
@@ -36,6 +35,7 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
+import market.engine.widgets.items.CabinetOfferItemList
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -113,13 +113,16 @@ fun FavoritesContent(
             withContext(Dispatchers.Main) {
                 if (offer != null) {
                     val item = data.itemSnapshotList.items.find { it.id == offer.id }
-                    item?.state = offer.state
-                    item?.buyNowPrice = offer.buyNowPrice
-                    item?.images = offer.images
-                    item?.freeLocation = offer.freeLocation
-                    item?.currentPricePerItem = offer.currentPricePerItem
-                    item?.title = offer.title
-                    item?.region = offer.region
+                    item?.images = buildList {
+                        when {
+                            offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "" }?.toList() ?: emptyList())
+                            offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
+                            offer.externalUrl != null -> add(offer.externalUrl)
+                            offer.image?.small?.content != null -> add(offer.image.small.content)
+                        }
+                    }
+                    item?.price = offer.currentPricePerItem ?: ""
+                    item?.title = offer.title ?: ""
                     item?.note = offer.note
                     item?.relistingMode = offer.relistingMode
                     item?.isWatchedByMe = offer.isWatchedByMe
@@ -241,10 +244,8 @@ fun FavoritesContent(
 
 
                 AnimatedVisibility(fav.value, enter = fadeIn(), exit = fadeOut()) {
-                    OfferItem(
+                    CabinetOfferItemList(
                         offer,
-                        isGrid = (columns.value > 1),
-                        notesShow = true,
                         baseViewModel = favViewModel,
                         updateTrigger = favViewModel.updateItemTrigger.value,
                         isSelection = isSelect.value,

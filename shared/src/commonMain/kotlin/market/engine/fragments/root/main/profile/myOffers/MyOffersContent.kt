@@ -33,7 +33,7 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
-import market.engine.widgets.items.OfferItem
+import market.engine.widgets.items.CabinetOfferItemList
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -108,16 +108,21 @@ fun MyOffersContent(
                 withContext(Dispatchers.Main) {
                     if (offer != null) {
                         val item = data.itemSnapshotList.items.find { it.id == offer.id }
-                        item?.state = offer.state
-                        item?.session = offer.session
-                        item?.buyNowPrice = offer.buyNowPrice
-                        item?.images = offer.images
-                        item?.freeLocation = offer.freeLocation
-                        item?.currentPricePerItem = offer.currentPricePerItem
-                        item?.title = offer.title
-                        item?.region = offer.region
+                        item?.images = buildList {
+                            when {
+                                offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "" }?.toList() ?: emptyList())
+                                offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
+                                offer.externalUrl != null -> add(offer.externalUrl)
+                                offer.image?.small?.content != null -> add(offer.image.small.content)
+                            }
+                        }
+                        item?.price = offer.currentPricePerItem ?: ""
+                        item?.title = offer.title ?: ""
                         item?.note = offer.note
                         item?.relistingMode = offer.relistingMode
+                        item?.isWatchedByMe = offer.isWatchedByMe
+                        item?.viewsCount = offer.viewsCount
+                        item?.bids = offer.bids
                     }else{
                         val item = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
                         item?.session = null
@@ -215,27 +220,25 @@ fun MyOffersContent(
                     else -> {}
                 }
                 AnimatedVisibility(checkItemSession, enter = fadeIn(), exit = fadeOut()) {
-                    OfferItem(
+                    CabinetOfferItemList(
                         offer,
-                        isGrid = false,
-                        notesShow = true,
                         baseViewModel = viewModel,
-                        goToCreateOffer = { type ->
-                            component.goToCreateOffer(type, offer.id, offer.catpath)
-                        },
-                        goToProposal = {
-                            component.goToProposals(offer.id, it)
-                        },
-                        onUpdateOfferItem = {
-                            viewModel.updateItem.value = it
-                        },
                         updateTrigger = viewModel.updateItemTrigger.value,
+                        onUpdateOfferItem = { id ->
+                            viewModel.updateItem.value = id
+                        },
                         onItemClick = {
                             component.goToOffer(offer)
                         },
                         goToDynamicSettings = { type, id ->
                             component.goToDynamicSettings(type, id)
-                        }
+                        },
+                        goToCreateOffer = { type ->
+                            component.goToCreateOffer(type, offer.id, offer.catPath)
+                        },
+                        goToProposal = {
+                            component.goToProposals(offer.id, it)
+                        },
                     )
                 }
             }

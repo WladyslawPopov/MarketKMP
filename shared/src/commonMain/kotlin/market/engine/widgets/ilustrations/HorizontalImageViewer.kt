@@ -34,7 +34,7 @@ import market.engine.core.utils.printLogD
 
 @Composable
 fun HorizontalImageViewer(
-    images: List<String>,
+    images: List<String?>,
     pagerState: PagerState,
     isUpdate: Boolean = false,
     modifier: Modifier = Modifier
@@ -55,14 +55,13 @@ fun HorizontalImageViewer(
         ) { index ->
             val imageLoadFailed = remember { mutableStateOf(false) }
             val loading = remember { mutableStateOf(true) }
-            val imageUrl = images[index]
 
             Box(
                 modifier = Modifier.fillMaxSize().padding(dimens.smallPadding),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageLoadFailed.value || images.isEmpty()) {
-                    getImage(imageUrl)
+                if (imageLoadFailed.value || images[index]?.isNotBlank() == true) {
+                    getImage(images[index])
                 } else {
                     if (loading.value) {
                         CircularProgressIndicator(
@@ -71,7 +70,7 @@ fun HorizontalImageViewer(
                     }
 
                     AsyncImage(
-                        model = imageUrl,
+                        model = images[index],
                         contentDescription = null,
                         modifier = modifier
                             .fillMaxWidth(),
@@ -82,7 +81,7 @@ fun HorizontalImageViewer(
                             }.build(),
                         onSuccess = {
                             loading.value = false
-                            printLogD("Coil success", imageUrl)
+                            printLogD("Coil success", images[index])
                         },
                         onError = {
                             imageLoadFailed.value = true

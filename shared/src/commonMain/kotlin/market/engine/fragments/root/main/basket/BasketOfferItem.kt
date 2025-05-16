@@ -32,6 +32,7 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
@@ -151,7 +152,7 @@ fun BasketOfferItem(
                             modifierIconSize = Modifier.size(dimens.smallIconSize),
                             modifier = Modifier.align(Alignment.Top)
                         ){
-                            baseViewModel.addToFavorites(offer){
+                            baseViewModel.addToFavorites(offer.parseToOfferItem()){
                                 offer.isWatchedByMe = it
                                 isFavorites.value = offer.isWatchedByMe
                             }

@@ -91,6 +91,7 @@ import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.PopupActionButton
@@ -322,13 +323,13 @@ fun OfferContent(
                         onClick = {
                             when (operation.id) {
                                 "watch" -> {
-                                    offerViewModel.addToFavorites(offer){ isWatchedByMe ->
+                                    offerViewModel.addToFavorites(offer.parseToOfferItem()){ isWatchedByMe ->
                                         lotState.value?.isWatchedByMe = isWatchedByMe
                                         offerViewModel.getOperations(offer.id)
                                     }
                                 }
                                 "unwatch" -> {
-                                    offerViewModel.addToFavorites(offer){ isWatchedByMe ->
+                                    offerViewModel.addToFavorites(offer.parseToOfferItem()){ isWatchedByMe ->
                                         lotState.value?.isWatchedByMe = isWatchedByMe
                                         offerViewModel.getOperations(offer.id)
                                     }
@@ -407,14 +408,12 @@ fun OfferContent(
                                         }
                                         withContext(Dispatchers.Main) {
                                             val resChoice = response.success
-                                            if (resChoice != null) {
-                                                resChoice.firstOrNull()?.let { field ->
-                                                    choices.clear()
-                                                    title.value =
-                                                        field.shortDescription.toString()
-                                                    field.choices?.forEach {
-                                                        choices.add(it)
-                                                    }
+                                            resChoice?.firstOrNull()?.let { field ->
+                                                choices.clear()
+                                                title.value =
+                                                    field.shortDescription.toString()
+                                                field.choices?.forEach {
+                                                    choices.add(it)
                                                 }
                                             }
 
@@ -837,13 +836,15 @@ fun OfferContent(
                                                         menuList = menuList.value
                                                     )
                                                 }
-                                                
-                                                PromoRow(
-                                                    offer,
-                                                    showName = true,
-                                                    modifier = Modifier.padding(dimens.mediumPadding)
-                                                ) {
 
+                                                if (offer.promoOptions != null) {
+                                                    PromoRow(
+                                                        offer.promoOptions,
+                                                        showName = true,
+                                                        modifier = Modifier.padding(dimens.mediumPadding)
+                                                    ) {
+
+                                                    }
                                                 }
                                             }
                                         }
@@ -1323,7 +1324,7 @@ fun OfferContent(
                 )
 
                 OfferOperationsDialogs(
-                    offer,
+                    offer.parseToOfferItem(),
                     title,
                     fields,
                     choices,

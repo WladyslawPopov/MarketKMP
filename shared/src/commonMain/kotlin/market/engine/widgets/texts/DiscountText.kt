@@ -19,3 +19,4 @@ fun DiscountText(
         textDecoration = TextDecoration.LineThrough
     )
 }
+
