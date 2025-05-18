@@ -22,8 +22,8 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.network.functions.OfferOperations
-import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.textFields.OutlinedTextInputField
@@ -33,7 +33,7 @@ import org.koin.compose.koinInject
 @Composable
 fun OfferMessagingDialog(
     isDialogOpen: Boolean,
-    offer: Offer,
+    offer: OfferItem,
     onDismiss: () -> Unit,
     onSuccess: (Long?) -> Unit,
     baseViewModel: BaseViewModel,
@@ -43,7 +43,7 @@ fun OfferMessagingDialog(
 
     val messageText = remember { mutableStateOf(TextFieldValue()) }
 
-    val userName = offer.sellerData?.login ?: stringResource(strings.sellerLabel)
+    val userName = offer.seller.login ?: stringResource(strings.sellerLabel)
 
     val conversationTitle = stringResource(strings.createConversationLabel)
     val aboutOrder = stringResource(strings.aboutOfferLabel)
@@ -145,7 +145,7 @@ fun OfferMessagingDialog(
                             if (buffer1 != null) {
                                 if (buffer1.operationResult?.result == "ok") {
                                     val eventParameters = mapOf(
-                                        "seller_id" to offer.sellerData?.id.toString(),
+                                        "seller_id" to offer.seller.id.toString(),
                                         "buyer_id" to UserData.userInfo?.id.toString(),
                                         "message_type" to "lot",
                                         "lot_id" to offer.id.toString()

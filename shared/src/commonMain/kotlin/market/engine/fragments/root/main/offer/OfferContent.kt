@@ -108,6 +108,7 @@ import market.engine.fragments.base.onError
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
+import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.dialogs.OfferOperationsDialogs
@@ -860,24 +861,7 @@ fun OfferContent(
                                                     remember { mutableStateOf(false) }
 
                                                 if (isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
-                                                    SimpleTextButton(
-                                                        text = stringResource(strings.promoOptionsLabel),
-                                                        textStyle = MaterialTheme.typography.bodyMedium,
-                                                        textColor = colors.black,
-                                                        backgroundColor = colors.yellowSun,
-                                                        leadIcon = {
-                                                            Icon(
-                                                                painter = painterResource(
-                                                                    drawables.promoOptionsIcon
-                                                                ),
-                                                                contentDescription = "",
-                                                                modifier = Modifier.size(
-                                                                    dimens.smallIconSize
-                                                                ),
-                                                                tint = colors.inactiveBottomNavIconColor
-                                                            )
-                                                        }
-                                                    ) {
+                                                    PromoBuyBtn {
                                                         isOpenPopup.value = true
                                                     }
                                                 }
@@ -1124,7 +1108,7 @@ fun OfferContent(
                                             if (isShowMesDialog.value) {
                                                 OfferMessagingDialog(
                                                     isShowMesDialog.value,
-                                                    offer,
+                                                    offer.parseToOfferItem(),
                                                     onSuccess = { dialogId ->
                                                         component.goToDialog(dialogId)
                                                         isShowMesDialog.value = false

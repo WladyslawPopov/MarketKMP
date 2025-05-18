@@ -2,6 +2,7 @@ package market.engine.core.data.items
 
 import market.engine.core.network.networkObjects.Bids
 import market.engine.core.network.networkObjects.BuyerData
+import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.PromoOption
 import market.engine.core.network.networkObjects.RelistingMode
 import market.engine.core.network.networkObjects.Session
@@ -19,9 +20,9 @@ data class OfferItem(
     var price : String,
     val type : String,
     val seller : User,
-    val buyer : BuyerData?,
+    var buyer : BuyerData?,
     val numParticipants : Int,
-    val watchersCount : Int,
+    var watchersCount : Int,
     var viewsCount : Int,
     val publicUrl : String?,
     var relistingMode : RelistingMode?,
@@ -29,6 +30,8 @@ data class OfferItem(
     var location : String,
     val safeDeal : Boolean,
     val promoOptions: List<PromoOption>?,
+    val deliveryMethods: List<DeliveryMethod>? = null,
+    var myMaximalBid: String = "0",
     val catPath : List<Long>,
     val discount: Int,
     val isPromo : Boolean,

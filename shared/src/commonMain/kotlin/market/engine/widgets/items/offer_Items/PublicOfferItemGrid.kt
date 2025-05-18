@@ -29,6 +29,7 @@ import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.ilustrations.HorizontalImageViewer
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -91,17 +92,7 @@ fun PublicOfferItemGrid(
                     horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Text(
-                        item.title,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.black,
-                        maxLines = 3,
-                        minLines = 3,
-                        softWrap = true,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
+                    TitleText(item.title, modifier = Modifier.weight(1f))
 
                     SmallIconButton(
                         icon = if (item.isWatchedByMe) drawables.favoritesIconSelected

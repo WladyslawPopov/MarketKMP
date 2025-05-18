@@ -48,12 +48,14 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
+import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.widgets.rows.PromoRow
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -118,13 +120,6 @@ fun CabinetOfferItemList(
                 baseViewModel = baseViewModel,
                 onSelectionChange = onSelectionChange,
                 onUpdateOfferItem = onUpdateOfferItem,
-                goToCreateOffer = goToCreateOffer,
-                goToProposals = {
-                    goToProposal(it)
-                },
-                goToDynamicSettings = { type, id ->
-                    goToDynamicSettings(type, id)
-                },
                 refreshPage = refreshPage
             )
         }
@@ -483,13 +478,7 @@ fun CabinetOfferItemList(
                     horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Text(
-                        item.title,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.black,
-                        modifier = Modifier.weight(1f)
-                    )
+                    TitleText(item.title, modifier = Modifier.weight(1f))
                 }
 
                 Row(
@@ -569,7 +558,7 @@ fun CabinetOfferItemList(
                                 if (!item.isPrototype) {
                                     if (item.quantity < 2) {
                                         if (item.buyer?.login != "" && item.buyer?.login != null) {
-                                            buyer = item.buyer.login
+                                            buyer = item.buyer?.login ?: ""
                                             color = colors.ratingBlue
                                         }
                                     }
@@ -739,20 +728,7 @@ fun CabinetOfferItemList(
 
                     if (UserData.login == item.seller.id && item.state == "active") {
                         val currency = stringResource(strings.currencyCode)
-                        SimpleTextButton(
-                            text = stringResource(strings.promoOptionsLabel),
-                            textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            textColor = colors.white,
-                            backgroundColor = colors.brightPurple.copy(alpha = 0.6f),
-                            leadIcon = {
-                                Icon(
-                                    painter = painterResource(drawables.megaphoneIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.smallIconSize),
-                                    tint = colors.white
-                                )
-                            }
-                        ) {
+                        PromoBuyBtn {
                             baseViewModel.getOfferOperations(item.id, "promo") { listOperations ->
                                 menuList.value = buildList {
                                     addAll(listOperations.map { operation ->

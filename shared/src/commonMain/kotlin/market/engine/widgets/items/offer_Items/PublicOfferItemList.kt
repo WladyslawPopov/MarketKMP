@@ -33,6 +33,7 @@ import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.ilustrations.HorizontalImageViewer
+import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -101,8 +102,7 @@ fun PublicOfferItemList(
                     horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Text(item.title, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = colors.black, modifier = Modifier.weight(1f))
-
+                    TitleText(item.title, modifier = Modifier.weight(1f))
                     SmallIconButton(
                         icon = if (item.isWatchedByMe) drawables.favoritesIconSelected
                         else drawables.favoritesIcon,
@@ -160,7 +160,7 @@ fun PublicOfferItemList(
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                     modifier = Modifier.fillMaxWidth(),
-                ) {
+                )  {
                     var typeString = ""
                     var colorType = colors.titleTextColor
 
@@ -191,7 +191,7 @@ fun PublicOfferItemList(
                                 if (!item.isPrototype) {
                                     if (item.quantity < 2) {
                                         if (item.buyer?.login != "" && item.buyer?.login != null) {
-                                            buyer = item.buyer.login
+                                            buyer = item.buyer?.login ?: ""
                                             color = colors.ratingBlue
                                         }
                                     }

@@ -100,11 +100,11 @@ fun MyProposalsContent(
                     viewModel.getOfferById(viewModel.updateItem.value!!)
                 withContext(Dispatchers.Main) {
                     val oldItem = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
-                    oldItem?.buyerData = offer?.buyerData
+                    oldItem?.buyer= offer?.buyerData
                     oldItem?.myMaximalBid = offer?.myMaximalBid.toString()
                     oldItem?.bids = offer?.bids
                     oldItem?.session = offer?.session
-                    oldItem?.currentPricePerItem = offer?.currentPricePerItem.toString()
+                    oldItem?.price = offer?.currentPricePerItem.toString()
                     oldItem?.watchersCount = offer?.watchersCount ?: 0
                     oldItem?.viewsCount = offer?.viewsCount ?: 0
 
