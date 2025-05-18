@@ -26,6 +26,7 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
+import market.engine.widgets.items.offer_Items.MyProposalItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

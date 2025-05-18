@@ -1,4 +1,4 @@
-package market.engine.widgets.items
+package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -261,19 +261,11 @@ fun PublicOfferItemList(
                                 )
                             }
                         }
-
-                        if (item.safeDeal) {
-                            Image(
-                                painter = painterResource(drawables.safeDealIcon),
-                                contentDescription = "",
-                                modifier = Modifier.size(dimens.smallIconSize)
-                            )
-                        }
                     }
 
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
                         Text(
@@ -304,6 +296,14 @@ fun PublicOfferItemList(
                             Image(
                                 painter = painterResource(drawables.verifiedIcon),
                                 contentDescription = null,
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                        }
+
+                        if (item.safeDeal) {
+                            Image(
+                                painter = painterResource(drawables.safeDealIcon),
+                                contentDescription = "",
                                 modifier = Modifier.size(dimens.smallIconSize)
                             )
                         }

@@ -31,7 +31,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
-import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -45,9 +44,9 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.FilterListingContent
 import market.engine.widgets.filterContents.SortingOffersContent
-import market.engine.widgets.items.PromoOfferRowItem
-import market.engine.widgets.items.PublicOfferItemGrid
-import market.engine.widgets.items.PublicOfferItemList
+import market.engine.widgets.items.offer_Items.PromoOfferRowItem
+import market.engine.widgets.items.offer_Items.PublicOfferItemGrid
+import market.engine.widgets.items.offer_Items.PublicOfferItemList
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -424,7 +423,7 @@ fun ListingContent(
                     PromoOfferRowItem(
                         offer
                     ) {
-                        component.goToOffer(offer.parseToOfferItem(), true)
+                        component.goToOffer(offer, true)
                     }
                 }
             )

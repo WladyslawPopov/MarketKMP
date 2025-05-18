@@ -11,6 +11,7 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
@@ -19,6 +20,7 @@ import market.engine.core.utils.deserializePayload
 import market.engine.core.data.types.OfferStates
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
@@ -30,17 +32,17 @@ class OfferViewModel(
     private val _responseOffer: MutableStateFlow<Offer?> = MutableStateFlow(null)
     val responseOffer: StateFlow<Offer?> = _responseOffer.asStateFlow()
 
-    private val _responseHistory = MutableStateFlow<ArrayList<Offer>>(arrayListOf())
-    val responseHistory: StateFlow<ArrayList<Offer>> = _responseHistory.asStateFlow()
+    private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
+    val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
 
-    private val _responseOurChoice = MutableStateFlow<ArrayList<Offer>>(arrayListOf())
-    val responseOurChoice: StateFlow<ArrayList<Offer>> = _responseOurChoice.asStateFlow()
+    private val _responseOurChoice = MutableStateFlow<List<OfferItem>>(emptyList())
+    val responseOurChoice: StateFlow<List<OfferItem>> = _responseOurChoice.asStateFlow()
 
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
-    private val _statusList = MutableStateFlow<ArrayList<String>>(arrayListOf())
-    val statusList: StateFlow<ArrayList<String>> = _statusList.asStateFlow()
+    private val _statusList = MutableStateFlow<List<String>>(emptyList())
+    val statusList: StateFlow<List<String>> = _statusList.asStateFlow()
 
     private val _remainingTime = MutableStateFlow(0L)
     val remainingTime: StateFlow<Long> = _remainingTime.asStateFlow()
@@ -54,8 +56,11 @@ class OfferViewModel(
 
     var eventParameters: Map<String, Any?> = mapOf()
 
-    private val _menuList = MutableStateFlow<List<Operations>>(arrayListOf())
+    private val _menuList = MutableStateFlow<List<Operations>>(emptyList())
     val menuList: StateFlow<List<Operations>> = _menuList.asStateFlow()
+
+    private val _menuPromoList = MutableStateFlow<List<Operations>>(emptyList())
+    val menuPromoList: StateFlow<List<Operations>> = _menuPromoList.asStateFlow()
 
     fun getOffer(id: Long, isSnapshot: Boolean = false) {
         viewModelScope.launch {
@@ -116,11 +121,13 @@ class OfferViewModel(
     private fun initializeOfferData(offer: Offer, isSnapshot: Boolean) {
         viewModelScope.launch {
             try {
+                setLoading(true)
                 coroutineScope {
                     launch {
                         updateUserInfo()
                         getUserInfo(offer.sellerData?.id ?: 1L)
                         getOperations(offer.id)
+                        getOperationsPromo(offer.id)
                     }
                     launch {
                         //init timers
@@ -215,14 +222,16 @@ class OfferViewModel(
                 queries.insertEntry(currentId, UserData.login)
 
                 // Fetch offer details for each history ID and update the response history.
-                historyIds.forEach { id ->
-                    val response = apiService.getOffer(id)
-                    val serializer = ListSerializer(Offer.serializer())
-                    val offer = deserializePayload(response.payload, serializer).firstOrNull()
-                    offer?.let {
-                        // Update the response history only on the main thread.
-                        withContext(Dispatchers.Main) {
-                            _responseHistory.value.add(it)
+                _responseHistory.value = buildList {
+                    historyIds.forEach { id ->
+                        val response = apiService.getOffer(id)
+                        val serializer = ListSerializer(Offer.serializer())
+                        val offer = deserializePayload(response.payload, serializer).firstOrNull()
+                        offer?.let {
+                            // Update the response history only on the main thread.
+                            withContext(Dispatchers.Main) {
+                                add(it.parseToOfferItem())
+                            }
                         }
                     }
                 }
@@ -249,13 +258,24 @@ class OfferViewModel(
         }
     }
 
+    fun getOperationsPromo(id: Long) {
+        viewModelScope.launch {
+            getOfferOperations(
+                id,
+                "promo"
+            ){ list ->
+                _menuPromoList.value = list
+            }
+        }
+    }
+
     private fun getOurChoice(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = apiService.getOurChoiceOffers(id)
                 val serializer = Payload.serializer(Offer.serializer())
                 val ourChoice = deserializePayload(response.payload, serializer).objects
-                _responseOurChoice.value = ourChoice
+                _responseOurChoice.value = ourChoice.map { it.parseToOfferItem() }.toList()
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))
             }

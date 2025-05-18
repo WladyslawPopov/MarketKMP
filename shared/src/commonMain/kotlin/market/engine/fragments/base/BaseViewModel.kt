@@ -969,6 +969,74 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun getPromoOperationFields(
+        offerId : Long,
+        operation: String,
+        onSuccess: (
+            title: String,
+            fields: ArrayList<Fields>
+        ) -> Unit
+    ) {
+        viewModelScope.launch {
+            val postRes = withContext(Dispatchers.IO) {
+                offerOperations.getPromoOperationFields(offerId, operation)
+            }
+
+            val bufPost = postRes.success
+            val err = postRes.error
+
+            withContext(Dispatchers.Main) {
+                if (bufPost != null) {
+                    onSuccess(bufPost.title ?: "", bufPost.fields)
+                }else{
+                    if (err != null) {
+                        onError(err)
+                    }
+                }
+            }
+        }
+    }
+
+    fun postPromoOperationFields(
+        offerId : Long,
+        operation: String,
+        body : HashMap<String, JsonElement>,
+        onSuccess: () -> Unit,
+        onError: (ArrayList<Fields>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val buf = withContext(Dispatchers.IO) {
+                offerOperations.postPromoOperation(offerId, operation, body)
+            }
+
+            val res = buf.success
+
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    if (res.status == "operation_success") {
+                        analyticsHelper.reportEvent(
+                            "${operation}_success",
+                            eventParameters = mapOf(
+                                "lot_id" to offerId,
+                                "body" to body
+                            )
+                        )
+                        showToast(
+                            ToastItem(
+                                isVisible = true,
+                                type = ToastType.SUCCESS,
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        onSuccess()
+                    } else {
+                        res.recipe?.fields?.let { onError(it) }
+                    }
+                }
+            }
+        }
+    }
+
     fun getOfferListFieldForOffer(
         offerId : Long,
         type: String,
@@ -982,7 +1050,9 @@ open class BaseViewModel: ViewModel() {
                     "add_to_list" -> {
                         offerOperations.getOfferOperationsAddToList(offerId)
                     }
-
+                    "edit_offer_in_list" -> {
+                        offerOperations.getOfferOperationsEditOfferInList(offerId)
+                    }
                     "remove_from_list" -> {
                         offerOperations.getOfferOperationsRemoveToList(offerId)
                     }
@@ -1019,6 +1089,9 @@ open class BaseViewModel: ViewModel() {
                 when(type){
                     "add_to_list" -> {
                         offerOperations.postOfferOperationsAddOfferToList(offerId,body)
+                    }
+                    "edit_offer_in_list" -> {
+                        offerOperations.postOfferOperationsEditOfferInList(offerId,body)
                     }
                     "remove_from_list" -> {
                         offerOperations.postOfferOperationsRemoveOfferToList(offerId,body)
@@ -1177,42 +1250,19 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun getOfferOperations(offerId: Long, onSuccess: (List<Operations>) -> Unit) {
+    fun getOfferOperations(
+        offerId: Long,
+        tag : String = "default",
+        onSuccess: (List<Operations>) -> Unit
+    ) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                offerOperations.getOperationsOffer(offerId)
+                offerOperations.getOperationsOffer(offerId, tag)
             }
             val buf = res.success
             withContext(Dispatchers.Main) {
                 if (buf != null) {
-                    val filtered = res.success?.filter {
-                        it.id in listOf(
-                            "watch",
-                            "unwatch",
-                            "create_note",
-                            "edit_note",
-                            "delete_note",
-                            "prolong_offer",
-                            "activate_offer_for_future",
-                            "activate_offer",
-                            "set_anti_sniper",
-                            "unset_anti_sniper",
-                            "delete_offer",
-                            "cancel_all_bids",
-                            "remove_bids_of_users",
-                            "copy_offer_without_old_photo",
-                            "finalize_session",
-                            "edit_offer",
-                            "copy_offer",
-                            "act_on_proposal",
-                            "make_proposal",
-                            "cancel_all_bids",
-                            "remove_bids_of_users",
-                            "remove_from_list",
-                            "add_to_list"
-                        )
-                    }
-                    onSuccess(filtered ?: emptyList())
+                    onSuccess(res.success ?: emptyList())
                 }
             }
         }

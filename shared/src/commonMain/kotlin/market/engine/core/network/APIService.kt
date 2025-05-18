@@ -107,6 +107,12 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
+    suspend fun postOfferOperationsEditOfferInList(idOffer: Long, body: Map<String, JsonElement>): AppResponse =
+        client.post("offers/$idOffer/operations/edit_offer_in_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
     suspend fun postOfferOperationsRemoveOfferToList(idOffer: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("offers/$idOffer/operations/remove_from_list") {
             contentType(ContentType.Application.Json)
@@ -236,6 +242,15 @@ class APIService(private val client: HttpClient) {
 
     suspend fun getSettingsList(idUser: Long, list : String?): AppResponse =
         client.get("users/$idUser/operations/$list").body()
+
+    suspend fun getPromoOperationsFields(id: Long, operation : String): AppResponse =
+        client.get("offers/$id/operations/$operation").body()
+
+    suspend fun postPromoOperations(id: Long, operation : String, body: HashMap<String, JsonElement>): AppResponse =
+        client.post("offers/$id/operations/$operation") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
 
     suspend fun getUsersOperationsSetAutoFeedback(idUser: Long): AppResponse =
         client.get("users/$idUser/operations/set_auto_feedback").body()
@@ -425,8 +440,8 @@ class APIService(private val client: HttpClient) {
     suspend fun postConversationsOperationsDeleteForInterlocutor(idConversation: Long): AppResponse =
         client.post("conversations/$idConversation/operations/delete_for_interlocutor").body()
 
-    suspend fun getOfferOperations(idOffer: Long): AppResponse =
-        client.get("offers/$idOffer/operations").body()
+    suspend fun getOfferOperations(idOffer: Long, tag : String): AppResponse =
+        client.get("offers/$idOffer/operations?tag=$tag").body()
 
     suspend fun getOffersListItemOperations(idOffer: Long): AppResponse =
         client.get("offers_lists/$idOffer/operations").body()
@@ -448,6 +463,9 @@ class APIService(private val client: HttpClient) {
 
     suspend fun getOfferOperationsAddOfferToList(idOffer: Long): AppResponse =
         client.get("offers/$idOffer/operations/add_to_list").body()
+
+    suspend fun getOfferOperationsEditOfferInList(idOffer: Long): AppResponse =
+        client.get("offers/$idOffer/operations/edit_offer_in_list").body()
 
     suspend fun getOfferOperationsRemoveOfferToList(idOffer: Long): AppResponse =
         client.get("offers/$idOffer/operations/remove_from_list").body()

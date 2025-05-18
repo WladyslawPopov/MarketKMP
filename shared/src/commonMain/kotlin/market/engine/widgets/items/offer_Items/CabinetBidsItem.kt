@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.myBids
+package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -41,7 +41,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun BidsItem(
+fun CabinetBidsItem(
     offer: Offer,
     onUpdateOfferItem : (Long) -> Unit,
     baseViewModel: BaseViewModel,

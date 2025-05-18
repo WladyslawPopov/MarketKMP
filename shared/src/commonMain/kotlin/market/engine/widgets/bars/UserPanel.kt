@@ -59,7 +59,7 @@ fun UserPanel(
     addToSubscriptions: (() -> Unit)? = null,
     goToSubscriptions: (() -> Unit)? = null,
     goToSettings: ((String) -> Unit) = {},
-    isBlackList: ArrayList<String> = arrayListOf()
+    isBlackList: List<String> = emptyList()
 ) {
     if (user != null && updateTrigger >= 0) {
         FlowRow(

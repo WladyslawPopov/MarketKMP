@@ -27,6 +27,7 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
+import market.engine.widgets.items.offer_Items.CabinetBidsItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -176,7 +177,7 @@ fun MyBidsContent(
             },
             item = { offer ->
                 if(offer.bids?.isNotEmpty() == true) {
-                    BidsItem(
+                    CabinetBidsItem(
                         offer = offer,
                         onUpdateOfferItem = {
                             viewModel.updateItem.value = it

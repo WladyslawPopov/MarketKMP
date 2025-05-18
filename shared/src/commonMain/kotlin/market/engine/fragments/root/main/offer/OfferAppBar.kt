@@ -32,7 +32,8 @@ import org.jetbrains.compose.resources.stringResource
 fun OfferAppBar(
     isSnapshot: Boolean,
     offer: Offer,
-    menuItems: List<MenuItem>,
+    defMenu: List<MenuItem>,
+    optionMenu: List<MenuItem>,
     modifier: Modifier = Modifier,
     onBeakClick: () -> Unit,
     onRefresh: () -> Unit
@@ -55,9 +56,9 @@ fun OfferAppBar(
             tint = colors.black,
             hasNews = false,
             badgeCount = null,
-            isVisible = menuItems.find { it.id == "create_note" || it.id == "edit_note" } != null,
+            isVisible = optionMenu.find { it.id == "create_note" || it.id == "edit_note" } != null,
             onClick = {
-                menuItems.find { it.id == "create_note" || it.id == "edit_note" }?.onClick?.invoke()
+                optionMenu.find { it.id == "create_note" || it.id == "edit_note" }?.onClick?.invoke()
             }
         ),
         NavigationItem(
@@ -66,9 +67,9 @@ fun OfferAppBar(
             tint = colors.inactiveBottomNavIconColor,
             hasNews = false,
             badgeCount = null,
-            isVisible = menuItems.find { it.id == "watch" || it.id == "unwatch" } != null,
+            isVisible = optionMenu.find { it.id == "watch" || it.id == "unwatch" } != null,
             onClick = {
-                menuItems.find { it.id == "watch" || it.id == "unwatch" }?.onClick?.invoke()
+                optionMenu.find { it.id == "watch" || it.id == "unwatch" }?.onClick?.invoke()
             }
         ),
         NavigationItem(
@@ -110,7 +111,7 @@ fun OfferAppBar(
 
                 PopUpMenu(
                     openPopup = openPopup.value,
-                    menuList = menuItems,
+                    menuList = defMenu,
                     onClosed = {
                         openPopup.value = false
                     }

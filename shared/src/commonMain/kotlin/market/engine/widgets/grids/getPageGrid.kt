@@ -34,6 +34,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.Dialog
 import market.engine.core.network.networkObjects.Offer
@@ -51,9 +52,9 @@ fun <T : Any> BoxScope.PagingList(
     columns : Int = 1,
     listingData: LD,
     searchData: SD? = null,
-    promoList: ArrayList<Offer>? = null,
+    promoList: List<OfferItem>? = null,
     isReversingPaging : Boolean = false,
-    promoContent: (@Composable (Offer) -> Unit)? = null,
+    promoContent: (@Composable (OfferItem) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
     var showUpButton by remember { mutableStateOf(false) }
@@ -135,6 +136,7 @@ fun <T : Any> BoxScope.PagingList(
                 is DialogsData.MessageItem -> "msg_${item.id}_$index"
                 is DialogsData.SeparatorItem -> "separator_${item.dateTime}_$index"
                 is Offer -> "offer_${item.id}_$index"
+                is OfferItem -> "offerItem_${item.id}_$index"
                 is Order -> "order_${item.id}_$index"
                 is Conversations -> "conv_${item.id}_$index"
                 is Dialog -> "dialog_${item.id}_$index"

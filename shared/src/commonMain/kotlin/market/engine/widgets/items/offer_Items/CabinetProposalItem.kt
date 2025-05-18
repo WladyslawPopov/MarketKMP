@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.myProposals
+package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

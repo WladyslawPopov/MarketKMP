@@ -490,4 +490,6 @@ interface Strings {
     val errorExceededLimitOffersList: StringResource
     val errorTitleInOffersListAlreadyUse: StringResource
     val notificationsHistoryTitle: StringResource
+    val actionsLabel: StringResource
+    val promoOptionsLabel: StringResource
 }

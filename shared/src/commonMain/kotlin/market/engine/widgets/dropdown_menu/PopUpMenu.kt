@@ -3,6 +3,7 @@ package market.engine.widgets.dropdown_menu
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -57,6 +58,8 @@ fun PopUpMenu(
                     onClosed()
                 }
             )
+            if (menuList.indexOf(menu) != menuList.lastIndex)
+                Divider()
         }
     }
 }

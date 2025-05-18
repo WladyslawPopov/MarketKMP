@@ -177,7 +177,7 @@ fun HomeContent(
                         GridPromoOffers(
                             promoOffer1.value,
                             onOfferClick = {
-                                component.goToOffer(it.id)
+                                component.goToOffer(it)
                             },
                             onAllClickButton = {
                                 component.goToAllPromo()
@@ -193,7 +193,7 @@ fun HomeContent(
                         GridPromoOffers(
                             promoOffer2.value,
                             onOfferClick = {
-                                component.goToOffer(it.id)
+                                component.goToOffer(it)
                             },
                             onAllClickButton = {
                                 component.goToAllPromo()

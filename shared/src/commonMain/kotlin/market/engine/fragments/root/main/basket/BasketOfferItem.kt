@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -70,12 +69,12 @@ fun BasketOfferItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(dimens.smallPadding),
-        verticalArrangement = Arrangement.spacedBy(dimens.mediumSpacer),
+        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
         horizontalAlignment = Alignment.Start
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             ThemeCheckBox(
@@ -121,12 +120,10 @@ fun BasketOfferItem(
                         goToOffer(offer.id)
                     }.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
             ) {
                 Box(
-                    modifier = Modifier
-                        .padding(dimens.smallPadding)
-                        .wrapContentSize(),
+                    modifier = Modifier.padding(dimens.extraSmallPadding),
                     contentAlignment = Alignment.TopStart
                 ) {
                     LoadImage(
@@ -137,7 +134,7 @@ fun BasketOfferItem(
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                 ) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         TitleText(
@@ -172,9 +169,7 @@ fun BasketOfferItem(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(dimens.extraSmallPadding)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Image(
                                 painter = painterResource(drawables.locationIcon),
@@ -192,9 +187,7 @@ fun BasketOfferItem(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimens.extraSmallPadding)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Image(
                             painter = painterResource(drawables.iconCountBoxes),
@@ -235,8 +228,7 @@ fun BasketOfferItem(
 
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(
-                dimens.smallPadding, Alignment.End),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -246,14 +238,14 @@ fun BasketOfferItem(
                 color = colors.black,
             )
 
-            val currentItemPrice = remember { (offer.currentPricePerItem?.toDouble() ?: 0.0) * selectedQuantity.value }
+            val currentItemPrice = (offer.currentPricePerItem?.toDouble() ?: 0.0) * selectedQuantity.value
 
             Text(
                 text = buildAnnotatedString {
                     append(currentItemPrice.toString())
                     append(" ${stringResource(strings.currencySign)}")
                 },
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = colors.black,
             )
 

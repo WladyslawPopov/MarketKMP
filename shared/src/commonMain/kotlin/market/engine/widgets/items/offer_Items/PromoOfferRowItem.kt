@@ -1,4 +1,4 @@
-package market.engine.widgets.items
+package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -19,29 +18,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.data.items.OfferItem
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun PromoOfferGridItem(
-    offer: Offer,
-    onOfferClick: (Offer) -> Unit
+fun PromoOfferRowItem(
+    offer: OfferItem,
+    onOfferClick: (Long) -> Unit
 ) {
     Card(
         colors = colors.cardColors,
         shape = RoundedCornerShape(dimens.smallCornerRadius),
-        onClick = { onOfferClick(offer) }
+        onClick = { onOfferClick(offer.id) }
     ) {
         Column(
-            modifier = Modifier.padding(dimens.smallPadding).widthIn(max = 420.dp),
+            modifier = Modifier.padding(dimens.smallPadding)
+                .size(200.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -51,8 +50,8 @@ fun PromoOfferGridItem(
                 contentAlignment = Alignment.TopCenter
             ) {
                 LoadImage(
-                    url = offer.getOfferImagePreview(),
-                    size = 200.dp
+                    url = offer.images.firstOrNull() ?: "",
+                    size = 120.dp
                 )
 
                 if (offer.videoUrls?.isNotEmpty() == true) {
@@ -65,8 +64,9 @@ fun PromoOfferGridItem(
                     }
                 }
 
-                if (offer.discountPercentage > 0) {
-                    val pd = "-" + offer.discountPercentage.toString() + "%"
+                if (offer.discount > 0) {
+                    val pd = "-" + offer.discount.toString() + "%"
+
                     Row(
                         modifier = Modifier.align(Alignment.TopEnd),
                         verticalAlignment = Alignment.CenterVertically
@@ -77,17 +77,17 @@ fun PromoOfferGridItem(
             }
 
             Text(
-                offer.title ?: "",
+                offer.title,
                 modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
                 color = colors.black,
                 style = MaterialTheme.typography.titleSmall,
-                maxLines = 3
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(dimens.smallSpacer))
 
             Text(
-                text = offer.currentPricePerItem.toString() + stringResource(strings.currencySign),
+                text = offer.price.toString() + stringResource(strings.currencySign),
                 color = colors.priceTextColor,
                 modifier = Modifier.align(Alignment.End),
                 style = MaterialTheme.typography.titleMedium,

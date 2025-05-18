@@ -16,7 +16,7 @@ fun TitleText(
 ) {
     Text(
         text = text,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.Bold,
         color = color,
         modifier = modifier,

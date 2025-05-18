@@ -1,18 +1,17 @@
 package market.engine.widgets.rows
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 fun PromoRow(
     promoOptions: List<PromoOption>,
     showName: Boolean = false,
-    modifier: Modifier = Modifier.padding(dimens.smallPadding),
+    modifier: Modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
     onItemClick: (String?) -> Unit
 ) {
     if(showName) {
@@ -43,20 +42,23 @@ fun PromoRow(
             SeparatorLabel(stringResource(strings.activatePromoParameterName))
         }
     }
-    Box(
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         modifier = modifier
     ) {
-        FlowRow(
-            horizontalArrangement = Arrangement.Start,
-            verticalArrangement = Arrangement.SpaceAround,
-            modifier = modifier
-        ) {
-            promoOptions.forEach { o ->
+        promoOptions.forEach { o ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            ) {
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = colors.brightPurple,
                         contentColor = colors.white
                     ),
+                    shape = CircleShape,
                     modifier = Modifier.clickable {
                         onItemClick(o.id)
                     }
@@ -65,7 +67,7 @@ fun PromoRow(
                         "featured_in_listing" -> {
                             Text(
                                 text = "TOP",
-                                color = colors.brightPurple,
+                                color = colors.white,
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -74,48 +76,51 @@ fun PromoRow(
                         }
 
                         "featured_on_main_page" -> {
-                            Image(
-                                painter = painterResource(drawables.homeIcon),
+                            Icon(
+                                painterResource(drawables.homeIcon),
                                 contentDescription = "",
-                                modifier = Modifier.size(dimens.mediumIconSize)
+                                modifier = Modifier.size(dimens.mediumIconSize),
+                                tint = colors.white
                             )
                         }
 
-                       "recommended_in_listing" -> {
-                           Image(
+                        "recommended_in_listing" -> {
+                            Icon(
                                 painter = painterResource(drawables.megaphoneIcon),
                                 contentDescription = "",
-                                modifier = Modifier.size(dimens.mediumIconSize)
+                                modifier = Modifier.size(dimens.mediumIconSize),
+                                tint = colors.white
                             )
                         }
 
                         "backlignt_in_listing" -> {
-                            Image(
+                            Icon(
                                 painter = painterResource(drawables.promoHighlightIcon),
                                 contentDescription = "",
-                                modifier = Modifier.size(dimens.mediumIconSize)
+                                modifier = Modifier.size(dimens.mediumIconSize),
+                                tint = colors.white
                             )
                         }
 
                         "featured_in_offer" -> {
-                            Image(
+                            Icon(
                                 painter = painterResource(drawables.adIcon),
                                 contentDescription = "",
-                                modifier = Modifier.size(dimens.mediumIconSize)
+                                modifier = Modifier.size(dimens.mediumIconSize),
+                                tint = colors.white
                             )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
+
                 if (showName) {
                     Text(
-                         o.name.toString(),
+                        o.name.toString(),
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        modifier = Modifier.padding(dimens.extraSmallPadding)
+                        color = colors.black,
                     )
-                    Spacer(modifier = Modifier.width(dimens.extraSmallPadding))
                 }
             }
         }

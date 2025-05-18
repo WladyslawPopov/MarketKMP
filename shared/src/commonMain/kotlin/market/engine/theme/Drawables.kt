@@ -109,6 +109,7 @@ interface Drawables {
    val megaphoneIcon : DrawableResource
    val homeIcon : DrawableResource
    val shareIcon : DrawableResource
+   val shareMenuIcon : DrawableResource
    val calendarIcon : DrawableResource
    val copyIcon : DrawableResource
    val addToCartIcon : DrawableResource

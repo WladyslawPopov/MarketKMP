@@ -1,4 +1,4 @@
-package market.engine.widgets.items
+package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement

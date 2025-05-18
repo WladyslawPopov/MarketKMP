@@ -40,8 +40,8 @@ class ListingViewModel : BaseViewModel() {
     val openCategory = mutableStateOf(false)
     val openSearch = mutableStateOf(false)
 
-    private var _responseOffersRecommendedInListing = MutableStateFlow<ArrayList<Offer>?>(null)
-    val responseOffersRecommendedInListing : StateFlow<ArrayList<Offer>?> = _responseOffersRecommendedInListing.asStateFlow()
+    private var _responseOffersRecommendedInListing = MutableStateFlow<List<OfferItem>?>(null)
+    val responseOffersRecommendedInListing : StateFlow<List<OfferItem>?> = _responseOffersRecommendedInListing.asStateFlow()
 
     private val _responseHistory = MutableStateFlow<List<SearchHistoryItem>>(emptyList())
     val responseHistory: StateFlow<List<SearchHistoryItem>> = _responseHistory.asStateFlow()
@@ -100,7 +100,7 @@ class ListingViewModel : BaseViewModel() {
                     try {
                         val serializer = Payload.serializer(Offer.serializer())
                         val payload : Payload<Offer> = deserializePayload(response.payload, serializer)
-                        _responseOffersRecommendedInListing.value = payload.objects
+                        _responseOffersRecommendedInListing.value = payload.objects.map { it.parseToOfferItem() }.toList()
                     }catch (_ : Exception){
                         throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                     }

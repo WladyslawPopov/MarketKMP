@@ -25,8 +25,8 @@ import app.cash.paging.compose.LazyPagingItems
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.items.OfferItem
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Offer
 import market.engine.widgets.grids.PagingList
 
 @Composable
@@ -41,8 +41,8 @@ fun <T : Any>ListingBaseContent(
     noFound : (@Composable () -> Unit)? = null,
     filtersContent : (@Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit)? = null,
     additionalBar : @Composable (LazyListState) -> Unit = {},
-    promoContent : (@Composable (Offer) -> Unit)? = null,
-    promoList :  ArrayList<Offer>? = null,
+    promoContent : (@Composable (OfferItem) -> Unit)? = null,
+    promoList :  List<OfferItem>? = null,
     isReversingPaging : Boolean = false,
     scrollState:  LazyListState = rememberLazyListState(
         initialFirstVisibleItemIndex = baseViewModel.scrollItem.value,

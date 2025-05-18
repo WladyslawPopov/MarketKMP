@@ -38,7 +38,7 @@ data class AdditionalDataForNewOrder(
 
 @Serializable
 data class Fields(
-    @SerialName("widget_type") val widgetType: String? = null,
+    @SerialName("widget_type") var widgetType: String? = null,
     @SerialName("key") val key: String? = null,
     @SerialName("short_description") var shortDescription: String? = null,
     @SerialName("long_description") val longDescription: String? = null,
