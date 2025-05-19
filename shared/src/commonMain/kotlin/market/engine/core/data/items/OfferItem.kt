@@ -29,7 +29,7 @@ data class OfferItem(
     var bids : List<Bids>?,
     var location : String,
     val safeDeal : Boolean,
-    val promoOptions: List<PromoOption>?,
+    var promoOptions: List<PromoOption>?,
     val deliveryMethods: List<DeliveryMethod>? = null,
     var myMaximalBid: String = "0",
     val catPath : List<Long>,

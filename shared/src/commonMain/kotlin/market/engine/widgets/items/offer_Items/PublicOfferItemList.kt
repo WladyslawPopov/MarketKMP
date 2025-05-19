@@ -261,6 +261,14 @@ fun PublicOfferItemList(
                                 )
                             }
                         }
+
+                        if (item.safeDeal) {
+                            Image(
+                                painter = painterResource(drawables.safeDealIcon),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                        }
                     }
 
                     FlowRow(
@@ -296,14 +304,6 @@ fun PublicOfferItemList(
                             Image(
                                 painter = painterResource(drawables.verifiedIcon),
                                 contentDescription = null,
-                                modifier = Modifier.size(dimens.smallIconSize)
-                            )
-                        }
-
-                        if (item.safeDeal) {
-                            Image(
-                                painter = painterResource(drawables.safeDealIcon),
-                                contentDescription = "",
                                 modifier = Modifier.size(dimens.smallIconSize)
                             )
                         }

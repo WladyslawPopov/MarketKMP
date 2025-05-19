@@ -682,14 +682,6 @@ fun CabinetOfferItemList(
                                     modifier = Modifier.size(dimens.smallIconSize)
                                 )
                             }
-
-                            if (item.safeDeal) {
-                                Image(
-                                    painter = painterResource(drawables.safeDealIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.smallIconSize)
-                                )
-                            }
                         }
                     }
 

@@ -19,6 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -127,6 +129,7 @@ fun FavoritesContent(
                     item?.relistingMode = offer.relistingMode
                     item?.isWatchedByMe = offer.isWatchedByMe
                     item?.viewsCount = offer.viewsCount
+                    item?.promoOptions = offer.promoOptions
                     item?.bids = offer.bids
                 }
                 favViewModel.updateItemTrigger.value++
@@ -196,6 +199,20 @@ fun FavoritesContent(
                     onDelete = {
                         favViewModel.viewModelScope.launch(Dispatchers.IO) {
                             selectedItems.forEach { item ->
+                                when(model.favType){
+                                    FavScreenType.NOTES -> {
+                                        favViewModel.offerOperations.postOfferOperationsDeleteNote(item)
+                                    }
+                                    FavScreenType.FAVORITES -> {
+                                        favViewModel.offerOperations.postOfferOperationUnwatch(item)
+                                    }
+                                    FavScreenType.FAV_LIST -> {
+                                        val body = HashMap<String, JsonElement>()
+                                        body["offers_list_id"] = JsonPrimitive(model.listId)
+                                        favViewModel.offerOperations.postOfferOperationsRemoveOfferToList(item, body)
+                                    }
+                                    else -> {}
+                                }
                                 favViewModel.offerOperations.postOfferOperationUnwatch(item)
                             }
 
@@ -254,6 +271,7 @@ fun FavoritesContent(
                                 favViewModel.selectItems.add(offer.id)
                             } else {
                                 favViewModel.selectItems.remove(offer.id)
+
                             }
                         },
                         onUpdateOfferItem = { id ->

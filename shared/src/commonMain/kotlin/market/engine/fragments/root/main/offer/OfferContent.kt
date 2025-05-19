@@ -338,7 +338,7 @@ fun OfferContent(
                                 showCreateNoteDialog.value = operation.id
                             }
                         }
-                        "add_to_list", "remove_from_list" -> {
+                        "add_to_list","edit_offer_in_list", "remove_from_list" -> {
                             offerViewModel.getOfferListFieldForOffer(offer.id, operation.id){ f ->
                                 title.value = operation.name.toString()
                                 fields.value = f
@@ -888,6 +888,39 @@ fun OfferContent(
                                 }
 
                                 item {
+                                    // state params
+                                    Column(
+                                        modifier = Modifier
+                                            .background(
+                                                colors.white,
+                                                MaterialTheme.shapes.medium
+                                            )
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .padding(dimens.smallPadding),
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                    ) {
+                                        //bids winner or last bid
+                                        BidsWinnerOrLastBid(offer, offerState.value) {
+                                            scope.launch {
+                                                stateColumn.animateScrollToItem(goToBids)
+                                            }
+                                        }
+
+                                        TimeOfferSession(
+                                            offer,
+                                            remainingTime.value,
+                                            offerState.value,
+                                        )
+
+                                        LocationOffer(offer) {
+                                            //go to Listing
+                                            component.goToRegion(offer.region)
+                                        }
+                                    }
+                                }
+
+                                item {
                                     //bids price
                                     if (offer.saleType != "buy_now" && !isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
                                         AuctionPriceLayout(
@@ -1194,38 +1227,6 @@ fun OfferContent(
                                                     color = colors.inactiveBottomNavIconColor
                                                 )
                                             }
-                                        }
-                                    }
-                                }
-                                item {
-                                    // state params
-                                    Column(
-                                        modifier = Modifier
-                                            .background(
-                                                colors.white,
-                                                MaterialTheme.shapes.medium
-                                            )
-                                            .clip(MaterialTheme.shapes.medium)
-                                            .padding(dimens.smallPadding),
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                    ) {
-                                        //bids winner or last bid
-                                        BidsWinnerOrLastBid(offer, offerState.value) {
-                                            scope.launch {
-                                                stateColumn.animateScrollToItem(goToBids)
-                                            }
-                                        }
-
-                                        TimeOfferSession(
-                                            offer,
-                                            remainingTime.value,
-                                            offerState.value,
-                                        )
-
-                                        LocationOffer(offer) {
-                                            //go to Listing
-                                            component.goToRegion(offer.region)
                                         }
                                     }
                                 }

@@ -122,6 +122,7 @@ fun MyOffersContent(
                         item?.relistingMode = offer.relistingMode
                         item?.isWatchedByMe = offer.isWatchedByMe
                         item?.viewsCount = offer.viewsCount
+                        item?.promoOptions = offer.promoOptions
                         item?.bids = offer.bids
                     }else{
                         val item = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
