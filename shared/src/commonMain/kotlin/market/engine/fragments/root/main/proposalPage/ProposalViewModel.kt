@@ -67,13 +67,9 @@ class ProposalViewModel: BaseViewModel() {
         }
     }
 
-    suspend fun getFieldsProposal(offerId : Long, buyerId : Long, proposalType : ProposalType) : ArrayList<Fields>?{
+    suspend fun getFieldsProposal(offerId : Long, buyerId : Long, proposalType : String) : ArrayList<Fields>?{
         val buffer = withContext(Dispatchers.IO) {
-            if (proposalType == ProposalType.MAKE_PROPOSAL) {
-                offerOperations.getMakeProposal(offerId)
-            } else {
-                offerOperations.getActOnProposal(offerId)
-            }
+            operationsMethods.getOperationFields(offerId, proposalType, "offers")
         }
         val payload = buffer.success
         val error = buffer.error

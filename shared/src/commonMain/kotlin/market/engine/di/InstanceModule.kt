@@ -11,6 +11,7 @@ import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
+import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.shared.MarketDB
@@ -47,6 +48,7 @@ val operationsModule = module {
     singleOf(::PrivateMessagesOperation)
     singleOf(::SubscriptionOperations)
     singleOf(::UserOperations)
+    singleOf(::OperationsMethods)
 }
 
 val repositoryModule = module {

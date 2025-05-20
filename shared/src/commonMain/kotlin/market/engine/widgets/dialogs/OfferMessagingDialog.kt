@@ -87,6 +87,7 @@ fun OfferMessagingDialog(
         if (isDialogOpen) {
             val scope = baseViewModel.viewModelScope
             scope.launch(Dispatchers.IO) {
+
                 val res = offerOperations.postCheckingConversationExistence(offer.id)
                 val dialogId = res.success?.operationResult?.additionalData?.conversationId
                 withContext(Dispatchers.Main) {

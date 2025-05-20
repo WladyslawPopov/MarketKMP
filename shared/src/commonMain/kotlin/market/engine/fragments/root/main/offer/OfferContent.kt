@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -50,16 +50,12 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
 import market.engine.common.openShare
@@ -75,7 +71,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.core.data.items.ToastItem
 import market.engine.core.network.networkObjects.DealType
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.Offer
@@ -85,9 +80,7 @@ import market.engine.core.network.networkObjects.Value
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.ProposalType
-import market.engine.core.data.types.ToastType
 import market.engine.core.network.networkObjects.Bids
-import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
@@ -192,28 +185,14 @@ fun OfferContent(
 
     val showBidDialog = remember { mutableStateOf(false) }
     val myMaximalBid = remember { mutableStateOf("") }
-    
-    val errorMes = remember { mutableStateOf("") }
-    val offerOperations = offerViewModel.offerOperations
     val analyticsHelper = offerViewModel.analyticsHelper
 
     val showDialog = remember { mutableStateOf(false) }
-
-    val showDeleteOfferDialog = remember { mutableStateOf(false) }
-    val showActivateOfferDialog = remember { mutableStateOf(false) }
-    val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
-    val showCreateNoteDialog = remember { mutableStateOf("") }
-    val showOffersListDialog = remember { mutableStateOf("") }
-    val showCreateBlankOfferListDialog = remember { mutableStateOf("") }
-    val showPromoDialog = remember { mutableStateOf("") }
-
-    val choices = remember{ mutableListOf<Choices>() }
+    val showOperationsDialog = remember { mutableStateOf("") }
     val title = remember { mutableStateOf("") }
     val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
 
     val isClicked = remember { mutableStateOf(false) }
-
-    val successToast = stringResource(strings.operationSuccess)
 
     LaunchedEffect(isImageViewerVisible.value){
         if (!isImageViewerVisible.value){
@@ -305,7 +284,7 @@ fun OfferContent(
                                 title.value = t
                                 fields.value.clear()
                                 fields.value.addAll(f)
-                                showCreateBlankOfferListDialog.value = "create_blank_offer_list"
+                                showOperationsDialog.value = "create_blank_offer_list"
                             }
                         }
                     )
@@ -319,238 +298,74 @@ fun OfferContent(
                 title = operation.name ?: "",
                 onClick = {
                     when (operation.id) {
-                        "watch" -> {
-                            offerViewModel.addToFavorites(offer.parseToOfferItem()){ isWatchedByMe ->
-                                lotState.value?.isWatchedByMe = isWatchedByMe
-                                offerViewModel.getOperations(offer.id)
+                        "create_note", "edit_note","add_to_list", "edit_offer_in_list","remove_from_list","activate_offer"  -> {
+                            offerViewModel.getOperationFields(
+                                offer.id,
+                                operation.id,
+                                "offers",
+                            ) { t, f ->
+                                title.value = t
+                                fields.value.clear()
+                                fields.value.addAll(f)
+                                showOperationsDialog.value = operation.id
                             }
                         }
-                        "unwatch" -> {
-                            offerViewModel.addToFavorites(offer.parseToOfferItem()){ isWatchedByMe ->
-                                lotState.value?.isWatchedByMe = isWatchedByMe
-                                offerViewModel.getOperations(offer.id)
-                            }
-                        }
-                        "create_note","edit_note" -> {
-                            offerViewModel.getNotesField(offer.id, operation.id){ f ->
-                                title.value = operation.name.toString()
-                                fields.value = f
-                                showCreateNoteDialog.value = operation.id
-                            }
-                        }
-                        "add_to_list","edit_offer_in_list", "remove_from_list" -> {
-                            offerViewModel.getOfferListFieldForOffer(offer.id, operation.id){ f ->
-                                title.value = operation.name.toString()
-                                fields.value = f
-                                showOffersListDialog.value = operation.id
-                            }
-                        }
-                        "delete_note" -> {
-                            offerViewModel.deleteNote(
-                                offer.id
-                            ){
-                                val eventParam = mapOf(
-                                    "lot_id" to offer.id,
-                                    "lot_name" to offer.title,
-                                    "lot_city" to offer.freeLocation,
-                                    "lot_category" to offer.catpath.lastOrNull(),
-                                    "seller_id" to offer.sellerData?.id
-                                )
 
-                                analyticsHelper.reportEvent(
-                                    "delete_note",
-                                    eventParam
-                                )
-
-                                component.updateOffer(offer.id, model.isSnapshot)
-                            }
+                        "activate_offer_for_future" ,"delete_offer"-> {
+                            showOperationsDialog.value = operation.id
                         }
-                        "prolong_offer" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf =
-                                    offerOperations.postOfferOperationsProlongOffer(
-                                        offer.id
-                                    )
-                                val r = buf.success
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            offerViewModel.showToast(
-                                                ToastItem(
-                                                    isVisible = true,
-                                                    type = ToastType.SUCCESS,
-                                                    message = successToast
-                                                )
-                                            )
 
-                                            component.updateOffer(offer.id, model.isSnapshot)
-                                        } else {
-                                            errorMes.value =
-                                                r.humanMessage.toString()
-                                            showDialog.value = true
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        "activate_offer_for_future" -> {
-                            showActivateOfferForFutureDialog.value = !showActivateOfferForFutureDialog.value
-                        }
-                        "activate_offer" -> {
-                            scope.launch {
-                                val response = withContext(Dispatchers.IO) {
-                                    offerOperations.getOfferOperationsActivateOffer(
-                                        offer.id
-                                    )
-                                }
-                                withContext(Dispatchers.Main) {
-                                    val resChoice = response.success
-                                    resChoice?.firstOrNull()?.let { field ->
-                                        choices.clear()
-                                        title.value =
-                                            field.shortDescription.toString()
-                                        field.choices?.forEach {
-                                            choices.add(it)
-                                        }
-                                    }
-
-                                    showActivateOfferDialog.value = !showActivateOfferDialog.value
-                                }
-                            }
-                        }
-                        "set_anti_sniper" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf =
-                                    offerOperations.postOfferOperationsSetAntiSniper(
-                                        offer.id
-                                    )
-                                val r = buf.success
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParam = mapOf(
-                                                "lot_id" to offer.id,
-                                                "lot_name" to offer.title,
-                                                "lot_city" to offer.freeLocation,
-                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                "seller_id" to offer.sellerData?.id
-                                            )
-
-                                            analyticsHelper.reportEvent(
-                                                "set_anti_sniper",
-                                                eventParam
-                                            )
-                                            offerViewModel.showToast(
-                                                ToastItem(
-                                                    isVisible = true,
-                                                    type = ToastType.SUCCESS,
-                                                    message = successToast
-                                                )
-                                            )
-
-                                            component.updateOffer(offer.id, model.isSnapshot)
-                                        } else {
-                                            errorMes.value =
-                                                r.humanMessage.toString()
-                                            showDialog.value = true
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        "unset_anti_sniper" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf =
-                                    offerOperations.postOfferOperationsUnsetAntiSniper(
-                                        offer.id
-                                    )
-                                val r = buf.success
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-
-                                            val eventParam = mapOf(
-                                                "lot_id" to offer.id,
-                                                "lot_name" to offer.title,
-                                                "lot_city" to offer.freeLocation,
-                                                "lot_category" to offer.catpath.lastOrNull(),
-                                                "seller_id" to offer.sellerData?.id
-                                            )
-
-                                            analyticsHelper.reportEvent(
-                                                "unset_anti_sniper",
-                                                eventParam
-                                            )
-
-                                            offerViewModel.showToast(
-                                                ToastItem(
-                                                    isVisible = true,
-                                                    type = ToastType.SUCCESS,
-                                                    message = successToast
-                                                )
-                                            )
-
-                                            component.updateOffer(offer.id, model.isSnapshot)
-                                        } else {
-                                            errorMes.value =
-                                                r.humanMessage.toString()
-                                            showDialog.value = true
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        "delete_offer" -> {
-                            showDeleteOfferDialog.value =
-                                !showDeleteOfferDialog.value
-                        }
-                        "finalize_session" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf =
-                                    offerOperations.postOfferOperationsFinalizeSession(
-                                        offer.id
-                                    )
-                                val r = buf.success
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            offerViewModel.showToast(
-                                                ToastItem(
-                                                    isVisible = true,
-                                                    type = ToastType.SUCCESS,
-                                                    message = successToast
-                                                )
-                                            )
-                                            component.updateOffer(offer.id, model.isSnapshot)
-                                        } else {
-                                            errorMes.value =
-                                                r.humanMessage.toString()
-                                            showDialog.value = true
-                                        }
-                                    }
-                                }
-                            }
-                        }
                         "copy_offer_without_old_photo" -> {
-                            component.goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE, offer.catpath, offer.id, null)
+                            component.goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE, offer.catpath, offer.id, offer.externalImages)
                         }
+
                         "edit_offer" -> {
-                            component.goToCreateOffer(CreateOfferType.EDIT, offer.catpath, offer.id, null)
+                            component.goToCreateOffer(CreateOfferType.EDIT, offer.catpath, offer.id, offer.externalImages)
                         }
+
                         "copy_offer" -> {
-                            component.goToCreateOffer(CreateOfferType.COPY, offer.catpath, offer.id, null)
+                            component.goToCreateOffer(CreateOfferType.COPY, offer.catpath, offer.id, offer.externalImages)
                         }
+
                         "act_on_proposal" -> {
                             component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
                         }
+
                         "make_proposal" -> {
                             component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
                         }
+
                         "cancel_all_bids" -> {
                             component.goToDynamicSettings("cancel_all_bids", offer.id)
                         }
+
                         "remove_bids_of_users" -> {
                             component.goToDynamicSettings("remove_bids_of_users", offer.id)
+                        }
+
+                        else  -> {
+                            offerViewModel.postOperation(
+                                offer.id,
+                                operation.id ?: "",
+                                "offers",
+                                onSuccess = {
+                                    val eventParameters = mapOf(
+                                        "lot_id" to offer.id,
+                                        "lot_name" to offer.title,
+                                        "lot_city" to offer.freeLocation,
+                                        "auc_delivery" to offer.safeDeal,
+                                        "lot_category" to offer.catpath.firstOrNull(),
+                                        "seller_id" to offer.sellerData?.id,
+                                        "lot_price_start" to offer.currentPricePerItem,
+                                    )
+                                    analyticsHelper.reportEvent("${operation.id}_success", eventParameters)
+
+                                    offerViewModel.updateUserInfo()
+                                    component.updateOffer(offer.id, model.isSnapshot)
+
+                                },
+                                errorCallback = {}
+                            )
                         }
                     }
                 }
@@ -565,7 +380,7 @@ fun OfferContent(
                         title.value = t
                         fields.value.clear()
                         fields.value.addAll(f)
-                        showPromoDialog.value = operation.id ?: ""
+                        showOperationsDialog.value = operation.id ?: ""
                     }
                 }
             )
@@ -747,13 +562,17 @@ fun OfferContent(
                                                 colors.white,
                                                 MaterialTheme.shapes.small
                                             ).clip(MaterialTheme.shapes.small).clickable {
-                                                offerViewModel.getNotesField(
+                                                offerViewModel.getOperationFields(
                                                     offer.id,
-                                                    "edit_note"
-                                                ){ f ->
-                                                    fields.value = f
-                                                    showCreateNoteDialog.value = "edit_note"
-                                                }
+                                                    "edit_note",
+                                                    "offers",
+                                                    onSuccess = { t, f ->
+                                                        title.value = t
+                                                        fields.value.clear()
+                                                        fields.value.addAll(f)
+                                                        showOperationsDialog.value = "edit_note"
+                                                    }
+                                                )
                                             }.padding(dimens.smallPadding),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
@@ -1364,21 +1183,11 @@ fun OfferContent(
                     offer.parseToOfferItem(),
                     title,
                     fields,
-                    choices,
-                    errorMes,
-                    showDialog,
-                    showDeleteOfferDialog,
-                    showActivateOfferDialog,
-                    showActivateOfferForFutureDialog,
-                    showCreateNoteDialog,
-                    showOffersListDialog,
-                    showCreateBlankOfferListDialog,
-                    showPromoDialog,
+                    showOperationsDialog,
                     offerViewModel,
                     updateItem = { id ->
                         component.updateOffer(id, model.isSnapshot)
-                    },
-                    refreshPage = null
+                    }
                 )
             }
         }
@@ -1547,30 +1356,17 @@ fun AuctionPriceLayout(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.Top)
         ) {
-            Row(
-                modifier = Modifier.width(200.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-            ) {
-                OutlinedTextInputField(
-                    value = myMaximalBid.value,
-                    onValueChange = {
-                        myMaximalBid.value = it
-                    },
-                    label = stringResource(strings.yourBidLabel),
-                    keyboardType = KeyboardType.Number,
-                    placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text(
-                    text = stringResource(strings.currencySign),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.black,
-                    textAlign = TextAlign.Center,
-                )
-            }
+            OutlinedTextInputField(
+                value = myMaximalBid.value,
+                onValueChange = {
+                    myMaximalBid.value = it
+                },
+                label = stringResource(strings.yourBidLabel),
+                suffix = stringResource(strings.currencySign),
+                keyboardType = KeyboardType.Number,
+                placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
+                modifier = Modifier.widthIn(max = 200.dp)
+            )
 
             SimpleTextButton(
                 text = stringResource(strings.actionAddBid),

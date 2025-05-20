@@ -199,26 +199,38 @@ fun FavoritesContent(
                     onDelete = {
                         favViewModel.viewModelScope.launch(Dispatchers.IO) {
                             selectedItems.forEach { item ->
-                                when(model.favType){
+                                val type = when(model.favType){
                                     FavScreenType.NOTES -> {
-                                        favViewModel.offerOperations.postOfferOperationsDeleteNote(item)
+                                        "delete_note"
                                     }
                                     FavScreenType.FAVORITES -> {
-                                        favViewModel.offerOperations.postOfferOperationUnwatch(item)
+                                        "unwatch"
                                     }
                                     FavScreenType.FAV_LIST -> {
-                                        val body = HashMap<String, JsonElement>()
-                                        body["offers_list_id"] = JsonPrimitive(model.listId)
-                                        favViewModel.offerOperations.postOfferOperationsRemoveOfferToList(item, body)
+                                        "remove_from_list"
                                     }
-                                    else -> {}
+                                    else -> {
+                                        ""
+                                    }
                                 }
-                                favViewModel.offerOperations.postOfferOperationUnwatch(item)
-                            }
 
-                            withContext(Dispatchers.Main) {
-                                favViewModel.selectItems.clear()
-                                data.refresh()
+                                val body = HashMap<String, JsonElement>()
+                                if (model.favType == FavScreenType.FAV_LIST) {
+                                    body["offers_list_id"] = JsonPrimitive(model.listId)
+                                }
+                                favViewModel.postOperation(
+                                    item,
+                                    type,
+                                    "offers",
+                                    body,
+                                    onSuccess = {
+                                        favViewModel.selectItems.clear()
+                                        data.refresh()
+                                    },
+                                    errorCallback = {
+
+                                    }
+                                )
                             }
                         }
                     }
@@ -266,6 +278,9 @@ fun FavoritesContent(
                         baseViewModel = favViewModel,
                         updateTrigger = favViewModel.updateItemTrigger.value,
                         isSelection = isSelect.value,
+                        goToProposal = {
+                            component.goToProposal(it, offer.id)
+                        },
                         onSelectionChange = { select ->
                             if (select) {
                                 favViewModel.selectItems.add(offer.id)

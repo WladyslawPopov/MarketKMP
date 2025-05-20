@@ -4,10 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
-import market.engine.core.data.globalData.UserData
-import org.koin.mp.KoinPlatform.getKoin
 
 interface CreateSubscriptionComponent {
     val model : Value<Model>
@@ -27,9 +24,7 @@ class DefaultCreateSubscriptionComponent(
     val navigateBack: () -> Unit,
 ) : CreateSubscriptionComponent, ComponentContext by componentContext {
 
-    private val createSubscriptionViewModel : CreateSubscriptionViewModel = CreateSubscriptionViewModel(
-        getKoin().get()
-    )
+    private val createSubscriptionViewModel : CreateSubscriptionViewModel = CreateSubscriptionViewModel()
 
     private val _model = MutableValue(
         CreateSubscriptionComponent.Model(

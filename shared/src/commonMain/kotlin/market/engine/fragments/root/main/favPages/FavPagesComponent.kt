@@ -150,6 +150,13 @@ class DefaultFavPagesComponent(
                             idList = config.favItem.id,
                             updateTabs = {
                                 fullRefresh()
+                            },
+                            navigateToProposal = { type, id ->
+                                favoritesNavigation.pushNew(
+                                    FavoritesConfig.ProposalScreen(
+                                        id, type, getCurrentDate()
+                                    )
+                                )
                             }
                         )
                     )

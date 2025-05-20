@@ -12,11 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.constants.errorToastItem
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
@@ -24,13 +21,9 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.OffersListOperations
-import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.FavoriteListItem
-import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.parseToOfferItem
@@ -192,199 +185,6 @@ class FavPagesViewModel : BaseViewModel() {
                 }else{
                     if (error != null)
                         onError(error)
-                }
-            }
-        }
-    }
-
-    fun getOperationFields(type: String, id: Long, onSuccess: (title: String, List<Fields>) -> Unit){
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) {
-                when(type){
-                    "create_blank_offer_list" -> userOperations.getCreateBlankOfferList(id)
-                    "copy_offers_list" -> offersListOperations.getCopyOffersList(id)
-                    "rename_offers_list" -> offersListOperations.getRenameOffersList(id)
-                    else -> ServerResponse<DynamicPayload<OperationResult>>(null,ServerErrorException())
-                }
-            }
-
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
-
-                if (!res?.fields.isNullOrEmpty()){
-                    onSuccess(res.description?:"", res.fields)
-                }else{
-                    if (error != null)
-                        onError(error)
-                }
-            }
-        }
-    }
-
-    fun deleteFavTab(id: Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) { offersListOperations.postOperationsDelete(id) }
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
-                if (res?.success == true) {
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(
-                                strings.operationSuccess
-                            )
-                        )
-                    )
-                    analyticsHelper.reportEvent(
-                        "delete_offers_list",
-                        eventParameters = mapOf(
-                            "id" to id,
-                        )
-                    )
-                    db.favoritesTabListItemQueries.deleteById(itemId = id, owner = UserData.login)
-                    initPosition.value = initPosition.value.coerceIn(0, favoritesTabList.value.size - 2)
-                    onSuccess()
-                } else {
-                    if (error != null)
-                        onError(error)
-                }
-            }
-        }
-    }
-
-    fun pinFavTab(id: Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) { offersListOperations.postOperationPin(id) }
-
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
-
-                if (res == true) {
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(
-                                strings.operationSuccess
-                            )
-                        )
-                    )
-                    analyticsHelper.reportEvent(
-                        "pin_offers_list",
-                        eventParameters = mapOf(
-                            "id" to id,
-                        )
-                    )
-                    onSuccess()
-                } else {
-                    if (error != null)
-                        onError(error)
-                }
-            }
-        }
-    }
-
-    fun unpinFavTab(id: Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) { offersListOperations.postOperationUnpin(id) }
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
-                if (res == true) {
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(
-                                strings.operationSuccess
-                            )
-                        )
-                    )
-                    analyticsHelper.reportEvent(
-                        "unpin_offers_list",
-                        eventParameters = mapOf(
-                            "id" to id,
-                        )
-                    )
-                    onSuccess()
-                } else {
-                    if (error != null)
-                        onError(error)
-                }
-            }
-        }
-    }
-
-    fun postFieldsSend(
-        type: String,
-        id: Long,
-        body: HashMap<String, JsonElement>,
-        onSuccess: () -> Unit,
-        errorCallback: (List<Fields>?) -> Unit
-    ){
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) {
-                when(type){
-                    "create_blank_offer_list" -> userOperations.postCreateBlankOfferList(UserData.login, body)
-                    "copy_offers_list" -> offersListOperations.postCopyOffersList(id, body)
-                    "rename_offers_list" -> offersListOperations.postRenameOffersList(id, body)
-                    else -> ServerResponse<DynamicPayload<OperationResult>>(null, ServerErrorException())
-                }
-            }
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                if (res != null) {
-                    if (res.operationResult?.result == "ok") {
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(
-                                    strings.operationSuccess
-                                )
-                            )
-                        )
-                        analyticsHelper.reportEvent(
-                            "${type}_success",
-                            eventParameters = mapOf(
-                                "id" to id,
-                                "body" to body.toString()
-                            )
-                        )
-                        onSuccess()
-                    } else {
-                        analyticsHelper.reportEvent(
-                            "${type}_error",
-                            eventParameters = mapOf(
-                                "id" to id,
-                                "body" to body.toString()
-                            )
-                        )
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(
-                                    strings.operationFailed
-                                )
-                            )
-                        )
-
-                        errorCallback(res.recipe?.fields ?: res.fields)
-                    }
-                } else {
-                    analyticsHelper.reportEvent(
-                        "${type}_error",
-                        eventParameters = mapOf(
-                            "id" to id,
-                            "body" to body.toString(),
-                            "error" to (data.error?.message ?: "")
-                        )
-                    )
-                    showToast(
-                        errorToastItem.copy(
-                            message = getString(
-                                strings.operationFailed
-                            )
-                        )
-                    )
-                    errorCallback(null)
-                    if (data.error != null)
-                        onError(data.error!!)
                 }
             }
         }

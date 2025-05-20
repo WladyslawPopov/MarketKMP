@@ -518,6 +518,9 @@ class APIService(private val client: HttpClient) {
     suspend fun getOffersListOperationRenameOffersList(id: Long): AppResponse =
         client.get("/offers_lists/$id/operations/rename_offers_list").body()
 
+    suspend fun getOperationFields(id: Long, operation: String, method: String): AppResponse =
+        client.get("/$method/$id/operations/$operation").body()
+
     suspend fun postOffersListOperationRenameOffersList(id: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("/offers_lists/$id/operations/rename_offers_list") {
             contentType(ContentType.Application.Json)
@@ -529,6 +532,12 @@ class APIService(private val client: HttpClient) {
 
     suspend fun postOffersListOperationCopyOffersList(id: Long, body: Map<String, JsonElement>): AppResponse =
         client.post("/offers_lists/$id/operations/copy_offers_list") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
+    suspend fun postOperation(id: Long, operation: String, method: String, body: Map<String, JsonElement>): AppResponse =
+        client.post("/$method/$id/operations/$operation") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()

@@ -583,7 +583,7 @@ fun getBody(
 
     LaunchedEffect(fieldsState.value){
         if (fieldsState.value == null) {
-            fieldsState.value = viewModel.getFieldsProposal(offerId, buyerId, proposalType)
+            fieldsState.value = viewModel.getFieldsProposal(offerId, buyerId, if(proposalType == ProposalType.MAKE_PROPOSAL) "make_proposal" else "act_on_proposal")
             viewModel.rememberFields.value.remove(buyerId)
             viewModel.rememberFields.value[buyerId] = fieldsState.value
         }else{

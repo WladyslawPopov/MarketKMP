@@ -86,7 +86,11 @@ class DynamicSettingsViewModel : BaseViewModel() {
                     }
                     "remove_bids_of_users" -> {
                         if (owner != null) {
-                            offerOperations.getOfferOperationsRemoveBidsOfUsers(owner)
+                            operationsMethods.getOperationFields(
+                                owner,
+                                "remove_bids_of_users",
+                                "offers",
+                            )
                         }else{
                             null
                         }
@@ -213,9 +217,10 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         body
                     )
                     "remove_bids_of_users" -> owner?.let {
-                        offerOperations.postOfferOperationsRemoveBidsOfUsers(
+                        operationsMethods.postOperation(
                             it,
-                            body
+                            "remove_bids_of_users",
+                            "offers",
                         )
                     }
                     "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {

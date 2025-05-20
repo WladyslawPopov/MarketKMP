@@ -43,6 +43,7 @@ import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OffersListOperations
+import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.DeliveryAddress
@@ -77,6 +78,7 @@ open class BaseViewModel: ViewModel() {
     val offerOperations : OfferOperations by lazy { getKoin().get() }
     val categoryOperations : CategoryOperations by lazy { getKoin().get() }
     val conversationsOperations: ConversationsOperations by lazy { getKoin().get() }
+    val operationsMethods: OperationsMethods by lazy { getKoin().get() }
     val userOperations : UserOperations by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
     val db : MarketDB by lazy { getKoin().get() }
@@ -195,6 +197,83 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun getOperationFields(id: Long,type: String, method: String, onSuccess: (title: String, List<Fields>) -> Unit){
+        viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) {
+                operationsMethods.getOperationFields(id, type, method)
+            }
+
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                val error = data.error
+
+                if (!res?.fields.isNullOrEmpty()){
+                    onSuccess(res.description?:"", res.fields)
+                }else{
+                    if (error != null)
+                        onError(error)
+                }
+            }
+        }
+    }
+
+    fun postOperation(
+        id: Long,
+        type: String,
+        method: String,
+        body: HashMap<String, JsonElement> = hashMapOf(),
+        onSuccess: () -> Unit,
+        errorCallback: (List<Fields>?) -> Unit
+    ){
+        viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) { operationsMethods.postOperation(id, type, method, body) }
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                val error = data.error
+                if (res != null) {
+                    if (res.operationResult?.result == "ok") {
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(
+                                    strings.operationSuccess
+                                )
+                            )
+                        )
+                        analyticsHelper.reportEvent(
+                            "${type}_success",
+                            eventParameters = mapOf(
+                                "id" to id,
+                            )
+                        )
+
+                        onSuccess()
+                    } else {
+                        analyticsHelper.reportEvent(
+                            "${type}_error",
+                            eventParameters = mapOf(
+                                "id" to id,
+                                "body" to body.toString()
+                            )
+                        )
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(
+                                    strings.operationFailed
+                                )
+                            )
+                        )
+
+                        errorCallback(res.recipe?.fields ?: res.fields)
+                    }
+                }else{
+                    if (error != null)
+                        onError(error)
+                }
+            }
+        }
+    }
+
+
     suspend fun getOfferById(offerId: Long) : Offer? {
         return try {
             val response = offerOperations.getOffer(offerId)
@@ -209,14 +288,17 @@ open class BaseViewModel: ViewModel() {
     fun addToFavorites(offer : OfferItem, onSuccess: (Boolean) -> Unit) {
         if(UserData.token != "") {
             viewModelScope.launch {
-                val buf = if (!offer.isWatchedByMe)
-                    offerOperations.postOfferOperationWatch(offer.id)
-                else
-                    offerOperations.postOfferOperationUnwatch(offer.id)
+                val buf = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperation(
+                        offer.id,
+                        if (offer.isWatchedByMe) "unwatch" else "watch",
+                        "offers"
+                    )
+                }
 
                 val res = buf.success
                 withContext(Dispatchers.Main) {
-                    if (res != null && res.success) {
+                    if (res != null && res.operationResult?.result == "ok") {
                         val eventParameters = mapOf(
                             "lot_id" to offer.id,
                             "lot_name" to offer.title,
@@ -834,8 +916,8 @@ open class BaseViewModel: ViewModel() {
 
     fun cancelAllBids(offerId: Long, comment: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val body = HashMap<String, String>()
-            body["comment"] = comment
+            val body = HashMap<String, JsonElement>()
+            body["comment"] = JsonPrimitive(comment)
 
             val eventParameters = mapOf(
                 "user_id" to UserData.login,
@@ -848,8 +930,10 @@ open class BaseViewModel: ViewModel() {
             )
 
             val res = withContext(Dispatchers.IO) {
-                offerOperations.postOfferOperationsCancelAllBids(
+                operationsMethods.postOperation(
                     offerId,
+                    "set_cancel_all_bids",
+                    "offers",
                     body
                 )
             }
@@ -859,7 +943,7 @@ open class BaseViewModel: ViewModel() {
 
             withContext(Dispatchers.Main) {
                 if (payload != null) {
-                    if (payload.success) {
+                    if (payload.operationResult?.result == "ok") {
                         showToast(
                             successToastItem.copy(
                                 message = getString(strings.operationSuccess)
@@ -940,26 +1024,14 @@ open class BaseViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             val postRes = withContext(Dispatchers.IO) {
-                when (type) {
-                    "create_note" -> {
-                        offerOperations.getOfferOperationsCreateNote(offerId)
-                    }
-
-                    "edit_note" -> {
-                        offerOperations.getOfferOperationsEditNote(offerId)
-                    }
-
-                    else -> {
-                        null
-                    }
-                }
+                operationsMethods.getOperationFields(offerId, type, "offers")
             }
 
-            val bufPost = postRes?.success
-            val err = postRes?.error
+            val bufPost = postRes.success
+            val err = postRes.error
             withContext(Dispatchers.Main) {
                 if (bufPost != null) {
-                    onSuccess(bufPost)
+                    onSuccess(bufPost.fields)
                 }else{
                     if (err != null) {
                         onError(err)
@@ -979,7 +1051,7 @@ open class BaseViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             val postRes = withContext(Dispatchers.IO) {
-                offerOperations.getPromoOperationFields(offerId, operation)
+                operationsMethods.getOperationFields(offerId, operation, "offers")
             }
 
             val bufPost = postRes.success
@@ -1006,7 +1078,7 @@ open class BaseViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             val buf = withContext(Dispatchers.IO) {
-                offerOperations.postPromoOperation(offerId, operation, body)
+                operationsMethods.postOperation(offerId, operation, "offers", body)
             }
 
             val res = buf.success
@@ -1037,46 +1109,6 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun getOfferListFieldForOffer(
-        offerId : Long,
-        type: String,
-        onSuccess: (
-            fields: ArrayList<Fields>
-        ) -> Unit
-    ) {
-        viewModelScope.launch {
-            val postRes = withContext(Dispatchers.IO) {
-                when (type) {
-                    "add_to_list" -> {
-                        offerOperations.getOfferOperationsAddToList(offerId)
-                    }
-                    "edit_offer_in_list" -> {
-                        offerOperations.getOfferOperationsEditOfferInList(offerId)
-                    }
-                    "remove_from_list" -> {
-                        offerOperations.getOfferOperationsRemoveToList(offerId)
-                    }
-
-                    else -> {
-                        null
-                    }
-                }
-            }
-
-            val bufPost = postRes?.success
-            val err = postRes?.error
-            withContext(Dispatchers.Main) {
-                if (bufPost != null) {
-                    onSuccess(bufPost)
-                }else{
-                    if (err != null) {
-                        onError(err)
-                    }
-                }
-            }
-        }
-    }
-
     fun postOfferListFieldForOffer(
         offerId : Long,
         type : String,
@@ -1087,25 +1119,26 @@ open class BaseViewModel: ViewModel() {
         viewModelScope.launch {
             val buf = withContext(Dispatchers.IO) {
                 when(type){
-                    "add_to_list" -> {
-                        offerOperations.postOfferOperationsAddOfferToList(offerId,body)
-                    }
-                    "edit_offer_in_list" -> {
-                        offerOperations.postOfferOperationsEditOfferInList(offerId,body)
-                    }
-                    "remove_from_list" -> {
-                        offerOperations.postOfferOperationsRemoveOfferToList(offerId,body)
-                    }
                     "create_blank_offer_list" -> {
-                        userOperations.postCreateBlankOfferList(UserData.login, body)
+                        operationsMethods.postOperation(
+                            offerId,
+                            type,
+                            "users",
+                            body
+                        )
                     }
                     else -> {
-                        null
+                        operationsMethods.postOperation(
+                            offerId,
+                            type,
+                            "offers",
+                            body
+                        )
                     }
                 }
             }
 
-            val res = buf?.success
+            val res = buf.success
 
             withContext(Dispatchers.Main) {
                 if (res != null) {
@@ -1176,20 +1209,10 @@ open class BaseViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             val buf = withContext(Dispatchers.IO) {
-                when(type){
-                    "create_note" -> {
-                        offerOperations.postOfferOperationsCreateNote(offerId,body)
-                    }
-                    "edit_note" -> {
-                        offerOperations.postOfferOperationsEditNote(offerId,body)
-                    }
-                    else -> {
-                        null
-                    }
-                }
+                operationsMethods.postOperation(offerId, type, "offers", body)
             }
 
-            val res = buf?.success
+            val res = buf.success
 
             withContext(Dispatchers.Main) {
                 if (res != null) {
@@ -1220,11 +1243,11 @@ open class BaseViewModel: ViewModel() {
     fun deleteNote(offerId: Long, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                offerOperations.postOfferOperationsDeleteNote(offerId)
+                operationsMethods.postOperation(offerId, "delete_note", "offers")
             }
             withContext(Dispatchers.Main) {
                 if (res.success != null) {
-                    if (res.success?.success == true) {
+                    if (res.success?.operationResult?.result == "ok") {
                         showToast(
                             successToastItem.copy(
                                 message = getString(strings.operationSuccess)
@@ -1241,7 +1264,7 @@ open class BaseViewModel: ViewModel() {
                     }else {
                         showToast(
                             errorToastItem.copy(
-                                message = res.success?.humanMessage ?: getString(strings.operationFailed)
+                                message = res.success?.operationResult?.message ?: getString(strings.operationFailed)
                             )
                         )
                     }

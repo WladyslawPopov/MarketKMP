@@ -450,9 +450,10 @@ class OfferViewModel(
                         )
                         onSuccess()
                     } else {
+                        val hm = buf.humanMessage ?: getString(strings.operationFailed)
                         showToast(
                             errorToastItem.copy(
-                                message = buf.humanMessage ?: getString(strings.operationFailed)
+                                message = hm
                             )
                         )
                         val eventParameters = mapOf(
@@ -461,7 +462,7 @@ class OfferViewModel(
                             "lot_price_start" to offer.currentPricePerItem,
                             "buyer_id" to UserData.login,
                             "bid_amount" to sum,
-                            "error" to buf.humanMessage
+                            "error" to hm
                         )
                         analyticsHelper.reportEvent("bid_made_failed", eventParameters)
 

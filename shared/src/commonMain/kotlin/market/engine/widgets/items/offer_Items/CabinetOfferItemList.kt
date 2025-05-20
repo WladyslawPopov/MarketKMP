@@ -26,10 +26,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -38,11 +34,8 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.OfferItem
-import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.data.types.ToastType
-import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.fragments.base.BaseViewModel
@@ -81,26 +74,13 @@ fun CabinetOfferItemList(
 
     val isOpenPopup = remember { mutableStateOf(false) }
     val isOpenPromoPopup = remember { mutableStateOf(false) }
-    val scope = baseViewModel.viewModelScope
-    val errorMes = remember { mutableStateOf("") }
-    val offerOperations = baseViewModel.offerOperations
+
     val analyticsHelper = baseViewModel.analyticsHelper
 
-    val showDialog = remember { mutableStateOf(false) }
-
-    val showDeleteOfferDialog = remember { mutableStateOf(false) }
-    val showActivateOfferDialog = remember { mutableStateOf(false) }
-    val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
-    val showCreateNoteDialog = remember { mutableStateOf("") }
-    val showOffersListDialog = remember { mutableStateOf("") }
-    val showCreatedDialog = remember { mutableStateOf("") }
-    val showPromoDialog = remember { mutableStateOf("") }
-
-    val choices = remember{ mutableListOf<Choices>() }
+    val showOperationsDialog = remember { mutableStateOf("") }
     val title = remember { mutableStateOf("") }
     val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
 
-    val successToast = stringResource(strings.operationSuccess)
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
     }
@@ -197,233 +177,21 @@ fun CabinetOfferItemList(
                                     title = operation.name ?: "",
                                     onClick = {
                                         when (operation.id) {
-                                            "watch" -> {
-                                                baseViewModel.addToFavorites(item) { isWatchedByMe ->
-                                                    item.isWatchedByMe = isWatchedByMe
-                                                    onUpdateOfferItem?.invoke(item.id)
-                                                }
-                                            }
-
-                                            "unwatch" -> {
-                                                baseViewModel.addToFavorites(item) { isWatchedByMe ->
-                                                    item.isWatchedByMe = isWatchedByMe
-                                                    onUpdateOfferItem?.invoke(item.id)
-                                                }
-                                            }
-
-                                            "create_note", "edit_note" -> {
-                                                baseViewModel.getNotesField(item.id, operation.id) { f ->
-                                                    title.value = operation.name.toString()
-                                                    fields.value = f
-                                                    showCreateNoteDialog.value = operation.id
-                                                }
-                                            }
-
-                                            "add_to_list", "edit_offer_in_list","remove_from_list" -> {
-                                                baseViewModel.getOfferListFieldForOffer(
+                                            "create_note", "edit_note","add_to_list", "edit_offer_in_list","remove_from_list", "activate_offer" -> {
+                                                baseViewModel.getOperationFields(
                                                     item.id,
-                                                    operation.id
-                                                ) { f ->
-                                                    title.value = operation.name.toString()
-                                                    fields.value = f
-                                                    showOffersListDialog.value = operation.id
+                                                    operation.id,
+                                                    "offers",
+                                                ) { t, f ->
+                                                    title.value = t
+                                                    fields.value.clear()
+                                                    fields.value.addAll(f)
+                                                    showOperationsDialog.value = operation.id
                                                 }
                                             }
 
-                                            "delete_note" -> {
-                                                baseViewModel.deleteNote(
-                                                    item.id
-                                                ) {
-                                                    val eventParam = mapOf(
-                                                        "lot_id" to item.id,
-                                                        "lot_name" to item.title,
-                                                        "lot_city" to item.location,
-                                                        "lot_category" to item.catPath.lastOrNull(),
-                                                        "seller_id" to item.seller.id
-                                                    )
-
-                                                    analyticsHelper.reportEvent(
-                                                        "delete_note",
-                                                        eventParam
-                                                    )
-
-                                                    onUpdateOfferItem?.invoke(item.id)
-                                                }
-                                            }
-
-                                            "prolong_offer" -> {
-                                                scope.launch(Dispatchers.IO) {
-                                                    val buf =
-                                                        offerOperations.postOfferOperationsProlongOffer(
-                                                            item.id
-                                                        )
-                                                    val r = buf.success
-                                                    withContext(Dispatchers.Main) {
-                                                        if (r != null) {
-                                                            if (r.success) {
-                                                                baseViewModel.showToast(
-                                                                    ToastItem(
-                                                                        isVisible = true,
-                                                                        type = ToastType.SUCCESS,
-                                                                        message = successToast
-                                                                    )
-                                                                )
-
-                                                                onUpdateOfferItem?.invoke(item.id)
-                                                            } else {
-                                                                errorMes.value =
-                                                                    r.humanMessage.toString()
-                                                                showDialog.value = true
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            "activate_offer_for_future" -> {
-                                                showActivateOfferForFutureDialog.value =
-                                                    !showActivateOfferForFutureDialog.value
-                                            }
-
-                                            "activate_offer" -> {
-                                                scope.launch {
-                                                    val response = withContext(Dispatchers.IO) {
-                                                        offerOperations.getOfferOperationsActivateOffer(
-                                                            item.id
-                                                        )
-                                                    }
-                                                    withContext(Dispatchers.Main) {
-                                                        val resChoice = response.success
-                                                        resChoice?.firstOrNull()?.let { field ->
-                                                            choices.clear()
-                                                            title.value =
-                                                                field.shortDescription.toString()
-                                                            field.choices?.forEach {
-                                                                choices.add(it)
-                                                            }
-                                                        }
-
-                                                        showActivateOfferDialog.value =
-                                                            !showActivateOfferDialog.value
-                                                    }
-                                                }
-                                            }
-
-                                            "set_anti_sniper" -> {
-                                                scope.launch(Dispatchers.IO) {
-                                                    val buf =
-                                                        offerOperations.postOfferOperationsSetAntiSniper(
-                                                            item.id
-                                                        )
-                                                    val r = buf.success
-                                                    withContext(Dispatchers.Main) {
-                                                        if (r != null) {
-                                                            if (r.success) {
-                                                                val eventParam = mapOf(
-                                                                    "lot_id" to item.id,
-                                                                    "lot_name" to item.title,
-                                                                    "lot_city" to item.location,
-                                                                    "lot_category" to item.catPath.lastOrNull(),
-                                                                    "seller_id" to item.seller.id
-                                                                )
-
-                                                                analyticsHelper.reportEvent(
-                                                                    "set_anti_sniper",
-                                                                    eventParam
-                                                                )
-                                                                baseViewModel.showToast(
-                                                                    ToastItem(
-                                                                        isVisible = true,
-                                                                        type = ToastType.SUCCESS,
-                                                                        message = successToast
-                                                                    )
-                                                                )
-
-                                                                onUpdateOfferItem?.invoke(item.id)
-                                                            } else {
-                                                                errorMes.value =
-                                                                    r.humanMessage.toString()
-                                                                showDialog.value = true
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            "unset_anti_sniper" -> {
-                                                scope.launch(Dispatchers.IO) {
-                                                    val buf =
-                                                        offerOperations.postOfferOperationsUnsetAntiSniper(
-                                                            item.id
-                                                        )
-                                                    val r = buf.success
-                                                    withContext(Dispatchers.Main) {
-                                                        if (r != null) {
-                                                            if (r.success) {
-
-                                                                val eventParam = mapOf(
-                                                                    "lot_id" to item.id,
-                                                                    "lot_name" to item.title,
-                                                                    "lot_city" to item.location,
-                                                                    "lot_category" to item.catPath.lastOrNull(),
-                                                                    "seller_id" to item.seller.id
-                                                                )
-
-                                                                analyticsHelper.reportEvent(
-                                                                    "unset_anti_sniper",
-                                                                    eventParam
-                                                                )
-
-                                                                baseViewModel.showToast(
-                                                                    ToastItem(
-                                                                        isVisible = true,
-                                                                        type = ToastType.SUCCESS,
-                                                                        message = successToast
-                                                                    )
-                                                                )
-
-                                                                onUpdateOfferItem?.invoke(item.id)
-                                                            } else {
-                                                                errorMes.value =
-                                                                    r.humanMessage.toString()
-                                                                showDialog.value = true
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            "delete_offer" -> {
-                                                showDeleteOfferDialog.value =
-                                                    !showDeleteOfferDialog.value
-                                            }
-
-                                            "finalize_session" -> {
-                                                scope.launch(Dispatchers.IO) {
-                                                    val buf =
-                                                        offerOperations.postOfferOperationsFinalizeSession(
-                                                            item.id
-                                                        )
-                                                    val r = buf.success
-                                                    withContext(Dispatchers.Main) {
-                                                        if (r != null) {
-                                                            if (r.success) {
-                                                                baseViewModel.showToast(
-                                                                    ToastItem(
-                                                                        isVisible = true,
-                                                                        type = ToastType.SUCCESS,
-                                                                        message = successToast
-                                                                    )
-                                                                )
-                                                                onUpdateOfferItem?.invoke(item.id)
-                                                            } else {
-                                                                errorMes.value =
-                                                                    r.humanMessage.toString()
-                                                                showDialog.value = true
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                            "activate_offer_for_future","delete_offer" -> {
+                                                showOperationsDialog.value = operation.id
                                             }
 
                                             "copy_offer_without_old_photo" -> {
@@ -452,6 +220,31 @@ fun CabinetOfferItemList(
 
                                             "remove_bids_of_users" -> {
                                                 goToDynamicSettings("remove_bids_of_users", item.id)
+                                            }
+
+                                            else -> {
+                                                baseViewModel.postOperation(
+                                                    item.id,
+                                                    operation.id ?: "",
+                                                    "offers",
+                                                    onSuccess = {
+                                                        val eventParameters = mapOf(
+                                                            "lot_id" to item.id,
+                                                            "lot_name" to item.title,
+                                                            "lot_city" to item.location,
+                                                            "auc_delivery" to item.safeDeal,
+                                                            "lot_category" to item.catPath.firstOrNull(),
+                                                            "seller_id" to item.seller.id,
+                                                            "lot_price_start" to item.price,
+                                                        )
+                                                        analyticsHelper.reportEvent("${operation.id}_success", eventParameters)
+
+                                                        baseViewModel.updateUserInfo()
+
+                                                        onUpdateOfferItem?.invoke(item.id)
+                                                    },
+                                                    errorCallback = {}
+                                                )
                                             }
                                         }
                                     }
@@ -732,7 +525,7 @@ fun CabinetOfferItemList(
                                                     title.value = t
                                                     fields.value.clear()
                                                     fields.value.addAll(f)
-                                                    showPromoDialog.value = operation.id ?: ""
+                                                    showOperationsDialog.value = operation.id ?: ""
                                                 }
                                             }
                                         )
@@ -790,23 +583,13 @@ fun CabinetOfferItemList(
 
         OfferOperationsDialogs(
             offer = item,
-            showDialog = showDialog,
-            showDeleteOfferDialog = showDeleteOfferDialog,
-            showActivateOfferDialog = showActivateOfferDialog,
-            showActivateOfferForFutureDialog = showActivateOfferForFutureDialog,
-            showCreateNoteDialog = showCreateNoteDialog,
-            showOffersListDialog = showOffersListDialog,
-            showCreatedDialog = showCreatedDialog,
-            showPromoDialog = showPromoDialog,
+            showDialog = showOperationsDialog,
             viewModel = baseViewModel,
-            errorMes = errorMes,
             title = title,
             fields = fields,
-            choices = choices,
             updateItem = {
                 onUpdateOfferItem?.invoke(it)
-            },
-            refreshPage = refreshPage
+            }
         )
     }
 }

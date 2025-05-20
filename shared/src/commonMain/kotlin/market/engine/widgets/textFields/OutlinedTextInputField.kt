@@ -140,12 +140,12 @@ fun OutlinedTextInputField(
                 unfocusedTextColor = colors.black,
                 focusedTextColor = colors.black
             ),
-            modifier =if(focusRequester != null) Modifier
-                .widthIn(500.dp)
+            modifier =if(focusRequester != null) modifier
+                .widthIn(max = 500.dp)
                 .focusRequester(focusRequester) else
-                    Modifier.widthIn(500.dp),
+                    modifier.widthIn(max = 500.dp),
             maxLines = 4,
-            singleLine = singleLine
+            singleLine = singleLine,
         )
     }
 }

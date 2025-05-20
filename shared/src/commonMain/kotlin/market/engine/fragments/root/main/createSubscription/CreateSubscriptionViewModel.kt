@@ -15,16 +15,12 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.core.utils.deserializePayload
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class CreateSubscriptionViewModel(
-    private val subOperations: SubscriptionOperations,
-) : BaseViewModel() {
+class CreateSubscriptionViewModel : BaseViewModel() {
 
     private var _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseGetPage : StateFlow<DynamicPayload<OperationResult>?> = _responseGetPage.asStateFlow()
@@ -38,7 +34,7 @@ class CreateSubscriptionViewModel(
             val buffer = withContext(Dispatchers.IO){
                 if(editId == null)
                     userOperations.getUserOperationsCreateSubscription(UserData.login)
-                else subOperations.getOperationsEditSubscription(editId)
+                else operationsMethods.getOperationFields(editId, "edit_subscription", "subscriptions")
             }
             val payload = buffer.success
             val resErr = buffer.error
@@ -72,9 +68,9 @@ class CreateSubscriptionViewModel(
             try {
                 val buffer = withContext(Dispatchers.IO) {
                     if (editId == null)
-                        userOperations.postUserOperationsCreateSubscription(UserData.login, body)
+                        operationsMethods.postOperation(UserData.login, "create_subscription", "users", body)
                     else
-                        subOperations.postOperationsEditSubscription(editId, body)
+                        operationsMethods.postOperation(editId, "edit_subscription", "subscriptions", body)
                 }
 
                 withContext(Dispatchers.Main) {
@@ -82,10 +78,7 @@ class CreateSubscriptionViewModel(
                     val res = buffer.success
                     val resErr = buffer.error
                     if (res != null) {
-                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload: DynamicPayload<OperationResult> =
-                            deserializePayload(res.payload, serializer)
-                        if (payload.status == "operation_success") {
+                        if (res.status == "operation_success") {
                             showToast(
                                 successToastItem.copy(
                                     message = getString(strings.operationSuccess)
@@ -108,7 +101,7 @@ class CreateSubscriptionViewModel(
                         } else {
                             showToast(
                                 errorToastItem.copy(
-                                    message = payload.recipe?.globalErrorMessage ?: getString(
+                                    message = res.recipe?.globalErrorMessage ?: getString(
                                         strings.operationFailed
                                     )
                                 )
@@ -127,7 +120,7 @@ class CreateSubscriptionViewModel(
 
 
                             _responseGetPage.value = _responseGetPage.value?.copy(
-                                fields = payload.recipe?.fields ?: payload.fields
+                                fields = res.recipe?.fields ?: res.fields
                             )
                         }
                     } else {

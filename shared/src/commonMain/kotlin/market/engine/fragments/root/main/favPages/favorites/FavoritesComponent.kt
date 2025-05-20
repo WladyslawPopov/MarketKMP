@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.root.main.favPages.FavPagesViewModel
 
@@ -26,6 +27,7 @@ interface FavoritesComponent {
     fun goToOffer(offer: OfferItem, isTopPromo : Boolean = false)
     fun onRefresh()
     fun refreshTabs()
+    fun goToProposal(type: ProposalType, offerId : Long)
 }
 
 class DefaultFavoritesComponent(
@@ -34,6 +36,7 @@ class DefaultFavoritesComponent(
     idList : Long?,
     val goToOffer : (Long) -> Unit,
     val updateTabs : () -> Unit,
+    val navigateToProposalPage : (ProposalType, Long) -> Unit,
 ) : FavoritesComponent, ComponentContext by componentContext {
 
     private val favViewModel : FavPagesViewModel = FavPagesViewModel()
@@ -82,5 +85,9 @@ class DefaultFavoritesComponent(
 
     override fun refreshTabs() {
         updateTabs()
+    }
+
+    override fun goToProposal(type: ProposalType, offerId: Long) {
+        navigateToProposalPage(type, offerId)
     }
 }

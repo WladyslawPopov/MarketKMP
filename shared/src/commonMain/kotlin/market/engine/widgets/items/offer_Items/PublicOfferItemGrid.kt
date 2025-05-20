@@ -61,10 +61,18 @@ fun PublicOfferItemGrid(
             Box(
                 modifier = Modifier.size(250.dp),
             ) {
-                HorizontalImageViewer(
-                    images = item.images,
-                    pagerState = pagerState,
-                )
+                if (item.images.isNotEmpty()) {
+                    HorizontalImageViewer(
+                        images = item.images,
+                        pagerState = pagerState,
+                    )
+                }else {
+                    Image(
+                        painter = painterResource(drawables.noImageOffer),
+                        contentDescription = null,
+                        modifier = Modifier.size(250.dp)
+                    )
+                }
 
                 if (item.videoUrls?.isNotEmpty() == true) {
                     SmallImageButton(

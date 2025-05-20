@@ -23,7 +23,9 @@ import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.FavScreenType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseContent
@@ -103,8 +105,16 @@ fun FavPagesNavigation(
                 },
                 makeOperation = { type, id ->
                     when (type) {
-                        "create_blank_offer_list", "copy_offers_list", "rename_offers_list" -> {
-                            viewModel.getOperationFields(type, id) { t, f ->
+                        "create_offers_list" -> {
+                            viewModel.getOperationFields(id, type, "users") { t, f ->
+                                title.value = t
+                                fields.value = f
+                                showCreatedDialog.value = type
+                                postId.value = id
+                            }
+                        }
+                        "copy_offers_list", "rename_offers_list" -> {
+                            viewModel.getOperationFields(id, type, "offers_lists") { t, f ->
                                 title.value = t
                                 fields.value = f
                                 showCreatedDialog.value = type
@@ -123,22 +133,30 @@ fun FavPagesNavigation(
                         }
 
                         "delete_offers_list" -> {
-                            viewModel.deleteFavTab(id) {
-                                select.value = viewModel.initPosition.value
-                                component.fullRefresh()
-                            }
+                            viewModel.postOperation(
+                                id,
+                                type,
+                                "offers_lists",
+                                onSuccess = {
+                                    viewModel.db.favoritesTabListItemQueries.deleteById(itemId = id, owner = UserData.login)
+                                    viewModel.initPosition.value = viewModel.initPosition.value.coerceIn(0, favTabList.value.size - 2)
+                                    select.value = viewModel.initPosition.value
+                                    component.fullRefresh()
+                                },
+                                errorCallback = {}
+                            )
                         }
 
-                        "mark_as_primary_offers_list" -> {
-                            viewModel.pinFavTab(id) {
-                                component.fullRefresh()
-                            }
-                        }
-
-                        "unmark_as_primary_offers_list" -> {
-                            viewModel.unpinFavTab(id) {
-                                component.fullRefresh()
-                            }
+                        "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
+                            viewModel.postOperation(
+                                id,
+                                type,
+                                "offers_lists",
+                                onSuccess = {
+                                    component.fullRefresh()
+                                },
+                                errorCallback = {}
+                            )
                         }
 
                         else -> {
@@ -218,9 +236,10 @@ fun FavPagesNavigation(
                             }
                         }
 
-                        viewModel.postFieldsSend(
-                            showCreatedDialog.value,
+                        viewModel.postOperation(
                             postId.value,
+                            showCreatedDialog.value,
+                            "offers_lists",
                             bodyPost,
                             onSuccess = {
                                 showCreatedDialog.value = ""
@@ -249,7 +268,8 @@ fun itemFavorites(
     selectedType : FavScreenType,
     idList : Long?,
     navigateToOffer: (id: Long) -> Unit,
-    updateTabs : () -> Unit
+    updateTabs : () -> Unit,
+    navigateToProposal : (ProposalType, Long) -> Unit
 ): FavoritesComponent {
     return DefaultFavoritesComponent(
         componentContext = componentContext,
@@ -258,7 +278,8 @@ fun itemFavorites(
         },
         favType = selectedType,
         idList = idList,
-        updateTabs = updateTabs
+        updateTabs = updateTabs,
+        navigateToProposalPage = navigateToProposal
     )
 }
 
