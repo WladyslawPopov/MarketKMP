@@ -224,7 +224,7 @@ class CreateOrderViewModel: BaseViewModel() {
                             analyticsHelper.reportEvent("create_order_failed", ep)
                             _responsePostPage.value = payload
                         }
-                    }catch (e: Exception){
+                    }catch (_: Exception){
                         throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                     }
                 }

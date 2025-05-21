@@ -1015,32 +1015,6 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun getNotesField(
-        offerId : Long,
-        type: String,
-        onSuccess: (
-            fields: ArrayList<Fields>
-        ) -> Unit
-    ) {
-        viewModelScope.launch {
-            val postRes = withContext(Dispatchers.IO) {
-                operationsMethods.getOperationFields(offerId, type, "offers")
-            }
-
-            val bufPost = postRes.success
-            val err = postRes.error
-            withContext(Dispatchers.Main) {
-                if (bufPost != null) {
-                    onSuccess(bufPost.fields)
-                }else{
-                    if (err != null) {
-                        onError(err)
-                    }
-                }
-            }
-        }
-    }
-
     fun getPromoOperationFields(
         offerId : Long,
         operation: String,
@@ -1063,46 +1037,6 @@ open class BaseViewModel: ViewModel() {
                 }else{
                     if (err != null) {
                         onError(err)
-                    }
-                }
-            }
-        }
-    }
-
-    fun postPromoOperationFields(
-        offerId : Long,
-        operation: String,
-        body : HashMap<String, JsonElement>,
-        onSuccess: () -> Unit,
-        onError: (ArrayList<Fields>) -> Unit
-    ) {
-        viewModelScope.launch {
-            val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(offerId, operation, "offers", body)
-            }
-
-            val res = buf.success
-
-            withContext(Dispatchers.Main) {
-                if (res != null) {
-                    if (res.status == "operation_success") {
-                        analyticsHelper.reportEvent(
-                            "${operation}_success",
-                            eventParameters = mapOf(
-                                "lot_id" to offerId,
-                                "body" to body
-                            )
-                        )
-                        showToast(
-                            ToastItem(
-                                isVisible = true,
-                                type = ToastType.SUCCESS,
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-                        onSuccess()
-                    } else {
-                        res.recipe?.fields?.let { onError(it) }
                     }
                 }
             }
@@ -1195,46 +1129,6 @@ open class BaseViewModel: ViewModel() {
                 val res = data.success
                 if (!res?.fields.isNullOrEmpty()){
                     onSuccess(res.description?:"", res.fields)
-                }
-            }
-        }
-    }
-
-    fun postNotes(
-        offerId : Long,
-        type : String,
-        body : HashMap<String, JsonElement>,
-        onSuccess: () -> Unit,
-        onError: (ArrayList<Fields>) -> Unit
-    ) {
-        viewModelScope.launch {
-            val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(offerId, type, "offers", body)
-            }
-
-            val res = buf.success
-
-            withContext(Dispatchers.Main) {
-                if (res != null) {
-                    if (res.status == "operation_success") {
-                        analyticsHelper.reportEvent(
-                            "${type}_success",
-                            eventParameters = mapOf(
-                                "lot_id" to offerId,
-                                "body" to body
-                            )
-                        )
-                        showToast(
-                            ToastItem(
-                                isVisible = true,
-                                type = ToastType.SUCCESS,
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-                        onSuccess()
-                    } else {
-                        res.recipe?.fields?.let { onError(it) }
-                    }
                 }
             }
         }

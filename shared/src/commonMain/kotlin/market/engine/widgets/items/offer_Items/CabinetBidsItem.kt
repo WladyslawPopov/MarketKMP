@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -19,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
@@ -62,8 +62,6 @@ fun CabinetBidsItem(
 
     val isOpenPopup = remember { mutableStateOf(false) }
 
-    val analyticsHelper = baseViewModel.analyticsHelper
-
     val showDialog = remember { mutableStateOf("") }
 
     val title = remember { mutableStateOf(AnnotatedString("")) }
@@ -86,8 +84,7 @@ fun CabinetBidsItem(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimens.smallPadding),
+                .fillMaxWidth().padding(dimens.smallPadding),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.Start
         ) {
@@ -98,53 +95,27 @@ fun CabinetBidsItem(
                 onUpdateOfferItem = onUpdateOfferItem
             )
 
-            offer.seller.let {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        stringResource(strings.sellerLabel),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.black
-                    )
-
-                    UserRow(
-                        it,
-                        Modifier.clickable {
-                            goToUser(it.id)
-                        }.fillMaxWidth(),
-                    )
-                }
-            }
-
             Row(
                 modifier = Modifier.clickable {
                     goToOffer(offer.id)
-                }.fillMaxWidth().padding(dimens.smallPadding),
+                }.fillMaxWidth().padding(dimens.extraSmallPadding),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val imageSize = 90.dp
-
+                val imageSize = 100.dp
 
                 Column(
-                    modifier = Modifier.width(imageSize).padding(dimens.smallPadding),
+                    modifier = Modifier.padding(dimens.smallPadding),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     Box(
                         modifier = Modifier.size(imageSize),
                     ) {
-                        Box(
-                            modifier = Modifier.size(imageSize),
-                        ) {
-                            LoadImage(
-                                offer.images.firstOrNull() ?: "empty",
-                                size = imageSize
-                            )
-                        }
+                        LoadImage(
+                            offer.images.firstOrNull() ?: "empty",
+                            size = imageSize
+                        )
                     }
 
                     SimpleTextButton(
@@ -207,7 +178,7 @@ fun CabinetBidsItem(
                         Image(
                             painter = painterResource(drawables.locationIcon),
                             contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize)
+                            modifier = Modifier.size(dimens.extraSmallIconSize)
                         )
                         Text(
                             offer.location,
@@ -228,7 +199,7 @@ fun CabinetBidsItem(
                                 painter = painterResource(drawables.trackIcon),
                                 contentDescription = "",
                                 tint = colors.textA0AE,
-                                modifier = Modifier.size(dimens.smallIconSize)
+                                modifier = Modifier.size(dimens.extraSmallIconSize)
                             )
                             Text(
                                 deliveryMethods,
@@ -247,7 +218,7 @@ fun CabinetBidsItem(
                             painter = painterResource(drawables.bidsIcon),
                             contentDescription = "",
                             tint = colors.textA0AE,
-                            modifier = Modifier.size(dimens.smallIconSize)
+                            modifier = Modifier.size(dimens.extraSmallIconSize)
                         )
                         Text(
                             (offer.bids?.size ?: 0).toString(),
@@ -264,7 +235,7 @@ fun CabinetBidsItem(
                         Image(
                             painter = painterResource(drawables.iconClock),
                             contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize)
+                            modifier = Modifier.size(dimens.extraSmallIconSize)
                         )
                         var date = d3
                         if (offer.session == null) {
@@ -276,13 +247,21 @@ fun CabinetBidsItem(
                             color = colors.black
                         )
                     }
+
+                    offer.seller.let {
+                        UserRow(
+                            it,
+                            Modifier.clip(MaterialTheme.shapes.small).clickable {
+                                goToUser(it.id)
+                            }.padding(dimens.extraSmallPadding),
+                        )
+                    }
                 }
             }
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimens.smallPadding),
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
