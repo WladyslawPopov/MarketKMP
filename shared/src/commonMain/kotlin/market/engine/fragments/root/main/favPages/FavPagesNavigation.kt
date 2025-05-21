@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.AnnotatedString
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
@@ -64,7 +65,7 @@ fun FavPagesNavigation(
     val postId = remember { mutableStateOf(0L) }
     val isClicked = remember { mutableStateOf(false) }
     val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
-    val title = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(AnnotatedString("")) }
     val lazyListState = rememberLazyListState(
         initialFirstVisibleItemIndex = (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
     )
@@ -107,7 +108,7 @@ fun FavPagesNavigation(
                     when (type) {
                         "create_offers_list" -> {
                             viewModel.getOperationFields(id, type, "users") { t, f ->
-                                title.value = t
+                                title.value = AnnotatedString(t)
                                 fields.value = f
                                 showCreatedDialog.value = type
                                 postId.value = id
@@ -115,7 +116,7 @@ fun FavPagesNavigation(
                         }
                         "copy_offers_list", "rename_offers_list" -> {
                             viewModel.getOperationFields(id, type, "offers_lists") { t, f ->
-                                title.value = t
+                                title.value = AnnotatedString(t)
                                 fields.value = f
                                 showCreatedDialog.value = type
                                 postId.value = id

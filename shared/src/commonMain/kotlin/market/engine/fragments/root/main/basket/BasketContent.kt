@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.buildAnnotatedString
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -67,11 +68,11 @@ fun BasketContent(
         val countOffers = UserData.userInfo?.countOffersInCart
         subtitle.value = buildString {
             if (countOffers.toString()
-                    .matches(Regex("""([^1]1)${'$'}""")) || countOffers == 1
+                    .matches(Regex("""([^1]1)$""")) || countOffers == 1
             ) {
                 append("$countOffers $oneOffer")
             } else if (countOffers.toString()
-                    .matches(Regex("""([^1][234])${'$'}""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
+                    .matches(Regex("""([^1][234])$""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
             ) {
                 append("$countOffers $exManyOffers")
             } else {
@@ -188,10 +189,12 @@ fun BasketContent(
 
         AccessDialog(
             listOffers.value.isNotEmpty(),
-            if (listOffers.value.size == 1) {
-                stringResource(strings.warningDeleteOfferBasket)
-            } else {
-                stringResource(strings.warningDeleteSelectedOfferFromBasket)
+            buildAnnotatedString {
+                if (listOffers.value.size == 1) {
+                    append(stringResource(strings.warningDeleteOfferBasket))
+                } else {
+                    append(stringResource(strings.warningDeleteSelectedOfferFromBasket))
+                }
             },
             onDismiss = {
                 listOffers.value = emptyList()

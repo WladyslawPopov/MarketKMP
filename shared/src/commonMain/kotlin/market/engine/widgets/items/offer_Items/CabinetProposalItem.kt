@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -30,6 +31,7 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.onClickItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.OfferMessagingDialog
@@ -57,10 +59,9 @@ fun MyProposalItem(
 
     val showMesDialog = remember { mutableStateOf(false) }
     val isOpenPopup = remember { mutableStateOf(false) }
-    val analyticsHelper = baseViewModel.analyticsHelper
 
     val showDialog = remember { mutableStateOf("") }
-    val title = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(AnnotatedString("")) }
     val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
 
     val menuList = remember {
@@ -156,53 +157,15 @@ fun MyProposalItem(
                                         id = operation.id ?: "",
                                         title = operation.name ?: "",
                                         onClick = {
-                                            when (operation.id) {
-                                                "create_note", "edit_note","add_to_list", "edit_offer_in_list","remove_from_list" -> {
-                                                    baseViewModel.getOperationFields(
-                                                        offer.id,
-                                                        operation.id,
-                                                        "offers",
-                                                    ) { t, f ->
-                                                        title.value = t
-                                                        fields.value.clear()
-                                                        fields.value.addAll(f)
-                                                        showDialog.value = operation.id
-                                                    }
-                                                }
-
-                                                "act_on_proposal" -> {
-                                                    goToProposal(ProposalType.ACT_ON_PROPOSAL)
-                                                }
-
-                                                "make_proposal" -> {
-                                                    goToProposal(ProposalType.MAKE_PROPOSAL)
-                                                }
-
-                                                else -> {
-                                                    baseViewModel.postOperation(
-                                                        offer.id,
-                                                        operation.id ?: "",
-                                                        "offers",
-                                                        onSuccess = {
-                                                            val eventParameters = mapOf(
-                                                                "lot_id" to offer.id,
-                                                                "lot_name" to offer.title,
-                                                                "lot_city" to offer.location,
-                                                                "auc_delivery" to offer.safeDeal,
-                                                                "lot_category" to offer.catPath.firstOrNull(),
-                                                                "seller_id" to offer.seller.id,
-                                                                "lot_price_start" to offer.price,
-                                                            )
-                                                            analyticsHelper.reportEvent("${operation.id}_success", eventParameters)
-
-                                                            baseViewModel.updateUserInfo()
-
-                                                            onUpdateOfferItem(offer.id)
-                                                        },
-                                                        errorCallback = {}
-                                                    )
-                                                }
-                                            }
+                                            operation.onClickItem(
+                                                offer,
+                                                baseViewModel,
+                                                title,
+                                                fields,
+                                                showDialog,
+                                                onUpdateOfferItem,
+                                                goToProposal,
+                                            )
                                         }
                                     )
                                 })

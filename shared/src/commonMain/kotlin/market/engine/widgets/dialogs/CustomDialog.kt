@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -17,7 +19,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CustomDialog(
     showDialog: Boolean,
-    title: String,
+    title: AnnotatedString,
     containerColor: Color = colors.white,
     body: @Composable () -> Unit = {},
     onDismiss: () -> Unit,
@@ -32,7 +34,7 @@ fun CustomDialog(
             containerColor = containerColor,
             tonalElevation = 0.dp,
             onDismissRequest = { onDismiss() },
-            title = { Text(title, style = MaterialTheme.typography.labelSmall) },
+            title = { Text(title, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)) },
             text = {
                 body()
             },

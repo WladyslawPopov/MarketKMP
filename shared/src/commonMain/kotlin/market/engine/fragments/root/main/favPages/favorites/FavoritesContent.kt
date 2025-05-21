@@ -28,6 +28,7 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
@@ -115,23 +116,39 @@ fun FavoritesContent(
             withContext(Dispatchers.Main) {
                 if (offer != null) {
                     val item = data.itemSnapshotList.items.find { it.id == offer.id }
-                    item?.images = buildList {
-                        when {
-                            offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "" }?.toList() ?: emptyList())
-                            offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
-                            offer.externalUrl != null -> add(offer.externalUrl)
-                            offer.image?.small?.content != null -> add(offer.image.small.content)
+                    item?.setNewParams(offer)
+                }
+
+                if (model.favType != FavScreenType.FAV_LIST) {
+                    val isEmpty = data.itemSnapshotList.items.none { item ->
+                        when (model.favType) {
+                            FavScreenType.NOTES -> {
+                                item.note != null && item.note != ""
+                            }
+
+                            FavScreenType.FAVORITES -> {
+                                item.isWatchedByMe
+                            }
+
+                            else -> {
+                                item.session != null
+                            }
                         }
                     }
-                    item?.price = offer.currentPricePerItem ?: ""
-                    item?.title = offer.title ?: ""
-                    item?.note = offer.note
-                    item?.relistingMode = offer.relistingMode
-                    item?.isWatchedByMe = offer.isWatchedByMe
-                    item?.viewsCount = offer.viewsCount
-                    item?.promoOptions = offer.promoOptions
-                    item?.bids = offer.bids
+                    if (isEmpty) {
+                        component.onRefresh()
+                    }
+                } else {
+                    favViewModel.getList(component.model.value.listId ?: 1L) {
+                        val isEmpty = data.itemSnapshotList.items.none { item ->
+                            it.offers.contains(item.id)
+                        }
+                        if (isEmpty) {
+                            component.onRefresh()
+                        }
+                    }
                 }
+
                 favViewModel.updateItemTrigger.value++
                 favViewModel.updateItem.value = null
             }
@@ -270,7 +287,6 @@ fun FavoritesContent(
                             }
                         }
                     )
-
 
                 AnimatedVisibility(fav.value, enter = fadeIn(), exit = fadeOut()) {
                     CabinetOfferItemList(

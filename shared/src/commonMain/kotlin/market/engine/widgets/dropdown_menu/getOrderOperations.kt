@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -429,7 +430,7 @@ fun getOrderOperations(
 
     CustomDialog(
         showDialog = showDialog.value,
-        title = stringResource(strings.messageAboutError),
+        title = AnnotatedString(stringResource(strings.messageAboutError)),
         body = { Text(errorMes.value, color = colors.black) },
         onDismiss = { showDialog.value = false },
     )

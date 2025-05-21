@@ -24,6 +24,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
@@ -108,25 +109,38 @@ fun MyOffersContent(
                 withContext(Dispatchers.Main) {
                     if (offer != null) {
                         val item = data.itemSnapshotList.items.find { it.id == offer.id }
-                        item?.images = buildList {
-                            when {
-                                offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "" }?.toList() ?: emptyList())
-                                offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
-                                offer.externalUrl != null -> add(offer.externalUrl)
-                                offer.image?.small?.content != null -> add(offer.image.small.content)
-                            }
-                        }
-                        item?.price = offer.currentPricePerItem ?: ""
-                        item?.title = offer.title ?: ""
-                        item?.note = offer.note
-                        item?.relistingMode = offer.relistingMode
-                        item?.isWatchedByMe = offer.isWatchedByMe
-                        item?.viewsCount = offer.viewsCount
-                        item?.promoOptions = offer.promoOptions
-                        item?.bids = offer.bids
+                        item?.setNewParams(offer)
                     }else{
                         val item = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
                         item?.session = null
+                        item?.state = null
+                    }
+
+                    var isEmpty = false
+                    when (model.type) {
+                        LotsType.MYLOT_ACTIVE -> {
+                            isEmpty = data.itemSnapshotList.items.none { it.state == "active" && it.session != null }
+                        }
+
+                        LotsType.MYLOT_UNACTIVE -> {
+                            isEmpty = data.itemSnapshotList.items.none { it.state == "active" }
+                        }
+
+                        LotsType.MYLOT_FUTURE -> {
+                            val currentDate: Long? = getCurrentDate().toLongOrNull()
+                            if (currentDate != null) {
+                                isEmpty = data.itemSnapshotList.items.none {
+                                    val initD = (it.session?.start?.toLongOrNull() ?: 1L) - currentDate
+                                    it.state == "active" && initD > 0
+                                }
+                            }
+                        }
+
+                        else -> {}
+                    }
+
+                    if(isEmpty){
+                        refresh()
                     }
 
                     viewModel.updateItem.value = null

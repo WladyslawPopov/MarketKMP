@@ -84,6 +84,7 @@ import market.engine.core.network.networkObjects.Bids
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.onClickItem
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
@@ -185,11 +186,10 @@ fun OfferContent(
 
     val showBidDialog = remember { mutableStateOf(false) }
     val myMaximalBid = remember { mutableStateOf("") }
-    val analyticsHelper = offerViewModel.analyticsHelper
 
     val showDialog = remember { mutableStateOf(false) }
     val showOperationsDialog = remember { mutableStateOf("") }
-    val title = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(AnnotatedString("")) }
     val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
 
     val isClicked = remember { mutableStateOf(false) }
@@ -232,7 +232,10 @@ fun OfferContent(
     }
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(isError) { component.updateOffer(lotState.value?.id ?: 1L, model.isSnapshot) } }
+        { onError(isError) {
+            showOperationsDialog.value = ""
+            component.updateOffer(lotState.value?.id ?: 1L, model.isSnapshot)
+        } }
     }else{
         null
     }
@@ -281,7 +284,7 @@ fun OfferContent(
                         icon = drawables.addFolderIcon,
                         onClick = {
                             offerViewModel.getFieldsCreateBlankOfferList { t, f ->
-                                title.value = t
+                                title.value = AnnotatedString(t)
                                 fields.value.clear()
                                 fields.value.addAll(f)
                                 showOperationsDialog.value = "create_blank_offer_list"
@@ -297,77 +300,33 @@ fun OfferContent(
                 id = operation.id ?: "",
                 title = operation.name ?: "",
                 onClick = {
-                    when (operation.id) {
-                        "create_note", "edit_note","add_to_list", "edit_offer_in_list","remove_from_list","activate_offer"  -> {
-                            offerViewModel.getOperationFields(
-                                offer.id,
-                                operation.id,
-                                "offers",
-                            ) { t, f ->
-                                title.value = t
-                                fields.value.clear()
-                                fields.value.addAll(f)
-                                showOperationsDialog.value = operation.id
+                    operation.onClickItem(
+                        offer.parseToOfferItem(),
+                        offerViewModel,
+                        title,
+                        fields,
+                        showOperationsDialog,
+                        onUpdateOfferItem = {
+                            when(operation.id){
+                                "watch", "unwatch","create_blank_offer_list"  -> {
+                                    lotState.value?.isWatchedByMe = !offer.isWatchedByMe
+                                    offerViewModel.getOperations(offer.id)
+                                }
+                                else -> {
+                                    component.updateOffer(it, model.isSnapshot)
+                                }
                             }
-                        }
-
-                        "activate_offer_for_future" ,"delete_offer"-> {
-                            showOperationsDialog.value = operation.id
-                        }
-
-                        "copy_offer_without_old_photo" -> {
-                            component.goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE, offer.catpath, offer.id, offer.externalImages)
-                        }
-
-                        "edit_offer" -> {
-                            component.goToCreateOffer(CreateOfferType.EDIT, offer.catpath, offer.id, offer.externalImages)
-                        }
-
-                        "copy_offer" -> {
-                            component.goToCreateOffer(CreateOfferType.COPY, offer.catpath, offer.id, offer.externalImages)
-                        }
-
-                        "act_on_proposal" -> {
+                        },
+                        {
                             component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
-                        }
-
-                        "make_proposal" -> {
-                            component.goToProposalPage(ProposalType.MAKE_PROPOSAL)
-                        }
-
-                        "cancel_all_bids" -> {
-                            component.goToDynamicSettings("cancel_all_bids", offer.id)
-                        }
-
-                        "remove_bids_of_users" -> {
-                            component.goToDynamicSettings("remove_bids_of_users", offer.id)
-                        }
-
-                        else  -> {
-                            offerViewModel.postOperation(
-                                offer.id,
-                                operation.id ?: "",
-                                "offers",
-                                onSuccess = {
-                                    val eventParameters = mapOf(
-                                        "lot_id" to offer.id,
-                                        "lot_name" to offer.title,
-                                        "lot_city" to offer.freeLocation,
-                                        "auc_delivery" to offer.safeDeal,
-                                        "lot_category" to offer.catpath.firstOrNull(),
-                                        "seller_id" to offer.sellerData?.id,
-                                        "lot_price_start" to offer.currentPricePerItem,
-                                    )
-                                    analyticsHelper.reportEvent("${operation.id}_success", eventParameters)
-
-                                    offerViewModel.updateUserInfo()
-                                    component.updateOffer(offer.id, model.isSnapshot)
-
-                                },
-                                errorCallback = {}
-                            )
-                        }
-                    }
+                        },
+                        {
+                            component.goToCreateOffer(CreateOfferType.COPY, offer.catpath, offer.id, offer.externalImages)
+                        },
+                        { t, id ->
+                            component.goToDynamicSettings(t, id)
+                        },
+                    )
                 }
             )
         }
@@ -377,7 +336,7 @@ fun OfferContent(
                 title = "${(operation.name ?: "")} (${operation.price*-1} $currency)",
                 onClick = {
                     offerViewModel.getPromoOperationFields(offer.id, operation.id ?: "") { t, f ->
-                        title.value = t
+                        title.value = AnnotatedString(t)
                         fields.value.clear()
                         fields.value.addAll(f)
                         showOperationsDialog.value = operation.id ?: ""
@@ -567,7 +526,7 @@ fun OfferContent(
                                                     "edit_note",
                                                     "offers",
                                                     onSuccess = { t, f ->
-                                                        title.value = t
+                                                        title.value = AnnotatedString(t)
                                                         fields.value.clear()
                                                         fields.value.addAll(f)
                                                         showOperationsDialog.value = "edit_note"
@@ -712,9 +671,9 @@ fun OfferContent(
                                         modifier = Modifier
                                             .background(
                                                 colors.white,
-                                                MaterialTheme.shapes.medium
+                                                MaterialTheme.shapes.small
                                             )
-                                            .clip(MaterialTheme.shapes.medium)
+                                            .clip(MaterialTheme.shapes.small)
                                             .padding(dimens.smallPadding),
                                         horizontalAlignment = Alignment.Start,
                                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
@@ -808,7 +767,7 @@ fun OfferContent(
 
                                         CustomDialog(
                                             showDialog = showDialog.value,
-                                            title = "",
+                                            title = AnnotatedString(""),
                                             body = {
                                                 Column(
                                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -867,9 +826,9 @@ fun OfferContent(
                                                 modifier = Modifier
                                                     .background(
                                                         colors.white,
-                                                        MaterialTheme.shapes.medium
+                                                        MaterialTheme.shapes.small
                                                     )
-                                                    .clip(MaterialTheme.shapes.medium).fillMaxSize(),
+                                                    .clip(MaterialTheme.shapes.small).fillMaxSize(),
                                                 offer.sellerData,
                                                 updateTrigger = offerViewModel.updateItemTrigger.value,
                                                 goToUser = {
@@ -935,9 +894,9 @@ fun OfferContent(
                                         modifier = Modifier
                                             .background(
                                                 colors.white,
-                                                MaterialTheme.shapes.medium
+                                                MaterialTheme.shapes.small
                                             )
-                                            .clip(MaterialTheme.shapes.medium)
+                                            .clip(MaterialTheme.shapes.small)
                                             .padding(dimens.smallPadding),
                                         horizontalAlignment = Alignment.Start,
                                         verticalArrangement = Arrangement.spacedBy(
@@ -1253,8 +1212,8 @@ fun DescriptionHtmlOffer(
 
     Box(
         modifier = Modifier
-            .background(colors.white, MaterialTheme.shapes.medium)
-            .clip(MaterialTheme.shapes.medium)
+            .background(colors.white, MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.small)
             .fillMaxWidth()
             .padding(dimens.smallPadding)
     ) {
@@ -1324,8 +1283,8 @@ fun AuctionPriceLayout(
 
     Row(
         modifier = modifier
-            .background(colors.white, MaterialTheme.shapes.medium)
-            .clip(MaterialTheme.shapes.medium)
+            .background(colors.white, MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.small)
             .padding(dimens.mediumPadding),
         horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
         verticalAlignment = Alignment.Top
@@ -1393,8 +1352,8 @@ fun BuyNowPriceLayout(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .background(colors.white,MaterialTheme.shapes.medium)
-                .clip(MaterialTheme.shapes.medium)
+                .background(colors.white,MaterialTheme.shapes.small)
+                .clip(MaterialTheme.shapes.small)
                 .padding(dimens.mediumPadding),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.Top),
             horizontalAlignment = Alignment.Start
@@ -1858,7 +1817,7 @@ fun PaymentAndDeliverySection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = colors.white, shape = MaterialTheme.shapes.medium)
+                .background(color = colors.white, shape = MaterialTheme.shapes.small)
                 .padding(dimens.smallPadding),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.Start
@@ -1958,7 +1917,7 @@ fun ParametersSection(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = colors.white, shape = MaterialTheme.shapes.medium)
+                    .background(color = colors.white, shape = MaterialTheme.shapes.small)
                     .padding(dimens.smallPadding)
             ) {
                 parameters.forEach { parameter ->
@@ -2020,7 +1979,7 @@ fun AuctionBidsSection(
         )
 
         ColumnWithScrollBars(
-            modifier = Modifier.background(color = colors.white, shape = MaterialTheme.shapes.medium)
+            modifier = Modifier.background(color = colors.white, shape = MaterialTheme.shapes.small)
             .heightIn(max = 400.dp)
             .padding(bottom = dimens.largePadding, top = dimens.mediumPadding)
         ) {

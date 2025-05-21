@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -31,6 +32,7 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.onClickItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.OfferMessagingDialog
@@ -64,7 +66,7 @@ fun CabinetBidsItem(
 
     val showDialog = remember { mutableStateOf("") }
 
-    val title = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(AnnotatedString("")) }
     val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
 
     val menuList = remember {
@@ -166,30 +168,14 @@ fun CabinetBidsItem(
                                         id = operation.id ?: "",
                                         title = operation.name ?: "",
                                         onClick = {
-                                            if (operation.id?.isNotBlank() == true){
-                                                baseViewModel.postOperation(
-                                                    offer.id,
-                                                    operation.id,
-                                                    "offers",
-                                                    onSuccess = {
-                                                        val eventParameters = mapOf(
-                                                            "lot_id" to offer.id,
-                                                            "lot_name" to offer.title,
-                                                            "lot_city" to offer.location,
-                                                            "auc_delivery" to offer.safeDeal,
-                                                            "lot_category" to offer.catPath.firstOrNull(),
-                                                            "seller_id" to offer.seller.id,
-                                                            "lot_price_start" to offer.price,
-                                                        )
-                                                        analyticsHelper.reportEvent("${operation.id}_success", eventParameters)
-
-                                                        baseViewModel.updateUserInfo()
-
-                                                        onUpdateOfferItem(offer.id)
-                                                    },
-                                                    errorCallback = {}
-                                                )
-                                            }
+                                            operation.onClickItem(
+                                                offer,
+                                                baseViewModel,
+                                                title,
+                                                fields,
+                                                showDialog,
+                                                onUpdateOfferItem,
+                                            )
                                         }
                                     )
                                 })

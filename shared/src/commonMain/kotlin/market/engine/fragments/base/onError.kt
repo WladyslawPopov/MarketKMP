@@ -73,7 +73,7 @@ fun onError(
 
                     CustomDialog(
                         showDialog = showDialog.value,
-                        title = richTextState.setHtml(humanMessage.value).annotatedString.text,
+                        title = richTextState.setHtml(humanMessage.value).annotatedString,
                         onDismiss = {
                             error.value.errorCode = ""
                             error.value.humanMessage = ""

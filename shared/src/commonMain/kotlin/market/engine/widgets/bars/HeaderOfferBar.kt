@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import kotlinx.serialization.json.JsonElement
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
@@ -50,7 +51,7 @@ fun HeaderOfferBar(
 
     if(onUpdateTrigger < 0) return
     val showCreatedDialog = remember { mutableStateOf("") }
-    val title = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(AnnotatedString("")) }
     val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
     val copyString = stringResource(strings.copyOfferId)
     val copiedString = stringResource(strings.idCopied)
@@ -92,7 +93,7 @@ fun HeaderOfferBar(
             icon = drawables.addFolderIcon,
             onClick = {
                 baseViewModel.getFieldsCreateBlankOfferList { t, f ->
-                    title.value = t
+                    title.value = AnnotatedString(t)
                     fields.value.clear()
                     fields.value.addAll(f)
                     showCreatedDialog.value = "create_blank_offer_list"

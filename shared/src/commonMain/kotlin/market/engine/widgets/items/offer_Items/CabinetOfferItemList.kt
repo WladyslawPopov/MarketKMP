@@ -22,9 +22,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -38,6 +41,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.onClickItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
@@ -75,10 +79,8 @@ fun CabinetOfferItemList(
     val isOpenPopup = remember { mutableStateOf(false) }
     val isOpenPromoPopup = remember { mutableStateOf(false) }
 
-    val analyticsHelper = baseViewModel.analyticsHelper
-
     val showOperationsDialog = remember { mutableStateOf("") }
-    val title = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(AnnotatedString("")) }
     val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
 
     val menuList = remember {
@@ -176,77 +178,17 @@ fun CabinetOfferItemList(
                                     id = operation.id ?: "",
                                     title = operation.name ?: "",
                                     onClick = {
-                                        when (operation.id) {
-                                            "create_note", "edit_note","add_to_list", "edit_offer_in_list","remove_from_list", "activate_offer" -> {
-                                                baseViewModel.getOperationFields(
-                                                    item.id,
-                                                    operation.id,
-                                                    "offers",
-                                                ) { t, f ->
-                                                    title.value = t
-                                                    fields.value.clear()
-                                                    fields.value.addAll(f)
-                                                    showOperationsDialog.value = operation.id
-                                                }
-                                            }
-
-                                            "activate_offer_for_future","delete_offer" -> {
-                                                showOperationsDialog.value = operation.id
-                                            }
-
-                                            "copy_offer_without_old_photo" -> {
-                                                goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE)
-                                            }
-
-                                            "edit_offer" -> {
-                                                goToCreateOffer(CreateOfferType.EDIT)
-                                            }
-
-                                            "copy_offer" -> {
-                                                goToCreateOffer(CreateOfferType.COPY)
-                                            }
-
-                                            "act_on_proposal" -> {
-                                                goToProposal(ProposalType.ACT_ON_PROPOSAL)
-                                            }
-
-                                            "make_proposal" -> {
-                                                goToProposal(ProposalType.MAKE_PROPOSAL)
-                                            }
-
-                                            "cancel_all_bids" -> {
-                                                goToDynamicSettings("cancel_all_bids", item.id)
-                                            }
-
-                                            "remove_bids_of_users" -> {
-                                                goToDynamicSettings("remove_bids_of_users", item.id)
-                                            }
-
-                                            else -> {
-                                                baseViewModel.postOperation(
-                                                    item.id,
-                                                    operation.id ?: "",
-                                                    "offers",
-                                                    onSuccess = {
-                                                        val eventParameters = mapOf(
-                                                            "lot_id" to item.id,
-                                                            "lot_name" to item.title,
-                                                            "lot_city" to item.location,
-                                                            "auc_delivery" to item.safeDeal,
-                                                            "lot_category" to item.catPath.firstOrNull(),
-                                                            "seller_id" to item.seller.id,
-                                                            "lot_price_start" to item.price,
-                                                        )
-                                                        analyticsHelper.reportEvent("${operation.id}_success", eventParameters)
-
-                                                        baseViewModel.updateUserInfo()
-
-                                                        onUpdateOfferItem?.invoke(item.id)
-                                                    },
-                                                    errorCallback = {}
-                                                )
-                                            }
-                                        }
+                                        operation.onClickItem(
+                                            item,
+                                            baseViewModel,
+                                            title,
+                                            fields,
+                                            showOperationsDialog,
+                                            onUpdateOfferItem,
+                                            goToProposal,
+                                            goToCreateOffer,
+                                            goToDynamicSettings,
+                                        )
                                     }
                                 )
                             })
@@ -512,17 +454,26 @@ fun CabinetOfferItemList(
                     )
 
                     if (UserData.login == item.seller.id && item.state == "active") {
-                        val currency = stringResource(strings.currencyCode)
+                        val currency = stringResource(strings.currencySign)
                         PromoBuyBtn {
                             baseViewModel.getOfferOperations(item.id, "promo") { listOperations ->
                                 menuList.value = buildList {
                                     addAll(listOperations.map { operation ->
                                         MenuItem(
                                             id = operation.id ?: "",
-                                            title = "${(operation.name ?: "")} (${operation.price*-1} $currency)",
+                                            title = "${(operation.name ?: "")} (${operation.price*-1}$currency)",
                                             onClick = {
                                                 baseViewModel.getPromoOperationFields(item.id, operation.id ?: "") { t, f ->
-                                                    title.value = t
+                                                    title.value = buildAnnotatedString {
+                                                        append(t)
+                                                        withStyle(
+                                                            SpanStyle(
+                                                                color = colors.notifyTextColor,
+                                                            )
+                                                        ) {
+                                                            append(" ${operation.price}$currency")
+                                                        }
+                                                    }
                                                     fields.value.clear()
                                                     fields.value.addAll(f)
                                                     showOperationsDialog.value = operation.id ?: ""

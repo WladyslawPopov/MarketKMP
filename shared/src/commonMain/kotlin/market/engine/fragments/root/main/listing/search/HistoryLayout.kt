@@ -24,6 +24,7 @@ import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.rememberDismissState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.buildAnnotatedString
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -127,7 +128,9 @@ fun HistoryLayout(
 
         AccessDialog(
             showDialog.value,
-            title = stringResource(strings.warningDeleteHistory),
+            title = buildAnnotatedString {
+                append(stringResource(strings.warningDeleteHistory))
+            },
             onSuccess = {
                 onClearHistory()
             },

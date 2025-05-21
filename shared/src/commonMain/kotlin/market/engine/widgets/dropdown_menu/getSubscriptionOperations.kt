@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -118,7 +119,7 @@ fun getSubscriptionOperations(
 
     AccessDialog(
         showDeleteOfferDialog.value,
-        title = stringResource(strings.warningDeleteSubscription),
+        title = AnnotatedString(stringResource(strings.warningDeleteSubscription)),
         onSuccess = {
             viewModel.deleteSubscription(subscription.id){
                 val eventParameters = mapOf(
