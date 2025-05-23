@@ -27,19 +27,22 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.core.utils.onClickOrderOperationItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.OrderMessageDialog
 import market.engine.widgets.dialogs.OrderDetailsDialog
+import market.engine.widgets.dialogs.OrderOperationsDialogs
 import market.engine.widgets.dialogs.ReportDialog
-import market.engine.widgets.dropdown_menu.getOrderOperations
+import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -74,6 +77,13 @@ fun MyOrderItem(
             }
             append(" #${order.id}")
         }
+
+    val showOperationsDialog = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf("") }
+
+    val menuList = remember {
+        mutableStateOf<List<MenuItem>>(emptyList())
+    }
 
     Column(
         modifier = Modifier.background(colors.white, MaterialTheme.shapes.medium).fillMaxWidth().padding(
@@ -119,21 +129,44 @@ fun MyOrderItem(
                         drawables.menuIcon,
                         colors.black,
                     ){
-                        showMenu.value = true
+                        baseViewModel.getOrderOperations(order.id) { listOperations ->
+                            menuList.value = buildList {
+                                addAll(listOperations.map { operation ->
+                                    MenuItem(
+                                        id = operation.id ?: "",
+                                        title = operation.name ?: "",
+                                        onClick = {
+                                            operation.onClickOrderOperationItem(
+                                                order,
+                                                title,
+                                                baseViewModel,
+                                                showOperationsDialog
+                                            ) {
+                                                val eventParameters = mapOf(
+                                                    "order_id" to order.id,
+                                                    "seller_id" to order.sellerData?.id,
+                                                    "buyer_id" to order.buyerData?.id
+                                                )
+
+                                                baseViewModel.analyticsHelper.reportEvent(
+                                                    operation.id ?: "",
+                                                    eventParameters
+                                                )
+                                                onUpdateItem()
+                                            }
+                                        }
+                                    )
+                                })
+                            }
+                            showMenu.value = true
+                        }
                     }
 
-                    if(showMenu.value) {
-                        getOrderOperations(
-                            order,
-                            baseViewModel,
-                            onUpdateMenuItem = {
-                                onUpdateItem()
-                            },
-                            onClose = {
-                                showMenu.value = false
-                            }
-                        )
-                    }
+                    PopUpMenu(
+                        openPopup = showMenu.value,
+                        menuList = menuList.value,
+                        onClosed = { showMenu.value = false }
+                    )
                 }
             }
         }
@@ -638,5 +671,15 @@ fun MyOrderItem(
                 )
             }
         }
+
+        OrderOperationsDialogs(
+            order = order,
+            title = title,
+            showDialog = showOperationsDialog,
+            viewModel = baseViewModel,
+            updateItem = {
+                onUpdateItem()
+            }
+        )
     }
 }

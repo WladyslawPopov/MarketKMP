@@ -44,7 +44,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
             setLoading(true)
             val buffer = withContext(Dispatchers.IO) {
                 when(settingsType){
-                    "set_watermark","set_block_rating" -> {
+                    "set_watermark","set_block_rating","app_settings" -> {
                         null
                     }
                     "forgot_password","reset_password" -> {

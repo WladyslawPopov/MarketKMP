@@ -3,19 +3,18 @@ package market.engine.widgets.dialogs
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Order
-import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -60,14 +59,11 @@ fun ReportDialog(
             else -> ""
         }
 
-        AlertDialog(
-            onDismissRequest = {
-                onDismiss()
-            },
-            title = {
-                Text(type, style = MaterialTheme.typography.titleSmall, color = colors.black)
-            },
-            text = {
+        CustomDialog(
+            isDialogOpen,
+            title = AnnotatedString(type),
+            containerColor = colors.white,
+            body = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.Start,
@@ -86,17 +82,8 @@ fun ReportDialog(
                     )
                 }
             },
-            confirmButton = {
-
-            },
-            containerColor = colors.white,
-            dismissButton = {
-                SimpleTextButton(
-                    text = stringResource(strings.closeWindow),
-                    backgroundColor = colors.inactiveBottomNavIconColor
-                ) {
-                    onDismiss()
-                }
+            onDismiss = {
+                onDismiss()
             }
         )
     }

@@ -86,7 +86,7 @@ import market.engine.core.network.networkObjects.Bids
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.onClickItem
+import market.engine.core.utils.onClickOfferOperationItem
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
@@ -302,7 +302,7 @@ fun OfferContent(
                 id = operation.id ?: "",
                 title = operation.name ?: "",
                 onClick = {
-                    operation.onClickItem(
+                    operation.onClickOfferOperationItem(
                         offer.parseToOfferItem(),
                         offerViewModel,
                         title,
@@ -599,72 +599,75 @@ fun OfferContent(
 
                                 item {
                                     //action seller mode and active promo options
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                    ) {
-                                        SeparatorLabel(stringResource(strings.actionsOffersParameterName))
-
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
+                                    if (offerState.value != OfferStates.SNAPSHOT) {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth()
+                                                .padding(dimens.smallPadding),
+                                            horizontalAlignment = Alignment.Start,
+                                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                         ) {
-                                            Column {
-                                                SimpleTextButton(
-                                                    text = stringResource(strings.actionsLabel),
-                                                    textStyle = MaterialTheme.typography.bodyMedium,
-                                                    textColor = colors.white,
-                                                    backgroundColor = colors.steelBlue,
-                                                    leadIcon = {
-                                                        Icon(
-                                                            painter = painterResource(drawables.shareMenuIcon),
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(dimens.smallIconSize),
-                                                            tint = colors.white
-                                                        )
-                                                    },
-                                                ) {
-                                                    isShowOptions.value = !isShowOptions.value
-                                                }
+                                            SeparatorLabel(stringResource(strings.actionsOffersParameterName))
 
-                                                PopUpMenu(
-                                                    openPopup = isShowOptions.value,
-                                                    onClosed = { isShowOptions.value = false },
-                                                    menuList = operationsList
-                                                )
-                                            }
-
-                                            Column {
-                                                val isOpenPopup =
-                                                    remember { mutableStateOf(false) }
-
-                                                if (isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
-                                                    PromoBuyBtn {
-                                                        isOpenPopup.value = true
-                                                    }
-                                                }
-
-                                                PopUpMenu(
-                                                    openPopup = isOpenPopup.value,
-                                                    menuList = menuPromoList,
-                                                    onClosed = { isOpenPopup.value = false }
-                                                )
-                                            }
-                                        }
-
-                                        if (offer.promoOptions != null && isMyOffer.value) {
-                                            PromoRow(
-                                                offer.promoOptions,
-                                                showName = true,
-                                                modifier = Modifier.padding(dimens.mediumPadding)
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .padding(dimens.smallPadding),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
+                                                Column {
+                                                    SimpleTextButton(
+                                                        text = stringResource(strings.actionsLabel),
+                                                        textStyle = MaterialTheme.typography.bodyMedium,
+                                                        textColor = colors.white,
+                                                        backgroundColor = colors.steelBlue,
+                                                        leadIcon = {
+                                                            Icon(
+                                                                painter = painterResource(drawables.shareMenuIcon),
+                                                                contentDescription = "",
+                                                                modifier = Modifier.size(dimens.smallIconSize),
+                                                                tint = colors.white
+                                                            )
+                                                        },
+                                                    ) {
+                                                        isShowOptions.value = !isShowOptions.value
+                                                    }
 
+                                                    PopUpMenu(
+                                                        openPopup = isShowOptions.value,
+                                                        onClosed = { isShowOptions.value = false },
+                                                        menuList = operationsList
+                                                    )
+                                                }
+
+                                                Column {
+                                                    val isOpenPopup =
+                                                        remember { mutableStateOf(false) }
+
+                                                    if (isMyOffer.value && offerState.value == OfferStates.ACTIVE) {
+                                                        PromoBuyBtn {
+                                                            isOpenPopup.value = true
+                                                        }
+                                                    }
+
+                                                    PopUpMenu(
+                                                        openPopup = isOpenPopup.value,
+                                                        menuList = menuPromoList,
+                                                        onClosed = { isOpenPopup.value = false }
+                                                    )
+                                                }
+                                            }
+
+                                            if (offer.promoOptions != null && isMyOffer.value) {
+                                                PromoRow(
+                                                    offer.promoOptions,
+                                                    showName = true,
+                                                    modifier = Modifier.padding(dimens.mediumPadding)
+                                                ) {
+
+                                                }
                                             }
                                         }
                                     }
-
                                 }
 
                                 item {

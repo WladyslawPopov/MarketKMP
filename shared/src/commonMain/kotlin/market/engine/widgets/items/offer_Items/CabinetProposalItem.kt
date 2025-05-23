@@ -31,7 +31,7 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.onClickItem
+import market.engine.core.utils.onClickOfferOperationItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.OfferMessagingDialog
@@ -132,7 +132,7 @@ fun MyProposalItem(
                                         id = operation.id ?: "",
                                         title = operation.name ?: "",
                                         onClick = {
-                                            operation.onClickItem(
+                                            operation.onClickOfferOperationItem(
                                                 offer,
                                                 baseViewModel,
                                                 title,

@@ -43,6 +43,7 @@ import market.engine.core.network.ServerResponse
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.functions.OperationsMethods
+import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.AdditionalData
 import market.engine.core.network.networkObjects.Conversations
@@ -77,6 +78,7 @@ open class BaseViewModel: ViewModel() {
     val apiService by lazy {  getKoin().get<APIService>() }
     val userRepository: UserRepository by lazy { getKoin().get() }
     val offerOperations : OfferOperations by lazy { getKoin().get() }
+    val orderOperations : OrderOperations by lazy { getKoin().get() }
     val categoryOperations : CategoryOperations by lazy { getKoin().get() }
     val conversationsOperations: ConversationsOperations by lazy { getKoin().get() }
     val operationsMethods: OperationsMethods by lazy { getKoin().get() }
@@ -310,6 +312,34 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun getOrderOperations(orderId : Long, onSuccess: (List<Operations>) -> Unit){
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) { orderOperations.getOperationsOrder(orderId) }
+            withContext(Dispatchers.Main){
+                val buf = res.success?.filter {
+                    it.id in listOf(
+                        "give_feedback_to_seller",
+                        "give_feedback_to_buyer",
+                        "provide_track_id",
+                        "set_comment",
+                        "unmark_as_parcel_sent",
+                        "mark_as_parcel_sent",
+                        "unmark_as_payment_sent",
+                        "mark_as_payment_received",
+                        "mark_as_archived_by_seller",
+                        "unmark_as_archived_by_seller",
+                        "enable_feedbacks",
+                        "disable_feedbacks",
+                        "remove_feedback_to_buyer",
+                        "mark_as_archived_by_buyer",
+                    )
+                }
+                if (buf != null) {
+                    onSuccess(buf)
+                }
+            }
+        }
+    }
 
     suspend fun getOfferById(offerId: Long) : Offer? {
         return try {

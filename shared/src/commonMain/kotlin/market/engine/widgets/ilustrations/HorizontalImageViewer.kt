@@ -51,7 +51,7 @@ fun HorizontalImageViewer(
             pageSize = PageSize.Fill,
             state = pagerState,
             snapPosition = SnapPosition.Center,
-            modifier = Modifier.weight(1f)
+            modifier = modifier.weight(1f)
         ) { index ->
             val imageLoadFailed = remember { mutableStateOf(false) }
             val loading = remember { mutableStateOf(true) }
@@ -60,7 +60,7 @@ fun HorizontalImageViewer(
                 modifier = Modifier.fillMaxSize().padding(dimens.smallPadding),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageLoadFailed.value || images[index]?.isNotBlank() == true) {
+                if (imageLoadFailed.value) {
                     getImage(images[index])
                 } else {
                     if (loading.value) {

@@ -30,7 +30,6 @@ import market.engine.core.data.items.DialogsData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.types.MessageType
-import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.functions.PrivateMessagesOperation
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.Dialog
@@ -47,7 +46,6 @@ import kotlin.uuid.Uuid
 
 class DialogsViewModel(
     private val privateMessagesOperation: PrivateMessagesOperation,
-    private val orderOperations: OrderOperations,
 ) : BaseViewModel() {
     private val dialogsPagingRepository: PagingRepository<Dialog> = PagingRepository()
 

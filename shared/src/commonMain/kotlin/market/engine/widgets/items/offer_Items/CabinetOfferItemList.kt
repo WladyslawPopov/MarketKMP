@@ -41,7 +41,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.onClickItem
+import market.engine.core.utils.onClickOfferOperationItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
@@ -178,7 +178,7 @@ fun CabinetOfferItemList(
                                     id = operation.id ?: "",
                                     title = operation.name ?: "",
                                     onClick = {
-                                        operation.onClickItem(
+                                        operation.onClickOfferOperationItem(
                                             item,
                                             baseViewModel,
                                             title,

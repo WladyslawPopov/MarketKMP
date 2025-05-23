@@ -21,6 +21,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
+import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.User
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
@@ -193,7 +194,7 @@ fun OfferItem.setNewParams(offer: Offer) {
     session = offer.session
 }
 
-fun Operations.onClickItem(
+fun Operations.onClickOfferOperationItem(
     item : OfferItem,
     baseViewModel : BaseViewModel,
     title : MutableState<AnnotatedString>,
@@ -272,6 +273,47 @@ fun Operations.onClickItem(
                     onUpdateOfferItem?.invoke(item.id)
                 },
                 errorCallback = {}
+            )
+        }
+    }
+}
+
+fun Operations.onClickOrderOperationItem(
+    item : Order,
+    title : MutableState<String>,
+    baseViewModel : BaseViewModel,
+    showOperationsDialog : MutableState<String>,
+    onUpdateOfferItem : () -> Unit,
+) {
+    when (id) {
+        "give_feedback_to_seller" -> {
+            title.value = name.toString()
+            showOperationsDialog.value = "give_feedback_to_seller"
+        }
+        "give_feedback_to_buyer" -> {
+            title.value = name.toString()
+            showOperationsDialog.value = "give_feedback_to_buyer"
+        }
+        "set_comment" -> {
+            title.value = name.toString()
+            showOperationsDialog.value = "set_comment"
+        }
+        "provide_track_id" -> {
+            title.value = name.toString()
+            showOperationsDialog.value = "provide_track_id"
+        }
+        else -> {
+            title.value = name.toString()
+            baseViewModel.postOperationFields(
+                item.id,
+                id ?: "",
+                "orders",
+                onSuccess = {
+                    onUpdateOfferItem()
+                },
+                errorCallback = {
+
+                }
             )
         }
     }

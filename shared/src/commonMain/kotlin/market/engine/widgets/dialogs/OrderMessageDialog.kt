@@ -1,9 +1,6 @@
 package market.engine.widgets.dialogs
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +16,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Order
 import market.engine.fragments.base.BaseViewModel
-import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 
@@ -97,61 +93,39 @@ fun OrderMessageDialog(
         }
     }
 
-    if (isShowDialog.value) {
-        AlertDialog(
-            onDismissRequest = {
-                onDismiss()
-                isShowDialog.value = false
-            },
-            title = {
-                Text(titleText, style = MaterialTheme.typography.titleSmall)
-            },
-            text = {
-                Column {
-                    OutlinedTextInputField(
-                        value = messageText.value,
-                        onValueChange = {
-                            messageText.value = it
-                        },
-                        label = stringResource(strings.messageLabel),
-                        maxSymbols = 2000,
-                        singleLine = false
-                    )
-                }
-            },
-            confirmButton = {
-                val isEnabled = messageText.value.text.isNotBlank()
-
-                SimpleTextButton(
-                    text = stringResource(strings.acceptAction),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
-                    enabled = isEnabled,
-                    textColor = colors.alwaysWhite
-                ) {
-                    baseViewModel.postOperationAdditionalData(
-                        order.id,
-                        "write_to_partner",
-                        "orders",
-                        hashMapOf("message" to JsonPrimitive(messageText.value.text)),
-                        onSuccess = {
-                            val dialogId = it?.operationResult?.additionalData?.conversationId
-                            onSuccess(dialogId)
-                            onDismiss()
-                        }
-                    )
-                }
-            },
-            containerColor = colors.white,
-            dismissButton = {
-                SimpleTextButton(
-                    text = stringResource(strings.closeWindow),
-                    backgroundColor = colors.steelBlue,
-                    textColor = colors.alwaysWhite
-                ) {
-                    isShowDialog.value = false
+    CustomDialog(
+        isShowDialog.value,
+        title = titleText,
+        containerColor = colors.white,
+        body = {
+            Column {
+                OutlinedTextInputField(
+                    value = messageText.value,
+                    onValueChange = {
+                        messageText.value = it
+                    },
+                    label = stringResource(strings.messageLabel),
+                    maxSymbols = 2000,
+                    singleLine = false
+                )
+            }
+        },
+        onDismiss = {
+            isShowDialog.value = false
+            onDismiss()
+        },
+        onSuccessful = {
+            baseViewModel.postOperationAdditionalData(
+                order.id,
+                "write_to_partner",
+                "orders",
+                hashMapOf("message" to JsonPrimitive(messageText.value.text)),
+                onSuccess = {
+                    val dialogId = it?.operationResult?.additionalData?.conversationId
+                    onSuccess(dialogId)
                     onDismiss()
                 }
-            }
-        )
-    }
+            )
+        }
+    )
 }
