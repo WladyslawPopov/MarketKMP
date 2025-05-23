@@ -530,7 +530,7 @@ open class BaseViewModel: ViewModel() {
             val found = withContext(Dispatchers.IO) {
                 userOperations.getUsersOperationsGetUserList(
                     UserData.login,
-                    hashMapOf("list_type" to list)
+                    hashMapOf("list_type" to JsonPrimitive(list))
                 ).success?.body?.data?.find { it.id == id }
             }
 
@@ -746,16 +746,16 @@ open class BaseViewModel: ViewModel() {
     fun getBlocList(type : String, onSuccess: (ArrayList<ListItem>) -> Unit) {
         viewModelScope.launch {
             val res =  withContext(Dispatchers.IO){
-                val body = HashMap<String,String>()
+                val body = HashMap<String, JsonElement>()
                 when(type){
                     "add_to_seller_blacklist" -> {
-                        body["list_type"] = "blacklist_sellers"
+                        body["list_type"] = JsonPrimitive("blacklist_sellers")
                     }
                     "add_to_buyer_blacklist" -> {
-                        body["list_type"] = "blacklist_buyers"
+                        body["list_type"] = JsonPrimitive("blacklist_buyers")
                     }
                     "add_to_whitelist" -> {
-                        body["list_type"] = "whitelist_buyers"
+                        body["list_type"] = JsonPrimitive("whitelist_buyers")
                     }
                 }
                 userOperations.getUsersOperationsGetUserList(UserData.login, body)

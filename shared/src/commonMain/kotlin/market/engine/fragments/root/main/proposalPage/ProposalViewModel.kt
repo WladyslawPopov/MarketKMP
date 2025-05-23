@@ -44,7 +44,7 @@ class ProposalViewModel: BaseViewModel() {
             try {
                 val response = withContext(Dispatchers.IO) {
                     _responseGetOffer.value = getOfferById(offerId) ?: Offer()
-                    apiService.getProposal(offerId)
+                    apiService.postOperation(offerId, "get_proposals", "offers", HashMap())
                 }
                 withContext(Dispatchers.Main) {
                     if (!response.success) {
@@ -104,9 +104,9 @@ class ProposalViewModel: BaseViewModel() {
             try {
                 val response = withContext(Dispatchers.IO) {
                     if (proposalType == ProposalType.MAKE_PROPOSAL)
-                        apiService.postMakeProposal(offerId, bodyProposals)
+                        apiService.postOperation(offerId,"make_proposal", "offers", bodyProposals)
                     else
-                        apiService.postActOnProposal(offerId, bodyProposals)
+                        apiService.postOperation(offerId,"act_on_proposal", "offers", bodyProposals)
                 }
 
                 withContext(Dispatchers.Main) {

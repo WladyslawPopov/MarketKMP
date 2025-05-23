@@ -36,7 +36,7 @@ class BasketViewModel: BaseViewModel() {
                 setLoading(true)
                 updateUserInfo()
                 val response = withContext(Dispatchers.IO) {
-                    apiService.postUserOperationsGetCartItems(UserData.login)
+                    apiService.postOperation(UserData.login, "get_cart_items", "users", emptyMap())
                 }
 
                 try {

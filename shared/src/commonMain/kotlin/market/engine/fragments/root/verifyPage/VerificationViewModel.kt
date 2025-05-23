@@ -37,8 +37,8 @@ class VerificationViewModel : BaseViewModel() {
         viewModelScope.launch {
             try {
                 setLoading(true)
-                val body = HashMap<String, String>()
-                body["code"] = code
+                val body = HashMap<String, JsonElement>()
+                body["code"] = JsonPrimitive(code)
                 val buffer = withContext(Dispatchers.IO) { userOperations.postUsersOperationsConfirmEmail(owner, body) }
                 val res = buffer.success
                 val resErr = buffer.error

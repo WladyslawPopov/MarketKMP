@@ -39,7 +39,7 @@ class ConversationsOperations(private val apiService : APIService) {
 
     suspend fun postMarkAsReadByInterlocutor(id: Long = 1L): Boolean {
         return try {
-            val response = apiService.postConversationsOperationsMarkAsReadByInterlocutor(id)
+            val response = apiService.postOperation(id, "mark_as_read_by_interlocutor", "conversations", emptyMap())
             response.errorCode == ""
         } catch (_: ServerErrorException) {
             false
@@ -50,7 +50,7 @@ class ConversationsOperations(private val apiService : APIService) {
 
     suspend fun postDeleteForInterlocutor(id: Long = 1L): String? {
         return try {
-            val response = apiService.postConversationsOperationsDeleteForInterlocutor(id)
+            val response = apiService.postOperation(id, "delete_for_interlocutor", "conversations", emptyMap())
             if (response.success) {
                 true.toString()
             } else {
@@ -65,7 +65,7 @@ class ConversationsOperations(private val apiService : APIService) {
 
     suspend fun postAddMessage(id: Long = 1L, body: JsonObject): String? {
         return try {
-            val response = apiService.postConversationOperationsAddMessage(id, body)
+            val response = apiService.postOperation(id, "add_message", "conversations", body)
             if (response.success) {
                 true.toString()
             } else {

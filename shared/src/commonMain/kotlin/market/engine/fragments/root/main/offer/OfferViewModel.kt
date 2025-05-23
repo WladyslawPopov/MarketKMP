@@ -413,6 +413,7 @@ class OfferViewModel(
                     onDismiss()
                 } else {
                     error?.let { onError(it) }
+                    onDismiss()
                 }
             }
         }

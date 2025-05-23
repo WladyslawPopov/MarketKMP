@@ -38,9 +38,6 @@ class APIService(private val client: HttpClient) {
     suspend fun getOurChoiceOffers(idOffer : Long): AppResponse =
         client.get("offers/get_featured_in_offers?offer_id=$idOffer").body()
 
-    suspend fun postPMOperationDeleteForInterlocutor(messagesId: Long): AppResponse =
-        client.post("private_messages/$messagesId/operations/delete_for_interlocutor").body()
-
     suspend fun getUsersOperationsResetPassword(): AppResponse =
         client.get("request_password_reset").body()
 
@@ -50,47 +47,8 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun getUsersOperationsAddressCards(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/get_address_cards").body()
-
-    suspend fun postUsersOperationsConfirmEmail(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/confirm_email") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOfferOperationsGetLeaderAndPrice(idOffer: Long, body: HashMap<String, String>): AppResponse =
-        client.post("offers/$idOffer/operations/get_leader_and_price") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUserOperationsGetAdditionalDataBeforeCreateOrder(idUser: Long, body: JsonObject): AppResponse =
-        client.post("users/$idUser/operations/get_additional_data_before_create_order") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postConversationOperationsAddMessage(dialogId: Long, body: JsonObject): AppResponse =
-        client.post("conversations/$dialogId/operations/add_message") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postConversationsOperationsMarkAsReadByInterlocutor(idConversation: Long): AppResponse =
-        client.post("conversations/$idConversation/operations/mark_as_read_by_interlocutor").body()
-
     suspend fun getConversation(idConversation: Long): AppResponse =
         client.get("conversations/$idConversation").body()
-
-    suspend fun postConversationsOperationsDeleteForInterlocutor(idConversation: Long): AppResponse =
-        client.post("conversations/$idConversation/operations/delete_for_interlocutor").body()
-
-    suspend fun getOfferOperations(idOffer: Long, tag : String): AppResponse =
-        client.get("offers/$idOffer/operations?tag=$tag").body()
-
-    suspend fun getOffersListItemOperations(idOffer: Long): AppResponse =
-        client.get("offers_lists/$idOffer/operations").body()
 
     suspend fun getOffersListItem(id: Long): AppResponse =
         client.get("offers_lists/$id").body()
@@ -98,8 +56,14 @@ class APIService(private val client: HttpClient) {
     suspend fun getOrderOperations(idOrder: Long): AppResponse =
         client.get("orders/$idOrder/operations").body()
 
-    suspend fun postUserOperationsGetCartItems(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/get_cart_items").body()
+    suspend fun getSubscriptionOperations(idSub: Long): AppResponse =
+        client.get("subscriptions/$idSub/operations").body()
+
+    suspend fun getOfferOperations(idOffer: Long, tag : String): AppResponse =
+        client.get("offers/$idOffer/operations?tag=$tag").body()
+
+    suspend fun getOffersListItemOperations(idOffer: Long): AppResponse =
+        client.get("offers_lists/$idOffer/operations").body()
 
     suspend fun getOrder(idOrder: Long): AppResponse =
         client.get("orders/$idOrder").body()
@@ -152,12 +116,6 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postCrateOrder(idUser: Long, body: JsonObject): AppResponse =
-        client.post("users/$idUser/operations/create_new_order") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
     suspend fun postAuthExternal(body: HashMap<String, String>): AppResponse =
         client.post("auth_external") {
             contentType(ContentType.Application.Json)
@@ -190,29 +148,4 @@ class APIService(private val client: HttpClient) {
 
     suspend fun getRegistration(): AppResponse =
         client.get("registration").body()
-
-    suspend fun getProposal(idOffer: Long): AppResponse =
-        client.post("offers/$idOffer/operations/get_proposals").body()
-
-    suspend fun postMakeProposal(idOffer: Long, body: HashMap<String, JsonElement>): AppResponse =
-        client.post("offers/$idOffer/operations/make_proposal") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postActOnProposal(idOffer: Long, body: HashMap<String, JsonElement>): AppResponse =
-        client.post("offers/$idOffer/operations/act_on_proposal") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun getSubscriptionOperations(idSub: Long): AppResponse =
-        client.get("subscriptions/$idSub/operations").body()
-
-    suspend fun postUserList(idUser: Long, body: HashMap<String, String>): AppResponse {
-        return client.post("users/$idUser/operations/get_user_list") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-    }
 }

@@ -2,6 +2,7 @@ package market.engine.core.network.functions
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
@@ -12,7 +13,6 @@ import market.engine.core.network.networkObjects.PayloadExistence
 import market.engine.core.network.networkObjects.User
 import market.engine.core.utils.deserializePayload
 import market.engine.core.network.APIService
-import kotlinx.serialization.json.JsonObject
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.ListData
 import market.engine.core.network.networkObjects.OperationResult
@@ -36,9 +36,9 @@ class UserOperations(val apiService: APIService) {
         }
     }
 
-    suspend fun getUsersOperationsGetUserList(id: Long = 1L, body: HashMap<String, String>): ServerResponse<BodyPayload<ListData>> {
+    suspend fun getUsersOperationsGetUserList(id: Long = 1L, body: HashMap<String, JsonElement>): ServerResponse<BodyPayload<ListData>> {
         return try {
-            val response = apiService.postUserList(id, body)
+            val response = apiService.postOperation(id,"get_user_list", "users", body)
             try {
                 val serializer = BodyPayload.serializer(ListData.serializer())
                 val payload : BodyPayload<ListData> = deserializePayload(response.payload,serializer)
@@ -54,12 +54,12 @@ class UserOperations(val apiService: APIService) {
     }
 
     suspend fun postUserOperationsGetAdditionalDataBeforeCreateOrder(
-        id: Long?,
+        id: Long,
         body: JsonObject
     ): ServerResponse<PayloadExistence<AdditionalDataForNewOrder>> {
         return try {
             val response =
-                apiService.postUserOperationsGetAdditionalDataBeforeCreateOrder(id ?: 1L, body)
+                apiService.postOperation(id, "get_additional_data_before_create_order", "users", body)
             try {
                 val serializer = PayloadExistence.serializer(AdditionalDataForNewOrder.serializer())
                 val payload =
@@ -79,7 +79,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun getUsersOperationsAddressCards(id: Long = 1L): ServerResponse<BodyPayload<AddressCards>> {
         return try {
-            val response = apiService.getUsersOperationsAddressCards(id)
+            val response = apiService.getOperationFields(id, "get_address_cards", "users")
             try {
                 val serializer = BodyPayload.serializer(AddressCards.serializer())
                 val payload : BodyPayload<AddressCards> = deserializePayload(response.payload, serializer)
@@ -130,10 +130,10 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun postUsersOperationsConfirmEmail(
         id: Long = 1L,
-        body: HashMap<String, String>
+        body: HashMap<String, JsonElement>
     ): ServerResponse<BodyPayload<BodyObj>> {
         return try {
-            val response = apiService.postUsersOperationsConfirmEmail(id, body)
+            val response = apiService.postOperation(id, "confirm_email", "users", body)
             try {
                 val serializer = BodyPayload.serializer(BodyObj.serializer())
                 val payload =

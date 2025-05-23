@@ -8,7 +8,7 @@ class PrivateMessagesOperation(private val apiService : APIService) {
 
     suspend fun postDeleteForInterlocutor(id: Long=1L): ServerResponse<Boolean> {
         try {
-            val response = apiService.postPMOperationDeleteForInterlocutor(id)
+            val response = apiService.postOperation(id, "delete_for_interlocutor", "private_messages", emptyMap())
             return ServerResponse(response.success)
         }
         catch (e : ServerErrorException){

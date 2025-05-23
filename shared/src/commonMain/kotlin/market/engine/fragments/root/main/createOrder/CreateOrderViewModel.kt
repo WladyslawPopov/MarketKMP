@@ -183,7 +183,7 @@ class CreateOrderViewModel: BaseViewModel() {
             try {
                 setLoading(true)
                 val response = withContext(Dispatchers.IO) {
-                   apiService.postCrateOrder(UserData.login, jsonBody)
+                   apiService.postOperation(UserData.login,"create_new_order", "users", jsonBody)
                 }
 
                 withContext(Dispatchers.Main) {

@@ -2,6 +2,7 @@ package market.engine.core.network.functions
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
@@ -56,8 +57,11 @@ class OfferOperations(private val apiService: APIService) {
 
     suspend fun postGetLeaderAndPrice(id: Long = 1L, version: JsonElement?): ServerResponse<BodyPayload<BodyObj>> {
         return try {
-            val body = HashMap<String, String>().apply { put("version", version?.jsonPrimitive?.content ?: "") }
-            val response = apiService.postOfferOperationsGetLeaderAndPrice(id, body)
+            val body = HashMap<String, JsonElement>().apply {
+                put("version", version ?: JsonPrimitive(1))
+            }
+            val response = apiService.postOperation(id, "get_leader_and_price", "offers", body)
+
             try {
                 val serializer = BodyPayload.serializer(BodyObj.serializer())
                 val payload =
@@ -68,7 +72,6 @@ class OfferOperations(private val apiService: APIService) {
             }catch (_ : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
-
         } catch (e: ServerErrorException) {
             ServerResponse(error = e)
         } catch (e: Exception) {
