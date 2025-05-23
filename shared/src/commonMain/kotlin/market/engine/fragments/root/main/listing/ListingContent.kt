@@ -273,7 +273,7 @@ fun ListingContent(
                                 listingData.value,
                                 searchData.value,
                                 onSuccess = {},
-                                onError = { es ->
+                                errorCallback = { es ->
                                     errorString.value = es
                                 }
                             )

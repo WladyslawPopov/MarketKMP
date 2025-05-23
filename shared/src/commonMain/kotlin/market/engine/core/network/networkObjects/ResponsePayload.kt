@@ -47,7 +47,7 @@ data class BodyOperationResult<T>(
 data class DynamicPayload<T>(
     @SerialName("title") val title: String? = null,
     @SerialName("description") val description: String? = null,
-    @SerialName("global_error_message") val globalErrorMessage: String? = null,
+    @SerialName("global_error_message") var globalErrorMessage: String? = null,
     @SerialName("fields") val fields: ArrayList<Fields> = arrayListOf(),
     @SerialName("status") val status: String? = null,
     @SerialName("recipe") val recipe: DynamicPayload<OperationResult>? = null,

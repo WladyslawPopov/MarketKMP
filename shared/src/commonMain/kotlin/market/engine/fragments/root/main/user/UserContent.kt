@@ -182,7 +182,7 @@ fun UserContent(
                                         onSuccess = {
                                             component.updateUserInfo()
                                         },
-                                        onError = { es ->
+                                        errorCallback = { es ->
                                             errorString.value = es
                                         }
                                     )

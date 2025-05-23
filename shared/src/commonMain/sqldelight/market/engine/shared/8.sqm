@@ -1,7 +1,6 @@
--- Удаление старой таблицы, если она существует
+
 DROP TABLE IF EXISTS notificationsHistory;
 
--- Создание новой таблицы с актуальной схемой
 CREATE TABLE IF NOT EXISTS notificationsHistory (
     id TEXT NOT NULL PRIMARY KEY,
     owner INTEGER NOT NULL,
@@ -13,3 +12,14 @@ CREATE TABLE IF NOT EXISTS notificationsHistory (
     isRead INTEGER NOT NULL,
     UNIQUE(id)
 );
+
+DROP TABLE IF EXISTS favoritesTabListItem;
+
+CREATE TABLE IF NOT EXISTS favoritesTabListItem (
+    id INTEGER NOT NULL PRIMARY KEY,
+    itemId INTEGER NOT NULL,
+    position INTEGER NOT NULL,
+    owner INTEGER NOT NULL,
+    UNIQUE (itemId, owner)
+);
+

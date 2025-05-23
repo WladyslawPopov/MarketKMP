@@ -33,7 +33,7 @@ class CreateSubscriptionViewModel : BaseViewModel() {
         viewModelScope.launch {
             val buffer = withContext(Dispatchers.IO){
                 if(editId == null)
-                    userOperations.getUserOperationsCreateSubscription(UserData.login)
+                    operationsMethods.getOperationFields(UserData.login, "create_subscription", "users")
                 else operationsMethods.getOperationFields(editId, "edit_subscription", "subscriptions")
             }
             val payload = buffer.success

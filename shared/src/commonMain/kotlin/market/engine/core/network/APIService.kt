@@ -38,9 +38,6 @@ class APIService(private val client: HttpClient) {
     suspend fun getOurChoiceOffers(idOffer : Long): AppResponse =
         client.get("offers/get_featured_in_offers?offer_id=$idOffer").body()
 
-    suspend fun postUsersOperationDeleteCart(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/delete_cart").body()
-
     suspend fun postUnMarkAsParcelSent(idOrder: Long): AppResponse =
         client.post("orders/$idOrder/operations/unmark_as_parcel_sent").body()
 
@@ -116,105 +113,6 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsAddItemToCart(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/add_item_to_cart") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetAvatar(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/set_avatar") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetLogin(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/set_login") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetBiddingStep(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/set_bidding_step") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetVacation(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/set_vacation") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetWatermarkEnabled(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/enable_watermark") {
-            contentType(ContentType.Application.Json)
-        }.body()
-
-    suspend fun postUsersOperationsSetWatermarkDisabled(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/disable_watermark") {
-            contentType(ContentType.Application.Json)
-        }.body()
-
-    suspend fun getUsersOperationsSetLogin(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_login").body()
-
-    suspend fun getUsersOperationsSetEmail(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/request_email_change").body()
-
-    suspend fun getUsersOperationsSetPhone(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/request_phone_verification").body()
-
-    suspend fun getUsersOperationsSetMessageToBuyer(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_message_to_buyers").body()
-
-    suspend fun getSettingsList(idUser: Long, list : String?): AppResponse =
-        client.get("users/$idUser/operations/$list").body()
-
-    suspend fun getUsersOperationsSetAutoFeedback(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_auto_feedback").body()
-    suspend fun getUsersOperationsSetBiddingStep(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_bidding_step").body()
-
-    suspend fun getUsersOperationsSetVacation(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_vacation").body()
-
-    suspend fun getUsersOperationsSetOutgoingAddress(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/save_outgoing_address").body()
-
-    suspend fun getUsersOperationsAddressCards(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/get_address_cards").body()
-
-    suspend fun getUsersOperationsSetAddressCards(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/save_address_cards").body()
-
-    suspend fun postUsersOperationsSetAddressCards(idUser: Long, body: JsonObject): AppResponse =
-        client.post("users/$idUser/operations/save_address_cards") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetOutgoingAddress(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/save_outgoing_address") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetMessageToBuyer(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/set_message_to_buyers") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetPhone(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/request_phone_verification") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun getUsersOperationsSetPassword(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_password").body()
-
     suspend fun getUsersOperationsResetPassword(): AppResponse =
         client.get("request_password_reset").body()
 
@@ -224,83 +122,11 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUsersOperationsSetPassword(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/set_password") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetEmail(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/request_email_change") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetAutoFeedback(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/set_auto_feedback") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun getUsersOperationsEditAboutMe(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/edit_about_me").body()
+    suspend fun getUsersOperationsAddressCards(idUser: Long): AppResponse =
+        client.post("users/$idUser/operations/get_address_cards").body()
 
     suspend fun postUsersOperationsConfirmEmail(idUser: Long, body: Map<String, String>): AppResponse =
         client.post("users/$idUser/operations/confirm_email") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsRAC(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/request_additional_confirmation") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsEACC(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/enter_additional_confirmation_code") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsVerifyPhone(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/verify_phone") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetDefaultAddressCard(idUser: Long, body: Map<String, Long>): AppResponse =
-        client.post("users/$idUser/operations/set_default_address_card") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsDeleteAddressCard(idUser: Long, body: Map<String, Long>): AppResponse =
-        client.post("users/$idUser/operations/remove_address_card") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsEditAboutMe(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/edit_about_me") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postUsersOperationsSetGender(idUser: Long, body: Map<String, String>): AppResponse =
-        client.post("users/$idUser/operations/set_gender") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun getUsersOperationsSetGender(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/set_gender").body()
-
-    suspend fun postUsersOperationsUnsetAvatar(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/unset_avatar").body()
-
-    suspend fun postUsersOperationsRemoveManyItemsFromCart(idUser: Long, body: JsonObject): AppResponse =
-        client.post("users/$idUser/operations/remove_many_items_from_cart") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
@@ -386,15 +212,6 @@ class APIService(private val client: HttpClient) {
             parameter("ipp", ipp)
         }.body()
 
-    suspend fun getUsersOperationsCreateBlankOfferList(idUser: Long): AppResponse =
-        client.get("/users/$idUser/operations/create_blank_offer_list").body()
-
-    suspend fun postUsersOperationsCreateBlankOfferList(idUser: Long, body: Map<String, JsonElement>): AppResponse =
-        client.post("/users/$idUser/operations/create_blank_offer_list") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
     suspend fun getOperationFields(id: Long, operation: String, method: String): AppResponse =
         client.get("/$method/$id/operations/$operation").body()
 
@@ -452,16 +269,6 @@ class APIService(private val client: HttpClient) {
     suspend fun getRegistration(): AppResponse =
         client.get("registration").body()
 
-    suspend fun postUsersOperationsSetBlockRatingEnabled(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/enable_block_rating") {
-            contentType(ContentType.Application.Json)
-        }.body()
-
-    suspend fun postUsersOperationsSetBlockRatingDisabled(idUser: Long): AppResponse =
-        client.post("users/$idUser/operations/disable_block_rating") {
-            contentType(ContentType.Application.Json)
-        }.body()
-
     suspend fun getProposal(idOffer: Long): AppResponse =
         client.post("offers/$idOffer/operations/get_proposals").body()
 
@@ -477,34 +284,11 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
-    suspend fun postUserCreateSubscription(idUser: Long, body: HashMap<String, JsonElement>): AppResponse =
-        client.post("users/$idUser/operations/create_subscription") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun getUserCreateSubscription(idUser: Long): AppResponse =
-        client.get("users/$idUser/operations/create_subscription").body()
-
     suspend fun getSubscriptionOperations(idSub: Long): AppResponse =
         client.get("subscriptions/$idSub/operations").body()
 
     suspend fun postUserList(idUser: Long, body: HashMap<String, String>): AppResponse {
         return client.post("users/$idUser/operations/get_user_list") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-    }
-
-    suspend fun postUsersOperationRemoveFromList(idUser: Long, body: HashMap<String, JsonElement>, list : String? = null): AppResponse {
-        return client.post("users/$idUser/operations/remove_from_$list") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-    }
-
-    suspend fun postUsersOperationAddList(idUser: Long, body: HashMap<String, JsonElement>, list : String? = null): AppResponse {
-        return client.post("users/$idUser/operations/$list") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()

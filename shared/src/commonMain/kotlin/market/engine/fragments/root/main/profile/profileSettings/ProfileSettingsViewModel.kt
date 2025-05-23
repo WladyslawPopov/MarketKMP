@@ -9,8 +9,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.compressImage
-import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
@@ -34,8 +35,14 @@ class ProfileSettingsViewModel : BaseViewModel() {
     }
 
     fun getGenderSelects(){
-        viewModelScope.launch(Dispatchers.IO) {
-            val buffer = userOperations.getUsersOperationsSetGender(UserData.login)
+        viewModelScope.launch {
+            val buffer = withContext(Dispatchers.IO) {
+                operationsMethods.getOperationFields(
+                    UserData.login,
+                    "set_gender",
+                    "users",
+                )
+            }
             val payload = buffer.success
             val resErr = buffer.error
             withContext(Dispatchers.Main) {
@@ -52,30 +59,36 @@ class ProfileSettingsViewModel : BaseViewModel() {
 
     fun setGender(gender : String){
         if (UserData.token != ""){
-            val body = HashMap<String,String>()
+            val body = HashMap<String, JsonElement>()
             val i = genderSelects.value.find { it.name == gender}
             if (i != null){
-                body["new_gender"] = i.code.toString()
+                body["new_gender"] = i.code ?: JsonPrimitive(0)
             }
 
-            viewModelScope.launch(Dispatchers.IO){
-                val buffer = userOperations.postUsersOperationsSetGender(UserData.login,body)
+            viewModelScope.launch {
+                val buffer = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperation(
+                        UserData.login,
+                        "set_gender",
+                        "users",
+                        body
+                    )
+                }
+
                 val res = buffer.success
                 val error = buffer.error
 
                 withContext(Dispatchers.Main){
                     if (res != null){
-                        if (res.success){
-                            updateUserInfo()
-                            showToast(
-                                successToastItem.copy(
-                                    message = getString(strings.operationSuccess)
-                                )
+                        updateUserInfo()
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
                             )
-                        }else{
-                            if (error != null){
-                                onError(error)
-                            }
+                        )
+                    } else {
+                        if (error != null){
+                            onError(error)
                         }
                     }
                 }
@@ -88,35 +101,32 @@ class ProfileSettingsViewModel : BaseViewModel() {
             if (UserData.token != "") {
                 val barr = file.readBytes()
                 val resizeImage = compressImage(barr, 60)
-                val body = HashMap<String, String>()
-                body["new_avatar"] = resizeImage.encodeToBase64()
+                val body = HashMap<String, JsonElement>()
+                body["new_avatar"] = JsonPrimitive(resizeImage.encodeToBase64())
 
-                withContext(Dispatchers.IO) {
-                    val buffer = userOperations.postUsersOperationsSetAvatar(UserData.login, body)
-                    val res = buffer.success
-                    val error = buffer.error
+                val buffer = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperation(
+                        UserData.login,
+                        "set_avatar",
+                        "users",
+                        body
+                    )
+                }
 
-                    withContext(Dispatchers.Main) {
-                        if (res != null) {
-                            if (res.success) {
-                                updateUserInfo()
-                                showToast(
-                                    successToastItem.copy(
-                                        message = getString(strings.operationSuccess)
-                                    )
-                                )
-                            } else {
-                                showToast(
-                                    errorToastItem.copy(
-                                        message = res.humanMessage
-                                            ?: getString(strings.operationSuccess)
-                                    )
-                                )
-                            }
-                        } else {
-                            if (error != null) {
-                                onError(error)
-                            }
+                val res = buffer.success
+                val error = buffer.error
+
+                withContext(Dispatchers.Main) {
+                    if (res != null) {
+                        updateUserInfo()
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                    } else {
+                        if (error != null) {
+                            onError(error)
                         }
                     }
                 }
@@ -127,33 +137,27 @@ class ProfileSettingsViewModel : BaseViewModel() {
     fun deleteAvatar(){
         if(UserData.token != "") {
             viewModelScope.launch {
-                withContext(Dispatchers.IO) {
-                    val buffer = userOperations.postUsersOperationsUnsetAvatar(UserData.login)
-                    val res = buffer.success
-                    val error = buffer.error
+                val buffer = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperation(
+                        UserData.login,
+                        "unset_avatar",
+                        "users"
+                    )
+                }
+                val res = buffer.success
+                val error = buffer.error
 
-                    withContext(Dispatchers.Main) {
-                        if (res != null) {
-                            if (res.success) {
-                                updateUserInfo()
-                                showToast(
-                                    successToastItem.copy(
-                                        message = getString(strings.operationSuccess)
-                                    )
-                                )
-                            } else {
-                                showToast(
-                                    errorToastItem.copy(
-                                        message = res.humanMessage
-                                            ?: getString(strings.operationSuccess)
-                                    )
-                                )
-                            }
-
-                        } else {
-                            if (error != null) {
-                                onError(error)
-                            }
+                withContext(Dispatchers.Main) {
+                    if (res != null) {
+                        updateUserInfo()
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                    } else {
+                        if (error != null) {
+                            onError(error)
                         }
                     }
                 }

@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import market.engine.common.AnalyticsFactory
 import market.engine.common.getFileUpload
 import market.engine.core.data.baseFilters.LD
@@ -338,10 +337,14 @@ open class BaseViewModel: ViewModel() {
         listingData : LD,
         searchData : SD,
         onSuccess: () -> Unit,
-        onError: (String) -> Unit
+        errorCallback: (String) -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val response = userOperations.getUserOperationsCreateSubscription(UserData.login)
+            val response = operationsMethods.getOperationFields(
+                UserData.login,
+                "create_subscription",
+                "users"
+            )
 
             val eventParameters : ArrayList<Pair<String, Any?>> = arrayListOf(
                 "buyer_id" to UserData.login.toString(),
@@ -415,19 +418,27 @@ open class BaseViewModel: ViewModel() {
                 }
             }
 
-            val res = userOperations.postUserOperationsCreateSubscription(UserData.login, body)
+            val res = operationsMethods.postOperation(
+                UserData.login,
+                "create_subscription",
+                "users",
+                body
+            )
+
+            val buf = res.success
+            val err = res.error
 
             withContext(Dispatchers.Main) {
-                if (res.success?.success == true) {
+                if (buf != null) {
                     showToast(
                         successToastItem.copy(
-                            message = res.success?.humanMessage ?: getString(strings.operationSuccess)
+                            message = res.success?.operationResult?.message ?: getString(strings.operationSuccess)
                         )
                     )
                     delay(1000)
                     onSuccess()
                 }else {
-                    onError(res.success?.humanMessage ?: "")
+                    errorCallback(err?.humanMessage ?: "")
                 }
             }
         }
@@ -522,7 +533,11 @@ open class BaseViewModel: ViewModel() {
 
     suspend fun getDeliveryFields(): ArrayList<Fields>? {
         val res = withContext(Dispatchers.IO) {
-            userOperations.getUsersOperationsSetAddressCards(UserData.login)
+            operationsMethods.getOperationFields(
+                UserData.login,
+                "save_address_cards",
+                "users"
+            )
         }
         return withContext(Dispatchers.Main){
             val payload = res.success
@@ -540,10 +555,16 @@ open class BaseViewModel: ViewModel() {
 
     fun updateDefaultCard(card: DeliveryAddress, onSuccess: () -> Unit) {
         viewModelScope.launch {
+            val b = HashMap<String, JsonElement>()
+            b["id_as_ts"] = JsonPrimitive(card.id)
+
             val res = withContext(Dispatchers.IO) {
-                val b = HashMap<String, Long>()
-                b["id_as_ts"] = card.id
-                userOperations.postUsersOperationsSetAddressCardsDefault(UserData.login, b)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "save_address_cards",
+                    "users",
+                    b
+                )
             }
 
             withContext(Dispatchers.Main) {
@@ -551,23 +572,14 @@ open class BaseViewModel: ViewModel() {
                 val err = res.error
 
                 if (buffer != null) {
-                    if (buffer.success) {
-
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                        delay(2000)
+                    )
+                    delay(2000)
 
-                        onSuccess()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = buffer.humanMessage ?: getString(strings.operationFailed)
-                            )
-                        )
-                    }
+                    onSuccess()
                 } else {
                     err?.let { onError(it) }
                 }
@@ -577,30 +589,28 @@ open class BaseViewModel: ViewModel() {
 
     fun updateDeleteCard(card: DeliveryAddress, onSuccess: () -> Unit) {
         viewModelScope.launch {
+            val b = HashMap<String, JsonElement>()
+            b["id_as_ts"] = JsonPrimitive(card.id)
+
             val res = withContext(Dispatchers.IO) {
-                val b = HashMap<String, Long>()
-                b["id_as_ts"] = card.id
-                userOperations.postUsersOperationsDeleteAddressCards(UserData.login, b)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "remove_address_card",
+                    "users",
+                    b
+                )
             }
             withContext(Dispatchers.Main) {
                 val buffer = res.success
                 val err = res.error
 
                 if (buffer != null) {
-                    if (buffer.success) {
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                        onSuccess()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = buffer.humanMessage ?: getString(strings.operationFailed)
-                            )
-                        )
-                    }
+                    )
+                    onSuccess()
                 } else {
                     err?.let { onError(it) }
                 }
@@ -616,28 +626,32 @@ open class BaseViewModel: ViewModel() {
     fun saveDeliveryCard(deliveryFields: List<Fields>, cardId: Long?, onSaved: () -> Unit, onError: (List<Fields>) -> Unit) {
         setLoading(true)
         viewModelScope.launch {
-            val jsonBody = buildJsonObject {
-                deliveryFields.forEach { field ->
+            val jsonBody : HashMap<String, JsonElement> = hashMapOf()
+            deliveryFields.forEach { field ->
                     when (field.widgetType) {
                         "input" -> {
                             if (field.data != null) {
-                                put(field.key.toString(), field.data!!)
+                                jsonBody.put(field.key.toString(), field.data!!)
                             }
                         }
 
                         "hidden" -> {
                             if (cardId != null) {
-                                put(field.key.toString(), JsonPrimitive(cardId))
+                                jsonBody.put(field.key.toString(), JsonPrimitive(cardId))
                             }
                         }
 
                         else -> {}
                     }
                 }
-            }
 
             val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsSetAddressCards(UserData.login, jsonBody)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "save_address_cards",
+                    "users",
+                    jsonBody
+                )
             }
 
             withContext(Dispatchers.Main) {
@@ -746,11 +760,16 @@ open class BaseViewModel: ViewModel() {
             body["identity"] = JsonPrimitive(id)
 
             val res = withContext(Dispatchers.IO){
-                userOperations.postUsersOperationRemoveFromList(UserData.login, body, list)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "remove_from_$list",
+                    "users",
+                    body
+                )
             }
 
             withContext(Dispatchers.Main) {
-                if (res.success == true){
+                if (res.success != null){
                     showToast(
                         successToastItem.copy(
                             message = getString(strings.operationSuccess)
@@ -769,7 +788,11 @@ open class BaseViewModel: ViewModel() {
     fun enabledWatermark(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsSetWatermarkEnabled(UserData.login)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "enable_watermark",
+                    "users"
+                )
             }
             withContext(Dispatchers.Main) {
                 if (res.success?.status == "operation_success") {
@@ -806,7 +829,11 @@ open class BaseViewModel: ViewModel() {
     fun disabledWatermark(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsSetWatermarkDisabled(UserData.login)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "disable_watermark",
+                    "users"
+                )
             }
             withContext(Dispatchers.Main) {
                 if (res.success?.status == "operation_success") {
@@ -843,7 +870,11 @@ open class BaseViewModel: ViewModel() {
     fun enabledBlockRating(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsSetBlockRatingEnabled(UserData.login)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "enable_block_rating",
+                    "users"
+                )
             }
             withContext(Dispatchers.Main) {
                 if (res.success?.status == "operation_success") {
@@ -880,7 +911,11 @@ open class BaseViewModel: ViewModel() {
     fun disabledBlockRating(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsSetBlockRatingDisabled(UserData.login)
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "disable_block_rating",
+                    "users"
+                )
             }
             withContext(Dispatchers.Main) {
                 if (res.success?.status == "operation_success") {
@@ -1122,7 +1157,11 @@ open class BaseViewModel: ViewModel() {
     fun getFieldsCreateBlankOfferList(onSuccess: (title: String, List<Fields>) -> Unit){
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) {
-                userOperations.getCreateBlankOfferList(UserData.login)
+                operationsMethods.getOperationFields(
+                    UserData.login,
+                    "create_blank_offer_list",
+                    "users"
+                )
             }
 
             withContext(Dispatchers.Main) {
@@ -1162,6 +1201,31 @@ open class BaseViewModel: ViewModel() {
                             )
                         )
                     }
+                }
+            }
+        }
+    }
+
+    fun addOfferToBasket(body : HashMap<String, JsonElement>, onSuccess: (String) -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "add_item_to_cart",
+                    "users",
+                    body
+                )
+            }
+
+            val buffer = res.success
+            val error = res.error
+
+            if (buffer != null) {
+                updateUserInfo()
+                onSuccess(buffer.operationResult?.message ?: getString(strings.operationSuccess))
+            } else {
+                if (error != null) {
+                    onError(error)
                 }
             }
         }

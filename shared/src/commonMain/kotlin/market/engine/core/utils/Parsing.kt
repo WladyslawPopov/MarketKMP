@@ -242,7 +242,7 @@ fun Operations.onClickItem(
             goToProposal(ProposalType.MAKE_PROPOSAL)
         }
 
-        name ==  "cancel_all_bids" -> {
+        name == "cancel_all_bids" -> {
             goToDynamicSettings("cancel_all_bids", item.id)
         }
 

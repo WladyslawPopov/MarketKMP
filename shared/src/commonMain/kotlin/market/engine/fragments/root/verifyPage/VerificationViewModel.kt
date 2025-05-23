@@ -6,6 +6,8 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -37,26 +39,32 @@ class VerificationViewModel : BaseViewModel() {
                 setLoading(true)
                 val body = HashMap<String, String>()
                 body["code"] = code
-                val buffer = userOperations.postUsersOperationsConfirmEmail(owner, body)
+                val buffer = withContext(Dispatchers.IO) { userOperations.postUsersOperationsConfirmEmail(owner, body) }
                 val res = buffer.success
                 val resErr = buffer.error
 
                 if (res != null) {
                     if (res.status == "ok") {
                         if (res.body != null) {
-                            val bodySMS = HashMap<String, String>()
-                            bodySMS["action"] = "change_email"
-                            val buf = userOperations.postUsersOperationsRAC(
-                                owner,
-                                bodySMS
-                            )
+                            val bodySMS = HashMap<String, JsonElement>()
+                            bodySMS["action"] = JsonPrimitive("change_email")
+
+                            val buf = withContext(Dispatchers.IO) {
+                                operationsMethods.postOperation(
+                                    owner,
+                                    "request_additional_confirmation",
+                                    "users",
+                                    bodySMS
+                                )
+                            }
+
                             val resSMS = buf.success
                             val resSmsErr = buf.error
                             withContext(Dispatchers.Main) {
                                 if (resSMS != null) {
                                     showToast(
                                         successToastItem.copy(
-                                            message = resSMS.humanMessage ?: ""
+                                            message = resSMS.operationResult?.message ?: getString(strings.operationSuccess)
                                         )
                                     )
                                     action.value = "change_email"
@@ -108,19 +116,24 @@ class VerificationViewModel : BaseViewModel() {
 
     private fun getSetPassword(owner: Long?) {
         viewModelScope.launch {
-            val body = HashMap<String, String>()
-            body["action"] = "change_password"
-//            if (code != null) {
-//                body["code"] = code
-//            }
-            val buffer = userOperations.postUsersOperationsRAC(owner ?: UserData.login, body)
+            val body = HashMap<String, JsonElement>()
+            body["action"] = JsonPrimitive("change_password")
+
+            val buffer = withContext(Dispatchers.IO) {
+                operationsMethods.postOperation(
+                    owner ?: UserData.login,
+                    "request_additional_confirmation",
+                    "users",
+                    body
+                )
+            }
             val res = buffer.success
             val resErr = buffer.error
             withContext(Dispatchers.Main) {
                 if (res != null) {
                     showToast(
                         successToastItem.copy(
-                            message = res.humanMessage ?: ""
+                            message = res.operationResult?.message ?: getString(strings.operationSuccess)
                         )
                     )
                 }else{
@@ -138,43 +151,39 @@ class VerificationViewModel : BaseViewModel() {
         viewModelScope.launch {
             setLoading(true)
 
-            val bodySMS = HashMap<String, String>()
-            bodySMS["action"] = "change_email"
-            bodySMS["code"] = code
+            val bodySMS = HashMap<String, JsonElement>()
+            bodySMS["action"] = JsonPrimitive("change_email")
+            bodySMS["code"] = JsonPrimitive(code)
 
             val buf = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsEACC(
-                    UserData.login, bodySMS
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "enter_additional_confirmation_code",
+                    "users",
+                    bodySMS
                 )
             }
             val resE = buf.success
             val resEerr = buf.error
+
             withContext(Dispatchers.Main) {
                 setLoading(false)
                 if (resE != null) {
-                    if (resE.success) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings"
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings"
+                    )
+                    analyticsHelper.reportEvent(
+                        "change_email_success",
+                        eventParameters
+                    )
+                    showToast(
+                        successToastItem.copy(
+                            message = resE.operationResult?.message ?: getString(strings.operationSuccess)
                         )
-                        analyticsHelper.reportEvent(
-                            "change_email_success",
-                            eventParameters
-                        )
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-                        delay(2000)
-                        onSuccess()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(strings.operationFailed)
-                            )
-                        )
-                    }
+                    )
+                    delay(2000)
+                    onSuccess()
                 } else {
                     if (resEerr != null) {
                         onError(
@@ -190,14 +199,16 @@ class VerificationViewModel : BaseViewModel() {
         viewModelScope.launch {
             setLoading(true)
 
-            val bodySMS = HashMap<String, String>()
-            bodySMS["action"] = "change_password"
-            bodySMS["code"] = code
+            val bodySMS = HashMap<String, JsonElement>()
+            bodySMS["action"] = JsonPrimitive("change_password")
+            bodySMS["code"] = JsonPrimitive(code)
 
             val buf = withContext(Dispatchers.IO) {
-
-                userOperations.postUsersOperationsEACC(
-                    owner?: UserData.login, bodySMS
+                operationsMethods.postOperation(
+                    owner ?: UserData.login,
+                    "enter_additional_confirmation_code",
+                    "users",
+                    bodySMS
                 )
             }
             val resE = buf.success
@@ -205,29 +216,21 @@ class VerificationViewModel : BaseViewModel() {
             withContext(Dispatchers.Main) {
                 setLoading(false)
                 if (resE != null) {
-                    if (resE.success) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings"
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings"
+                    )
+                    analyticsHelper.reportEvent(
+                        "change_password_success",
+                        eventParameters
+                    )
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                        analyticsHelper.reportEvent(
-                            "change_password_success",
-                            eventParameters
-                        )
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-                        delay(2000)
-                        onSuccess()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(strings.operationFailed)
-                            )
-                        )
-                    }
+                    )
+                    delay(2000)
+                    onSuccess()
                 } else {
                     if (resEerr != null) {
                         onError(
@@ -242,45 +245,41 @@ class VerificationViewModel : BaseViewModel() {
     fun postSetPhone(code: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             setLoading(true)
-            val bodySMS = HashMap<String, String>()
-            bodySMS["code"] = code
+            val bodySMS = HashMap<String, JsonElement>()
+            bodySMS["code"] = JsonPrimitive(code)
 
             val buf = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsVerifyPhone(
-                    UserData.login, bodySMS
+                operationsMethods.postOperation(
+                    UserData.login,
+                    "verify_phone",
+                    "users",
+                    bodySMS
                 )
             }
             val resE = buf.success
             val resEerr = buf.error
+
             withContext(Dispatchers.Main) {
                 setLoading(false)
                 if (resE != null) {
-                    if (resE.success) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings"
-                        )
-                        analyticsHelper.reportEvent(
-                            "set_phone_success",
-                            eventParameters
-                        )
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings"
+                    )
+                    analyticsHelper.reportEvent(
+                        "set_phone_success",
+                        eventParameters
+                    )
 
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
+                    )
 
-                        delay(2000)
+                    delay(2000)
 
-                        onSuccess()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(strings.operationFailed)
-                            )
-                        )
-                    }
+                    onSuccess()
                 } else {
                     if (resEerr != null) {
                         onError(resEerr)

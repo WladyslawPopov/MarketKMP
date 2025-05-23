@@ -84,7 +84,7 @@ data class Deliveries(
 @Serializable
 data class OperationResult(
     @SerialName("result") val result: String? = null,
-    @SerialName("message") val message: String? = null
+    @SerialName("message") var message: String? = null
 )
 
 @Serializable

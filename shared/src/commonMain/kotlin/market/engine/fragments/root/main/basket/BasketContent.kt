@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -163,11 +163,16 @@ fun BasketContent(
                         component.goToOffer(offerId)
                     },
                     changeQuantity = { offerId, quantity ->
-                        val bodyAddB = HashMap<String, String>()
-                        bodyAddB["offer_id"] = offerId.toString()
-                        bodyAddB["quantity"] = quantity.toString()
+                        val bodyAddB = HashMap<String, JsonElement>()
+                        bodyAddB["offer_id"] = JsonPrimitive(offerId)
+                        bodyAddB["quantity"] = JsonPrimitive(quantity)
 
-                        viewModel.addOfferToBasket(bodyAddB, offerId)
+                        viewModel.addOfferToBasket(bodyAddB) {
+                            userBasket.value.find { pair ->
+                                pair.second.find { it?.id == offerId } != null
+                            }?.second?.find { it?.id == offerId }
+                                ?.quantity = quantity
+                        }
                     },
                     deleteOffer = { offerId ->
                         listOffers.value = buildList {
@@ -208,11 +213,8 @@ fun BasketContent(
 
                 val jsonArray = JsonArray(offerIds)
 
-                val body = JsonObject(
-                    mapOf(
-                        "offer_ids" to jsonArray
-                    )
-                )
+                val body = hashMapOf<String, JsonElement>()
+                body["offer_ids"] = jsonArray
 
                 viewModel.deleteItem(
                     body,

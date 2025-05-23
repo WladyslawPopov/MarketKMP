@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
@@ -56,14 +56,14 @@ class BasketViewModel: BaseViewModel() {
                                     sellerData = User(id = item.sellerId),
                                     freeLocation = item.freeLocation,
                                     externalUrl = item.offerImage,
-                                    safeDeal = item.isBuyable ?: false,
-                                    isWatchedByMe = item.isWatchedByMe ?: false,
+                                    safeDeal = item.isBuyable == true,
+                                    isWatchedByMe = item.isWatchedByMe == true,
                                 )
                             }
                             sellerUser to basketItems
                         }
                     _responseGetUserCart.value = result
-                }catch (e : Exception){
+                }catch (_ : Exception){
                     throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                 }
             }  catch (exception: ServerErrorException) {
@@ -109,15 +109,17 @@ class BasketViewModel: BaseViewModel() {
         if (UserData.token != "") {
             viewModelScope.launch {
                 val resObj = withContext(Dispatchers.IO) {
-                     userOperations.postUsersOperationDeleteCart(
-                        UserData.login
+                    operationsMethods.postOperation(
+                        UserData.login,
+                        "delete_cart",
+                        "users"
                     )
                 }
 
                 val res = resObj.success
                 val resErr = resObj.error
 
-                if (res == true) {
+                if (res != null) {
                     updateUserInfo()
                     showToast(
                         successToastItem.copy(message = getString(strings.operationSuccess))
@@ -132,39 +134,18 @@ class BasketViewModel: BaseViewModel() {
         }
     }
 
-    fun addOfferToBasket(body : HashMap<String, String>, offerId : Long) {
-        viewModelScope.launch {
-            val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsAddItemToCart(UserData.login, body)
-            }
-
-            val buffer = res.success
-            val error = res.error
-
-            if (buffer != null) {
-                responseGetUserCart.value.find { pair ->
-                    pair.second.find { it?.id == offerId } != null
-                }?.second?.find { it?.id == offerId }
-                    ?.quantity = body["quantity"]?.toInt() ?: 0
-                updateUserInfo()
-            } else {
-                if (error != null) {
-                    onError(error)
-                }
-            }
-        }
-    }
-
     fun deleteItem(
-        bodyUIR : JsonObject,
+        bodyUIR : HashMap<String, JsonElement>,
         lotData: Offer?,
         idSeller: Long,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                userOperations.postUsersOperationsRemoveManyItemsFromCart(
+                operationsMethods.postOperation(
                     UserData.login,
+                    "remove_many_items_from_cart",
+                    "users",
                     bodyUIR
                 )
             }

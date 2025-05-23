@@ -56,6 +56,8 @@ import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
 import market.engine.common.openShare
@@ -749,7 +751,17 @@ fun OfferContent(
                                             },
                                             onAddToCartClick = {
                                                 if (UserData.token != "") {
-                                                    offerViewModel.addToBasket(offer.id)
+                                                    val bodyAddB = HashMap<String, JsonElement>()
+                                                    bodyAddB["offer_id"] = JsonPrimitive(offer.id)
+                                                    offerViewModel.addOfferToBasket(
+                                                        bodyAddB
+                                                    ) { hm ->
+                                                        offerViewModel.showToast(
+                                                            successToastItem.copy(
+                                                                message = hm
+                                                            )
+                                                        )
+                                                    }
                                                 }else{
                                                     component.goToLogin()
                                                 }
@@ -857,7 +869,7 @@ fun OfferContent(
                                                                     offer.sellerData?.id ?: 1L
                                                                 )
                                                             },
-                                                            onError = { es ->
+                                                            errorCallback = { es ->
                                                                 errorString.value = es
                                                             }
                                                         )

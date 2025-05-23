@@ -44,38 +44,11 @@ class DynamicSettingsViewModel : BaseViewModel() {
             setLoading(true)
             val buffer = withContext(Dispatchers.IO) {
                 when(settingsType){
-                    "set_login" ->{
-                        userOperations.getUsersOperationsSetLogin(UserData.login)
-                    }
-                    "set_email" ->{
-                        userOperations.getUsersOperationsSetEmail(UserData.login)
-                    }
-                    "set_password" -> {
-                        userOperations.getUsersOperationsSetPassword(owner ?: UserData.login)
+                    "set_watermark","set_block_rating" -> {
+                        null
                     }
                     "forgot_password","reset_password" -> {
                         userOperations.getUsersOperationsResetPassword()
-                    }
-                    "set_phone" -> {
-                        userOperations.getUsersOperationsSetPhone(UserData.login)
-                    }
-                    "set_about_me" -> {
-                        userOperations.getUsersOperationsSetAboutMe(UserData.login)
-                    }
-                    "set_vacation" -> {
-                        userOperations.getUsersOperationsSetVacation(UserData.login)
-                    }
-                    "set_message_to_buyer" -> {
-                        userOperations.getUsersOperationsSetMessageToBuyer(UserData.login)
-                    }
-                    "set_bidding_step" -> {
-                        userOperations.getUsersOperationsSetBiddingStep(UserData.login)
-                    }
-                    "set_auto_feedback" -> {
-                        userOperations.getUsersOperationsSetAutoFeedback(UserData.login)
-                    }
-                    "set_outgoing_address" -> {
-                        userOperations.getUsersOperationsSetOutgoingAddress(UserData.login)
                     }
                     "set_address_cards" -> {
                         viewModelScope.launch {
@@ -88,18 +61,54 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         if (owner != null) {
                             operationsMethods.getOperationFields(
                                 owner,
-                                "remove_bids_of_users",
+                                settingsType,
                                 "offers",
                             )
                         }else{
                             null
                         }
                     }
-                    "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
-                        userOperations.getUsersOperationsGetSettingsList(UserData.login, settingsType)
+                    "set_email" -> {
+                        operationsMethods.getOperationFields(
+                            owner ?: UserData.login,
+                            "request_email_change",
+                            "users"
+                        )
+                    }
+                    "set_outgoing_address" -> {
+                        operationsMethods.getOperationFields(
+                            owner ?: UserData.login,
+                            "save_outgoing_address",
+                            "users"
+                        )
+                    }
+                    "set_message_to_buyer" -> {
+                        operationsMethods.getOperationFields(
+                            owner ?: UserData.login,
+                            "set_message_to_buyers",
+                            "users"
+                        )
+                    }
+                    "set_about_me" -> {
+                        operationsMethods.getOperationFields(
+                            owner ?: UserData.login,
+                            "edit_about_me",
+                            "users"
+                        )
+                    }
+                    "set_phone" ->{
+                        operationsMethods.getOperationFields(
+                            owner ?: UserData.login,
+                            "request_phone_change",
+                            "users"
+                        )
                     }
                     else -> {
-                        null
+                        operationsMethods.getOperationFields(
+                            owner ?: UserData.login,
+                            settingsType,
+                            "users"
+                        )
                     }
                 }
             }
@@ -164,56 +173,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
 
             val buf = withContext(Dispatchers.IO) {
                 when (settingsType) {
-                    "set_login" -> userOperations.postUsersOperationsSetLogin(
-                        UserData.login,
-                        body
-                    )
-
-                    "set_about_me" -> userOperations.postUsersOperationsSetAboutMe(
-                        UserData.login,
-                        body
-                    )
-
-                    "set_email" -> userOperations.postUsersOperationsSetEmail(
-                        UserData.login,
-                        body
-                    )
-
-                    "set_password" -> userOperations.postUsersOperationsSetPassword(
-                        owner ?: UserData.login, body
-                    )
-
-                    "set_phone" -> userOperations.postUsersOperationsSetPhone(
-                        UserData.login,
-                        body
-                    )
-
                     "forgot_password", "reset_password" -> userOperations.postUsersOperationsResetPassword(
-                        body
-                    )
-
-                    "set_vacation" -> userOperations.postUsersOperationsSetVacation(
-                        UserData.login,
-                        body
-                    )
-
-                    "set_message_to_buyer" -> userOperations.postUsersOperationsSetMessageToBuyer(
-                        UserData.login,
-                        body
-                    )
-
-                    "set_bidding_step" -> userOperations.postUsersOperationsSetBiddingStep(
-                        UserData.login,
-                        body
-                    )
-
-                    "set_auto_feedback" -> userOperations.postUsersOperationsSetAutoFeedback(
-                        UserData.login,
-                        body
-                    )
-
-                    "set_outgoing_address" -> userOperations.postUsersOperationsSetOutgoingAddress(
-                        UserData.login,
                         body
                     )
                     "remove_bids_of_users" -> owner?.let {
@@ -223,15 +183,53 @@ class DynamicSettingsViewModel : BaseViewModel() {
                             "offers",
                         )
                     }
-                    "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
-                        userOperations.postUsersOperationAddList(
-                            UserData.login,
-                            body,
-                            settingsType
+                    "set_email" -> {
+                        operationsMethods.postOperation(
+                            owner ?: UserData.login,
+                            "request_email_change",
+                            "users",
+                            body
+                        )
+                    }
+                    "set_about_me" -> {
+                        operationsMethods.postOperation(
+                            owner ?: UserData.login,
+                            "edit_about_me",
+                            "users",
+                            body
+                        )
+                    }
+                    "set_phone" ->{
+                        operationsMethods.postOperation(
+                            owner ?: UserData.login,
+                            "request_phone_change",
+                            "users",
+                            body
+                        )
+                    }
+                    "set_outgoing_address" -> {
+                        operationsMethods.postOperation(
+                            owner ?: UserData.login,
+                            "save_outgoing_address",
+                            "users",
+                            body
+                        )
+                    }
+                    "set_message_to_buyer" -> {
+                        operationsMethods.postOperation(
+                            owner ?: UserData.login,
+                            "set_message_to_buyers",
+                            "users",
+                            body
                         )
                     }
                     else -> {
-                        null
+                        operationsMethods.postOperation(
+                            UserData.login,
+                            settingsType,
+                            "users",
+                            body
+                        )
                     }
                 }
             }
@@ -258,7 +256,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                                         strings.checkOutEmailToast
                                     )
 
-                                    else -> getString(strings.operationSuccess)
+                                    else -> payload.operationResult?.message ?: getString(strings.operationSuccess)
                                 }
                             )
                         )
@@ -281,7 +279,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
 
                         showToast(
                             errorToastItem.copy(
-                                message = payload.globalErrorMessage ?: getString(
+                                message = getString(
                                     strings.operationFailed
                                 )
                             )

@@ -368,44 +368,6 @@ class OfferViewModel(
         }
     }
 
-    fun addToBasket(offerId: Long) {
-        viewModelScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    val bodyAddB = HashMap<String, String>()
-                    bodyAddB["offer_id"] = offerId.toString()
-                    userOperations.postUsersOperationsAddItemToCart(UserData.login, bodyAddB)
-                }
-                withContext(Dispatchers.Main) {
-                    if (response.success?.success == true) {
-                        analyticsHelper.reportEvent(
-                            "add_item_to_cart",
-                            eventParameters
-                        )
-                        showToast(
-                            successToastItem.copy(message = getString(strings.offerAddedToBasketLabel))
-                        )
-                        updateUserInfo()
-                    } else {
-                        throw ServerErrorException(
-                            errorCode = response.success?.errorCode ?: "",
-                            humanMessage = response.success?.humanMessage ?: ""
-                        )
-                    }
-                }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(
-                    ServerErrorException(
-                        errorCode = exception.message.toString(),
-                        humanMessage = exception.message.toString()
-                    )
-                )
-            }
-        }
-    }
-
     fun addBid(
         sum: String,
         offer: Offer,
