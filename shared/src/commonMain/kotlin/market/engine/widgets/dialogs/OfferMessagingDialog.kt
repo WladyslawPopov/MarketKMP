@@ -13,22 +13,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import market.engine.common.AnalyticsFactory
-import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
-import market.engine.core.network.functions.OfferOperations
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 @Composable
 fun OfferMessagingDialog(
@@ -39,7 +30,6 @@ fun OfferMessagingDialog(
     baseViewModel: BaseViewModel,
 ) {
     val isShowDialog = remember { mutableStateOf(false) }
-    val offerOperations: OfferOperations = koinInject()
 
     val messageText = remember { mutableStateOf(TextFieldValue()) }
 
@@ -47,8 +37,6 @@ fun OfferMessagingDialog(
 
     val conversationTitle = stringResource(strings.createConversationLabel)
     val aboutOrder = stringResource(strings.aboutOfferLabel)
-
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     val titleText = remember {
         buildAnnotatedString {
@@ -85,19 +73,19 @@ fun OfferMessagingDialog(
 
     LaunchedEffect(isDialogOpen){
         if (isDialogOpen) {
-            val scope = baseViewModel.viewModelScope
-            scope.launch(Dispatchers.IO) {
-
-                val res = offerOperations.postCheckingConversationExistence(offer.id)
-                val dialogId = res.success?.operationResult?.additionalData?.conversationId
-                withContext(Dispatchers.Main) {
+            baseViewModel.postOperationAdditionalData(
+                offer.id,
+                "checking_conversation_existence",
+                "offers",
+                onSuccess = {
+                    val dialogId = it?.operationResult?.additionalData?.conversationId
                     if (dialogId != null) {
                         onSuccess(dialogId)
                     } else {
                         isShowDialog.value = true
                     }
                 }
-            }
+            )
         }
     }
 
@@ -125,51 +113,17 @@ fun OfferMessagingDialog(
             },
             confirmButton = {
                 val isEnabled = messageText.value.text.isNotBlank()
-                val ert = stringResource(strings.operationFailed)
-
                 SimpleTextButton(
                     text = stringResource(strings.acceptAction),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     enabled = isEnabled,
                     textColor = colors.alwaysWhite
                 ) {
-                    val scope = baseViewModel.viewModelScope
-                    scope.launch(Dispatchers.IO) {
-                        val body = hashMapOf("message" to messageText.value.text)
-                        val res = offerOperations.postWriteToSeller(
-                            offer.id,
-                            body
-                        )
-                        val buffer1 = res.success
-                        val error = res.error
-                        withContext(Dispatchers.Main) {
-                            if (buffer1 != null) {
-                                if (buffer1.operationResult?.result == "ok") {
-                                    val eventParameters = mapOf(
-                                        "seller_id" to offer.seller.id.toString(),
-                                        "buyer_id" to UserData.userInfo?.id.toString(),
-                                        "message_type" to "lot",
-                                        "lot_id" to offer.id.toString()
-                                    )
-
-                                    analyticsHelper.reportEvent("start_message_to_seller",
-                                        eventParameters
-                                    )
-                                    onSuccess(buffer1.operationResult.additionalData?.conversationId)
-                                    isShowDialog.value = false
-                                } else {
-                                    baseViewModel.showToast(
-                                        errorToastItem.copy(
-                                            message = ert
-                                        )
-                                    )
-                                    isShowDialog.value = false
-                                    onDismiss()
-                                }
-                            } else {
-                                error?.let { baseViewModel.onError(it) }
-                            }
-                        }
+                    baseViewModel.writeToSeller(
+                        offer, messageText.value.text,
+                    ) {
+                        onSuccess(it)
+                        onDismiss()
                     }
                 }
             },

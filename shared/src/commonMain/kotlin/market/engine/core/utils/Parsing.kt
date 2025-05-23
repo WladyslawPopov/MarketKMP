@@ -251,7 +251,7 @@ fun Operations.onClickItem(
         }
 
         else -> {
-            baseViewModel.postOperation(
+            baseViewModel.postOperationFields(
                 item.id,
                 id ?: "",
                 "offers",

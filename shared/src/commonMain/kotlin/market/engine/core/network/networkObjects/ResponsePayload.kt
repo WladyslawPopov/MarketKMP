@@ -64,6 +64,6 @@ data class PayloadExistence<T>(
 
 @Serializable
 data class OperationResultExistence<T>(
-    @SerialName("result") val result: String? = null,
+    @SerialName("result") var result: String? = null,
     @SerialName("additional_data") val additionalData: T? = null,
 )

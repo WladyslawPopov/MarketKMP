@@ -109,7 +109,7 @@ class BasketViewModel: BaseViewModel() {
         if (UserData.token != "") {
             viewModelScope.launch {
                 val resObj = withContext(Dispatchers.IO) {
-                    operationsMethods.postOperation(
+                    operationsMethods.postOperationFields(
                         UserData.login,
                         "delete_cart",
                         "users"
@@ -142,7 +142,7 @@ class BasketViewModel: BaseViewModel() {
     ) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "remove_many_items_from_cart",
                     "users",

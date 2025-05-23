@@ -123,7 +123,7 @@ fun OfferOperationsDialogs(
                     onSuccess = {
                         if (!isClicked.value) {
                             isClicked.value = true
-                            viewModel.postOperation(
+                            viewModel.postOperationFields(
                                 offer.id,
                                 showDialog.value,
                                 "offers",
@@ -156,7 +156,7 @@ fun OfferOperationsDialogs(
                             isClicked.value = true
                             val body = HashMap<String, JsonElement>()
                             body["future_time"] = JsonPrimitive(futureTimeInSeconds)
-                            viewModel.postOperation(
+                            viewModel.postOperationFields(
                                 offer.id,
                                 showDialog.value,
                                 "offers",
@@ -253,7 +253,7 @@ fun OfferOperationsDialogs(
                                 }
                             }
 
-                            viewModel.postOperation(
+                            viewModel.postOperationFields(
                                 id,
                                 showDialog.value,
                                 method,

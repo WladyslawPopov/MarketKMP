@@ -15,7 +15,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
@@ -156,271 +155,30 @@ fun getOrderOperations(
                             showCommentDialog.value = true
                         }
 
-                        "unmark_as_parcel_sent" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf =
-                                    orderOperations.postUnMarkAsParcelSent(
-                                        order.id
+                        else -> {
+                            baseViewModel.postOperationFields(
+                                order.id,
+                                operation.id ?: "",
+                                "orders",
+                                onSuccess = {
+                                    val eventParameters = mapOf(
+                                        "order_id" to order.id,
+                                        "seller_id" to order.sellerData?.id,
+                                        "buyer_id" to order.buyerData?.id
                                     )
-                                val r = buf.success
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParameters = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
 
-                                            analyticsHelper.reportEvent(
-                                                "unmark_as_parcel_sent",
-                                                eventParameters
-                                            )
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value =
-                                                r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    }
+                                    analyticsHelper.reportEvent(
+                                        operation.id ?: "",
+                                        eventParameters
+                                    )
+                                    onUpdateMenuItem()
+                                    onClose()
+                                },
+                                errorCallback = {
+                                    showDialog.value = true
+                                    onClose()
                                 }
-                            }
-                        }
-                        "mark_as_parcel_sent" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postMarkAsParcelSent(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParams = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-                                            analyticsHelper.reportEvent("mark_as_parcel_sent", eventParams)
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "unmark_as_payment_sent" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postUnMarkAsPaymentSent(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "mark_as_payment_received" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postMarkAsPaymentSent(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParams = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-                                            analyticsHelper.reportEvent("mark_as_payment_received", eventParams)
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "mark_as_archived_by_seller" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postMarkAsArchivedBySeller(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParams = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-                                            analyticsHelper.reportEvent("mark_as_archived_by_seller", eventParams)
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "unmark_as_archived_by_seller" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postUnMarkAsArchivedBySeller(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParams = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-                                            analyticsHelper.reportEvent("unmark_as_archived_by_seller", eventParams)
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "enable_feedbacks" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postEnableFeedbacks(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "disable_feedbacks" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postDisableFeedbacks(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "remove_feedback_to_buyer" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postRemoveFeedbackToBuyer(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParams = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-                                            analyticsHelper.reportEvent("remove_feedback_to_buyer", eventParams)
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
-                        }
-                        "mark_as_archived_by_buyer" -> {
-                            scope.launch(Dispatchers.IO) {
-                                val buf = orderOperations.postMarkAsArchivedByBuyer(order.id)
-                                val r = buf.success
-                                val e = buf.error
-                                withContext(Dispatchers.Main) {
-                                    if (r != null) {
-                                        if (r.success) {
-                                            val eventParams = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-                                            analyticsHelper.reportEvent("mark_as_archived_by_buyer", eventParams)
-                                            onUpdateMenuItem()
-                                            onClose()
-                                        } else {
-                                            errorMes.value = r.humanMessage.toString()
-                                            showDialog.value = true
-                                            onClose()
-                                        }
-                                    } else {
-                                        e?.let { baseViewModel.onError(it) }
-                                        onClose()
-                                    }
-                                }
-                            }
+                            )
                         }
                     }
                 }

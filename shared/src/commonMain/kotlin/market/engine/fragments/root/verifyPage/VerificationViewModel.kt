@@ -50,7 +50,7 @@ class VerificationViewModel : BaseViewModel() {
                             bodySMS["action"] = JsonPrimitive("change_email")
 
                             val buf = withContext(Dispatchers.IO) {
-                                operationsMethods.postOperation(
+                                operationsMethods.postOperationFields(
                                     owner,
                                     "request_additional_confirmation",
                                     "users",
@@ -120,7 +120,7 @@ class VerificationViewModel : BaseViewModel() {
             body["action"] = JsonPrimitive("change_password")
 
             val buffer = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     owner ?: UserData.login,
                     "request_additional_confirmation",
                     "users",
@@ -156,7 +156,7 @@ class VerificationViewModel : BaseViewModel() {
             bodySMS["code"] = JsonPrimitive(code)
 
             val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "enter_additional_confirmation_code",
                     "users",
@@ -204,7 +204,7 @@ class VerificationViewModel : BaseViewModel() {
             bodySMS["code"] = JsonPrimitive(code)
 
             val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     owner ?: UserData.login,
                     "enter_additional_confirmation_code",
                     "users",
@@ -249,7 +249,7 @@ class VerificationViewModel : BaseViewModel() {
             bodySMS["code"] = JsonPrimitive(code)
 
             val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "verify_phone",
                     "users",

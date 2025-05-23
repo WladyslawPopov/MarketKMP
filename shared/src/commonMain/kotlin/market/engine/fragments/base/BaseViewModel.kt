@@ -44,12 +44,14 @@ import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.network.functions.UserOperations
+import market.engine.core.network.networkObjects.AdditionalData
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
 import market.engine.core.network.networkObjects.Operations
+import market.engine.core.network.networkObjects.PayloadExistence
 import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.shared.MarketDB
@@ -216,7 +218,7 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun postOperation(
+    fun postOperationFields(
         id: Long,
         type: String,
         method: String,
@@ -225,7 +227,7 @@ open class BaseViewModel: ViewModel() {
         errorCallback: (List<Fields>?) -> Unit
     ){
         viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) { operationsMethods.postOperation(id, type, method, body) }
+            val data = withContext(Dispatchers.IO) { operationsMethods.postOperationFields(id, type, method, body) }
             withContext(Dispatchers.Main) {
                 val res = data.success
                 val error = data.error
@@ -272,6 +274,42 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun postOperationAdditionalData(
+        id: Long,
+        type: String,
+        method: String,
+        body: HashMap<String, JsonElement> = hashMapOf(),
+        onSuccess: (PayloadExistence<AdditionalData>?) -> Unit
+    ){
+        viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) { operationsMethods.postOperationAdditionalData(id, type, method, body) }
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                val error = data.error
+                if (res != null) {
+                    if( res.operationResult?.result != null) {
+                        showToast(
+                            successToastItem.copy(
+                                message = res.operationResult.result!!
+                            )
+                        )
+                    }
+                    analyticsHelper.reportEvent(
+                        type,
+                        eventParameters = mapOf(
+                            "id" to id,
+                        )
+                    )
+
+                    onSuccess(res)
+                }else{
+                    if (error != null)
+                        onError(error)
+                }
+            }
+        }
+    }
+
 
     suspend fun getOfferById(offerId: Long) : Offer? {
         return try {
@@ -288,7 +326,7 @@ open class BaseViewModel: ViewModel() {
         if(UserData.token != "") {
             viewModelScope.launch {
                 val buf = withContext(Dispatchers.IO) {
-                    operationsMethods.postOperation(
+                    operationsMethods.postOperationFields(
                         offer.id,
                         if (offer.isWatchedByMe) "unwatch" else "watch",
                         "offers"
@@ -418,7 +456,7 @@ open class BaseViewModel: ViewModel() {
                 }
             }
 
-            val res = operationsMethods.postOperation(
+            val res = operationsMethods.postOperationFields(
                 UserData.login,
                 "create_subscription",
                 "users",
@@ -559,7 +597,7 @@ open class BaseViewModel: ViewModel() {
             b["id_as_ts"] = JsonPrimitive(card.id)
 
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "save_address_cards",
                     "users",
@@ -593,7 +631,7 @@ open class BaseViewModel: ViewModel() {
             b["id_as_ts"] = JsonPrimitive(card.id)
 
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "remove_address_card",
                     "users",
@@ -646,7 +684,7 @@ open class BaseViewModel: ViewModel() {
                 }
 
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "save_address_cards",
                     "users",
@@ -760,7 +798,7 @@ open class BaseViewModel: ViewModel() {
             body["identity"] = JsonPrimitive(id)
 
             val res = withContext(Dispatchers.IO){
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "remove_from_$list",
                     "users",
@@ -788,7 +826,7 @@ open class BaseViewModel: ViewModel() {
     fun enabledWatermark(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "enable_watermark",
                     "users"
@@ -829,7 +867,7 @@ open class BaseViewModel: ViewModel() {
     fun disabledWatermark(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "disable_watermark",
                     "users"
@@ -870,7 +908,7 @@ open class BaseViewModel: ViewModel() {
     fun enabledBlockRating(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "enable_block_rating",
                     "users"
@@ -911,7 +949,7 @@ open class BaseViewModel: ViewModel() {
     fun disabledBlockRating(onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "disable_block_rating",
                     "users"
@@ -949,6 +987,46 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun writeToSeller(offer : OfferItem, messageText : String, onSuccess: (Long?) -> Unit){
+        viewModelScope.launch(Dispatchers.IO) {
+            val res = operationsMethods.postOperationAdditionalData(
+                offer.id,
+                "write_to_seller",
+                "offers",
+                hashMapOf("message" to JsonPrimitive(messageText))
+            )
+            val buffer1 = res.success
+            val error = res.error
+            withContext(Dispatchers.Main) {
+                if (buffer1 != null) {
+                    if (buffer1.operationResult?.result == "ok") {
+                        val eventParameters = mapOf(
+                            "seller_id" to offer.seller.id.toString(),
+                            "buyer_id" to UserData.userInfo?.id.toString(),
+                            "message_type" to "lot",
+                            "lot_id" to offer.id.toString()
+                        )
+
+                        analyticsHelper.reportEvent("start_message_to_seller",
+                            eventParameters
+                        )
+                        onSuccess(buffer1.body?.toLongOrNull())
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = error?.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                        onSuccess(null)
+                    }
+                } else {
+                    error?.let { onError(it) }
+                    onSuccess(null)
+                }
+            }
+        }
+    }
+
     fun cancelAllBids(offerId: Long, comment: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val body = HashMap<String, JsonElement>()
@@ -965,7 +1043,7 @@ open class BaseViewModel: ViewModel() {
             )
 
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     offerId,
                     "set_cancel_all_bids",
                     "offers",
@@ -1089,7 +1167,7 @@ open class BaseViewModel: ViewModel() {
             val buf = withContext(Dispatchers.IO) {
                 when(type){
                     "create_blank_offer_list" -> {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             offerId,
                             type,
                             "users",
@@ -1097,7 +1175,7 @@ open class BaseViewModel: ViewModel() {
                         )
                     }
                     else -> {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             offerId,
                             type,
                             "offers",
@@ -1176,7 +1254,7 @@ open class BaseViewModel: ViewModel() {
     fun deleteNote(offerId: Long, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(offerId, "delete_note", "offers")
+                operationsMethods.postOperationFields(offerId, "delete_note", "offers")
             }
             withContext(Dispatchers.Main) {
                 if (res.success != null) {
@@ -1209,7 +1287,7 @@ open class BaseViewModel: ViewModel() {
     fun addOfferToBasket(body : HashMap<String, JsonElement>, onSuccess: (String) -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     UserData.login,
                     "add_item_to_cart",
                     "users",

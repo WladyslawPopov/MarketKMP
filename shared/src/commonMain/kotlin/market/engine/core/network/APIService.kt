@@ -38,80 +38,8 @@ class APIService(private val client: HttpClient) {
     suspend fun getOurChoiceOffers(idOffer : Long): AppResponse =
         client.get("offers/get_featured_in_offers?offer_id=$idOffer").body()
 
-    suspend fun postUnMarkAsParcelSent(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/unmark_as_parcel_sent").body()
-
-    suspend fun postMarkAsParcelSent(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/mark_as_parcel_sent").body()
-
     suspend fun postPMOperationDeleteForInterlocutor(messagesId: Long): AppResponse =
         client.post("private_messages/$messagesId/operations/delete_for_interlocutor").body()
-
-    suspend fun postUnMarkAsPaymentSent(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/unmark_as_payment_sent").body()
-
-    suspend fun postMarkAsPaymentSent(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/mark_as_payment_received").body()
-
-    suspend fun postMarkAsArchivedBySeller(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/mark_as_archived_by_seller").body()
-
-    suspend fun postEnableFeedbacks(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/enable_feedbacks").body()
-
-    suspend fun postDisableFeedbacks(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/disable_feedbacks").body()
-
-    suspend fun postRemoveFeedbackToBuyer(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/remove_feedback_to_buyer").body()
-
-    suspend fun postMarkAsArchivedByBuyer(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/mark_as_archived_by_buyer").body()
-
-    suspend fun postUnMarkAsArchivedBySeller(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/unmark_as_archived_by_seller").body()
-
-    suspend fun postOfferOperationsAddBid(idOffer: Long, body: Map<String, String>): AppResponse =
-        client.post("offers/$idOffer/operations/add_bid") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOfferOperationsWriteToSeller(idOffer: Long, body: Map<String, String>): AppResponse =
-        client.post("offers/$idOffer/operations/write_to_seller") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOrderOperationsSetComment(idOrder: Long, body: Map<String, String>): AppResponse =
-        client.post("orders/$idOrder/operations/set_comment") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOrderOperationsGiveFeedbackToBuyer(idOrder: Long, body: Map<String, String>): AppResponse =
-        client.post("orders/$idOrder/operations/give_feedback_to_buyer") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOrderOperationsGiveFeedbackToSeller(idOrder: Long, body: Map<String, String>): AppResponse =
-        client.post("orders/$idOrder/operations/give_feedback_to_seller") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOrderOperationsProvideTrackId(idOrder: Long, body: Map<String, String>): AppResponse =
-        client.post("orders/$idOrder/operations/provide_track_id") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
-
-    suspend fun postOrderOperationsWriteToPartner(idOrder: Long, body: Map<String, String>): AppResponse =
-        client.post("orders/$idOrder/operations/write_to_partner") {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
 
     suspend fun getUsersOperationsResetPassword(): AppResponse =
         client.get("request_password_reset").body()
@@ -130,12 +58,6 @@ class APIService(private val client: HttpClient) {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
-
-    suspend fun postCheckingConversationExistenceOffer(idOffer: Long): AppResponse =
-        client.post("offers/$idOffer/operations/checking_conversation_existence").body()
-
-    suspend fun postCheckingConversationExistenceOrder(idOrder: Long): AppResponse =
-        client.post("orders/$idOrder/operations/checking_conversation_existence").body()
 
     suspend fun postOfferOperationsGetLeaderAndPrice(idOffer: Long, body: HashMap<String, String>): AppResponse =
         client.post("offers/$idOffer/operations/get_leader_and_price") {

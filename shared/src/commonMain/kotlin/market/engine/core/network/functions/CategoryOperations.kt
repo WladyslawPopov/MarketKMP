@@ -25,7 +25,7 @@ class CategoryOperations(private val apiService : APIService) {
                         response.payload, categoryListSerializer
                     )
                 ServerResponse(success = payload.firstOrNull())
-            }catch (e : Exception){
+            }catch (_ : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {
@@ -51,7 +51,7 @@ class CategoryOperations(private val apiService : APIService) {
                 val serializer = Payload.serializer(RegionOptions.serializer())
                 val payload: Payload<RegionOptions> = deserializePayload(response.payload!!, serializer)
                 return ServerResponse(payload.totalCount)
-            }catch (e : Exception){
+            }catch (_ : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {
@@ -68,26 +68,6 @@ class CategoryOperations(private val apiService : APIService) {
                 try {
                     val serializer = Payload.serializer(RegionOptions.serializer())
                     val payload: Payload<RegionOptions> =
-                        deserializePayload(response.payload, serializer)
-                    return payload.objects
-                }catch (_ : Exception){
-                    return null
-                }
-            }else{
-                return null
-            }
-        } catch (_: Exception) {
-            return null
-        }
-    }
-
-    suspend fun getCategories(id: Long=1L): ArrayList<Category>? {
-        try {
-            val response = apiService.getPublicCategories(id)
-            if(response.payload != null) {
-                try {
-                    val serializer = Payload.serializer(Category.serializer())
-                    val payload: Payload<Category> =
                         deserializePayload(response.payload, serializer)
                     return payload.objects
                 }catch (_ : Exception){

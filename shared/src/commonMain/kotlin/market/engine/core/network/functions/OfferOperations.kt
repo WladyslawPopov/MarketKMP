@@ -9,12 +9,8 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.utils.deserializePayload
 import market.engine.core.network.APIService
-import market.engine.core.network.networkObjects.AdditionalData
-import market.engine.core.network.networkObjects.AppResponse
 import market.engine.core.network.networkObjects.BodyObj
 import market.engine.core.network.networkObjects.BodyPayload
-import market.engine.core.network.networkObjects.PayloadExistence
-
 
 class OfferOperations(private val apiService: APIService) {
 
@@ -58,17 +54,6 @@ class OfferOperations(private val apiService: APIService) {
         }
     }
 
-    suspend fun postOfferOperationsAddBid(offerId: Long, body: HashMap<String, String>): ServerResponse<AppResponse> {
-        return try {
-            val response = apiService.postOfferOperationsAddBid(offerId, body)
-            ServerResponse(success = response)
-        }  catch (e: ServerErrorException) {
-            ServerResponse(error = e)
-        } catch (e: Exception) {
-            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
-        }
-    }
-
     suspend fun postGetLeaderAndPrice(id: Long = 1L, version: JsonElement?): ServerResponse<BodyPayload<BodyObj>> {
         return try {
             val body = HashMap<String, String>().apply { put("version", version?.jsonPrimitive?.content ?: "") }
@@ -84,43 +69,6 @@ class OfferOperations(private val apiService: APIService) {
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
 
-        } catch (e: ServerErrorException) {
-            ServerResponse(error = e)
-        } catch (e: Exception) {
-            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
-        }
-    }
-
-    suspend fun postCheckingConversationExistence(id: Long = 1L): ServerResponse<PayloadExistence<AdditionalData>> {
-        return try {
-            val response = apiService.postCheckingConversationExistenceOffer(id)
-            try {
-                val serializer = PayloadExistence.serializer(AdditionalData.serializer())
-                val payload = deserializePayload(response.payload, serializer)
-                ServerResponse(success = payload)
-            }catch (_ : Exception){
-                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-            }
-        } catch (e: ServerErrorException) {
-            ServerResponse(error = e)
-        } catch (e: Exception) {
-            ServerResponse(error = ServerErrorException(e.message.toString(), ""))
-        }
-    }
-
-    suspend fun postWriteToSeller(id: Long = 1L, body: HashMap<String, String>): ServerResponse<PayloadExistence<AdditionalData>> {
-        return try {
-            val response = apiService.postOfferOperationsWriteToSeller(id, body)
-            try {
-                val serializer = PayloadExistence.serializer(AdditionalData.serializer())
-                val payload =
-                    deserializePayload(
-                        response.payload, serializer
-                    )
-                ServerResponse(success = payload)
-            }catch (_ : Exception){
-                throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-            }
         } catch (e: ServerErrorException) {
             ServerResponse(error = e)
         } catch (e: Exception) {

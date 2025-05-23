@@ -67,7 +67,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
 
             viewModelScope.launch {
                 val buffer = withContext(Dispatchers.IO) {
-                    operationsMethods.postOperation(
+                    operationsMethods.postOperationFields(
                         UserData.login,
                         "set_gender",
                         "users",
@@ -105,7 +105,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
                 body["new_avatar"] = JsonPrimitive(resizeImage.encodeToBase64())
 
                 val buffer = withContext(Dispatchers.IO) {
-                    operationsMethods.postOperation(
+                    operationsMethods.postOperationFields(
                         UserData.login,
                         "set_avatar",
                         "users",
@@ -138,7 +138,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
         if(UserData.token != "") {
             viewModelScope.launch {
                 val buffer = withContext(Dispatchers.IO) {
-                    operationsMethods.postOperation(
+                    operationsMethods.postOperationFields(
                         UserData.login,
                         "unset_avatar",
                         "users"

@@ -235,7 +235,7 @@ fun FavoritesContent(
                                 if (model.favType == FavScreenType.FAV_LIST) {
                                     body["offers_list_id"] = JsonPrimitive(model.listId)
                                 }
-                                favViewModel.postOperation(
+                                favViewModel.postOperationFields(
                                     item,
                                     type,
                                     "offers",

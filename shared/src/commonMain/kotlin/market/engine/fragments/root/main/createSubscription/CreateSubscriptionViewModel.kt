@@ -68,9 +68,9 @@ class CreateSubscriptionViewModel : BaseViewModel() {
             try {
                 val buffer = withContext(Dispatchers.IO) {
                     if (editId == null)
-                        operationsMethods.postOperation(UserData.login, "create_subscription", "users", body)
+                        operationsMethods.postOperationFields(UserData.login, "create_subscription", "users", body)
                     else
-                        operationsMethods.postOperation(editId, "edit_subscription", "subscriptions", body)
+                        operationsMethods.postOperationFields(editId, "edit_subscription", "subscriptions", body)
                 }
 
                 withContext(Dispatchers.Main) {

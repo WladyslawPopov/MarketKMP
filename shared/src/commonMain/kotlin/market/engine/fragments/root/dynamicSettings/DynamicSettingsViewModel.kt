@@ -177,14 +177,14 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         body
                     )
                     "remove_bids_of_users" -> owner?.let {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             it,
                             "remove_bids_of_users",
                             "offers",
                         )
                     }
                     "set_email" -> {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             owner ?: UserData.login,
                             "request_email_change",
                             "users",
@@ -192,7 +192,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         )
                     }
                     "set_about_me" -> {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             owner ?: UserData.login,
                             "edit_about_me",
                             "users",
@@ -200,7 +200,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         )
                     }
                     "set_phone" ->{
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             owner ?: UserData.login,
                             "request_phone_change",
                             "users",
@@ -208,7 +208,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         )
                     }
                     "set_outgoing_address" -> {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             owner ?: UserData.login,
                             "save_outgoing_address",
                             "users",
@@ -216,7 +216,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         )
                     }
                     "set_message_to_buyer" -> {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             owner ?: UserData.login,
                             "set_message_to_buyers",
                             "users",
@@ -224,7 +224,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         )
                     }
                     else -> {
-                        operationsMethods.postOperation(
+                        operationsMethods.postOperationFields(
                             UserData.login,
                             settingsType,
                             "users",

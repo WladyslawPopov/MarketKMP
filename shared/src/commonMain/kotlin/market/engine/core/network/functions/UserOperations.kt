@@ -101,7 +101,7 @@ class UserOperations(val apiService: APIService) {
                 val serializer = DynamicPayload.serializer(OperationResult.serializer())
                 val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
-            }catch (e : Exception){
+            }catch (_ : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {
@@ -118,7 +118,7 @@ class UserOperations(val apiService: APIService) {
                 val serializer = DynamicPayload.serializer(OperationResult.serializer())
                 val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
                 ServerResponse(success = payload)
-            }catch (e : Exception){
+            }catch (_ : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {

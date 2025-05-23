@@ -57,7 +57,7 @@ class SubViewModel(
     fun enableSubscription(subId : Long, onSuccess : () -> Unit) {
         viewModelScope.launch {
             val buffer = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     subId,
                     "enable_subscription",
                     "subscriptions"
@@ -80,7 +80,7 @@ class SubViewModel(
     fun disableSubscription(subId : Long, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val buffer = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     subId,
                     "disable_subscription",
                     "subscriptions"
@@ -104,7 +104,7 @@ class SubViewModel(
     fun deleteSubscription(subId : Long, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperation(
+                operationsMethods.postOperationFields(
                     subId,
                     "delete_subscription",
                     "subscriptions"

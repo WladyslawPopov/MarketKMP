@@ -20,7 +20,7 @@ class OffersListOperations(private val apiService: APIService) {
                 val value = deserializePayload(data.payload, serializer)
 
                 return ServerResponse(success = value.firstOrNull())
-            }catch (e : Exception){
+            }catch (_ : Exception){
                 throw ServerErrorException(data.errorCode.toString(), data.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {
@@ -43,7 +43,7 @@ class OffersListOperations(private val apiService: APIService) {
                 val value = deserializePayload(data.payload, serializer)
 
                 return ServerResponse(success = value.objects)
-            }catch (e : Exception){
+            }catch (_ : Exception){
                 throw ServerErrorException(data.errorCode.toString(), data.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {
@@ -63,7 +63,7 @@ class OffersListOperations(private val apiService: APIService) {
                         response.payload, serializer
                     )
                 ServerResponse(success = payload)
-            }catch (e : Exception){
+            }catch (_ : Exception){
                 throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
             }
         } catch (e: ServerErrorException) {

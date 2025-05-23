@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonPrimitive
-import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
@@ -376,10 +375,11 @@ class OfferViewModel(
     ) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
-                val body = hashMapOf("price" to sum)
-                offerOperations.postOfferOperationsAddBid(
+                operationsMethods.postOperationAdditionalData(
                     offer.id,
-                    body
+                    "add_bid",
+                    "offers",
+                    hashMapOf("price" to JsonPrimitive(sum))
                 )
             }
 
@@ -388,48 +388,29 @@ class OfferViewModel(
 
             withContext(Dispatchers.Main) {
                 if (buf != null) {
-                    if (buf.success) {
-                        showToast(
-                            successToastItem.copy(
-                                message = buf.humanMessage ?: getString(strings.operationSuccess)
-                            )
+                    showToast(
+                        successToastItem.copy(
+                            message = buf.operationResult?.result ?: getString(strings.operationSuccess)
                         )
-                        val eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "lot_name" to offer.name,
-                            "lot_city" to offer.freeLocation,
-                            "auc_delivery" to offer.safeDeal,
-                            "lot_category" to offer.catpath.firstOrNull(),
-                            "seller_id" to offer.sellerData?.id,
-                            "lot_price_start" to offer.currentPricePerItem,
-                            "buyer_id" to UserData.login,
-                            "bid_amount" to sum,
-                            "bids_all" to offer.bids?.size
-                        )
-                        analyticsHelper.reportEvent(
-                            "bid_made",
-                            eventParameters
-                        )
-                        onSuccess()
-                    } else {
-                        val hm = buf.humanMessage ?: getString(strings.operationFailed)
-                        showToast(
-                            errorToastItem.copy(
-                                message = hm
-                            )
-                        )
-                        val eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "seller_id" to offer.sellerData?.id,
-                            "lot_price_start" to offer.currentPricePerItem,
-                            "buyer_id" to UserData.login,
-                            "bid_amount" to sum,
-                            "error" to hm
-                        )
-                        analyticsHelper.reportEvent("bid_made_failed", eventParameters)
-
-                        onDismiss()
-                    }
+                    )
+                    val eventParameters = mapOf(
+                        "lot_id" to offer.id,
+                        "lot_name" to offer.name,
+                        "lot_city" to offer.freeLocation,
+                        "auc_delivery" to offer.safeDeal,
+                        "lot_category" to offer.catpath.firstOrNull(),
+                        "seller_id" to offer.sellerData?.id,
+                        "lot_price_start" to offer.currentPricePerItem,
+                        "buyer_id" to UserData.login,
+                        "bid_amount" to sum,
+                        "bids_all" to offer.bids?.size
+                    )
+                    analyticsHelper.reportEvent(
+                        "bid_made",
+                        eventParameters
+                    )
+                    onSuccess()
+                    onDismiss()
                 } else {
                     error?.let { onError(it) }
                 }

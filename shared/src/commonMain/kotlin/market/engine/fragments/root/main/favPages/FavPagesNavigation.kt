@@ -134,7 +134,7 @@ fun FavPagesNavigation(
                         }
 
                         "delete_offers_list" -> {
-                            viewModel.postOperation(
+                            viewModel.postOperationFields(
                                 id,
                                 type,
                                 "offers_lists",
@@ -149,7 +149,7 @@ fun FavPagesNavigation(
                         }
 
                         "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
-                            viewModel.postOperation(
+                            viewModel.postOperationFields(
                                 id,
                                 type,
                                 "offers_lists",
@@ -237,7 +237,7 @@ fun FavPagesNavigation(
                             }
                         }
 
-                        viewModel.postOperation(
+                        viewModel.postOperationFields(
                             postId.value,
                             showCreatedDialog.value,
                             "offers_lists",
