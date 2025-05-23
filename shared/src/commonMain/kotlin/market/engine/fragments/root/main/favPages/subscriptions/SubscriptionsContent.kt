@@ -16,8 +16,6 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -95,10 +93,9 @@ fun SubscriptionsContent(
     //update item when we back
     LaunchedEffect(subViewModel.updateItem.value) {
         if (subViewModel.updateItem.value != null) {
-            val item = subViewModel.getSubscription(subViewModel.updateItem.value!!)
-            withContext(Dispatchers.Main) {
+            subViewModel.getSubscription(subViewModel.updateItem.value!!){ item ->
+                val oldItem = data.itemSnapshotList.find { it?.id == subViewModel.updateItem.value }
                 if (item != null) {
-                    val oldItem = data.itemSnapshotList.find { it?.id == item.id }
                     if (oldItem != null) {
                         oldItem.catpath = item.catpath
                         oldItem.isEnabled = item.isEnabled
@@ -108,9 +105,11 @@ fun SubscriptionsContent(
                         oldItem.region = item.region
                         oldItem.searchQuery = item.searchQuery
                         oldItem.saleType = item.saleType
-                        subViewModel.updateItemTrigger.value++
                     }
+                } else {
+                    oldItem?.id = 1L
                 }
+                subViewModel.updateItemTrigger.value++
                 subViewModel.updateItem.value = null
             }
         }
@@ -190,6 +189,10 @@ fun SubscriptionsContent(
                         subViewModel,
                         goToEditSubscription = {
                             component.goToCreateNewSubscription(it)
+                        },
+                        onUpdateItem = {
+                            subViewModel.updateItem.value = subscription.id
+                            subViewModel.updateItemTrigger.value++
                         },
                         onItemClick = {
                             val ld = ListingData()

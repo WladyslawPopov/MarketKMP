@@ -8,7 +8,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Subscription
@@ -36,22 +35,18 @@ class SubViewModel(
         pagingRepository.refresh()
     }
 
-    suspend fun getSubscription(subId : Long) : Subscription? {
-        val buffer = withContext(Dispatchers.IO) {
-            subscriptionOperations.getSubscription(
-                subId
-            )
-        }
-        val res = buffer.success
-        return if (res != null) {
-            withContext(Dispatchers.Main) {
-                return@withContext res
-            }
-        } else {
-            withContext(Dispatchers.Main) {
-                return@withContext null
-            }
-        }
+    fun getSubscription(subId : Long, onSuccess : (Subscription?) -> Unit ) {
+         viewModelScope.launch {
+             val buffer = withContext(Dispatchers.IO) {
+                 subscriptionOperations.getSubscription(
+                     subId
+                 )
+             }
+             withContext(Dispatchers.Main) {
+                 val res = buffer.success
+                 onSuccess(res)
+             }
+         }
     }
 
     fun enableSubscription(subId : Long, onSuccess : () -> Unit) {
@@ -96,29 +91,6 @@ class SubViewModel(
                     if (resError != null) {
                         onError(resError)
                     }
-                }
-            }
-        }
-    }
-
-    fun deleteSubscription(subId : Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperationFields(
-                    subId,
-                    "delete_subscription",
-                    "subscriptions"
-                )
-            }
-            withContext(Dispatchers.Main) {
-                val res = buf.success
-                if (res != null) {
-                    val eventParameters = mapOf("buyer_id" to UserData.login, "item_id" to subId)
-                    analyticsHelper.reportEvent(
-                        "delete_subscription",
-                        eventParameters
-                    )
-                    onSuccess()
                 }
             }
         }

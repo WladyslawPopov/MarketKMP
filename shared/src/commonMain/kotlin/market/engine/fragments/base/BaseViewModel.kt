@@ -44,6 +44,7 @@ import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.network.functions.OrderOperations
+import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.AdditionalData
 import market.engine.core.network.networkObjects.Conversations
@@ -58,6 +59,7 @@ import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
+import kotlin.collections.contains
 
 open class BaseViewModel: ViewModel() {
 
@@ -81,6 +83,7 @@ open class BaseViewModel: ViewModel() {
     val orderOperations : OrderOperations by lazy { getKoin().get() }
     val categoryOperations : CategoryOperations by lazy { getKoin().get() }
     val conversationsOperations: ConversationsOperations by lazy { getKoin().get() }
+    val subOperations: SubscriptionOperations by lazy { getKoin().get() }
     val operationsMethods: OperationsMethods by lazy { getKoin().get() }
     val userOperations : UserOperations by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
@@ -332,6 +335,25 @@ open class BaseViewModel: ViewModel() {
                         "disable_feedbacks",
                         "remove_feedback_to_buyer",
                         "mark_as_archived_by_buyer",
+                    )
+                }
+                if (buf != null) {
+                    onSuccess(buf)
+                }
+            }
+        }
+    }
+
+    fun getSubOperations(subId : Long, onSuccess: (List<Operations>) -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) { subOperations.getOperationsSubscription(subId) }
+            withContext(Dispatchers.Main) {
+                val buf = res.success?.filter {
+                    it.id in listOf(
+                        "enable_subscription",
+                        "disable_subscription",
+                        "edit_subscription",
+                        "delete_subscription"
                     )
                 }
                 if (buf != null) {

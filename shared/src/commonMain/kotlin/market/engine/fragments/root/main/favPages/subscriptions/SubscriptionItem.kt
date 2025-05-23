@@ -21,15 +21,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.MenuItem
 import market.engine.core.network.networkObjects.Subscription
+import market.engine.core.utils.onClickSubOperationItem
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.dropdown_menu.getSubscriptionOperations
+import market.engine.widgets.dialogs.SubOperationsDialogs
+import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -40,11 +44,19 @@ fun SubscriptionItem(
     subscription: Subscription,
     viewModel: SubViewModel,
     goToEditSubscription: (Long) -> Unit,
+    onUpdateItem: () -> Unit,
     onItemClick: () -> Unit
 ) {
     val user = subscription.sellerData
     val showMenu = remember { mutableStateOf(false) }
     val isEnabled = mutableStateOf(subscription.isEnabled)
+
+    val showOperationsDialog = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(AnnotatedString("")) }
+
+    val menuList = remember {
+        mutableStateOf<List<MenuItem>>(emptyList())
+    }
 
     if (viewModel.updateItemTrigger.value >= 0)
 
@@ -123,18 +135,35 @@ fun SubscriptionItem(
                         drawables.menuIcon,
                         color = colors.black,
                     ){
-                        showMenu.value = true
-                    }
-
-                    if (showMenu.value){
-                        getSubscriptionOperations(
-                            subscription,
-                            viewModel,
-                            goToEditSubscription = goToEditSubscription
-                        ){
-                            showMenu.value = false
+                        viewModel.getSubOperations(subscription.id) { listOperations ->
+                            menuList.value = buildList {
+                                addAll(listOperations.map { operation ->
+                                    MenuItem(
+                                        id = operation.id ?: "",
+                                        title = operation.name ?: "",
+                                        onClick = {
+                                            operation.onClickSubOperationItem(
+                                                subscription,
+                                                title,
+                                                viewModel,
+                                                showOperationsDialog,
+                                                goToEditSubscription,
+                                            ) {
+                                                onUpdateItem()
+                                            }
+                                        }
+                                    )
+                                })
+                            }
+                            showMenu.value = true
                         }
                     }
+
+                    PopUpMenu(
+                        openPopup = showMenu.value,
+                        menuList = menuList.value,
+                        onClosed = { showMenu.value = false }
+                    )
                 }
             }
             //body
@@ -315,6 +344,16 @@ fun SubscriptionItem(
 //                    }
 //                }
             }
+
+            SubOperationsDialogs(
+                subscription,
+                title,
+                showOperationsDialog,
+                viewModel,
+                updateItem = {
+                    onUpdateItem()
+                }
+            )
         }
     }
 }

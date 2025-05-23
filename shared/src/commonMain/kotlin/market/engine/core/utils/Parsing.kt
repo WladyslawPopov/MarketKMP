@@ -22,6 +22,7 @@ import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Order
+import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.network.networkObjects.User
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
@@ -309,6 +310,48 @@ fun Operations.onClickOrderOperationItem(
                 id ?: "",
                 "orders",
                 onSuccess = {
+                    onUpdateOfferItem()
+                },
+                errorCallback = {
+
+                }
+            )
+        }
+    }
+}
+
+fun Operations.onClickSubOperationItem(
+    item : Subscription,
+    title : MutableState<AnnotatedString>,
+    viewModel : BaseViewModel,
+    showOperationsDialog : MutableState<String>,
+    goToEditSubscription : (Long) -> Unit,
+    onUpdateOfferItem : () -> Unit,
+) {
+    when (id)  {
+        "edit_subscription" ->{
+            goToEditSubscription(item.id)
+        }
+        "delete_subscription" ->{
+            title.value = AnnotatedString(name.toString())
+            showOperationsDialog.value = id
+        }
+        else -> {
+            viewModel.postOperationFields(
+                item.id,
+                id ?: "",
+                "subscriptions",
+                onSuccess = {
+                    val eventParameters = mapOf(
+                        "buyer_id" to UserData.login,
+                        "item_id" to item.id
+                    )
+                    viewModel.analyticsHelper.reportEvent(
+                        "delete_subscription",
+                        eventParameters
+                    )
+
+                    viewModel.updateItemTrigger.value++
                     onUpdateOfferItem()
                 },
                 errorCallback = {
