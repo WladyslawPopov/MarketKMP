@@ -102,6 +102,10 @@ class DefaultRootComponent(
 
     init {
 
+        if(deepLink != null){
+            updateURL(deepLink!!)
+        }
+
         val isFirstLaunch = settingsHelper.getSettingValue("isFirstLaunch", true)
         if (isFirstLaunch == true) {
             settingsHelper.setSettingValue("isFirstLaunch", false)
