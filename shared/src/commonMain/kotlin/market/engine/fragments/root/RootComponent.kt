@@ -117,12 +117,7 @@ class DefaultRootComponent(
         settingsHelper.setSettingValue("count_launch", ++countLaunch)
 
 
-        val isShowReview = settingsHelper.getSettingValue("isShowReview", false) == true
-        if (countLaunch > 10 && !isShowReview){
-            //check review
-            showReviewManager()
-            settingsHelper.setSettingValue("isShowReview", true)
-        }
+        showReviewManager()
     }
 
     private fun createChild(rootConfig: RootConfig, componentContext: ComponentContext): RootComponent.Child =
