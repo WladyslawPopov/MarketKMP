@@ -380,6 +380,7 @@ fun CabinetOfferItemList(
                             }
                         }
                     }
+
                     if (UserData.login != item.seller.id) {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
@@ -463,7 +464,7 @@ fun CabinetOfferItemList(
                                             id = operation.id ?: "",
                                             title = "${(operation.name ?: "")} (${operation.price*-1}$currency)",
                                             onClick = {
-                                                baseViewModel.getPromoOperationFields(item.id, operation.id ?: "") { t, f ->
+                                                baseViewModel.getOperationFields(item.id, operation.id ?: "", "offers"){ t, f ->
                                                     title.value = buildAnnotatedString {
                                                         append(t)
                                                         withStyle(
@@ -486,6 +487,7 @@ fun CabinetOfferItemList(
                             }
                         }
                     }
+
                     PopUpMenu(
                         openPopup = isOpenPromoPopup.value,
                         menuList = menuList.value,

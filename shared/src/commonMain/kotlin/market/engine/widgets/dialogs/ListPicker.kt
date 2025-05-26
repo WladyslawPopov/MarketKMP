@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -84,6 +85,13 @@ fun ListPicker(
     }
 
     Box(modifier = modifier) {
+        HorizontalDivider(
+            modifier = Modifier
+                .padding(top = itemHeightDp * visibleItemsMiddle)
+                .height(1.dp),
+            color = dividerColor
+        )
+
         LazyColumnWithScrollBars(
             state = listState,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -99,19 +107,14 @@ fun ListPicker(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = textStyle,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .onSizeChanged { size -> itemHeightPixels.value = size.height }
                         .then(textModifier)
                 )
             }
         }
-
-        HorizontalDivider(
-            modifier = Modifier
-                .padding(top = itemHeightDp * visibleItemsMiddle)
-                .height(1.dp),
-            color = dividerColor
-        )
 
         HorizontalDivider(
             modifier = Modifier

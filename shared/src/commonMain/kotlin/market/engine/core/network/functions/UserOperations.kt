@@ -79,7 +79,7 @@ class UserOperations(val apiService: APIService) {
 
     suspend fun getUsersOperationsAddressCards(id: Long = 1L): ServerResponse<BodyPayload<AddressCards>> {
         return try {
-            val response = apiService.getOperationFields(id, "get_address_cards", "users")
+            val response = apiService.postOperation(id, "get_address_cards", "users", hashMapOf())
             try {
                 val serializer = BodyPayload.serializer(AddressCards.serializer())
                 val payload : BodyPayload<AddressCards> = deserializePayload(response.payload, serializer)

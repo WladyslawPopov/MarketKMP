@@ -1,6 +1,5 @@
 package market.engine.fragments.root.dynamicSettings
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -21,9 +20,7 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.DynamicPayload
-import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
@@ -35,9 +32,6 @@ class DynamicSettingsViewModel : BaseViewModel() {
 
     private val _errorSettings = MutableStateFlow<Pair<AnnotatedString, String>?>(null)
     val errorSettings : StateFlow<Pair<AnnotatedString, String>?> = _errorSettings.asStateFlow()
-
-    val responseGetLoadCards = mutableStateOf(emptyList<DeliveryAddress>())
-    val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
 
     fun init(settingsType : String, owner : Long?) {
         viewModelScope.launch {
@@ -51,10 +45,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         userOperations.getUsersOperationsResetPassword()
                     }
                     "set_address_cards" -> {
-                        viewModelScope.launch {
-                            responseGetLoadCards.value = getDeliveryCards() ?: emptyList()
-                            deliveryFields.value = getDeliveryFields() ?: emptyList()
-                        }
+                        getDeliveryCards()
                         null
                     }
                     "remove_bids_of_users" -> {

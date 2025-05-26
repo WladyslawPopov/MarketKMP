@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -72,21 +71,13 @@ fun CreateOrderContent(
 
     val basketItem = model.value.basketItem
 
-    val deliveryCards = remember {
-        viewModel.responseGetLoadCards
-    }
-
-    val deliveryFields = remember {
-        viewModel.deliveryFields
-    }
-
     BackHandler(model.value.backHandler){
         component.onBackClicked()
     }
 
     val refresh = {
         viewModel.onError(ServerErrorException())
-        viewModel.updateDeliveryFields()
+        viewModel.getDeliveryCards()
         viewModel.getOffers(basketItem.second.map { it.offerId })
         viewModel.getAdditionalFields(
             basketItem.first,
@@ -243,15 +234,7 @@ fun CreateOrderContent(
             item {
                 // delivery cards
                 DeliveryCardsContent(
-                    deliveryCards.value,
-                    deliveryFields.value,
-                    viewModel,
-                    setUpNewFields = { cf ->
-                        deliveryFields.value = cf
-                    },
-                    onError = {
-                        deliveryFields.value = it
-                    }
+                    viewModel
                 ) {
                     refresh()
                 }
@@ -343,15 +326,16 @@ fun CreateOrderContent(
                             .padding(dimens.mediumPadding),
                         enabled = !isLoading.value
                     ) {
-                        if(deliveryCards.value.isEmpty()){
+                        val fields = viewModel.deliveryFields.value
+
+                        if(fields.isEmpty()){
                             viewModel.saveDeliveryCard(
-                                deliveryFields.value,
-                                deliveryCards.value.find { it.isDefault }?.id,
+                                viewModel.deliveryCards.value.firstOrNull()?.id ?: 1L,
                                 onSaved = {
-                                    viewModel.postPage(deliveryFields.value, basketItem)
+                                    viewModel.postPage(fields, basketItem)
                                 },
                                 onError = {
-                                    deliveryFields.value = it
+                                    viewModel.deliveryFields.value = it
                                     scope.launch {
                                         delay(200)
                                         state.scrollToItem(0)
@@ -359,7 +343,7 @@ fun CreateOrderContent(
                                 }
                             )
                         }else{
-                            viewModel.postPage(deliveryFields.value, basketItem)
+                            viewModel.postPage(fields, basketItem)
                         }
                     }
                 }

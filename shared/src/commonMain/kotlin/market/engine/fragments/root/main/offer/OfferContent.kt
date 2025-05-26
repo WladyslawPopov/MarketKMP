@@ -337,7 +337,7 @@ fun OfferContent(
                 id = operation.id ?: "",
                 title = "${(operation.name ?: "")} (${operation.price*-1} $currency)",
                 onClick = {
-                    offerViewModel.getPromoOperationFields(offer.id, operation.id ?: "") { t, f ->
+                    offerViewModel.getOperationFields(offer.id, operation.id ?: "", "offers") { t, f ->
                         title.value = AnnotatedString(t)
                         fields.value.clear()
                         fields.value.addAll(f)

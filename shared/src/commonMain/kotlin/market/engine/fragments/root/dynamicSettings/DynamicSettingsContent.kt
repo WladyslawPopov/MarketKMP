@@ -23,7 +23,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
@@ -81,9 +80,6 @@ fun DynamicSettingsContent(
     } else {
         null
     }
-
-    val deliveryCards = remember { viewModel.responseGetLoadCards }
-    val deliveryFields = remember { viewModel.deliveryFields }
 
     val richTextState = rememberRichTextState()
 
@@ -212,20 +208,9 @@ fun DynamicSettingsContent(
                             )
 
                             DeliveryCardsContent(
-                                deliveryCards.value,
-                                deliveryFields.value,
                                 viewModel,
-                                setUpNewFields = { newFields ->
-                                    deliveryFields.value = newFields
-                                },
-                                onError = {
-                                    deliveryFields.value = it
-                                },
                                 refresh = {
-                                    viewModel.viewModelScope.launch {
-                                        viewModel.responseGetLoadCards.value = viewModel.getDeliveryCards() ?: emptyList()
-                                        viewModel.deliveryFields.value =  viewModel.getDeliveryFields() ?: emptyList()
-                                    }
+                                    viewModel.getDeliveryCards()
                                 }
                             )
                         }

@@ -19,7 +19,6 @@ import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
-import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
@@ -43,15 +42,6 @@ class CreateOrderViewModel: BaseViewModel() {
     val selectDealType = mutableStateOf(0)
     val selectPaymentType = mutableStateOf(0)
 
-    val responseGetLoadCards = mutableStateOf(emptyList<DeliveryAddress>())
-    val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
-
-    fun updateDeliveryFields() {
-        viewModelScope.launch {
-            responseGetLoadCards.value = getDeliveryCards() ?: emptyList()
-            deliveryFields.value = getDeliveryFields() ?: emptyList()
-        }
-    }
 
     fun getOffers(listOffersId : List<Long>) {
         viewModelScope.launch {

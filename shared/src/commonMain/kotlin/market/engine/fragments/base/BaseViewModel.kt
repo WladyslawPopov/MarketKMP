@@ -59,7 +59,6 @@ import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
-import kotlin.collections.contains
 
 open class BaseViewModel: ViewModel() {
 
@@ -88,6 +87,10 @@ open class BaseViewModel: ViewModel() {
     val userOperations : UserOperations by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
     val db : MarketDB by lazy { getKoin().get() }
+
+
+    val deliveryCards = mutableStateOf(emptyList<DeliveryAddress>())
+    val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
 
     private val _errorMessage = MutableStateFlow(ServerErrorException())
     val errorMessage: StateFlow<ServerErrorException> = _errorMessage.asStateFlow()
@@ -122,84 +125,6 @@ open class BaseViewModel: ViewModel() {
         viewModelScope.launch {
             delay(3000)
             toastItem.value = ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
-        }
-    }
-
-    fun getCategories(
-        searchData : SD,
-        listingData : LD,
-        withoutCounter : Boolean = false,
-        onSuccess: (List<Category>) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                val id = searchData.searchCategoryID
-                val response =
-                    withContext(Dispatchers.IO) { apiService.getPublicCategories(id) }
-
-                val serializer = Payload.serializer(Category.serializer())
-                val payload: Payload<Category> =
-                    deserializePayload(response.payload, serializer)
-
-                if (!withoutCounter) {
-                    val category = withContext(Dispatchers.IO) {
-                        val categoriesWithLotCounts = payload.objects.map { category ->
-                            async {
-                                val sd = searchData.copy()
-                                sd.searchCategoryID = category.id
-                                val lotCount =
-                                    categoryOperations.getTotalCount(sd, listingData)
-                                category.copy(
-                                    estimatedActiveOffersCount = lotCount.success ?: 0
-                                )
-                            }
-                        }
-                        categoriesWithLotCounts.awaitAll()
-                            .filter { it.estimatedActiveOffersCount > 0 }
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        onSuccess(category)
-                    }
-                } else {
-                    onSuccess(payload.objects)
-                }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
-            }
-        }
-    }
-
-    fun updateUserInfo(){
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.Unconfined) {
-                    userRepository.updateToken()
-                    userRepository.updateUserInfo()
-                }
-            }  catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
-            }
-        }
-    }
-
-    fun onCatBack(
-        uploadId: Long,
-        onSuccess: (Category) -> Unit
-    ) {
-        viewModelScope.launch {
-            val response = withContext(Dispatchers.IO) {
-                categoryOperations.getCategoryInfo(
-                    uploadId
-                )
-            }
-            if (response.success != null){
-                onSuccess(response.success!!)
-            }
         }
     }
 
@@ -315,27 +240,37 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
+    fun getOfferOperations(
+        offerId: Long,
+        tag : String = "default",
+        onSuccess: (List<Operations>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                offerOperations.getOperationsOffer(offerId, tag)
+            }
+
+            withContext(Dispatchers.Main) {
+                val buf = res.success?.filter {
+                    it.id !in listOf(
+                        "add_description",
+                        "cloprec107"
+                    )
+                }
+
+                if (buf != null) {
+                    onSuccess(res.success ?: emptyList())
+                }
+            }
+        }
+    }
+
     fun getOrderOperations(orderId : Long, onSuccess: (List<Operations>) -> Unit){
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) { orderOperations.getOperationsOrder(orderId) }
             withContext(Dispatchers.Main){
                 val buf = res.success?.filter {
-                    it.id in listOf(
-                        "give_feedback_to_seller",
-                        "give_feedback_to_buyer",
-                        "provide_track_id",
-                        "set_comment",
-                        "unmark_as_parcel_sent",
-                        "mark_as_parcel_sent",
-                        "unmark_as_payment_sent",
-                        "mark_as_payment_received",
-                        "mark_as_archived_by_seller",
-                        "unmark_as_archived_by_seller",
-                        "enable_feedbacks",
-                        "disable_feedbacks",
-                        "remove_feedback_to_buyer",
-                        "mark_as_archived_by_buyer",
-                    )
+                    it.id !in listOf("refund")
                 }
                 if (buf != null) {
                     onSuccess(buf)
@@ -348,17 +283,89 @@ open class BaseViewModel: ViewModel() {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) { subOperations.getOperationsSubscription(subId) }
             withContext(Dispatchers.Main) {
-                val buf = res.success?.filter {
-                    it.id in listOf(
-                        "enable_subscription",
-                        "disable_subscription",
-                        "edit_subscription",
-                        "delete_subscription"
-                    )
-                }
+                val buf = res.success
+
                 if (buf != null) {
                     onSuccess(buf)
                 }
+            }
+        }
+    }
+
+    fun getCategories(
+        searchData : SD,
+        listingData : LD,
+        withoutCounter : Boolean = false,
+        onSuccess: (List<Category>) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val id = searchData.searchCategoryID
+                val response =
+                    withContext(Dispatchers.IO) { apiService.getPublicCategories(id) }
+
+                val serializer = Payload.serializer(Category.serializer())
+                val payload: Payload<Category> =
+                    deserializePayload(response.payload, serializer)
+
+                if (!withoutCounter) {
+                    val category = withContext(Dispatchers.IO) {
+                        val categoriesWithLotCounts = payload.objects.map { category ->
+                            async {
+                                val sd = searchData.copy()
+                                sd.searchCategoryID = category.id
+                                val lotCount =
+                                    categoryOperations.getTotalCount(sd, listingData)
+                                category.copy(
+                                    estimatedActiveOffersCount = lotCount.success ?: 0
+                                )
+                            }
+                        }
+                        categoriesWithLotCounts.awaitAll()
+                            .filter { it.estimatedActiveOffersCount > 0 }
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        onSuccess(category)
+                    }
+                } else {
+                    onSuccess(payload.objects)
+                }
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
+            }
+        }
+    }
+
+    fun updateUserInfo(){
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.Unconfined) {
+                    userRepository.updateToken()
+                    userRepository.updateUserInfo()
+                }
+            }  catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
+            }
+        }
+    }
+
+    fun onCatBack(
+        uploadId: Long,
+        onSuccess: (Category) -> Unit
+    ) {
+        viewModelScope.launch {
+            val response = withContext(Dispatchers.IO) {
+                categoryOperations.getCategoryInfo(
+                    uploadId
+                )
+            }
+            if (response.success != null){
+                onSuccess(response.success!!)
             }
         }
     }
@@ -593,31 +600,94 @@ open class BaseViewModel: ViewModel() {
         return check
     }
 
-    suspend fun getDeliveryCards(): List<DeliveryAddress>? {
-        try {
-            val response = withContext(Dispatchers.IO) {
-                userOperations.getUsersOperationsAddressCards(UserData.login)
-            }
+    fun getDeliveryCards() {
+        viewModelScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    userOperations.getUsersOperationsAddressCards(UserData.login)
+                }
 
-            val payload = response.success
-            val err = response.error
+                val payload = response.success
+                val err = response.error
+                val cards = payload?.body?.addressCards
 
-            if (payload?.body?.addressCards != null) {
-                return payload.body.addressCards
-            } else {
-                throw err ?: ServerErrorException(errorCode = "Error", humanMessage = "")
-            }
-        } catch (exception: ServerErrorException) {
-            onError(exception)
-            return null
-        } catch (exception: Exception) {
-            onError(
-                ServerErrorException(
-                    errorCode = exception.message.toString(),
-                    humanMessage = exception.message.toString()
+                if (cards != null) {
+                    payload.body.addressCards.find { it.isDefault }?.id?.let {
+                        setDeliveryFields(it)
+                    }
+                    deliveryCards.value = payload.body.addressCards
+                } else {
+                    throw err ?: ServerErrorException(errorCode = "Error", humanMessage = "")
+                }
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+            } catch (exception: Exception) {
+                onError(
+                    ServerErrorException(
+                        errorCode = exception.message.toString(),
+                        humanMessage = exception.message.toString()
+                    )
                 )
-            )
-            return null
+            }
+        }
+    }
+
+    fun setDeliveryFields(selectedId : Long?) {
+        viewModelScope.launch {
+            val cards = deliveryCards.value
+            val fields = getDeliveryFields() ?: emptyList()
+            val card = cards.find { it.id == selectedId }
+            if (card != null) {
+                fields.forEach { field ->
+                    when (field.key) {
+                        "zip" -> {
+                            if (card.zip != null) {
+                                field.data = JsonPrimitive(card.zip)
+                            }
+                        }
+
+                        "city" -> {
+                            field.data = card.city
+                        }
+
+                        "address" -> {
+                            if (card.address != null) {
+                                field.data = JsonPrimitive(card.address)
+                            }
+                        }
+
+                        "phone" -> {
+                            if (card.phone != null) {
+                                field.data = JsonPrimitive(card.phone)
+                            }
+                        }
+
+                        "surname" -> {
+                            if (card.surname != null) {
+                                field.data = JsonPrimitive(card.surname)
+                            }
+                        }
+
+                        "other_country" -> {
+                            if (card.country != null) {
+                                field.data = JsonPrimitive(card.country)
+                            }
+                        }
+
+                        "country" -> {
+                            field.data =
+                                JsonPrimitive(if (card.country == getString(strings.countryDefault)) 0 else 1)
+                        }
+                    }
+                    field.errors = null
+                }
+            } else {
+                fields.forEach {
+                    it.data = null
+                    it.errors = null
+                }
+            }
+            deliveryFields.value = fields
         }
     }
 
@@ -713,11 +783,11 @@ open class BaseViewModel: ViewModel() {
         return if (list.isEmpty()) null else list.filter { it.isRead < 1 || it.isRead > 1 }.size
     }
 
-    fun saveDeliveryCard(deliveryFields: List<Fields>, cardId: Long?, onSaved: () -> Unit, onError: (List<Fields>) -> Unit) {
+    fun saveDeliveryCard(cardId: Long?, onSaved: () -> Unit, onError: (List<Fields>) -> Unit) {
         setLoading(true)
         viewModelScope.launch {
             val jsonBody : HashMap<String, JsonElement> = hashMapOf()
-            deliveryFields.forEach { field ->
+            deliveryFields.value.forEach { field ->
                     when (field.widgetType) {
                         "input" -> {
                             if (field.data != null) {
@@ -1180,34 +1250,6 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun getPromoOperationFields(
-        offerId : Long,
-        operation: String,
-        onSuccess: (
-            title: String,
-            fields: ArrayList<Fields>
-        ) -> Unit
-    ) {
-        viewModelScope.launch {
-            val postRes = withContext(Dispatchers.IO) {
-                operationsMethods.getOperationFields(offerId, operation, "offers")
-            }
-
-            val bufPost = postRes.success
-            val err = postRes.error
-
-            withContext(Dispatchers.Main) {
-                if (bufPost != null) {
-                    onSuccess(bufPost.title ?: "", bufPost.fields)
-                }else{
-                    if (err != null) {
-                        onError(err)
-                    }
-                }
-            }
-        }
-    }
-
     fun postOfferListFieldForOffer(
         offerId : Long,
         type : String,
@@ -1356,24 +1398,6 @@ open class BaseViewModel: ViewModel() {
             } else {
                 if (error != null) {
                     onError(error)
-                }
-            }
-        }
-    }
-
-    fun getOfferOperations(
-        offerId: Long,
-        tag : String = "default",
-        onSuccess: (List<Operations>) -> Unit
-    ) {
-        viewModelScope.launch {
-            val res = withContext(Dispatchers.IO) {
-                offerOperations.getOperationsOffer(offerId, tag)
-            }
-            val buf = res.success
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    onSuccess(res.success ?: emptyList())
                 }
             }
         }

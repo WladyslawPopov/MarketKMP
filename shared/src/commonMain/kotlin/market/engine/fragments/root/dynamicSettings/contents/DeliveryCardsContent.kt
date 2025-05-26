@@ -19,15 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.network.networkObjects.DeliveryAddress
-import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SimpleTextButton
@@ -42,79 +39,20 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DeliveryCardsContent(
-    cards: List<DeliveryAddress>,
-    fields: List<Fields>,
     viewModel: BaseViewModel,
-    setUpNewFields: (List<Fields>) -> Unit,
-    onError: (List<Fields>) -> Unit,
     refresh: () -> Unit
 ){
-    val showFields = remember { mutableStateOf(cards.find { it.isDefault }?.address?.trim()?.isBlank() ?: true) }
-    
+    val cards = viewModel.deliveryCards.value
+    val fields = viewModel.deliveryFields.value
+
+    val showFields = remember { mutableStateOf(cards.find { it.isDefault }?.address?.trim()?.isBlank() == true) }
+
     val selectedCards = remember { mutableStateOf(cards.find { it.isDefault }?.id) }
 
     val selectedCountry = remember {
         mutableStateOf(
             fields.find { it.key == "country" }?.data?.jsonPrimitive?.intOrNull ?: 0
         )
-    }
-
-    val countryDef = stringResource(strings.countryDefault)
-
-    val setFields : (Long?) -> Unit = { selectedId ->
-        val card = cards.find { it.id == selectedId }
-        if (card != null) {
-            fields.forEach { field ->
-                when (field.key) {
-                    "zip" -> {
-                        if (card.zip != null) {
-                            field.data = JsonPrimitive(card.zip)
-                        }
-                    }
-
-                    "city" -> {
-                        field.data = card.city
-                    }
-
-                    "address" -> {
-                        if (card.address != null) {
-                            field.data = JsonPrimitive(card.address)
-                        }
-                    }
-
-                    "phone" -> {
-                        if (card.phone != null) {
-                            field.data = JsonPrimitive(card.phone)
-                        }
-                    }
-
-                    "surname" -> {
-                        if (card.surname != null) {
-                            field.data = JsonPrimitive(card.surname)
-                        }
-                    }
-
-                    "other_country" -> {
-                        if (card.country != null) {
-                            field.data = JsonPrimitive(card.country)
-                        }
-                    }
-
-                    "country" -> {
-                        selectedCountry.value = if (card.country == countryDef) 0 else 1
-                        field.data =
-                            JsonPrimitive(if (card.country == countryDef) 0 else 1)
-                    }
-                }
-                field.errors = null
-            }
-        } else {
-            fields.forEach {
-                it.data = null
-                it.errors = null
-            }
-        }
-        setUpNewFields(fields)
     }
 
     Column(
@@ -136,7 +74,7 @@ fun DeliveryCardsContent(
                     strings.addNewDeliveryCard,
                     containerColor = colors.brightGreen,
                 ) {
-                    setFields(null)
+                    viewModel.setDeliveryFields(null)
                     showFields.value = true
                 }
             }
@@ -150,7 +88,7 @@ fun DeliveryCardsContent(
                         cards[it].id == selectedCards.value,
                         cards[it],
                         setActiveCard = { card ->
-                            setFields(card.id)
+                            viewModel.setDeliveryFields(card.id)
                             selectedCards.value = card.id
                         }
                     )
@@ -241,7 +179,7 @@ fun DeliveryCardsContent(
                     backgroundColor = colors.greenWaterBlue,
                     textColor = colors.alwaysWhite
                 ) {
-                    setFields(selectedCards.value)
+                    viewModel.setDeliveryFields(selectedCards.value)
                     showFields.value = true
                 }
             }
@@ -255,7 +193,6 @@ fun DeliveryCardsContent(
                 ) {
                     viewModel.setLoading(true)
                     viewModel.saveDeliveryCard(
-                        fields,
                         selectedCards.value,
                         onSaved = {
                             showFields.value = false
@@ -263,7 +200,7 @@ fun DeliveryCardsContent(
                             selectedCards.value = cards.find { it.isDefault }?.id
                         },
                         onError = {
-                            onError(it)
+                            viewModel.deliveryFields.value = it
                         }
                     )
                 }
@@ -276,7 +213,7 @@ fun DeliveryCardsContent(
                     textColor = colors.alwaysWhite
                 ) {
                     showFields.value = false
-                    setFields(cards.find { it.isDefault }?.id)
+                    viewModel.setDeliveryFields(cards.find { it.isDefault }?.id)
                     selectedCards.value = cards.find { it.isDefault }?.id
                 }
             }
