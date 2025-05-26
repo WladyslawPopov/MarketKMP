@@ -216,7 +216,7 @@ class DynamicSettingsViewModel : BaseViewModel() {
                     }
                     else -> {
                         operationsMethods.postOperationFields(
-                            UserData.login,
+                            owner ?: UserData.login,
                             settingsType,
                             "users",
                             body
