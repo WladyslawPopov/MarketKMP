@@ -45,7 +45,7 @@ fun HeaderOfferBar(
     refreshPage : (() -> Unit)? = null,
     onUpdateTrigger: Int,
     baseViewModel: BaseViewModel,
-    onSelectionChange: ((Boolean) -> Unit)? = null
+    onSelectionChange: ((Boolean) -> Unit)? = null,
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
 

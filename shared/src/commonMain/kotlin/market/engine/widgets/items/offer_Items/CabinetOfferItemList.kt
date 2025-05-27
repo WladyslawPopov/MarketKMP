@@ -86,7 +86,6 @@ fun CabinetOfferItemList(
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
     }
-
     Card(
         colors = if (!item.isPromo) colors.cardColors else colors.cardColorsPromo,
         shape = MaterialTheme.shapes.small,
@@ -102,7 +101,7 @@ fun CabinetOfferItemList(
                 baseViewModel = baseViewModel,
                 onSelectionChange = onSelectionChange,
                 onUpdateOfferItem = onUpdateOfferItem,
-                refreshPage = refreshPage
+                refreshPage = refreshPage,
             )
         }
 

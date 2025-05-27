@@ -11,9 +11,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -21,11 +23,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.checkNumberKeyBoard
 import market.engine.core.utils.checkValidation
 import market.engine.core.utils.processInput
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.stringResource
 
@@ -38,6 +42,8 @@ fun DynamicInputField(
     singleLine: Boolean = true,
     enabled: Boolean = true
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+    val isPassword = field.widgetType == "password"
 
     LaunchedEffect(Unit) {
         if (field.data != null) {
@@ -129,6 +135,15 @@ fun DynamicInputField(
                         color = colors.black
                     )
                 }
+
+                if (isPassword) {
+                    SmallIconButton(
+                        if (passwordVisible) drawables.eyeClose else drawables.eyeOpen,
+                        colors.black
+                    ) {
+                        passwordVisible = !passwordVisible
+                    }
+                }
             },
             singleLine = singleLine,
             minLines = if (singleLine) 1 else 2,
@@ -153,7 +168,7 @@ fun DynamicInputField(
                 unfocusedPlaceholderColor = colors.steelBlue,
                 disabledPlaceholderColor = colors.transparent
             ),
-            visualTransformation = if (field.widgetType == "password") PasswordVisualTransformation() else VisualTransformation.None,
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
             textStyle = MaterialTheme.typography.titleMedium,
             keyboardOptions = KeyboardOptions(
                 keyboardType = checkNumberKeyBoard(field),

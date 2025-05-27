@@ -177,6 +177,8 @@ fun CreateOfferContent(
     }
 
     val refresh = {
+        viewModel.onError(ServerErrorException())
+
         searchData.value = searchData.value.copy(
             searchCategoryID = viewModel.selectedCategoryId.value,
             searchCategoryName = viewModel.selectedCategoryName.value,

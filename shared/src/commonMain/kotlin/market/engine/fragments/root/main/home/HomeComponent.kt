@@ -79,13 +79,15 @@ class DefaultHomeComponent(
     override val model: Value<HomeComponent.Model> = _model
 
     init {
+        getPermissionHandler().askPermissionNotification()
         userRepository.updateToken()
         updateModel()
         analyticsHelper.reportEvent("view_main_page", mapOf())
-        getPermissionHandler().askPermissionNotification()
 
         lifecycle.doOnResume {
-            homeViewModel.updateUserInfo()
+            if (homeViewModel.responseOffersPromotedOnMainPage1.value.isEmpty()){
+                updateModel()
+            }
 
             homeViewModel.db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().deleteReadNotifications()
         }
@@ -93,6 +95,8 @@ class DefaultHomeComponent(
 
     private fun updateModel() {
         homeViewModel.onError(ServerErrorException())
+
+        homeViewModel.updateUserInfo()
         homeViewModel.getCategories(listingData = LD(), searchData = SD(), withoutCounter =  true){
             homeViewModel.setCategory(it)
         }

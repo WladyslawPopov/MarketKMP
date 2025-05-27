@@ -164,7 +164,7 @@ class DefaultMainComponent(
             },
             key = "HomeStack"
         )
-    private val favPagesViewModel = FavPagesViewModel()
+    private val favPagesViewModel by lazy { FavPagesViewModel() }
 
     override val childSearchStack: Value<ChildStack<*, ChildSearch>> by lazy {
         val categoryData = ListingData()
@@ -270,9 +270,6 @@ class DefaultMainComponent(
             key = "ProfileStack"
         )
     }
-
-    val userInfo = UserData.userInfo
-
 
     // createChild
     private fun createChild(

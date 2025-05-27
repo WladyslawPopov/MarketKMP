@@ -51,6 +51,17 @@ fun OfferAppBar(
             onClick = onRefresh
         ),
         NavigationItem(
+            title = stringResource(strings.editLabel),
+            icon = drawables.editIcon,
+            tint = colors.black,
+            hasNews = false,
+            badgeCount = null,
+            isVisible = optionMenu.find { it.id == "edit_offer" } != null,
+            onClick = {
+                optionMenu.find { it.id == "edit_offer" }?.onClick?.invoke()
+            }
+        ),
+        NavigationItem(
             title = stringResource(strings.myNotesTitle),
             icon = drawables.editNoteIcon,
             tint = colors.black,

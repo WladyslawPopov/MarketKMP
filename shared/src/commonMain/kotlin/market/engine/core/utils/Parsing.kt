@@ -207,6 +207,39 @@ fun Operations.onClickOfferOperationItem(
     goToDynamicSettings : (String, Long?) -> Unit = { _, _ -> },
 ) {
     when  {
+        id == "activate_offer_for_future" || id == "activate_offer" -> {
+            title.value = AnnotatedString(name ?: "")
+            showOperationsDialog.value = id
+        }
+
+        id == "copy_offer_without_old_photo" -> {
+            goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE)
+        }
+
+        id == "edit_offer" -> {
+            goToCreateOffer(CreateOfferType.EDIT)
+        }
+
+        id == "copy_offer" -> {
+            goToCreateOffer(CreateOfferType.COPY)
+        }
+
+        id == "act_on_proposal" -> {
+            goToProposal(ProposalType.ACT_ON_PROPOSAL)
+        }
+
+        id == "make_proposal" -> {
+            goToProposal(ProposalType.MAKE_PROPOSAL)
+        }
+
+        id == "cancel_all_bids" -> {
+            goToDynamicSettings("cancel_all_bids", item.id)
+        }
+
+        id == "remove_bids_of_users" -> {
+            goToDynamicSettings("remove_bids_of_users", item.id)
+        }
+
         isDataless == false -> {
             baseViewModel.getOperationFields(
                 item.id,
@@ -219,39 +252,6 @@ fun Operations.onClickOfferOperationItem(
                 showOperationsDialog.value = id ?: ""
             }
         }
-        name == "activate_offer_for_future" || name == "activate_offer" -> {
-            title.value = AnnotatedString(name)
-            showOperationsDialog.value = id ?: ""
-        }
-
-        name ==  "copy_offer_without_old_photo" -> {
-            goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE)
-        }
-
-        name ==  "edit_offer" -> {
-            goToCreateOffer(CreateOfferType.EDIT)
-        }
-
-        name ==  "copy_offer" -> {
-            goToCreateOffer(CreateOfferType.COPY)
-        }
-
-        name == "act_on_proposal" -> {
-            goToProposal(ProposalType.ACT_ON_PROPOSAL)
-        }
-
-        name == "make_proposal" -> {
-            goToProposal(ProposalType.MAKE_PROPOSAL)
-        }
-
-        name == "cancel_all_bids" -> {
-            goToDynamicSettings("cancel_all_bids", item.id)
-        }
-
-        name == "remove_bids_of_users" -> {
-            goToDynamicSettings("remove_bids_of_users", item.id)
-        }
-
         else -> {
             baseViewModel.postOperationFields(
                 item.id,

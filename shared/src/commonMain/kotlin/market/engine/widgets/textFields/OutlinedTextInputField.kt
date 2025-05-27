@@ -1,10 +1,9 @@
 package market.engine.widgets.textFields
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -28,8 +27,8 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.utils.processInput
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.texts.DynamicLabel
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -104,27 +103,25 @@ fun OutlinedTextInputField(
                 capitalization = if(isEmail || isPassword) KeyboardCapitalization.Unspecified else KeyboardCapitalization.Sentences
             ),
             visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-            trailingIcon = {
-                if (isPassword) {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            if (passwordVisible) painterResource(drawables.eyeClose) else painterResource(
-                                drawables.eyeOpen
-                            ),
-                            contentDescription = ""
-                        )
+            trailingIcon = if (isPassword) {
+                {
+                    SmallIconButton(
+                        if (passwordVisible) drawables.eyeClose else drawables.eyeOpen,
+                        colors.black
+                    ) {
+                        passwordVisible = !passwordVisible
                     }
                 }
-            },
-            suffix = {
-                if (suffix != null) {
+            } else null,
+            suffix = if (suffix != null){
+                 {
                     Text(
                         text = suffix,
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.black
                     )
                 }
-            },
+            }else null,
             supportingText = {
                 Text(
                     processInput(error) ?: error ?: "",
@@ -140,10 +137,10 @@ fun OutlinedTextInputField(
                 unfocusedTextColor = colors.black,
                 focusedTextColor = colors.black
             ),
-            modifier =if(focusRequester != null) modifier
-                .widthIn(max = 500.dp)
+            modifier =if(focusRequester != null) Modifier
+                .widthIn(max = 600.dp).fillMaxWidth()
                 .focusRequester(focusRequester) else
-                    modifier.widthIn(max = 500.dp),
+                    Modifier.widthIn(max = 600.dp).fillMaxWidth(),
             maxLines = 4,
             singleLine = singleLine,
         )

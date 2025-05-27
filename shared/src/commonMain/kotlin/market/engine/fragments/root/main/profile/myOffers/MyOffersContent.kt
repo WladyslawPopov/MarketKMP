@@ -123,7 +123,7 @@ fun MyOffersContent(
                         }
 
                         LotsType.MYLOT_UNACTIVE -> {
-                            isEmpty = data.itemSnapshotList.items.none { it.state == "active" }
+                            isEmpty = data.itemSnapshotList.items.none { it.state != "active" }
                         }
 
                         LotsType.MYLOT_FUTURE -> {
@@ -175,7 +175,6 @@ fun MyOffersContent(
             },
             noFound = noFound,
             additionalBar = {
-
                 FiltersBar(
                     searchData.value,
                     listingData.value,

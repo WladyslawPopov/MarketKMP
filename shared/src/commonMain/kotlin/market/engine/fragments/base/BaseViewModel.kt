@@ -254,12 +254,13 @@ open class BaseViewModel: ViewModel() {
                 val buf = res.success?.filter {
                     it.id !in listOf(
                         "add_description",
-                        "cloprec107"
+                        "cloprec107",
+                        "make_discount"
                     )
                 }
 
                 if (buf != null) {
-                    onSuccess(res.success ?: emptyList())
+                    onSuccess(buf)
                 }
             }
         }
