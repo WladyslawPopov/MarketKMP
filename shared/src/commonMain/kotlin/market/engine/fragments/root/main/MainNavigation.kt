@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
@@ -17,6 +20,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
@@ -35,12 +39,24 @@ sealed class ChildMain {
     data object ProfileChildMain : ChildMain()
 }
 
+private const val NAVIGATION_DEBOUNCE_DELAY_MS = 300L
+
 @Composable
 fun MainNavigation(
     component: MainComponent,
     modifier: Modifier = Modifier
 ) {
     val childStack by component.childMainStack.subscribeAsState()
+
+    var lastNavigationClickTime by remember { mutableStateOf(0L) }
+
+    val debouncedNavigate: (MainConfig) -> Unit = { targetConfig ->
+        val currentTime = (getCurrentDate().toLongOrNull() ?: 1L)*1000
+        if (currentTime - lastNavigationClickTime > NAVIGATION_DEBOUNCE_DELAY_MS) {
+            lastNavigationClickTime = currentTime
+            component.navigateToBottomItem(targetConfig)
+        }
+    }
 
     val currentScreen = when (childStack.active.instance) {
         is ChildMain.HomeChildMain -> 0
@@ -59,7 +75,7 @@ fun MainNavigation(
             hasNews = false,
             badgeCount = null,
             onClick = {
-                component.navigateToBottomItem(MainConfig.Home)
+                debouncedNavigate(MainConfig.Home)
             }
         ),
         NavigationItem(
@@ -69,7 +85,7 @@ fun MainNavigation(
             hasNews = false,
             badgeCount = null,
             onClick = {
-                component.navigateToBottomItem(MainConfig.Search)
+                debouncedNavigate(MainConfig.Search)
             }
         ),
         NavigationItem(
@@ -79,7 +95,7 @@ fun MainNavigation(
             hasNews = false,
             badgeCount = if((userInfo?.countOffersInCart ?: 0) > 0) userInfo?.countOffersInCart else null,
             onClick = {
-                component.navigateToBottomItem(MainConfig.Basket)
+                debouncedNavigate(MainConfig.Basket)
             }
         ),
         NavigationItem(
@@ -89,7 +105,7 @@ fun MainNavigation(
             hasNews = false,
             badgeCount = if((userInfo?.countWatchedOffers?:0) > 0) userInfo?.countWatchedOffers else null,
             onClick = {
-                component.navigateToBottomItem(MainConfig.Favorites)
+                debouncedNavigate(MainConfig.Favorites)
             }
         ),
         NavigationItem(
@@ -103,13 +119,15 @@ fun MainNavigation(
                     ),
             badgeCount = null,
             onClick = {
-                component.navigateToBottomItem(MainConfig.Profile)
+                debouncedNavigate(MainConfig.Profile)
             }
         )
     )
 
     val profileNavigation = component.modelNavigation.value.profileNavigation
     val model = component.model.subscribeAsState()
+
+
 
     Scaffold(
         bottomBar = {  if (model.value.showBottomBar.value){ getBottomNavBar(listItems, currentScreen) }},

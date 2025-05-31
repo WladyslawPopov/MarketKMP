@@ -75,7 +75,7 @@ fun HomeAppBar(
             title = stringResource(strings.notificationTitle),
             icon = drawables.notification,
             tint = colors.titleTextColor,
-            isVisible = true,
+            isVisible = (viewModel.getUnreadNotificationsCount() ?: 0) > 0,
             hasNews = false,
             badgeCount = viewModel.getUnreadNotificationsCount(),
             onClick = {

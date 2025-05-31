@@ -1,4 +1,4 @@
-CREATE TABLE offerVisitedHistory(
+CREATE TABLE OfferVisitedHistory(
      id INTEGER NOT NULL PRIMARY KEY,
      offerId INTEGER NOT NULL,
      owner INTEGER NOT NULL,
@@ -7,15 +7,15 @@ CREATE TABLE offerVisitedHistory(
 
 -- Select all search history entries
 selectAll:
-SELECT offerId FROM offerVisitedHistory WHERE owner = ?;
+SELECT offerId FROM OfferVisitedHistory WHERE owner = ?;
 
 -- Insert a new search entry
 insertEntry:
-INSERT OR REPLACE INTO offerVisitedHistory(offerId, owner) VALUES (?, ?);
+INSERT OR REPLACE INTO OfferVisitedHistory(offerId, owner) VALUES (?, ?);
 
 -- Delete a specific entry by ID
 deleteById:
-DELETE FROM offerVisitedHistory WHERE(offerId = ? AND owner = ?);
+DELETE FROM OfferVisitedHistory WHERE(offerId = ? AND owner = ?);
 
 deleteAll:
-DELETE FROM offerVisitedHistory;
+DELETE FROM OfferVisitedHistory;

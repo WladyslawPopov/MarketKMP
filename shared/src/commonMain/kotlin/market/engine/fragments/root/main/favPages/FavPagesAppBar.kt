@@ -79,7 +79,7 @@ fun FavPagesAppBar(
             title = stringResource(strings.createNewOffersListLabel),
             icon = drawables.addFolderIcon,
             tint = colors.steelBlue,
-            hasNews = settings.getSettingValue("create_blank_offer_list_notify_badge", true) ?: false,
+            hasNews = settings.getSettingValue("create_blank_offer_list_notify_badge", true) == true,
             isVisible = !isDragMode,
             badgeCount = null,
             onClick = {

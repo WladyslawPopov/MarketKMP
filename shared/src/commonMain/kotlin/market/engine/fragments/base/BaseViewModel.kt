@@ -722,7 +722,7 @@ open class BaseViewModel: ViewModel() {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,
-                    "save_address_cards",
+                    "set_default_address_card",
                     "users",
                     b
                 )

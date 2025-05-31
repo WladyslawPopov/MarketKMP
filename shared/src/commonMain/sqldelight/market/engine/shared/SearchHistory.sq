@@ -1,4 +1,4 @@
-CREATE TABLE searchHistory (
+CREATE TABLE SearchHistory (
      id INTEGER NOT NULL PRIMARY KEY,
         query TEXT NOT NULL,
         owner INTEGER NOT NULL,
@@ -7,20 +7,20 @@ CREATE TABLE searchHistory (
 
 -- Select all search history entries
 selectAll:
-SELECT * FROM searchHistory;
+SELECT * FROM SearchHistory;
 
 -- Select search history by serchString
 selectSearch:
-SELECT * FROM searchHistory WHERE (query LIKE ? AND owner = ?);
+SELECT * FROM SearchHistory WHERE (query LIKE ? AND owner = ?);
 
 -- Insert a new search entry
 insertEntry:
-INSERT OR REPLACE INTO searchHistory(query, owner) VALUES (?, ?);
+INSERT OR REPLACE INTO SearchHistory(query, owner) VALUES (?, ?);
 
 -- Delete a specific entry by ID
 deleteById:
-DELETE FROM searchHistory WHERE id = ? AND  owner = ?;
+DELETE FROM SearchHistory WHERE id = ? AND  owner = ?;
 
 deleteAll:
-DELETE FROM searchHistory;
+DELETE FROM SearchHistory;
 

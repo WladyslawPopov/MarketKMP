@@ -64,6 +64,7 @@ fun FavPagesNavigation(
     val showCreatedDialog = remember { mutableStateOf("") }
     val postId = remember { mutableStateOf(0L) }
     val isClicked = remember { mutableStateOf(false) }
+    val method = remember { mutableStateOf("offers_lists") }
     val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
     val title = remember { mutableStateOf(AnnotatedString("")) }
     val lazyListState = rememberLazyListState(
@@ -106,12 +107,13 @@ fun FavPagesNavigation(
                 },
                 makeOperation = { type, id ->
                     when (type) {
-                        "create_offers_list" -> {
-                            viewModel.getOperationFields(id, type, "users") { t, f ->
+                        "create_blank_offer_list" -> {
+                            viewModel.getOperationFields(UserData.login, type, "users") { t, f ->
                                 title.value = AnnotatedString(t)
                                 fields.value = f
                                 showCreatedDialog.value = type
-                                postId.value = id
+                                postId.value = UserData.login
+                                method.value = "users"
                             }
                         }
                         "copy_offers_list", "rename_offers_list" -> {
@@ -120,6 +122,7 @@ fun FavPagesNavigation(
                                 fields.value = f
                                 showCreatedDialog.value = type
                                 postId.value = id
+                                method.value = "offers_lists"
                             }
                         }
 
@@ -173,29 +176,31 @@ fun FavPagesNavigation(
             )
 
             Box(modifier = Modifier.fillMaxSize()) {
-                ChildPages(
-                    modifier = Modifier.fillMaxSize(),
-                    pages = component.componentsPages,
-                    scrollAnimation = PagesScrollAnimation.Default,
-                    onPageSelected = {
-                        select.value = it
-                        viewModel.initPosition.value = it
-                        component.selectPage(select.value)
-                    }
-                ) { _, page ->
-                    when (page) {
-                        is FavPagesComponents.SubscribedChild -> {
-                            SubscriptionsContent(
-                                page.component,
-                                Modifier
-                            )
+                if (component.componentsPages.value.items.isNotEmpty()) {
+                    ChildPages(
+                        modifier = Modifier.fillMaxSize(),
+                        pages = component.componentsPages,
+                        scrollAnimation = PagesScrollAnimation.Default,
+                        onPageSelected = {
+                            select.value = it
+                            viewModel.initPosition.value = it
+                            component.selectPage(select.value)
                         }
+                    ) { _, page ->
+                        when (page) {
+                            is FavPagesComponents.SubscribedChild -> {
+                                SubscriptionsContent(
+                                    page.component,
+                                    Modifier
+                                )
+                            }
 
-                        is FavPagesComponents.FavoritesChild -> {
-                            FavoritesContent(
-                                page.component,
-                                Modifier
-                            )
+                            is FavPagesComponents.FavoritesChild -> {
+                                FavoritesContent(
+                                    page.component,
+                                    Modifier
+                                )
+                            }
                         }
                     }
                 }
@@ -240,7 +245,7 @@ fun FavPagesNavigation(
                         viewModel.postOperationFields(
                             postId.value,
                             showCreatedDialog.value,
-                            "offers_lists",
+                            method.value,
                             bodyPost,
                             onSuccess = {
                                 showCreatedDialog.value = ""
