@@ -176,31 +176,29 @@ fun FavPagesNavigation(
             )
 
             Box(modifier = Modifier.fillMaxSize()) {
-                if (component.componentsPages.value.items.isNotEmpty()) {
-                    ChildPages(
-                        modifier = Modifier.fillMaxSize(),
-                        pages = component.componentsPages,
-                        scrollAnimation = PagesScrollAnimation.Default,
-                        onPageSelected = {
-                            select.value = it
-                            viewModel.initPosition.value = it
-                            component.selectPage(select.value)
+                ChildPages(
+                    modifier = Modifier.fillMaxSize(),
+                    pages = component.componentsPages,
+                    scrollAnimation = PagesScrollAnimation.Default,
+                    onPageSelected = {
+                        select.value = it
+                        viewModel.initPosition.value = it
+                        component.selectPage(select.value)
+                    }
+                ) { _, page ->
+                    when (page) {
+                        is FavPagesComponents.SubscribedChild -> {
+                            SubscriptionsContent(
+                                page.component,
+                                Modifier
+                            )
                         }
-                    ) { _, page ->
-                        when (page) {
-                            is FavPagesComponents.SubscribedChild -> {
-                                SubscriptionsContent(
-                                    page.component,
-                                    Modifier
-                                )
-                            }
 
-                            is FavPagesComponents.FavoritesChild -> {
-                                FavoritesContent(
-                                    page.component,
-                                    Modifier
-                                )
-                            }
+                        is FavPagesComponents.FavoritesChild -> {
+                            FavoritesContent(
+                                page.component,
+                                Modifier
+                            )
                         }
                     }
                 }

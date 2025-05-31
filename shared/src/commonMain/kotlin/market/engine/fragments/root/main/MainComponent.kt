@@ -98,6 +98,8 @@ class DefaultMainComponent(
         )
     )
 
+    private val favPagesViewModel by lazy { FavPagesViewModel() }
+
     val checkShowBar : () -> Boolean = {
         val platform = Platform().getPlatform()
         !isBigScreen.value || (PlatformWindowType.MOBILE_PORTRAIT == platform || PlatformWindowType.TABLET_PORTRAIT == platform)
@@ -164,7 +166,6 @@ class DefaultMainComponent(
             },
             key = "HomeStack"
         )
-    private val favPagesViewModel by lazy { FavPagesViewModel() }
 
     override val childSearchStack: Value<ChildStack<*, ChildSearch>> by lazy {
         val categoryData = ListingData()
@@ -328,18 +329,20 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLogin(true)
                 }else{
-                    when{
-                        activeCurrent == "Favorites" -> {
-                            modelNavigation.value.favoritesNavigation.popToFirst()
-                        }
-                        openPage == "subscribe" -> {
-                            modelNavigation.value.favoritesNavigation.replaceCurrent(
-                                FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED,
-                                    getCurrentDate())
-                            )
-                        }
-                        else -> {
-                            favPagesViewModel.getFavTabList {
+                    favPagesViewModel.getFavTabList {
+                        when {
+                            activeCurrent == "Favorites" -> {
+                                modelNavigation.value.favoritesNavigation.popToFirst()
+                            }
+                            openPage == "subscribe" -> {
+                                modelNavigation.value.favoritesNavigation.replaceCurrent(
+                                    FavoritesConfig.FavPagesScreen(
+                                        FavScreenType.SUBSCRIBED,
+                                        getCurrentDate()
+                                    )
+                                )
+                            }
+                            else -> {
                                 modelNavigation.value.favoritesNavigation.replaceCurrent(
                                     FavoritesConfig.FavPagesScreen(
                                         FavScreenType.FAVORITES,
@@ -348,10 +351,9 @@ class DefaultMainComponent(
                                 )
                             }
                         }
-
+                        activeCurrent = "Favorites"
+                        modelNavigation.value.mainNavigation.replaceCurrent(config)
                     }
-                    activeCurrent = "Favorites"
-                    modelNavigation.value.mainNavigation.replaceCurrent(config)
                 }
             }
             is MainConfig.Profile -> {

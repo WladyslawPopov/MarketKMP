@@ -19,7 +19,7 @@ import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsCom
 
 
 interface FavPagesComponent {
-    var componentsPages: Value<ChildPages<*, FavPagesComponents>>
+    val componentsPages: Value<ChildPages<*, FavPagesComponents>>
 
     val favScreenType : FavScreenType
 
@@ -50,194 +50,94 @@ class DefaultFavPagesComponent(
             viewModel = viewModel,
         )
     )
-    override val model = initialModel
 
-    override var componentsPages: Value<ChildPages<*, FavPagesComponents>> = childPages(
-        source = navigation,
-        serializer = FavPagesConfig.serializer(),
-        handleBackButton = true,
-        initialPages = {
-            val list = viewModel.favoritesTabList.value.map {
-                FavPagesConfig(it)
-            }
-
-            Pages(
-                list,
-                selectedIndex =
-                    when{
-                        favType == FavScreenType.SUBSCRIBED -> {
-                            list.indexOf(list.find { it.favItem.id == 222L })
-                        }
-                        else -> {
-                            (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
-                        }
-                    },
-            )
-        },
-        key = "FavoritesStack",
-        childFactory = { config, componentContext ->
-            when (config.favItem.id) {
-                222L -> {
-                    FavPagesComponents.SubscribedChild(
-                        component = itemSubscriptions(
-                            componentContext,
-                            selectedType = FavScreenType.SUBSCRIBED,
-                            navigateToCreateNewSubscription = {
-                                favoritesNavigation.pushNew(
-                                    FavoritesConfig.CreateSubscriptionScreen(it)
-                                )
-                            },
-                            navigateToListing = {
-                                favoritesNavigation.pushNew(
-                                    FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
-                                )
-                            }
-                        )
-                    )
+    override val componentsPages: Value<ChildPages<*, FavPagesComponents>> =
+        childPages(
+            source = navigation,
+            serializer = FavPagesConfig.serializer(),
+            handleBackButton = true,
+            initialPages = {
+                val list = viewModel.favoritesTabList.value.map {
+                    FavPagesConfig(it)
                 }
-                else -> {
-                    FavPagesComponents.FavoritesChild(
-                        component = itemFavorites(
-                            componentContext,
-                            navigateToOffer = {
-                                favoritesNavigation.pushNew(
-                                    FavoritesConfig.OfferScreen(
-                                        it, getCurrentDate()
-                                    )
-                                )
-                            },
-                            selectedType =
-                                when(config.favItem.id){
-                                    111L -> {
-                                        FavScreenType.FAVORITES
-                                    }
-                                    333L -> {
-                                        FavScreenType.NOTES
-                                    }
-                                    else -> {
-                                        FavScreenType.FAV_LIST
-                                    }
-                                },
-                            idList = config.favItem.id,
-                            updateTabs = {
-                                fullRefresh()
-                            },
-                            navigateToProposal = { type, id ->
-                                favoritesNavigation.pushNew(
-                                    FavoritesConfig.ProposalScreen(
-                                        id, type, getCurrentDate()
-                                    )
-                                )
+
+                Pages(
+                    list,
+                    selectedIndex =
+                        when{
+                            favType == FavScreenType.SUBSCRIBED -> {
+                                list.indexOf(list.find { it.favItem.id == 222L })
                             }
-                        )
-                    )
-                }
-            }
-        }
-    )
-
-    init {
-        if (componentsPages.value.items.isEmpty()) {
-            viewModel.getFavTabList {
-                componentsPages = childPages(
-                    source = navigation,
-                    serializer = FavPagesConfig.serializer(),
-                    handleBackButton = true,
-                    initialPages = {
-                        val list = viewModel.favoritesTabList.value.map {
-                            FavPagesConfig(it)
-                        }
-
-                        Pages(
-                            list,
-                            selectedIndex =
-                                when {
-                                    favType == FavScreenType.SUBSCRIBED -> {
-                                        list.indexOf(list.find { it.favItem.id == 222L })
-                                    }
-
-                                    else -> {
-                                        (viewModel.initPosition.value).coerceIn(
-                                            0,
-                                            (viewModel.favoritesTabList.value.size - 1).coerceAtLeast(
-                                                0
-                                            )
-                                        )
-                                    }
-                                },
-                        )
-                    },
-                    key = "FavoritesStack_update_${getCurrentDate()}",
-                    childFactory = { config, componentContext ->
-                        when (config.favItem.id) {
-                            222L -> {
-                                FavPagesComponents.SubscribedChild(
-                                    component = itemSubscriptions(
-                                        componentContext,
-                                        selectedType = FavScreenType.SUBSCRIBED,
-                                        navigateToCreateNewSubscription = {
-                                            favoritesNavigation.pushNew(
-                                                FavoritesConfig.CreateSubscriptionScreen(it)
-                                            )
-                                        },
-                                        navigateToListing = {
-                                            favoritesNavigation.pushNew(
-                                                FavoritesConfig.ListingScreen(
-                                                    it.data.value,
-                                                    it.searchData.value,
-                                                    getCurrentDate()
-                                                )
-                                            )
-                                        }
-                                    )
-                                )
-                            }
-
                             else -> {
-                                FavPagesComponents.FavoritesChild(
-                                    component = itemFavorites(
-                                        componentContext,
-                                        navigateToOffer = {
-                                            favoritesNavigation.pushNew(
-                                                FavoritesConfig.OfferScreen(
-                                                    it, getCurrentDate()
-                                                )
-                                            )
-                                        },
-                                        selectedType =
-                                            when (config.favItem.id) {
-                                                111L -> {
-                                                    FavScreenType.FAVORITES
-                                                }
-
-                                                333L -> {
-                                                    FavScreenType.NOTES
-                                                }
-
-                                                else -> {
-                                                    FavScreenType.FAV_LIST
-                                                }
-                                            },
-                                        idList = config.favItem.id,
-                                        updateTabs = {
-                                            fullRefresh()
-                                        },
-                                        navigateToProposal = { type, id ->
-                                            favoritesNavigation.pushNew(
-                                                FavoritesConfig.ProposalScreen(
-                                                    id, type, getCurrentDate()
-                                                )
-                                            )
-                                        }
-                                    )
-                                )
+                                (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
                             }
-                        }
-                    }
+                        },
                 )
+            },
+            key = "FavoritesStack",
+            childFactory = { config, componentContext ->
+                when (config.favItem.id) {
+                    222L -> {
+                        FavPagesComponents.SubscribedChild(
+                            component = itemSubscriptions(
+                                componentContext,
+                                selectedType = FavScreenType.SUBSCRIBED,
+                                navigateToCreateNewSubscription = {
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.CreateSubscriptionScreen(it)
+                                    )
+                                },
+                                navigateToListing = {
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                                    )
+                                }
+                            )
+                        )
+                    }
+                    else -> {
+                        FavPagesComponents.FavoritesChild(
+                            component = itemFavorites(
+                                componentContext,
+                                navigateToOffer = {
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.OfferScreen(
+                                            it, getCurrentDate()
+                                        )
+                                    )
+                                },
+                                selectedType =
+                                    when(config.favItem.id){
+                                        111L -> {
+                                            FavScreenType.FAVORITES
+                                        }
+                                        333L -> {
+                                            FavScreenType.NOTES
+                                        }
+                                        else -> {
+                                            FavScreenType.FAV_LIST
+                                        }
+                                    },
+                                idList = config.favItem.id,
+                                updateTabs = {
+                                    fullRefresh()
+                                },
+                                navigateToProposal = { type, id ->
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.ProposalScreen(
+                                            id, type, getCurrentDate()
+                                        )
+                                    )
+                                }
+                            )
+                        )
+                    }
+                }
             }
-        }
-    }
+        )
+
+
+    override val model = initialModel
 
     override fun selectPage(p: Int) {
         navigation.select(p)

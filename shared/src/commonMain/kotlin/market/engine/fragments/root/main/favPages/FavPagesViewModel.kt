@@ -47,12 +47,6 @@ class FavPagesViewModel : BaseViewModel() {
 
     val isDragMode = mutableStateOf(false)
 
-    init {
-        viewModelScope.launch {
-            getFavTabList {  }
-        }
-    }
-
     fun init(type: FavScreenType, listId: Long?= null): Flow<PagingData<OfferItem>> {
         when(type){
             FavScreenType.FAVORITES -> {
@@ -122,7 +116,9 @@ class FavPagesViewModel : BaseViewModel() {
                 )
             )
 
-            val data = withContext(Dispatchers.IO) { offersListOperations.getOffersList() }
+            val data = withContext(Dispatchers.IO) {
+                offersListOperations.getOffersList()
+            }
 
             withContext(Dispatchers.Main) {
                 val res = data.success
@@ -143,8 +139,9 @@ class FavPagesViewModel : BaseViewModel() {
 
                 if (newList != _favoritesTabList.value) {
                     _favoritesTabList.value = newList
-                    onSuccess()
                 }
+
+                onSuccess()
             }
         }
     }

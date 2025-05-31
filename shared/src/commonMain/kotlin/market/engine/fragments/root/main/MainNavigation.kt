@@ -39,7 +39,7 @@ sealed class ChildMain {
     data object ProfileChildMain : ChildMain()
 }
 
-private const val NAVIGATION_DEBOUNCE_DELAY_MS = 300L
+private const val NAVIGATION_DEBOUNCE_DELAY_MS = 100L
 
 @Composable
 fun MainNavigation(
