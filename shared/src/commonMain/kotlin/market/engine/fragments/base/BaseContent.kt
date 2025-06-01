@@ -24,8 +24,6 @@ import androidx.compose.ui.zIndex
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.ToastItem
-import market.engine.widgets.tooltip.TooltipState
-import market.engine.widgets.tooltip.TooltipWrapper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +37,7 @@ fun BaseContent(
     error: (@Composable () -> Unit)? = null,
     noFound: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit) = {},
-    content: @Composable BoxScope.(tooltipState: TooltipState) -> Unit,
+    content: @Composable BoxScope.() -> Unit,
 ){
     val pullToRefreshState : PullToRefreshState = rememberPullToRefreshState()
 
@@ -92,9 +90,7 @@ fun BaseContent(
                             }
                         }
                         else -> {
-                            TooltipWrapper { tooltipState: TooltipState ->
-                                content(tooltipState)
-                            }
+                            content()
                         }
                     }
 

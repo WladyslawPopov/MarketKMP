@@ -167,5 +167,5 @@ class TooltipState internal constructor() {
 data class TooltipData(
     val title: String?,
     val subtitle: String,
-    val dismissIconResource: DrawableResource?
+    val dismissIcon: DrawableResource?
 )

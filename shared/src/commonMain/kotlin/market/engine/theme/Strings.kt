@@ -492,4 +492,6 @@ interface Strings {
     val notificationsHistoryTitle: StringResource
     val actionsLabel: StringResource
     val promoOptionsLabel: StringResource
+    val createOfferListTooltipTitle : StringResource
+    val createOfferListTooltipDescription : StringResource
 }

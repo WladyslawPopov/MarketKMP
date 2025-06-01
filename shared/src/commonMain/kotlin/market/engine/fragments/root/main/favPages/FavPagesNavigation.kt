@@ -40,6 +40,7 @@ import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsCom
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.tooltip.TooltipState
+import market.engine.widgets.tooltip.TooltipWrapper
 
 
 @Serializable
@@ -72,6 +73,8 @@ fun FavPagesNavigation(
         initialFirstVisibleItemIndex = (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
     )
 
+    val onClickTooltip = remember { mutableStateOf<() -> Unit>({}) }
+
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         {
@@ -93,197 +96,204 @@ fun FavPagesNavigation(
         noFound = null,
         toastItem = viewModel.toastItem,
         modifier = modifier.fillMaxSize()
-    ) { tooltipState: TooltipState ->
-        Column {
-            FavPagesAppBar(
-                select.value,
-                favTabList = favTabList.value,
-                isDragMode = isDragMode.value,
-                modifier = Modifier.fillMaxWidth(),
-                tooltipState = tooltipState,
-                navigationClick = {
-                    select.value = it
-                    viewModel.initPosition.value = it
-                    component.selectPage(select.value)
-                },
-                onTabsReordered = {
-                    viewModel.updateFavTabList(it)
-                },
-                getOperations = { id, callback ->
-                    viewModel.getOperationFavTab(id, callback)
-                },
-                makeOperation = { type, id ->
-                    when (type) {
-                        "create_blank_offer_list" -> {
-                            viewModel.getOperationFields(
-                                UserData.login,
-                                type,
-                                "users"
-                            ) { t, f ->
-                                title.value = AnnotatedString(t)
-                                fields.value = f
-                                showCreatedDialog.value = type
-                                postId.value = UserData.login
-                                method.value = "users"
-                            }
-                        }
+    ) {
+        TooltipWrapper(
+            modifier= Modifier,
+            onClick = onClickTooltip,
+            content = { tooltipState: TooltipState ->
+                Column {
+                    FavPagesAppBar(
+                        select.value,
+                        favTabList = favTabList.value,
+                        isDragMode = isDragMode.value,
+                        modifier = Modifier.fillMaxWidth(),
+                        tooltipState = tooltipState,
+                        navigationClick = {
+                            select.value = it
+                            viewModel.initPosition.value = it
+                            component.selectPage(select.value)
+                        },
+                        onTabsReordered = {
+                            viewModel.updateFavTabList(it)
+                        },
+                        getOperations = { id, callback ->
+                            viewModel.getOperationFavTab(id, callback)
+                        },
+                        makeOperation = { type, id ->
+                            when (type) {
+                                "create_blank_offer_list" -> {
+                                    viewModel.getOperationFields(
+                                        UserData.login,
+                                        type,
+                                        "users"
+                                    ) { t, f ->
+                                        title.value = AnnotatedString(t)
+                                        fields.value = f
+                                        showCreatedDialog.value = type
+                                        postId.value = UserData.login
+                                        method.value = "users"
+                                    }
+                                }
 
-                        "copy_offers_list", "rename_offers_list" -> {
-                            viewModel.getOperationFields(id, type, "offers_lists") { t, f ->
-                                title.value = AnnotatedString(t)
-                                fields.value = f
-                                showCreatedDialog.value = type
-                                postId.value = id
-                                method.value = "offers_lists"
-                            }
-                        }
+                                "copy_offers_list", "rename_offers_list" -> {
+                                    viewModel.getOperationFields(id, type, "offers_lists") { t, f ->
+                                        title.value = AnnotatedString(t)
+                                        fields.value = f
+                                        showCreatedDialog.value = type
+                                        postId.value = id
+                                        method.value = "offers_lists"
+                                    }
+                                }
 
-                        "reorder" -> {
-                            viewModel.isDragMode.value = true
+                                "reorder" -> {
+                                    viewModel.isDragMode.value = true
 
-                            viewModel.analyticsHelper.reportEvent(
-                                "reorder_offers_list", mapOf(
-                                    "list_id" to id
-                                )
-                            )
-                        }
-
-                        "delete_offers_list" -> {
-                            viewModel.postOperationFields(
-                                id,
-                                type,
-                                "offers_lists",
-                                onSuccess = {
-                                    viewModel.db.favoritesTabListItemQueries.deleteById(
-                                        itemId = id,
-                                        owner = UserData.login
-                                    )
-                                    viewModel.initPosition.value =
-                                        viewModel.initPosition.value.coerceIn(
-                                            0,
-                                            favTabList.value.size - 2
+                                    viewModel.analyticsHelper.reportEvent(
+                                        "reorder_offers_list", mapOf(
+                                            "list_id" to id
                                         )
-                                    select.value = viewModel.initPosition.value
-                                    component.fullRefresh()
-                                },
-                                errorCallback = {}
-                            )
-                        }
+                                    )
+                                }
 
-                        "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
-                            viewModel.postOperationFields(
-                                id,
-                                type,
-                                "offers_lists",
-                                onSuccess = {
-                                    component.fullRefresh()
-                                },
-                                errorCallback = {}
-                            )
-                        }
+                                "delete_offers_list" -> {
+                                    viewModel.postOperationFields(
+                                        id,
+                                        type,
+                                        "offers_lists",
+                                        onSuccess = {
+                                            viewModel.db.favoritesTabListItemQueries.deleteById(
+                                                itemId = id,
+                                                owner = UserData.login
+                                            )
+                                            viewModel.initPosition.value =
+                                                viewModel.initPosition.value.coerceIn(
+                                                    0,
+                                                    favTabList.value.size - 2
+                                                )
+                                            select.value = viewModel.initPosition.value
+                                            component.fullRefresh()
+                                        },
+                                        errorCallback = {}
+                                    )
+                                }
 
-                        else -> {
+                                "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
+                                    viewModel.postOperationFields(
+                                        id,
+                                        type,
+                                        "offers_lists",
+                                        onSuccess = {
+                                            component.fullRefresh()
+                                        },
+                                        errorCallback = {}
+                                    )
+                                }
 
-                        }
-                    }
-                },
-                settings = viewModel.settings,
-                lazyListState = lazyListState,
-                onRefresh = {
-                    component.onRefresh()
-                }
-            )
+                                else -> {
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                ChildPages(
-                    modifier = Modifier.fillMaxSize(),
-                    pages = component.componentsPages,
-                    scrollAnimation = PagesScrollAnimation.Default,
-                    onPageSelected = {
-                        select.value = it
-                        viewModel.initPosition.value = it
-                        component.selectPage(select.value)
-                    }
-                ) { _, page ->
-                    when (page) {
-                        is FavPagesComponents.SubscribedChild -> {
-                            SubscriptionsContent(
-                                page.component,
-                                Modifier
-                            )
-                        }
-
-                        is FavPagesComponents.FavoritesChild -> {
-                            FavoritesContent(
-                                page.component,
-                                Modifier
-                            )
-                        }
-                    }
-                }
-
-                if (isDragMode.value) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(colors.white.copy(alpha = 0.3f))
-                            .blur(dimens.extraLargePadding)
-                            .pointerInput(Unit) {
-                                detectTapGestures {
-                                    viewModel.isDragMode.value = false
-                                    component.fullRefresh()
                                 }
                             }
+                        },
+                        settings = viewModel.settings,
+                        lazyListState = lazyListState,
+                        onTooltipClick = onClickTooltip,
+                        onRefresh = {
+                            component.onRefresh()
+                        }
+                    )
+
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        ChildPages(
+                            modifier = Modifier.fillMaxSize(),
+                            pages = component.componentsPages,
+                            scrollAnimation = PagesScrollAnimation.Default,
+                            onPageSelected = {
+                                select.value = it
+                                viewModel.initPosition.value = it
+                                component.selectPage(select.value)
+                            }
+                        ) { _, page ->
+                            when (page) {
+                                is FavPagesComponents.SubscribedChild -> {
+                                    SubscriptionsContent(
+                                        page.component,
+                                        Modifier
+                                    )
+                                }
+
+                                is FavPagesComponents.FavoritesChild -> {
+                                    FavoritesContent(
+                                        page.component,
+                                        Modifier
+                                    )
+                                }
+                            }
+                        }
+
+                        if (isDragMode.value) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(colors.white.copy(alpha = 0.3f))
+                                    .blur(dimens.extraLargePadding)
+                                    .pointerInput(Unit) {
+                                        detectTapGestures {
+                                            viewModel.isDragMode.value = false
+                                            component.fullRefresh()
+                                        }
+                                    }
+                            )
+                        }
+                    }
+
+                    CustomDialog(
+                        showDialog = showCreatedDialog.value != "",
+                        containerColor = colors.primaryColor,
+                        title = title.value,
+                        body = {
+                            SetUpDynamicFields(fields.value)
+                        },
+                        onDismiss = {
+                            showCreatedDialog.value = ""
+                            isClicked.value = false
+                        },
+                        onSuccessful = {
+                            if (!isClicked.value) {
+                                isClicked.value = true
+                                val bodyPost = HashMap<String, JsonElement>()
+                                fields.value.forEach { field ->
+                                    if (field.data != null) {
+                                        bodyPost[field.key ?: ""] = field.data!!
+                                    }
+                                }
+
+                                viewModel.postOperationFields(
+                                    postId.value,
+                                    showCreatedDialog.value,
+                                    method.value,
+                                    bodyPost,
+                                    onSuccess = {
+                                        showCreatedDialog.value = ""
+                                        isClicked.value = false
+                                        viewModel.initPosition.value =
+                                            favTabList.value.lastIndex + 1
+                                        component.fullRefresh()
+                                    },
+                                    errorCallback = { f ->
+                                        if (f != null) {
+                                            fields.value = f
+                                        } else {
+                                            showCreatedDialog.value = ""
+                                        }
+                                        isClicked.value = false
+                                    }
+                                )
+                            }
+                        }
                     )
                 }
             }
-
-            CustomDialog(
-                showDialog = showCreatedDialog.value != "",
-                containerColor = colors.primaryColor,
-                title = title.value,
-                body = {
-                    SetUpDynamicFields(fields.value)
-                },
-                onDismiss = {
-                    showCreatedDialog.value = ""
-                    isClicked.value = false
-                },
-                onSuccessful = {
-                    if (!isClicked.value) {
-                        isClicked.value = true
-                        val bodyPost = HashMap<String, JsonElement>()
-                        fields.value.forEach { field ->
-                            if (field.data != null) {
-                                bodyPost[field.key ?: ""] = field.data!!
-                            }
-                        }
-
-                        viewModel.postOperationFields(
-                            postId.value,
-                            showCreatedDialog.value,
-                            method.value,
-                            bodyPost,
-                            onSuccess = {
-                                showCreatedDialog.value = ""
-                                isClicked.value = false
-                                viewModel.initPosition.value =
-                                    favTabList.value.lastIndex + 1
-                                component.fullRefresh()
-                            },
-                            errorCallback = { f ->
-                                if (f != null) {
-                                    fields.value = f
-                                } else {
-                                    showCreatedDialog.value = ""
-                                }
-                                isClicked.value = false
-                            }
-                        )
-                    }
-                }
-            )
-        }
+        )
     }
 }
 

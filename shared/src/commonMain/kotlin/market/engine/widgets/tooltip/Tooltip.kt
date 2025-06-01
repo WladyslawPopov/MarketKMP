@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,7 +28,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-internal fun Tooltip(state: TooltipState) {
+internal fun Tooltip(state: TooltipState, onClick: MutableState<() -> Unit>) {
    val data = state.data
 
    val animatedTriangleVisibility by animateFloatAsState(
@@ -61,7 +62,7 @@ internal fun Tooltip(state: TooltipState) {
            }
            // управляем прозрачностью тултипа для плавных действий над ним
            .graphicsLayer { alpha = animatedTriangleVisibility }
-           .clickable(onClick = state::hide) 
+           .clickable(onClick = onClick.value)
            .clip(MaterialTheme.shapes.medium)
            .background(colors.white)
            .padding(dimens.mediumPadding),
@@ -76,10 +77,10 @@ internal fun Tooltip(state: TooltipState) {
                )
            }
 
-           if (data.dismissIconResource != null) {
+           if (data.dismissIcon != null) {
                Icon(
                    modifier = Modifier.size(dimens.extraSmallIconSize),
-                   painter = painterResource(data.dismissIconResource),
+                   painter = painterResource(data.dismissIcon),
                    contentDescription = "",
                    tint = Color.White,
                )

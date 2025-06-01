@@ -3,6 +3,7 @@ package market.engine.widgets.tooltip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -11,6 +12,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 fun TooltipWrapper(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.(tooltipState: TooltipState) -> Unit,
+    onClick: MutableState<() -> Unit>
 ) {
     val tooltipState = rememberTooltipState()
 
@@ -22,6 +24,6 @@ fun TooltipWrapper(
     ) {
         content(tooltipState)
 
-        Tooltip(state = tooltipState)
+        Tooltip(state = tooltipState, onClick = onClick)
     }
 }

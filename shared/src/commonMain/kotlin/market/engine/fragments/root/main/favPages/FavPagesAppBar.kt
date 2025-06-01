@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,6 +31,7 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.tabs.ReorderTabRow
+import market.engine.widgets.tooltip.TooltipData
 import market.engine.widgets.tooltip.TooltipState
 import org.jetbrains.compose.resources.stringResource
 
@@ -42,6 +44,7 @@ fun FavPagesAppBar(
     lazyListState: LazyListState,
     modifier: Modifier = Modifier,
     tooltipState: TooltipState,
+    onTooltipClick: MutableState<() -> Unit>,
     isDragMode: Boolean,
     navigationClick : (Int) -> Unit,
     onTabsReordered: (List<FavoriteListItem>) -> Unit,
@@ -81,11 +84,24 @@ fun FavPagesAppBar(
             title = stringResource(strings.createNewOffersListLabel),
             icon = drawables.addFolderIcon,
             tint = colors.steelBlue,
-            hasNews = settings.getSettingValue("create_blank_offer_list_notify_badge", true) == true,
+            tooltipData =
+                if (settings.getSettingValue("create_blank_offer_list_notify_badge", true) == true) {
+                    onTooltipClick.value = {
+                        settings.setSettingValue("create_blank_offer_list_notify_badge", false)
+                        tooltipState.hide()
+                    }
+
+                    TooltipData(
+                        title = "",
+                        subtitle = stringResource(strings.createOfferListTooltipDescription),
+                        dismissIcon = drawables.cancelIcon
+                    )
+                }else{
+                    null
+                },
             isVisible = !isDragMode,
             badgeCount = null,
             onClick = {
-                settings.setSettingValue("create_blank_offer_list_notify_badge", false)
                 makeOperation("create_blank_offer_list", UserData.login)
             }
         ),
