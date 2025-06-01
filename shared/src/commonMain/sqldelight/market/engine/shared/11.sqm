@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS notificationsHistory;
 DROP TABLE IF EXISTS NotificationsHistory;
 
 CREATE TABLE IF NOT EXISTS NotificationsHistory (
