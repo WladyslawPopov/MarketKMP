@@ -30,6 +30,7 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.tabs.ReorderTabRow
+import market.engine.widgets.tooltip.TooltipState
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +41,7 @@ fun FavPagesAppBar(
     favTabList: List<FavoriteListItem>,
     lazyListState: LazyListState,
     modifier: Modifier = Modifier,
+    tooltipState: TooltipState,
     isDragMode: Boolean,
     navigationClick : (Int) -> Unit,
     onTabsReordered: (List<FavoriteListItem>) -> Unit,
@@ -166,8 +168,11 @@ fun FavPagesAppBar(
                     )
                 ) {
                     listItems.forEachIndexed { _, item ->
-                        if(item.isVisible){
-                            BadgedButton(item)
+                        if (item.isVisible) {
+                            BadgedButton(
+                                item,
+                                tooltipState = tooltipState
+                            )
                         }
                     }
                 }

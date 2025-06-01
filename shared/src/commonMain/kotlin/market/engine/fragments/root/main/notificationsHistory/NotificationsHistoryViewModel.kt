@@ -20,7 +20,7 @@ class NotificationsHistoryViewModel : BaseViewModel() {
         viewModelScope.launch {
             setLoading(true)
             try {
-                db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().deleteReadNotifications()
+                deleteReadNotifications()
                 var buf = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
 
                 _responseGetPage.value = buildList {

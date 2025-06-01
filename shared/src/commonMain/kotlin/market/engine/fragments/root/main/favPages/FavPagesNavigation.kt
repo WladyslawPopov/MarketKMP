@@ -39,6 +39,7 @@ import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscript
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.widgets.dialogs.CustomDialog
+import market.engine.widgets.tooltip.TooltipState
 
 
 @Serializable
@@ -92,13 +93,14 @@ fun FavPagesNavigation(
         noFound = null,
         toastItem = viewModel.toastItem,
         modifier = modifier.fillMaxSize()
-    ) {
+    ) { tooltipState: TooltipState ->
         Column {
             FavPagesAppBar(
                 select.value,
                 favTabList = favTabList.value,
                 isDragMode = isDragMode.value,
                 modifier = Modifier.fillMaxWidth(),
+                tooltipState = tooltipState,
                 navigationClick = {
                     select.value = it
                     viewModel.initPosition.value = it
@@ -113,7 +115,11 @@ fun FavPagesNavigation(
                 makeOperation = { type, id ->
                     when (type) {
                         "create_blank_offer_list" -> {
-                            viewModel.getOperationFields(UserData.login, type, "users") { t, f ->
+                            viewModel.getOperationFields(
+                                UserData.login,
+                                type,
+                                "users"
+                            ) { t, f ->
                                 title.value = AnnotatedString(t)
                                 fields.value = f
                                 showCreatedDialog.value = type
@@ -121,6 +127,7 @@ fun FavPagesNavigation(
                                 method.value = "users"
                             }
                         }
+
                         "copy_offers_list", "rename_offers_list" -> {
                             viewModel.getOperationFields(id, type, "offers_lists") { t, f ->
                                 title.value = AnnotatedString(t)
@@ -147,8 +154,15 @@ fun FavPagesNavigation(
                                 type,
                                 "offers_lists",
                                 onSuccess = {
-                                    viewModel.db.favoritesTabListItemQueries.deleteById(itemId = id, owner = UserData.login)
-                                    viewModel.initPosition.value = viewModel.initPosition.value.coerceIn(0, favTabList.value.size - 2)
+                                    viewModel.db.favoritesTabListItemQueries.deleteById(
+                                        itemId = id,
+                                        owner = UserData.login
+                                    )
+                                    viewModel.initPosition.value =
+                                        viewModel.initPosition.value.coerceIn(
+                                            0,
+                                            favTabList.value.size - 2
+                                        )
                                     select.value = viewModel.initPosition.value
                                     component.fullRefresh()
                                 },
@@ -253,7 +267,8 @@ fun FavPagesNavigation(
                             onSuccess = {
                                 showCreatedDialog.value = ""
                                 isClicked.value = false
-                                viewModel.initPosition.value = favTabList.value.lastIndex+1
+                                viewModel.initPosition.value =
+                                    favTabList.value.lastIndex + 1
                                 component.fullRefresh()
                             },
                             errorCallback = { f ->

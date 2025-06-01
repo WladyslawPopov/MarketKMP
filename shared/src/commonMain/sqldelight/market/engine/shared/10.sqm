@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS NotificationsHistory;
+
 CREATE TABLE IF NOT EXISTS NotificationsHistory (
     id TEXT NOT NULL PRIMARY KEY,
     owner INTEGER NOT NULL,

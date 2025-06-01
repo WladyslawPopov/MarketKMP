@@ -159,19 +159,21 @@ fun NotificationItem.getDeepLinkByType() : DeepLink? {
     }
 }
 
-fun List<NotificationsHistory>.deleteReadNotifications() {
-    val db : MarketDB = getKoin().get()
-    db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().
-    filter { it.isRead == 1L }.fastForEach {
-        when(it.type){
-            "message about offer" ->{
-                db.notificationsHistoryQueries.deleteNotificationById(it.id)
-            }
-            "message about order" ->{
-                db.notificationsHistoryQueries.deleteNotificationById(it.id)
+fun deleteReadNotifications() {
+    try {
+        val db : MarketDB = getKoin().get()
+        db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().
+        filter { it.isRead == 1L }.fastForEach {
+            when(it.type){
+                "message about offer" ->{
+                    db.notificationsHistoryQueries.deleteNotificationById(it.id)
+                }
+                "message about order" ->{
+                    db.notificationsHistoryQueries.deleteNotificationById(it.id)
+                }
             }
         }
-    }
+    } catch (_ : Exception) {}
 }
 
 fun OfferItem.setNewParams(offer: Offer) {

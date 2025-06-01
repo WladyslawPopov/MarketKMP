@@ -15,7 +15,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.TopCategory
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
@@ -89,7 +88,7 @@ class DefaultHomeComponent(
                 updateModel()
             }
 
-            homeViewModel.db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().deleteReadNotifications()
+            deleteReadNotifications()
         }
     }
 

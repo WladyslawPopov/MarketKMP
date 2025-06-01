@@ -17,7 +17,6 @@ sqldelight {
             schemaOutputDirectory.set(file("src/main/sqldelight"))
             version = 10
             verifyMigrations.set(true)
-            treatNullAsUnknownForEquality.set(true)
         }
     }
 }

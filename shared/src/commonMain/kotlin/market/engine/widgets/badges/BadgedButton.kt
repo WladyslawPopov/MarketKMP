@@ -15,13 +15,33 @@ import androidx.compose.ui.layout.ContentScale
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.ilustrations.LoadImage
+import market.engine.widgets.tooltip.TooltipState
+import market.engine.widgets.tooltip.tooltip
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun BadgedButton(
     item: NavigationItem,
-    selected: Boolean = false
+    selected: Boolean = false,
+    tooltipState: TooltipState? = null
 ) {
+    val modifier = if(tooltipState != null) {
+        Modifier
+            .tooltip(
+                state = tooltipState,
+                data = item.tooltipData,
+                initialVisibility = true
+            )
+            .clip(CircleShape)
+            .clickable { item.onClick() }
+            .size(dimens.mediumIconSize)
+    }else{
+        Modifier
+            .clip(CircleShape)
+            .clickable { item.onClick() }
+            .size(dimens.mediumIconSize)
+    }
+
     BadgedBox(
         badge = {
             getBadge(item.badgeCount, item.hasNews)
@@ -29,9 +49,7 @@ fun BadgedButton(
     ) {
         if (item.imageString != null) {
             Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable { item.onClick() },
+                modifier = modifier,
                 contentAlignment = Alignment.Center
             ) {
                 LoadImage(
@@ -44,10 +62,7 @@ fun BadgedButton(
             }
         } else {
             Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable { item.onClick() }
-                    .size(dimens.mediumIconSize),
+                modifier = modifier,
                 contentAlignment = Alignment.Center
             ) {
                 if (item.icon != null) {
