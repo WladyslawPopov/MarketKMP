@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS notificationsHistory (
+CREATE TABLE IF NOT EXISTS NotificationsHistory (
     id TEXT NOT NULL PRIMARY KEY,
     owner INTEGER NOT NULL,
     title TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS notificationsHistory (
     UNIQUE(id)
 );
 
-CREATE TABLE IF NOT EXISTS favoritesTabListItem (
+CREATE TABLE IF NOT EXISTS FavoritesTabListItem (
     id INTEGER NOT NULL PRIMARY KEY,
     itemId INTEGER NOT NULL,
     position INTEGER NOT NULL,
@@ -18,14 +18,14 @@ CREATE TABLE IF NOT EXISTS favoritesTabListItem (
     UNIQUE (itemId, owner)
 );
 
-CREATE TABLE IF NOT EXISTS offerVisitedHistory(
+CREATE TABLE IF NOT EXISTS OfferVisitedHistory(
      id INTEGER NOT NULL PRIMARY KEY,
      offerId INTEGER NOT NULL,
      owner INTEGER NOT NULL,
      UNIQUE (offerId, owner)
 );
 
-CREATE TABLE IF NOT EXISTS searchHistory (
+CREATE TABLE IF NOT EXISTS SearchHistory (
      id INTEGER NOT NULL PRIMARY KEY,
         query TEXT NOT NULL,
         owner INTEGER NOT NULL,
