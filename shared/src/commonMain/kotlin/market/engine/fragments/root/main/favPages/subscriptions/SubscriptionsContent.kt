@@ -32,6 +32,7 @@ import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.SortingOrdersContent
+import market.engine.widgets.items.SubscriptionItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -198,34 +199,36 @@ fun SubscriptionsContent(
                             val ld = ListingData()
                             ld.data.value.filters = ListingFilters.getEmpty()
 
-                            if(subscription.priceTo != null) {
+                            if (subscription.priceTo != null) {
                                 ld.data.value.filters.find {
                                     it.key == "current_price" && it.operation == "lte"
-                                }?.let{
+                                }?.let {
                                     it.value = subscription.priceTo ?: ""
-                                    it.interpretation = "$price $from - ${subscription.priceTo} $currency"
+                                    it.interpretation =
+                                        "$price $from - ${subscription.priceTo} $currency"
                                 }
                             }
 
-                            if(subscription.priceFrom != null) {
+                            if (subscription.priceFrom != null) {
                                 ld.data.value.filters.find {
                                     it.key == "current_price" && it.operation == "gte"
-                                }?.let{
+                                }?.let {
                                     it.value = subscription.priceFrom ?: ""
-                                    it.interpretation = "$price $to - ${subscription.priceFrom} $currency"
+                                    it.interpretation =
+                                        "$price $to - ${subscription.priceFrom} $currency"
                                 }
                             }
 
-                            if(subscription.region != null) {
+                            if (subscription.region != null) {
                                 ld.data.value.filters.find {
                                     it.key == "region"
                                 }?.let {
-                                   it.value = (subscription.region?.code ?: "").toString()
-                                   it.interpretation = subscription.region?.name ?: ""
+                                    it.value = (subscription.region?.code ?: "").toString()
+                                    it.interpretation = subscription.region?.name ?: ""
                                 }
                             }
 
-                            if(subscription.saleType != null) {
+                            if (subscription.saleType != null) {
                                 ld.data.value.filters.find {
                                     it.key == "sale_type"
                                 }?.let {
@@ -234,6 +237,7 @@ fun SubscriptionsContent(
                                             it.value = "buynow"
                                             it.interpretation = ""
                                         }
+
                                         "ordinary_auction" -> {
                                             it.value = "auction"
                                             it.interpretation = ""
@@ -242,15 +246,17 @@ fun SubscriptionsContent(
                                 }
                             }
 
-                            if(subscription.sellerData != null){
+                            if (subscription.sellerData != null) {
                                 ld.searchData.value.userSearch = true
                                 ld.searchData.value.userID = subscription.sellerData.id
                                 ld.searchData.value.userLogin = subscription.sellerData.login
                             }
 
                             ld.searchData.value.searchString = subscription.searchQuery ?: ""
-                            ld.searchData.value.searchCategoryID = subscription.catpath?.keys?.firstOrNull() ?: 1L
-                            ld.searchData.value.searchCategoryName = subscription.catpath?.values?.firstOrNull() ?: defCat
+                            ld.searchData.value.searchCategoryID =
+                                subscription.catpath?.keys?.firstOrNull() ?: 1L
+                            ld.searchData.value.searchCategoryName =
+                                subscription.catpath?.values?.firstOrNull() ?: defCat
 
                             component.goToListing(ld)
                         }

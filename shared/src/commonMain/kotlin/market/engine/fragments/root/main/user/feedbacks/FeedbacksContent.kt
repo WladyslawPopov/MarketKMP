@@ -43,6 +43,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.bars.PagingCounterBar
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
+import market.engine.widgets.items.FeedbackItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
@@ -257,7 +258,7 @@ fun FeedbacksContent(
                                             component.goToSnapshot(id)
                                         },
                                         onClickOrder = { id, type ->
-                                            component.goToOrder(id,type)
+                                            component.goToOrder(id, type)
                                         }
                                     )
                                 }

@@ -6,12 +6,12 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Divider
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -36,12 +36,14 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.root.dynamicSettings.contents.DeliveryCardsContent
 import market.engine.fragments.base.onError
+import market.engine.widgets.items.offer_Items.OrderOfferItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.DynamicLabel
@@ -142,11 +144,11 @@ fun CreateOrderContent(
             item {
                 Column(
                     modifier = Modifier
-                        .background(colors.white, MaterialTheme.shapes.medium)
+                        .background(colors.white, MaterialTheme.shapes.small)
                         .fillMaxWidth()
                         .padding(dimens.smallPadding),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     //user header
                     offers.value.firstOrNull()?.sellerData?.let {
@@ -159,43 +161,55 @@ fun CreateOrderContent(
                         )
                     }
 
-                    Spacer(
-                        modifier = Modifier
-                            .background(colors.primaryColor)
-                            .height(1.dp)
-                            .fillMaxWidth(0.98f)
-                            .align(Alignment.CenterHorizontally)
+                    Divider(
+                        color = colors.primaryColor,
+                        thickness = 1.dp,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    // offers
-                    offers.value.forEachIndexed { index, offer ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            DynamicLabel(
-                                "${index + 1})",
-                                false,
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            CreateOrderOfferItem(
-                                offer,
-                                basketItem.second.find {
-                                    it.offerId == offer.id
-                                }?.selectedQuantity ?: 1
+                    //offers
+                    LazyColumnWithScrollBars(
+                        heightMod = Modifier.heightIn(max = 2000.dp),
+                    ) {
+                        items(
+                            offers.value.size,
+                            key = { index -> offers.value[index].id }
+                        ) { index ->
+                            val offer = offers.value[index]
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                component.goToOffer(it)
+                                DynamicLabel(
+                                    "${index + 1})",
+                                    false,
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+
+                                OrderOfferItem(
+                                    offer,
+                                    basketItem.second.find {
+                                        it.offerId == offer.id
+                                    }?.selectedQuantity ?: 1,
+                                    addToFavorites = { onFinish ->
+                                        viewModel.addToFavorites(offer.parseToOfferItem()){
+                                            offer.isWatchedByMe = it
+                                            onFinish(it)
+                                        }
+                                    },
+                                    goToOffer = {
+                                        component.goToOffer(it)
+                                    }
+                                )
                             }
                         }
                     }
 
-                    Spacer(
-                        modifier = Modifier
-                            .background(colors.primaryColor)
-                            .height(1.dp)
-                            .fillMaxWidth(0.98f)
-                            .align(Alignment.CenterHorizontally)
+                    Divider(
+                        color = colors.primaryColor,
+                        thickness = 1.dp,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     //total sum
@@ -239,6 +253,7 @@ fun CreateOrderContent(
                     refresh()
                 }
             }
+
             item {
                 // additional fields
                 Column(

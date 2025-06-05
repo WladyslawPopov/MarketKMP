@@ -80,7 +80,7 @@ fun MyProposalItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimens.smallPadding),
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
             horizontalAlignment = Alignment.Start
         ) {
             HeaderOfferBar(
@@ -93,15 +93,14 @@ fun MyProposalItem(
                 modifier = Modifier.clickable {
                     goToOffer(offer.id)
                 }.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val imageSize = 100.dp
 
                 Column(
-                    modifier = Modifier.padding(dimens.smallPadding),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                 ) {
                     Box(
                         modifier = Modifier.size(imageSize),
@@ -255,8 +254,7 @@ fun MyProposalItem(
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {

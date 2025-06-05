@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.favPages.subscriptions
+package market.engine.widgets.items
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +31,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.MenuItem
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.utils.onClickSubOperationItem
+import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.SubOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
@@ -68,7 +69,7 @@ fun SubscriptionItem(
         Column(
             modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
         ) {
             //header
             Row(
@@ -99,7 +100,7 @@ fun SubscriptionItem(
                 }
 
                 Column(
-                    modifier = Modifier.fillMaxWidth(0.8f),
+                    modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                 ) {
@@ -108,6 +109,7 @@ fun SubscriptionItem(
                         style = MaterialTheme.typography.titleSmall,
                         color = if (user != null) colors.brightBlue else colors.black,
                     )
+
                     if(subscription.catpath != null) {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth()
@@ -170,7 +172,7 @@ fun SubscriptionItem(
             Column(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.mediumPadding),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
+                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             ) {
                 //search param
                 if (subscription.searchQuery != null) {
@@ -319,30 +321,6 @@ fun SubscriptionItem(
                         uncheckedTrackColor = colors.transparentGrayColor,
                     ),
                 )
-
-//                if (user != null) {
-//                    Row(
-//                        modifier = Modifier.wrapContentSize()
-//                            .background(colors.brightGreen, shape = MaterialTheme.shapes.medium)
-//                            .padding(dimens.extraSmallPadding)
-//                            .align(Alignment.CenterVertically),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.Start
-//                    ) {
-//                        Icon(
-//                            painterResource(drawables.vectorManSubscriptionIcon),
-//                            contentDescription = null,
-//                            tint = colors.alwaysWhite,
-//                            modifier = Modifier.size(dimens.extraSmallIconSize)
-//                        )
-//                        Spacer(modifier = Modifier.width(dimens.smallPadding))
-//                        Text(
-//                            text = (user.followersCount ?: 0).toString(),
-//                            color = colors.alwaysWhite,
-//                            style = MaterialTheme.typography.bodySmall,
-//                        )
-//                    }
-//                }
             }
 
             SubOperationsDialogs(

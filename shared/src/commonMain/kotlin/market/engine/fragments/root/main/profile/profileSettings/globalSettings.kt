@@ -196,6 +196,7 @@ fun globalSettings(
                 getDropdownMenu(
                     selectedGender.value,
                     selects = genderSelects.map { it.name?: "" },
+                    selectedTextDef = selectedGender.value,
                     onItemClick = {
                         selectedGender.value = it
                     },

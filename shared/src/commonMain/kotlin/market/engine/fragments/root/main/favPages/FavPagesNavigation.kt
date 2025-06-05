@@ -26,14 +26,11 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.FavScreenType
-import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.onError
-import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
-import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
 import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
@@ -296,27 +293,6 @@ fun FavPagesNavigation(
         )
     }
 }
-
-fun itemFavorites(
-    componentContext: ComponentContext,
-    selectedType : FavScreenType,
-    idList : Long?,
-    navigateToOffer: (id: Long) -> Unit,
-    updateTabs : () -> Unit,
-    navigateToProposal : (ProposalType, Long) -> Unit
-): FavoritesComponent {
-    return DefaultFavoritesComponent(
-        componentContext = componentContext,
-        goToOffer = { id ->
-            navigateToOffer(id)
-        },
-        favType = selectedType,
-        idList = idList,
-        updateTabs = updateTabs,
-        navigateToProposalPage = navigateToProposal
-    )
-}
-
 
 fun itemSubscriptions(
     componentContext: ComponentContext,

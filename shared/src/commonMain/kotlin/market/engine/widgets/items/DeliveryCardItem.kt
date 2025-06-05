@@ -2,9 +2,8 @@ package market.engine.widgets.items
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -35,7 +35,7 @@ fun DeliveryCardItem(
     val isDefault = card.isDefault
 
     Card(
-        modifier = Modifier.width(230.dp),
+        modifier = Modifier.widthIn(min = 180.dp, max = 230.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) colors.solidGreen else colors.white,
             contentColor = colors.black
@@ -45,15 +45,16 @@ fun DeliveryCardItem(
         }
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+            Modifier.padding(dimens.smallPadding),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(
                 text = surname ?: "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.black,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
 
             Text(
@@ -81,6 +82,7 @@ fun DeliveryCardItem(
                 text = address ?: "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.black,
+                overflow = TextOverflow.Ellipsis,
                 maxLines = 1
             )
 

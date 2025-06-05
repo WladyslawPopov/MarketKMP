@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.user.feedbacks
+package market.engine.widgets.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -133,7 +133,6 @@ fun FeedbackItem(
             verticalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
             horizontalAlignment = Alignment.Start
         ) {
-
             if (!report.comment.isNullOrEmpty()) {
                 Text(
                     text = report.comment,

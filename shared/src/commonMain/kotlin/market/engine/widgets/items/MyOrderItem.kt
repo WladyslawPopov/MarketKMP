@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.myOrders
+package market.engine.widgets.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +36,7 @@ import market.engine.core.network.networkObjects.Order
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.onClickOrderOperationItem
 import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.main.profile.myOrders.OfferPartItem
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.OrderMessageDialog
@@ -345,7 +346,7 @@ fun MyOrderItem(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -401,7 +402,6 @@ fun MyOrderItem(
                                     modifier = Modifier.size(dimens.smallIconSize)
                                 )
                             },
-                            modifier = Modifier.padding(dimens.smallPadding)
                         ) {
                             showReportDialog.value = true
                         }
@@ -471,7 +471,6 @@ fun MyOrderItem(
                                     modifier = Modifier.size(dimens.smallIconSize)
                                 )
                             },
-                            modifier = Modifier.padding(dimens.smallPadding)
                         ) {
                             showReportDialog.value = true
                         }

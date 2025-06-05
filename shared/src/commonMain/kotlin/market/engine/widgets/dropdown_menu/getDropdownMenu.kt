@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.DropdownMenu
@@ -62,15 +63,21 @@ fun getDropdownMenu(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
+            modifier = Modifier.padding(dimens.mediumPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             Text(
                 selectedText,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.weight(1f).padding(dimens.mediumPadding)
+                color = colors.black,
+                modifier = Modifier.weight(1f)
             )
-            Row {
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
+            ) {
                 AnimatedVisibility(
                     !expanded,
                     enter = fadeIn(),
@@ -83,7 +90,8 @@ fun getDropdownMenu(
                             onClick = {
                                 onClearItem()
                             },
-                            modifier = Modifier.padding(end = dimens.smallPadding)
+                            modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
+                            modifier = Modifier.size(dimens.smallIconSize)
                         )
                     }
                 }
@@ -93,10 +101,10 @@ fun getDropdownMenu(
                     colors.black,
                     onClick = { expanded = !expanded },
                     modifier = Modifier
-                        .padding(end = dimens.smallPadding)
+                        .size(dimens.smallIconSize)
                         .graphicsLayer {
                             rotationZ = rotationAngle
-                        }
+                        },
                 )
             }
         }

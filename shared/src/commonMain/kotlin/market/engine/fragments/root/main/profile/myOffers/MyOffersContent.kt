@@ -1,8 +1,5 @@
 package market.engine.fragments.root.main.profile.myOffers
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -103,52 +100,11 @@ fun MyOffersContent(
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
-            withContext(Dispatchers.Default) {
-                val offer =
-                    viewModel.getOfferById(viewModel.updateItem.value!!)
-                withContext(Dispatchers.Main) {
-                    if (offer != null) {
-                        val item = data.itemSnapshotList.items.find { it.id == offer.id }
-                        item?.setNewParams(offer)
-                    }else{
-                        val item = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
-                        item?.session = null
-                        item?.state = null
-                    }
-
-                    var isEmpty = false
-                    when (model.type) {
-                        LotsType.MYLOT_ACTIVE -> {
-                            isEmpty = data.itemSnapshotList.items.none { it.state == "active" && it.session != null }
-                        }
-
-                        LotsType.MYLOT_UNACTIVE -> {
-                            isEmpty = data.itemSnapshotList.items.none { it.state != "active" }
-                        }
-
-                        LotsType.MYLOT_FUTURE -> {
-                            val currentDate: Long? = getCurrentDate().toLongOrNull()
-                            if (currentDate != null) {
-                                isEmpty = data.itemSnapshotList.items.none {
-                                    val initD = (it.session?.start?.toLongOrNull() ?: 1L) - currentDate
-                                    it.state == "active" && initD > 0
-                                }
-                            }
-                        }
-
-                        else -> {}
-                    }
-
-                    if(isEmpty){
-                        refresh()
-                    }
-
-                    viewModel.updateItem.value = null
-                    viewModel.updateItemTrigger.value++
-                }
-            }
+            val item = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
+            component.updateItem(item)
         }
     }
+
     BaseContent(
         topBar = null,
         onRefresh = {
@@ -212,49 +168,31 @@ fun MyOffersContent(
                 }
             },
             item = { offer ->
-                var checkItemSession = true
-                when (model.type) {
-                    LotsType.MYLOT_ACTIVE -> {
-                        checkItemSession = offer.state == "active" && offer.session != null
-                    }
+                val checkItemSession = mutableStateOf(
+                    component.isHideItem(offer)
+                )
 
-                    LotsType.MYLOT_UNACTIVE -> {
-                        checkItemSession = offer.state != "active"
-                    }
-
-                    LotsType.MYLOT_FUTURE -> {
-                        val currentDate: Long? = getCurrentDate().toLongOrNull()
-                        if (currentDate != null) {
-                            val initD = (offer.session?.start?.toLongOrNull() ?: 1L) - currentDate
-                            checkItemSession =
-                                offer.state == "active" && initD > 0
-                        }
-                    }
-
-                    else -> {}
-                }
-                AnimatedVisibility(checkItemSession, enter = fadeIn(), exit = fadeOut()) {
-                    CabinetOfferItemList(
-                        offer,
-                        baseViewModel = viewModel,
-                        updateTrigger = viewModel.updateItemTrigger.value,
-                        onUpdateOfferItem = { id ->
-                            viewModel.updateItem.value = id
-                        },
-                        onItemClick = {
-                            component.goToOffer(offer)
-                        },
-                        goToDynamicSettings = { type, id ->
-                            component.goToDynamicSettings(type, id)
-                        },
-                        goToCreateOffer = { type ->
-                            component.goToCreateOffer(type, offer.id, offer.catPath)
-                        },
-                        goToProposal = {
-                            component.goToProposals(offer.id, it)
-                        },
-                    )
-                }
+                CabinetOfferItemList(
+                    offer,
+                    isVisible = checkItemSession.value,
+                    baseViewModel = viewModel,
+                    updateTrigger = viewModel.updateItemTrigger.value,
+                    onUpdateOfferItem = { id ->
+                        viewModel.updateItem.value = id
+                    },
+                    onItemClick = {
+                        component.goToOffer(offer)
+                    },
+                    goToDynamicSettings = { type, id ->
+                        component.goToDynamicSettings(type, id)
+                    },
+                    goToCreateOffer = { type ->
+                        component.goToCreateOffer(type, offer.id, offer.catPath)
+                    },
+                    goToProposal = {
+                        component.goToProposals(offer.id, it)
+                    },
+                )
             }
         )
     }

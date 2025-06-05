@@ -176,26 +176,6 @@ fun deleteReadNotifications() {
     } catch (_ : Exception) {}
 }
 
-fun OfferItem.setNewParams(offer: Offer) {
-    images = buildList {
-        when {
-            offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "" }?.toList() ?: emptyList())
-            offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
-            offer.externalUrl != null -> add(offer.externalUrl)
-            offer.image?.small?.content != null -> add(offer.image.small.content)
-        }
-    }
-    price = offer.currentPricePerItem ?: ""
-    title = offer.title ?: ""
-    note = offer.note
-    relistingMode = offer.relistingMode
-    isWatchedByMe = offer.isWatchedByMe
-    viewsCount = offer.viewsCount
-    promoOptions = offer.promoOptions
-    bids = offer.bids
-    state = offer.state
-    session = offer.session
-}
 
 fun Operations.onClickOfferOperationItem(
     item : OfferItem,
@@ -364,6 +344,30 @@ fun Operations.onClickSubOperationItem(
     }
 }
 
+
+fun OfferItem.setNewParams(offer: Offer) {
+    images = buildList {
+        when {
+            offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "" }?.toList() ?: emptyList())
+            offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
+            offer.externalUrl != null -> add(offer.externalUrl)
+            offer.image?.small?.content != null -> add(offer.image.small.content)
+        }
+    }
+    price = offer.currentPricePerItem ?: ""
+    title = offer.title ?: ""
+    note = offer.note
+    relistingMode = offer.relistingMode
+    isWatchedByMe = offer.isWatchedByMe
+    viewsCount = offer.viewsCount
+    promoOptions = offer.promoOptions
+    bids = offer.bids
+    state = offer.state
+    session = offer.session
+    watchersCount = offer.watchersCount
+    myMaximalBid = offer.myMaximalBid
+}
+
 fun Offer.parseToOfferItem() : OfferItem {
 
     var isPromo = false
@@ -407,6 +411,7 @@ fun Offer.parseToOfferItem() : OfferItem {
         discount = discountPercentage,
         safeDeal = safeDeal,
         promoOptions = promoOptions,
+        myMaximalBid = myMaximalBid,
         isPromo = isPromo,
         createdTs = createdTs,
         catPath = catpath,

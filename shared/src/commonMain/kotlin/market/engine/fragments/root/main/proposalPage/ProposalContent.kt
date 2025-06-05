@@ -41,6 +41,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.fragments.root.main.messenger.DialogsHeader
+import market.engine.widgets.items.ProposalsItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 

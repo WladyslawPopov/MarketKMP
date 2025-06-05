@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.dialogs.AccessDialog
@@ -152,42 +154,61 @@ fun BasketContent(
             state = state,
             contentPadding = dimens.smallPadding
         ) {
-            items(userBasket.value.size, key = { userBasket.value[it].first?.id ?: it }) { index ->
-                Spacer(modifier = Modifier.height(dimens.smallSpacer))
+            items(userBasket.value, key = { item -> item.first?.id ?: item.hashCode() }) { item ->
                 BasketItemContent(
-                    userBasket.value[index],
-                    goToUser = { userId ->
-                        component.goToUser(userId)
+                    item,
+                    goToUser = remember {
+                        { userId ->
+                            component.goToUser(userId)
+                        }
                     },
-                    goToOffer = { offerId ->
-                        component.goToOffer(offerId)
-                    },
-                    changeQuantity = { offerId, quantity ->
-                        val bodyAddB = HashMap<String, JsonElement>()
-                        bodyAddB["offer_id"] = JsonPrimitive(offerId)
-                        bodyAddB["quantity"] = JsonPrimitive(quantity)
+                    goToOffer =
+                        remember {
+                            { offerId ->
+                                component.goToOffer(offerId)
+                            }
+                        },
+                    changeQuantity = remember {
+                        { offerId, quantity ->
+                            val bodyAddB = HashMap<String, JsonElement>()
+                            bodyAddB["offer_id"] = JsonPrimitive(offerId)
+                            bodyAddB["quantity"] = JsonPrimitive(quantity)
 
-                        viewModel.addOfferToBasket(bodyAddB) {
-                            userBasket.value.find { pair ->
-                                pair.second.find { it?.id == offerId } != null
-                            }?.second?.find { it?.id == offerId }
-                                ?.quantity = quantity
+                            viewModel.addOfferToBasket(bodyAddB) {
+                                userBasket.value.find { pair ->
+                                    pair.second.find { it?.id == offerId } != null
+                                }?.second?.find { it?.id == offerId }
+                                    ?.quantity = quantity
+                            }
                         }
                     },
-                    deleteOffer = { offerId ->
-                        listOffers.value = buildList {
-                            add(offerId)
+                    deleteOffer =  remember {
+                        { offerId ->
+                            listOffers.value = buildList {
+                                add(offerId)
+                            }
                         }
                     },
-                    clearUserOffers = { offers ->
-                        listOffers.value = buildList {
-                            addAll(offers)
+                    clearUserOffers =  remember {
+                        { offers ->
+                            listOffers.value = buildList {
+                                addAll(offers)
+                            }
                         }
                     },
-                    goToCreateOrder = {
-                        component.goToCreateOrder(it)
+                    goToCreateOrder = remember {
+                        {
+                            component.goToCreateOrder(it)
+                        }
                     },
-                    baseViewModel = viewModel
+                    addOfferToFavorites = remember {
+                        { offer, onFinish ->
+                            viewModel.addToFavorites(offer.parseToOfferItem()) {
+                                offer.isWatchedByMe = it
+                                onFinish(it)
+                            }
+                        }
+                    }
                 )
             }
         }

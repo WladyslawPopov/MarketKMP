@@ -14,6 +14,7 @@ import com.arkivanov.decompose.value.Value
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 
@@ -97,36 +98,40 @@ class DefaultFavPagesComponent(
                     }
                     else -> {
                         FavPagesComponents.FavoritesChild(
-                            component = itemFavorites(
-                                componentContext,
-                                navigateToOffer = {
+                            component = DefaultFavoritesComponent(
+                                componentContext = componentContext,
+                                goToOffer = { id ->
                                     favoritesNavigation.pushNew(
                                         FavoritesConfig.OfferScreen(
-                                            it, getCurrentDate()
+                                            id, getCurrentDate()
                                         )
                                     )
                                 },
-                                selectedType =
-                                    when(config.favItem.id){
-                                        111L -> {
-                                            FavScreenType.FAVORITES
-                                        }
-                                        333L -> {
-                                            FavScreenType.NOTES
-                                        }
-                                        else -> {
-                                            FavScreenType.FAV_LIST
-                                        }
-                                    },
+                                favType =  when(config.favItem.id){
+                                    111L -> {
+                                        FavScreenType.FAVORITES
+                                    }
+                                    333L -> {
+                                        FavScreenType.NOTES
+                                    }
+                                    else -> {
+                                        FavScreenType.FAV_LIST
+                                    }
+                                },
                                 idList = config.favItem.id,
                                 updateTabs = {
                                     fullRefresh()
                                 },
-                                navigateToProposal = { type, id ->
+                                navigateToProposalPage = { type, id ->
                                     favoritesNavigation.pushNew(
                                         FavoritesConfig.ProposalScreen(
                                             id, type, getCurrentDate()
                                         )
+                                    )
+                                },
+                                navigateToCreateOffer = { type, id ->
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.CreateOfferScreen(null, id, type)
                                     )
                                 }
                             )

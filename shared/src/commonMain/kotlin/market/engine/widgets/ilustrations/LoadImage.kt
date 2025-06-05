@@ -29,8 +29,16 @@ fun LoadImage(
     rotation: Float = 0f,
     contentScale: ContentScale = ContentScale.Fit,
 ) {
-    val imageLoadFailed = remember { mutableStateOf(false) }
-    val isLoading = remember { mutableStateOf(true) }
+    val imageLoadFailed = mutableStateOf(false)
+    val isLoading = mutableStateOf(false)
+
+    val context = LocalPlatformContext.current
+    val imageLoader = remember(context) {
+        ImageLoader.Builder(context)
+            .crossfade(true)
+            .components { add(SvgDecoder.Factory()) }
+            .build()
+    }
 
     if (imageLoadFailed.value){
         getImage(url, size, isShowEmpty)
@@ -49,12 +57,11 @@ fun LoadImage(
             model = url,
             contentDescription = null,
             modifier = Modifier.size(size).rotate(rotation),
-            imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
-                .crossfade(true)
-                .components {
-                add(SvgDecoder.Factory())
-            }.build(),
+            imageLoader = imageLoader,
             contentScale = contentScale,
+            onLoading = {
+                isLoading.value = true
+            },
             onSuccess = {
                 isLoading.value = false
                 imageLoadFailed.value = false

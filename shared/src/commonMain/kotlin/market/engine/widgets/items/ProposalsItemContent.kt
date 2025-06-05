@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.proposalPage
+package market.engine.widgets.items
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -44,6 +44,7 @@ import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.checkValidation
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getRemainingMinutesTime
+import market.engine.fragments.root.main.proposalPage.ProposalViewModel
 import market.engine.theme.Colors
 import market.engine.theme.Strings
 import market.engine.widgets.buttons.SimpleTextButton
@@ -413,7 +414,7 @@ fun ProposalsItemContent(
                                 size = Size(stripeWidth, size.height)
                             )
                         }.padding(dimens.mediumPadding),
-                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Row(
@@ -507,7 +508,7 @@ fun ProposalsItemContent(
 
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                             horizontalAlignment = Alignment.Start
                         ) {
                             Row(

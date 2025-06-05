@@ -1,8 +1,5 @@
 package market.engine.fragments.root.main.favPages.favorites
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,20 +12,12 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
@@ -36,6 +25,7 @@ import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItemList
@@ -98,61 +88,9 @@ fun FavoritesContent(
 
     //update item when we back
     LaunchedEffect(favViewModel.updateItem.value) {
-        if (favViewModel.updateItem.value != null) {
-            component.model.value.listId?.let { id ->
-                favViewModel.getList(id) { item ->
-                    val offer =
-                        data.itemSnapshotList.items.find { it.id == favViewModel.updateItem.value }
-                    if (!item.offers.contains(offer?.id)) {
-                        offer?.session = null
-                    }
-                }
-            }
-
-            val offer = withContext(Dispatchers.IO) {
-                favViewModel.getOfferById(favViewModel.updateItem.value!!)
-            }
-
-            withContext(Dispatchers.Main) {
-                if (offer != null) {
-                    val item = data.itemSnapshotList.items.find { it.id == offer.id }
-                    item?.setNewParams(offer)
-                }
-
-                if (model.favType != FavScreenType.FAV_LIST) {
-                    val isEmpty = data.itemSnapshotList.items.none { item ->
-                        when (model.favType) {
-                            FavScreenType.NOTES -> {
-                                item.note != null && item.note != ""
-                            }
-
-                            FavScreenType.FAVORITES -> {
-                                item.isWatchedByMe
-                            }
-
-                            else -> {
-                                item.session != null
-                            }
-                        }
-                    }
-                    if (isEmpty) {
-                        component.onRefresh()
-                    }
-                } else {
-                    favViewModel.getList(component.model.value.listId ?: 1L) {
-                        val isEmpty = data.itemSnapshotList.items.none { item ->
-                            it.offers.contains(item.id)
-                        }
-                        if (isEmpty) {
-                            component.onRefresh()
-                        }
-                    }
-                }
-
-                favViewModel.updateItemTrigger.value++
-                favViewModel.updateItem.value = null
-            }
-        }
+        val offer =
+            data.itemSnapshotList.items.find { it.id == favViewModel.updateItem.value }
+        component.updateItem(offer)
     }
 
     val err = favViewModel.errorMessage.collectAsState()
@@ -214,42 +152,7 @@ fun FavoritesContent(
                         favViewModel.selectItems.clear()
                     },
                     onDelete = {
-                        favViewModel.viewModelScope.launch(Dispatchers.IO) {
-                            selectedItems.forEach { item ->
-                                val type = when(model.favType){
-                                    FavScreenType.NOTES -> {
-                                        "delete_note"
-                                    }
-                                    FavScreenType.FAVORITES -> {
-                                        "unwatch"
-                                    }
-                                    FavScreenType.FAV_LIST -> {
-                                        "remove_from_list"
-                                    }
-                                    else -> {
-                                        ""
-                                    }
-                                }
-
-                                val body = HashMap<String, JsonElement>()
-                                if (model.favType == FavScreenType.FAV_LIST) {
-                                    body["offers_list_id"] = JsonPrimitive(model.listId)
-                                }
-                                favViewModel.postOperationFields(
-                                    item,
-                                    type,
-                                    "offers",
-                                    body,
-                                    onSuccess = {
-                                        favViewModel.selectItems.clear()
-                                        data.refresh()
-                                    },
-                                    errorCallback = {
-
-                                    }
-                                )
-                            }
-                        }
+                        component.deleteSelectsItems(selectedItems)
                     }
                 )
 
@@ -271,64 +174,68 @@ fun FavoritesContent(
             },
             item = { offer ->
                 val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
-                val fav =
-                    mutableStateOf(
-                        when (model.favType) {
-                            FavScreenType.NOTES -> {
-                                offer.note != null && offer.note != ""
-                            }
+                val isVisibleState = mutableStateOf(
+                    component.isHideItem(offer)
+                )
 
-                            FavScreenType.FAVORITES -> {
-                                offer.isWatchedByMe
-                            }
-
-                            else -> {
-                                offer.session != null
-                            }
-                        }
-                    )
-
-                AnimatedVisibility(fav.value, enter = fadeIn(), exit = fadeOut()) {
-                    CabinetOfferItemList(
-                        offer,
-                        baseViewModel = favViewModel,
-                        updateTrigger = favViewModel.updateItemTrigger.value,
-                        isSelection = isSelect.value,
-                        goToProposal = {
+                CabinetOfferItemList(
+                    offer,
+                    isVisible = isVisibleState.value,
+                    baseViewModel = favViewModel,
+                    updateTrigger = favViewModel.updateItemTrigger.value,
+                    isSelected = isSelect.value,
+                    goToProposal = remember {
+                        {
                             component.goToProposal(it, offer.id)
-                        },
-                        onSelectionChange = { select ->
+                        }
+                    },
+                    onSelectionChange = remember {
+                        { select ->
                             if (select) {
                                 favViewModel.selectItems.add(offer.id)
                             } else {
                                 favViewModel.selectItems.remove(offer.id)
 
                             }
-                        },
-                        onUpdateOfferItem = { id ->
+                        }
+                    },
+                    onUpdateOfferItem = remember {
+                        { id ->
                             favViewModel.updateItem.value = id
                             favViewModel.updateItemTrigger.value++
 
                             favViewModel.updateUserInfo()
-                        },
-                        refreshPage = {
+                        }
+                    },
+                    refreshPage = remember {
+                        {
                             component.refreshTabs()
-                        },
-                        onItemClick = {
-                            if (favViewModel.selectItems.isNotEmpty()) {
-                                if (isSelect.value) {
-                                    favViewModel.selectItems.remove(offer.id)
-                                } else {
-                                    favViewModel.selectItems.add(offer.id)
-                                }
+                        }
+                    },
+                    onItemClick = remember {
+                        {
+                        if (favViewModel.selectItems.isNotEmpty()) {
+                            if (isSelect.value) {
+                                favViewModel.selectItems.remove(offer.id)
                             } else {
-                                component.goToOffer(offer)
-                                // set item for update
-                                favViewModel.updateItem.value = offer.id
+                                favViewModel.selectItems.add(offer.id)
                             }
-                        },
-                    )
-                }
+                        } else {
+                            component.goToOffer(offer)
+                        }
+                    }
+                                           },
+                    goToCreateOffer =remember {
+                        {
+                            component.goToCreateOffer(it, offer.id)
+                        }
+                    },
+                    goToDynamicSettings = remember {
+                        { type, id ->
+                            goToDynamicSettings(type, id, null)
+                        }
+                    }
+                )
             },
             modifier = modifier
         )

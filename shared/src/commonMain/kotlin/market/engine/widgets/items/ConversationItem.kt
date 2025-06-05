@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.conversations
+package market.engine.widgets.items
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
@@ -56,7 +56,7 @@ fun ConversationItem(
                     onSelectionChange(!isSelected)
                 }
             ).fillMaxWidth().padding(dimens.smallPadding),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
         ) {
             Row(
@@ -93,7 +93,8 @@ fun ConversationItem(
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
+                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                horizontalAlignment = Alignment.Start
             ) {
                 Text(
                     text = conversation.interlocutor?.login ?: "",
@@ -132,26 +133,25 @@ fun ConversationItem(
                         getBadge(conversation.countUnreadMessages, false)
                     }
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        conversation.newMessageTs.toString().convertDateWithMinutes(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.black,
-                    )
-                }
             }
 
-            LoadImage(
-                url = conversation.aboutObjectIcon?.small?.content ?: "",
-                isShowLoading = false,
-                isShowEmpty = true,
-                size = 40.dp
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                horizontalAlignment = Alignment.End
+            ) {
+                LoadImage(
+                    url = conversation.aboutObjectIcon?.small?.content ?: "",
+                    isShowLoading = false,
+                    isShowEmpty = true,
+                    size = 40.dp
+                )
+
+                Text(
+                    conversation.newMessageTs.toString().convertDateWithMinutes(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.black,
+                )
+            }
         }
     }
 }

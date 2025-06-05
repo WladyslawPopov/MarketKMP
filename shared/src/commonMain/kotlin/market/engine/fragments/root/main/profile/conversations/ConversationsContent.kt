@@ -41,6 +41,7 @@ import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.DialogsFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
+import market.engine.widgets.items.ConversationItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
