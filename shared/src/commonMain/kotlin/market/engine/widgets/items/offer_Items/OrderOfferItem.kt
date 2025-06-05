@@ -26,7 +26,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
@@ -43,10 +42,6 @@ fun OrderOfferItem(
 
     val isFavorites = remember { mutableStateOf(offer.isWatchedByMe) }
 
-    val pagerState = rememberPagerState(
-        pageCount = { offer.images?.size ?: 0 },
-    )
-
     Card(
         colors = colors.cardColors,
         modifier = Modifier.padding(dimens.smallPadding),
@@ -62,7 +57,7 @@ fun OrderOfferItem(
         ) {
            LoadImage(
                url = offer.getOfferImagePreview(),
-                size = 120.dp
+               modifier = Modifier.size(120.dp)
            )
 
             Column(

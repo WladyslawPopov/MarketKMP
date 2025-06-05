@@ -7,30 +7,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import coil3.ImageLoader
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.crossfade
-import coil3.svg.SvgDecoder
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.utils.getImage
-import market.engine.core.utils.printLogD
 
 @Composable
 fun HorizontalImageViewer(
@@ -53,42 +42,14 @@ fun HorizontalImageViewer(
             snapPosition = SnapPosition.Center,
             modifier = modifier.weight(1f)
         ) { index ->
-            val imageLoadFailed = remember { mutableStateOf(false) }
-            val loading = remember { mutableStateOf(true) }
-
             Box(
                 modifier = Modifier.fillMaxSize().padding(dimens.smallPadding),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageLoadFailed.value) {
-                    getImage(images[index])
-                } else {
-                    if (loading.value) {
-                        CircularProgressIndicator(
-                            color = colors.inactiveBottomNavIconColor
-                        )
-                    }
-
-                    AsyncImage(
-                        model = images[index],
-                        contentDescription = null,
-                        modifier = modifier
-                            .fillMaxWidth(),
-                        imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
-                            .crossfade(true)
-                            .components {
-                                add(SvgDecoder.Factory())
-                            }.build(),
-                        onSuccess = {
-                            loading.value = false
-                            printLogD("Coil success", images[index])
-                        },
-                        onError = {
-                            imageLoadFailed.value = true
-                            printLogD("Coil Error", it.result.throwable.message)
-                        },
-                    )
-                }
+                LoadImage(
+                    url = images[index] ?: "",
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
         }
 

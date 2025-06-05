@@ -89,7 +89,7 @@ fun FeedbackItem(
                     url = report.fromUser?.avatar?.thumb?.content ?:"",
                     isShowLoading = false,
                     isShowEmpty = false,
-                    size = 40.dp
+                    modifier = Modifier.size(40.dp)
                 )
             }
 

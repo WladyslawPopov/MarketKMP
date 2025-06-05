@@ -85,7 +85,7 @@ fun SubscriptionItem(
                     if (user != null) {
                         LoadImage(
                             url = user.avatar?.thumb?.content ?: "",
-                            size = 40.dp,
+                            modifier = Modifier.size(40.dp),
                             isShowLoading = false,
                             isShowEmpty = false
                         )

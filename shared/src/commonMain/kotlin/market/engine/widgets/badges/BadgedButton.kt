@@ -56,7 +56,7 @@ fun BadgedButton(
                     url = item.imageString,
                     isShowLoading = false,
                     isShowEmpty = false,
-                    size = dimens.mediumIconSize,
+                    modifier = Modifier.size(dimens.mediumIconSize),
                     contentScale = ContentScale.FillBounds
                 )
             }

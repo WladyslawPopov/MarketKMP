@@ -31,7 +31,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.User
-import market.engine.core.utils.printLogD
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
@@ -52,8 +51,9 @@ fun BasketItemContent(
     addOfferToFavorites: (Offer,(Boolean)->Unit) -> Unit,
     clearUserOffers: (List<Long>) -> Unit
 ) {
-    printLogD("Recomposition", "BasketItemContent for user: ${item.first?.id}")
     val user =  item.first
+    val bodes =  item.second
+
     val maxNotExpandedItems =  2
 
     val maxItems = remember { mutableStateOf(maxNotExpandedItems) }
@@ -63,7 +63,7 @@ fun BasketItemContent(
     }
 
     val selectedOffers = remember { mutableStateOf(emptyList<SelectedBasketItem>()) }
-    val bodes =  item.second
+
 
     if (user != null) {
         Column(
@@ -222,7 +222,9 @@ fun BasketItemContent(
                                     color = colors.black,
                                 )
 
-                                val currentItemPrice = remember { (offer.currentPricePerItem?.toDouble() ?: 0.0) * selectedQuantity.value }
+                                val currentItemPrice = remember(selectedQuantity.value) {
+                                    (offer.currentPricePerItem?.toDouble() ?: 0.0) * selectedQuantity.value
+                                }
 
                                 Text(
                                     text = buildAnnotatedString {

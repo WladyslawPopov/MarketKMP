@@ -76,7 +76,7 @@ fun PageTab(
             tab.image != null -> {
                 LoadImage(
                     url = tab.image,
-                    size = dimens.smallIconSize
+                    modifier = Modifier.size(dimens.smallIconSize)
                 )
             }
         }

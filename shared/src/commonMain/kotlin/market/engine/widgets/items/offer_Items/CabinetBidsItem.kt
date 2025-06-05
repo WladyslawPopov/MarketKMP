@@ -115,7 +115,7 @@ fun CabinetBidsItem(
                         ) {
                             LoadImage(
                                 offer.images.firstOrNull() ?: "empty",
-                                size = imageSize
+                                modifier = Modifier.size(imageSize)
                             )
                         }
 

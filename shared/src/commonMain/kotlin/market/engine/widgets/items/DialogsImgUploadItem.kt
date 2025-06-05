@@ -12,16 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import coil3.ImageLoader
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.crossfade
-import coil3.svg.SvgDecoder
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.PhotoTemp
 import market.engine.widgets.buttons.SmallIconButton
+import market.engine.widgets.ilustrations.LoadImage
 
 @Composable
 fun DialogsImgUploadItem(
@@ -49,15 +45,10 @@ fun DialogsImgUploadItem(
                 }
             }
 
-            AsyncImage(
-                model = item.uri ?: item.url ?: "",
-                contentDescription = null,
-                imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
-                    .crossfade(true)
-                    .components {
-                        add(SvgDecoder.Factory())
-                    }.build(),
-                contentScale = ContentScale.Crop,
+            LoadImage(
+                url = item.url ?: "",
+                modifier = Modifier,
+                contentScale = ContentScale.Crop
             )
         }
     }

@@ -26,15 +26,14 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.networkObjects.Offer
-import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.data.items.OfferItem
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfferPartItem(
-    offer: Offer,
+    offer: OfferItem,
     goToOffer: (Long) -> Unit,
 ) {
     Column(
@@ -58,8 +57,8 @@ fun OfferPartItem(
                 contentAlignment = Alignment.TopStart
             ) {
                 LoadImage(
-                    url = offer.getOfferImagePreview(),
-                    size = 60.dp
+                    url = offer.images.firstOrNull() ?: "",
+                    modifier = Modifier.size(60.dp)
                 )
             }
 
@@ -69,7 +68,7 @@ fun OfferPartItem(
             ) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = offer.title ?: "",
+                        text = offer.title,
                         color = colors.actionTextColor,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -99,7 +98,7 @@ fun OfferPartItem(
                             append(stringResource(strings.costLabel) + "   ")
                         }
 
-                        append(offer.pricePerItem + " ${stringResource(strings.currencySign)}")
+                        append(offer.price + " ${stringResource(strings.currencySign)}")
                     }
 
                     Text(

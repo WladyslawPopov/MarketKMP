@@ -35,6 +35,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.onClickOrderOperationItem
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.root.main.profile.myOrders.OfferPartItem
 import market.engine.widgets.buttons.SimpleTextButton
@@ -293,7 +294,7 @@ fun MyOrderItem(
                         )
                         Spacer(modifier = Modifier.height(dimens.smallSpacer))
                         OfferPartItem(
-                            offer = offer,
+                            offer = offer.parseToOfferItem(),
                         ) {
                             goToOffer(offer)
                         }

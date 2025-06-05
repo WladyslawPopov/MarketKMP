@@ -51,7 +51,7 @@ fun PromoOfferRowItem(
             ) {
                 LoadImage(
                     url = offer.images.firstOrNull() ?: "",
-                    size = 120.dp
+                    modifier = Modifier.size(120.dp)
                 )
 
                 if (offer.videoUrls?.isNotEmpty() == true) {

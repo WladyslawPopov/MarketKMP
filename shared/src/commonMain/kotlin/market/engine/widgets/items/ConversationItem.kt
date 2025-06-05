@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.Card
@@ -85,7 +86,7 @@ fun ConversationItem(
                             url = imageUser,
                             isShowLoading = false,
                             isShowEmpty = false,
-                            size = 40.dp
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                 }
@@ -143,7 +144,7 @@ fun ConversationItem(
                     url = conversation.aboutObjectIcon?.small?.content ?: "",
                     isShowLoading = false,
                     isShowEmpty = true,
-                    size = 40.dp
+                    modifier = Modifier.size(40.dp)
                 )
 
                 Text(

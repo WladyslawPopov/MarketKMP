@@ -88,7 +88,7 @@ fun UserPanel(
                             url = user.avatar?.thumb?.content ?: "",
                             isShowLoading = false,
                             isShowEmpty = true,
-                            size = 60.dp
+                            modifier = Modifier.size(60.dp)
                         )
                     }
 
@@ -132,7 +132,7 @@ fun UserPanel(
                                     user.ratingBadge.imageUrl,
                                     isShowLoading = false,
                                     isShowEmpty = false,
-                                    size = dimens.mediumIconSize
+                                    modifier = Modifier.size(dimens.mediumIconSize)
                                 )
                             }
                             // Verified user icon

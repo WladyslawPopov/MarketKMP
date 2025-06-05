@@ -35,7 +35,7 @@ fun DialogsHeader(
     ){
         LoadImage(
             url = headerItem.image.toString(),
-            size = 40.dp
+            modifier = Modifier.size(40.dp)
         )
 
         Column(

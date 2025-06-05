@@ -102,7 +102,7 @@ fun globalSettings(
             ) {
                 LoadImage(
                     url = user?.avatar?.thumb?.content ?: "",
-                    size = 100.dp,
+                    modifier = Modifier.size(100.dp),
                     isShowLoading = false,
                     isShowEmpty = false
                 )

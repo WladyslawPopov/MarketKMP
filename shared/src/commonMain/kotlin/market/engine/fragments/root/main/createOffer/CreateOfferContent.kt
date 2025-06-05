@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -1173,7 +1174,7 @@ fun SuccessContent(
             ) {
                 LoadImage(
                     images.firstOrNull()?.uri ?: images.firstOrNull()?.url ?: "",
-                    size = 100.dp,
+                    modifier = Modifier.size(100.dp),
                     contentScale = ContentScale.FillBounds
                 )
             }

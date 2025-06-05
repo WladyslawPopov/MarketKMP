@@ -12,13 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.ImageLoader
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.crossfade
-import coil3.svg.SvgDecoder
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.networkObjects.MesImage
+import market.engine.widgets.ilustrations.LoadImage
 
 @Composable
 fun ImagesPreviewGrid(
@@ -36,15 +32,9 @@ fun ImagesPreviewGrid(
     ) {
         items(images.size) { index ->
             val image = images[index]
-            AsyncImage(
-                model = image.thumbUrl ?: "",
-                contentDescription = null,
-                imageLoader = ImageLoader.Builder(LocalPlatformContext.current)
-                    .crossfade(true)
-                    .components {
-                        add(SvgDecoder.Factory())
-                    }.build(),
-                Modifier.clickable {
+            LoadImage(
+                url = image.thumbUrl ?: "",
+                modifier = Modifier.clickable {
                     openImage(index)
                 },
                 contentScale = ContentScale.Crop

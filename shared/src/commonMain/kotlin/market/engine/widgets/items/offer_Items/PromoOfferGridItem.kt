@@ -51,7 +51,7 @@ fun PromoOfferGridItem(
             ) {
                 LoadImage(
                     url = offer.images.firstOrNull() ?: "empty",
-                    size = 200.dp
+                    modifier = Modifier.size(200.dp)
                 )
 
                 if (offer.videoUrls?.isNotEmpty() == true) {
