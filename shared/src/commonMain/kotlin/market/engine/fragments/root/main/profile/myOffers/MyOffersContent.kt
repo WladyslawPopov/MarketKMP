@@ -13,15 +13,10 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.CreateOfferType
-import market.engine.core.data.types.LotsType
-import market.engine.core.utils.getCurrentDate
-import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
@@ -31,7 +26,7 @@ import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
-import market.engine.widgets.items.offer_Items.CabinetOfferItemList
+import market.engine.widgets.items.offer_Items.CabinetOfferItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -51,11 +46,11 @@ fun MyOffersContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
-    val refresh = {
+    val refresh = remember {{
         viewModel.resetScroll()
         viewModel.onRefresh()
         data.refresh()
-    }
+    }}
 
     BackHandler(model.backHandler){
         when{
@@ -168,13 +163,13 @@ fun MyOffersContent(
                 }
             },
             item = { offer ->
-                val checkItemSession = mutableStateOf(
+                val isHideItem = mutableStateOf(
                     component.isHideItem(offer)
                 )
 
-                CabinetOfferItemList(
+                CabinetOfferItem(
                     offer,
-                    isVisible = checkItemSession.value,
+                    isVisible = !isHideItem.value,
                     baseViewModel = viewModel,
                     updateTrigger = viewModel.updateItemTrigger.value,
                     onUpdateOfferItem = { id ->

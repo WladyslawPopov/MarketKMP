@@ -8,14 +8,22 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
+import market.engine.common.Platform
 import market.engine.common.getPermissionHandler
+import market.engine.common.openUrl
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.SAPI
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.TopCategory
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.deleteReadNotifications
@@ -101,6 +109,7 @@ class DefaultHomeComponent(
         }
         homeViewModel.getOffersPromotedOnMainPage(0, 16)
         homeViewModel.getOffersPromotedOnMainPage(1, 16)
+        getAppBarList()
     }
 
     override fun onRefresh() {
@@ -168,5 +177,125 @@ class DefaultHomeComponent(
 
     override fun goToNotificationHistory() {
         navigateToNotificationHistorySelected()
+    }
+
+    fun getAppBarList() {
+        homeViewModel.viewModelScope.launch {
+            val userInfo = UserData.userInfo
+            homeViewModel.listAppBar.value = listOf(
+                NavigationItem(
+                    title = "",
+                    icon = drawables.recycleIcon,
+                    tint = colors.inactiveBottomNavIconColor,
+                    hasNews = false,
+                    isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                    badgeCount = null,
+                    onClick = {onRefresh()}
+                ),
+                NavigationItem(
+                    title = getString(strings.proposalTitle),
+                    icon = drawables.currencyIcon,
+                    tint = colors.titleTextColor,
+                    hasNews = false,
+                    badgeCount = userInfo?.countUnreadPriceProposals,
+                    isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
+                    onClick = {
+                        goToMyProposals()
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.messageTitle),
+                    icon = drawables.mail,
+                    tint = colors.brightBlue,
+                    hasNews = false,
+                    badgeCount = if ((userInfo?.countUnreadMessages
+                            ?: 0) > 0
+                    ) (userInfo?.countUnreadMessages ?: 0) else null,
+                    onClick = {
+                        goToMessenger()
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.notificationTitle),
+                    icon = drawables.notification,
+                    tint = colors.titleTextColor,
+                    isVisible = (homeViewModel.getUnreadNotificationsCount() ?: 0) > 0,
+                    hasNews = false,
+                    badgeCount = homeViewModel.getUnreadNotificationsCount(),
+                    onClick = {
+                        navigateToNotificationHistorySelected()
+                    }
+                ),
+            )
+            homeViewModel.drawerList.value = listOf(
+                NavigationItem(
+                    title = getString(strings.top100Title),
+                    subtitle = getString(strings.top100Subtitle),
+                    icon = drawables.top100Icon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        openUrl("${SAPI.SERVER_BASE}rating_game")
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.helpTitle),
+                    subtitle = getString(strings.helpSubtitle),
+                    icon = drawables.helpIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        openUrl("${SAPI.SERVER_BASE}help/general")
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.contactUsTitle),
+                    subtitle = getString(strings.contactUsSubtitle),
+                    icon = drawables.contactUsIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        goToContactUs()
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.aboutUsTitle),
+                    subtitle = getString(strings.aboutUsSubtitle),
+                    icon = drawables.infoIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        openUrl("${SAPI.SERVER_BASE}staticpage/doc/about_us")
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.reviewsTitle),
+                    subtitle = getString(strings.reviewsSubtitle),
+                    icon = drawables.starIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    isVisible = SAPI.REVIEW_URL != "",
+                    onClick = {
+                        openUrl(SAPI.REVIEW_URL)
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.settingsTitleApp),
+                    subtitle = getString(strings.settingsSubtitleApp),
+                    icon = drawables.settingsIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        goToAppSettings()
+                    }
+                ),
+            )
+        }
     }
 }

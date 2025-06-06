@@ -1,5 +1,6 @@
 package market.engine.di
 
+import app.cash.sqldelight.db.SqlDriver
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OrderOperations
@@ -35,7 +36,15 @@ val networkModule = module {
 val databaseModule = module {
     singleOf(::createSqlDriver)
     single {
-        MarketDB.invoke(get())
+        val driver = get<SqlDriver>()
+
+        MarketDB.Schema.migrate(
+            driver = driver,
+            oldVersion = 0,
+            newVersion = MarketDB.Schema.version,
+        )
+
+        MarketDB(driver)
     }
     singleOf(::createSettings)
 }

@@ -34,12 +34,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun OfferPartItem(
     offer: OfferItem,
+    modifier: Modifier = Modifier,
     goToOffer: (Long) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(dimens.smallPadding),
+        modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start
     ) {

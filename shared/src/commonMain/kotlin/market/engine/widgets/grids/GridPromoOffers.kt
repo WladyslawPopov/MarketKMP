@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.WindowType
 import market.engine.core.utils.getWindowType
@@ -30,25 +31,20 @@ fun GridPromoOffers(
     onOfferClick: (Long) -> Unit,
     onAllClickButton: () -> Unit
 ) {
-
-    val windowClass = getWindowType()
-    val showNavigationRail = windowClass == WindowType.Big
-
     Spacer(modifier = Modifier.heightIn(dimens.mediumPadding))
 
     SeparatorLabel(stringResource(strings.topOffersTitle))
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(if (showNavigationRail) 4 else 2),
+        columns = StaggeredGridCells.Fixed(if (isBigScreen.value) 4 else 2),
         modifier = Modifier
             .heightIn(200.dp, (300*promoOffers.size).dp)
-            .padding(dimens.smallPadding)
-            .wrapContentHeight(),
+            .padding(dimens.smallPadding),
         userScrollEnabled = false,
         verticalItemSpacing = dimens.smallPadding,
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         content = {
-            items(promoOffers) { offer ->
+            items(promoOffers, key = { it.id }) { offer ->
                 PromoOfferGridItem(offer, onOfferClick = onOfferClick)
             }
         }

@@ -38,7 +38,7 @@ fun GridPopularCategory(categoryList : List<TopCategory>, onCategoryClick: (TopC
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        items(categoryList) { category ->
+        items(categoryList, key = { it.id }) { category ->
             PopularCategoryItem(category) { onCategoryClick(category) }
         }
     }

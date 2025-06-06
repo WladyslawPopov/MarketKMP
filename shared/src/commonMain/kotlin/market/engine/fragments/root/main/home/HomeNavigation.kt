@@ -160,7 +160,6 @@ fun HomeNavigation(
             is CreateSubscriptionChild -> {
                 CreateSubscriptionContent(screen.component)
             }
-
             is NotificationHistoryChild -> {
                 NotificationsHistoryContent(screen.component)
             }
@@ -179,19 +178,52 @@ fun createHomeChild(
     navigateToDeepLink: (DeepLink) -> Unit,
 ): ChildHome = when (config) {
     HomeScreen -> HomeChild(
-        itemHome(
-            componentContext,
-            homeNavigation,
-            goToLogin = { goToLogin(true) },
-            navigateToContactUs = { goToContactUs(null) },
-            navigateToAppSettings = { goToDynamicSettings("app_settings", null, null) },
-            navigateToConversations = {
+        DefaultHomeComponent(
+            componentContext = componentContext,
+            navigation = homeNavigation,
+            navigateToListingSelected = { ld, isNewSearch ->
+                homeNavigation.pushNew(
+                    ListingScreen(
+                        isNewSearch,
+                        ld.data.value,
+                        ld.searchData.value,
+                        getCurrentDate()
+                    )
+                )
+            },
+            navigateToLoginSelected = {
+                goToLogin(true)
+            },
+            navigateToOfferSelected = { id ->
+                homeNavigation.pushNew(OfferScreen(id, getCurrentDate()))
+            },
+            navigateToCreateOfferSelected = {
+                if(UserData.token != "") {
+                    homeNavigation.pushNew(
+                        CreateOfferScreen(
+                            null,
+                            null,
+                            CreateOfferType.CREATE,
+                            null
+                        )
+                    )
+                }else{
+                    goToLogin(true)
+                }
+            },
+            navigateToMessengerSelected = {
                 navigateToConversations()
             },
-            navigateToMyProposals = {
+            navigateToContactUsSelected = {
+                goToContactUs(null)
+            },
+            navigateToSettingsSelected = {
+                goToDynamicSettings("app_settings", null, null)
+            },
+            navigateToMyProposalsSelected = {
                 navigateToMyProposals()
             },
-            navigateToNotificationHistory = {
+            navigateToNotificationHistorySelected = {
                 homeNavigation.pushNew(
                     NotificationHistoryScreen
                 )
@@ -455,65 +487,4 @@ fun createHomeChild(
             )
         )
     }
-}
-
-fun itemHome(
-    componentContext: ComponentContext,
-    homeNavigation : StackNavigation<HomeConfig>,
-    goToLogin: () -> Unit,
-    navigateToConversations: () -> Unit,
-    navigateToContactUs: () -> Unit,
-    navigateToAppSettings: ()->Unit,
-    navigateToMyProposals: () -> Unit,
-    navigateToNotificationHistory: () -> Unit
-): HomeComponent {
-    return DefaultHomeComponent(
-        componentContext = componentContext,
-        navigation = homeNavigation,
-        navigateToListingSelected = { ld, isNewSearch ->
-            homeNavigation.pushNew(
-                ListingScreen(
-                    isNewSearch,
-                    ld.data.value,
-                    ld.searchData.value,
-                    getCurrentDate()
-                )
-            )
-        },
-        navigateToLoginSelected = {
-            goToLogin()
-        },
-        navigateToOfferSelected = { id ->
-            homeNavigation.pushNew(OfferScreen(id, getCurrentDate()))
-        },
-        navigateToCreateOfferSelected = {
-            if(UserData.token != "") {
-                homeNavigation.pushNew(
-                    CreateOfferScreen(
-                        null,
-                        null,
-                        CreateOfferType.CREATE,
-                        null
-                    )
-                )
-            }else{
-                goToLogin()
-            }
-        },
-        navigateToMessengerSelected = {
-            navigateToConversations()
-        },
-        navigateToContactUsSelected = {
-            navigateToContactUs()
-        },
-        navigateToSettingsSelected = {
-            navigateToAppSettings()
-        },
-        navigateToMyProposalsSelected = {
-            navigateToMyProposals()
-        },
-        navigateToNotificationHistorySelected = {
-            navigateToNotificationHistory()
-        }
-    )
 }

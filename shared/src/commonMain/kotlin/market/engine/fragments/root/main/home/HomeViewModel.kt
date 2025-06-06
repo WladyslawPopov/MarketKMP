@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.home
 
+import androidx.compose.runtime.mutableStateOf
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
@@ -11,10 +12,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
+import market.engine.core.data.items.TopCategory
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
+import org.jetbrains.compose.resources.getString
 
 class HomeViewModel : BaseViewModel() {
 
@@ -26,6 +32,47 @@ class HomeViewModel : BaseViewModel() {
 
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
     val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
+
+    val listFooter = mutableListOf<TopCategory>()
+
+    val listAppBar = mutableStateOf<List<NavigationItem>>(emptyList())
+
+    val drawerList = mutableStateOf<List<NavigationItem>>(emptyList())
+
+    init {
+        viewModelScope.launch {
+            listFooter.clear()
+            listFooter.addAll(
+                listOf(
+                    TopCategory(
+                        id = 1,
+                        name = getString(strings.homeFixAuction),
+                        icon = drawables.auctionFixIcon
+                    ),
+                    TopCategory(
+                        id = 2,
+                        name = getString(strings.homeManyOffers),
+                        icon = drawables.manyOffersIcon
+                    ),
+                    TopCategory(
+                        id = 3,
+                        name = getString(strings.verifySellers),
+                        icon = drawables.verifySellersIcon
+                    ),
+                    TopCategory(
+                        id = 4,
+                        name = getString(strings.everyDeyDiscount),
+                        icon = drawables.discountBigIcon
+                    ),
+                    TopCategory(
+                        id = 5,
+                        name = getString(strings.freeBilling),
+                        icon = drawables.freeBillingIcon
+                    ),
+                )
+            )
+        }
+    }
 
     fun setCategory(category: List<Category>) {
         _responseCategory.value = category

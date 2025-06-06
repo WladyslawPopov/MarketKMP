@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.profileSettings
+package market.engine.fragments.root.main.profile.profileSettings.content
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,6 +34,8 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToContactUs
+import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
+import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsViewModel
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.ilustrations.LoadImage

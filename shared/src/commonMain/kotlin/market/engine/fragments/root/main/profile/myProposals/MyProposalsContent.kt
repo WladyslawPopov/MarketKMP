@@ -13,8 +13,6 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -44,12 +42,12 @@ fun MyProposalsContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
-    val refresh = {
+    val refresh = remember{{
         viewModel.resetScroll()
         viewModel.onRefresh()
         data.refresh()
         updateFilters.value++
-    }
+    }}
 
     BackHandler(model.backHandler){
         when{
@@ -95,23 +93,8 @@ fun MyProposalsContent(
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
-            withContext(Dispatchers.Default) {
-                val offer =
-                    viewModel.getOfferById(viewModel.updateItem.value!!)
-                withContext(Dispatchers.Main) {
-                    val oldItem = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
-                    oldItem?.buyer= offer?.buyerData
-                    oldItem?.myMaximalBid = offer?.myMaximalBid.toString()
-                    oldItem?.bids = offer?.bids
-                    oldItem?.session = offer?.session
-                    oldItem?.price = offer?.currentPricePerItem.toString()
-                    oldItem?.watchersCount = offer?.watchersCount ?: 0
-                    oldItem?.viewsCount = offer?.viewsCount ?: 0
-
-                    viewModel.updateItemTrigger.value++
-                    viewModel.updateItem.value = null
-                }
-            }
+            val oldItem = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
+            component.updateItem(oldItem)
         }
     }
 

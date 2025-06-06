@@ -6,21 +6,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.NavigationItem
-import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
@@ -28,7 +21,7 @@ import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.fragments.root.main.favPages.FavoritesNavigation
 import market.engine.widgets.bars.getBottomNavBar
 import market.engine.widgets.bars.getRailNavBar
-import org.jetbrains.compose.resources.stringResource
+import market.engine.widgets.dialogs.LogoutDialog
 
 
 sealed class ChildMain {
@@ -38,8 +31,7 @@ sealed class ChildMain {
     data object FavoritesChildMain : ChildMain()
     data object ProfileChildMain : ChildMain()
 }
-
-private const val NAVIGATION_DEBOUNCE_DELAY_MS = 100L
+const val NAVIGATION_DEBOUNCE_DELAY_MS = 100L
 
 @Composable
 fun MainNavigation(
@@ -48,89 +40,20 @@ fun MainNavigation(
 ) {
     val childStack by component.childMainStack.subscribeAsState()
 
-    var lastNavigationClickTime by remember { mutableStateOf(0L) }
-
-    val debouncedNavigate: (MainConfig) -> Unit = { targetConfig ->
-        val currentTime = (getCurrentDate().toLongOrNull() ?: 1L)*1000
-        if (currentTime - lastNavigationClickTime > NAVIGATION_DEBOUNCE_DELAY_MS) {
-            lastNavigationClickTime = currentTime
-            component.navigateToBottomItem(targetConfig)
-        }
-    }
-
-    val currentScreen = when (childStack.active.instance) {
+    val currentScreen = remember(childStack.active.instance) { when (childStack.active.instance) {
         is ChildMain.HomeChildMain -> 0
         is ChildMain.CategoryChildMain -> 1
         is ChildMain.BasketChildMain -> 2
         is ChildMain.FavoritesChildMain -> 3
         is ChildMain.ProfileChildMain -> 4
-    }
+    } }
 
-    val userInfo = UserData.userInfo
-    val listItems = listOf(
-        NavigationItem(
-            title = stringResource(strings.homeTitle),
-            icon =  drawables.home,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                debouncedNavigate(MainConfig.Home)
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.searchTitle),
-            icon = drawables.search,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                debouncedNavigate(MainConfig.Search)
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.basketTitle),
-            icon = drawables.basketIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = if((userInfo?.countOffersInCart ?: 0) > 0) userInfo?.countOffersInCart else null,
-            onClick = {
-                debouncedNavigate(MainConfig.Basket)
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.favoritesTitle),
-            icon = drawables.favoritesIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = if((userInfo?.countWatchedOffers?:0) > 0) userInfo?.countWatchedOffers else null,
-            onClick = {
-                debouncedNavigate(MainConfig.Favorites)
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.profileTitleBottom),
-            icon = drawables.profileIcon,
-            imageString = userInfo?.avatar?.thumb?.content,
-            tint = colors.black,
-            hasNews = (
-                        (userInfo?.countUnreadMessages ?: 0) > 0 ||
-                        (userInfo?.countUnreadPriceProposals ?:0) > 0
-                    ),
-            badgeCount = null,
-            onClick = {
-                debouncedNavigate(MainConfig.Profile)
-            }
-        )
-    )
-
-    val profileNavigation = component.modelNavigation.value.profileNavigation
     val model = component.model.subscribeAsState()
-
-
+    val viewModel = model.value.viewModel
+    val showLogoutDialog = remember { viewModel.showLogoutDialog }
 
     Scaffold(
-        bottomBar = {  if (model.value.showBottomBar.value){ getBottomNavBar(listItems, currentScreen) }},
+        bottomBar = { if (model.value.showBottomBar.value){ getBottomNavBar(model.value.bottomList.value, currentScreen) }},
     ) { innerPadding ->
         Children(
             stack = childStack,
@@ -139,7 +62,7 @@ fun MainNavigation(
         ) { child ->
             Row {
                 if (!model.value.showBottomBar.value) {
-                    getRailNavBar(listItems = listItems, currentScreen = currentScreen)
+                    getRailNavBar(listItems = model.value.bottomList.value, currentScreen = currentScreen)
                 }
                 when (child.instance) {
                     is ChildMain.HomeChildMain ->
@@ -158,12 +81,20 @@ fun MainNavigation(
                         ProfileNavigation(
                             Modifier.weight(1f),
                             component.childProfileStack,
-                            profileNavigation
+                            model.value.publicProfileNavigationItems.value
                         )
                 }
             }
-        }
 
+            LogoutDialog(
+                showLogoutDialog = showLogoutDialog.value,
+                onDismiss = { showLogoutDialog.value = false },
+                goToLogin = {
+                    showLogoutDialog.value = false
+                    goToLogin(true)
+                }
+            )
+        }
     }
 }
 

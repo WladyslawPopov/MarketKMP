@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -17,16 +16,11 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.fragments.root.main.user.userFactory
@@ -59,15 +53,13 @@ import market.engine.fragments.root.main.profile.ProfileContent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
-import market.engine.fragments.root.main.profile.conversations.conversationsFactory
 import market.engine.fragments.root.main.profile.DefaultProfileChildrenComponent
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
+import market.engine.fragments.root.main.profile.conversations.DefaultConversationsComponent
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.UserContent
-import market.engine.widgets.dialogs.LogoutDialog
-import org.jetbrains.compose.resources.stringResource
 
 @Serializable
 sealed class ProfileConfig {
@@ -147,182 +139,9 @@ sealed class ChildProfile {
 fun ProfileNavigation(
     modifier: Modifier = Modifier,
     childStack: Value<ChildStack<*, ChildProfile>>,
-    profileNavigation: StackNavigation<ProfileConfig>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val stack by childStack.subscribeAsState()
-
-    val showLogoutDialog = remember { mutableStateOf(false) }
-
-    val userInfo = UserData.userInfo
-    val publicProfileNavigationItems = MutableValue(listOf(
-        NavigationItem(
-            title = stringResource(strings.createNewOfferTitle),
-            icon = drawables.newLotIcon,
-            tint = colors.actionItemColors,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                profileNavigation.pushNew(
-                    ProfileConfig.CreateOfferScreen(null, null, CreateOfferType.CREATE, null)
-                )
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.myBidsTitle),
-            subtitle = stringResource(strings.myBidsSubTitle),
-            icon = drawables.bidsIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyBidsScreen
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.proposalTitle),
-            subtitle = stringResource(strings.proposalPriceSubTitle),
-            icon = drawables.proposalIcon,
-            tint = colors.black,
-            hasNews = false,
-            isVisible = true,
-            badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
-                userInfo?.countUnreadPriceProposals else null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyProposalsScreen
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.myPurchasesTitle),
-            subtitle = stringResource(strings.myPurchasesSubTitle),
-            icon = drawables.purchasesIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
-                    )
-                } catch (_: Exception) {
-                }
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.myOffersTitle),
-            subtitle = stringResource(strings.myOffersSubTitle),
-            icon = drawables.tagIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOffersScreen
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.mySalesTitle),
-            subtitle = stringResource(strings.mySalesSubTitle),
-            icon = drawables.salesIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.messageTitle),
-            subtitle = stringResource(strings.messageSubTitle),
-            icon = drawables.dialogIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = if((userInfo?.countUnreadMessages ?:0) > 0) userInfo?.countUnreadMessages else null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.ConversationsScreen()
-                    )
-                } catch ( _ : Exception){
-                }
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.myProfileTitle),
-            subtitle = stringResource(strings.myProfileSubTitle),
-            icon = drawables.profileIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.pushNew(
-                        ProfileConfig.UserScreen(
-                            UserData.login,
-                            getCurrentDate(),
-                            false
-                        )
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.settingsProfileTitle),
-            subtitle = stringResource(strings.profileSettingsSubTitle),
-            icon = drawables.settingsIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                try {
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.ProfileSettingsScreen
-                    )
-                } catch ( _ : Exception){}
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.myBalanceTitle),
-            subtitle = stringResource(strings.myBalanceSubTitle),
-            icon = drawables.balanceIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null
-        ),
-        NavigationItem(
-            title = stringResource(strings.logoutTitle),
-            icon = drawables.logoutIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                showLogoutDialog.value = true
-            }
-        ),
-    ))
-
-    LogoutDialog(
-        showLogoutDialog = showLogoutDialog.value,
-        onDismiss = { showLogoutDialog.value = false },
-        goToLogin = {
-            showLogoutDialog.value = false
-            goToLogin(true)
-        }
-    )
 
     Children(
         stack = stack,
@@ -562,7 +381,7 @@ fun createProfileChild(
         )
 
         is ProfileConfig.ConversationsScreen -> ChildProfile.ConversationsChild(
-            component = conversationsFactory(
+            component = DefaultConversationsComponent(
                 config.message,
                 componentContext,
                 navigateBack = {

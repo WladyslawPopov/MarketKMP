@@ -106,7 +106,9 @@ fun ProfileNavContent(
                         }
                     },
                     isSelected = item.title == activeTitle
-                )
+                ){
+                    item.onClick()
+                }
             }
         }
 

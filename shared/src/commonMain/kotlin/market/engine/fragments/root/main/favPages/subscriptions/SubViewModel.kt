@@ -22,7 +22,6 @@ class SubViewModel(
 
     val listingData = mutableStateOf(ListingData())
 
-
     fun init(): Flow<PagingData<Subscription>> {
         listingData.value.data.value.methodServer = "get_cabinet_listing"
         listingData.value.data.value.objServer = "subscriptions"

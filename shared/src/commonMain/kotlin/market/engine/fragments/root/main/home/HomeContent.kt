@@ -9,6 +9,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,34 +35,6 @@ fun HomeContent(
     component: HomeComponent,
     modifier: Modifier = Modifier
 ) {
-    val listFooterItem = listOf(
-        TopCategory(
-            id = 1,
-            name = stringResource(strings.homeFixAuction),
-            icon = drawables.auctionFixIcon
-        ),
-        TopCategory(
-            id = 2,
-            name = stringResource(strings.homeManyOffers),
-            icon = drawables.manyOffersIcon
-        ),
-        TopCategory(
-            id = 3,
-            name = stringResource(strings.verifySellers),
-            icon = drawables.verifySellersIcon
-        ),
-        TopCategory(
-            id = 4,
-            name = stringResource(strings.everyDeyDiscount),
-            icon = drawables.discountBigIcon
-        ),
-        TopCategory(
-            id = 5,
-            name = stringResource(strings.freeBilling),
-            icon = drawables.freeBillingIcon
-        ),
-    )
-
     val defCat = stringResource(strings.categoryMain)
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -75,6 +48,8 @@ fun HomeContent(
     val categories = homeViewModel.responseCategory.collectAsState()
     val promoOffer1 = homeViewModel.responseOffersPromotedOnMainPage1.collectAsState()
     val promoOffer2 = homeViewModel.responseOffersPromotedOnMainPage2.collectAsState()
+
+    val listTopCategory = remember { listTopCategory }
 
     val errorContent: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
                 { onError(err) { component.onRefresh() } }
@@ -102,19 +77,7 @@ fun HomeContent(
         topBar = {
             HomeAppBar(
                 drawerState = drawerState,
-                viewModel = homeViewModel,
-                goToMessenger = {
-                    component.goToMessenger()
-                },
-                goToMyProposals = {
-                    component.goToMyProposals()
-                },
-                goToNotifications = {
-                    component.goToNotificationHistory()
-                },
-                onRefresh = {
-                    component.onRefresh()
-                }
+                listItems = homeViewModel.listAppBar.value
             )
         },
         isLoading = isLoading.value,
@@ -134,16 +97,11 @@ fun HomeContent(
             drawerState = drawerState,
             drawerContent = {
                 DrawerContent(
-                    drawerState,
-                    goToContactUs = {
-                        component.goToContactUs()
-                    },
+                    drawerState = drawerState,
                     goToLogin = {
                         component.goToLogin()
                     },
-                    goToSettings = {
-                        component.goToAppSettings()
-                    }
+                    list = homeViewModel.drawerList.value
                 )
             },
             gesturesEnabled = drawerState.isOpen,
@@ -201,7 +159,7 @@ fun HomeContent(
                         )
                     }
                     item {
-                        FooterRow(listFooterItem)
+                        FooterRow(homeViewModel.listFooter)
                     }
                 }
             }

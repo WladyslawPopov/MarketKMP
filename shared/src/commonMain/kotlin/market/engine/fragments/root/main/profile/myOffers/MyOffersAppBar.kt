@@ -80,28 +80,28 @@ fun MyOffersAppBar(
                 item {
                     SimpleTextButton(
                         active,
-                        backgroundColor = if (currentTab == LotsType.MYLOT_ACTIVE) colors.rippleColor else colors.white,
+                        backgroundColor = if (currentTab == LotsType.MY_LOT_ACTIVE) colors.rippleColor else colors.white,
                         textStyle = MaterialTheme.typography.bodySmall
                     ) {
-                        navigationClick(LotsType.MYLOT_ACTIVE)
+                        navigationClick(LotsType.MY_LOT_ACTIVE)
                     }
                 }
                 item {
                     SimpleTextButton(
                         inactive,
-                        if (currentTab == LotsType.MYLOT_UNACTIVE) colors.rippleColor else colors.white,
+                        if (currentTab == LotsType.MY_LOT_INACTIVE) colors.rippleColor else colors.white,
                         textStyle = MaterialTheme.typography.bodySmall
                     ) {
-                        navigationClick(LotsType.MYLOT_UNACTIVE)
+                        navigationClick(LotsType.MY_LOT_INACTIVE)
                     }
                 }
                 item {
                     SimpleTextButton(
                         future,
-                        if (currentTab == LotsType.MYLOT_FUTURE) colors.rippleColor else colors.white,
+                        if (currentTab == LotsType.MY_LOT_IN_FUTURE) colors.rippleColor else colors.white,
                         textStyle = MaterialTheme.typography.bodySmall
                     ) {
-                        navigationClick(LotsType.MYLOT_FUTURE)
+                        navigationClick(LotsType.MY_LOT_IN_FUTURE)
                     }
                 }
             }

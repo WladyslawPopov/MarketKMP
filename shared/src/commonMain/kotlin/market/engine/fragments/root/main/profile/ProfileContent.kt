@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.value.MutableValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.core.data.items.NavigationItem
@@ -15,7 +14,7 @@ import market.engine.fragments.base.BaseContent
 fun ProfileContent(
     component: ProfileComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val viewModel = component.model.value.profileViewModel
     val isLoading = viewModel.isShowProgress.collectAsState()
@@ -40,7 +39,7 @@ fun ProfileContent(
        },
    ) {
        ProfileNavContent(
-           publicProfileNavigationItems.value,
+           publicProfileNavigationItems,
            goToSettings = {
                component.goToSettings(it)
            }

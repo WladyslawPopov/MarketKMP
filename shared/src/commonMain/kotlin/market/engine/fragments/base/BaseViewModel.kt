@@ -75,6 +75,7 @@ open class BaseViewModel: ViewModel() {
     var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed)
     var scrollItem : MutableState<Int> = mutableStateOf(0)
     var offsetScrollItem : MutableState<Int> = mutableStateOf(0)
+    val showLogoutDialog = mutableStateOf(false)
 
     val apiService by lazy {  getKoin().get<APIService>() }
     val userRepository: UserRepository by lazy { getKoin().get() }

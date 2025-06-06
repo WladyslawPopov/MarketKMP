@@ -18,7 +18,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
@@ -45,7 +44,7 @@ data class MyBidsConfig(
 fun ProfileMyBidsNavigation(
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
@@ -53,7 +52,7 @@ fun ProfileMyBidsNavigation(
 
     val content : @Composable (Modifier) -> Unit = {
         val select = remember {
-            mutableStateOf(LotsType.MYBIDLOTS_ACTIVE)
+            mutableStateOf(LotsType.MY_BIDS_ACTIVE)
         }
         Column {
             MyBidsAppBar(
@@ -80,10 +79,10 @@ fun ProfileMyBidsNavigation(
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
                     select.value = when(it){
-                        0 -> LotsType.MYBIDLOTS_ACTIVE
-                        1 -> LotsType.MYBIDLOTS_UNACTIVE
+                        0 -> LotsType.MY_BIDS_ACTIVE
+                        1 -> LotsType.MY_BIDS_INACTIVE
                         else -> {
-                            LotsType.MYBIDLOTS_ACTIVE
+                            LotsType.MY_BIDS_ACTIVE
                         }
                     }
                     component.selectOfferPage(select.value)
@@ -108,13 +107,13 @@ fun ProfileMyBidsNavigation(
                     AnimatedVisibility(hideDrawer.value) {
                         ProfileDrawer(
                             stringResource(strings.myBidsTitle),
-                            publicProfileNavigationItems.value
+                            publicProfileNavigationItems
                         )
                     }
                 }else{
                     ProfileDrawer(
                         stringResource(strings.myBidsTitle),
-                        publicProfileNavigationItems.value
+                        publicProfileNavigationItems
                     )
                 }
 

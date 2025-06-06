@@ -2,6 +2,7 @@ package market.engine.fragments.root.main
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
@@ -21,7 +22,12 @@ import market.engine.common.Platform
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.PlatformWindowType
@@ -46,6 +52,7 @@ import market.engine.fragments.root.main.profile.navigation.createProfileChild
 import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.listing.SearchConfig
 import market.engine.fragments.root.main.listing.createSearchChild
+import org.jetbrains.compose.resources.getString
 
 interface MainComponent {
 
@@ -75,11 +82,14 @@ interface MainComponent {
     val model : Value<Model>
     data class Model(
         val backHandler: BackHandler,
-        var showBottomBar : MutableState<Boolean>
+        var showBottomBar : MutableState<Boolean>,
+        var bottomList : MutableState<List<NavigationItem>>,
+        var publicProfileNavigationItems : MutableState<List<NavigationItem>>,
+        val viewModel: BaseViewModel
     )
 
+    fun updateNavigationList()
     fun navigateToBottomItem(config: MainConfig, openPage: String? = null)
-
     fun updateOrientation (orientation : Int)
     fun handleDeepLink(deepLink: DeepLink)
 }
@@ -108,16 +118,265 @@ class DefaultMainComponent(
     private val _model = MutableValue(
         MainComponent.Model(
             backHandler = backHandler,
-            showBottomBar = mutableStateOf(checkShowBar())
+            showBottomBar = mutableStateOf(checkShowBar()),
+            bottomList = mutableStateOf(emptyList()),
+            publicProfileNavigationItems = mutableStateOf(emptyList()),
+            viewModel = BaseViewModel()
         )
     )
-    override val model = _model
 
-    val viewModel = BaseViewModel()
+    override val model = _model
 
     override val modelNavigation = _modelNavigation
 
     private var openPage: String? = null
+
+    var lastNavigationClickTime = 0L
+
+    val debouncedNavigate: (MainConfig) -> Unit = { targetConfig ->
+        val currentTime = (getCurrentDate().toLongOrNull() ?: 1L)*1000
+        if (currentTime - lastNavigationClickTime > NAVIGATION_DEBOUNCE_DELAY_MS) {
+            lastNavigationClickTime = currentTime
+            navigateToBottomItem(targetConfig)
+        }
+    }
+
+    init {
+        model.value.viewModel.viewModelScope.launch {
+            snapshotFlow { UserData.userInfo }
+                .collect { newInfo ->
+                    updateNavigationList()
+                }
+        }
+    }
+
+    override fun updateNavigationList() {
+        model.value.viewModel.viewModelScope.launch {
+            val userInfo = UserData.userInfo
+            val profileNavigation = modelNavigation.value.profileNavigation
+
+            model.value.bottomList.value = listOf(
+                NavigationItem(
+                    title = getString(strings.homeTitle),
+                    icon = drawables.home,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        debouncedNavigate(MainConfig.Home)
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.searchTitle),
+                    icon = drawables.search,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        debouncedNavigate(MainConfig.Search)
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.basketTitle),
+                    icon = drawables.basketIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = if ((userInfo?.countOffersInCart
+                            ?: 0) > 0
+                    ) userInfo?.countOffersInCart else null,
+                    onClick = {
+                        debouncedNavigate(MainConfig.Basket)
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.favoritesTitle),
+                    icon = drawables.favoritesIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = if ((userInfo?.countWatchedOffers
+                            ?: 0) > 0
+                    ) userInfo?.countWatchedOffers else null,
+                    onClick = {
+                        debouncedNavigate(MainConfig.Favorites)
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.profileTitleBottom),
+                    icon = drawables.profileIcon,
+                    imageString = userInfo?.avatar?.thumb?.content,
+                    tint = colors.black,
+                    hasNews = (
+                            (userInfo?.countUnreadMessages ?: 0) > 0 ||
+                                    (userInfo?.countUnreadPriceProposals ?: 0) > 0
+                            ),
+                    badgeCount = null,
+                    onClick = {
+                        debouncedNavigate(MainConfig.Profile)
+                    }
+                )
+            )
+            model.value.publicProfileNavigationItems.value = listOf(
+                NavigationItem(
+                    title = getString(strings.createNewOfferTitle),
+                    icon = drawables.newLotIcon,
+                    tint = colors.actionItemColors,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        profileNavigation.pushNew(
+                            ProfileConfig.CreateOfferScreen(null, null, CreateOfferType.CREATE, null)
+                        )
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.myBidsTitle),
+                    subtitle = getString(strings.myBidsSubTitle),
+                    icon = drawables.bidsIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        try {
+                            profileNavigation.replaceCurrent(
+                                ProfileConfig.MyBidsScreen
+                            )
+                        } catch ( _ : Exception){}
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.proposalTitle),
+                    subtitle = getString(strings.proposalPriceSubTitle),
+                    icon = drawables.proposalIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    isVisible = true,
+                    badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
+                        userInfo?.countUnreadPriceProposals else null,
+                    onClick = {
+                        try {
+                            profileNavigation.replaceCurrent(
+                                ProfileConfig.MyProposalsScreen
+                            )
+                        } catch ( _ : Exception){}
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.myPurchasesTitle),
+                    subtitle = getString(strings.myPurchasesSubTitle),
+                    icon = drawables.purchasesIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        try {
+                            profileNavigation.replaceCurrent(
+                                ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
+                            )
+                        } catch (_: Exception) {
+                        }
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.myOffersTitle),
+                    subtitle = getString(strings.myOffersSubTitle),
+                    icon = drawables.tagIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        try {
+                            profileNavigation.replaceCurrent(
+                                ProfileConfig.MyOffersScreen
+                            )
+                        } catch ( _ : Exception){}
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.mySalesTitle),
+                    subtitle = getString(strings.mySalesSubTitle),
+                    icon = drawables.salesIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        try {
+                            profileNavigation.replaceCurrent(
+                                ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
+                            )
+                        } catch ( _ : Exception){}
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.messageTitle),
+                    subtitle = getString(strings.messageSubTitle),
+                    icon = drawables.dialogIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = if((userInfo?.countUnreadMessages ?:0) > 0) userInfo?.countUnreadMessages else null,
+                    onClick = {
+                        try {
+                            profileNavigation.replaceCurrent(
+                                ProfileConfig.ConversationsScreen()
+                            )
+                        } catch ( _ : Exception){
+                        }
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.myProfileTitle),
+                    subtitle = getString(strings.myProfileSubTitle),
+                    icon = drawables.profileIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        try {
+                            profileNavigation.pushNew(
+                                ProfileConfig.UserScreen(
+                                    UserData.login,
+                                    getCurrentDate(),
+                                    false
+                                )
+                            )
+                        } catch ( _ : Exception){}
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.settingsProfileTitle),
+                    subtitle = getString(strings.profileSettingsSubTitle),
+                    icon = drawables.settingsIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        try {
+                            profileNavigation.replaceCurrent(
+                                ProfileConfig.ProfileSettingsScreen
+                            )
+                        } catch ( _ : Exception){}
+                    }
+                ),
+                NavigationItem(
+                    title = getString(strings.myBalanceTitle),
+                    subtitle = getString(strings.myBalanceSubTitle),
+                    icon = drawables.balanceIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null
+                ),
+                NavigationItem(
+                    title = getString(strings.logoutTitle),
+                    icon = drawables.logoutIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
+                        model.value.viewModel.showLogoutDialog.value = true
+                    }
+                ),
+            )
+        }
+    }
 
     // Stacks
     override val childMainStack: Value<ChildStack<*, ChildMain>> =
@@ -342,14 +601,6 @@ class DefaultMainComponent(
                                     )
                                 )
                             }
-                            else -> {
-                                modelNavigation.value.favoritesNavigation.replaceCurrent(
-                                    FavoritesConfig.FavPagesScreen(
-                                        FavScreenType.FAVORITES,
-                                        getCurrentDate()
-                                    )
-                                )
-                            }
                         }
                         activeCurrent = "Favorites"
                         modelNavigation.value.mainNavigation.replaceCurrent(config)
@@ -378,7 +629,7 @@ class DefaultMainComponent(
     }
 
     override fun handleDeepLink(deepLink: DeepLink) {
-        viewModel.viewModelScope.launch {
+        model.value.viewModel.viewModelScope.launch {
             delay(300)
             withContext(Dispatchers.Main) {
                 when (deepLink) {

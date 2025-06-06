@@ -45,12 +45,12 @@ fun MyBidsContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
-    val refresh = {
+    val refresh = remember {{
         viewModel.resetScroll()
         viewModel.onRefresh()
         data.refresh()
         updateFilters.value++
-    }
+    }}
 
     BackHandler(model.backHandler){
         when{

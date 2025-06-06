@@ -16,12 +16,10 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
@@ -48,20 +46,15 @@ fun SubscriptionsContent(
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val price = stringResource(strings.priceParameterName)
-    val from = stringResource(strings.fromAboutParameterName)
-    val to = stringResource(strings.toAboutParameterName)
-    val currency = stringResource(strings.currencyCode)
-
     val columns = remember { mutableStateOf(if (isBigScreen.value) 2 else 1) }
 
-    val defCat = stringResource(strings.categoryMain)
-
-    val refresh = {
-        subViewModel.onError(ServerErrorException())
-        subViewModel.resetScroll()
-        subViewModel.refresh()
-        data.refresh()
+    val refresh = remember {
+        {
+            subViewModel.onError(ServerErrorException())
+            subViewModel.resetScroll()
+            subViewModel.refresh()
+            data.refresh()
+        }
     }
 
     val noFound = @Composable {
@@ -74,6 +67,7 @@ fun SubscriptionsContent(
     }
 
     val err = subViewModel.errorMessage.collectAsState()
+
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { onError(err) { refresh() } }
     }else{
@@ -94,25 +88,8 @@ fun SubscriptionsContent(
     //update item when we back
     LaunchedEffect(subViewModel.updateItem.value) {
         if (subViewModel.updateItem.value != null) {
-            subViewModel.getSubscription(subViewModel.updateItem.value!!){ item ->
-                val oldItem = data.itemSnapshotList.find { it?.id == subViewModel.updateItem.value }
-                if (item != null) {
-                    if (oldItem != null) {
-                        oldItem.catpath = item.catpath
-                        oldItem.isEnabled = item.isEnabled
-                        oldItem.name = item.name
-                        oldItem.priceFrom = item.priceFrom
-                        oldItem.priceTo = item.priceTo
-                        oldItem.region = item.region
-                        oldItem.searchQuery = item.searchQuery
-                        oldItem.saleType = item.saleType
-                    }
-                } else {
-                    oldItem?.id = 1L
-                }
-                subViewModel.updateItemTrigger.value++
-                subViewModel.updateItem.value = null
-            }
+            val oldItem = data.itemSnapshotList.find { it?.id == subViewModel.updateItem.value }
+            component.updateItem(oldItem)
         }
     }
 
@@ -153,7 +130,6 @@ fun SubscriptionsContent(
                     horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     SmallIconButton(
                         drawables.newLotIcon,
                         color = colors.positiveGreen
@@ -196,69 +172,7 @@ fun SubscriptionsContent(
                             subViewModel.updateItemTrigger.value++
                         },
                         onItemClick = {
-                            val ld = ListingData()
-                            ld.data.value.filters = ListingFilters.getEmpty()
-
-                            if (subscription.priceTo != null) {
-                                ld.data.value.filters.find {
-                                    it.key == "current_price" && it.operation == "lte"
-                                }?.let {
-                                    it.value = subscription.priceTo ?: ""
-                                    it.interpretation =
-                                        "$price $from - ${subscription.priceTo} $currency"
-                                }
-                            }
-
-                            if (subscription.priceFrom != null) {
-                                ld.data.value.filters.find {
-                                    it.key == "current_price" && it.operation == "gte"
-                                }?.let {
-                                    it.value = subscription.priceFrom ?: ""
-                                    it.interpretation =
-                                        "$price $to - ${subscription.priceFrom} $currency"
-                                }
-                            }
-
-                            if (subscription.region != null) {
-                                ld.data.value.filters.find {
-                                    it.key == "region"
-                                }?.let {
-                                    it.value = (subscription.region?.code ?: "").toString()
-                                    it.interpretation = subscription.region?.name ?: ""
-                                }
-                            }
-
-                            if (subscription.saleType != null) {
-                                ld.data.value.filters.find {
-                                    it.key == "sale_type"
-                                }?.let {
-                                    when (subscription.saleType) {
-                                        "buy_now" -> {
-                                            it.value = "buynow"
-                                            it.interpretation = ""
-                                        }
-
-                                        "ordinary_auction" -> {
-                                            it.value = "auction"
-                                            it.interpretation = ""
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (subscription.sellerData != null) {
-                                ld.searchData.value.userSearch = true
-                                ld.searchData.value.userID = subscription.sellerData.id
-                                ld.searchData.value.userLogin = subscription.sellerData.login
-                            }
-
-                            ld.searchData.value.searchString = subscription.searchQuery ?: ""
-                            ld.searchData.value.searchCategoryID =
-                                subscription.catpath?.keys?.firstOrNull() ?: 1L
-                            ld.searchData.value.searchCategoryName =
-                                subscription.catpath?.values?.firstOrNull() ?: defCat
-
-                            component.goToListing(ld)
+                            component.goToListing(subscription)
                         }
                     )
                 }

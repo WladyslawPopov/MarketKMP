@@ -28,7 +28,7 @@ import market.engine.fragments.base.showNoItemLayout
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
-import market.engine.widgets.items.offer_Items.CabinetOfferItemList
+import market.engine.widgets.items.offer_Items.CabinetOfferItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -88,9 +88,11 @@ fun FavoritesContent(
 
     //update item when we back
     LaunchedEffect(favViewModel.updateItem.value) {
-        val offer =
-            data.itemSnapshotList.items.find { it.id == favViewModel.updateItem.value }
-        component.updateItem(offer)
+        if (favViewModel.updateItem.value != null) {
+            val offer =
+                data.itemSnapshotList.items.find { it.id == favViewModel.updateItem.value }
+            component.updateItem(offer)
+        }
     }
 
     val err = favViewModel.errorMessage.collectAsState()
@@ -174,13 +176,13 @@ fun FavoritesContent(
             },
             item = { offer ->
                 val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
-                val isVisibleState = mutableStateOf(
+                val isHideItem = mutableStateOf(
                     component.isHideItem(offer)
                 )
 
-                CabinetOfferItemList(
+                CabinetOfferItem(
                     offer,
-                    isVisible = isVisibleState.value,
+                    isVisible = !isHideItem.value,
                     baseViewModel = favViewModel,
                     updateTrigger = favViewModel.updateItemTrigger.value,
                     isSelected = isSelect.value,

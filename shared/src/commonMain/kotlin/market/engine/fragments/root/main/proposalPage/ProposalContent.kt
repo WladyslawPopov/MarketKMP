@@ -45,7 +45,6 @@ import market.engine.widgets.items.ProposalsItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
-
 @Composable
 fun ProposalContent(
     component: ProposalComponent,

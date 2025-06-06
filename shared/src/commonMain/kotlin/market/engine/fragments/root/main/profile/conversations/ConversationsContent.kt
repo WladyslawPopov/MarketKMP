@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.arkivanov.decompose.value.MutableValue
 import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -48,7 +47,7 @@ import org.jetbrains.compose.resources.stringResource
 fun ConversationsContent(
     component: ConversationsComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
@@ -65,12 +64,12 @@ fun ConversationsContent(
 
     val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
 
-    val refresh = {
+    val refresh = remember {{
         viewModel.resetScroll()
         viewModel.onRefresh()
         data.refresh()
         updateFilters.value++
-    }
+    }}
 
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
@@ -101,24 +100,8 @@ fun ConversationsContent(
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
-            viewModel.getConversation(
-                viewModel.updateItem.value!!,
-                onSuccess = { res->
-                    val item = data.itemSnapshotList.find { it?.id == viewModel.updateItem.value }
-                    if (item != null) {
-                        item.interlocutor = res.interlocutor
-                        item.newMessage = res.newMessage
-                        item.newMessageTs = res.newMessageTs
-                        item.countUnreadMessages = res.countUnreadMessages
-                        item.aboutObjectIcon = res.aboutObjectIcon
-                    }
-                    viewModel.updateItemTrigger.value++
-                    viewModel.updateItem.value = null
-                },
-                error = {
-                    viewModel.updateItem.value = null
-                }
-            )
+            val oldItem = data.itemSnapshotList.find { it?.id == viewModel.updateItem.value }
+            component.updateItem(oldItem)
         }
     }
 
@@ -239,35 +222,33 @@ fun ConversationsContent(
                 item = { conversation ->
                     val isSelect = rememberUpdatedState(selectedItems.contains(conversation.id))
 
-                    if (conversation.interlocutor != null && viewModel.updateItemTrigger.value >= 0) {
-                        ConversationItem(
-                            conversation = conversation,
-                            isVisibleCBMode = isSelectedMode.value,
-                            isSelected = isSelect.value,
-                            updateTrigger = viewModel.updateItemTrigger.value,
-                            onSelectionChange = {
-                                if (it) {
+                    ConversationItem(
+                        conversation = conversation,
+                        isVisibleCBMode = isSelectedMode.value,
+                        isSelected = isSelect.value,
+                        updateTrigger = viewModel.updateItemTrigger.value,
+                        onSelectionChange = {
+                            if (it) {
+                                viewModel.selectItems.add(conversation.id)
+                            } else {
+                                viewModel.selectItems.remove(conversation.id)
+                            }
+
+                            isSelectedMode.value = selectedItems.isNotEmpty()
+                        },
+                        goToMessenger = {
+                            if (isSelectedMode.value) {
+                                if (!isSelect.value) {
                                     viewModel.selectItems.add(conversation.id)
                                 } else {
                                     viewModel.selectItems.remove(conversation.id)
                                 }
-
                                 isSelectedMode.value = selectedItems.isNotEmpty()
-                            },
-                            goToMessenger = {
-                                if (isSelectedMode.value) {
-                                    if (!isSelect.value) {
-                                        viewModel.selectItems.add(conversation.id)
-                                    } else {
-                                        viewModel.selectItems.remove(conversation.id)
-                                    }
-                                    isSelectedMode.value = selectedItems.isNotEmpty()
-                                } else {
-                                    component.goToMessenger(conversation)
-                                }
+                            } else {
+                                component.goToMessenger(conversation)
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             )
         }
@@ -284,13 +265,13 @@ fun ConversationsContent(
                     AnimatedVisibility(hideDrawer.value) {
                         ProfileDrawer(
                             stringResource(strings.messageTitle),
-                            publicProfileNavigationItems.value
+                            publicProfileNavigationItems
                         )
                     }
                 }else {
                     ProfileDrawer(
                         stringResource(strings.messageTitle),
-                        publicProfileNavigationItems.value
+                        publicProfileNavigationItems
                     )
                 }
 

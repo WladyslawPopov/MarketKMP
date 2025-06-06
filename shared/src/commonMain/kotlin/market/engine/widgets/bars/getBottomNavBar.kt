@@ -18,9 +18,7 @@ fun getBottomNavBar(
     listItems: List<NavigationItem>,
     currentScreen: Int,
 ){
-    NavigationBar(
-        modifier = Modifier,
-    ) {
+    NavigationBar {
         Row(
             modifier = Modifier.background(colors.white)
         ) {
@@ -48,5 +46,3 @@ fun getBottomNavBar(
         }
     }
 }
-
-

@@ -246,7 +246,7 @@ fun OfferFilterContent(
                             )
                         }
                     }
-                    LotsType.MYLOT_UNACTIVE -> {
+                    LotsType.MY_LOT_INACTIVE -> {
                         item {
                             ExpandableSection(
                                 title = stringResource(strings.offersState),

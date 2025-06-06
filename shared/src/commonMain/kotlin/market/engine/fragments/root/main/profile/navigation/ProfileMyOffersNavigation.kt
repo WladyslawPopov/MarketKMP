@@ -17,7 +17,6 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
@@ -44,7 +43,7 @@ data class MyOfferConfig(
 fun ProfileMyOffersNavigation(
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
@@ -52,7 +51,7 @@ fun ProfileMyOffersNavigation(
 
     val content : @Composable (Modifier) -> Unit = { mod ->
         val select = remember {
-            mutableStateOf(LotsType.MYLOT_UNACTIVE)
+            mutableStateOf(LotsType.MY_LOT_INACTIVE)
         }
 
         Column(
@@ -82,11 +81,11 @@ fun ProfileMyOffersNavigation(
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
                     select.value = when (it) {
-                        0 -> LotsType.MYLOT_ACTIVE
-                        1 -> LotsType.MYLOT_UNACTIVE
-                        2 -> LotsType.MYLOT_FUTURE
+                        0 -> LotsType.MY_LOT_ACTIVE
+                        1 -> LotsType.MY_LOT_INACTIVE
+                        2 -> LotsType.MY_LOT_IN_FUTURE
                         else -> {
-                            LotsType.MYLOT_ACTIVE
+                            LotsType.MY_LOT_ACTIVE
                         }
                     }
                     component.selectOfferPage(select.value)
@@ -111,13 +110,13 @@ fun ProfileMyOffersNavigation(
                     AnimatedVisibility(hideDrawer.value) {
                         ProfileDrawer(
                             stringResource(strings.myOffersTitle),
-                            publicProfileNavigationItems.value
+                            publicProfileNavigationItems
                         )
                     }
                 }else{
                     ProfileDrawer(
                         stringResource(strings.myOffersTitle),
-                        publicProfileNavigationItems.value
+                        publicProfileNavigationItems
                     )
                 }
 

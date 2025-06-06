@@ -88,10 +88,10 @@ fun MyProposalsAppBar(
                 item {
                     SimpleTextButton(
                         needP,
-                        if (currentTab == LotsType.NEED_RESPOSE) colors.rippleColor else colors.white,
+                        if (currentTab == LotsType.NEED_RESPONSE) colors.rippleColor else colors.white,
                         textStyle = MaterialTheme.typography.bodySmall
                     ) {
-                        navigationClick(LotsType.NEED_RESPOSE)
+                        navigationClick(LotsType.NEED_RESPONSE)
                     }
                 }
             }

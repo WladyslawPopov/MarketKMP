@@ -75,7 +75,7 @@ object OfferFilters {
 
     fun clearTypeFilter(type: LotsType) {
         when(type){
-            LotsType.MYLOT_ACTIVE ->{
+            LotsType.MY_LOT_ACTIVE ->{
                filtersMyLotsActive = arrayListOf(
                    Filter("state", "0", "", null),
                    Filter("category", "1", null, null),
@@ -85,7 +85,7 @@ object OfferFilters {
                    Filter("session_start", "time", "", "lte"),
                )
             }
-            LotsType.MYLOT_UNACTIVE ->{
+            LotsType.MY_LOT_INACTIVE ->{
                 filtersMyLotsUnactive = arrayListOf(
                     Filter("state", "1", "", null),
                     Filter("with_sales", "", null, null),//0 фильтр
@@ -96,7 +96,7 @@ object OfferFilters {
                     Filter("search", "", null, null),
                 )
             }
-            LotsType.MYLOT_FUTURE ->{
+            LotsType.MY_LOT_IN_FUTURE ->{
 
                 filtersMyLotsFuture = arrayListOf(
                     Filter("state", "0", "", null),
@@ -107,7 +107,7 @@ object OfferFilters {
                     Filter("session_start", "time", "", "gt"),
                 )
             }
-            LotsType.MYBIDLOTS_ACTIVE ->{
+            LotsType.MY_BIDS_ACTIVE ->{
                 filtersMyBidsActive = arrayListOf(
                     Filter("state", "0", "", null),
                     Filter("category", "1", null, null),
@@ -117,7 +117,7 @@ object OfferFilters {
                     Filter("seller_login", "", null, null),
                 )
             }
-            LotsType.MYBIDLOTS_UNACTIVE ->{
+            LotsType.MY_BIDS_INACTIVE ->{
                 filtersMyBidsUnactive = arrayListOf(
                     Filter("state", "1", "", null),
                     Filter("category", "1", null, null),
@@ -148,7 +148,7 @@ object OfferFilters {
                     Filter("seller_login", "", null, null),
                 )
             }
-            LotsType.NEED_RESPOSE ->{
+            LotsType.NEED_RESPONSE ->{
                 filtersProposeNeed = arrayListOf(
                     Filter("state", "0", "", null),//0 фильтр
                     Filter("category", "1", null, null),
@@ -164,19 +164,19 @@ object OfferFilters {
 
     fun getByTypeFilter(type: LotsType) : ArrayList<Filter> {
         return when(type){
-            LotsType.MYLOT_ACTIVE ->{
+            LotsType.MY_LOT_ACTIVE ->{
                 filtersMyLotsActive
             }
-            LotsType.MYLOT_UNACTIVE ->{
+            LotsType.MY_LOT_INACTIVE ->{
                 filtersMyLotsUnactive
             }
-            LotsType.MYLOT_FUTURE ->{
+            LotsType.MY_LOT_IN_FUTURE ->{
                 filtersMyLotsFuture
             }
-            LotsType.MYBIDLOTS_ACTIVE ->{
+            LotsType.MY_BIDS_ACTIVE ->{
                 filtersMyBidsActive
             }
-            LotsType.MYBIDLOTS_UNACTIVE ->{
+            LotsType.MY_BIDS_INACTIVE ->{
                 filtersMyBidsUnactive
             }
             LotsType.FAVORITES ->{
@@ -185,7 +185,7 @@ object OfferFilters {
             LotsType.ALL_PROPOSAL ->{
                 filtersProposeAll
             }
-            LotsType.NEED_RESPOSE ->{
+            LotsType.NEED_RESPONSE ->{
                 filtersProposeNeed
             }
         }

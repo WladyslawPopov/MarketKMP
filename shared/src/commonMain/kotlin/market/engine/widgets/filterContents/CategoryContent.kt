@@ -262,7 +262,9 @@ fun CategoryContent(
                     },
                     isSelected = if(isFilters || isCreateOffer) isSelected.value == category.id else category.isLeaf,
                     badgeColor = colors.steelBlue
-                )
+                ){
+                    item.onClick()
+                }
             }
         }
 

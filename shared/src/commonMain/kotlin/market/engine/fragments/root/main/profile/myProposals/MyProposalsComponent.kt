@@ -6,12 +6,16 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
+import market.engine.core.utils.setNewParams
 
 interface MyProposalsComponent {
     val model : Value<Model>
@@ -27,6 +31,7 @@ interface MyProposalsComponent {
     fun goToOffer(offer: OfferItem, isTopPromo : Boolean = false)
     fun selectMyProposalsPage(select : LotsType)
     fun goToDialog(dialogId : Long?)
+    fun updateItem(offer: OfferItem?)
     fun goToBack()
     fun onRefresh()
 }
@@ -85,6 +90,25 @@ class DefaultMyProposalsComponent(
 
     override fun goToDialog(dialogId: Long?) {
         navigateToDialog(dialogId)
+    }
+
+    override fun updateItem(oldItem: OfferItem?) {
+        viewModel.viewModelScope.launch {
+            val offer = withContext(Dispatchers.Default) {
+                viewModel.getOfferById(viewModel.updateItem.value!!)
+            }
+
+            withContext(Dispatchers.Main) {
+                if (offer != null) {
+                    oldItem?.setNewParams(offer)
+                }else{
+                    oldItem?.session = null
+                }
+
+                viewModel.updateItemTrigger.value++
+                viewModel.updateItem.value = null
+            }
+        }
     }
 
     override fun goToBack() {

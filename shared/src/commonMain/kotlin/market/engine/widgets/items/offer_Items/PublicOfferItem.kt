@@ -38,7 +38,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun PublicOfferItemList(
+fun PublicOfferItem(
     item : OfferItem,
     onItemClick: () -> Unit = {},
     addToFavorites : (OfferItem) -> Unit = {},

@@ -38,7 +38,7 @@ interface MyBidsComponent {
 
 class DefaultMyBidsComponent(
     componentContext: ComponentContext,
-    val type: LotsType = LotsType.MYBIDLOTS_ACTIVE,
+    val type: LotsType = LotsType.MY_BIDS_ACTIVE,
     val offerSelected: (Long) -> Unit,
     val selectedMyBidsPage: (LotsType) -> Unit,
     val navigateToUser: (Long) -> Unit,

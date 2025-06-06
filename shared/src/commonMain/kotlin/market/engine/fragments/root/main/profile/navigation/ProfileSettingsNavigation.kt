@@ -11,11 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
@@ -23,9 +20,7 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.root.main.profile.profileSettings.DefaultProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsAppBar
-import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsContent
 import org.jetbrains.compose.resources.stringResource
 
@@ -39,7 +34,7 @@ data class ProfileSettingsConfig(
 fun ProfileSettingsNavigation(
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val drawerState =
         rememberDrawerState(initialValue = if (isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
@@ -107,13 +102,13 @@ fun ProfileSettingsNavigation(
                     AnimatedVisibility(hideDrawer.value) {
                         ProfileDrawer(
                             stringResource(strings.settingsProfileTitle),
-                            publicProfileNavigationItems.value
+                            publicProfileNavigationItems
                         )
                     }
                 } else {
                     ProfileDrawer(
                         stringResource(strings.settingsProfileTitle),
-                        publicProfileNavigationItems.value
+                        publicProfileNavigationItems
                     )
                 }
 
@@ -128,20 +123,4 @@ fun ProfileSettingsNavigation(
             content(Modifier.fillMaxWidth())
         }
     }
-}
-
-fun itemProfileSettings(
-    config: ProfileSettingsConfig,
-    componentContext: ComponentContext,
-    profileNavigation: StackNavigation<ProfileConfig>,
-    selectProfileSettingsPage: (ProfileSettingsTypes) -> Unit,
-    selectDynamicSettings: (String) -> Unit
-): ProfileSettingsComponent {
-    return DefaultProfileSettingsComponent(
-        componentContext = componentContext,
-        type = config.settingsType,
-        selectedPage = selectProfileSettingsPage,
-        profileNavigation = profileNavigation,
-        goToDynamicSettings = selectDynamicSettings
-    )
 }

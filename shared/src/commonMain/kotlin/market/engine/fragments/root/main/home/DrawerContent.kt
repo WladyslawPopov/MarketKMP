@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.items
@@ -23,8 +21,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -43,97 +41,11 @@ import org.jetbrains.compose.resources.stringResource
 fun DrawerContent(
     drawerState: DrawerState,
     goToLogin: () -> Unit = {},
-    goToContactUs: () -> Unit = {},
-    goToSettings: () -> Unit = {}
+    list : List<NavigationItem>,
 ) {
-    val scope = rememberCoroutineScope()
-
-    val list = listOf(
-        NavigationItem(
-            title = stringResource(strings.top100Title),
-            subtitle = stringResource(strings.top100Subtitle),
-            icon = drawables.top100Icon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                scope.launch {
-                    openUrl("${SAPI.SERVER_BASE}rating_game")
-                    drawerState.close()
-                }
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.helpTitle),
-            subtitle = stringResource(strings.helpSubtitle),
-            icon = drawables.helpIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                scope.launch {
-                    openUrl("${SAPI.SERVER_BASE}help/general")
-                    drawerState.close()
-                }
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.contactUsTitle),
-            subtitle = stringResource(strings.contactUsSubtitle),
-            icon = drawables.contactUsIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                scope.launch {
-                    goToContactUs()
-                    drawerState.close()
-                }
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.aboutUsTitle),
-            subtitle = stringResource(strings.aboutUsSubtitle),
-            icon = drawables.infoIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                scope.launch {
-                    openUrl("${SAPI.SERVER_BASE}staticpage/doc/about_us")
-                    drawerState.close()
-                }
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.reviewsTitle),
-            subtitle = stringResource(strings.reviewsSubtitle),
-            icon = drawables.starIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            isVisible = SAPI.REVIEW_URL != "",
-            onClick = {
-                openUrl(SAPI.REVIEW_URL)
-            }
-        ),
-        NavigationItem(
-            title = stringResource(strings.settingsTitleApp),
-            subtitle = stringResource(strings.settingsSubtitleApp),
-            icon = drawables.settingsIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                scope.launch {
-                    goToSettings()
-                    drawerState.close()
-                }
-            }
-        ),
-    )
-
     val isShowDialog = remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
 
     ModalDrawerSheet(
         drawerContainerColor = colors.primaryColor,
@@ -144,9 +56,9 @@ fun DrawerContent(
         LazyColumnWithScrollBars {
             item {
                 Row(
-                    modifier = Modifier
-                        .padding(dimens.mediumPadding),
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (UserData.token != "") {
                         TextButton(
@@ -163,14 +75,6 @@ fun DrawerContent(
                                 contentDescription = stringResource(strings.logoutTitle)
                             )
                         }
-
-                        LogoutDialog(
-                            isShowDialog.value,
-                            onDismiss = {
-                                isShowDialog.value = false
-                            },
-                            goToLogin
-                        )
                     } else {
                         TextButton(
                             onClick = {
@@ -189,9 +93,9 @@ fun DrawerContent(
                     }
                 }
             }
+
             items(list) { item ->
                 if (item.isVisible) {
-                    Spacer(modifier = Modifier.height(dimens.mediumSpacer))
                     getNavigationItem(
                         item,
                         label = {
@@ -216,13 +120,19 @@ fun DrawerContent(
                                 }
                             }
                         }
-                    )
+                    ){
+                        scope.launch {
+                            item.onClick()
+                            delay(300)
+                            drawerState.close()
+                        }
+                    }
                 }
             }
+
             item {
                 Box(
-                    modifier = Modifier
-                        .padding(dimens.mediumPadding),
+                    modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
                     contentAlignment = Alignment.BottomEnd
                 ) {
                     Text(
@@ -231,6 +141,16 @@ fun DrawerContent(
                         fontSize = MaterialTheme.typography.labelMedium.fontSize
                     )
                 }
+            }
+
+            item {
+                LogoutDialog(
+                    isShowDialog.value,
+                    onDismiss = {
+                        isShowDialog.value = false
+                    },
+                    goToLogin
+                )
             }
         }
     }

@@ -6,7 +6,11 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.DealType
@@ -26,6 +30,7 @@ interface MyOrdersComponent {
     fun goToOffer(offer: Offer)
     fun selectMyOrderPage(select : DealType)
     fun goToMessenger(dialogId : Long?)
+    fun updateItem(oldOrder : Order?)
     fun goToBack()
     fun onRefresh()
 }
@@ -93,6 +98,35 @@ class DefaultMyOrdersComponent(
 
     override fun goToMessenger(dialogId : Long?) {
         navigateToMessenger(dialogId)
+    }
+
+    override fun updateItem(oldOrder: Order?) {
+        viewModel.viewModelScope.launch {
+            val buf = withContext(Dispatchers.IO) {
+                viewModel.updateItem(viewModel.updateItem.value)
+            }
+
+            withContext(Dispatchers.Main) {
+                if (buf != null) {
+                    oldOrder?.owner = buf.owner
+                    oldOrder?.trackId = buf.trackId
+                    oldOrder?.marks = buf.marks
+                    oldOrder?.feedbacks = buf.feedbacks
+                    oldOrder?.comment = buf.comment
+                    oldOrder?.paymentMethod = buf.paymentMethod
+                    oldOrder?.deliveryMethod = buf.deliveryMethod
+                    oldOrder?.deliveryAddress = buf.deliveryAddress
+                    oldOrder?.dealType = buf.dealType
+                    oldOrder?.lastUpdatedTs = buf.lastUpdatedTs
+                    viewModel.updateItem.value = null
+                    viewModel.updateItemTrigger.value++
+                }else {
+                    oldOrder?.owner = 1L
+                    viewModel.updateItem.value = null
+                    viewModel.updateItemTrigger.value++
+                }
+            }
+        }
     }
 
     override fun goToBack() {

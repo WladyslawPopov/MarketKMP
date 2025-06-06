@@ -150,60 +150,58 @@ class DefaultFavoritesComponent(
     override fun isHideItem(offer: OfferItem): Boolean {
         return when (model.value.favType) {
             FavScreenType.NOTES -> {
-                offer.note != null && offer.note != ""
+                offer.note == null && offer.note == ""
             }
 
             FavScreenType.FAVORITES -> {
-                offer.isWatchedByMe
+                !offer.isWatchedByMe
             }
 
             else -> {
-                offer.session != null
+                offer.session == null
             }
         }
     }
 
     override fun updateItem(oldItem : OfferItem?) {
         favViewModel.viewModelScope.launch {
-            if (favViewModel.updateItem.value != null) {
-                model.value.listId?.let { id ->
-                    favViewModel.getList(id) { item ->
-                        if (!item.offers.contains(oldItem?.id)) {
-                            oldItem?.session = null
+            model.value.listId?.let { id ->
+                favViewModel.getList(id) { item ->
+                    if (!item.offers.contains(oldItem?.id)) {
+                        oldItem?.session = null
+                    }
+                }
+            }
+
+            val offer = withContext(Dispatchers.IO) {
+                favViewModel.getOfferById(favViewModel.updateItem.value!!)
+            }
+
+            withContext(Dispatchers.Main) {
+                if (offer != null) {
+                    oldItem?.setNewParams(offer)
+                }
+
+                if (model.value.favType != FavScreenType.FAV_LIST) {
+                    if (oldItem != null) {
+                        val isHide = isHideItem(oldItem)
+                        if (isHide) {
+                            onRefresh()
+                        }
+                    }
+                } else {
+                    favViewModel.getList(model.value.listId ?: 1L) {
+                        val isEmpty = oldItem?.let { item ->
+                            it.offers.contains(item.id)
+                        }
+                        if (isEmpty == true) {
+                            onRefresh()
                         }
                     }
                 }
 
-                val offer = withContext(Dispatchers.IO) {
-                    favViewModel.getOfferById(favViewModel.updateItem.value!!)
-                }
-
-                withContext(Dispatchers.Main) {
-                    if (offer != null) {
-                        oldItem?.setNewParams(offer)
-                    }
-
-                    if (model.value.favType != FavScreenType.FAV_LIST) {
-                        if (oldItem != null ) {
-                            val isHide = isHideItem(oldItem)
-                            if (isHide) {
-                                onRefresh()
-                            }
-                        }
-                    } else {
-                        favViewModel.getList(model.value.listId ?: 1L) {
-                            val isEmpty = oldItem?.let { item ->
-                                it.offers.contains(item.id)
-                            }
-                            if (isEmpty == true) {
-                                onRefresh()
-                            }
-                        }
-                    }
-
-                    favViewModel.updateItemTrigger.value++
-                    favViewModel.updateItem.value = null
-                }
+                favViewModel.updateItemTrigger.value++
+                favViewModel.updateItem.value = null
             }
         }
     }

@@ -16,9 +16,6 @@ import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.withContext
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -59,12 +56,12 @@ fun MyOrdersContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
-    val refresh = {
+    val refresh = remember{{
         viewModel.resetScroll()
         viewModel.onRefresh()
         data.refresh()
         updateFilters.value++
-    }
+    }}
 
     BackHandler(model.backHandler){
         when{
@@ -103,34 +100,11 @@ fun MyOrdersContent(
         null
     }
 
-
     //update item when we back
     LaunchedEffect(viewModel.updateItem.value) {
         if (viewModel.updateItem.value != null) {
-            val buf = withContext(Dispatchers.IO) {
-                viewModel.updateItem(viewModel.updateItem.value)
-            }
             val oldOrder = data.itemSnapshotList.items.find { it.id == viewModel.updateItem.value }
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    oldOrder?.owner = buf.owner
-                    oldOrder?.trackId = buf.trackId
-                    oldOrder?.marks = buf.marks
-                    oldOrder?.feedbacks = buf.feedbacks
-                    oldOrder?.comment = buf.comment
-                    oldOrder?.paymentMethod = buf.paymentMethod
-                    oldOrder?.deliveryMethod = buf.deliveryMethod
-                    oldOrder?.deliveryAddress = buf.deliveryAddress
-                    oldOrder?.dealType = buf.dealType
-                    oldOrder?.lastUpdatedTs = buf.lastUpdatedTs
-                    viewModel.updateItem.value = null
-                    viewModel.updateItemTrigger.value++
-                }else {
-                    oldOrder?.owner = 1L
-                    viewModel.updateItem.value = null
-                    viewModel.updateItemTrigger.value++
-                }
-            }
+            component.updateItem(oldOrder)
         }
     }
 
@@ -192,10 +166,7 @@ fun MyOrdersContent(
                 }
             },
             item = { order ->
-                val dataItem = data.itemSnapshotList.items.find { it.id == order.id }
-                val isClearItem = if(viewModel.updateItemTrigger.value >= 0) dataItem?.owner == 1L else false
-
-                AnimatedVisibility(!isClearItem, enter = fadeIn(), exit = fadeOut()) {
+                AnimatedVisibility(order.owner != 1L, enter = fadeIn(), exit = fadeOut()) {
                     MyOrderItem(
                         order = order,
                         typeGroup = typeGroup,

@@ -42,7 +42,7 @@ interface MyOffersComponent {
 
 class DefaultMyOffersComponent(
     componentContext: ComponentContext,
-    val type: LotsType = LotsType.MYLOT_ACTIVE,
+    val type: LotsType = LotsType.MY_LOT_ACTIVE,
     val offerSelected: (Long) -> Unit,
     val selectedMyOfferPage: (LotsType) -> Unit,
     val navigateToCreateOffer: (CreateOfferType, Long?, List<Long>?) -> Unit,
@@ -116,28 +116,27 @@ class DefaultMyOffersComponent(
 
     override fun isHideItem(offer: OfferItem): Boolean {
         return when (model.value.type) {
-            LotsType.MYLOT_ACTIVE -> {
-                offer.state == "active" && offer.session != null
+            LotsType.MY_LOT_ACTIVE -> {
+                offer.state != "active" && offer.session == null
             }
 
-            LotsType.MYLOT_UNACTIVE -> {
-                offer.state != "active"
+            LotsType.MY_LOT_INACTIVE -> {
+                offer.state == "active"
             }
 
-            LotsType.MYLOT_FUTURE -> {
+            LotsType.MY_LOT_IN_FUTURE -> {
                 val currentDate: Long? = getCurrentDate().toLongOrNull()
                 if (currentDate != null) {
                     val initD = (offer.session?.start?.toLongOrNull() ?: 1L) - currentDate
 
-                    offer.state == "active" && initD > 0
-                }
-                else {
-                    true
+                    offer.state != "active" && initD < 0
+                }else{
+                    false
                 }
             }
 
             else -> {
-                true
+                false
             }
         }
     }
@@ -156,9 +155,7 @@ class DefaultMyOffersComponent(
                     oldItem?.state = null
                 }
                 if (oldItem != null) {
-                    var isEmpty = isHideItem(oldItem)
-
-                    if (isEmpty) {
+                    if (!isHideItem(oldItem)) {
                         onRefresh()
                     }
                 }

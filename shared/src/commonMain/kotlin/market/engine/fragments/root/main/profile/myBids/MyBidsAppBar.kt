@@ -79,19 +79,19 @@ fun MyBidsAppBar(
                 item {
                     SimpleTextButton(
                         active,
-                        backgroundColor = if (currentTab == LotsType.MYBIDLOTS_ACTIVE) colors.rippleColor else colors.white,
+                        backgroundColor = if (currentTab == LotsType.MY_BIDS_ACTIVE) colors.rippleColor else colors.white,
                         textStyle = MaterialTheme.typography.bodySmall
                     ) {
-                        navigationClick(LotsType.MYBIDLOTS_ACTIVE)
+                        navigationClick(LotsType.MY_BIDS_ACTIVE)
                     }
                 }
                 item {
                     SimpleTextButton(
                         inactive,
-                        if (currentTab == LotsType.MYBIDLOTS_UNACTIVE) colors.rippleColor else colors.white,
+                        if (currentTab == LotsType.MY_BIDS_INACTIVE) colors.rippleColor else colors.white,
                         textStyle = MaterialTheme.typography.bodySmall
                     ) {
-                        navigationClick(LotsType.MYBIDLOTS_UNACTIVE)
+                        navigationClick(LotsType.MY_BIDS_INACTIVE)
                     }
                 }
             }

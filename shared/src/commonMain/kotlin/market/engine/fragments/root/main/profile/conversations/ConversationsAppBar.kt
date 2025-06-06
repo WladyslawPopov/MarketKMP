@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CoroutineScope
@@ -34,17 +35,19 @@ fun ConversationsAppBar(
     openMenu : ((CoroutineScope) -> Unit)? = null,
     onRefresh: () -> Unit
 ) {
-    val listItems = listOf(
-        NavigationItem(
-            title = "",
-            icon = drawables.recycleIcon,
-            tint = colors.inactiveBottomNavIconColor,
-            hasNews = false,
-            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-            badgeCount = null,
-            onClick = onRefresh
-        ),
-    )
+    val listItems = remember {
+        listOf(
+            NavigationItem(
+                title = "",
+                icon = drawables.recycleIcon,
+                tint = colors.inactiveBottomNavIconColor,
+                hasNews = false,
+                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                badgeCount = null,
+                onClick = onRefresh
+            ),
+        )
+    }
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(

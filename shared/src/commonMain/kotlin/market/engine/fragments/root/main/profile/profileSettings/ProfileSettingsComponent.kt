@@ -58,6 +58,7 @@ class DefaultProfileSettingsComponent(
                 goToBack()
             }
         }
+
         when(type){
             ProfileSettingsTypes.GLOBAL_SETTINGS -> {
                 val eventParameters = mapOf(

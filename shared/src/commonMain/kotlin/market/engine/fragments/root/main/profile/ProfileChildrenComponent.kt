@@ -7,7 +7,9 @@ import com.arkivanov.decompose.router.pages.PagesNavigation
 import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -18,9 +20,11 @@ import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyOffers
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProfileSettingsTypes
+import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
+import market.engine.fragments.root.main.profile.myOrders.DefaultMyOrdersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.myProposals.MyProposalsComponent
 import market.engine.fragments.root.main.profile.navigation.MyBidsConfig
@@ -28,9 +32,8 @@ import market.engine.fragments.root.main.profile.navigation.MyOrderConfig
 import market.engine.fragments.root.main.profile.navigation.MyProposalsConfig
 import market.engine.fragments.root.main.profile.navigation.ProfileSettingsConfig
 import market.engine.fragments.root.main.profile.navigation.itemMyBids
-import market.engine.fragments.root.main.profile.navigation.itemMyOrders
 import market.engine.fragments.root.main.profile.navigation.itemMyProposals
-import market.engine.fragments.root.main.profile.navigation.itemProfileSettings
+import market.engine.fragments.root.main.profile.profileSettings.DefaultProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 
 interface ProfileChildrenComponent {
@@ -159,25 +162,25 @@ class DefaultProfileChildrenComponent(
 
     override fun selectOfferPage(type: LotsType) {
         when (type) {
-            LotsType.MYLOT_ACTIVE -> {
+            LotsType.MY_LOT_ACTIVE -> {
                 navigationMyOffers.select(0)
             }
-            LotsType.MYLOT_UNACTIVE -> {
+            LotsType.MY_LOT_INACTIVE -> {
                 navigationMyOffers.select(1)
             }
-            LotsType.MYLOT_FUTURE -> {
+            LotsType.MY_LOT_IN_FUTURE -> {
                 navigationMyOffers.select(2)
             }
-            LotsType.MYBIDLOTS_ACTIVE -> {
+            LotsType.MY_BIDS_ACTIVE -> {
                 navigationMyBids.select(0)
             }
-            LotsType.MYBIDLOTS_UNACTIVE -> {
+            LotsType.MY_BIDS_INACTIVE -> {
                 navigationMyBids.select(1)
             }
             LotsType.ALL_PROPOSAL -> {
                 navigationMyProposals.select(0)
             }
-            LotsType.NEED_RESPOSE -> {
+            LotsType.NEED_RESPONSE -> {
                 navigationMyProposals.select(1)
             }
             else -> {
@@ -219,14 +222,14 @@ class DefaultProfileChildrenComponent(
             },
             key = "ProfileSettingsStack",
             childFactory = { config, componentContext ->
-                itemProfileSettings(
-                    config,
-                    componentContext,
-                    navigationProfile,
-                    selectProfileSettingsPage = { type ->
-                        selectProfileSettingsPage(type)
+                DefaultProfileSettingsComponent(
+                    componentContext = componentContext,
+                    type = config.settingsType,
+                    selectedPage = {
+                        selectProfileSettingsPage(it)
                     },
-                    selectDynamicSettings = {
+                    profileNavigation = navigationProfile,
+                    goToDynamicSettings = {
                         goToDynamicSettings(it, null, null)
                     }
                 )
@@ -242,9 +245,9 @@ class DefaultProfileChildrenComponent(
             initialPages = {
                 Pages(
                     listOf(
-                        MyOfferConfig(lotsType = LotsType.MYLOT_ACTIVE),
-                        MyOfferConfig(lotsType = LotsType.MYLOT_UNACTIVE),
-                        MyOfferConfig(lotsType = LotsType.MYLOT_FUTURE)
+                        MyOfferConfig(lotsType = LotsType.MY_LOT_ACTIVE),
+                        MyOfferConfig(lotsType = LotsType.MY_LOT_INACTIVE),
+                        MyOfferConfig(lotsType = LotsType.MY_LOT_IN_FUTURE)
                     ),
                     selectedIndex = 0,
                 )
@@ -264,8 +267,8 @@ class DefaultProfileChildrenComponent(
             initialPages = {
                 Pages(
                     listOf(
-                        MyBidsConfig(lotsType = LotsType.MYBIDLOTS_ACTIVE),
-                        MyBidsConfig(lotsType = LotsType.MYBIDLOTS_UNACTIVE),
+                        MyBidsConfig(lotsType = LotsType.MY_BIDS_ACTIVE),
+                        MyBidsConfig(lotsType = LotsType.MY_BIDS_INACTIVE),
                     ),
                     selectedIndex = 0,
                 )
@@ -286,7 +289,7 @@ class DefaultProfileChildrenComponent(
                 Pages(
                     listOf(
                         MyProposalsConfig(lotsType = LotsType.ALL_PROPOSAL),
-                        MyProposalsConfig(lotsType = LotsType.NEED_RESPOSE),
+                        MyProposalsConfig(lotsType = LotsType.NEED_RESPONSE),
                     ),
                     selectedIndex = 0,
                 )
@@ -340,12 +343,27 @@ class DefaultProfileChildrenComponent(
             },
             key = "ProfileMyOrdersStack",
             childFactory = { config, componentContext ->
-                itemMyOrders(
-                    config,
-                    componentContext,
-                    navigationProfile,
-                    selectMyOrderPage = { type ->
-                        selectMyOrderPage(type)
+                DefaultMyOrdersComponent(
+                    componentContext = componentContext,
+                    type = config.dealType,
+                    orderSelected = config.id,
+                    offerSelected = { id ->
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate(), true))
+                    },
+                    navigateToMyOrder = {
+                        selectMyOrderPage(it)
+                    },
+                    navigateToUser = {
+                        navigationProfile.pushNew(ProfileConfig.UserScreen(it, getCurrentDate(), false))
+                    },
+                    navigateToMessenger = { dialogId ->
+                        if(dialogId != null)
+                            navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
+                        else
+                            navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                    },
+                    navigateToBack = {
+                        navigationProfile.replaceCurrent(ProfileConfig.ProfileScreen())
                     }
                 )
             }

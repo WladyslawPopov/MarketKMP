@@ -41,117 +41,117 @@ fun ConversationItem(
     onSelectionChange: (Boolean) -> Unit,
     goToMessenger: () -> Unit,
 ) {
-    if (updateTrigger < 0) return
-
-    Card(
-        colors = colors.cardColors,
-        shape = MaterialTheme.shapes.small,
-    ){
-        Row(
-            modifier = Modifier.combinedClickable(
-                onClick = {
-                    setShortcutForDialog(conversation)
-                    goToMessenger()
-                },
-                onLongClick = {
-                    onSelectionChange(!isSelected)
-                }
-            ).fillMaxWidth().padding(dimens.smallPadding),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
+    if (conversation.interlocutor != null && updateTrigger >= 0) {
+        Card(
+            colors = colors.cardColors,
+            shape = MaterialTheme.shapes.small,
         ) {
             Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
-                AnimatedVisibility(
-                    isVisibleCBMode,
-                    enter = expandIn(),
-                    exit = fadeOut()
-                ) {
-                    ThemeCheckBox(
-                        isSelected = isSelected,
-                        onSelectionChange = onSelectionChange,
-                        modifier = Modifier
-                    )
-                }
-
-                val imageUser = conversation.interlocutor?.avatar?.thumb?.content
-                if (imageUser != null) {
-                    Card(
-                        modifier = Modifier.padding(dimens.extraSmallPadding),
-                        shape = CircleShape
-                    ) {
-                        LoadImage(
-                            url = imageUser,
-                            isShowLoading = false,
-                            isShowEmpty = false,
-                            modifier = Modifier.size(40.dp)
-                        )
+                modifier = Modifier.combinedClickable(
+                    onClick = {
+                        setShortcutForDialog(conversation)
+                        goToMessenger()
+                    },
+                    onLongClick = {
+                        onSelectionChange(!isSelected)
                     }
-                }
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                horizontalAlignment = Alignment.Start
+                ).fillMaxWidth().padding(dimens.smallPadding),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer)
             ) {
-                Text(
-                    text = conversation.interlocutor?.login ?: "",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.black,
-                )
-
                 Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
+                    AnimatedVisibility(
+                        isVisibleCBMode,
+                        enter = expandIn(),
+                        exit = fadeOut()
+                    ) {
+                        ThemeCheckBox(
+                            isSelected = isSelected,
+                            onSelectionChange = onSelectionChange,
+                            modifier = Modifier
+                        )
+                    }
+
+                    val imageUser = conversation.interlocutor?.avatar?.thumb?.content
+                    if (imageUser != null) {
+                        Card(
+                            modifier = Modifier.padding(dimens.extraSmallPadding),
+                            shape = CircleShape
+                        ) {
+                            LoadImage(
+                                url = imageUser,
+                                isShowLoading = false,
+                                isShowEmpty = false,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = conversation.interlocutor?.login ?: "",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.black,
+                    )
+
                     Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.Top,
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        if (conversation.countUnreadMessages > 0) {
-                            Icon(
-                                painterResource(drawables.newMessageIcon),
-                                contentDescription = null,
-                                tint = colors.notifyTextColor,
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
+                            if (conversation.countUnreadMessages > 0) {
+                                Icon(
+                                    painterResource(drawables.newMessageIcon),
+                                    contentDescription = null,
+                                    tint = colors.notifyTextColor,
+                                )
+                            }
+
+                            Text(
+                                text = conversation.newMessage ?: "...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.black,
+                                maxLines = 2,
+                                minLines = 2,
                             )
                         }
 
-                        Text(
-                            text = conversation.newMessage ?: "...",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.black,
-                            maxLines = 2,
-                            minLines = 2,
-                        )
-                    }
-
-                    if (conversation.countUnreadMessages > 0) {
-                        getBadge(conversation.countUnreadMessages, false)
+                        if (conversation.countUnreadMessages > 0) {
+                            getBadge(conversation.countUnreadMessages, false)
+                        }
                     }
                 }
-            }
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                horizontalAlignment = Alignment.End
-            ) {
-                LoadImage(
-                    url = conversation.aboutObjectIcon?.small?.content ?: "",
-                    isShowLoading = false,
-                    isShowEmpty = true,
-                    modifier = Modifier.size(40.dp)
-                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    LoadImage(
+                        url = conversation.aboutObjectIcon?.small?.content ?: "",
+                        isShowLoading = false,
+                        isShowEmpty = true,
+                        modifier = Modifier.size(40.dp)
+                    )
 
-                Text(
-                    conversation.newMessageTs.toString().convertDateWithMinutes(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.black,
-                )
+                    Text(
+                        conversation.newMessageTs.toString().convertDateWithMinutes(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.black,
+                    )
+                }
             }
         }
     }

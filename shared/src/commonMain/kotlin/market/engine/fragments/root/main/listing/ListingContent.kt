@@ -46,7 +46,7 @@ import market.engine.widgets.filterContents.FilterListingContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.items.offer_Items.PublicOfferItemGrid
-import market.engine.widgets.items.offer_Items.PublicOfferItemList
+import market.engine.widgets.items.offer_Items.PublicOfferItem
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -387,7 +387,7 @@ fun ListingContent(
                 item = { offer ->
                     when(listingData.value.listingType){
                         0 -> {
-                            PublicOfferItemList(
+                            PublicOfferItem(
                                 offer,
                                 updateTrigger = listingViewModel.updateItemTrigger.value,
                                 onItemClick = {

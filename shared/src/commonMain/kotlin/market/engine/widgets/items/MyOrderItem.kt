@@ -5,9 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -18,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -282,9 +281,8 @@ fun MyOrderItem(
                 if (index < maxItems.value) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimens.extraSmallPadding),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         DynamicLabel(
@@ -292,9 +290,10 @@ fun MyOrderItem(
                             false,
                             style = MaterialTheme.typography.titleSmall
                         )
-                        Spacer(modifier = Modifier.height(dimens.smallSpacer))
+
                         OfferPartItem(
                             offer = offer.parseToOfferItem(),
+                            modifier = Modifier.weight(1f)
                         ) {
                             goToOffer(offer)
                         }
@@ -304,9 +303,12 @@ fun MyOrderItem(
 
             if (order.suborders.size > maxNotExpandedItems) {
                 Row(
-                    modifier = Modifier.clickable {
-                        clickExpand()
-                    }.fillMaxWidth(),
+                    modifier = Modifier.background(colors.primaryColor.copy(alpha = 0.5f), MaterialTheme.shapes.small)
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable {
+                            clickExpand()
+                        }.fillMaxWidth()
+                        .padding(dimens.smallSpacer),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

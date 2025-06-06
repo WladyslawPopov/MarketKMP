@@ -19,6 +19,8 @@ import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
+import market.engine.fragments.root.main.profile.profileSettings.content.globalSettings
+import market.engine.fragments.root.main.profile.profileSettings.content.settingsContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 

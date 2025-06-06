@@ -7,10 +7,14 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.filtersObjects.ListingFilters
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.Subscription
+import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 
@@ -25,7 +29,8 @@ interface SubscriptionsComponent {
 
     fun goToCreateNewSubscription(editId : Long? = null)
 
-    fun goToListing(listingData: ListingData)
+    fun goToListing(item : Subscription)
+    fun updateItem(oldItem: Subscription?)
 }
 
 class DefaultSubscriptionsComponent(
@@ -68,7 +73,100 @@ class DefaultSubscriptionsComponent(
         }
     }
 
-    override fun goToListing(listingData: ListingData) {
-        navigateToListing(listingData)
+    override fun goToListing(subscription: Subscription) {
+        subViewModel.viewModelScope.launch {
+            val price = getString(strings.priceParameterName)
+            val from = getString(strings.fromAboutParameterName)
+            val to = getString(strings.toAboutParameterName)
+            val currency = getString(strings.currencyCode)
+            val defCat = getString(strings.categoryMain)
+
+            val ld = ListingData()
+            ld.data.value.filters = ListingFilters.getEmpty()
+
+            if (subscription.priceTo != null) {
+                ld.data.value.filters.find {
+                    it.key == "current_price" && it.operation == "lte"
+                }?.let {
+                    it.value = subscription.priceTo ?: ""
+                    it.interpretation =
+                        "$price $from - ${subscription.priceTo} $currency"
+                }
+            }
+
+            if (subscription.priceFrom != null) {
+                ld.data.value.filters.find {
+                    it.key == "current_price" && it.operation == "gte"
+                }?.let {
+                    it.value = subscription.priceFrom ?: ""
+                    it.interpretation =
+                        "$price $to - ${subscription.priceFrom} $currency"
+                }
+            }
+
+            if (subscription.region != null) {
+                ld.data.value.filters.find {
+                    it.key == "region"
+                }?.let {
+                    it.value = (subscription.region?.code ?: "").toString()
+                    it.interpretation = subscription.region?.name ?: ""
+                }
+            }
+
+            if (subscription.saleType != null) {
+                ld.data.value.filters.find {
+                    it.key == "sale_type"
+                }?.let {
+                    when (subscription.saleType) {
+                        "buy_now" -> {
+                            it.value = "buynow"
+                            it.interpretation = ""
+                        }
+
+                        "ordinary_auction" -> {
+                            it.value = "auction"
+                            it.interpretation = ""
+                        }
+                    }
+                }
+            }
+
+            if (subscription.sellerData != null) {
+                ld.searchData.value.userSearch = true
+                ld.searchData.value.userID = subscription.sellerData.id
+                ld.searchData.value.userLogin = subscription.sellerData.login
+            }
+
+            ld.searchData.value.searchString = subscription.searchQuery ?: ""
+            ld.searchData.value.searchCategoryID =
+                subscription.catpath?.keys?.firstOrNull() ?: 1L
+            ld.searchData.value.searchCategoryName =
+                subscription.catpath?.values?.firstOrNull() ?: defCat
+
+            navigateToListing(ld)
+        }
+    }
+
+    override fun updateItem(oldItem: Subscription?) {
+        subViewModel.viewModelScope.launch {
+            subViewModel.getSubscription(subViewModel.updateItem.value!!){ item ->
+                if (item != null) {
+                    if (oldItem != null) {
+                        oldItem.catpath = item.catpath
+                        oldItem.isEnabled = item.isEnabled
+                        oldItem.name = item.name
+                        oldItem.priceFrom = item.priceFrom
+                        oldItem.priceTo = item.priceTo
+                        oldItem.region = item.region
+                        oldItem.searchQuery = item.searchQuery
+                        oldItem.saleType = item.saleType
+                    }
+                } else {
+                    oldItem?.id = 1L
+                }
+                subViewModel.updateItemTrigger.value++
+                subViewModel.updateItem.value = null
+            }
+        }
     }
 }

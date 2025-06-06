@@ -11,26 +11,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceAll
-import com.arkivanov.decompose.router.stack.replaceCurrent
-import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.root.main.profile.myOrders.DefaultMyOrdersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrderAppBar
-import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersContent
 import org.jetbrains.compose.resources.stringResource
 
@@ -49,7 +40,7 @@ fun ProfileMyOrdersNavigation(
     typeGroup: DealTypeGroup,
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
@@ -126,7 +117,7 @@ fun ProfileMyOrdersNavigation(
                                 strings.mySalesTitle
                             else
                                 strings.myPurchasesTitle),
-                            publicProfileNavigationItems.value
+                            publicProfileNavigationItems
                         )
                     }
                 }else{
@@ -135,7 +126,7 @@ fun ProfileMyOrdersNavigation(
                             strings.mySalesTitle
                         else
                             strings.myPurchasesTitle),
-                        publicProfileNavigationItems.value
+                        publicProfileNavigationItems
                     )
                 }
 
@@ -150,35 +141,4 @@ fun ProfileMyOrdersNavigation(
             content(Modifier.fillMaxWidth())
         }
     }
-}
-
-fun itemMyOrders(
-    config: MyOrderConfig,
-    componentContext: ComponentContext,
-    profileNavigation: StackNavigation<ProfileConfig>,
-    selectMyOrderPage: (DealType) -> Unit,
-): MyOrdersComponent {
-    return DefaultMyOrdersComponent(
-        componentContext = componentContext,
-        type = config.dealType,
-        orderSelected = config.id,
-        offerSelected = { id ->
-            profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate(), true))
-        },
-        navigateToMyOrder = {
-            selectMyOrderPage(it)
-        },
-        navigateToUser = {
-            profileNavigation.pushNew(ProfileConfig.UserScreen(it, getCurrentDate(), false))
-        },
-        navigateToMessenger = { dialogId ->
-            if(dialogId != null)
-                profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
-            else
-                profileNavigation.replaceAll(ProfileConfig.ConversationsScreen())
-        },
-        navigateToBack = {
-            profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
-        }
-    )
 }

@@ -60,7 +60,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun CabinetOfferItemList(
+fun CabinetOfferItem(
     item : OfferItem,
     isVisible : Boolean,
     baseViewModel: BaseViewModel,

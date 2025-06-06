@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.profileSettings
+package market.engine.fragments.root.main.profile.profileSettings.content
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,7 +54,9 @@ fun settingsContent(
                             }
                         }
                     },
-                )
+                ){
+                    item.onClick()
+                }
             }
         }
     }

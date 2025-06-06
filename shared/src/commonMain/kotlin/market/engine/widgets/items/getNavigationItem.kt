@@ -23,13 +23,12 @@ fun getNavigationItem(
     item: NavigationItem,
     label: @Composable () -> Unit,
     isSelected: Boolean = false,
-    badgeColor: Color = colors.negativeRed
+    badgeColor: Color = colors.negativeRed,
+    onClick: () -> Unit
 ) {
     NavigationDrawerItem(
         label = label,
-        onClick = {
-            item.onClick()
-        },
+        onClick = onClick,
         icon = {
             when{
                 item.icon != null -> {

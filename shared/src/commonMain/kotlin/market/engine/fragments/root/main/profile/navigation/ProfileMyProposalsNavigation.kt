@@ -18,7 +18,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import com.arkivanov.decompose.value.MutableValue
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
@@ -43,7 +42,7 @@ data class MyProposalsConfig(
 fun ProfileMyProposalsNavigation(
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: MutableValue<List<NavigationItem>>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
@@ -79,7 +78,7 @@ fun ProfileMyProposalsNavigation(
                 onPageSelected = {
                     select.value = when(it){
                         0 -> LotsType.ALL_PROPOSAL
-                        1 -> LotsType.NEED_RESPOSE
+                        1 -> LotsType.NEED_RESPONSE
                         else -> {
                             LotsType.ALL_PROPOSAL
                         }
@@ -103,10 +102,10 @@ fun ProfileMyProposalsNavigation(
             ) {
                 if (isBigScreen.value) {
                     AnimatedVisibility(hideDrawer.value) {
-                        ProfileDrawer(stringResource(strings.proposalTitle), publicProfileNavigationItems.value)
+                        ProfileDrawer(stringResource(strings.proposalTitle), publicProfileNavigationItems)
                     }
                 }else{
-                    ProfileDrawer(stringResource(strings.proposalTitle), publicProfileNavigationItems.value)
+                    ProfileDrawer(stringResource(strings.proposalTitle), publicProfileNavigationItems)
                 }
 
                 if (isBigScreen.value) {
