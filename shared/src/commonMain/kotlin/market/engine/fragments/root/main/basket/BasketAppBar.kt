@@ -6,62 +6,31 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.common.Platform
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.types.PlatformWindowType
 import market.engine.widgets.badges.BadgedButton
+import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.texts.TextAppBar
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BasketAppBar(
     title : String,
     subtitle : String?,
+    listItems : List<NavigationItem>,
+    menuItems : List<MenuItem>,
+    showMenu : MutableState<Boolean>,
     modifier: Modifier = Modifier,
-    clearBasket: () -> Unit,
-    onRefresh: () -> Unit
 ) {
-    val showMenu = remember {
-        mutableStateOf(false)
-    }
-
-    val listItems = listOf(
-        NavigationItem(
-            title = "",
-            icon = drawables.recycleIcon,
-            tint = colors.inactiveBottomNavIconColor,
-            hasNews = false,
-            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-            badgeCount = null,
-            onClick = onRefresh
-        ),
-        NavigationItem(
-            title = stringResource(strings.menuTitle),
-            icon = drawables.menuIcon,
-            tint = colors.black,
-            hasNews = false,
-            badgeCount = null,
-            onClick = {
-                showMenu.value = true
-            }
-        ),
-    )
-
     Column(
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -99,28 +68,11 @@ fun BasketAppBar(
                         }
                     }
 
-                    if(showMenu.value){
-                        DropdownMenu(
-                            expanded = showMenu.value,
-                            onDismissRequest = { showMenu.value = false },
-                            containerColor = colors.white,
-                        ) {
-                            val s = stringResource(strings.actionClearBasket)
-
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = s,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.black
-                                    )
-                                },
-                                onClick = {
-                                    showMenu.value = false
-                                    clearBasket()
-                                }
-                            )
-                        }
+                    PopUpMenu(
+                        openPopup = showMenu.value,
+                        menuList = menuItems,
+                    ) {
+                        showMenu.value = false
                     }
                 }
             }

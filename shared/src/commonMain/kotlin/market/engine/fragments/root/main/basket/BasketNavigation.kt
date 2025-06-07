@@ -107,6 +107,7 @@ fun BasketNavigation(
     childStack: Value<ChildStack<*, ChildBasket>>
 ) {
     val stack by childStack.subscribeAsState()
+
     Children(
         stack = stack,
         modifier = modifier
@@ -138,7 +139,21 @@ fun createBasketChild(
 ): ChildBasket =
     when (config) {
         BasketConfig.BasketScreen -> ChildBasket.BasketChild(
-            itemBasket(componentContext, basketNavigation)
+            DefaultBasketComponent(
+                componentContext = componentContext,
+                navigateToListing = {
+                    basketNavigation.pushNew(BasketConfig.ListingScreen(LD(), SD(), getCurrentDate()))
+                },
+                navigateToUser = {
+                    basketNavigation.pushNew(BasketConfig.UserScreen(it, getCurrentDate(), false))
+                },
+                navigateToOffer = {
+                    basketNavigation.pushNew(BasketConfig.OfferScreen(it, getCurrentDate()))
+                },
+                navigateToCreateOrder = {
+                    basketNavigation.pushNew(BasketConfig.CreateOrderScreen(it))
+                }
+            )
         )
 
         is BasketConfig.ListingScreen -> {
@@ -373,21 +388,3 @@ fun createBasketChild(
             )
         )
     }
-
-fun itemBasket(componentContext: ComponentContext, basketNavigation : StackNavigation<BasketConfig>): BasketComponent {
-    return DefaultBasketComponent(
-        componentContext = componentContext,
-        navigateToListing = {
-            basketNavigation.pushNew(BasketConfig.ListingScreen(LD(), SD(), getCurrentDate()))
-        },
-        navigateToUser = {
-            basketNavigation.pushNew(BasketConfig.UserScreen(it, getCurrentDate(), false))
-        },
-        navigateToOffer = {
-            basketNavigation.pushNew(BasketConfig.OfferScreen(it, getCurrentDate()))
-        },
-        navigateToCreateOrder = {
-            basketNavigation.pushNew(BasketConfig.CreateOrderScreen(it))
-        }
-    )
-}

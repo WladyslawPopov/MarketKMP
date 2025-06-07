@@ -36,7 +36,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
-import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
@@ -151,7 +150,7 @@ fun CreateOrderContent(
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     //user header
-                    offers.value.firstOrNull()?.sellerData?.let {
+                    offers.value.firstOrNull()?.seller?.let {
                         UserRow(
                             it,
                             modifier = Modifier.clickable {
@@ -193,7 +192,7 @@ fun CreateOrderContent(
                                         it.offerId == offer.id
                                     }?.selectedQuantity ?: 1,
                                     addToFavorites = { onFinish ->
-                                        viewModel.addToFavorites(offer.parseToOfferItem()){
+                                        viewModel.addToFavorites(offer){
                                             offer.isWatchedByMe = it
                                             onFinish(it)
                                         }

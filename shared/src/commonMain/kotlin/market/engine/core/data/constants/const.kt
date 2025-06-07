@@ -5,3 +5,4 @@ const val PAGE_SIZE = 60
 const val PAGES_MAX_SIZE = 20_000
 const val countProposalMax = 3
 const val maxShortcuts = 3
+const val minExpandedElement = 2

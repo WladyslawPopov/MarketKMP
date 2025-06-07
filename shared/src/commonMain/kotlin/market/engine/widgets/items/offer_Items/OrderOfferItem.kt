@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -23,8 +22,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.networkObjects.Offer
-import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.data.items.OfferItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.texts.TitleText
@@ -33,7 +31,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OrderOfferItem(
-    offer: Offer?,
+    offer: OfferItem?,
     selectedQuantity: Int?,
     goToOffer: (Long) -> Unit,
     addToFavorites: (onFinish: (Boolean) -> Unit) -> Unit,
@@ -56,7 +54,7 @@ fun OrderOfferItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
            LoadImage(
-               url = offer.getOfferImagePreview(),
+               url = offer.images.firstOrNull() ?: "",
                modifier = Modifier.size(120.dp)
            )
 
@@ -67,7 +65,7 @@ fun OrderOfferItem(
             ) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     TitleText(
-                        text = offer.title ?: "",
+                        text = offer.title,
                         modifier = Modifier.weight(1f),
                         color = colors.actionTextColor
                     )
@@ -84,15 +82,8 @@ fun OrderOfferItem(
                        }
                     }
                 }
-                val location =  remember {  buildString {
-                    offer.freeLocation?.let { append(it) }
-                    offer.region?.name?.let {
-                        if (isNotEmpty()) append(", ")
-                        append(it)
-                    }
-                }}
 
-                if (location.isNotEmpty()) {
+                if (offer.location.isNotEmpty()) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
@@ -104,7 +95,7 @@ fun OrderOfferItem(
                             modifier = Modifier.size(dimens.smallIconSize),
                         )
                         Text(
-                            text = location,
+                            text = offer.location,
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.black
                         )
@@ -130,7 +121,7 @@ fun OrderOfferItem(
 
                 val priceText =
                     buildAnnotatedString {
-                        append(offer.currentPricePerItem ?: "")
+                        append(offer.price)
                         append(" ${stringResource(strings.currencySign)}")
                     }
 

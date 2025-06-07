@@ -421,5 +421,6 @@ fun Offer.parseToOfferItem() : OfferItem {
         relistingMode = relistingMode,
         session = session,
         state = state,
+        currentQuantity = currentQuantity
     )
 }

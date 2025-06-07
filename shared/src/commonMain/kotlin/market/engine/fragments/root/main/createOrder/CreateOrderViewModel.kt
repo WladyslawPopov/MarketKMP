@@ -14,6 +14,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.types.ToastType
@@ -21,9 +22,9 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
@@ -32,8 +33,8 @@ class CreateOrderViewModel: BaseViewModel() {
     private var _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseCreateOrder : StateFlow<DynamicPayload<OperationResult>?> = _responsePostPage.asStateFlow()
 
-    private var _responseGetOffers = MutableStateFlow<List<Offer>>(emptyList())
-    val responseGetOffers : StateFlow<List<Offer>> = _responseGetOffers.asStateFlow()
+    private var _responseGetOffers = MutableStateFlow<List<OfferItem>>(emptyList())
+    val responseGetOffers : StateFlow<List<OfferItem>> = _responseGetOffers.asStateFlow()
 
     private var _responseGetAdditionalData = MutableStateFlow<AdditionalDataForNewOrder?>(null)
     val responseGetAdditionalData  : StateFlow<AdditionalDataForNewOrder?> = _responseGetAdditionalData.asStateFlow()
@@ -53,7 +54,7 @@ class CreateOrderViewModel: BaseViewModel() {
                         val response = offerOperations.getOffer(it)
 
                         if (response.success != null){
-                            _responseGetOffers.value += response.success!!
+                            _responseGetOffers.value += response.success!!.parseToOfferItem()
                         }
                     }
                 }
