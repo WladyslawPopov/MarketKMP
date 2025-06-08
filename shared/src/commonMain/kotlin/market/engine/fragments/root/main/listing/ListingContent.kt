@@ -15,6 +15,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
@@ -58,24 +60,28 @@ fun ListingContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val listingViewModel = model.listingViewModel
+    val uiState = listingViewModel.uiState.collectAsState()
+    val uiDataState = listingViewModel.uiDataState.collectAsState()
 
     val searchData = listingViewModel.listingData.value.searchData
     val listingData = listingViewModel.listingData.value.data
 
-    val data = remember { component.model.value.pagingDataFlow }.collectAsLazyPagingItems()
+    val data = uiDataState.value.pagingDataFlow?.collectAsLazyPagingItems()
 
     val title = remember { mutableStateOf(searchData.value.searchCategoryName) }
 
-    val isLoadingListing : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
+    val isLoadingListing : State<Boolean> = rememberUpdatedState(data?.loadState?.refresh is LoadStateLoading)
 
-    val promoList = listingViewModel.responseOffersRecommendedInListing.collectAsState()
-    val regions = listingViewModel.regionOptions.value
+    val promoList = uiDataState.value.promoOffers
+    val regions = uiDataState.value.regions
 
     val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
 
+    val uiSearchState = listingViewModel.uiSearchState.collectAsState()
+
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
-            initialValue = if (listingViewModel.openSearch.value) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
+            initialValue = if (uiSearchState.value.openSearch) BottomSheetValue.Expanded else BottomSheetValue.Collapsed
         )
     )
 
@@ -89,11 +95,11 @@ fun ListingContent(
 
     val updateFilters = remember { mutableStateOf(0) }
 
-    val err = listingViewModel.errorMessage.collectAsState()
+    val err = uiState.value.error
 
     val searchCatBack = remember { mutableStateOf(false) }
 
-    val refresh = {
+    val refresh = remember {{
         listingViewModel.resetScroll()
 
         title.value = searchData.value.searchCategoryName
@@ -103,21 +109,21 @@ fun ListingContent(
 
         listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()
-        data.refresh()
+        data?.refresh()
         searchData.value.isRefreshing = false
         updateFilters.value++
-    }
+    }}
 
     BackHandler(model.backHandler){
         when{
             listingViewModel.activeFiltersType.value == "categories" -> {
                 listingViewModel.catBack.value = true
             }
-            listingViewModel.openSearch.value -> {
+            uiSearchState.value.openSearch -> {
                 if (openSearchCategoryBottomSheet.value){
                     searchCatBack.value = true
                 }else{
-                    listingViewModel.openSearch.value = false
+                    listingViewModel.changeOpenSearch(false)
                 }
             }
 
@@ -130,8 +136,8 @@ fun ListingContent(
         }
     }
 
-    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) { refresh() } }
+    val error : (@Composable () -> Unit)? = if (err.humanMessage != "") {
+        { onError(err) { refresh() } }
     }else{
         null
     }
@@ -154,28 +160,26 @@ fun ListingContent(
         }
     }
 
-    LaunchedEffect(listingViewModel.openSearch.value) {
-        snapshotFlow { listingViewModel.openSearch.value }.collectLatest { isOpen ->
-            if (isOpen) {
-                val eventParameters = mapOf(
-                    "search_string" to searchData.value.searchString,
-                    "category_id" to searchData.value.searchCategoryID,
-                    "category_name" to searchData.value.searchCategoryName,
-                    "user_login" to searchData.value.userLogin,
-                    "user_search" to searchData.value.userSearch,
-                    "user_finished" to searchData.value.searchFinished
-                )
-                analyticsHelper.reportEvent("open_search_listing", eventParameters)
 
-                scaffoldStateSearch.bottomSheetState.expand()
-            } else {
-                listingViewModel.openSearch.value = false
-                scaffoldStateSearch.bottomSheetState.collapse()
-                delay(300)
-                focusManager.clearFocus()
-            }
-        }
-    }
+   LaunchedEffect(uiSearchState.value.openSearch) {
+       snapshotFlow {
+           uiSearchState.value.openSearch
+       }.collectLatest {
+           if (it) {
+               listingViewModel.searchData.value = searchData.value
+               listingViewModel.searchString.value = TextFieldValue(searchData.value.searchString, TextRange(searchData.value.searchString.length))
+               scaffoldStateSearch.bottomSheetState.expand()
+           } else {
+               scaffoldStateSearch.bottomSheetState.collapse()
+               if (searchData.value.isRefreshing){
+                   refresh()
+                   searchData.value.isRefreshing = false
+               }
+               delay(300)
+               focusManager.clearFocus()
+           }
+       }
+   }
 
     LaunchedEffect(listingViewModel.activeFiltersType.value){
         if (listingViewModel.activeFiltersType.value == "categories"){
@@ -196,7 +200,7 @@ fun ListingContent(
             withContext(Dispatchers.Main) {
                 if (offer != null) {
                     val item =
-                        data.itemSnapshotList.items.find { it.id == offer.id }
+                        data?.itemSnapshotList?.items?.find { it.id == offer.id }
                     item?.isWatchedByMe = offer.isWatchedByMe
                 }
                 listingViewModel.updateItemTrigger.value++
@@ -217,26 +221,9 @@ fun ListingContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             SearchContent(
-                listingViewModel.openSearch,
-                openSearchCategoryBottomSheet,
-                searchData.value,
-                listingViewModel,
-                searchCatBack,
-                searchPages = component.searchPages,
-                closeSearch = {
-                    listingViewModel.openSearch.value = false
-                },
-                goToListing = {
-                    listingViewModel.openSearch.value = false
-                    listingViewModel.activeFiltersType.value = ""
-
-                    if (searchData.value.isRefreshing) {
-                        refresh()
-                    }
-                },
-                onTabSelect = {
-                    component.onTabSelect(it)
-                }
+                uiSearchState.value,
+                model.searchEvents,
+                component.searchPages
             )
         },
     ) {
@@ -248,9 +235,9 @@ fun ListingContent(
                     title = if(title.value != "") title.value else catDef,
                     onBackClick = {
                         if (listingViewModel.activeFiltersType.value.isEmpty()) {
-                                component.goBack()
-                                listingViewModel.openSearch.value = true
-                        }else{
+                            component.goBack()
+                            listingViewModel.changeOpenCategory(true)
+                        } else {
                             listingViewModel.activeFiltersType.value = ""
                         }
                     },
@@ -259,13 +246,12 @@ fun ListingContent(
                             listingViewModel.activeFiltersType.value = ""
                         }else {
                             listingViewModel.activeFiltersType.value = "categories"
-                            listingViewModel.openCategory.value = true
+                            listingViewModel.changeOpenCategory(true)
                         }
                     },
                     isShowSubscribes = (searchData.value.searchCategoryID != 1L || searchData.value.userSearch || searchData.value.searchString != ""),
                     onSearchClick = {
-                        listingViewModel.openSearch.value = true
-                        listingViewModel.openSearch.value = true
+                        listingViewModel.changeOpenSearch(true)
                     },
                     onSubscribesClick = {
                         if(UserData.token != "") {
@@ -307,126 +293,136 @@ fun ListingContent(
             toastItem = listingViewModel.toastItem,
             modifier = modifier.fillMaxSize()
         ) {
-            ListingBaseContent(
-                columns = columns,
-                listingData.value,
-                searchData.value,
-                data = data,
-                baseViewModel = listingViewModel,
-                noFound = noFound,
-                onRefresh = {
-                    refresh()
-                },
-                filtersContent = { isRefreshingFromFilters, onClose ->
-                    when (listingViewModel.activeFiltersType.value){
-                        "filters" -> {
-                            FilterListingContent(
-                                isRefreshingFromFilters,
-                                listingData = listingData.value.filters,
-                                regionsOptions = regions,
-                                onClosed = onClose,
-                            )
-                        }
-                        "sorting" -> {
-                            SortingOffersContent(
-                                isRefreshingFromFilters,
-                                listingData.value,
-                                isCabinet = false,
-                                onClose
-                            )
-                        }
-                        "categories" ->{
-                            CategoryContent(
-                                isOpen = listingViewModel.openCategory,
-                                searchData = searchData.value,
-                                filters = listingData.value.filters,
-                                isRefresh = isRefreshingFromFilters,
-                                baseViewModel = listingViewModel,
-                                onBackClicked = listingViewModel.catBack
-                            ){
-                                listingViewModel.activeFiltersType.value = ""
+            if (data != null) {
+                ListingBaseContent(
+                    columns = columns,
+                    listingData.value,
+                    searchData.value,
+                    data = data,
+                    baseViewModel = listingViewModel,
+                    noFound = noFound,
+                    onRefresh = {
+                        refresh()
+                    },
+                    filtersContent = { isRefreshingFromFilters, onClose ->
+                        when (listingViewModel.activeFiltersType.value) {
+                            "filters" -> {
+                                FilterListingContent(
+                                    isRefreshingFromFilters,
+                                    listingData = listingData.value.filters,
+                                    regionsOptions = regions,
+                                    onClosed = onClose,
+                                    onClear = {
+                                        listingData.value.filters.clear()
+                                        listingData.value.filters.addAll(ListingFilters.getEmpty())
+                                        isRefreshingFromFilters.value = true
+                                    }
+                                )
+                            }
+
+                            "sorting" -> {
+                                SortingOffersContent(
+                                    isRefreshingFromFilters,
+                                    listingData.value,
+                                    isCabinet = false,
+                                    onClose
+                                )
+                            }
+
+                            "categories" -> {
+                                CategoryContent(
+                                    isOpen = uiState.value.openCategory,
+                                    searchData = searchData.value,
+                                    filters = listingData.value.filters,
+                                    isRefresh = isRefreshingFromFilters,
+                                    baseViewModel = listingViewModel,
+                                    onBackClicked = listingViewModel.catBack
+                                ) {
+                                    listingViewModel.activeFiltersType.value = ""
+                                }
                             }
                         }
-                    }
-                },
-                additionalBar = { state ->
-                    SwipeTabsBar(
-                        isVisibility = listingViewModel.activeFiltersType.value == "categories",
-                        listingData.value,
-                        state,
-                        onRefresh = {
-                            refresh()
-                        }
-                    )
+                    },
+                    additionalBar = { state ->
+                        SwipeTabsBar(
+                            isVisibility = listingViewModel.activeFiltersType.value == "categories",
+                            listingData.value,
+                            state,
+                            onRefresh = {
+                                refresh()
+                            }
+                        )
 
-                    FiltersBar(
-                        searchData.value,
-                        listingData.value,
-                        updateFilters.value,
-                        isShowGrid = true,
-                        onChangeTypeList = {
-                            listingViewModel.settings.setSettingValue("listingType", it)
-                            listingData.value.listingType = it
-                            refresh()
-                        },
-                        onFilterClick = {
-                            listingViewModel.activeFiltersType.value = "filters"
-                        },
-                        onSortClick = {
-                            listingViewModel.activeFiltersType.value = "sorting"
-                        },
-                        onSearchClick = {
-                            listingViewModel.openSearch.value = true
-                        },
-                        onRefresh = {
-                            updateFilters.value++
-                            refresh()
+                        FiltersBar(
+                            searchData.value,
+                            listingData.value,
+                            updateFilters.value,
+                            isShowGrid = true,
+                            onChangeTypeList = {
+                                listingViewModel.settings.setSettingValue("listingType", it)
+                                listingData.value.listingType = it
+                                refresh()
+                            },
+                            onFilterClick = {
+                                listingViewModel.activeFiltersType.value = "filters"
+                            },
+                            onSortClick = {
+                                listingViewModel.activeFiltersType.value = "sorting"
+                            },
+                            onSearchClick = {
+                                listingViewModel.changeOpenSearch(true)
+                            },
+                            onRefresh = {
+                                updateFilters.value++
+                                refresh()
+                            }
+                        )
+                    },
+                    item = { offer ->
+                        when (listingData.value.listingType) {
+                            0 -> {
+                                PublicOfferItem(
+                                    offer,
+                                    updateTrigger = listingViewModel.updateItemTrigger.value,
+                                    onItemClick = {
+                                        component.goToOffer(offer)
+                                    },
+                                    addToFavorites = {
+                                        listingViewModel.addToFavorites(offer) {
+                                            offer.isWatchedByMe = it
+                                            listingViewModel.updateItemTrigger.value++
+                                        }
+                                    },
+                                )
+                            }
+
+                            1 -> {
+                                PublicOfferItemGrid(
+                                    offer,
+                                    updateTrigger = listingViewModel.updateItemTrigger.value,
+                                    onItemClick = {
+                                        component.goToOffer(offer)
+                                    },
+                                    addToFavorites = {
+                                        listingViewModel.addToFavorites(offer) {
+                                            offer.isWatchedByMe = it
+                                            listingViewModel.updateItemTrigger.value++
+                                        }
+                                    },
+                                )
+                            }
                         }
-                    )
-                },
-                item = { offer ->
-                    when(listingData.value.listingType){
-                        0 -> {
-                            PublicOfferItem(
-                                offer,
-                                updateTrigger = listingViewModel.updateItemTrigger.value,
-                                onItemClick = {
-                                    component.goToOffer(offer)
-                                },
-                                addToFavorites = {
-                                    listingViewModel.addToFavorites(offer){
-                                        offer.isWatchedByMe = it
-                                        listingViewModel.updateItemTrigger.value++
-                                    }
-                                },
-                            )
-                        }
-                        1 ->{
-                            PublicOfferItemGrid(
-                                offer,
-                                updateTrigger = listingViewModel.updateItemTrigger.value,
-                                onItemClick = {
-                                    component.goToOffer(offer)
-                                },
-                                addToFavorites = {
-                                    listingViewModel.addToFavorites(offer){
-                                        offer.isWatchedByMe = it
-                                        listingViewModel.updateItemTrigger.value++
-                                    }
-                                },
-                            )
+                    },
+                    promoList = promoList,
+                    promoContent = { offer ->
+                        PromoOfferRowItem(
+                            offer
+                        ) {
+                            component.goToOffer(offer, true)
                         }
                     }
-                },
-                promoList = promoList.value,
-                promoContent = { offer ->
-                    PromoOfferRowItem(
-                        offer
-                    ) {
-                        component.goToOffer(offer, true)
-                    }
-                }
-            )
+                )
+            }
         }
     }
 }

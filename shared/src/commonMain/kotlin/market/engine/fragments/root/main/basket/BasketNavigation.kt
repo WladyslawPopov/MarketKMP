@@ -35,9 +35,9 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
-import market.engine.fragments.root.main.listing.listingFactory
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.messenger.messengerFactory
@@ -162,13 +162,13 @@ fun createBasketChild(
                 data = mutableStateOf(config.listingData)
             )
             ChildBasket.ListingChild(
-                listingFactory(
-                    componentContext,
-                    ld,
+                DefaultListingComponent(
+                    componentContext = componentContext,
+                    listingData = ld,
                     selectOffer = {
                         basketNavigation.pushNew(BasketConfig.OfferScreen(it, getCurrentDate()))
                     },
-                    onBack = {
+                    selectedBack = {
                         basketNavigation.pop()
                     },
                     isOpenCategory = false,
@@ -188,7 +188,8 @@ fun createBasketChild(
                         basketNavigation.pushNew(
                             BasketConfig.CreateSubscriptionScreen(id)
                         )
-                    }
+                    },
+                    isOpenSearch = false
                 )
             )
         }

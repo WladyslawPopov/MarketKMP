@@ -295,6 +295,33 @@ class DefaultHomeComponent(
                     }
                 ),
             )
+            homeViewModel.listFooter.value = listOf(
+                TopCategory(
+                    id = 1,
+                    name = getString(strings.homeFixAuction),
+                    icon = drawables.auctionFixIcon
+                ),
+                TopCategory(
+                    id = 2,
+                    name = getString(strings.homeManyOffers),
+                    icon = drawables.manyOffersIcon
+                ),
+                TopCategory(
+                    id = 3,
+                    name = getString(strings.verifySellers),
+                    icon = drawables.verifySellersIcon
+                ),
+                TopCategory(
+                    id = 4,
+                    name = getString(strings.everyDeyDiscount),
+                    icon = drawables.discountBigIcon
+                ),
+                TopCategory(
+                    id = 5,
+                    name = getString(strings.freeBilling),
+                    icon = drawables.freeBillingIcon
+                ),
+            )
         }
     }
 }

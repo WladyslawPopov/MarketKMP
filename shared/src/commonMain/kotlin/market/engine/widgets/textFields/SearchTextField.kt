@@ -30,15 +30,15 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchTextField(
-    openSearch: MutableState<Boolean>,
+    openSearch: Boolean,
     search : MutableState<TextFieldValue>,
     onUpdateHistory: (String) -> Unit,
     goToListing: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(openSearch.value) {
-        if (openSearch.value) {
+    LaunchedEffect(openSearch) {
+        if (openSearch) {
             if (search.value.text.isNotEmpty()) {
                 search.value = search.value.copy(
                     selection = TextRange(search.value.text.length)

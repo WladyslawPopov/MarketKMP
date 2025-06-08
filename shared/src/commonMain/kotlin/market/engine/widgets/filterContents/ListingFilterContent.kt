@@ -33,7 +33,6 @@ import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.network.networkObjects.Options
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.checkboxs.RadioOptionRow
@@ -46,8 +45,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FilterListingContent(
     isRefreshing: MutableState<Boolean>,
-    listingData: ArrayList<Filter>,
-    regionsOptions: ArrayList<Options>,
+    listingData: List<Filter>,
+    regionsOptions: List<Options>,
+    onClear: () -> Unit,
     onClosed: () -> Unit,
 ) {
     val checkSize: () -> Boolean = {
@@ -167,10 +167,8 @@ fun FilterListingContent(
             title = stringResource(strings.filter),
             isShowClearBtn = isShowClear.value,
             onClear = {
-                listingData.clear()
-                listingData.addAll(ListingFilters.getEmpty())
-                isRefreshing.value = true
                 isShowClear.value = false
+                onClear()
                 onClosed()
             },
             onClosed = {
@@ -466,7 +464,7 @@ fun FilterListingContent(
     }
 }
 
-fun applyFilterLogic(filterKey: String, filterName: String, filters: ArrayList<Filter>) {
+fun applyFilterLogic(filterKey: String, filterName: String, filters: List<Filter>) {
     if (filters.isNotEmpty()) {
         when (filterKey) {
             "buynow" -> {
@@ -584,7 +582,7 @@ fun applyFilterLogic(filterKey: String, filterName: String, filters: ArrayList<F
     }
 }
 
-fun checkActiveSaleType(listFilters: List<Pair<String, String>>, filters: ArrayList<Filter>): String? {
+fun checkActiveSaleType(listFilters: List<Pair<String, String>>, filters: List<Filter>): String? {
     var res : String? = null
 
     listFilters.forEach { filter ->
@@ -602,7 +600,7 @@ fun checkActiveSaleType(listFilters: List<Pair<String, String>>, filters: ArrayL
     return res
 }
 
-fun checkActiveTimeFilter(filters: ArrayList<Filter>): String? {
+fun checkActiveTimeFilter(filters: List<Filter>): String? {
     var res : String? = null
 
     filters.find { it.key == "new" }?.interpretation?.let {

@@ -23,7 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PriceFilter(
-    filters: ArrayList<Filter>,
+    filters: List<Filter>,
     onFiltersUpdated: () -> Unit
 ) {
     val priceFrom = rememberSaveable { mutableStateOf(filters.find { it.key == "current_price" && it.operation == "gte" }?.value ?: "") }

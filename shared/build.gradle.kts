@@ -15,7 +15,7 @@ sqldelight {
         create("MarketDB") {
             packageName.set("market.engine.shared")
             schemaOutputDirectory.set(file("src/main/sqldelight"))
-            version = 11
+            version = 12
             verifyMigrations.set(true)
         }
     }

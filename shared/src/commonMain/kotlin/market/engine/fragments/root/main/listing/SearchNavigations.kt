@@ -137,30 +137,30 @@ fun createSearchChild(
             )
 
             ChildSearch.ListingChild(
-                component = listingFactory(
-                    componentContext,
-                    ld,
-                    selectOffer = {
+                component = DefaultListingComponent(
+                    isOpenSearch = config.isOpenSearch,
+                    isOpenCategory = false,
+                    componentContext = componentContext,
+                    listingData = ld,
+                    selectOffer = { id ->
                         searchNavigation.pushNew(
                             SearchConfig.OfferScreen(
-                                it,
+                                id,
                                 getCurrentDate()
                             )
                         )
                     },
-                    onBack = {
+                    selectedBack = {
                         searchNavigation.pop()
                     },
-                    isOpenCategory = false,
-                    isOpenSearch = config.isOpenSearch,
                     navigateToSubscribe = {
                         navigateToSubscribe()
                     },
-                    navigateToListing = { data ->
+                    navigateToListing = { ld ->
                         searchNavigation.pushNew(
                             SearchConfig.ListingScreen(
-                                data.data.value,
-                                data.searchData.value,
+                                ld.data.value,
+                                ld.searchData.value,
                                 false,
                                 getCurrentDate()
                             )
@@ -171,7 +171,7 @@ fun createSearchChild(
                             SearchConfig.CreateSubscriptionScreen(it)
                         )
                     }
-                ),
+                )
             )
         }
         is SearchConfig.OfferScreen -> ChildSearch.OfferChild(

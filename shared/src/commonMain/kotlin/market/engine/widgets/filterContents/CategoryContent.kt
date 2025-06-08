@@ -42,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CategoryContent(
-    isOpen : MutableState<Boolean>,
+    isOpen : Boolean,
     searchData: SD,
     filters: ArrayList<Filter> = arrayListOf(),
     baseViewModel: BaseViewModel,
@@ -129,8 +129,8 @@ fun CategoryContent(
         }
     }
 
-    LaunchedEffect(isOpen.value){
-        if(isOpen.value){
+    LaunchedEffect(isOpen){
+        if(isOpen){
             searchCategoryId.value = searchData.searchCategoryID
             searchCategoryName.value = searchData.searchCategoryName
             searchParentID.value = searchData.searchParentID
@@ -152,7 +152,7 @@ fun CategoryContent(
             }else {
                 refresh()
             }
-            isOpen.value = false
+//            isOpen.value = false
         }
     }
 

@@ -155,7 +155,7 @@ fun HomeContent(
                         )
                     }
                     item {
-                        FooterRow(homeViewModel.listFooter)
+                        FooterRow(homeViewModel.listFooter.value)
                     }
                 }
             }

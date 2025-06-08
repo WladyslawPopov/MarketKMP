@@ -365,7 +365,7 @@ fun CreateOfferContent(
             sheetGesturesEnabled = false,
             sheetContent = {
                 CategoryContent(
-                    isOpen = viewModel.openFiltersCat,
+                    isOpen = viewModel.openFiltersCat.value,
                     searchData = searchData.value,
                     baseViewModel = viewModel,
                     isCreateOffer = true,

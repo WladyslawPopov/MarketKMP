@@ -42,9 +42,9 @@ import market.engine.fragments.root.main.createSubscription.CreateSubscriptionCo
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
 import market.engine.fragments.root.main.home.ChildHome.*
 import market.engine.fragments.root.main.home.HomeConfig.*
+import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
-import market.engine.fragments.root.main.listing.listingFactory
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.messenger.messengerFactory
@@ -299,15 +299,15 @@ fun createHomeChild(
             data = mutableStateOf(config.listingData)
         )
         ListingChild(
-            component = listingFactory(
-                componentContext,
-                ld,
+            component = DefaultListingComponent(
+                componentContext = componentContext,
+                listingData = ld,
                 selectOffer = {
                     homeNavigation.pushNew(
                         OfferScreen(it, getCurrentDate())
                     )
                 },
-                onBack = {
+                selectedBack = {
                     homeNavigation.pop()
                 },
                 isOpenCategory = false,

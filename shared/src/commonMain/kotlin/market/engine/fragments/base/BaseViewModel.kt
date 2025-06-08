@@ -93,12 +93,12 @@ open class BaseViewModel: ViewModel() {
     val deliveryCards = mutableStateOf(emptyList<DeliveryAddress>())
     val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
 
-    private val _errorMessage = MutableStateFlow(ServerErrorException())
+    val _errorMessage = MutableStateFlow(ServerErrorException())
     val errorMessage: StateFlow<ServerErrorException> = _errorMessage.asStateFlow()
 
     val toastItem = mutableStateOf(ToastItem(message = "", type = ToastType.WARNING, isVisible = false))
 
-    private val _isShowProgress = MutableStateFlow(false)
+    val _isShowProgress = MutableStateFlow(false)
     val isShowProgress: StateFlow<Boolean> = _isShowProgress.asStateFlow()
 
     val viewModelScope = CoroutineScope(Dispatchers.Default)

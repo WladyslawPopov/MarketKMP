@@ -8,20 +8,18 @@ import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.TopCategory
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
-import org.jetbrains.compose.resources.getString
 
 data class HomeUiState(
     val categories: List<Category> = emptyList(),
@@ -38,68 +36,31 @@ class HomeViewModel : BaseViewModel() {
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<OfferItem>>(emptyList())
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<HomeUiState> = combine(
+        _responseCategory,
+        _responseOffersPromotedOnMainPage1,
+        _responseOffersPromotedOnMainPage2,
+        isShowProgress,
+        errorMessage
+    ) { categories, promoOffers1, promoOffers2, isLoading, error ->
+        HomeUiState(
+            categories = categories,
+            promoOffers1 = promoOffers1,
+            promoOffers2 = promoOffers2,
+            isLoading = isLoading,
+            error = error,
+            unreadNotificationsCount = getUnreadNotificationsCount()
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = HomeUiState()
+    )
 
-    val listFooter = mutableListOf<TopCategory>()
+    val listFooter = mutableStateOf<List<TopCategory>>(emptyList())
     val listAppBar = mutableStateOf<List<NavigationItem>>(emptyList())
     val drawerList = mutableStateOf<List<NavigationItem>>(emptyList())
 
-    init {
-        viewModelScope.launch {
-            listFooter.clear()
-            listFooter.addAll(
-                listOf(
-                    TopCategory(
-                        id = 1,
-                        name = getString(strings.homeFixAuction),
-                        icon = drawables.auctionFixIcon
-                    ),
-                    TopCategory(
-                        id = 2,
-                        name = getString(strings.homeManyOffers),
-                        icon = drawables.manyOffersIcon
-                    ),
-                    TopCategory(
-                        id = 3,
-                        name = getString(strings.verifySellers),
-                        icon = drawables.verifySellersIcon
-                    ),
-                    TopCategory(
-                        id = 4,
-                        name = getString(strings.everyDeyDiscount),
-                        icon = drawables.discountBigIcon
-                    ),
-                    TopCategory(
-                        id = 5,
-                        name = getString(strings.freeBilling),
-                        icon = drawables.freeBillingIcon
-                    ),
-                )
-            )
-        }
-
-        viewModelScope.launch {
-            combine(
-                _responseCategory,
-                _responseOffersPromotedOnMainPage1,
-                _responseOffersPromotedOnMainPage2,
-                isShowProgress,
-                errorMessage
-            ) { categories, promoOffers1, promoOffers2, isLoading, error ->
-                HomeUiState(
-                    categories = categories,
-                    promoOffers1 = promoOffers1,
-                    promoOffers2 = promoOffers2,
-                    isLoading = isLoading,
-                    error = error,
-                    unreadNotificationsCount = getUnreadNotificationsCount()
-                )
-            }.collect { state ->
-                _uiState.value = state
-            }
-        }
-    }
 
     fun setCategory(category: List<Category>) {
         _responseCategory.value = category

@@ -41,18 +41,6 @@ data class BasketGroupUiState(
     val isAllSelected: Boolean
 )
 
-interface BasketEvents {
-    fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean)
-    fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean)
-    fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit)
-    fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit)
-    fun onDeleteOffersRequest(ids : List<Long>)
-    fun onExpandClicked(userId: Long, currentOffersSize: Int)
-    fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>)
-    fun onGoToUser(userId: Long)
-    fun onGoToOffer(offerId: Long)
-}
-
 class BasketViewModel: BaseViewModel() {
 
     private var responseGetUserCart = MutableStateFlow<List<Pair<User?, List<OfferItem?>>>>(emptyList())
@@ -86,62 +74,6 @@ class BasketViewModel: BaseViewModel() {
         started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
-
-    fun getEvents(
-        goToCreateOrder: (Pair<Long, List<SelectedBasketItem>>) -> Unit,
-        goToUser: (Long) -> Unit,
-        goToOffer: (Long) -> Unit,
-        onDeleteOffers: (List<Long>) -> Unit,
-    ) : BasketEvents {
-        return object : BasketEvents {
-            override fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean) {
-                this@BasketViewModel.checkSelected(userId, item, isChecked)
-            }
-            override fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean) {
-                if (isChecked) {
-                    allOffers.filter { it?.safeDeal == true }.mapNotNull { it }.forEach { offer ->
-                        this@BasketViewModel.checkSelected(userId, SelectedBasketItem(
-                            offerId = offer.id,
-                            pricePerItem = offer.price.toDouble(),
-                            selectedQuantity = offer.quantity
-                        ), true)
-                    }
-                } else {
-                    this@BasketViewModel.uncheckAll(userId)
-                }
-            }
-            override fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit) {
-                val body = HashMap<String, JsonElement>()
-                body["offer_id"] = JsonPrimitive(offerId)
-                body["quantity"] = JsonPrimitive(newQuantity)
-                this@BasketViewModel.addOfferToBasket(body) { onResult(newQuantity) }
-                this@BasketViewModel.updateQuantityInState(offerId, newQuantity)
-            }
-            override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {
-                this@BasketViewModel.addToFavorites(offer) {
-                    offer.isWatchedByMe = it
-                    onFinish(it)
-                }
-            }
-
-            override fun onDeleteOffersRequest(ids: List<Long>) {
-                onDeleteOffers(ids)
-            }
-
-            override fun onExpandClicked(userId: Long, currentOffersSize: Int) {
-                this@BasketViewModel.clickExpanded(userId, currentOffersSize)
-            }
-            override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
-                goToCreateOrder(Pair(userId, selectedOffers))
-            }
-            override fun onGoToUser(userId: Long) {
-                goToUser(userId)
-            }
-            override fun onGoToOffer(offerId: Long) {
-                goToOffer(offerId)
-            }
-        }
-    }
 
     fun updateQuantityInState(offerId: Long, newQuantity: Int) {
         selectedOffers.value = selectedOffers.value.map { listForUser ->

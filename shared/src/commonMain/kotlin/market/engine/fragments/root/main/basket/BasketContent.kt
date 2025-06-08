@@ -48,8 +48,8 @@ fun BasketContent(
     )
 
     val basketItemsState = viewModel.uiState.collectAsState()
+    val deleteIds = component.deleteIds.subscribeAsState()
 
-    val deleteIds = remember { mutableStateOf(emptyList<Long>()) }
     val showMenu = remember { mutableStateOf(false) }
 
     val subtitle : MutableState<String?> = remember {
@@ -201,20 +201,7 @@ fun BasketContent(
             items(basketItemsState.value, key = { item -> item.user.id }) { itemState ->
                 BasketItemContent(
                     state = itemState,
-                    events = viewModel.getEvents(
-                        goToOffer = {
-                            component.goToOffer(it)
-                        },
-                        goToUser = {
-                            component.goToUser(it)
-                        },
-                        goToCreateOrder = {
-                            component.goToCreateOrder(it)
-                        },
-                        onDeleteOffers = { ids ->
-                            deleteIds.value = ids
-                        }
-                    )
+                    events = modelState.value.events
                 )
             }
         }
@@ -229,13 +216,13 @@ fun BasketContent(
                 }
             },
             onDismiss = {
-                deleteIds.value = emptyList()
+                component.clearDeleteIds()
             },
             onSuccess = {
                 viewModel.deleteItems(
                     deleteIds.value
                 ) {
-                    deleteIds.value = emptyList()
+                    component.clearDeleteIds()
                     refresh()
                 }
             }

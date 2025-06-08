@@ -170,7 +170,7 @@ fun OfferFilterContent(
         sheetGesturesEnabled = false,
         sheetContent = {
             CategoryContent(
-                isOpen = openCategory,
+                isOpen = openCategory.value,
                 searchData = searchData.value,
                 baseViewModel = baseViewModel,
                 isRefresh = isRefreshing,
@@ -491,8 +491,7 @@ fun InputsOfferFilterContent(
                             searchParentID =
                                 filters.find { it.key == "category" }?.value?.toLongOrNull()
                             searchIsLeaf =
-                                filters.find { it.key == "category" }?.operation?.toBoolean()
-                                    ?: false
+                                filters.find { it.key == "category" }?.operation?.toBoolean() == true
                         }
                         openCategory.value = true
                     },

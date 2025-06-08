@@ -12,6 +12,7 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -40,137 +41,58 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.items.Tab
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
+import market.engine.fragments.root.main.listing.ListingUiState
 import market.engine.fragments.root.main.listing.ListingViewModel
+import market.engine.fragments.root.main.listing.SearchEvents
 import market.engine.fragments.root.main.listing.SearchPagesComponents
+import market.engine.fragments.root.main.listing.SearchUiState
+import market.engine.widgets.bars.SimpleAppBar
+import market.engine.widgets.bars.SimpleAppBarData
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.tabs.PageTab
 import market.engine.widgets.tabs.TabRow
+import market.engine.widgets.textFields.SearchTextField
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchContent(
-    openSearch: MutableState<Boolean>,
-    openSearchCategory: MutableState<Boolean>,
-    searchData: SD,
-    searchViewModel : ListingViewModel,
-    catBack : MutableState<Boolean>,
+    uiSearchUiState: SearchUiState,
+    searchEvents: SearchEvents,
     searchPages : Value<ChildPages<*, SearchPagesComponents>>,
-    onTabSelect : (Int) -> Unit,
-    closeSearch : () -> Unit,
-    goToListing : () -> Unit,
 ) {
-    val isErrorSearch = searchViewModel.errorMessage.collectAsState()
-
     val focusManager = LocalFocusManager.current
-
-    val history = searchViewModel.responseHistory.collectAsState()
-
-    val searchStringTextField = remember { mutableStateOf(TextFieldValue(searchData.searchString)) }
-    val searchString = remember { mutableStateOf(searchData.searchString) }
-    val selectedUser = remember { mutableStateOf(searchData.userSearch) }
-    val selectedUserLogin = remember { mutableStateOf(searchData.userLogin) }
-    val selectedUserFinished = remember { mutableStateOf(searchData.searchFinished) }
-
-    val categoryName = remember { mutableStateOf(searchData.searchCategoryName) }
-    val categoryId = remember { mutableStateOf(searchData.searchCategoryID) }
-    val refreshFromCategory = remember { mutableStateOf(false) }
-
     val scaffoldState = rememberBottomSheetScaffoldState()
     val openCategory = remember { mutableStateOf(false) }
+    val refreshFromCategory = remember { mutableStateOf(false) }
 
-    val errorSearch: (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
-        {
-            onError(isErrorSearch.value) {
-                searchViewModel.onError(ServerErrorException())
-            }
-        }
-    } else {
-        null
-    }
-
-    val sd = remember {
-        mutableStateOf(
-            SD(
-                searchCategoryID = searchData.searchCategoryID,
-                searchCategoryName = searchData.searchCategoryName,
-                searchParentID = searchData.searchParentID,
-                searchIsLeaf = searchData.searchIsLeaf,
-            )
+    val sd = remember(uiSearchUiState) {
+        SD(
+            searchCategoryID = uiSearchUiState.searchCategoryID,
+            searchCategoryName = uiSearchUiState.searchCategoryName,
+            searchParentID = uiSearchUiState.searchParentID,
+            searchIsLeaf = uiSearchUiState.searchIsLeaf,
         )
     }
 
-    val getSearchFilters = {
-        searchViewModel.addHistory(
-            searchString.value,
-            if(selectedUserLogin.value == null) selectedUser.value else false,
-            selectedUserFinished.value
-        )
-
-        if (selectedUser.value && selectedUserLogin.value == null){
-            if (searchString.value != "") {
-                searchData.isRefreshing = true
-                searchData.userLogin = searchString.value
-                searchData.userSearch = selectedUser.value
-                searchString.value = ""
-                searchStringTextField.value = TextFieldValue()
-            }
-        }else{
-            if (searchData.userLogin != selectedUserLogin.value){
-                searchData.userLogin = selectedUserLogin.value
-                searchData.isRefreshing = true
-            }
-
-            if (searchData.userSearch != selectedUser.value){
-                searchData.userSearch = selectedUser.value
-                searchData.isRefreshing = true
-            }
-        }
-
-        if (searchData.searchString != searchString.value) {
-            searchData.searchString = searchString.value
-            searchData.isRefreshing = true
-        }
-
-        if (searchData.searchFinished != selectedUserFinished.value){
-            searchData.searchFinished = selectedUserFinished.value
-            searchData.isRefreshing = true
-        }
-
-        searchViewModel.searchAnalytic(searchData)
-    }
-
-    LaunchedEffect(openSearch.value){
-        if (openSearch.value) {
-            searchString.value = searchData.searchString
-            searchStringTextField.value = TextFieldValue(searchData.searchString)
-            selectedUser.value = searchData.userSearch
-            selectedUserLogin.value = searchData.userLogin
-            selectedUserFinished.value = searchData.searchFinished
-            categoryId.value = searchData.searchCategoryID
-            categoryName.value = searchData.searchCategoryName
-
-            searchViewModel.getHistory(searchString.value)
-        }
-    }
-
-    LaunchedEffect(openSearchCategory.value){
-        if (openSearchCategory.value){
+    LaunchedEffect(uiSearchUiState.openCategory){
+        if (uiSearchUiState.openCategory){
             scaffoldState.bottomSheetState.expand()
             focusManager.clearFocus()
         }else{
             scaffoldState.bottomSheetState.collapse()
         }
     }
-
-    val isLoading = searchViewModel.isShowProgress.collectAsState()
 
     val selectedTabIndex = remember {
         mutableStateOf(0)
@@ -185,38 +107,21 @@ fun SearchContent(
         }
     }
 
+
     BaseContent(
-        error = errorSearch,
-        isLoading = isLoading.value,
+        error = null,
+        isLoading = false,
         onRefresh = {
-            searchViewModel.setLoading(true)
-            searchViewModel.onError(ServerErrorException())
-            getSearchFilters()
-            searchViewModel.getHistory(searchString.value)
-            searchViewModel.viewModelScope.launch {
-                delay(1000)
-                searchViewModel.setLoading(false)
-            }
+            searchEvents.onRefresh()
         },
         noFound = null,
-        toastItem = searchViewModel.toastItem,
         topBar = {
             if (!scaffoldState.bottomSheetState.isExpanded) {
-                SearchAppBar(
-                    searchString = searchStringTextField,
-                    onSearchClick = {
-                        getSearchFilters()
-                        goToListing()
-                    },
-                    onUpdateHistory = {
-                        searchString.value = it
-                        searchViewModel.getHistory(it)
-                    },
-                    openSearch = openSearch,
-                    onBeakClick = {
-                        closeSearch()
-                    }
-                )
+                if (uiSearchUiState.appBarData != null) {
+                    SimpleAppBar(
+                        data = uiSearchUiState.appBarData
+                    )
+                }
             }else{
                 TopAppBar(
                     modifier = Modifier
@@ -230,7 +135,7 @@ fun SearchContent(
                             drawables.closeBtn,
                             colors.black
                         ){
-                            openSearchCategory.value = false
+//                            openSearchCategory.value = false
                         }
                     }
                 )
@@ -248,28 +153,28 @@ fun SearchContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                CategoryContent(
-                    isOpen = openCategory,
-                    searchData = sd.value,
-                    baseViewModel = searchViewModel,
-                    isRefresh = refreshFromCategory,
-                    isFilters = true,
-                    onBackClicked = catBack
-                ){
-                    if (refreshFromCategory.value){
-                        categoryId.value = sd.value.searchCategoryID
-                        categoryName.value = sd.value.searchCategoryName
-
-                        searchData.searchCategoryID = sd.value.searchCategoryID
-                        searchData.searchCategoryName = sd.value.searchCategoryName
-                        searchData.searchParentID = sd.value.searchParentID
-                        searchData.searchIsLeaf = sd.value.searchIsLeaf
-                        searchData.isRefreshing = true
-
-                        refreshFromCategory.value = false
-                    }
-                    openSearchCategory.value = false
-                }
+//                CategoryContent(
+//                    isOpen = openCategory.value,
+//                    searchData = sd.value,
+//                    baseViewModel = searchViewModel,
+//                    isRefresh = refreshFromCategory,
+//                    isFilters = true,
+//                    onBackClicked = catBack
+//                ){
+//                    if (refreshFromCategory.value){
+//                        categoryId.value = sd.value.searchCategoryID
+//                        categoryName.value = sd.value.searchCategoryName
+//
+//                        searchData.searchCategoryID = sd.value.searchCategoryID
+//                        searchData.searchCategoryName = sd.value.searchCategoryName
+//                        searchData.searchParentID = sd.value.searchParentID
+//                        searchData.searchIsLeaf = sd.value.searchIsLeaf
+//                        searchData.isRefreshing = true
+//
+//                        refreshFromCategory.value = false
+//                    }
+////                    openSearchCategory.value = false
+//                }
             },
         ) { padding ->
             Column(
@@ -292,34 +197,11 @@ fun SearchContent(
                 ) {
                     Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
 
-                    FiltersSearchBar(
-                        selectedCategory = categoryName,
-                        selectedCategoryID = categoryId,
-                        selectedUser = selectedUser,
-                        selectedUserLogin = selectedUserLogin,
-                        selectedUserFinished = selectedUserFinished,
-                        goToCategory = {
-                            sd.value = SD(
-                                searchCategoryID = searchData.searchCategoryID,
-                                searchCategoryName = searchData.searchCategoryName,
-                                searchParentID = searchData.searchParentID,
-                                searchIsLeaf = searchData.searchIsLeaf,
-                            )
-
-                            openCategory.value = true
-                            openSearchCategory.value = true
-                        },
-                        clearCategory = {
-                            categoryId.value = 1L
-                            categoryName.value = searchViewModel.catDef.value
-                            searchData.clear(searchViewModel.catDef.value)
-                        }
-                    )
+                    FiltersSearchBar(uiSearchUiState, searchEvents)
 
                     TabRow(
                         tabs,
                         selectedTab = selectedTabIndex.value,
-                        edgePadding = dimens.smallPadding,
                         containerColor = colors.primaryColor,
                         modifier = Modifier.fillMaxWidth(),
                     ){ index, tab ->
@@ -329,7 +211,7 @@ fun SearchContent(
                             currentIndex = index,
                             textStyle = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.clickable {
-                                onTabSelect(index)
+                                searchEvents.onTabSelect(index)
                             },
                         )
                     }
@@ -338,7 +220,7 @@ fun SearchContent(
                         pages = searchPages,
                         scrollAnimation = PagesScrollAnimation.Default,
                         onPageSelected = {
-                            onTabSelect(it)
+                            searchEvents.onTabSelect(it)
                             selectedTabIndex.value = it
                             focusManager.clearFocus()
                         }
@@ -346,36 +228,19 @@ fun SearchContent(
                         when(page){
                             is SearchPagesComponents.HistoryChild -> {
                                 HistoryLayout(
-                                    historyItems = history.value,
+                                    historyItems = uiSearchUiState.searchHistory,
                                     modifier = Modifier.fillMaxSize().padding(horizontal = dimens.smallPadding),
                                     onItemClick = { item ->
-                                        searchString.value = item.query
-                                        selectedUser.value = item.isUsersSearch
-                                        selectedUserFinished.value = item.isFinished
-                                        searchStringTextField.value =
-                                            searchStringTextField.value.copy(
-                                                text = item.query,
-                                                selection = TextRange(item.query.length)
-                                            )
-                                        searchViewModel.deleteItemHistory(item.id)
+                                        searchEvents.editHistoryItem(item)
                                     },
                                     onClearHistory = {
-                                        searchViewModel.deleteHistory()
+                                        searchEvents.onDeleteHistory()
                                     },
                                     onDeleteItem = {
-                                        searchViewModel.deleteItemHistory(it)
+                                        searchEvents.onDeleteHistoryItem(it)
                                     },
                                     goToListing = { item ->
-                                        searchString.value = item.query
-                                        selectedUser.value = item.isUsersSearch
-                                        selectedUserFinished.value = item.isFinished
-                                        searchStringTextField.value =
-                                            searchStringTextField.value.copy(
-                                                text = item.query,
-                                                selection = TextRange(item.query.length)
-                                            )
-                                        getSearchFilters()
-                                        goToListing()
+                                        searchEvents.onHistoryItemClicked(item)
                                     }
                                 )
                             }
@@ -394,8 +259,7 @@ fun SearchContent(
                     Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f)
                         .padding(dimens.smallPadding),
                 ) {
-                    getSearchFilters()
-                    goToListing()
+                    searchEvents.goToListing()
                 }
             }
         }

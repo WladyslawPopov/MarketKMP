@@ -38,9 +38,9 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
-import market.engine.fragments.root.main.listing.listingFactory
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.messenger.messengerFactory
@@ -212,15 +212,15 @@ fun createFavoritesChild(
                 data = mutableStateOf(config.listingData)
             )
             ChildFavorites.ListingChild(
-                component = listingFactory(
-                    componentContext,
-                    ld,
+                component = DefaultListingComponent(
+                    componentContext = componentContext,
+                    listingData = ld,
                     selectOffer = {
                         favoritesNavigation.pushNew(
                             FavoritesConfig.OfferScreen(it, getCurrentDate())
                         )
                     },
-                    onBack = {
+                    selectedBack = {
                         favoritesNavigation.pop()
                     },
                     isOpenCategory = false,
@@ -236,7 +236,8 @@ fun createFavoritesChild(
                         favoritesNavigation.pushNew(
                             FavoritesConfig.CreateSubscriptionScreen(it)
                         )
-                    }
+                    },
+                    isOpenSearch = false
                 )
             )
         }
