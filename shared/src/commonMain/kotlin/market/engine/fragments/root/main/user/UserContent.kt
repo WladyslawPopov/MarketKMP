@@ -67,7 +67,7 @@ fun UserContent(
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
         {
-            onError(isError) {
+            onError(isError.value) {
                 userViewModel.onError(ServerErrorException())
                 component.updateUserInfo()
             }

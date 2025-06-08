@@ -36,7 +36,7 @@ fun NotificationsHistoryContent(
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
         {
-            onError(err)
+            onError(err.value)
             {
                 viewModel.onError(ServerErrorException())
             }

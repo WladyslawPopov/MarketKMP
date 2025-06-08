@@ -137,7 +137,7 @@ fun ProposalContent(
     val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
         {
             onError(
-                isError
+                isError.value
             ){
                 component.update()
             }

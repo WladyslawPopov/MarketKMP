@@ -97,7 +97,7 @@ fun FavoritesContent(
 
     val err = favViewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err) { component.onRefresh() } }
+        { onError(err.value) { component.onRefresh() } }
     }else{
         null
     }

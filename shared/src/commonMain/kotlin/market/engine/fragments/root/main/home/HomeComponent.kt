@@ -7,11 +7,9 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.launch
-import market.engine.common.AnalyticsFactory
 import market.engine.common.Platform
 import market.engine.common.getPermissionHandler
 import market.engine.common.openUrl
-import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.filtersObjects.ListingFilters
@@ -25,21 +23,11 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.TopCategory
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.deleteReadNotifications
 import org.jetbrains.compose.resources.getString
-import org.koin.mp.KoinPlatform.getKoin
 
-interface HomeComponent {
-    val model: Value<Model>
-    data class Model(
-        val listingData: ListingData,
-        val homeViewModel: HomeViewModel,
-        val backHandler: BackHandler
-    )
-
+interface HomeEvents {
     fun onRefresh()
-
     fun goToLogin()
     fun goToOffer(id: Long)
     fun goToNewSearch()
@@ -51,6 +39,16 @@ interface HomeComponent {
     fun goToAppSettings()
     fun goToMyProposals()
     fun goToNotificationHistory()
+}
+
+interface HomeComponent {
+    val model: Value<Model>
+    data class Model(
+        val listingData: ListingData,
+        val homeViewModel: HomeViewModel,
+        val backHandler: BackHandler,
+        val events: HomeEvents
+    )
 }
 
 class DefaultHomeComponent(
@@ -69,9 +67,9 @@ class DefaultHomeComponent(
 
     private val homeViewModel: HomeViewModel = HomeViewModel()
 
-    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
+    private val analyticsHelper = homeViewModel.analyticsHelper
 
-    private val userRepository : UserRepository = getKoin().get()
+    private val userRepository = homeViewModel.userRepository
 
     private val listingData = ListingData()
 
@@ -79,7 +77,75 @@ class DefaultHomeComponent(
         HomeComponent.Model(
             listingData,
             homeViewModel,
-            backHandler
+            backHandler,
+            events = object : HomeEvents {
+                    override fun onRefresh() {
+                        updateModel()
+                    }
+
+                    override fun goToLogin() {
+                        navigateToLoginSelected()
+                    }
+
+                    override fun goToOffer(id: Long) {
+                        navigateToOfferSelected(id)
+                    }
+
+                    override fun goToNewSearch() {
+                        navigateToListingSelected(listingData, true)
+                    }
+
+                    override fun goToCategory(category: TopCategory) {
+                        listingData.searchData.value.searchCategoryID = category.id
+                        listingData.searchData.value.searchParentID = category.parentId
+                        listingData.searchData.value.searchCategoryName = category.name
+                        listingData.searchData.value.searchParentName = category.parentName
+
+                        navigateToListingSelected(listingData, false)
+                    }
+
+                    override fun goToAllPromo() {
+                        listingData.data.value.filters = ListingFilters.getEmpty()
+                        model.value.homeViewModel.viewModelScope.launch {
+                            val allPromo = getString(strings.allPromoOffersBtn)
+
+                            listingData.data.value.filters.find {
+                                    filter -> filter.key == "promo_main_page"
+                            }?.value = "promo_main_page"
+                            listingData.data.value.filters.find {
+                                    filter -> filter.key == "promo_main_page"
+                            }?.interpretation = allPromo
+
+                            listingData.searchData.value.clear(allPromo)
+
+                            navigateToListingSelected(listingData, false)
+                        }
+                    }
+
+                    override fun goToCreateOffer() {
+                        navigateToCreateOfferSelected()
+                    }
+
+                    override fun goToMessenger() {
+                        navigateToMessengerSelected()
+                    }
+
+                    override fun goToContactUs() {
+                        navigateToContactUsSelected()
+                    }
+
+                    override fun goToAppSettings() {
+                        navigateToSettingsSelected()
+                    }
+
+                    override fun goToMyProposals() {
+                        navigateToMyProposalsSelected()
+                    }
+
+                    override fun goToNotificationHistory() {
+                        navigateToNotificationHistorySelected()
+                    }
+                }
         )
     )
 
@@ -92,7 +158,7 @@ class DefaultHomeComponent(
         analyticsHelper.reportEvent("view_main_page", mapOf())
 
         lifecycle.doOnResume {
-            if (homeViewModel.responseOffersPromotedOnMainPage1.value.isEmpty()){
+            if (homeViewModel.uiState.value.promoOffers1.isEmpty()){
                 updateModel()
             }
 
@@ -112,73 +178,6 @@ class DefaultHomeComponent(
         getAppBarList()
     }
 
-    override fun onRefresh() {
-        updateModel()
-    }
-
-    override fun goToLogin() {
-        navigateToLoginSelected()
-    }
-
-    override fun goToOffer(id: Long) {
-        navigateToOfferSelected(id)
-    }
-
-    override fun goToNewSearch() {
-        navigateToListingSelected(listingData, true)
-    }
-
-    override fun goToCategory(category: TopCategory) {
-        listingData.searchData.value.searchCategoryID = category.id
-        listingData.searchData.value.searchParentID = category.parentId
-        listingData.searchData.value.searchCategoryName = category.name
-        listingData.searchData.value.searchParentName = category.parentName
-
-        navigateToListingSelected(listingData, false)
-    }
-
-    override fun goToAllPromo() {
-        listingData.data.value.filters = ListingFilters.getEmpty()
-        model.value.homeViewModel.viewModelScope.launch {
-            val allPromo = getString(strings.allPromoOffersBtn)
-
-            listingData.data.value.filters.find {
-                    filter -> filter.key == "promo_main_page"
-            }?.value = "promo_main_page"
-            listingData.data.value.filters.find {
-                    filter -> filter.key == "promo_main_page"
-            }?.interpretation = allPromo
-
-            listingData.searchData.value.clear(allPromo)
-
-            navigateToListingSelected(listingData, false)
-        }
-    }
-
-    override fun goToCreateOffer() {
-        navigateToCreateOfferSelected()
-    }
-
-    override fun goToMessenger() {
-        navigateToMessengerSelected()
-    }
-
-    override fun goToContactUs() {
-        navigateToContactUsSelected()
-    }
-
-    override fun goToAppSettings() {
-        navigateToSettingsSelected()
-    }
-
-    override fun goToMyProposals() {
-        navigateToMyProposalsSelected()
-    }
-
-    override fun goToNotificationHistory() {
-        navigateToNotificationHistorySelected()
-    }
-
     fun getAppBarList() {
         homeViewModel.viewModelScope.launch {
             val userInfo = UserData.userInfo
@@ -190,7 +189,7 @@ class DefaultHomeComponent(
                     hasNews = false,
                     isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
                     badgeCount = null,
-                    onClick = {onRefresh()}
+                    onClick = { model.value.events.onRefresh() }
                 ),
                 NavigationItem(
                     title = getString(strings.proposalTitle),
@@ -200,7 +199,7 @@ class DefaultHomeComponent(
                     badgeCount = userInfo?.countUnreadPriceProposals,
                     isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
                     onClick = {
-                        goToMyProposals()
+                        model.value.events.goToMyProposals()
                     }
                 ),
                 NavigationItem(
@@ -212,7 +211,7 @@ class DefaultHomeComponent(
                             ?: 0) > 0
                     ) (userInfo?.countUnreadMessages ?: 0) else null,
                     onClick = {
-                        goToMessenger()
+                        model.value.events.goToMessenger()
                     }
                 ),
                 NavigationItem(
@@ -258,7 +257,7 @@ class DefaultHomeComponent(
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        goToContactUs()
+                        model.value.events.goToContactUs()
                     }
                 ),
                 NavigationItem(
@@ -292,7 +291,7 @@ class DefaultHomeComponent(
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        goToAppSettings()
+                        model.value.events.goToAppSettings()
                     }
                 ),
             )

@@ -234,7 +234,7 @@ fun OfferContent(
     }
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
-        { onError(isError) {
+        { onError(isError.value) {
             showOperationsDialog.value = ""
             component.updateOffer(lotState.value?.id ?: 1L, model.isSnapshot)
         } }

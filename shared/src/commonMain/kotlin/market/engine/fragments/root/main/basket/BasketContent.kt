@@ -116,7 +116,7 @@ fun BasketContent(
     val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
         {
             onError(
-                isError
+                isError.value
             ){
                 viewModel.onError(ServerErrorException())
                 viewModel.getUserCart()

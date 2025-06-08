@@ -69,7 +69,7 @@ fun SubscriptionsContent(
     val err = subViewModel.errorMessage.collectAsState()
 
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err) { refresh() } }
+        { onError(err.value) { refresh() } }
     }else{
         null
     }

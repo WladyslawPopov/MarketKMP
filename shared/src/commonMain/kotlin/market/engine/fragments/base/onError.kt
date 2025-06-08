@@ -1,7 +1,6 @@
 package market.engine.fragments.base
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -17,11 +16,11 @@ import org.koin.compose.koinInject
 
 @Composable
 fun onError(
-    error : State<ServerErrorException>,
+    error : ServerErrorException,
     onRefresh: () -> Unit,
 ) {
-    val humanMessage = remember {  mutableStateOf(error.value.humanMessage) }
-    val errorCode = remember {  mutableStateOf(error.value.errorCode) }
+    val humanMessage = remember {  mutableStateOf(error.humanMessage) }
+    val errorCode = remember {  mutableStateOf(error.errorCode) }
 
     val analyticsHelper = remember { AnalyticsFactory.getAnalyticsHelper() }
     val userRepository : UserRepository = koinInject()
@@ -75,8 +74,10 @@ fun onError(
                         showDialog = showDialog.value,
                         title = richTextState.setHtml(humanMessage.value).annotatedString,
                         onDismiss = {
-                            error.value.errorCode = ""
-                            error.value.humanMessage = ""
+                            error.errorCode = ""
+                            error.humanMessage = ""
+                            humanMessage.value = ""
+                            errorCode.value = ""
                             showDialog.value = false
                             onRefresh()
                         }

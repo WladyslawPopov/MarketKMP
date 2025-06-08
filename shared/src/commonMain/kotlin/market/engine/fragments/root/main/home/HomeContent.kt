@@ -36,26 +36,22 @@ fun HomeContent(
     modifier: Modifier = Modifier
 ) {
     val defCat = stringResource(strings.categoryMain)
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val homeViewModel = model.homeViewModel
-    val isLoading = homeViewModel.isShowProgress.collectAsState()
 
-    val err = homeViewModel.errorMessage.collectAsState()
-
-    val categories = homeViewModel.responseCategory.collectAsState()
-    val promoOffer1 = homeViewModel.responseOffersPromotedOnMainPage1.collectAsState()
-    val promoOffer2 = homeViewModel.responseOffersPromotedOnMainPage2.collectAsState()
+    val uiState = homeViewModel.uiState.collectAsState()
+    val state = uiState.value
 
     val listTopCategory = remember { listTopCategory }
+    val events = remember { model.events }
 
-    val errorContent: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-                { onError(err) { component.onRefresh() } }
-            } else {
-                null
-            }
+    val errorContent: (@Composable () -> Unit)? = if (state.error.humanMessage.isNotBlank()) {
+        { onError(state.error) { events.onRefresh() } }
+    } else {
+        null
+    }
 
     BackHandler(model.backHandler){}
 
@@ -80,11 +76,11 @@ fun HomeContent(
                 listItems = homeViewModel.listAppBar.value
             )
         },
-        isLoading = isLoading.value,
-        onRefresh = { component.onRefresh() },
+        isLoading = state.isLoading,
+        onRefresh = { events.onRefresh() },
         floatingActionButton = {
             floatingCreateOfferButton {
-                component.goToCreateOffer()
+                events.goToCreateOffer()
             }
         },
         error = errorContent,
@@ -99,7 +95,7 @@ fun HomeContent(
                 DrawerContent(
                     drawerState = drawerState,
                     goToLogin = {
-                        component.goToLogin()
+                        events.goToLogin()
                     },
                     list = homeViewModel.drawerList.value
                 )
@@ -111,7 +107,7 @@ fun HomeContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 SearchBar {
-                    component.goToNewSearch()
+                    events.goToNewSearch()
                 }
 
                 LazyColumnWithScrollBars(
@@ -119,7 +115,7 @@ fun HomeContent(
                 ) {
                     item {
                         CategoryList(
-                            categories = categories.value
+                            categories = state.categories
                         ) { category ->
                             val cat = TopCategory(
                                 id = category.id,
@@ -128,33 +124,33 @@ fun HomeContent(
                                 parentName = null,
                                 icon = drawables.infoIcon
                             )
-                            component.goToCategory(cat)
+                            events.goToCategory(cat)
                         }
                     }
                     item {
                         GridPromoOffers(
-                            promoOffer1.value,
+                            state.promoOffers1,
                             onOfferClick = {
-                                component.goToOffer(it)
+                                events.goToOffer(it)
                             },
                             onAllClickButton = {
-                                component.goToAllPromo()
+                                events.goToAllPromo()
                             }
                         )
                     }
                     item {
                         GridPopularCategory(listTopCategory) { topCategory ->
-                            component.goToCategory(topCategory)
+                            events.goToCategory(topCategory)
                         }
                     }
                     item {
                         GridPromoOffers(
-                            promoOffer2.value,
+                            state.promoOffers2,
                             onOfferClick = {
-                                component.goToOffer(it)
+                                events.goToOffer(it)
                             },
                             onAllClickButton = {
-                                component.goToAllPromo()
+                                events.goToAllPromo()
                             }
                         )
                     }

@@ -52,7 +52,7 @@ fun RegistrationContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err) {
+        { onError(err.value) {
             model.getRegFields()
             model.onError(ServerErrorException())
         } }

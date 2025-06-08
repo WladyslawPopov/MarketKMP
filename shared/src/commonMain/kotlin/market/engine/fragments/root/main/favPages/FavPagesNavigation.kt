@@ -75,7 +75,7 @@ fun FavPagesNavigation(
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         {
-            onError(err) {
+            onError(err.value) {
                 isClicked.value = false
                 component.onRefresh()
             }

@@ -85,7 +85,7 @@ fun MyProposalsContent(
 
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err) { refresh() } }
+        { onError(err.value) { refresh() } }
     }else{
         null
     }

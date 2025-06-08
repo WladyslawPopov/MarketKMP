@@ -72,7 +72,7 @@ fun ContactUsContent(
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         {
-            onError(err) {
+            onError(err.value) {
                 model.onError(ServerErrorException())
                 model.getFields()
             }

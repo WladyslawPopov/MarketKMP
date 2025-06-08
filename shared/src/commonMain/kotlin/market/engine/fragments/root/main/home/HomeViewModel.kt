@@ -10,6 +10,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -22,21 +23,26 @@ import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
+data class HomeUiState(
+    val categories: List<Category> = emptyList(),
+    val promoOffers1: List<OfferItem> = emptyList(),
+    val promoOffers2: List<OfferItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: ServerErrorException = ServerErrorException(),
+    val unreadNotificationsCount: Int? = null
+)
+
 class HomeViewModel : BaseViewModel() {
 
     private val _responseOffersPromotedOnMainPage1 = MutableStateFlow<List<OfferItem>>(emptyList())
-    val responseOffersPromotedOnMainPage1: StateFlow<List<OfferItem>> = _responseOffersPromotedOnMainPage1.asStateFlow()
-
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<OfferItem>>(emptyList())
-    val responseOffersPromotedOnMainPage2: StateFlow<List<OfferItem>> = _responseOffersPromotedOnMainPage2.asStateFlow()
-
     private val _responseCategory = MutableStateFlow<List<Category>>(emptyList())
-    val responseCategory: StateFlow<List<Category>> = _responseCategory.asStateFlow()
+
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     val listFooter = mutableListOf<TopCategory>()
-
     val listAppBar = mutableStateOf<List<NavigationItem>>(emptyList())
-
     val drawerList = mutableStateOf<List<NavigationItem>>(emptyList())
 
     init {
@@ -71,6 +77,27 @@ class HomeViewModel : BaseViewModel() {
                     ),
                 )
             )
+        }
+
+        viewModelScope.launch {
+            combine(
+                _responseCategory,
+                _responseOffersPromotedOnMainPage1,
+                _responseOffersPromotedOnMainPage2,
+                isShowProgress,
+                errorMessage
+            ) { categories, promoOffers1, promoOffers2, isLoading, error ->
+                HomeUiState(
+                    categories = categories,
+                    promoOffers1 = promoOffers1,
+                    promoOffers2 = promoOffers2,
+                    isLoading = isLoading,
+                    error = error,
+                    unreadNotificationsCount = getUnreadNotificationsCount()
+                )
+            }.collect { state ->
+                _uiState.value = state
+            }
         }
     }
 

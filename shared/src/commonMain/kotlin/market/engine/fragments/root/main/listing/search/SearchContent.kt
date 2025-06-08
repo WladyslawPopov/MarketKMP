@@ -88,7 +88,7 @@ fun SearchContent(
 
     val errorSearch: (@Composable () -> Unit)? = if (isErrorSearch.value.humanMessage != "") {
         {
-            onError(isErrorSearch) {
+            onError(isErrorSearch.value) {
                 searchViewModel.onError(ServerErrorException())
             }
         }
