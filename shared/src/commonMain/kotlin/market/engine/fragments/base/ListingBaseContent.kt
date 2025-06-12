@@ -13,6 +13,7 @@ import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -31,7 +32,7 @@ import market.engine.widgets.grids.PagingList
 
 @Composable
 fun <T : Any>ListingBaseContent(
-    columns : MutableState<Int> = mutableStateOf(1),
+    columns : Int = 1,
     listingData : LD,
     searchData : SD,
     data : LazyPagingItems<T>,
@@ -51,6 +52,8 @@ fun <T : Any>ListingBaseContent(
     modifier : Modifier = Modifier
 ){
     val isRefreshingFromFilters = remember { mutableStateOf(false) }
+
+    val activeFiltersType = baseViewModel.activeFiltersType.collectAsState()
 
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(baseViewModel.bottomSheetState.value)
@@ -107,11 +110,11 @@ fun <T : Any>ListingBaseContent(
         }
     }
 
-    LaunchedEffect(baseViewModel.activeFiltersType.value){
+    LaunchedEffect(activeFiltersType.value){
         snapshotFlow {
-            baseViewModel.activeFiltersType
+            activeFiltersType.value
         }.collect { type ->
-            if (type.value.isNotEmpty()) {
+            if (type.isNotEmpty()) {
                 scaffoldState.bottomSheetState.expand()
             } else {
                 scaffoldState.bottomSheetState.collapse()
@@ -121,7 +124,7 @@ fun <T : Any>ListingBaseContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if(baseViewModel.activeFiltersType.value == "" || baseViewModel.activeFiltersType.value == "categories"){
+        if(activeFiltersType.value == "" || activeFiltersType.value == "categories"){
             additionalBar(scrollState)
         }
 
@@ -134,7 +137,7 @@ fun <T : Any>ListingBaseContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                if (baseViewModel.activeFiltersType.value != "") {
+                if (activeFiltersType.value != "") {
                     filtersContent?.invoke(isRefreshingFromFilters) {
                         baseViewModel.activeFiltersType.value = ""
                     }
@@ -167,7 +170,7 @@ fun <T : Any>ListingBaseContent(
                             listingData = listingData,
                             isReversingPaging = isReversingPaging,
                             searchData = searchData,
-                            columns = columns.value,
+                            columns = columns,
                             content = {
                                 item(it)
                             },

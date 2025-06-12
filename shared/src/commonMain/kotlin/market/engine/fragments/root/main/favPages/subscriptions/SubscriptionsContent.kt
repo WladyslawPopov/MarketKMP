@@ -114,7 +114,7 @@ fun SubscriptionsContent(
                 data.refresh()
             },
             noFound = noFound,
-            columns = columns,
+            columns = columns.value,
             filtersContent = { isRefreshingFromFilters , onClose ->
                 when (subViewModel.activeFiltersType.value){
                     "sorting" -> SortingOrdersContent(
@@ -137,19 +137,19 @@ fun SubscriptionsContent(
                         component.goToCreateNewSubscription()
                     }
 
-                    if (listingData.value.sort != null){
-                        if (listingData.value.sort != null){
-                            ActiveFilterListingItem(
-                                text = listingData.value.sort?.interpretation ?: "",
-                                removeFilter = {
-                                    listingData.value.sort = null
-                                    refresh()
-                                },
-                            ){
-                                subViewModel.activeFiltersType.value = "sorting"
-                            }
-                        }
-                    }
+//                    if (listingData.value.sort != null){
+//                        if (listingData.value.sort != null){
+//                            ActiveFilterListingItem(
+//                                text = listingData.value.sort?.interpretation ?: "",
+//                                removeFilter = {
+//                                    listingData.value.sort = null
+//                                    refresh()
+//                                },
+//                            ){
+//                                subViewModel.activeFiltersType.value = "sorting"
+//                            }
+//                        }
+//                    }
 
                     SmallIconButton(
                         drawables.sortIcon,

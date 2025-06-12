@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SearchHistoryItem
@@ -25,20 +26,13 @@ import market.engine.core.utils.printLogD
 import market.engine.fragments.root.main.favPages.itemSubscriptions
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 
-interface ListingEvents {
-    fun onRefresh()
-    fun onOpenCategory(value: Boolean)
-    fun onOpenSearch(value: Boolean)
-    fun goToOffer(offer: OfferItem, isTopPromo: Boolean = false)
-    fun goToSubscribe()
-}
-
 interface SearchEvents {
     fun onRefresh()
     fun goToListing()
     fun onDeleteHistory()
     fun onDeleteHistoryItem(id: Long)
-    fun goToCategory()
+    fun openSearchCategory(value : Boolean)
+    fun completeCategory(sd: SD)
     fun clearCategory()
     fun clickUser()
     fun clearUser()
@@ -53,7 +47,6 @@ interface ListingComponent {
     data class Model(
         val listingViewModel: ListingViewModel,
         val backHandler: BackHandler,
-        val events: ListingEvents,
         val searchEvents: SearchEvents
     )
 
@@ -63,6 +56,8 @@ interface ListingComponent {
     fun goBack()
     fun goToSubscribe()
     fun onTabSelect(tab: Int)
+
+    var refresh : () -> Unit
 }
 
 class DefaultListingComponent(
@@ -77,40 +72,12 @@ class DefaultListingComponent(
     private val navigateToNewSubscription: (Long?) -> Unit,
 ) : ListingComponent, ComponentContext by componentContext {
 
-    private val listingViewModel : ListingViewModel = ListingViewModel()
+    private val listingViewModel : ListingViewModel = ListingViewModel(this)
 
     private val _model = MutableValue(
         ListingComponent.Model(
             listingViewModel = listingViewModel,
             backHandler = backHandler,
-            events = object : ListingEvents {
-                override fun onRefresh() {
-                    listingViewModel.onError(ServerErrorException())
-                    listingViewModel.updateUserInfo()
-                    listingViewModel.resetScroll()
-                    listingViewModel.refresh()
-                    listingViewModel.updateItemTrigger.value++
-                }
-
-                override fun onOpenCategory(value: Boolean) {
-                    listingViewModel.changeOpenCategory(value)
-                }
-
-                override fun onOpenSearch(value: Boolean) {
-                    listingViewModel.changeOpenSearch(value)
-                }
-
-                override fun goToOffer(
-                    offer: OfferItem,
-                    isTopPromo: Boolean
-                ) {
-                    this@DefaultListingComponent.goToOffer(offer, isTopPromo)
-                }
-
-                override fun goToSubscribe() {
-                    this@DefaultListingComponent.goToSubscribe()
-                }
-            },
             searchEvents = object : SearchEvents {
                 override fun onRefresh() {
                     listingViewModel.setLoading(true)
@@ -124,7 +91,6 @@ class DefaultListingComponent(
                 }
 
                 override fun goToListing() {
-                    listingViewModel.setSearchFilters()
                     listingViewModel.changeOpenSearch(false)
                 }
 
@@ -136,8 +102,12 @@ class DefaultListingComponent(
                     listingViewModel.deleteItemHistory(id)
                 }
 
-                override fun goToCategory() {
-                    listingViewModel.openSearchCategory()
+                override fun openSearchCategory(value : Boolean) {
+                    listingViewModel.openSearchCategory(value)
+                }
+
+                override fun completeCategory(sd: SD) {
+                    listingViewModel.openSearchCategory(false)
                 }
 
                 override fun clearCategory() {
@@ -166,6 +136,7 @@ class DefaultListingComponent(
 
                 override fun onTabSelect(tab: Int) {
                     navigator.select(tab)
+                    listingViewModel.changeSearchTab(tab)
                 }
             }
         )
@@ -228,8 +199,8 @@ class DefaultListingComponent(
 
         if(isOpenCategory)
             listingViewModel.activeFiltersType.value = "categories"
-
-        listingViewModel.changeOpenSearch(isOpenSearch)
+        if(isOpenSearch)
+            listingViewModel.changeOpenSearch(isOpenSearch)
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
@@ -294,6 +265,8 @@ class DefaultListingComponent(
     override fun onTabSelect(tab: Int) {
         navigator.select(tab)
     }
+
+    override var refresh = {}
 }
 
 @Serializable

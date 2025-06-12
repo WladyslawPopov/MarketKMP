@@ -136,7 +136,7 @@ fun VerificationContent(
 
 
                         AcceptedPageButton(
-                            strings.actionChangeLabel
+                            stringResource(strings.actionChangeLabel)
                         ){
                             viewModel.postSetPassword(model.owner, textState.value) {
                                 component.onBack()
@@ -190,7 +190,7 @@ fun VerificationContent(
 
 
                         AcceptedPageButton(
-                            strings.acceptAction
+                            stringResource(strings.acceptAction)
                         ){
                             viewModel.postSetPhone(textState.value) {
                                 component.onBack()
@@ -245,7 +245,7 @@ fun VerificationContent(
 
 
                             AcceptedPageButton(
-                                strings.actionChangeLabel
+                                stringResource(strings.actionChangeLabel)
                             ) {
                                 viewModel.postSetEmail(textState.value) {
                                     component.onBack()

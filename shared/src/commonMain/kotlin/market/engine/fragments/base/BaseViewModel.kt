@@ -71,7 +71,7 @@ open class BaseViewModel: ViewModel() {
     //filters params
     val catBack = mutableStateOf(false)
     val openFiltersCat = mutableStateOf(false)
-    var activeFiltersType : MutableState<String> = mutableStateOf("")
+    val activeFiltersType = MutableStateFlow("")
     var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed)
     var scrollItem : MutableState<Int> = mutableStateOf(0)
     var offsetScrollItem : MutableState<Int> = mutableStateOf(0)

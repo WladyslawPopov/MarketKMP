@@ -6,29 +6,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.flow.collectLatest
-import market.engine.common.Platform
-import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
+import market.engine.widgets.bars.SimpleAppBar
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.items.BasketItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -41,53 +32,22 @@ fun BasketContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val viewModel = modelState.value.basketViewModel
-    val isLoading = modelState.value.basketViewModel.isShowProgress.collectAsState()
-    val isError = modelState.value.basketViewModel.errorMessage.collectAsState()
+
     val state = rememberLazyListState(
         initialFirstVisibleItemIndex = viewModel.firstVisibleItem.value
     )
 
-    val basketItemsState = viewModel.uiState.collectAsState()
-    val deleteIds = component.deleteIds.subscribeAsState()
+    val basketState = viewModel.uiState.collectAsState()
+    val basketItemsState = viewModel.uiDataState.collectAsState()
+    val deleteIds = viewModel.deleteIds.collectAsState()
 
-    val showMenu = remember { mutableStateOf(false) }
+    val isLoading = basketState.value.isLoading
+    val isError = basketState.value.errorMessage
 
-    val subtitle : MutableState<String?> = remember {
-        mutableStateOf(null)
-    }
-
-    BackHandler(
+        BackHandler(
         modelState.value.backHandler
     ){
 
-    }
-
-    val oneOffer = stringResource(strings.oneOfferLabel)
-    val manyOffers = stringResource(strings.manyOffersLabel)
-    val exManyOffers = stringResource(strings.exManyOffersLabel)
-    val menuString = stringResource(strings.menuTitle)
-    val clearBasketString = stringResource(strings.actionClearBasket)
-
-    LaunchedEffect(Unit){
-        snapshotFlow {
-            UserData.userInfo
-        }.collectLatest { info ->
-            val countOffers = info?.countOffersInCart
-
-            subtitle.value = buildString {
-                if (countOffers.toString()
-                        .matches(Regex("""([^1]1)$""")) || countOffers == 1
-                ) {
-                    append("$countOffers $oneOffer")
-                } else if (countOffers.toString()
-                        .matches(Regex("""([^1][234])$""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
-                ) {
-                    append("$countOffers $exManyOffers")
-                } else {
-                    append("$countOffers $manyOffers")
-                }
-            }
-        }
     }
 
     LaunchedEffect(state){
@@ -113,10 +73,10 @@ fun BasketContent(
         null
     }
 
-    val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
+    val error : (@Composable () ->Unit)? = if (isError.humanMessage.isNotBlank()){
         {
             onError(
-                isError.value
+                isError
             ){
                 viewModel.onError(ServerErrorException())
                 viewModel.getUserCart()
@@ -126,69 +86,21 @@ fun BasketContent(
         null
     }
 
-    val refresh = remember {{
-        viewModel.onError(ServerErrorException())
-        viewModel.getUserCart()
-    }}
-
-    val listItems = remember {
-        listOf(
-            NavigationItem(
-                title = "",
-                icon = drawables.recycleIcon,
-                tint = colors.inactiveBottomNavIconColor,
-                hasNews = false,
-                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                badgeCount = null,
-                onClick = {
-                    refresh()
-                }
-            ),
-            NavigationItem(
-                title = menuString,
-                icon = drawables.menuIcon,
-                tint = colors.black,
-                hasNews = false,
-                badgeCount = null,
-                onClick = {
-                    showMenu.value = true
-                }
-            ),
-        )
-    }
-
-    val menuItems = remember {
-        listOf(
-            MenuItem(
-                id = "delete_basket",
-                title = clearBasketString,
-                icon = drawables.deleteIcon,
-                onClick = {
-                    viewModel.clearBasket{
-                        refresh()
-                    }
-                }
-            )
-        )
-    }
 
     BaseContent(
         topBar = {
-            BasketAppBar(
-                stringResource(strings.yourBasketTitle),
-                subtitle.value,
-                menuItems = menuItems,
-                listItems = listItems,
-                showMenu = showMenu,
-                modifier = Modifier
-            )
+            if (basketState.value.appBarData != null) {
+                SimpleAppBar(
+                    basketState.value.appBarData!!
+                )
+            }
         },
         onRefresh = {
-            refresh()
+            viewModel.refresh()
         },
         error = error,
         noFound = noFound,
-        isLoading = isLoading.value,
+        isLoading = isLoading,
         toastItem = viewModel.toastItem,
         modifier = Modifier.fillMaxSize()
     ) {
@@ -199,10 +111,12 @@ fun BasketContent(
             contentPadding = dimens.smallPadding
         ) {
             items(basketItemsState.value, key = { item -> item.user.id }) { itemState ->
-                BasketItemContent(
-                    state = itemState,
-                    events = modelState.value.events
-                )
+                if (basketState.value.basketEvents != null) {
+                    BasketItemContent(
+                        state = itemState,
+                        events = basketState.value.basketEvents!!
+                    )
+                }
             }
         }
 
@@ -216,14 +130,14 @@ fun BasketContent(
                 }
             },
             onDismiss = {
-                component.clearDeleteIds()
+                viewModel.clearDeleteIds()
             },
             onSuccess = {
                 viewModel.deleteItems(
                     deleteIds.value
                 ) {
-                    component.clearDeleteIds()
-                    refresh()
+                    viewModel.clearDeleteIds()
+                    viewModel.refresh()
                 }
             }
         )

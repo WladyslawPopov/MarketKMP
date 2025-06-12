@@ -135,7 +135,7 @@ fun VacationSettingsContent(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.boolean ?: false) }
+            val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.boolean == true) }
 
             Switch(
                 checked = isEnabled.value,
@@ -156,7 +156,7 @@ fun VacationSettingsContent(
     }
 
     AcceptedPageButton(
-        strings.actionConfirm
+        stringResource(strings.actionConfirm)
     ) {
         onConfirm()
     }

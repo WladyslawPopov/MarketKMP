@@ -33,7 +33,7 @@ fun AutoFeedbackSettingsContent(
     fields.forEach { field ->
         when (field.key) {
             "auto_feedback_enabled" -> {
-                val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull ?: false) }
+                val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull == true) }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -86,7 +86,7 @@ fun AutoFeedbackSettingsContent(
             }
 
             "auto_feedback_after_exceeded_days_limit_enabled" -> {
-                val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull ?: false) }
+                val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull == true) }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -132,7 +132,7 @@ fun AutoFeedbackSettingsContent(
     }
 
     AcceptedPageButton(
-        strings.actionConfirm
+        stringResource(strings.actionConfirm)
     ){
         onConfirm()
     }

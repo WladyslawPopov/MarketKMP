@@ -134,7 +134,7 @@ class DialogsViewModel(
 
     fun onRefresh() {
         markReadConversation(dialogID.value)
-        dialogsPagingRepository.refresh()
+        dialogsPagingRepository.refresh(listingData.value)
     }
 
     @OptIn(ExperimentalUuidApi::class)

@@ -40,6 +40,7 @@ import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.bars.FilterContentHeaderBar
+import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
@@ -169,25 +170,28 @@ fun OfferFilterContent(
         sheetPeekHeight = 0.dp,
         sheetGesturesEnabled = false,
         sheetContent = {
-            CategoryContent(
-                isOpen = openCategory.value,
-                searchData = searchData.value,
-                baseViewModel = baseViewModel,
-                isRefresh = isRefreshing,
-                onBackClicked = catBack,
-                isFilters = true,
-            ){
-                if (isRefreshing.value && searchData.value.searchCategoryID != 1L) {
-                    listingData.find { it.key == "category" }?.value = searchData.value.searchCategoryID.toString()
-                    listingData.find { it.key == "category" }?.interpretation = searchData.value.searchCategoryName
-                    listingData.find { it.key == "category" }?.operation = searchData.value.searchIsLeaf.toString()
-                }
-
-                selectedCategory.value = searchData.value.searchCategoryName
-                activeCategory.value = searchData.value.searchCategoryID
-
-                openBottomSheet.value = false
-            }
+//            CategoryContent(
+//                isOpen = openCategory.value,
+//                searchData = searchData.value,
+//                baseViewModel = baseViewModel,
+//                isRefresh = isRefreshing,
+//                onBackClicked = catBack,
+//                isFilters = true,
+//            ) {
+//                if (isRefreshing.value && searchData.value.searchCategoryID != 1L) {
+//                    listingData.find { it.key == "category" }?.value =
+//                        searchData.value.searchCategoryID.toString()
+//                    listingData.find { it.key == "category" }?.interpretation =
+//                        searchData.value.searchCategoryName
+//                    listingData.find { it.key == "category" }?.operation =
+//                        searchData.value.searchIsLeaf.toString()
+//                }
+//
+//                selectedCategory.value = searchData.value.searchCategoryName
+//                activeCategory.value = searchData.value.searchCategoryID
+//
+//                openBottomSheet.value = false
+//            }
         },
     ) {
         Box(
@@ -338,7 +342,7 @@ fun OfferFilterContent(
             }
 
             AcceptedPageButton(
-                strings.actionAcceptFilters,
+                stringResource(strings.actionAcceptFilters),
                 Modifier.align(Alignment.BottomCenter)
                     .padding(dimens.mediumPadding)
             ){

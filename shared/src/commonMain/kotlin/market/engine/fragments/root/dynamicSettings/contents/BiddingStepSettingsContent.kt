@@ -45,24 +45,22 @@ fun BiddingStepSettingsContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        if (biddingStepField != null) {
-            biddingStepField.choices?.forEach { choice ->
-                val string = choice.extendedFields?.firstOrNull()?.let { formatBiddingStepData(it) } ?: ""
-                RadioOptionRow(
-                    Pair(choice.code?.intOrNull ?: 0, string),
-                    selectMode.value,
-                ) { isChecked, c ->
-                    if (!isChecked) {
-                        selectMode.value = c
-                        biddingStepField.data = JsonPrimitive(c)
-                    }
+        biddingStepField?.choices?.forEach { choice ->
+            val string = choice.extendedFields?.firstOrNull()?.let { formatBiddingStepData(it) } ?: ""
+            RadioOptionRow(
+                Pair(choice.code?.intOrNull ?: 0, string),
+                selectMode.value,
+            ) { isChecked, c ->
+                if (!isChecked) {
+                    selectMode.value = c
+                    biddingStepField.data = JsonPrimitive(c)
                 }
             }
         }
     }
 
     AcceptedPageButton(
-        strings.actionConfirm
+        stringResource(strings.actionConfirm)
     ) {
         onConfirm()
     }

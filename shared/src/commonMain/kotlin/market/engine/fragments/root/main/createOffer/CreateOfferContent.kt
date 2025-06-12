@@ -100,7 +100,7 @@ import market.engine.widgets.ilustrations.LoadImage
 import market.engine.fragments.base.onError
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dialogs.DateDialog
-import market.engine.widgets.filterContents.CategoryContent
+import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.DescriptionTextField
@@ -364,20 +364,20 @@ fun CreateOfferContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                CategoryContent(
-                    isOpen = viewModel.openFiltersCat.value,
-                    searchData = searchData.value,
-                    baseViewModel = viewModel,
-                    isCreateOffer = true,
-                    onBackClicked = viewModel.catBack
-                ){
-                    viewModel.selectedCategoryId.value = searchData.value.searchCategoryID
-                    viewModel.selectedCategoryName.value = searchData.value.searchCategoryName
-                    viewModel.selectedParentId.value = searchData.value.searchParentID
-                    viewModel.searchIsLeaf.value = searchData.value.searchIsLeaf
-                    refresh()
-                    viewModel.activeFiltersType.value = ""
-                }
+//                CategoryContent(
+//                    isOpen = viewModel.openFiltersCat.value,
+//                    searchData = searchData.value,
+//                    baseViewModel = viewModel,
+//                    isCreateOffer = true,
+//                    onBackClicked = viewModel.catBack
+//                ){
+//                    viewModel.selectedCategoryId.value = searchData.value.searchCategoryID
+//                    viewModel.selectedCategoryName.value = searchData.value.searchCategoryName
+//                    viewModel.selectedParentId.value = searchData.value.searchParentID
+//                    viewModel.searchIsLeaf.value = searchData.value.searchIsLeaf
+//                    refresh()
+//                    viewModel.activeFiltersType.value = ""
+//                }
             },
         ) {
             if (createOfferResponse.value?.status == "operation_success") {
@@ -880,7 +880,7 @@ fun CreateOfferContent(
                                 else -> strings.sellOfferLabel
                             }
                             AcceptedPageButton(
-                                text = label,
+                                text = stringResource(label),
                                 modifier = Modifier.fillMaxWidth()
                                     .padding(dimens.mediumPadding),
                                 enabled = !isLoading.value
@@ -1193,7 +1193,7 @@ fun SuccessContent(
         ) {
             // add similar
             AcceptedPageButton(
-                strings.createSimilarOfferLabel,
+                stringResource(strings.createSimilarOfferLabel),
                 Modifier.weight(1f)
                     .padding(dimens.smallPadding),
                 containerColor = colors.brightGreen,
@@ -1202,7 +1202,7 @@ fun SuccessContent(
             }
             // create New
             AcceptedPageButton(
-                strings.createNewOfferTitle,
+                stringResource(strings.createNewOfferTitle),
                 Modifier.weight(1f)
                     .padding(dimens.smallPadding),
             ) {

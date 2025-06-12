@@ -335,7 +335,7 @@ fun CreateOrderContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AcceptedPageButton(
-                        strings.actionComplete,
+                        stringResource(strings.actionComplete),
                         modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 1f)
                             .padding(dimens.mediumPadding),
                         enabled = !isLoading.value

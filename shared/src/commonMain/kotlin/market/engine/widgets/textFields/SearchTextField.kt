@@ -10,13 +10,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -31,29 +29,24 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SearchTextField(
     openSearch: Boolean,
-    search : MutableState<TextFieldValue>,
-    onUpdateHistory: (String) -> Unit,
+    search : TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     goToListing: () -> Unit,
+    onClearSearch: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(openSearch) {
         if (openSearch) {
-            if (search.value.text.isNotEmpty()) {
-                search.value = search.value.copy(
-                    selection = TextRange(search.value.text.length)
-                )
-            }
             delay(300)
             focusRequester.requestFocus()
         }
     }
 
     TextField(
-        value = search.value,
+        value = search,
         onValueChange = { newValue ->
-            search.value = newValue
-            onUpdateHistory(newValue.text)
+            onValueChange(newValue)
         },
         placeholder = {
             Text(
@@ -76,15 +69,14 @@ fun SearchTextField(
             },
         ),
         trailingIcon = {
-            if (search.value.text.isNotEmpty()) {
+            if (search.text.isNotEmpty()) {
                 SmallIconButton(
                     icon = drawables.cancelIcon,
                     contentDescription = stringResource(strings.actionClose),
                     color = colors.steelBlue,
                     modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
                 ) {
-                    search.value = TextFieldValue()
-                    onUpdateHistory("")
+                    onClearSearch()
                 }
             }
         },

@@ -8,12 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import market.engine.core.data.globalData.ThemeResources.colors
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AcceptedPageButton(
-    text: StringResource,
+    text: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     containerColor : Color = colors.inactiveBottomNavIconColor,
@@ -30,7 +28,7 @@ fun AcceptedPageButton(
         enabled = enabled
     ){
         Text(
-            text = stringResource(text),
+            text = text,
             color = colors.alwaysWhite,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center

@@ -114,7 +114,7 @@ fun FavoritesContent(
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            columns = columns,
+            columns = columns.value,
             listingData = ld.value,
             data = data,
             searchData = sd.value,
@@ -158,21 +158,21 @@ fun FavoritesContent(
                     }
                 )
 
-                FiltersBar(
-                    sd.value,
-                    ld.value,
-                    updateFilters.value,
-                    isShowGrid = false,
-                    onFilterClick = {
-                        favViewModel.activeFiltersType.value = "filters"
-                    },
-                    onSortClick = {
-                        favViewModel.activeFiltersType.value = "sorting"
-                    },
-                    onRefresh = {
-                        component.onRefresh()
-                    }
-                )
+//                FiltersBar(
+//                    sd.value,
+//                    ld.value,
+//                    updateFilters.value,
+//                    isShowGrid = false,
+//                    onFilterClick = {
+//                        favViewModel.activeFiltersType.value = "filters"
+//                    },
+//                    onSortClick = {
+//                        favViewModel.activeFiltersType.value = "sorting"
+//                    },
+//                    onRefresh = {
+//                        component.onRefresh()
+//                    }
+//                )
             },
             item = { offer ->
                 val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))

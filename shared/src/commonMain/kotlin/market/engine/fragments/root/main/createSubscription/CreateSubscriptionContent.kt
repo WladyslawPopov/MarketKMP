@@ -43,7 +43,7 @@ import market.engine.widgets.checkboxs.DynamicCheckbox
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.onError
-import market.engine.widgets.filterContents.CategoryContent
+import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.textFields.DynamicInputField
 import org.jetbrains.compose.resources.stringResource
 
@@ -170,20 +170,20 @@ fun CreateSubscriptionContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                CategoryContent(
-                    isOpen = viewModel.openFiltersCat.value,
-                    searchData = searchData.value,
-                    baseViewModel = viewModel,
-                    onBackClicked = viewModel.catBack,
-                    isFilters = true,
-                ){
-                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.value.searchCategoryName
-                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.value.searchCategoryID)
-                    selectedCategory.value = searchData.value.searchCategoryName
-                    selectedCategoryID.value = searchData.value.searchCategoryID
-
-                    openBottomSheet.value = false
-                }
+//                CategoryContent(
+//                    isOpen = viewModel.openFiltersCat.value,
+//                    searchData = searchData.value,
+//                    baseViewModel = viewModel,
+//                    onBackClicked = viewModel.catBack,
+//                    isFilters = true,
+//                ){
+//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.value.searchCategoryName
+//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.value.searchCategoryID)
+//                    selectedCategory.value = searchData.value.searchCategoryName
+//                    selectedCategoryID.value = searchData.value.searchCategoryID
+//
+//                    openBottomSheet.value = false
+//                }
             },
         ) {
             Box(
@@ -268,10 +268,10 @@ fun CreateSubscriptionContent(
 
                         item {
                             AcceptedPageButton(
-                                if (model.value.editId == null)
+                                stringResource(if (model.value.editId == null)
                                     strings.createNewSubscriptionTitle
                                 else
-                                    strings.editLabel,
+                                    strings.editLabel),
                                 Modifier.align(Alignment.BottomCenter)
                                     .wrapContentWidth()
                                     .padding(dimens.mediumPadding),

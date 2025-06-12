@@ -49,7 +49,7 @@ class MyOrdersViewModel(
     }
 
     fun onRefresh(){
-        orderPagingRepository.refresh()
+        orderPagingRepository.refresh(listingData.value)
     }
 
     suspend fun updateItem(id : Long?) : Order? {

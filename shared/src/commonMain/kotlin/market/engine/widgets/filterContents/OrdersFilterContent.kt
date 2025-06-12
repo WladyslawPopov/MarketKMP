@@ -381,7 +381,7 @@ fun OrderFilterContent(
         )
 
         AcceptedPageButton(
-            strings.actionAcceptFilters,
+            stringResource(strings.actionAcceptFilters),
             Modifier
                 .align(Alignment.BottomCenter)
                 .padding(dimens.mediumPadding)

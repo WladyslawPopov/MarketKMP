@@ -113,7 +113,7 @@ fun MyBidsContent(
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            columns = columns,
+            columns = columns.value,
             listingData = listingData.value,
             searchData = searchData.value,
             data = data,
@@ -123,22 +123,22 @@ fun MyBidsContent(
             },
             noFound = noFound,
             additionalBar = {
-                FiltersBar(
-                    searchData.value,
-                    listingData.value,
-                    updateFilters.value,
-                    isShowGrid = false,
-                    onFilterClick = {
-                        viewModel.activeFiltersType.value = "filters"
-                    },
-                    onSortClick = {
-                        viewModel.activeFiltersType.value = "sorting"
-                    },
-                    onRefresh = {
-                        refresh()
-                        updateFilters.value++
-                    }
-                )
+//                FiltersBar(
+//                    searchData.value,
+//                    listingData.value,
+//                    updateFilters.value,
+//                    isShowGrid = false,
+//                    onFilterClick = {
+//                        viewModel.activeFiltersType.value = "filters"
+//                    },
+//                    onSortClick = {
+//                        viewModel.activeFiltersType.value = "sorting"
+//                    },
+//                    onRefresh = {
+//                        refresh()
+//                        updateFilters.value++
+//                    }
+//                )
             },
             filtersContent = { isRefreshingFromFilters , onClose ->
                 when(viewModel.activeFiltersType.value){

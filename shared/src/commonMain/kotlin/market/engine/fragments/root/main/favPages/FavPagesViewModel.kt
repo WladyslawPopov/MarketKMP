@@ -77,7 +77,7 @@ class FavPagesViewModel : BaseViewModel() {
 
     fun refresh(){
         updateUserInfo()
-        pagingRepository.refresh()
+        pagingRepository.refresh(listingData.value)
     }
 
     fun getList(id: Long, onSuccess: (FavoriteListItem) -> Unit) {

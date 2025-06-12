@@ -50,9 +50,9 @@ fun FilterListingContent(
     onClear: () -> Unit,
     onClosed: () -> Unit,
 ) {
-    val checkSize: () -> Boolean = {
+    val checkSize: () -> Boolean = remember { {
         listingData.any { it.interpretation?.isNotBlank() == true }
-    }
+    } }
 
     val isShowClear = remember { mutableStateOf(checkSize()) }
 
@@ -89,6 +89,7 @@ fun FilterListingContent(
         "6d" to stringResource(strings._6Days),
         "7d" to stringResource(strings._7Days)
     )
+
     val timeOptions = timeFilterMap.map { it.second }
 
     val regionSelected = remember { mutableStateOf(listingData.find { it.key == "region" }?.interpretation) }
@@ -455,7 +456,7 @@ fun FilterListingContent(
         }
 
         AcceptedPageButton(
-            strings.actionAcceptFilters,
+            stringResource(strings.actionAcceptFilters),
             Modifier.wrapContentWidth().padding(dimens.smallPadding)
                 .align(Alignment.BottomCenter)
         ) {

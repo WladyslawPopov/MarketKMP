@@ -150,7 +150,7 @@ fun DynamicSettingsContent(
                             }
 
                             AcceptedPageButton(
-                                strings.actionChangeLabel,
+                                stringResource(strings.actionChangeLabel),
                                 enabled = !isLoading.value
                             ) {
                                 builderDescription?.fields?.find { it.widgetType == "text_area" }?.let {
@@ -228,7 +228,7 @@ fun DynamicSettingsContent(
                                 }
 
                                 AcceptedPageButton(
-                                    strings.actionAddEnterLabel,
+                                    stringResource(strings.actionAddEnterLabel),
                                     enabled = !isLoading.value
                                 ) {
                                     viewModel.postSubmit(settingsType, owner) {
@@ -271,7 +271,7 @@ fun DynamicSettingsContent(
                                 )
 
                                 AcceptedPageButton(
-                                    strings.actionDelete
+                                    stringResource(strings.actionDelete)
                                 ) {
                                     val data = field.data?.jsonArray
                                     field.data = buildJsonArray {
@@ -359,7 +359,7 @@ fun DynamicSettingsContent(
                                     }
 
                                     AcceptedPageButton(
-                                        strings.actionChangeLabel
+                                        stringResource(strings.actionChangeLabel)
                                     ) {
                                         viewModel.postSubmit(settingsType, owner) {
                                             when (settingsType) {

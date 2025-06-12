@@ -15,8 +15,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
@@ -26,26 +24,24 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.listing.search.SearchContent
-import market.engine.widgets.filterContents.CategoryContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
+import market.engine.widgets.bars.SimpleAppBar
 import market.engine.widgets.filterContents.FilterListingContent
 import market.engine.widgets.filterContents.SortingOffersContent
+import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.items.offer_Items.PublicOfferItemGrid
 import market.engine.widgets.items.offer_Items.PublicOfferItem
@@ -62,22 +58,23 @@ fun ListingContent(
     val listingViewModel = model.listingViewModel
     val uiState = listingViewModel.uiState.collectAsState()
     val uiDataState = listingViewModel.uiDataState.collectAsState()
+    val uiFilterBarUiState = listingViewModel.uiFilterBarUiState.collectAsState()
 
-    val searchData = listingViewModel.listingData.value.searchData
-    val listingData = listingViewModel.listingData.value.data
+    val globalLD = listingViewModel.listingData.collectAsState()
+    val listingData = globalLD.value.data.value
+    val searchData = listingViewModel.searchData.collectAsState()
 
     val data = uiDataState.value.pagingDataFlow?.collectAsLazyPagingItems()
 
-    val title = remember { mutableStateOf(searchData.value.searchCategoryName) }
-
-    val isLoadingListing : State<Boolean> = rememberUpdatedState(data?.loadState?.refresh is LoadStateLoading)
+    val isLoadingListing: State<Boolean> =
+        rememberUpdatedState(data?.loadState?.refresh is LoadStateLoading)
 
     val promoList = uiDataState.value.promoOffers
     val regions = uiDataState.value.regions
 
-    val openSearchCategoryBottomSheet = remember { mutableStateOf(false) }
-
     val uiSearchState = listingViewModel.uiSearchState.collectAsState()
+
+    val searchCatBack = remember { mutableStateOf(false) }
 
     val scaffoldStateSearch = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(
@@ -85,114 +82,89 @@ fun ListingContent(
         )
     )
 
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val focusManager = LocalFocusManager.current
-
-    val columns =
-        remember { mutableStateOf(if (listingData.value.listingType == 0) 1 else if (isBigScreen.value) 3 else 2) }
-
-    val catDef = stringResource(strings.categoryMain)
-
-    val updateFilters = remember { mutableStateOf(0) }
 
     val err = uiState.value.error
 
-    val searchCatBack = remember { mutableStateOf(false) }
-
-    val refresh = remember {{
+    val refresh = remember { {
         listingViewModel.resetScroll()
-
-        title.value = searchData.value.searchCategoryName
-
-        columns.value =
-            if (listingData.value.listingType == 0) 1 else if (isBigScreen.value) 3 else 2
-
         listingViewModel.onError(ServerErrorException())
         listingViewModel.refresh()
         data?.refresh()
         searchData.value.isRefreshing = false
-        updateFilters.value++
-    }}
+        listingViewModel.updateFilters.value = !listingViewModel.updateFilters.value
+    } }
 
-    BackHandler(model.backHandler){
-        when{
+    LaunchedEffect(Unit) {
+        component.refresh = refresh
+    }
+
+    BackHandler(model.backHandler) {
+        when {
             listingViewModel.activeFiltersType.value == "categories" -> {
                 listingViewModel.catBack.value = true
             }
+
             uiSearchState.value.openSearch -> {
-                if (openSearchCategoryBottomSheet.value){
+                if (scaffoldStateSearch.bottomSheetState.isExpanded) {
                     searchCatBack.value = true
-                }else{
+                } else {
                     listingViewModel.changeOpenSearch(false)
                 }
             }
 
-            listingViewModel.activeFiltersType.value != "" ->{
+            listingViewModel.activeFiltersType.value != "" -> {
                 listingViewModel.activeFiltersType.value = ""
             }
+
             else -> {
                 component.goBack()
             }
         }
     }
 
-    val error : (@Composable () -> Unit)? = if (err.humanMessage != "") {
+    val error: (@Composable () -> Unit)? = if (err.humanMessage != "") {
         { onError(err) { refresh() } }
-    }else{
+    } else {
         null
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any {it.interpretation != null && it.interpretation != "" } ||
+        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" } ||
             searchData.value.userSearch || searchData.value.searchString.isNotEmpty()
-        ){
+        ) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
-            ){
-                searchData.value.clear(catDef)
-                listingData.value.filters = ListingFilters.getEmpty()
+            ) {
+                searchData.value.clear(listingViewModel.catDef.value)
+                listingData.filters = ListingFilters.getEmpty()
                 refresh()
             }
-        }else {
+        } else {
             showNoItemLayout {
                 refresh()
             }
         }
     }
 
-
-   LaunchedEffect(uiSearchState.value.openSearch) {
-       snapshotFlow {
-           uiSearchState.value.openSearch
-       }.collectLatest {
-           if (it) {
-               listingViewModel.searchData.value = searchData.value
-               listingViewModel.searchString.value = TextFieldValue(searchData.value.searchString, TextRange(searchData.value.searchString.length))
-               scaffoldStateSearch.bottomSheetState.expand()
-           } else {
-               scaffoldStateSearch.bottomSheetState.collapse()
-               if (searchData.value.isRefreshing){
-                   refresh()
-                   searchData.value.isRefreshing = false
-               }
-               delay(300)
-               focusManager.clearFocus()
-           }
-       }
-   }
-
-    LaunchedEffect(listingViewModel.activeFiltersType.value){
-        if (listingViewModel.activeFiltersType.value == "categories"){
-            val eventParameters = mapOf(
-                "category_name" to searchData.value.searchCategoryName,
-                "category_id" to searchData.value.searchCategoryID,
-            )
-            analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
+    LaunchedEffect(uiSearchState.value.openSearch) {
+        snapshotFlow {
+            uiSearchState.value.openSearch
+        }.collectLatest {
+            if (it) {
+                scaffoldStateSearch.bottomSheetState.expand()
+            } else {
+                scaffoldStateSearch.bottomSheetState.collapse()
+                delay(300)
+                focusManager.clearFocus()
+            }
         }
     }
+
     //update item when we back
-    LaunchedEffect(listingViewModel.updateItem.value){
+    LaunchedEffect(listingViewModel.updateItem.value) {
         if (listingViewModel.updateItem.value != null) {
+
             val offer = withContext(Dispatchers.IO) {
                 listingViewModel.getOfferById(listingViewModel.updateItem.value ?: 1L)
             }
@@ -208,7 +180,6 @@ fun ListingContent(
             }
         }
     }
-
 
     BottomSheetScaffold(
         scaffoldState = scaffoldStateSearch,
@@ -229,63 +200,28 @@ fun ListingContent(
     ) {
         BaseContent(
             topBar = {
-                val errorString = remember { mutableStateOf("") }
-
-                ListingAppBar(
-                    title = if(title.value != "") title.value else catDef,
-                    onBackClick = {
-                        if (listingViewModel.activeFiltersType.value.isEmpty()) {
-                            component.goBack()
-                            listingViewModel.changeOpenCategory(true)
-                        } else {
-                            listingViewModel.activeFiltersType.value = ""
-                        }
-                    },
-                    closeCategory = {
-                        if (listingViewModel.activeFiltersType.value == "categories"){
-                            listingViewModel.activeFiltersType.value = ""
-                        }else {
-                            listingViewModel.activeFiltersType.value = "categories"
-                            listingViewModel.changeOpenCategory(true)
-                        }
-                    },
-                    isShowSubscribes = (searchData.value.searchCategoryID != 1L || searchData.value.userSearch || searchData.value.searchString != ""),
-                    onSearchClick = {
-                        listingViewModel.changeOpenSearch(true)
-                    },
-                    onSubscribesClick = {
-                        if(UserData.token != "") {
-                            listingViewModel.addNewSubscribe(
-                                listingData.value,
-                                searchData.value,
-                                onSuccess = {},
-                                errorCallback = { es ->
-                                    errorString.value = es
-                                }
-                            )
-                        }else{
-                            goToLogin(false)
-                        }
-                    },
-                    onRefresh = {
-                        refresh()
-                    }
-                )
+                if (uiState.value.appBarData != null) {
+                    SimpleAppBar(
+                        data = uiState.value.appBarData!!
+                    )
+                }
 
                 CreateSubscribeDialog(
-                    errorString.value != "",
-                    errorString.value,
+                    listingViewModel.errorString.value != "",
+                    listingViewModel.errorString.value,
                     onDismiss = {
-                        errorString.value = ""
+                        listingViewModel.errorString.value = ""
                     },
                     goToSubscribe = {
                         component.goToSubscribe()
-                        errorString.value = ""
+                        listingViewModel.errorString.value = ""
                     }
                 )
             },
-            onRefresh = {
-                refresh()
+            onRefresh = remember {
+                {
+                    refresh()
+                }
             },
             error = error,
             noFound = null,
@@ -295,26 +231,30 @@ fun ListingContent(
         ) {
             if (data != null) {
                 ListingBaseContent(
-                    columns = columns,
-                    listingData.value,
+                    columns = if (listingData.listingType == 0) 1 else if (isBigScreen.value) 3 else 2,
+                    listingData,
                     searchData.value,
                     data = data,
                     baseViewModel = listingViewModel,
                     noFound = noFound,
-                    onRefresh = {
-                        refresh()
+                    onRefresh = remember {
+                        {
+                            refresh()
+                        }
                     },
                     filtersContent = { isRefreshingFromFilters, onClose ->
                         when (listingViewModel.activeFiltersType.value) {
                             "filters" -> {
                                 FilterListingContent(
                                     isRefreshingFromFilters,
-                                    listingData = listingData.value.filters,
+                                    listingData = listingData.filters,
                                     regionsOptions = regions,
-                                    onClosed = onClose,
+                                    onClosed = {
+                                        listingViewModel.activeFiltersType.value = ""
+                                    },
                                     onClear = {
-                                        listingData.value.filters.clear()
-                                        listingData.value.filters.addAll(ListingFilters.getEmpty())
+                                        listingData.filters.clear()
+                                        listingData.filters.addAll(ListingFilters.getEmpty())
                                         isRefreshingFromFilters.value = true
                                     }
                                 )
@@ -323,7 +263,7 @@ fun ListingContent(
                             "sorting" -> {
                                 SortingOffersContent(
                                     isRefreshingFromFilters,
-                                    listingData.value,
+                                    listingData,
                                     isCabinet = false,
                                     onClose
                                 )
@@ -331,22 +271,31 @@ fun ListingContent(
 
                             "categories" -> {
                                 CategoryContent(
-                                    isOpen = uiState.value.openCategory,
-                                    searchData = searchData.value,
-                                    filters = listingData.value.filters,
-                                    isRefresh = isRefreshingFromFilters,
-                                    baseViewModel = listingViewModel,
-                                    onBackClicked = listingViewModel.catBack
-                                ) {
-                                    listingViewModel.activeFiltersType.value = ""
-                                }
+                                    uiState.value.categoryViewModel,
+                                    onComplete = {
+                                        listingViewModel.activeFiltersType.value = ""
+                                        uiState.value.categoryViewModel.run {
+                                            if (categoryId.value != searchData.value.searchCategoryID) {
+                                                val searchData = searchData.value.copy(
+                                                    searchCategoryID = categoryId.value,
+                                                    searchCategoryName = categoryName.value,
+                                                    searchParentID = parentId.value,
+                                                    searchIsLeaf = isLeaf.value
+                                                )
+                                                listingViewModel.listingData.value.searchData.value = searchData
+                                                refresh()
+                                            }
+                                        }
+                                    },
+                                    onClose = onClose
+                                )
                             }
                         }
                     },
                     additionalBar = { state ->
                         SwipeTabsBar(
                             isVisibility = listingViewModel.activeFiltersType.value == "categories",
-                            listingData.value,
+                            listingData,
                             state,
                             onRefresh = {
                                 refresh()
@@ -354,32 +303,11 @@ fun ListingContent(
                         )
 
                         FiltersBar(
-                            searchData.value,
-                            listingData.value,
-                            updateFilters.value,
-                            isShowGrid = true,
-                            onChangeTypeList = {
-                                listingViewModel.settings.setSettingValue("listingType", it)
-                                listingData.value.listingType = it
-                                refresh()
-                            },
-                            onFilterClick = {
-                                listingViewModel.activeFiltersType.value = "filters"
-                            },
-                            onSortClick = {
-                                listingViewModel.activeFiltersType.value = "sorting"
-                            },
-                            onSearchClick = {
-                                listingViewModel.changeOpenSearch(true)
-                            },
-                            onRefresh = {
-                                updateFilters.value++
-                                refresh()
-                            }
+                            uiFilterBarUiState.value
                         )
                     },
                     item = { offer ->
-                        when (listingData.value.listingType) {
+                        when (listingData.listingType) {
                             0 -> {
                                 PublicOfferItem(
                                     offer,

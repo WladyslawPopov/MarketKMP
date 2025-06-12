@@ -295,7 +295,7 @@ fun BasketItemContent(
         }
 
         AcceptedPageButton(
-            strings.actionBuy,
+            stringResource(strings.actionBuy),
             modifier = Modifier
                 .padding(dimens.smallPadding)
                 .fillMaxWidth(),

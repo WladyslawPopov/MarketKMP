@@ -25,6 +25,6 @@ class ConversationsViewModel: BaseViewModel() {
     }
 
     fun onRefresh(){
-        conversationsPagingRepository.refresh()
+        conversationsPagingRepository.refresh(listingData.value)
     }
 }

@@ -12,19 +12,23 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.widgets.buttons.SmallIconButton
 
+data class FilterListingBtnItem(
+    val text : String,
+    val removeFilter : () -> Unit,
+    val itemClick : () -> Unit
+)
+
 @Composable
 fun ActiveFilterListingItem(
-    text : String,
-    removeFilter : () -> Unit,
-    itemClick : () -> Unit
+    item : FilterListingBtnItem,
 ){
     FilterChip(
         modifier = Modifier,
         selected = false,
-        onClick = itemClick,
+        onClick = item.itemClick,
         label = {
             Text(
-                text,
+                item.text,
                 style = MaterialTheme.typography.labelMedium
             )
         },
@@ -35,7 +39,7 @@ fun ActiveFilterListingItem(
                 modifierIconSize = Modifier.size(dimens.smallIconSize),
                 modifier = Modifier.size(dimens.smallIconSize)
             ) {
-                removeFilter()
+                item.removeFilter()
             }
         },
         border = null,

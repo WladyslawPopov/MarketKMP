@@ -1,11 +1,24 @@
 package market.engine.fragments.root.main.basket
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -13,19 +26,39 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import market.engine.common.Platform
 import market.engine.core.data.constants.minExpandedElement
 import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.MenuItem
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
 import market.engine.fragments.base.BaseViewModel
+import market.engine.widgets.bars.SimpleAppBarData
+import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.getString
+
+interface BasketEvents {
+    fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean)
+    fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean)
+    fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit)
+    fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit)
+    fun onDeleteOffersRequest(ids : List<Long>)
+    fun onExpandClicked(userId: Long, currentOffersSize: Int)
+    fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>)
+    fun onGoToUser(userId: Long)
+    fun onGoToOffer(offerId: Long)
+}
 
 data class SelectedBasketList(
     val userId: Long,
@@ -38,10 +71,17 @@ data class BasketGroupUiState(
     val selectedOffers: List<SelectedBasketItem>,
     val showItemsCount: Int,
     val selectedOffersCount: Int = selectedOffers.size,
-    val isAllSelected: Boolean
+    val isAllSelected: Boolean,
 )
 
-class BasketViewModel: BaseViewModel() {
+data class BasketUiState(
+    val appBarData: SimpleAppBarData? = null,
+    val isLoading: Boolean = false,
+    val errorMessage: ServerErrorException = ServerErrorException(),
+    val basketEvents: BasketEvents? = null
+)
+
+class BasketViewModel(component: BasketComponent): BaseViewModel() {
 
     private var responseGetUserCart = MutableStateFlow<List<Pair<User?, List<OfferItem?>>>>(emptyList())
     private var selectedOffers = MutableStateFlow<List<SelectedBasketList>>(emptyList())
@@ -49,7 +89,12 @@ class BasketViewModel: BaseViewModel() {
 
     val firstVisibleItem = MutableStateFlow(0)
 
-    val uiState: StateFlow<List<BasketGroupUiState>> = combine(
+    val subtitle = mutableStateOf<String>("")
+    val showMenuBasket = mutableStateOf(false)
+
+    val deleteIds = MutableStateFlow(emptyList<Long>())
+
+    val uiDataState: StateFlow<List<BasketGroupUiState>> = combine(
         responseGetUserCart,
         selectedOffers,
         showExpanded
@@ -66,7 +111,7 @@ class BasketViewModel: BaseViewModel() {
                 offersInGroup = offers,
                 selectedOffers = selectedForUser,
                 showItemsCount = expandedCount,
-                isAllSelected = selectedForUser.isNotEmpty() && selectedForUser.size == buyableOffersCount
+                isAllSelected = selectedForUser.isNotEmpty() && selectedForUser.size == buyableOffersCount,
             )
         }
     }.stateIn(
@@ -74,6 +119,163 @@ class BasketViewModel: BaseViewModel() {
         started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
+
+    val uiState: StateFlow<BasketUiState> = combine(
+        isShowProgress,
+        errorMessage
+    ) { isLoading, error ->
+        val menuString = getString(strings.menuTitle)
+        val clearBasketString = getString(strings.actionClearBasket)
+        val title = getString(strings.yourBasketTitle)
+
+        BasketUiState(
+            isLoading = isLoading,
+            errorMessage = error,
+            appBarData = object : SimpleAppBarData {
+                override val modifier: Modifier
+                    get() = Modifier.fillMaxWidth()
+                override val color: Color
+                    get() = colors.white
+                override val content: @Composable (() -> Unit)
+                    get() = {
+                        Column(
+                            modifier = modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            TextAppBar(title)
+
+                            if (subtitle.value.isNotBlank()) {
+                                Text(
+                                    text = subtitle.value,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.titleTextColor
+                                )
+                            }
+                        }
+                    }
+                override val onBackClick: (() -> Unit)?
+                    get() = null
+                override val listItems = listOf(
+                    NavigationItem(
+                        title = "",
+                        icon = drawables.recycleIcon,
+                        tint = colors.inactiveBottomNavIconColor,
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
+                        onClick = {
+                            refresh()
+                        }
+                    ),
+                    NavigationItem(
+                        title = menuString,
+                        icon = drawables.menuIcon,
+                        tint = colors.black,
+                        hasNews = false,
+                        badgeCount = null,
+                        onClick = {
+                            showMenu.value = true
+                        }
+                    ),
+                )
+                override val showMenu: MutableState<Boolean>
+                    get() = showMenuBasket
+                override val menuItems: List<MenuItem>
+                    get() = listOf(
+                        MenuItem(
+                            id = "delete_basket",
+                            title = clearBasketString,
+                            icon = drawables.deleteIcon,
+                            onClick = {
+                                clearBasket{
+                                    refresh()
+                                }
+                            }
+                        )
+                    )
+
+            },
+            basketEvents = object : BasketEvents {
+                override fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean) {
+                    checkSelected(userId, item, isChecked)
+                }
+                override fun onExpandClicked(userId: Long, currentOffersSize: Int) {
+                    clickExpanded(userId, currentOffersSize)
+                }
+                override fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean) {
+                    if (isChecked) {
+                        allOffers.filter { it?.safeDeal == true }.mapNotNull { it }.forEach { offer ->
+                            checkSelected(userId, SelectedBasketItem(
+                                offerId = offer.id,
+                                pricePerItem = offer.price.toDouble(),
+                                selectedQuantity = offer.quantity
+                            ), true)
+                        }
+                    } else {
+                        uncheckAll(userId)
+                    }
+                }
+                override fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit) {
+                    val body = HashMap<String, JsonElement>()
+                    body["offer_id"] = JsonPrimitive(offerId)
+                    body["quantity"] = JsonPrimitive(newQuantity)
+                    addOfferToBasket(body) { onResult(newQuantity) }
+                    updateQuantityInState(offerId, newQuantity)
+                }
+                override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {
+                    addToFavorites(offer) {
+                        offer.isWatchedByMe = it
+                        onFinish(it)
+                    }
+                }
+                override fun onDeleteOffersRequest(ids: List<Long>) {
+                    deleteIds.value = ids
+                }
+                override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
+                    component.goToCreateOrder(Pair(userId, selectedOffers))
+                }
+                override fun onGoToUser(userId: Long) {
+                    component.goToUser(userId)
+                }
+                override fun onGoToOffer(offerId: Long) {
+                    component.goToOffer(offerId)
+                }
+            }
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = BasketUiState()
+    )
+
+    init {
+        viewModelScope.launch {
+            val oneOffer = getString(strings.oneOfferLabel)
+            val manyOffers = getString(strings.manyOffersLabel)
+            val exManyOffers = getString(strings.exManyOffersLabel)
+
+            snapshotFlow {
+                UserData.userInfo
+            }.collectLatest { info ->
+                val countOffers = info?.countOffersInCart
+
+                subtitle.value = buildString {
+                    if (countOffers.toString()
+                            .matches(Regex("""([^1]1)$""")) || countOffers == 1
+                    ) {
+                        append("$countOffers $oneOffer")
+                    } else if (countOffers.toString()
+                            .matches(Regex("""([^1][234])$""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
+                    ) {
+                        append("$countOffers $exManyOffers")
+                    } else {
+                        append("$countOffers $manyOffers")
+                    }
+                }
+            }
+        }
+    }
 
     fun updateQuantityInState(offerId: Long, newQuantity: Int) {
         selectedOffers.value = selectedOffers.value.map { listForUser ->
@@ -232,6 +434,15 @@ class BasketViewModel: BaseViewModel() {
                 }
             }
         }
+    }
+
+    fun clearDeleteIds() {
+        deleteIds.value = emptyList()
+    }
+
+    fun refresh(){
+        onError(ServerErrorException())
+        getUserCart()
     }
 
     fun deleteItems(

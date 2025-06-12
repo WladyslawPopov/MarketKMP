@@ -71,7 +71,7 @@ fun DeliveryCardsContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AcceptedPageButton(
-                    strings.addNewDeliveryCard,
+                    stringResource(strings.addNewDeliveryCard),
                     containerColor = colors.brightGreen,
                 ) {
                     viewModel.setDeliveryFields(null)

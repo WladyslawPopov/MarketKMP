@@ -119,21 +119,21 @@ fun MyProposalsContent(
             },
             noFound = noFound,
             additionalBar = {
-                FiltersBar(
-                    searchData.value,
-                    listingData.value,
-                    updateFilters.value,
-                    isShowGrid = false,
-                    onFilterClick = {
-                        viewModel.activeFiltersType.value = "filters"
-                    },
-                    onSortClick = {
-                        viewModel.activeFiltersType.value = "sorting"
-                    },
-                    onRefresh = {
-                        refresh()
-                    }
-                )
+//                FiltersBar(
+//                    searchData.value,
+//                    listingData.value,
+//                    updateFilters.value,
+//                    isShowGrid = false,
+//                    onFilterClick = {
+//                        viewModel.activeFiltersType.value = "filters"
+//                    },
+//                    onSortClick = {
+//                        viewModel.activeFiltersType.value = "sorting"
+//                    },
+//                    onRefresh = {
+//                        refresh()
+//                    }
+//                )
             },
             filtersContent = { isRefreshingFromFilters , onClose ->
                 when(viewModel.activeFiltersType.value){

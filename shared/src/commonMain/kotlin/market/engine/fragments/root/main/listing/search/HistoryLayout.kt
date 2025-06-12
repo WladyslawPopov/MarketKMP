@@ -48,7 +48,8 @@ fun HistoryLayout(
     onDeleteItem: (Long) -> Unit,
     goToListing: (SearchHistoryItem) -> Unit
 ) {
-    val showDialog = remember { mutableStateOf(false) }
+    val showClearHistory = remember { mutableStateOf(false) }
+    val showClearHistoryItem = remember { mutableStateOf(1L) }
 
     if (historyItems.isEmpty()) {
         return
@@ -86,7 +87,7 @@ fun HistoryLayout(
                 MaterialTheme.typography.bodySmall.fontSize,
                 alignment = Alignment.BottomEnd
             ) {
-                showDialog.value = true
+                showClearHistory.value = true
             }
         }
 
@@ -94,7 +95,7 @@ fun HistoryLayout(
             heightMod = Modifier.fillMaxWidth()
                 .background(color = colors.primaryColor),
             modifierList = Modifier.fillMaxWidth(),
-            contentPadding = dimens.smallPadding,
+            contentPadding = dimens.mediumPadding,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.Start
         ) {
@@ -103,7 +104,7 @@ fun HistoryLayout(
                 val dismissState = rememberDismissState(
                     confirmStateChange = { dismissValue ->
                         if (dismissValue == DismissValue.DismissedToStart) {
-                            onDeleteItem(historyItem.id)
+                            showClearHistoryItem.value = historyItem.id
                             false
                         } else {
                             false
@@ -127,7 +128,7 @@ fun HistoryLayout(
         }
 
         AccessDialog(
-            showDialog.value,
+            showClearHistory.value,
             title = buildAnnotatedString {
                 append(stringResource(strings.warningDeleteHistory))
             },
@@ -135,7 +136,20 @@ fun HistoryLayout(
                 onClearHistory()
             },
             onDismiss = {
-                showDialog.value = false
+                showClearHistory.value = false
+            }
+        )
+
+        AccessDialog(
+            showClearHistoryItem.value != 1L,
+            title = buildAnnotatedString {
+                append(stringResource(strings.warningDeleteHistory))
+            },
+            onSuccess = {
+                onDeleteItem(showClearHistoryItem.value)
+            },
+            onDismiss = {
+                showClearHistoryItem.value = 1L
             }
         )
     }

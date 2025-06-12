@@ -16,24 +16,29 @@ import market.engine.core.network.paging.GenericPagingSource
 
 class PagingRepository<T : Any>{
     private var genericPagingSource: MutableState<GenericPagingSource<T>?> = mutableStateOf(null)
+    private var listingData: MutableState<ListingData> = mutableStateOf(ListingData())
 
-    fun getListing(listingData: ListingData, apiService: APIService, serializer: KSerializer<T>): Flow<PagingData<T>> = Pager(
-        config = PagingConfig(
-            pageSize = PAGE_SIZE,
-            initialLoadSize = PAGE_SIZE,
-            maxSize = PAGES_MAX_SIZE,
-            enablePlaceholders = false,
-            prefetchDistance = PAGE_SIZE * 3
+    fun getListing(ld: ListingData, apiService: APIService, serializer: KSerializer<T>): Flow<PagingData<T>> {
+        this.listingData.value = ld
+        return Pager(
+            config = PagingConfig(
+                pageSize = PAGE_SIZE,
+                initialLoadSize = PAGE_SIZE,
+                maxSize = PAGES_MAX_SIZE,
+                enablePlaceholders = false,
+                prefetchDistance = PAGE_SIZE * 3
 
-        ),
-        pagingSourceFactory = {
-            GenericPagingSource(apiService, listingData, serializer).also {
-                genericPagingSource.value = it
+            ),
+            pagingSourceFactory = {
+                GenericPagingSource(apiService, listingData.value, serializer).also {
+                    genericPagingSource.value = it
+                }
             }
-        }
-    ).flow
+        ).flow
+    }
 
-    fun refresh() {
+    fun refresh(listingData: ListingData) {
+        this.listingData.value = listingData
         genericPagingSource.value?.invalidate()
         genericPagingSource.value = null
     }
