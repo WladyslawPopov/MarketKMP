@@ -665,7 +665,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
         }else{
             setSearchFilters()
             if (searchData.value.isRefreshing) {
-                refresh()
+                component.refresh()
                 searchData.value.isRefreshing = false
             }
         }
@@ -679,11 +679,13 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
         uiSearchState.value.categoryViewModel.run {
             if (!value) {
                 if (searchData.value.searchCategoryID != categoryId.value) {
-                    searchData.value.searchCategoryID = categoryId.value
-                    searchData.value.searchCategoryName = categoryName.value
-                    searchData.value.searchParentID = parentId.value
-                    searchData.value.searchIsLeaf = isLeaf.value
-                    searchData.value.isRefreshing = true
+                    searchData.value = searchData.value.copy(
+                        searchCategoryID = categoryId.value,
+                        searchCategoryName = categoryName.value,
+                        searchParentID = parentId.value,
+                        searchIsLeaf = isLeaf.value,
+                        isRefreshing = true
+                    )
                 }
             } else {
                 searchCategoryModel.run {
