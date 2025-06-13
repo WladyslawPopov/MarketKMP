@@ -14,10 +14,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.listTopCategory
-import market.engine.core.data.items.TopCategory
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.rows.CategoryList
 import market.engine.widgets.rows.FooterRow
@@ -27,15 +24,14 @@ import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
+import market.engine.widgets.bars.DrawerAppBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun HomeContent(
     component: HomeComponent,
     modifier: Modifier = Modifier
 ) {
-    val defCat = stringResource(strings.categoryMain)
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -44,13 +40,17 @@ fun HomeContent(
     val uiState = homeViewModel.uiState.collectAsState()
     val state = uiState.value
 
-    val listTopCategory = remember { listTopCategory }
-    val events = remember { model.events }
+    val isLoading = remember(state.isLoading) { state.isLoading }
+    val error = remember(state.error) { state.error }
 
-    val errorContent: (@Composable () -> Unit)? = if (state.error.humanMessage.isNotBlank()) {
-        { onError(state.error) { events.onRefresh() } }
-    } else {
-        null
+    val listTopCategory = remember(listTopCategory) { listTopCategory }
+
+    val errorContent: (@Composable () -> Unit)? = remember(error.humanMessage) {
+        if (error.humanMessage.isNotBlank()) {
+            { onError(error) { homeViewModel.updateModel() } }
+        } else {
+            null
+        }
     }
 
     BackHandler(model.backHandler){}
@@ -71,16 +71,18 @@ fun HomeContent(
 
     BaseContent(
         topBar = {
-            HomeAppBar(
-                drawerState = drawerState,
-                listItems = homeViewModel.listAppBar.value
-            )
+            if (state.appBarData != null) {
+                DrawerAppBar(
+                    state.appBarData,
+                    drawerState = drawerState
+                )
+            }
         },
-        isLoading = state.isLoading,
-        onRefresh = { events.onRefresh() },
+        isLoading = isLoading,
+        onRefresh = { homeViewModel.updateModel() },
         floatingActionButton = {
             floatingCreateOfferButton {
-                events.goToCreateOffer()
+                component.goToCreateOffer()
             }
         },
         error = errorContent,
@@ -95,9 +97,9 @@ fun HomeContent(
                 DrawerContent(
                     drawerState = drawerState,
                     goToLogin = {
-                        events.goToLogin()
+                        component.goToLogin()
                     },
-                    list = homeViewModel.drawerList.value
+                    list = state.drawerList
                 )
             },
             gesturesEnabled = drawerState.isOpen,
@@ -107,7 +109,7 @@ fun HomeContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 SearchBar {
-                    events.goToNewSearch()
+                    component.goToNewSearch()
                 }
 
                 LazyColumnWithScrollBars(
@@ -117,45 +119,38 @@ fun HomeContent(
                         CategoryList(
                             categories = state.categories
                         ) { category ->
-                            val cat = TopCategory(
-                                id = category.id,
-                                parentId = category.parentId,
-                                name = category.name ?: defCat,
-                                parentName = null,
-                                icon = drawables.infoIcon
-                            )
-                            events.goToCategory(cat)
+                            state.events?.goToCategory(category)
                         }
                     }
                     item {
                         GridPromoOffers(
                             state.promoOffers1,
                             onOfferClick = {
-                                events.goToOffer(it)
+                                component.goToOffer(it)
                             },
                             onAllClickButton = {
-                                events.goToAllPromo()
+                                state.events?.goToAllPromo()
                             }
                         )
                     }
                     item {
                         GridPopularCategory(listTopCategory) { topCategory ->
-                            events.goToCategory(topCategory)
+                            state.events?.goToCategory(topCategory)
                         }
                     }
                     item {
                         GridPromoOffers(
                             state.promoOffers2,
                             onOfferClick = {
-                                events.goToOffer(it)
+                                component.goToOffer(it)
                             },
                             onAllClickButton = {
-                                events.goToAllPromo()
+                                state.events?.goToAllPromo()
                             }
                         )
                     }
                     item {
-                        FooterRow(homeViewModel.listFooter.value)
+                        FooterRow(state.listFooter)
                     }
                 }
             }

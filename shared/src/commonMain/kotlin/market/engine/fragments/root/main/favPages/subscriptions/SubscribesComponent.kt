@@ -82,10 +82,10 @@ class DefaultSubscriptionsComponent(
             val defCat = getString(strings.categoryMain)
 
             val ld = ListingData()
-            ld.data.value.filters = ListingFilters.getEmpty()
+            ld.data.filters = ListingFilters.getEmpty()
 
             if (subscription.priceTo != null) {
-                ld.data.value.filters.find {
+                ld.data.filters.find {
                     it.key == "current_price" && it.operation == "lte"
                 }?.let {
                     it.value = subscription.priceTo ?: ""
@@ -95,7 +95,7 @@ class DefaultSubscriptionsComponent(
             }
 
             if (subscription.priceFrom != null) {
-                ld.data.value.filters.find {
+                ld.data.filters.find {
                     it.key == "current_price" && it.operation == "gte"
                 }?.let {
                     it.value = subscription.priceFrom ?: ""
@@ -105,7 +105,7 @@ class DefaultSubscriptionsComponent(
             }
 
             if (subscription.region != null) {
-                ld.data.value.filters.find {
+                ld.data.filters.find {
                     it.key == "region"
                 }?.let {
                     it.value = (subscription.region?.code ?: "").toString()
@@ -114,7 +114,7 @@ class DefaultSubscriptionsComponent(
             }
 
             if (subscription.saleType != null) {
-                ld.data.value.filters.find {
+                ld.data.filters.find {
                     it.key == "sale_type"
                 }?.let {
                     when (subscription.saleType) {
@@ -132,15 +132,15 @@ class DefaultSubscriptionsComponent(
             }
 
             if (subscription.sellerData != null) {
-                ld.searchData.value.userSearch = true
-                ld.searchData.value.userID = subscription.sellerData.id
-                ld.searchData.value.userLogin = subscription.sellerData.login
+                ld.searchData.userSearch = true
+                ld.searchData.userID = subscription.sellerData.id
+                ld.searchData.userLogin = subscription.sellerData.login
             }
 
-            ld.searchData.value.searchString = subscription.searchQuery ?: ""
-            ld.searchData.value.searchCategoryID =
+            ld.searchData.searchString = subscription.searchQuery ?: ""
+            ld.searchData.searchCategoryID =
                 subscription.catpath?.keys?.firstOrNull() ?: 1L
-            ld.searchData.value.searchCategoryName =
+            ld.searchData.searchCategoryName =
                 subscription.catpath?.values?.firstOrNull() ?: defCat
 
             navigateToListing(ld)

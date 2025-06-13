@@ -15,39 +15,20 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
-import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.SearchPagesType
-import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.printLogD
 import market.engine.fragments.root.main.favPages.itemSubscriptions
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
-
-interface SearchEvents {
-    fun onRefresh()
-    fun goToListing()
-    fun onDeleteHistory()
-    fun onDeleteHistoryItem(id: Long)
-    fun openSearchCategory(value : Boolean)
-    fun completeCategory(sd: SD)
-    fun clearCategory()
-    fun clickUser()
-    fun clearUser()
-    fun clickUserFinished()
-    fun onHistoryItemClicked(item: SearchHistoryItem)
-    fun editHistoryItem(item: SearchHistoryItem)
-    fun onTabSelect(tab: Int)
-}
 
 interface ListingComponent {
     val model : Value<Model>
     data class Model(
         val listingViewModel: ListingViewModel,
         val backHandler: BackHandler,
-        val searchEvents: SearchEvents
+        val searchNavigator : PagesNavigation<SearchPagesConfig>
     )
 
     val searchPages: Value<ChildPages<*, SearchPagesComponents>>
@@ -61,7 +42,6 @@ interface ListingComponent {
 }
 
 class DefaultListingComponent(
-    isOpenCategory : Boolean,
     isOpenSearch : Boolean,
     componentContext: ComponentContext,
     listingData: ListingData,
@@ -74,80 +54,20 @@ class DefaultListingComponent(
 
     private val listingViewModel : ListingViewModel = ListingViewModel(this)
 
+    private val navigator = PagesNavigation<SearchPagesConfig>()
+
     private val _model = MutableValue(
         ListingComponent.Model(
             listingViewModel = listingViewModel,
             backHandler = backHandler,
-            searchEvents = object : SearchEvents {
-                override fun onRefresh() {
-                    listingViewModel.setLoading(true)
-                    listingViewModel.onError(ServerErrorException())
-                    listingViewModel.getHistory(listingViewModel.searchString.value.text)
-                    listingViewModel.setSearchFilters()
-                    listingViewModel.viewModelScope.launch {
-                        delay(1000)
-                        listingViewModel.setLoading(false)
-                    }
-                }
-
-                override fun goToListing() {
-                    listingViewModel.changeOpenSearch(false)
-                }
-
-                override fun onDeleteHistory() {
-                    listingViewModel.deleteHistory()
-                }
-
-                override fun onDeleteHistoryItem(id: Long) {
-                    listingViewModel.deleteItemHistory(id)
-                }
-
-                override fun openSearchCategory(value : Boolean) {
-                    listingViewModel.openSearchCategory(value)
-                }
-
-                override fun completeCategory(sd: SD) {
-                    listingViewModel.openSearchCategory(false)
-                }
-
-                override fun clearCategory() {
-                    listingViewModel.clearSearchCategory()
-                }
-
-                override fun clickUser() {
-                    listingViewModel.selectUserSearch()
-                }
-
-                override fun clearUser() {
-                    listingViewModel.clearUserSearch()
-                }
-
-                override fun clickUserFinished() {
-                    listingViewModel.selectUserFinished()
-                }
-
-                override fun onHistoryItemClicked(item: SearchHistoryItem) {
-                    listingViewModel.onClickHistoryItem(item)
-                }
-
-                override fun editHistoryItem(item: SearchHistoryItem) {
-                    listingViewModel.editHistoryItem(item)
-                }
-
-                override fun onTabSelect(tab: Int) {
-                    navigator.select(tab)
-                    listingViewModel.changeSearchTab(tab)
-                }
-            }
+            searchNavigator = navigator
         )
     )
 
     override val model: Value<ListingComponent.Model> = _model
 
-    private val searchData = listingData.searchData.value
+    private val searchData = listingData.searchData
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
-    private val navigator = PagesNavigation<SearchPagesConfig>()
 
     override val searchPages: Value<ChildPages<*, SearchPagesComponents>> = childPages(
         source = navigator,
@@ -197,10 +117,12 @@ class DefaultListingComponent(
         )
         analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
 
-        if(isOpenCategory)
-            listingViewModel.activeFiltersType.value = "categories"
-        if(isOpenSearch)
-            listingViewModel.changeOpenSearch(isOpenSearch)
+        listingViewModel.viewModelScope.launch {
+            delay(50)
+            if(isOpenSearch)
+                listingViewModel.changeOpenSearch(isOpenSearch)
+        }
+
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {

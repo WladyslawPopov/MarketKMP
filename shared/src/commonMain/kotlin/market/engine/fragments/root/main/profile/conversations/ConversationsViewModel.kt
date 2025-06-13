@@ -17,9 +17,9 @@ class ConversationsViewModel: BaseViewModel() {
     val listingData = mutableStateOf(ListingData())
 
     fun init(): Flow<PagingData<Conversations>> {
-        listingData.value.data.value.filters = MsgFilters.filters
-        listingData.value.data.value.methodServer = "get_cabinet_listing"
-        listingData.value.data.value.objServer = "conversations"
+        listingData.value.data.filters = MsgFilters.filters
+        listingData.value.data.methodServer = "get_cabinet_listing"
+        listingData.value.data.objServer = "conversations"
 
         return conversationsPagingRepository.getListing(listingData.value, apiService, Conversations.serializer()).cachedIn(viewModelScope)
     }

@@ -44,7 +44,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilterListingContent(
-    isRefreshing: MutableState<Boolean>,
+    isRefreshing: Boolean,
     listingData: List<Filter>,
     regionsOptions: List<Options>,
     onClear: () -> Unit,
@@ -213,7 +213,7 @@ fun FilterListingContent(
                                         )
                                     }
                                     isShowClear.value = checkSize()
-                                    isRefreshing.value = true
+                                    //isRefreshing.value = true
                                 }
                             }
                         }
@@ -254,7 +254,7 @@ fun FilterListingContent(
                                         listingData
                                     )
                                     isShowClear.value = checkSize()
-                                    isRefreshing.value = true
+                                    //isRefreshing.value = true
                                 }
                             }
                         }
@@ -285,14 +285,14 @@ fun FilterListingContent(
                             regionSelected.value = newRegion
 
                             isShowClear.value = checkSize()
-                            isRefreshing.value = true
+                           // isRefreshing.value = true
                         },
                         onClearItem = {
                             listingData.find { it.key == "region" }?.interpretation =
                                 null
                             regionSelected.value = null
                             isShowClear.value = checkSize()
-                            isRefreshing.value = true
+                            //isRefreshing.value = true
                         }
                     )
                 }
@@ -301,7 +301,7 @@ fun FilterListingContent(
             item {
                 PriceFilter(listingData) {
                     isShowClear.value = checkSize()
-                    isRefreshing.value = true
+                    //isRefreshing.value = true
                 }
             }
             //time filter
@@ -347,7 +347,7 @@ fun FilterListingContent(
                                             timeNewSelected.value = time
 
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
+                                            //isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.find { it.key == "new" }?.value =
@@ -357,7 +357,7 @@ fun FilterListingContent(
 
                                             timeNewSelected.value = null
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
+                                           // isRefreshing.value = true
                                         }
                                     )
                                 }
@@ -389,7 +389,7 @@ fun FilterListingContent(
                                             timeNewWithoutRelistedSelected.value = time
 
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
+                                            //isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.find { it.key == "new_without_relisted" }?.value =
@@ -400,7 +400,7 @@ fun FilterListingContent(
                                             timeNewWithoutRelistedSelected.value = null
 
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
+                                            //isRefreshing.value = true
                                         }
                                     )
                                 }
@@ -431,7 +431,7 @@ fun FilterListingContent(
                                             timeEndingSelected.value = time
 
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
+                                           // isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.find { it.key == "ending" }?.value =
@@ -442,7 +442,7 @@ fun FilterListingContent(
                                             timeEndingSelected.value = null
 
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
+                                           // isRefreshing.value = true
                                         }
                                     )
                                 }

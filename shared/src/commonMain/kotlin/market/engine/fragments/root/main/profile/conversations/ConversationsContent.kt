@@ -79,12 +79,12 @@ fun ConversationsContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
+        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
                 MsgFilters.clearFilters()
-                listingData.value.filters = MsgFilters.filters
+                listingData.filters = MsgFilters.filters
                 refresh()
             }
         }else {
@@ -139,118 +139,118 @@ fun ConversationsContent(
             toastItem = viewModel.toastItem,
             modifier = modifier.fillMaxSize()
         ) {
-            ListingBaseContent(
-                modifier = Modifier.fillMaxWidth(),
-                listingData = listingData.value,
-                searchData = searchData.value,
-                data = data,
-                baseViewModel = viewModel,
-                onRefresh = {
-                    refresh()
-                },
-                noFound = noFound,
-                additionalBar = {
-                    if(model.message != null){
-                        Row(
-                            modifier = Modifier.background(colors.white).fillMaxWidth()
-                                .padding(dimens.mediumPadding)
-                        ) {
-                            Text(
-                                stringResource(strings.selectDialogLabel),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = colors.black
-                            )
-                        }
-                    }
-
-                    DeletePanel(
-                        selectedItems.size,
-                        onCancel = {
-                            viewModel.selectItems.clear()
-                            isSelectedMode.value = false
-                        },
-                        onDelete = {
-                            selectedItems.forEach { item ->
-                                viewModel.deleteConversation(item){
-                                    updateFilters.value--
-                                }
-                            }
-                            if (updateFilters.value == 0){
-                                viewModel.selectItems.clear()
-                                viewModel.updateUserInfo()
-                                refresh()
-                                isSelectedMode.value = false
-                            }
-                        }
-                    )
-
-
-//                    FiltersBar(
-//                        searchData.value,
-//                        listingData.value,
-//                        updateFilters.value,
-//                        isShowGrid = false,
-//                        onFilterClick = {
-//                            viewModel.activeFiltersType.value = "filters"
+//            ListingBaseContent(
+//                modifier = Modifier.fillMaxWidth(),
+//                listingData = listingData.value,
+//                searchData = searchData,
+//                data = data,
+//                baseViewModel = viewModel,
+//                onRefresh = {
+//                    refresh()
+//                },
+//                noFound = noFound,
+//                additionalBar = {
+//                    if(model.message != null){
+//                        Row(
+//                            modifier = Modifier.background(colors.white).fillMaxWidth()
+//                                .padding(dimens.mediumPadding)
+//                        ) {
+//                            Text(
+//                                stringResource(strings.selectDialogLabel),
+//                                style = MaterialTheme.typography.titleMedium,
+//                                color = colors.black
+//                            )
+//                        }
+//                    }
+//
+//                    DeletePanel(
+//                        selectedItems.size,
+//                        onCancel = {
+//                            viewModel.selectItems.clear()
+//                            isSelectedMode.value = false
 //                        },
-//                        onSortClick = {
-//                            viewModel.activeFiltersType.value = "sorting"
-//                        },
-//                        onRefresh = {
-//                            refresh()
-//                            updateFilters.value++
+//                        onDelete = {
+//                            selectedItems.forEach { item ->
+//                                viewModel.deleteConversation(item){
+//                                    updateFilters.value--
+//                                }
+//                            }
+//                            if (updateFilters.value == 0){
+//                                viewModel.selectItems.clear()
+//                                viewModel.updateUserInfo()
+//                                refresh()
+//                                isSelectedMode.value = false
+//                            }
 //                        }
 //                    )
-                },
-                filtersContent = { isRefreshingFromFilters , onClose ->
-                    when (viewModel.activeFiltersType.value) {
-                        "filters" -> {
-                            DialogsFilterContent(
-                                isRefreshingFromFilters,
-                                listingData.value.filters,
-                                onClose
-                            )
-                        }
-
-                        "sorting" -> SortingOrdersContent(
-                            isRefreshingFromFilters,
-                            listingData.value,
-                            onClose
-                        )
-                    }
-                },
-                item = { conversation ->
-                    val isSelect = rememberUpdatedState(selectedItems.contains(conversation.id))
-
-                    ConversationItem(
-                        conversation = conversation,
-                        isVisibleCBMode = isSelectedMode.value,
-                        isSelected = isSelect.value,
-                        updateTrigger = viewModel.updateItemTrigger.value,
-                        onSelectionChange = {
-                            if (it) {
-                                viewModel.selectItems.add(conversation.id)
-                            } else {
-                                viewModel.selectItems.remove(conversation.id)
-                            }
-
-                            isSelectedMode.value = selectedItems.isNotEmpty()
-                        },
-                        goToMessenger = {
-                            if (isSelectedMode.value) {
-                                if (!isSelect.value) {
-                                    viewModel.selectItems.add(conversation.id)
-                                } else {
-                                    viewModel.selectItems.remove(conversation.id)
-                                }
-                                isSelectedMode.value = selectedItems.isNotEmpty()
-                            } else {
-                                component.goToMessenger(conversation)
-                            }
-                        }
-                    )
-                }
-            )
+//
+//
+////                    FiltersBar(
+////                        searchData,
+////                        listingData.value,
+////                        updateFilters.value,
+////                        isShowGrid = false,
+////                        onFilterClick = {
+////                            viewModel.activeFiltersType.value = "filters"
+////                        },
+////                        onSortClick = {
+////                            viewModel.activeFiltersType.value = "sorting"
+////                        },
+////                        onRefresh = {
+////                            refresh()
+////                            updateFilters.value++
+////                        }
+////                    )
+//                },
+//                filtersContent = { isRefreshingFromFilters , onClose ->
+//                    when (viewModel.activeFiltersType.value) {
+//                        "filters" -> {
+//                            DialogsFilterContent(
+//                                isRefreshingFromFilters,
+//                                listingData.value.filters,
+//                                onClose
+//                            )
+//                        }
+//
+//                        "sorting" -> SortingOrdersContent(
+//                            isRefreshingFromFilters,
+//                            listingData.value,
+//                            onClose
+//                        )
+//                    }
+//                },
+//                item = { conversation ->
+//                    val isSelect = rememberUpdatedState(selectedItems.contains(conversation.id))
+//
+//                    ConversationItem(
+//                        conversation = conversation,
+//                        isVisibleCBMode = isSelectedMode.value,
+//                        isSelected = isSelect.value,
+//                        updateTrigger = viewModel.updateItemTrigger.value,
+//                        onSelectionChange = {
+//                            if (it) {
+//                                viewModel.selectItems.add(conversation.id)
+//                            } else {
+//                                viewModel.selectItems.remove(conversation.id)
+//                            }
+//
+//                            isSelectedMode.value = selectedItems.isNotEmpty()
+//                        },
+//                        goToMessenger = {
+//                            if (isSelectedMode.value) {
+//                                if (!isSelect.value) {
+//                                    viewModel.selectItems.add(conversation.id)
+//                                } else {
+//                                    viewModel.selectItems.remove(conversation.id)
+//                                }
+//                                isSelectedMode.value = selectedItems.isNotEmpty()
+//                            } else {
+//                                component.goToMessenger(conversation)
+//                            }
+//                        }
+//                    )
+//                }
+//            )
         }
     }
 

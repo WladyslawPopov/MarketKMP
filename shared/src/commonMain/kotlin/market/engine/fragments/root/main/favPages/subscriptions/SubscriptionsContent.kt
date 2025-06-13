@@ -104,79 +104,79 @@ fun SubscriptionsContent(
         toastItem = subViewModel.toastItem,
         modifier = modifier.fillMaxSize()
     ) {
-        ListingBaseContent(
-            listingData = listingData.value,
-            data = data,
-            searchData = searchData.value,
-            baseViewModel = subViewModel,
-            onRefresh = {
-                subViewModel.resetScroll()
-                data.refresh()
-            },
-            noFound = noFound,
-            columns = columns.value,
-            filtersContent = { isRefreshingFromFilters , onClose ->
-                when (subViewModel.activeFiltersType.value){
-                    "sorting" -> SortingOrdersContent(
-                        isRefreshingFromFilters,
-                        listingData.value,
-                        onClose
-                    )
-                }
-            },
-            additionalBar = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SmallIconButton(
-                        drawables.newLotIcon,
-                        color = colors.positiveGreen
-                    ) {
-                        component.goToCreateNewSubscription()
-                    }
-
-//                    if (listingData.value.sort != null){
-//                        if (listingData.value.sort != null){
-//                            ActiveFilterListingItem(
-//                                text = listingData.value.sort?.interpretation ?: "",
-//                                removeFilter = {
-//                                    listingData.value.sort = null
-//                                    refresh()
-//                                },
-//                            ){
-//                                subViewModel.activeFiltersType.value = "sorting"
-//                            }
-//                        }
+//        ListingBaseContent(
+//            listingData = listingData.value,
+//            data = data,
+//            searchData = searchData,
+//            baseViewModel = subViewModel,
+//            onRefresh = {
+//                subViewModel.resetScroll()
+//                data.refresh()
+//            },
+//            noFound = noFound,
+//            columns = columns.value,
+//            filtersContent = { isRefreshingFromFilters , onClose ->
+//                when (subViewModel.activeFiltersType.value){
+//                    "sorting" -> SortingOrdersContent(
+//                        isRefreshingFromFilters,
+//                        listingData.value,
+//                        onClose
+//                    )
+//                }
+//            },
+//            additionalBar = {
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    SmallIconButton(
+//                        drawables.newLotIcon,
+//                        color = colors.positiveGreen
+//                    ) {
+//                        component.goToCreateNewSubscription()
 //                    }
-
-                    SmallIconButton(
-                        drawables.sortIcon,
-                        color = colors.black
-                    ){
-                        subViewModel.activeFiltersType.value = "sorting"
-                    }
-                }
-            },
-            item = { subscription ->
-                if (subscription.id != 1L && subViewModel.updateItemTrigger.value >= 0) {
-                    SubscriptionItem(
-                        subscription,
-                        subViewModel,
-                        goToEditSubscription = {
-                            component.goToCreateNewSubscription(it)
-                        },
-                        onUpdateItem = {
-                            subViewModel.updateItem.value = subscription.id
-                            subViewModel.updateItemTrigger.value++
-                        },
-                        onItemClick = {
-                            component.goToListing(subscription)
-                        }
-                    )
-                }
-            }
-        )
+//
+////                    if (listingData.value.sort != null){
+////                        if (listingData.value.sort != null){
+////                            ActiveFilterListingItem(
+////                                text = listingData.value.sort?.interpretation ?: "",
+////                                removeFilter = {
+////                                    listingData.value.sort = null
+////                                    refresh()
+////                                },
+////                            ){
+////                                subViewModel.activeFiltersType.value = "sorting"
+////                            }
+////                        }
+////                    }
+//
+//                    SmallIconButton(
+//                        drawables.sortIcon,
+//                        color = colors.black
+//                    ){
+//                        subViewModel.activeFiltersType.value = "sorting"
+//                    }
+//                }
+//            },
+//            item = { subscription ->
+//                if (subscription.id != 1L && subViewModel.updateItemTrigger.value >= 0) {
+//                    SubscriptionItem(
+//                        subscription,
+//                        subViewModel,
+//                        goToEditSubscription = {
+//                            component.goToCreateNewSubscription(it)
+//                        },
+//                        onUpdateItem = {
+//                            subViewModel.updateItem.value = subscription.id
+//                            subViewModel.updateItemTrigger.value++
+//                        },
+//                        onItemClick = {
+//                            component.goToListing(subscription)
+//                        }
+//                    )
+//                }
+//            }
+//        )
     }
 }

@@ -68,12 +68,12 @@ fun MyBidsContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
+        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
                 OfferFilters.clearTypeFilter(component.model.value.type)
-                listingData.value.filters = OfferFilters.getByTypeFilter(component.model.value.type)
+                listingData.filters = OfferFilters.getByTypeFilter(component.model.value.type)
                 refresh()
             }
         }else {
@@ -112,75 +112,75 @@ fun MyBidsContent(
         toastItem = viewModel.toastItem,
         modifier = modifier.fillMaxSize()
     ) {
-        ListingBaseContent(
-            columns = columns.value,
-            listingData = listingData.value,
-            searchData = searchData.value,
-            data = data,
-            baseViewModel = viewModel,
-            onRefresh = {
-                refresh()
-            },
-            noFound = noFound,
-            additionalBar = {
-//                FiltersBar(
-//                    searchData.value,
-//                    listingData.value,
-//                    updateFilters.value,
-//                    isShowGrid = false,
-//                    onFilterClick = {
-//                        viewModel.activeFiltersType.value = "filters"
+//        ListingBaseContent(
+//            columns = columns.value,
+//            listingData = listingData.value,
+//            searchData = searchData,
+//            data = data,
+//            baseViewModel = viewModel,
+//            onRefresh = {
+//                refresh()
+//            },
+//            noFound = noFound,
+//            additionalBar = {
+////                FiltersBar(
+////                    searchData,
+////                    listingData.value,
+////                    updateFilters.value,
+////                    isShowGrid = false,
+////                    onFilterClick = {
+////                        viewModel.activeFiltersType.value = "filters"
+////                    },
+////                    onSortClick = {
+////                        viewModel.activeFiltersType.value = "sorting"
+////                    },
+////                    onRefresh = {
+////                        refresh()
+////                        updateFilters.value++
+////                    }
+////                )
+//            },
+//            filtersContent = { isRefreshingFromFilters , onClose ->
+//                when(viewModel.activeFiltersType.value){
+//                    "filters" -> OfferFilterContent(
+//                        viewModel.openFiltersCat,
+//                        viewModel.catBack,
+//                        isRefreshingFromFilters,
+//                        listingData.value.filters,
+//                        viewModel,
+//                        model.type,
+//                        onClose
+//                    )
+//                    "sorting" -> SortingOffersContent(
+//                        isRefreshingFromFilters,
+//                        listingData.value,
+//                        isCabinet = true,
+//                        onClose
+//                    )
+//                }
+//            },
+//            item = { offer ->
+//                CabinetBidsItem(
+//                    offer = offer,
+//                    onUpdateOfferItem = {
+//                        viewModel.updateItem.value = it
 //                    },
-//                    onSortClick = {
-//                        viewModel.activeFiltersType.value = "sorting"
+//                    updateTrigger = viewModel.updateItemTrigger.value,
+//                    goToOffer = {
+//                        component.goToOffer(offer, true)
 //                    },
-//                    onRefresh = {
-//                        refresh()
-//                        updateFilters.value++
-//                    }
+//                    goToMyPurchases = {
+//                        component.goToPurchases()
+//                    },
+//                    goToUser = {
+//                        component.goToUser(it)
+//                    },
+//                    goToDialog = {
+//                        component.goToDialog(it)
+//                    },
+//                    baseViewModel = viewModel,
 //                )
-            },
-            filtersContent = { isRefreshingFromFilters , onClose ->
-                when(viewModel.activeFiltersType.value){
-                    "filters" -> OfferFilterContent(
-                        viewModel.openFiltersCat,
-                        viewModel.catBack,
-                        isRefreshingFromFilters,
-                        listingData.value.filters,
-                        viewModel,
-                        model.type,
-                        onClose
-                    )
-                    "sorting" -> SortingOffersContent(
-                        isRefreshingFromFilters,
-                        listingData.value,
-                        isCabinet = true,
-                        onClose
-                    )
-                }
-            },
-            item = { offer ->
-                CabinetBidsItem(
-                    offer = offer,
-                    onUpdateOfferItem = {
-                        viewModel.updateItem.value = it
-                    },
-                    updateTrigger = viewModel.updateItemTrigger.value,
-                    goToOffer = {
-                        component.goToOffer(offer, true)
-                    },
-                    goToMyPurchases = {
-                        component.goToPurchases()
-                    },
-                    goToUser = {
-                        component.goToUser(it)
-                    },
-                    goToDialog = {
-                        component.goToDialog(it)
-                    },
-                    baseViewModel = viewModel,
-                )
-            }
-        )
+//            }
+//        )
     }
 }

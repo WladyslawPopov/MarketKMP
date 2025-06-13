@@ -80,7 +80,7 @@ fun FeedbacksContent(
 
     val currentIndex by remember {
         derivedStateOf {
-            state.firstVisibleItemIndex + if(listingData.value.totalCount > 1) 2 else 1
+            state.firstVisibleItemIndex + if(listingData.totalCount > 1) 2 else 1
         }
     }
 
@@ -104,8 +104,8 @@ fun FeedbacksContent(
     val refreshPage = {
         if(type != ReportPageType.ABOUT_ME){
             ReportFilters.clearTypeFilter(type)
-            listingData.value.filters = ReportFilters.getByTypeFilter(type)
-            listingData.value.filters.find { it.key == "user_id" }?.value = userId.toString()
+            listingData.filters = ReportFilters.getByTypeFilter(type)
+            listingData.filters.find { it.key == "user_id" }?.value = userId.toString()
         }
 
         viewModel.refresh()
@@ -122,7 +122,7 @@ fun FeedbacksContent(
 
             refresh is LoadStateNotLoading && data.itemCount < 1 -> {
                 noItem = {
-                    if (listingData.value.filters.find { it.key == "evaluation" }?.value == "") {
+                    if (listingData.filters.find { it.key == "evaluation" }?.value == "") {
                         showNoItemLayout(
                             title = stringResource(strings.notFoundFeedbackLabel),
                             textButton = stringResource(strings.refreshButton)
@@ -148,15 +148,15 @@ fun FeedbacksContent(
             onScrollDirectionChange(isAtTop)
         }
         showUpButton = 2 < (state.firstVisibleItemIndex / PAGE_SIZE)
-        showDownButton = listingData.value.prevIndex != null &&
-                state.firstVisibleItemIndex < (listingData.value.prevIndex ?: 0)
+        showDownButton = listingData.prevIndex != null &&
+                state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
     }
 
     LaunchedEffect(Unit){
-        viewModel.currentFilter.value = if (listingData.value.filters.find { it.key == "evaluation" }?.value == "" || listingData.value.filters.find { it.key == "evaluation" }?.value == null) {
+        viewModel.currentFilter.value = if (listingData.filters.find { it.key == "evaluation" }?.value == "" || listingData.filters.find { it.key == "evaluation" }?.value == null) {
             filters[0]
         }else{
-            filters[(listingData.value.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
+            filters[(listingData.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
         }
 
         state.scrollToItem(viewModel.scrollItem.value, viewModel.offsetScrollItem.value)
@@ -182,23 +182,23 @@ fun FeedbacksContent(
 
                         when (filters.indexOf(filter)) {
                             0 -> {
-                                listingData.value.filters.find { it.key == "evaluation" }?.value = ""
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = null
+                                listingData.filters.find { it.key == "evaluation" }?.value = ""
+                                listingData.filters.find { it.key == "evaluation" }?.interpretation = null
                             }
 
                             1 -> {
-                                listingData.value.filters.find { it.key == "evaluation" }?.value = "0"
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = ""
+                                listingData.filters.find { it.key == "evaluation" }?.value = "0"
+                                listingData.filters.find { it.key == "evaluation" }?.interpretation = ""
                             }
 
                             2 -> {
-                                listingData.value.filters.find { it.key == "evaluation" }?.value = "1"
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = ""
+                                listingData.filters.find { it.key == "evaluation" }?.value = "1"
+                                listingData.filters.find { it.key == "evaluation" }?.interpretation = ""
                             }
 
                             3 -> {
-                                listingData.value.filters.find { it.key == "evaluation" }?.value = "2"
-                                listingData.value.filters.find { it.key == "evaluation" }?.interpretation = ""
+                                listingData.filters.find { it.key == "evaluation" }?.value = "2"
+                                listingData.filters.find { it.key == "evaluation" }?.interpretation = ""
                             }
                         }
                         refreshPage()
@@ -221,8 +221,8 @@ fun FeedbacksContent(
                     contentPadding = dimens.smallPadding
                 ) {
                     when {
-                        error != null -> item { error?.invoke() }
-                        noItem != null -> item { noItem?.invoke() }
+                        error != null -> item { error.invoke() }
+                        noItem != null -> item { noItem.invoke() }
                         model.type == ReportPageType.ABOUT_ME -> {
                             item {
                                 if (aboutMe != null) {
@@ -267,10 +267,10 @@ fun FeedbacksContent(
                     }
                 }
 
-                if (listingData.value.totalCount > 0) {
+                if (listingData.totalCount > 0) {
                     PagingCounterBar(
                         currentPage = currentIndex,
-                        totalPages = listingData.value.totalCount,
+                        totalPages = listingData.totalCount,
                         modifier = Modifier.align(Alignment.BottomStart),
                         showUpButton = showUpButton,
                         showDownButton = showDownButton,
@@ -278,7 +278,7 @@ fun FeedbacksContent(
                             when {
                                 showUpButton -> {
                                     CoroutineScope(Dispatchers.Main).launch {
-                                        listingData.value.prevIndex = currentIndex
+                                        listingData.prevIndex = currentIndex
                                         state.scrollToItem(0)
                                         showUpButton = false
                                         showDownButton = true
@@ -287,8 +287,8 @@ fun FeedbacksContent(
 
                                 showDownButton -> {
                                     CoroutineScope(Dispatchers.Main).launch {
-                                        state.scrollToItem(listingData.value.prevIndex ?: 1)
-                                        listingData.value.prevIndex = null
+                                        state.scrollToItem(listingData.prevIndex ?: 1)
+                                        listingData.prevIndex = null
                                         showDownButton = false
                                         showUpButton = true
                                     }

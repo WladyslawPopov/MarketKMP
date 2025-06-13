@@ -24,9 +24,9 @@ class MyProposalsViewModel(
     val listingData = mutableStateOf(ListingData())
 
     fun init(): Flow<PagingData<OfferItem>> {
-        listingData.value.data.value.filters = OfferFilters.getByTypeFilter(type)
-        listingData.value.data.value.methodServer = "get_cabinet_listing_my_price_proposals"
-        listingData.value.data.value.objServer = "offers"
+        listingData.value.data.filters = OfferFilters.getByTypeFilter(type)
+        listingData.value.data.methodServer = "get_cabinet_listing_my_price_proposals"
+        listingData.value.data.objServer = "offers"
 
         return offerPagingRepository.getListing(listingData.value, apiService, Offer.serializer()).map {
             it.map { offer ->

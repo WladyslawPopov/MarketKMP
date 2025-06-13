@@ -36,7 +36,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CategoryContent(
     viewModel: CategoryViewModel,
-    onComplete: () -> Unit,
     onClose: () -> Unit = {},
 ) {
     val searchCategoryName = viewModel.categoryName.collectAsState()
@@ -144,7 +143,7 @@ fun CategoryContent(
                         onClick = {
                             viewModel.selectCategory(category)
                             if (category.isLeaf && !viewModel.categoryWithoutCounter) {
-                                onComplete()
+                                onClose()
                             }
                         }
                     )
@@ -173,7 +172,7 @@ fun CategoryContent(
             Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f).padding(dimens.smallPadding).align(Alignment.BottomCenter),
             enabled = viewModel.enabledBtn.value
         ) {
-            onComplete()
+            onClose()
         }
     }
 }

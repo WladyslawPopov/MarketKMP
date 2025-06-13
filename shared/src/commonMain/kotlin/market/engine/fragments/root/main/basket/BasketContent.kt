@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -25,7 +26,6 @@ import market.engine.widgets.items.BasketItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
-
 @Composable
 fun BasketContent(
     component: BasketComponent,
@@ -41,10 +41,10 @@ fun BasketContent(
     val basketItemsState = viewModel.uiDataState.collectAsState()
     val deleteIds = viewModel.deleteIds.collectAsState()
 
-    val isLoading = basketState.value.isLoading
-    val isError = basketState.value.errorMessage
+    val isLoading = remember(basketState.value.isLoading) { basketState.value.isLoading }
+    val isError = remember(basketState.value.errorMessage) { basketState.value.errorMessage }
 
-        BackHandler(
+    BackHandler(
         modelState.value.backHandler
     ){
 
@@ -58,34 +58,37 @@ fun BasketContent(
         }
     }
 
-    val noFound: (@Composable () ->Unit)? = if (basketItemsState.value.isEmpty()){
-        {
-            showNoItemLayout(
-                image = drawables.cartEmptyIcon,
-                title = stringResource(strings.cardIsEmptyLabel),
-                textButton = stringResource(strings.startShoppingLabel),
-            ) {
-                //go to listing
-                component.goToListing()
+    val noFound: (@Composable () ->Unit)? = remember(basketItemsState.value) {
+        if (basketItemsState.value.isEmpty()) {
+            {
+                showNoItemLayout(
+                    image = drawables.cartEmptyIcon,
+                    title = stringResource(strings.cardIsEmptyLabel),
+                    textButton = stringResource(strings.startShoppingLabel),
+                ) {
+                    //go to listing
+                    component.goToListing()
+                }
             }
+        } else {
+            null
         }
-    }else{
-        null
     }
 
-    val error : (@Composable () ->Unit)? = if (isError.humanMessage.isNotBlank()){
-        {
-            onError(
-                isError
-            ){
-                viewModel.onError(ServerErrorException())
-                viewModel.getUserCart()
+    val error : (@Composable () ->Unit)? = remember(isError.humanMessage) {
+        if (isError.humanMessage.isNotBlank()) {
+            {
+                onError(
+                    isError
+                ) {
+                    viewModel.onError(ServerErrorException())
+                    viewModel.getUserCart()
+                }
             }
+        } else {
+            null
         }
-    }else{
-        null
     }
-
 
     BaseContent(
         topBar = {

@@ -25,17 +25,14 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.flow.collectLatest
-import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.fragments.base.BaseContent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.fragments.root.main.listing.SearchEvents
 import market.engine.fragments.root.main.listing.SearchPagesComponents
 import market.engine.fragments.root.main.listing.SearchUiState
-import market.engine.widgets.bars.SimpleAppBar
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.tabs.PageTab
@@ -52,9 +49,9 @@ fun SearchContent(
     val focusManager = LocalFocusManager.current
     val scaffoldState = rememberBottomSheetScaffoldState()
 
-    LaunchedEffect(uiSearchUiState.openCategory){
+    LaunchedEffect(uiSearchUiState){
         snapshotFlow {
-            uiSearchUiState.openCategory
+            uiSearchUiState.categoryState.openCategory
         }.collectLatest {
             if (it) {
                 scaffoldState.bottomSheetState.expand()
@@ -65,144 +62,108 @@ fun SearchContent(
         }
     }
 
-    BaseContent(
-        error = null,
-        isLoading = false,
-        onRefresh = {
-            searchEvents.onRefresh()
-        },
-        noFound = null,
-        topBar = {
-            if (!scaffoldState.bottomSheetState.isExpanded) {
-                if (uiSearchUiState.appBarData != null) {
-                    SimpleAppBar(
-                        data = uiSearchUiState.appBarData
-                    )
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        modifier = Modifier.fillMaxSize(),
+        sheetContentColor = colors.primaryColor,
+        sheetBackgroundColor = colors.primaryColor,
+        contentColor = colors.primaryColor,
+        backgroundColor = colors.primaryColor,
+        sheetPeekHeight = 0.dp,
+        sheetGesturesEnabled = false,
+        sheetContent = {
+            CategoryContent(
+                viewModel = uiSearchUiState.categoryState.categoryViewModel,
+                onClose = {
+                    searchEvents.openSearchCategory(false)
                 }
-            }else{
-                if (uiSearchUiState.closeAppBar != null) {
-                    SimpleAppBar(
-                        data = uiSearchUiState.closeAppBar
-                    )
-                }
-            }
+            )
         },
-        modifier = Modifier.fillMaxSize()
-    ) {
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            modifier = Modifier.fillMaxSize(),
-            sheetContentColor = colors.primaryColor,
-            sheetBackgroundColor = colors.primaryColor,
-            contentColor = colors.primaryColor,
-            backgroundColor = colors.primaryColor,
-            sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = false,
-            sheetContent = {
-                CategoryContent(
-                    viewModel = uiSearchUiState.categoryViewModel,
-                    onComplete = {
-                        uiSearchUiState.categoryViewModel.run {
-                            val sd = SD(
-                                searchCategoryID = categoryId.value,
-                                searchCategoryName = categoryName.value,
-                                searchParentID = parentId.value,
-                                searchIsLeaf = isLeaf.value
-                            )
-                            searchEvents.completeCategory(sd)
-                        }
-                    },
-                    onClose = {
-                        searchEvents.openSearchCategory(false)
-                    }
-                )
-            },
-        ) { padding ->
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
+                    .weight(1f)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            focusManager.clearFocus()
+                        })
+                    },
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .pointerInput(Unit) {
-                            detectTapGestures(onTap = {
-                                focusManager.clearFocus()
-                            })
-                        },
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
+            ) {
+                Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
 
-                    FiltersSearchBar(uiSearchUiState, searchEvents)
+                FiltersSearchBar(uiSearchUiState, searchEvents)
 
-                    if(uiSearchUiState.tabs.size > 1) {
-                        TabRow(
-                            uiSearchUiState.tabs,
+                if(uiSearchUiState.tabs.size > 1) {
+                    TabRow(
+                        uiSearchUiState.tabs,
+                        selectedTab = uiSearchUiState.selectedTabIndex,
+                        containerColor = colors.primaryColor,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { index, tab ->
+                        PageTab(
+                            tab = tab,
                             selectedTab = uiSearchUiState.selectedTabIndex,
-                            containerColor = colors.primaryColor,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { index, tab ->
-                            PageTab(
-                                tab = tab,
-                                selectedTab = uiSearchUiState.selectedTabIndex,
-                                currentIndex = index,
-                                textStyle = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.clickable {
-                                    searchEvents.onTabSelect(index)
+                            currentIndex = index,
+                            textStyle = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.clickable {
+                                searchEvents.onTabSelect(index)
+                            },
+                        )
+                    }
+                }
+
+                ChildPages(
+                    pages = searchPages,
+                    scrollAnimation = PagesScrollAnimation.Default,
+                    onPageSelected = {
+                        searchEvents.onTabSelect(it)
+                        focusManager.clearFocus()
+                    }
+                ) { _, page ->
+                    when(page){
+                        is SearchPagesComponents.HistoryChild -> {
+                            HistoryLayout(
+                                historyItems = uiSearchUiState.searchHistory,
+                                modifier = Modifier.fillMaxSize().padding(horizontal = dimens.smallPadding),
+                                onItemClick = { item ->
+                                    searchEvents.editHistoryItem(item)
                                 },
+                                onClearHistory = {
+                                    searchEvents.onDeleteHistory()
+                                },
+                                onDeleteItem = {
+                                    searchEvents.onDeleteHistoryItem(it)
+                                },
+                                goToListing = { item ->
+                                    searchEvents.onHistoryItemClicked(item)
+                                }
+                            )
+                        }
+                        is SearchPagesComponents.SubscriptionsChild -> {
+                            SubscriptionsContent(
+                                page.component,
+                                Modifier
                             )
                         }
                     }
-
-                    ChildPages(
-                        pages = searchPages,
-                        scrollAnimation = PagesScrollAnimation.Default,
-                        onPageSelected = {
-                            searchEvents.onTabSelect(it)
-                            focusManager.clearFocus()
-                        }
-                    ) { _, page ->
-                        when(page){
-                            is SearchPagesComponents.HistoryChild -> {
-                                HistoryLayout(
-                                    historyItems = uiSearchUiState.searchHistory,
-                                    modifier = Modifier.fillMaxSize().padding(horizontal = dimens.smallPadding),
-                                    onItemClick = { item ->
-                                        searchEvents.editHistoryItem(item)
-                                    },
-                                    onClearHistory = {
-                                        searchEvents.onDeleteHistory()
-                                    },
-                                    onDeleteItem = {
-                                        searchEvents.onDeleteHistoryItem(it)
-                                    },
-                                    goToListing = { item ->
-                                        searchEvents.onHistoryItemClicked(item)
-                                    }
-                                )
-                            }
-                            is SearchPagesComponents.SubscriptionsChild -> {
-                                SubscriptionsContent(
-                                    page.component,
-                                    Modifier
-                                )
-                            }
-                        }
-                    }
                 }
+            }
 
-                AcceptedPageButton(
-                    stringResource(strings.categoryEnter),
-                    Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f)
-                        .padding(dimens.smallPadding),
-                ) {
-                    searchEvents.goToListing()
-                }
+            AcceptedPageButton(
+                stringResource(strings.categoryEnter),
+                Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f)
+                    .padding(dimens.smallPadding),
+            ) {
+                searchEvents.goToListing()
             }
         }
     }

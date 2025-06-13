@@ -172,15 +172,15 @@ fun CreateSubscriptionContent(
             sheetContent = {
 //                CategoryContent(
 //                    isOpen = viewModel.openFiltersCat.value,
-//                    searchData = searchData.value,
+//                    searchData = searchData,
 //                    baseViewModel = viewModel,
 //                    onBackClicked = viewModel.catBack,
 //                    isFilters = true,
 //                ){
-//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.value.searchCategoryName
-//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.value.searchCategoryID)
-//                    selectedCategory.value = searchData.value.searchCategoryName
-//                    selectedCategoryID.value = searchData.value.searchCategoryID
+//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.searchCategoryName
+//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.searchCategoryID)
+//                    selectedCategory.value = searchData.searchCategoryName
+//                    selectedCategoryID.value = searchData.searchCategoryID
 //
 //                    openBottomSheet.value = false
 //                }

@@ -366,15 +366,15 @@ fun CreateOfferContent(
             sheetContent = {
 //                CategoryContent(
 //                    isOpen = viewModel.openFiltersCat.value,
-//                    searchData = searchData.value,
+//                    searchData = searchData,
 //                    baseViewModel = viewModel,
 //                    isCreateOffer = true,
 //                    onBackClicked = viewModel.catBack
 //                ){
-//                    viewModel.selectedCategoryId.value = searchData.value.searchCategoryID
-//                    viewModel.selectedCategoryName.value = searchData.value.searchCategoryName
-//                    viewModel.selectedParentId.value = searchData.value.searchParentID
-//                    viewModel.searchIsLeaf.value = searchData.value.searchIsLeaf
+//                    viewModel.selectedCategoryId.value = searchData.searchCategoryID
+//                    viewModel.selectedCategoryName.value = searchData.searchCategoryName
+//                    viewModel.selectedParentId.value = searchData.searchParentID
+//                    viewModel.searchIsLeaf.value = searchData.searchIsLeaf
 //                    refresh()
 //                    viewModel.activeFiltersType.value = ""
 //                }

@@ -132,14 +132,13 @@ fun createSearchChild(
     when (config) {
         is SearchConfig.ListingScreen -> {
             val ld = ListingData(
-                searchData = mutableStateOf(config.searchData),
-                data = mutableStateOf(config.listingData)
+                searchData = config.searchData,
+                data = config.listingData
             )
 
             ChildSearch.ListingChild(
                 component = DefaultListingComponent(
                     isOpenSearch = config.isOpenSearch,
-                    isOpenCategory = false,
                     componentContext = componentContext,
                     listingData = ld,
                     selectOffer = { id ->
@@ -159,8 +158,8 @@ fun createSearchChild(
                     navigateToListing = { ld ->
                         searchNavigation.pushNew(
                             SearchConfig.ListingScreen(
-                                ld.data.value,
-                                ld.searchData.value,
+                                ld.data,
+                                ld.searchData,
                                 false,
                                 getCurrentDate()
                             )
@@ -191,7 +190,7 @@ fun createSearchChild(
                 },
                 onListingSelected = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false, getCurrentDate())
+                        SearchConfig.ListingScreen(it.data, it.searchData, false, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
@@ -243,7 +242,7 @@ fun createSearchChild(
                 config.aboutMe,
                 goToLogin = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false, getCurrentDate())
+                        SearchConfig.ListingScreen(it.data, it.searchData, false, getCurrentDate())
                     )
                 },
                 goBack = {
@@ -339,7 +338,7 @@ fun createSearchChild(
                 },
                 navigateToListingSelected = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data.value, it.searchData.value, false, getCurrentDate())
+                        SearchConfig.ListingScreen(it.data, it.searchData, false, getCurrentDate())
                     )
                 }
             )

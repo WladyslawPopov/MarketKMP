@@ -65,12 +65,12 @@ fun MyProposalsContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
+        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
                 OfferFilters.clearTypeFilter(component.model.value.type)
-                listingData.value.filters = OfferFilters.getByTypeFilter(component.model.value.type)
+                listingData.filters = OfferFilters.getByTypeFilter(component.model.value.type)
                 refresh()
             }
         }else {
@@ -109,73 +109,73 @@ fun MyProposalsContent(
         toastItem = viewModel.toastItem,
         modifier = modifier.fillMaxSize()
     ) {
-        ListingBaseContent(
-            listingData = listingData.value,
-            searchData = searchData.value,
-            data = data,
-            baseViewModel = viewModel,
-            onRefresh = {
-                refresh()
-            },
-            noFound = noFound,
-            additionalBar = {
-//                FiltersBar(
-//                    searchData.value,
-//                    listingData.value,
-//                    updateFilters.value,
-//                    isShowGrid = false,
-//                    onFilterClick = {
-//                        viewModel.activeFiltersType.value = "filters"
+//        ListingBaseContent(
+//            listingData = listingData.value,
+//            searchData = searchData,
+//            data = data,
+//            baseViewModel = viewModel,
+//            onRefresh = {
+//                refresh()
+//            },
+//            noFound = noFound,
+//            additionalBar = {
+////                FiltersBar(
+////                    searchData,
+////                    listingData.value,
+////                    updateFilters.value,
+////                    isShowGrid = false,
+////                    onFilterClick = {
+////                        viewModel.activeFiltersType.value = "filters"
+////                    },
+////                    onSortClick = {
+////                        viewModel.activeFiltersType.value = "sorting"
+////                    },
+////                    onRefresh = {
+////                        refresh()
+////                    }
+////                )
+//            },
+//            filtersContent = { isRefreshingFromFilters , onClose ->
+//                when(viewModel.activeFiltersType.value){
+//                    "filters" -> OfferFilterContent(
+//                        viewModel.openFiltersCat,
+//                        viewModel.catBack,
+//                        isRefreshingFromFilters,
+//                        listingData.value.filters,
+//                        viewModel,
+//                        model.type,
+//                        onClose
+//                    )
+//                    "sorting" -> SortingOffersContent(
+//                        isRefreshingFromFilters,
+//                        listingData.value,
+//                        isCabinet = true,
+//                        onClose
+//                    )
+//                }
+//            },
+//            item = { offer ->
+//                MyProposalItem(
+//                    offer = offer,
+//                    onUpdateOfferItem = {
+//                        viewModel.updateItem.value = it
 //                    },
-//                    onSortClick = {
-//                        viewModel.activeFiltersType.value = "sorting"
+//                    updateTrigger = viewModel.updateItemTrigger.value,
+//                    goToOffer = {
+//                        component.goToOffer(offer, true)
 //                    },
-//                    onRefresh = {
-//                        refresh()
-//                    }
+//                    goToUser = {
+//                        component.goToUser(it)
+//                    },
+//                    goToDialog = {
+//                        component.goToDialog(it)
+//                    },
+//                    goToProposal = {
+//                        component.goToProposal(offer.id, it)
+//                    },
+//                    baseViewModel = viewModel,
 //                )
-            },
-            filtersContent = { isRefreshingFromFilters , onClose ->
-                when(viewModel.activeFiltersType.value){
-                    "filters" -> OfferFilterContent(
-                        viewModel.openFiltersCat,
-                        viewModel.catBack,
-                        isRefreshingFromFilters,
-                        listingData.value.filters,
-                        viewModel,
-                        model.type,
-                        onClose
-                    )
-                    "sorting" -> SortingOffersContent(
-                        isRefreshingFromFilters,
-                        listingData.value,
-                        isCabinet = true,
-                        onClose
-                    )
-                }
-            },
-            item = { offer ->
-                MyProposalItem(
-                    offer = offer,
-                    onUpdateOfferItem = {
-                        viewModel.updateItem.value = it
-                    },
-                    updateTrigger = viewModel.updateItemTrigger.value,
-                    goToOffer = {
-                        component.goToOffer(offer, true)
-                    },
-                    goToUser = {
-                        component.goToUser(it)
-                    },
-                    goToDialog = {
-                        component.goToDialog(it)
-                    },
-                    goToProposal = {
-                        component.goToProposal(offer.id, it)
-                    },
-                    baseViewModel = viewModel,
-                )
-            }
-        )
+//            }
+//        )
     }
 }

@@ -25,11 +25,11 @@ open class GenericPagingSource<T : Any>(
         (params.key ?: 0).let { page ->
             try {
                 val url = UrlBuilder()
-                    .addPathSegment(listingData.data.value.objServer)
-                    .addPathSegment(listingData.data.value.methodServer)
+                    .addPathSegment(listingData.data.objServer)
+                    .addPathSegment(listingData.data.methodServer)
                     .addQueryParameter("pg", page.toString())
                     .addQueryParameter("ipp", params.loadSize.toString())
-                    .addFilters(listingData.data.value, listingData.searchData.value)
+                    .addFilters(listingData.data, listingData.searchData)
                     .build()
 
                 val data = apiService.getPage(url)
@@ -38,15 +38,14 @@ open class GenericPagingSource<T : Any>(
                     try {
                         val serializer = Payload.serializer(serializer)
                         val value = deserializePayload(data.payload, serializer)
-                        listingData.data.value.totalCount = value.totalCount
+                        listingData.data.totalCount = value.totalCount
 
-                        if (listingData.searchData.value.userID != 1L &&
-                            listingData.searchData.value.userLogin.isNullOrEmpty()
+                        if (listingData.searchData.userID != 1L &&
+                            listingData.searchData.userLogin.isNullOrEmpty()
                         ){
                             val firstObject = value.objects.firstOrNull()
                             if (firstObject is Offer) {
-                                listingData.searchData.value.userLogin = firstObject.sellerData?.login
-                                listingData.searchData = listingData.searchData
+                                listingData.searchData.userLogin = firstObject.sellerData?.login
                             }
                         }
 
@@ -56,7 +55,7 @@ open class GenericPagingSource<T : Any>(
                             nextKey = if (value.isMore) page + 1 else null
                         )
 
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         throw ServerErrorException(
                             data.errorCode.toString(),
                             data.humanMessage.toString()

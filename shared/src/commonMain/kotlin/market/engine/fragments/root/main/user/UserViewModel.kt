@@ -41,12 +41,12 @@ class UserViewModel : BaseViewModel() {
         when(type){
             ReportPageType.ABOUT_ME ->{}
             else -> {
-                listingData.value.data.value.filters = ReportFilters.getByTypeFilter(type)
-                listingData.value.data.value.filters.find { it.key == "user_id" }?.value = userId.toString()
+                listingData.value.data.filters = ReportFilters.getByTypeFilter(type)
+                listingData.value.data.filters.find { it.key == "user_id" }?.value = userId.toString()
             }
         }
-        listingData.value.data.value.methodServer = "get_public_listing"
-        listingData.value.data.value.objServer = "feedbacks"
+        listingData.value.data.methodServer = "get_public_listing"
+        listingData.value.data.objServer = "feedbacks"
 
         val serializer = Reports.serializer()
         return pagingRepository.getListing(listingData.value, apiService, serializer).cachedIn(viewModelScope)

@@ -68,12 +68,12 @@ fun FavoritesContent(
     val updateFilters = remember { favViewModel.updateFilters }
 
     val noFound = @Composable {
-        if (ld.value.filters.any {it.interpretation != null && it.interpretation != "" }){
+        if (ld.filters.any {it.interpretation != null && it.interpretation != "" }){
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ){
                 OfferFilters.clearTypeFilter(LotsType.FAVORITES)
-                listingData.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
+                listingData.data.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
                 component.onRefresh()
             }
         }else {
@@ -113,133 +113,133 @@ fun FavoritesContent(
         toastItem = favViewModel.toastItem,
         modifier = modifier.fillMaxSize()
     ) {
-        ListingBaseContent(
-            columns = columns.value,
-            listingData = ld.value,
-            data = data,
-            searchData = sd.value,
-            baseViewModel = favViewModel,
-            noFound = noFound,
-            onRefresh = {
-                favViewModel.onError(ServerErrorException())
-                favViewModel.resetScroll()
-                favViewModel.refresh()
-                data.refresh()
-                updateFilters.value++
-            },
-            filtersContent = { isRefreshingFromFilters, onClose ->
-                when (favViewModel.activeFiltersType.value) {
-                    "filters" -> OfferFilterContent(
-                        favViewModel.openFiltersCat,
-                        favViewModel.catBack,
-                        isRefreshingFromFilters,
-                        ld.value.filters,
-                        favViewModel,
-                        LotsType.FAVORITES,
-                        onClose
-                    )
-
-                    "sorting" -> SortingOffersContent(
-                        isRefreshingFromFilters,
-                        ld.value,
-                        isCabinet = true,
-                        onClose
-                    )
-                }
-            },
-            additionalBar = {
-                DeletePanel(
-                    selectedItems.size,
-                    onCancel = {
-                        favViewModel.selectItems.clear()
-                    },
-                    onDelete = {
-                        component.deleteSelectsItems(selectedItems)
-                    }
-                )
-
-//                FiltersBar(
-//                    sd.value,
-//                    ld.value,
-//                    updateFilters.value,
-//                    isShowGrid = false,
-//                    onFilterClick = {
-//                        favViewModel.activeFiltersType.value = "filters"
+//        ListingBaseContent(
+//            columns = columns.value,
+//            listingData = ld.value,
+//            data = data,
+//            searchData = sd.value,
+//            baseViewModel = favViewModel,
+//            noFound = noFound,
+//            onRefresh = {
+//                favViewModel.onError(ServerErrorException())
+//                favViewModel.resetScroll()
+//                favViewModel.refresh()
+//                data.refresh()
+//                updateFilters.value++
+//            },
+//            filtersContent = { isRefreshingFromFilters, onClose ->
+//                when (favViewModel.activeFiltersType.value) {
+//                    "filters" -> OfferFilterContent(
+//                        favViewModel.openFiltersCat,
+//                        favViewModel.catBack,
+//                        isRefreshingFromFilters,
+//                        ld.value.filters,
+//                        favViewModel,
+//                        LotsType.FAVORITES,
+//                        onClose
+//                    )
+//
+//                    "sorting" -> SortingOffersContent(
+//                        isRefreshingFromFilters,
+//                        ld.value,
+//                        isCabinet = true,
+//                        onClose
+//                    )
+//                }
+//            },
+//            additionalBar = {
+//                DeletePanel(
+//                    selectedItems.size,
+//                    onCancel = {
+//                        favViewModel.selectItems.clear()
 //                    },
-//                    onSortClick = {
-//                        favViewModel.activeFiltersType.value = "sorting"
-//                    },
-//                    onRefresh = {
-//                        component.onRefresh()
+//                    onDelete = {
+//                        component.deleteSelectsItems(selectedItems)
 //                    }
 //                )
-            },
-            item = { offer ->
-                val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
-                val isHideItem = mutableStateOf(
-                    component.isHideItem(offer)
-                )
-
-                CabinetOfferItem(
-                    offer,
-                    isVisible = !isHideItem.value,
-                    baseViewModel = favViewModel,
-                    updateTrigger = favViewModel.updateItemTrigger.value,
-                    isSelected = isSelect.value,
-                    goToProposal = remember {
-                        {
-                            component.goToProposal(it, offer.id)
-                        }
-                    },
-                    onSelectionChange = remember {
-                        { select ->
-                            if (select) {
-                                favViewModel.selectItems.add(offer.id)
-                            } else {
-                                favViewModel.selectItems.remove(offer.id)
-
-                            }
-                        }
-                    },
-                    onUpdateOfferItem = remember {
-                        { id ->
-                            favViewModel.updateItem.value = id
-                            favViewModel.updateItemTrigger.value++
-
-                            favViewModel.updateUserInfo()
-                        }
-                    },
-                    refreshPage = remember {
-                        {
-                            component.refreshTabs()
-                        }
-                    },
-                    onItemClick = remember {
-                        {
-                        if (favViewModel.selectItems.isNotEmpty()) {
-                            if (isSelect.value) {
-                                favViewModel.selectItems.remove(offer.id)
-                            } else {
-                                favViewModel.selectItems.add(offer.id)
-                            }
-                        } else {
-                            component.goToOffer(offer)
-                        }
-                    }
-                                           },
-                    goToCreateOffer =remember {
-                        {
-                            component.goToCreateOffer(it, offer.id)
-                        }
-                    },
-                    goToDynamicSettings = remember {
-                        { type, id ->
-                            goToDynamicSettings(type, id, null)
-                        }
-                    }
-                )
-            },
-            modifier = modifier
-        )
+//
+////                FiltersBar(
+////                    sd.value,
+////                    ld.value,
+////                    updateFilters.value,
+////                    isShowGrid = false,
+////                    onFilterClick = {
+////                        favViewModel.activeFiltersType.value = "filters"
+////                    },
+////                    onSortClick = {
+////                        favViewModel.activeFiltersType.value = "sorting"
+////                    },
+////                    onRefresh = {
+////                        component.onRefresh()
+////                    }
+////                )
+//            },
+//            item = { offer ->
+//                val isSelect = rememberUpdatedState(selectedItems.contains(offer.id))
+//                val isHideItem = mutableStateOf(
+//                    component.isHideItem(offer)
+//                )
+//
+//                CabinetOfferItem(
+//                    offer,
+//                    isVisible = !isHideItem.value,
+//                    baseViewModel = favViewModel,
+//                    updateTrigger = favViewModel.updateItemTrigger.value,
+//                    isSelected = isSelect.value,
+//                    goToProposal = remember {
+//                        {
+//                            component.goToProposal(it, offer.id)
+//                        }
+//                    },
+//                    onSelectionChange = remember {
+//                        { select ->
+//                            if (select) {
+//                                favViewModel.selectItems.add(offer.id)
+//                            } else {
+//                                favViewModel.selectItems.remove(offer.id)
+//
+//                            }
+//                        }
+//                    },
+//                    onUpdateOfferItem = remember {
+//                        { id ->
+//                            favViewModel.updateItem.value = id
+//                            favViewModel.updateItemTrigger.value++
+//
+//                            favViewModel.updateUserInfo()
+//                        }
+//                    },
+//                    refreshPage = remember {
+//                        {
+//                            component.refreshTabs()
+//                        }
+//                    },
+//                    onItemClick = remember {
+//                        {
+//                        if (favViewModel.selectItems.isNotEmpty()) {
+//                            if (isSelect.value) {
+//                                favViewModel.selectItems.remove(offer.id)
+//                            } else {
+//                                favViewModel.selectItems.add(offer.id)
+//                            }
+//                        } else {
+//                            component.goToOffer(offer)
+//                        }
+//                    }
+//                                           },
+//                    goToCreateOffer =remember {
+//                        {
+//                            component.goToCreateOffer(it, offer.id)
+//                        }
+//                    },
+//                    goToDynamicSettings = remember {
+//                        { type, id ->
+//                            goToDynamicSettings(type, id, null)
+//                        }
+//                    }
+//                )
+//            },
+//            modifier = modifier
+//        )
     }
 }

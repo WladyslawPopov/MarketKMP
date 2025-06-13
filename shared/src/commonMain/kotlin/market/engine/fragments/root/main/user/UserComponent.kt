@@ -81,9 +81,9 @@ class DefaultUserComponent(
     override fun selectAllOffers(user : User) {
         val ld = ListingData()
         val searchData = ld.searchData
-        searchData.value.userID = user.id
-        searchData.value.userSearch = true
-        searchData.value.userLogin = user.login
+        searchData.userID = user.id
+        searchData.userSearch = true
+        searchData.userLogin = user.login
         goToListing(ld)
     }
 

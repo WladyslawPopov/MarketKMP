@@ -208,8 +208,8 @@ fun createProfileChild(
                 onListingSelected = { ld ->
                     profileNavigation.pushNew(
                         ProfileConfig.ListingScreen(
-                            ld.data.value,
-                            ld.searchData.value,
+                            ld.data,
+                            ld.searchData,
                             getCurrentDate()
                         )
                     )
@@ -255,8 +255,8 @@ fun createProfileChild(
 
         is ProfileConfig.ListingScreen -> {
             val ld = ListingData(
-                searchData = mutableStateOf(config.searchData),
-                data = mutableStateOf(config.listingData)
+                searchData = config.searchData,
+                data = config.listingData
             )
             ChildProfile.ListingChild(
                 component = DefaultListingComponent(
@@ -270,13 +270,12 @@ fun createProfileChild(
                     selectedBack = {
                         profileNavigation.pop()
                     },
-                    isOpenCategory = false,
                     navigateToSubscribe = {
                         navigateToSubscribe()
                     },
                     navigateToListing = {
                         profileNavigation.pushNew(
-                            ProfileConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                            ProfileConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                         )
                     },
                     navigateToNewSubscription = {
@@ -297,7 +296,7 @@ fun createProfileChild(
                     config.aboutMe,
                     goToLogin = {
                         profileNavigation.pushNew(
-                            ProfileConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                            ProfileConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                         )
                     },
                     goBack = {
@@ -431,7 +430,7 @@ fun createProfileChild(
                 },
                 navigateToListingSelected = {
                     profileNavigation.pushNew(
-                        ProfileConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                        ProfileConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 }
             )

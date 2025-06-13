@@ -6,12 +6,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import market.engine.core.network.networkObjects.Category
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.items.TopCategory
 import market.engine.widgets.items.CategoryItem
 
 @Composable
-fun CategoryList(categories: List<Category>, onCategoryClick: (Category) -> Unit) {
+fun CategoryList(categories: List<TopCategory>, onCategoryClick: (TopCategory) -> Unit) {
 
     LazyRowWithScrollBars(
         heightMod = Modifier.fillMaxSize().padding(bottom = dimens.largePadding, top = dimens.mediumPadding)

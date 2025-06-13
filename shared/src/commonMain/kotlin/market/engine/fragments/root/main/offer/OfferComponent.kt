@@ -103,10 +103,10 @@ class DefaultOfferComponent(
 
     override fun goToCategory(cat: Category) {
         val ld = ListingData()
-        ld.searchData.value.searchCategoryID = cat.id
-        ld.searchData.value.searchCategoryName = cat.name ?: ""
-        ld.searchData.value.searchParentID = cat.parentId
-        ld.searchData.value.searchIsLeaf = cat.isLeaf
+        ld.searchData.searchCategoryID = cat.id
+        ld.searchData.searchCategoryName = cat.name ?: ""
+        ld.searchData.searchParentID = cat.parentId
+        ld.searchData.searchIsLeaf = cat.isLeaf
         navigationListing(ld)
     }
 
@@ -114,9 +114,9 @@ class DefaultOfferComponent(
         if (sellerData == null) return
 
         val ld = ListingData()
-        ld.searchData.value.userID = sellerData.id
-        ld.searchData.value.userLogin = sellerData.login
-        ld.searchData.value.userSearch = true
+        ld.searchData.userID = sellerData.id
+        ld.searchData.userLogin = sellerData.login
+        ld.searchData.userSearch = true
         navigationListing(ld)
     }
 
@@ -124,9 +124,9 @@ class DefaultOfferComponent(
         if (region!= null){
             val ld = ListingData()
             val listingData = ld.data
-            listingData.value.filters = ListingFilters.getEmpty()
-            listingData.value.filters.find { it.key == "region" }?.value = region.code.toString()
-            listingData.value.filters.find { it.key == "region" }?.interpretation = region.name
+            listingData.filters = ListingFilters.getEmpty()
+            listingData.filters.find { it.key == "region" }?.value = region.code.toString()
+            listingData.filters.find { it.key == "region" }?.interpretation = region.name
             navigationListing(ld)
         }
     }

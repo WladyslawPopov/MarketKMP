@@ -75,12 +75,12 @@ fun MyOrdersContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
+        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
                 DealFilters.clearTypeFilter(model.type)
-                listingData.value.filters = DealFilters.getByTypeFilter(model.type)
+                listingData.filters = DealFilters.getByTypeFilter(model.type)
                 refresh()
             }
         }else {
@@ -119,80 +119,80 @@ fun MyOrdersContent(
         toastItem = viewModel.toastItem,
         modifier = modifier.fillMaxSize()
     ) {
-        ListingBaseContent(
-            listingData = listingData.value,
-            searchData = searchData.value,
-            data = data,
-            baseViewModel = viewModel,
-            onRefresh = {
-                refresh()
-            },
-            noFound = noFound,
-            additionalBar = {
-//                FiltersBar(
-//                    searchData.value,
-//                    listingData.value,
-//                    updateFilters.value,
-//                    isShowGrid = false,
-//                    onFilterClick = {
-//                        viewModel.activeFiltersType.value = "filters"
-//                    },
-//                    onSortClick = {
-//                        viewModel.activeFiltersType.value = "sorting"
-//                    },
-//                    onRefresh = {
-//                        refresh()
-//                        updateFilters.value++
+//        ListingBaseContent(
+//            listingData = listingData.value,
+//            searchData = searchData,
+//            data = data,
+//            baseViewModel = viewModel,
+//            onRefresh = {
+//                refresh()
+//            },
+//            noFound = noFound,
+//            additionalBar = {
+////                FiltersBar(
+////                    searchData,
+////                    listingData.value,
+////                    updateFilters.value,
+////                    isShowGrid = false,
+////                    onFilterClick = {
+////                        viewModel.activeFiltersType.value = "filters"
+////                    },
+////                    onSortClick = {
+////                        viewModel.activeFiltersType.value = "sorting"
+////                    },
+////                    onRefresh = {
+////                        refresh()
+////                        updateFilters.value++
+////                    }
+////                )
+//            },
+//            filtersContent = { isRefreshingFromFilters, onClose ->
+//                when(viewModel.activeFiltersType.value){
+//                    "filters" -> {
+//                        OrderFilterContent(
+//                            isRefreshing = isRefreshingFromFilters,
+//                            filters = listingData.value.filters,
+//                            typeFilters = model.type,
+//                            onClose = onClose
+//                        )
 //                    }
-//                )
-            },
-            filtersContent = { isRefreshingFromFilters, onClose ->
-                when(viewModel.activeFiltersType.value){
-                    "filters" -> {
-                        OrderFilterContent(
-                            isRefreshing = isRefreshingFromFilters,
-                            filters = listingData.value.filters,
-                            typeFilters = model.type,
-                            onClose = onClose
-                        )
-                    }
-                    "sorting" -> {
-                        SortingOrdersContent(
-                            isRefreshing = isRefreshingFromFilters,
-                            listingData.value,
-                            onClose = onClose
-                        )
-                    }
-                }
-            },
-            item = { order ->
-                AnimatedVisibility(order.owner != 1L, enter = fadeIn(), exit = fadeOut()) {
-                    MyOrderItem(
-                        order = order,
-                        typeGroup = typeGroup,
-                        goToUser = { id ->
-                            component.goToUser(id)
-                        },
-                        goToOffer = { offer ->
-                            component.goToOffer(offer)
-                        },
-                        onUpdateItem = {
-                            viewModel.updateItem.value = order.id
-
-                            viewModel.showToast(
-                                successToastItem.copy(
-                                    message = successToast
-                                )
-                            )
-                        },
-                        baseViewModel = viewModel,
-                        trigger = viewModel.updateItemTrigger.value,
-                        goToMessenger = { dialogId ->
-                            component.goToMessenger(dialogId)
-                        }
-                    )
-                }
-            }
-        )
+//                    "sorting" -> {
+//                        SortingOrdersContent(
+//                            isRefreshing = isRefreshingFromFilters,
+//                            listingData.value,
+//                            onClose = onClose
+//                        )
+//                    }
+//                }
+//            },
+//            item = { order ->
+//                AnimatedVisibility(order.owner != 1L, enter = fadeIn(), exit = fadeOut()) {
+//                    MyOrderItem(
+//                        order = order,
+//                        typeGroup = typeGroup,
+//                        goToUser = { id ->
+//                            component.goToUser(id)
+//                        },
+//                        goToOffer = { offer ->
+//                            component.goToOffer(offer)
+//                        },
+//                        onUpdateItem = {
+//                            viewModel.updateItem.value = order.id
+//
+//                            viewModel.showToast(
+//                                successToastItem.copy(
+//                                    message = successToast
+//                                )
+//                            )
+//                        },
+//                        baseViewModel = viewModel,
+//                        trigger = viewModel.updateItemTrigger.value,
+//                        goToMessenger = { dialogId ->
+//                            component.goToMessenger(dialogId)
+//                        }
+//                    )
+//                }
+//            }
+//        )
     }
 }

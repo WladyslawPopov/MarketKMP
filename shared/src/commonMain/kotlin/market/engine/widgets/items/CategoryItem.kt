@@ -18,11 +18,12 @@ import androidx.compose.ui.draw.clip
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.items.TopCategory
 import market.engine.widgets.ilustrations.getCategoryIcon
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun CategoryItem(category: Category, onClick: (Category) -> Unit) {
+fun CategoryItem(category: TopCategory, onClick: (TopCategory) -> Unit) {
     Box(
         modifier = Modifier
             .background(colors.white, MaterialTheme.shapes.small)
@@ -44,7 +45,7 @@ fun CategoryItem(category: Category, onClick: (Category) -> Unit) {
             }
 
             Text(
-                text = category.name ?: "",
+                text = category.name,
                 color = colors.black,
                 style = MaterialTheme.typography.bodySmall
             )

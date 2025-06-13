@@ -28,11 +28,11 @@ class MyOrdersViewModel(
     val listingData = mutableStateOf(ListingData())
 
     fun init(): Flow<PagingData<Order>> {
-        listingData.value.data.value.filters = DealFilters.getByTypeFilter(type)
+        listingData.value.data.filters = DealFilters.getByTypeFilter(type)
 
         if (orderSelected != null) {
-            listingData.value.data.value.filters.find { it.key == "id" }?.value = orderSelected.toString()
-            listingData.value.data.value.filters.find { it.key == "id" }?.interpretation = "id: $orderSelected"
+            listingData.value.data.filters.find { it.key == "id" }?.value = orderSelected.toString()
+            listingData.value.data.filters.find { it.key == "id" }?.interpretation = "id: $orderSelected"
         }
 
         val method = if (type in arrayOf(
@@ -41,9 +41,9 @@ class MyOrdersViewModel(
             )
         ) "purchases" else "sales"
 
-        listingData.value.data.value.objServer = "orders"
+        listingData.value.data.objServer = "orders"
 
-        listingData.value.data.value.methodServer = "get_cabinet_listing_$method"
+        listingData.value.data.methodServer = "get_cabinet_listing_$method"
 
         return orderPagingRepository.getListing(listingData.value, apiService, Order.serializer()).cachedIn(viewModelScope)
     }
@@ -55,32 +55,32 @@ class MyOrdersViewModel(
     suspend fun updateItem(id : Long?) : Order? {
         try {
             val ld = ListingData()
-            ld.data.value.filters = DealFilters.getByTypeFilter(type)
+            ld.data.filters = DealFilters.getByTypeFilter(type)
 
             val method = if (type in arrayOf(
                     DealType.BUY_ARCHIVE,
                     DealType.BUY_IN_WORK
                 )
             ) "purchases" else "sales"
-            ld.data.value.objServer = "orders"
+            ld.data.objServer = "orders"
 
-            ld.data.value.methodServer = "get_cabinet_listing_$method"
+            ld.data.methodServer = "get_cabinet_listing_$method"
 
-            ld.data.value.filters.find { it.key == "id" }?.value = id.toString()
-            ld.data.value.filters.find { it.key == "id" }?.interpretation = ""
+            ld.data.filters.find { it.key == "id" }?.value = id.toString()
+            ld.data.filters.find { it.key == "id" }?.interpretation = ""
 
             val url = UrlBuilder()
-                .addPathSegment(ld.data.value.objServer)
-                .addPathSegment(ld.data.value.methodServer)
-                .addFilters(ld.data.value, ld.searchData.value)
+                .addPathSegment(ld.data.objServer)
+                .addPathSegment(ld.data.methodServer)
+                .addFilters(ld.data, ld.searchData)
                 .build()
 
             val res = withContext(Dispatchers.IO) {
                 apiService.getPage(url)
             }
             return withContext(Dispatchers.Main) {
-                ld.data.value.filters.find { it.key == "id" }?.value = ""
-                ld.data.value.filters.find { it.key == "id" }?.interpretation = null
+                ld.data.filters.find { it.key == "id" }?.value = ""
+                ld.data.filters.find { it.key == "id" }?.interpretation = null
 
                 if (res.success) {
                     val serializer = Payload.serializer(Order.serializer())

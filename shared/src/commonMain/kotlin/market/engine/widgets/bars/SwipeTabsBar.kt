@@ -1,9 +1,6 @@
 package market.engine.widgets.bars
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -109,9 +106,6 @@ fun SwipeTabsBar(
 
     AnimatedVisibility(
         visible = isTabsVisible.value,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = Modifier.animateContentSize()
     ) {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),

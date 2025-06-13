@@ -68,12 +68,12 @@ fun MyOffersContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
+        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
                 OfferFilters.clearTypeFilter(component.model.value.type)
-                listingData.value.filters = OfferFilters.getByTypeFilter(component.model.value.type)
+                listingData.filters = OfferFilters.getByTypeFilter(component.model.value.type)
                 refresh()
             }
         }else {
@@ -116,79 +116,79 @@ fun MyOffersContent(
         },
         modifier = modifier.fillMaxSize()
     ) {
-        ListingBaseContent(
-            listingData = listingData.value,
-            searchData = searchData.value,
-            data = data,
-            baseViewModel = viewModel,
-            onRefresh = {
-                refresh()
-            },
-            noFound = noFound,
-            additionalBar = {
-//                FiltersBar(
-//                    searchData.value,
-//                    listingData.value,
-//                    updateFilters.value,
-//                    isShowGrid = false,
-//                    onFilterClick = {
-//                        viewModel.activeFiltersType.value = "filters"
-//                    },
-//                    onSortClick = {
-//                        viewModel.activeFiltersType.value = "sorting"
-//                    },
-//                    onRefresh = {
-//                        refresh()
-//                        updateFilters.value++
-//                    }
+//        ListingBaseContent(
+//            listingData = listingData.value,
+//            searchData = searchData,
+//            data = data,
+//            baseViewModel = viewModel,
+//            onRefresh = {
+//                refresh()
+//            },
+//            noFound = noFound,
+//            additionalBar = {
+////                FiltersBar(
+////                    searchData,
+////                    listingData.value,
+////                    updateFilters.value,
+////                    isShowGrid = false,
+////                    onFilterClick = {
+////                        viewModel.activeFiltersType.value = "filters"
+////                    },
+////                    onSortClick = {
+////                        viewModel.activeFiltersType.value = "sorting"
+////                    },
+////                    onRefresh = {
+////                        refresh()
+////                        updateFilters.value++
+////                    }
+////                )
+//            },
+//            filtersContent = { isRefreshingFromFilters, onClose ->
+//                when(viewModel.activeFiltersType.value){
+//                    "filters" -> OfferFilterContent(
+//                        viewModel.openFiltersCat,
+//                        viewModel.catBack,
+//                        isRefreshingFromFilters,
+//                        listingData.value.filters,
+//                        viewModel,
+//                        model.type,
+//                        onClose
+//                    )
+//                    "sorting" -> SortingOffersContent(
+//                        isRefreshingFromFilters,
+//                        listingData.value,
+//                        isCabinet = true,
+//                        onClose
+//                    )
+//                }
+//            },
+//            item = { offer ->
+//                val isHideItem = mutableStateOf(
+//                    component.isHideItem(offer)
 //                )
-            },
-            filtersContent = { isRefreshingFromFilters, onClose ->
-                when(viewModel.activeFiltersType.value){
-                    "filters" -> OfferFilterContent(
-                        viewModel.openFiltersCat,
-                        viewModel.catBack,
-                        isRefreshingFromFilters,
-                        listingData.value.filters,
-                        viewModel,
-                        model.type,
-                        onClose
-                    )
-                    "sorting" -> SortingOffersContent(
-                        isRefreshingFromFilters,
-                        listingData.value,
-                        isCabinet = true,
-                        onClose
-                    )
-                }
-            },
-            item = { offer ->
-                val isHideItem = mutableStateOf(
-                    component.isHideItem(offer)
-                )
-
-                CabinetOfferItem(
-                    offer,
-                    isVisible = !isHideItem.value,
-                    baseViewModel = viewModel,
-                    updateTrigger = viewModel.updateItemTrigger.value,
-                    onUpdateOfferItem = { id ->
-                        viewModel.updateItem.value = id
-                    },
-                    onItemClick = {
-                        component.goToOffer(offer)
-                    },
-                    goToDynamicSettings = { type, id ->
-                        component.goToDynamicSettings(type, id)
-                    },
-                    goToCreateOffer = { type ->
-                        component.goToCreateOffer(type, offer.id, offer.catPath)
-                    },
-                    goToProposal = {
-                        component.goToProposals(offer.id, it)
-                    },
-                )
-            }
-        )
+//
+//                CabinetOfferItem(
+//                    offer,
+//                    isVisible = !isHideItem.value,
+//                    baseViewModel = viewModel,
+//                    updateTrigger = viewModel.updateItemTrigger.value,
+//                    onUpdateOfferItem = { id ->
+//                        viewModel.updateItem.value = id
+//                    },
+//                    onItemClick = {
+//                        component.goToOffer(offer)
+//                    },
+//                    goToDynamicSettings = { type, id ->
+//                        component.goToDynamicSettings(type, id)
+//                    },
+//                    goToCreateOffer = { type ->
+//                        component.goToCreateOffer(type, offer.id, offer.catPath)
+//                    },
+//                    goToProposal = {
+//                        component.goToProposals(offer.id, it)
+//                    },
+//                )
+//            }
+//        )
     }
 }

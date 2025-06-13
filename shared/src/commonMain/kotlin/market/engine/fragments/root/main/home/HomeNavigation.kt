@@ -185,8 +185,8 @@ fun createHomeChild(
                 homeNavigation.pushNew(
                     ListingScreen(
                         isNewSearch,
-                        ld.data.value,
-                        ld.searchData.value,
+                        ld.data,
+                        ld.searchData,
                         getCurrentDate()
                     )
                 )
@@ -244,7 +244,7 @@ fun createHomeChild(
             },
             onListingSelected = {
                 homeNavigation.pushNew(
-                    ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                    ListingScreen(false, it.data, it.searchData, getCurrentDate())
                 )
             },
             onUserSelected = { ui, about ->
@@ -295,8 +295,8 @@ fun createHomeChild(
     )
     is ListingScreen -> {
         val ld = ListingData(
-            searchData = mutableStateOf(config.searchData),
-            data = mutableStateOf(config.listingData)
+            searchData = config.searchData,
+            data = config.listingData
         )
         ListingChild(
             component = DefaultListingComponent(
@@ -310,14 +310,13 @@ fun createHomeChild(
                 selectedBack = {
                     homeNavigation.pop()
                 },
-                isOpenCategory = false,
                 isOpenSearch = config.isOpenSearch,
                 navigateToSubscribe = {
                     navigateToSubscribe()
                 },
                 navigateToListing = {
                     homeNavigation.pushNew(
-                        ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                        ListingScreen(false, it.data, it.searchData, getCurrentDate())
                     )
                 },
                 navigateToNewSubscription = {
@@ -336,7 +335,7 @@ fun createHomeChild(
             config.aboutMe,
             goToLogin = {
                 homeNavigation.pushNew(
-                    ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                    ListingScreen(false, it.data, it.searchData, getCurrentDate())
                 )
             },
             goBack = {
@@ -433,7 +432,7 @@ fun createHomeChild(
             },
             navigateToListingSelected = {
                 homeNavigation.pushNew(
-                    ListingScreen(false, it.data.value, it.searchData.value, getCurrentDate())
+                    ListingScreen(false, it.data, it.searchData, getCurrentDate())
                 )
             }
         )

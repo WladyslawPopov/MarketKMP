@@ -50,20 +50,20 @@ class FavPagesViewModel : BaseViewModel() {
     fun init(type: FavScreenType, listId: Long?= null): Flow<PagingData<OfferItem>> {
         when(type){
             FavScreenType.FAVORITES -> {
-                listingData.value.data.value.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
-                listingData.value.data.value.methodServer = "get_cabinet_listing_watched_by_me"
-                listingData.value.data.value.objServer = "offers"
+                listingData.value.data.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
+                listingData.value.data.methodServer = "get_cabinet_listing_watched_by_me"
+                listingData.value.data.objServer = "offers"
             }
             FavScreenType.NOTES ->{
-                listingData.value.data.value.methodServer = "get_cabinet_listing_my_notes"
-                listingData.value.data.value.objServer = "offers"
+                listingData.value.data.methodServer = "get_cabinet_listing_my_notes"
+                listingData.value.data.objServer = "offers"
             }
             FavScreenType.FAV_LIST ->{
-                listingData.value.data.value.filters.add(
+                listingData.value.data.filters.add(
                     Filter("list_id", "$listId", "", null),
                 )
-                listingData.value.data.value.methodServer = "get_cabinet_listing_in_list"
-                listingData.value.data.value.objServer = "offers"
+                listingData.value.data.methodServer = "get_cabinet_listing_in_list"
+                listingData.value.data.objServer = "offers"
             }
             else -> {}
         }

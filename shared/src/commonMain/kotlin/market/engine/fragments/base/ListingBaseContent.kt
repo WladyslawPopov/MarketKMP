@@ -12,92 +12,63 @@ import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import app.cash.paging.LoadStateError
-import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.items.OfferItem
-import market.engine.core.network.ServerErrorException
+import market.engine.fragments.root.main.listing.ListingViewModel
 import market.engine.widgets.grids.PagingList
+
+data class ScrollDataState(
+    val scrollItem : Int = 0,
+    val offsetScrollItem : Int = 0,
+)
+
+data class ListingBaseData(
+    val bottomSheetState : BottomSheetValue,
+    val listingData : LD,
+    val searchData : SD,
+    val promoList: List<OfferItem>?,
+    val isReversingPaging : Boolean = false,
+    val activeWindowType: ListingViewModel.ActiveWindowType,
+    val columns : Int = 1,
+    val scrollDataState : ScrollDataState,
+)
+
+interface ListingBaseEvents{
+   fun changeBottomSheetState(state : BottomSheetValue)
+   fun saveScrollState(state : ScrollDataState)
+}
 
 @Composable
 fun <T : Any>ListingBaseContent(
-    columns : Int = 1,
-    listingData : LD,
-    searchData : SD,
+    uiState : ListingBaseData,
+    events: ListingBaseEvents,
+    modifier : Modifier = Modifier,
     data : LazyPagingItems<T>,
-    baseViewModel: BaseViewModel,
-    onRefresh : () -> Unit,
     item : @Composable (T) -> Unit,
     noFound : (@Composable () -> Unit)? = null,
-    filtersContent : (@Composable (MutableState<Boolean>, onClose : () ->Unit) -> Unit)? = null,
+    filtersContent : (@Composable () -> Unit)? = null,
     additionalBar : @Composable (LazyListState) -> Unit = {},
     promoContent : (@Composable (OfferItem) -> Unit)? = null,
-    promoList :  List<OfferItem>? = null,
-    isReversingPaging : Boolean = false,
     scrollState:  LazyListState = rememberLazyListState(
-        initialFirstVisibleItemIndex = baseViewModel.scrollItem.value,
-        initialFirstVisibleItemScrollOffset = baseViewModel.offsetScrollItem.value
+        initialFirstVisibleItemIndex = uiState.scrollDataState.scrollItem,
+        initialFirstVisibleItemScrollOffset = uiState.scrollDataState.offsetScrollItem
     ),
-    modifier : Modifier = Modifier
 ){
-    val isRefreshingFromFilters = remember { mutableStateOf(false) }
-
-    val activeFiltersType = baseViewModel.activeFiltersType.collectAsState()
-
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(baseViewModel.bottomSheetState.value)
+        bottomSheetState = rememberBottomSheetState(uiState.bottomSheetState)
     )
-
-    var error : (@Composable () -> Unit)? = null
-    var noItem : (@Composable () -> Unit)? = null
-
-    data.loadState.apply {
-        when {
-            refresh is LoadStateNotLoading && data.itemCount > 0 -> {
-                error = null
-                noItem = null
-            }
-
-            refresh is LoadStateNotLoading && data.itemCount < 1 -> {
-                noItem = {
-                    noFound?.invoke() ?: showNoItemLayout{onRefresh()}
-                }
-            }
-
-            refresh is LoadStateError -> {
-                baseViewModel.onError(
-                    ServerErrorException(
-                        errorCode = ((refresh as LoadStateError).error as? ServerErrorException)?.errorCode ?: "",
-                        humanMessage = ((refresh as LoadStateError).error as? ServerErrorException)?.humanMessage ?: ""
-                    )
-                )
-            }
-        }
-    }
 
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
-                baseViewModel.bottomSheetState.value = sheetValue
-                if (sheetValue == BottomSheetValue.Collapsed) {
-                    if (isRefreshingFromFilters.value) {
-                        searchData.isRefreshing = true
-                        scrollState.scrollToItem(0)
-                        onRefresh()
-                        isRefreshingFromFilters.value = false
-                    }
-                }
+                events.changeBottomSheetState(sheetValue)
             }
     }
 
@@ -105,26 +76,24 @@ fun <T : Any>ListingBaseContent(
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            baseViewModel.scrollItem.value = index
-            baseViewModel.offsetScrollItem.value = offset
+            events.saveScrollState(ScrollDataState(index, offset))
         }
     }
 
-    LaunchedEffect(activeFiltersType.value){
+    LaunchedEffect(uiState.activeWindowType){
         snapshotFlow {
-            activeFiltersType.value
+            uiState.activeWindowType
         }.collect { type ->
-            if (type.isNotEmpty()) {
+            if (type != ListingViewModel.ActiveWindowType.LISTING) {
                 scaffoldState.bottomSheetState.expand()
             } else {
                 scaffoldState.bottomSheetState.collapse()
-                baseViewModel.activeFiltersType.value = ""
             }
         }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if(activeFiltersType.value == "" || activeFiltersType.value == "categories"){
+        if(uiState.activeWindowType == ListingViewModel.ActiveWindowType.LISTING || uiState.activeWindowType == ListingViewModel.ActiveWindowType.CATEGORY){
             additionalBar(scrollState)
         }
 
@@ -137,26 +106,17 @@ fun <T : Any>ListingBaseContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                if (activeFiltersType.value != "") {
-                    filtersContent?.invoke(isRefreshingFromFilters) {
-                        baseViewModel.activeFiltersType.value = ""
-                    }
+                if (uiState.activeWindowType != ListingViewModel.ActiveWindowType.LISTING) {
+                    filtersContent?.invoke()
                 }
             },
             modifier = Modifier.zIndex(1200f)
         ) {
             when {
-                error != null -> {
+                noFound != null -> {
                     LazyColumn {
                         item {
-                            error.invoke()
-                        }
-                    }
-                }
-                noItem != null -> {
-                    LazyColumn {
-                        item {
-                            noItem.invoke()
+                            noFound.invoke()
                         }
                     }
                 }
@@ -167,14 +127,14 @@ fun <T : Any>ListingBaseContent(
                         PagingList(
                             state = scrollState,
                             data = data,
-                            listingData = listingData,
-                            isReversingPaging = isReversingPaging,
-                            searchData = searchData,
-                            columns = columns,
-                            content = {
-                                item(it)
+                            listingData = uiState.listingData,
+                            isReversingPaging = uiState.isReversingPaging,
+                            searchData = uiState.searchData,
+                            columns = uiState.columns,
+                            content = { data ->
+                                item(data)
                             },
-                            promoList = promoList,
+                            promoList = uiState.promoList,
                             promoContent = promoContent,
                         )
                     }

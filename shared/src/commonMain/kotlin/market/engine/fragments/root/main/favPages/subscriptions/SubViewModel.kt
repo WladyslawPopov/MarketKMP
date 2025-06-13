@@ -23,8 +23,8 @@ class SubViewModel(
     val listingData = mutableStateOf(ListingData())
 
     fun init(): Flow<PagingData<Subscription>> {
-        listingData.value.data.value.methodServer = "get_cabinet_listing"
-        listingData.value.data.value.objServer = "subscriptions"
+        listingData.value.data.methodServer = "get_cabinet_listing"
+        listingData.value.data.objServer = "subscriptions"
 
         return pagingRepository.getListing(listingData.value, apiService, Subscription.serializer()).cachedIn(viewModelScope)
     }

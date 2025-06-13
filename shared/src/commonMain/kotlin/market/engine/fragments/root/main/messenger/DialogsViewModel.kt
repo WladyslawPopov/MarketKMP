@@ -70,7 +70,7 @@ class DialogsViewModel(
         dialogID.value = dialogId
         setLoading(true)
 
-        listingData.value.data.value.filters = arrayListOf(
+        listingData.value.data.filters = arrayListOf(
             Filter(
                 "dialog_id",
                 dialogId.toString(),
@@ -78,15 +78,15 @@ class DialogsViewModel(
                 null
             )
         )
-        listingData.value.data.value.sort = Sort(
+        listingData.value.data.sort = Sort(
             "created_ts",
             "desc",
             "",
             null,
             null
         )
-        listingData.value.data.value.methodServer = "get_cabinet_listing"
-        listingData.value.data.value.objServer = "private_messages"
+        listingData.value.data.methodServer = "get_cabinet_listing"
+        listingData.value.data.objServer = "private_messages"
 
         return dialogsPagingRepository.getListing(
             listingData.value,

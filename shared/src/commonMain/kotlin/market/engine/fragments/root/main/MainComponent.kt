@@ -431,8 +431,8 @@ class DefaultMainComponent(
         childStack(
             source = modelNavigation.value.searchNavigation,
             initialConfiguration = SearchConfig.ListingScreen(
-                categoryData.data.value,
-                categoryData.searchData.value,
+                categoryData.data,
+                categoryData.searchData,
                 true,
                 getCurrentDate()
             ),
@@ -563,8 +563,8 @@ class DefaultMainComponent(
                     val categoryData = ListingData()
                     modelNavigation.value.searchNavigation.replaceAll(
                         SearchConfig.ListingScreen(
-                            categoryData.data.value,
-                            categoryData.searchData.value,
+                            categoryData.data,
+                            categoryData.searchData,
                             true,
                             getCurrentDate()
                         )
@@ -645,15 +645,15 @@ class DefaultMainComponent(
 
                     is DeepLink.GoToListing -> {
                         val categoryData = ListingData()
-                        categoryData.searchData.value.userSearch = true
-                        categoryData.searchData.value.userID = deepLink.ownerId
-                        categoryData.searchData.value.userLogin = ""
+                        categoryData.searchData.userSearch = true
+                        categoryData.searchData.userID = deepLink.ownerId
+                        categoryData.searchData.userLogin = ""
 
                         modelNavigation.value.homeNavigation.pushNew(
                             HomeConfig.ListingScreen(
                                 false,
-                                categoryData.data.value,
-                                categoryData.searchData.value,
+                                categoryData.data,
+                                categoryData.searchData,
                                 getCurrentDate()
                             )
                         )

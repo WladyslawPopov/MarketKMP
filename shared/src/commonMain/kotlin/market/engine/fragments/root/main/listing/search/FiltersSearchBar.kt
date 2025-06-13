@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -22,6 +23,10 @@ fun FiltersSearchBar(
     val us = stringResource(strings.searchUsersSearch)
     val catDef = stringResource(strings.categoryMain)
 
+    val searchData = remember(uiSearchState.searchData){
+        uiSearchState.searchData
+    }
+
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
@@ -31,13 +36,13 @@ fun FiltersSearchBar(
         item{
             FilterButton(
                 text = buildString {
-                    if(uiSearchState.searchCategoryID == 1L){
+                    if(searchData.searchCategoryID == 1L){
                         append(catDef)
                     }else{
-                        append(uiSearchState.searchCategoryName)
+                        append(searchData.searchCategoryName)
                     }
                 },
-                color =  if (uiSearchState.searchCategoryID == 1L)
+                color =  if (searchData.searchCategoryID == 1L)
                     colors.simpleButtonColors
                 else
                     colors.themeButtonColors,
@@ -45,7 +50,7 @@ fun FiltersSearchBar(
                     searchEvents.openSearchCategory(true)
                 },
                 onCancelClick =
-                    if(uiSearchState.searchCategoryID != 1L){
+                    if(searchData.searchCategoryID != 1L){
                         {
                             searchEvents.clearCategory()
                         }
@@ -55,22 +60,22 @@ fun FiltersSearchBar(
 
         item {
             FilterButton(
-                text = uiSearchState.userLogin ?: us,
-                color = if (!uiSearchState.userSearch)
+                text = searchData.userLogin ?: us,
+                color = if (!searchData.userSearch)
                     colors.simpleButtonColors
                 else
                     colors.themeButtonColors,
                 onClick = {
                     searchEvents.clickUser()
                 },
-                onCancelClick = if(uiSearchState.userLogin != null){ {searchEvents.clearUser()} } else null
+                onCancelClick = if(searchData.userLogin != null){ {searchEvents.clearUser()} } else null
             )
         }
 
         item {
             FilterButton(
                 text = stringResource(strings.searchUserFinishedStringChoice),
-                color = if (!uiSearchState.userFinished) colors.simpleButtonColors else colors.themeButtonColors,
+                color = if (!searchData.searchFinished) colors.simpleButtonColors else colors.themeButtonColors,
                 onClick = {
                     searchEvents.clickUserFinished()
                 },

@@ -111,7 +111,7 @@ class DefaultDialogsComponent(
 
     override fun goToNewSearch(userId: Long) {
         val listingData = ListingData()
-        listingData.searchData.value.run {
+        listingData.searchData.run {
             userSearch = true
             userLogin = ""
             userID = userId

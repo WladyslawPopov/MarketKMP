@@ -172,23 +172,23 @@ fun OfferFilterContent(
         sheetContent = {
 //            CategoryContent(
 //                isOpen = openCategory.value,
-//                searchData = searchData.value,
+//                searchData = searchData,
 //                baseViewModel = baseViewModel,
 //                isRefresh = isRefreshing,
 //                onBackClicked = catBack,
 //                isFilters = true,
 //            ) {
-//                if (isRefreshing.value && searchData.value.searchCategoryID != 1L) {
+//                if (isRefreshing.value && searchData.searchCategoryID != 1L) {
 //                    listingData.find { it.key == "category" }?.value =
-//                        searchData.value.searchCategoryID.toString()
+//                        searchData.searchCategoryID.toString()
 //                    listingData.find { it.key == "category" }?.interpretation =
-//                        searchData.value.searchCategoryName
+//                        searchData.searchCategoryName
 //                    listingData.find { it.key == "category" }?.operation =
-//                        searchData.value.searchIsLeaf.toString()
+//                        searchData.searchIsLeaf.toString()
 //                }
 //
-//                selectedCategory.value = searchData.value.searchCategoryName
-//                activeCategory.value = searchData.value.searchCategoryID
+//                selectedCategory.value = searchData.searchCategoryName
+//                activeCategory.value = searchData.searchCategoryID
 //
 //                openBottomSheet.value = false
 //            }

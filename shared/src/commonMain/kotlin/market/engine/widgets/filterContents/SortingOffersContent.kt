@@ -9,7 +9,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SortingOffersContent(
-    isRefreshing: MutableState<Boolean>,
+    isRefreshing: Boolean,
     listingData: LD,
     isCabinet: Boolean,
     onClose: () -> Unit,
@@ -53,11 +53,11 @@ fun SortingOffersContent(
         sortSections = sortSections,
         onClose = onClose,
         selectItem = {
-            isRefreshing.value = true
+            //isRefreshing.value = true
             listingData.sort = it
         },
         onClear = {
-            isRefreshing.value = true
+            //isRefreshing.value = true
             listingData.sort = null
         }
     )

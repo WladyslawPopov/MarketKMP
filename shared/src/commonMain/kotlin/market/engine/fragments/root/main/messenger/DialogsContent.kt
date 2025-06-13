@@ -119,7 +119,7 @@ fun DialogsContent(
     }
 
     val noFound = @Composable {
-        if (listingData.value.filters.any { it.interpretation != null && it.interpretation != "" }) {
+        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
             showNoItemLayout(
                 textButton = stringResource(strings.resetLabel)
             ) {
@@ -229,194 +229,194 @@ fun DialogsContent(
                             .fillMaxWidth()
                             .weight(1f)
                     ) {
-                        ListingBaseContent(
-                            listingData = listingData.value,
-                            searchData = searchData.value,
-                            data = data,
-                            baseViewModel = viewModel,
-                            onRefresh = {
-                                refresh()
-                            },
-                            noFound = noFound,
-                            isReversingPaging = true,
-                            additionalBar = {
-                                val offer = offerInfo.value
-                                val order = orderInfo.value
-                                val sign = stringResource(strings.currencySign)
-                                val orderLabel = stringResource(strings.orderLabel)
-                                val headerItem = when {
-                                    offer != null -> {
-                                        if (offer.sellerData?.markedAsDeleted == true) {
-                                            isDisabledSendMes.value = true
-                                            isDisabledAddPhotos.value = true
-                                        } else {
-                                            isDisabledSendMes.value = false
-
-                                            if (offer.sellerData?.id == conversation.interlocutor?.id) {
-                                                userRole.value = "buyer"
-                                                isDisabledAddPhotos.value = true
-                                            } else {
-                                                userRole.value = "seller"
-                                                isDisabledAddPhotos.value = false
-                                            }
-                                        }
-
-                                        val title = buildAnnotatedString {
-                                            append(offer.title ?: "")
-                                        }
-
-                                        val s = buildAnnotatedString {
-                                            withStyle(
-                                                SpanStyle(
-                                                    color = colors.priceTextColor
-                                                )
-                                            ) {
-                                                append(offer.currentPricePerItem.toString())
-                                                append(sign)
-                                            }
-                                        }
-
-                                        val imageUrl = offer.getOfferImagePreview()
-
-
-                                        MesHeaderItem(
-                                            title = title,
-                                            subtitle = s,
-                                            image = imageUrl,
-                                        ) {
-                                            component.goToOffer(offer.id)
-                                        }
-
-                                    }
-
-                                    order != null -> {
-                                        if (order.sellerData?.markedAsDeleted == true) {
-                                            isDisabledSendMes.value = true
-                                            isDisabledAddPhotos.value = true
-                                        } else {
-                                            isDisabledSendMes.value = false
-                                            isDisabledAddPhotos.value = false
-
-                                            if (order.sellerData?.id == conversation.interlocutor?.id) {
-                                                userRole.value = "buyer"
-                                            } else {
-                                                userRole.value = "seller"
-                                            }
-                                        }
-                                        val title = buildAnnotatedString {
-                                            withStyle(SpanStyle(color = colors.titleTextColor)) {
-                                                append(orderLabel)
-                                            }
-                                            append(" #${order.id}")
-                                        }
-
-                                        val subtitle = buildAnnotatedString {
-                                            withStyle(
-                                                SpanStyle(
-                                                    color = colors.actionTextColor,
-                                                )
-                                            ) {
-                                                append(order.suborders.firstOrNull()?.title)
-                                            }
-                                        }
-
-                                        val imageUrl =
-                                            order.suborders.firstOrNull()?.getOfferImagePreview()
-
-                                        MesHeaderItem(
-                                            title = title,
-                                            subtitle = subtitle,
-                                            image = imageUrl,
-                                        ) {
-                                            val type = if (userRole.value != "seller") {
-                                                DealTypeGroup.BUY
-                                            } else {
-                                                DealTypeGroup.SELL
-                                            }
-                                            component.goToOrder(order.id, type)
-                                        }
-                                    }
-
-                                    else -> {
-                                        null
-                                    }
-                                }
-                                Column {
-                                    AnimatedVisibility(
-                                        headerItem != null,
-                                        enter = expandIn(),
-                                        exit = fadeOut()
-                                    ) {
-                                        if (headerItem != null) {
-                                            DialogsHeader(
-                                                headerItem
-                                            )
-                                        }
-                                    }
-                                }
-                            },
-                            filtersContent = null,
-                            scrollState = scrollState,
-                            item = { messageItem ->
-                                val isDeleteItem = remember { mutableStateOf(false) }
-                                when (messageItem) {
-                                    is DialogsData.MessageItem -> {
-                                        if(!isDeleteItem.value){
-                                            DialogItem(
-                                                messageItem,
-                                                openImage = { index ->
-                                                    scope.launch {
-                                                        images.clear()
-                                                        images.addAll(messageItem.images?.map {
-                                                            it.url ?: ""
-                                                        } ?: emptyList())
-                                                        imageSize.value = images.size
-                                                        pagerFullState.scrollToPage(index)
-                                                        isImageViewerVisible.value = true
-                                                    }
-                                                },
-                                                onMenuClick = { key ->
-                                                    when (key) {
-                                                        "delete" -> {
-                                                            viewModel.deleteMessage(messageItem.id){
-                                                                isDeleteItem.value = true
-                                                            }
-                                                        }
-
-                                                        "copy" -> {
-                                                            clipBoardEvent(richText.setHtml(messageItem.message).annotatedString.text)
-                                                            viewModel.showToast(
-                                                                successToastItem.copy(
-                                                                    message = textCopied
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                },
-                                                goToUser = {
-                                                    component.goToUser(it)
-                                                },
-                                                goToOffer = {
-                                                    component.goToOffer(it)
-                                                },
-                                                goToListing = {
-                                                    component.goToNewSearch(it)
-                                                }
-                                            )
-                                        }
-                                    }
-
-                                    is DialogsData.SeparatorItem -> {
-                                        SeparatorDialogItem(
-                                            messageItem as? DialogsData.SeparatorItem
-                                                ?: return@ListingBaseContent,
-                                        )
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
+//                        ListingBaseContent(
+//                            listingData = listingData.value,
+//                            searchData = searchData,
+//                            data = data,
+//                            baseViewModel = viewModel,
+//                            onRefresh = {
+//                                refresh()
+//                            },
+//                            noFound = noFound,
+//                            isReversingPaging = true,
+//                            additionalBar = {
+//                                val offer = offerInfo.value
+//                                val order = orderInfo.value
+//                                val sign = stringResource(strings.currencySign)
+//                                val orderLabel = stringResource(strings.orderLabel)
+//                                val headerItem = when {
+//                                    offer != null -> {
+//                                        if (offer.sellerData?.markedAsDeleted == true) {
+//                                            isDisabledSendMes.value = true
+//                                            isDisabledAddPhotos.value = true
+//                                        } else {
+//                                            isDisabledSendMes.value = false
+//
+//                                            if (offer.sellerData?.id == conversation.interlocutor?.id) {
+//                                                userRole.value = "buyer"
+//                                                isDisabledAddPhotos.value = true
+//                                            } else {
+//                                                userRole.value = "seller"
+//                                                isDisabledAddPhotos.value = false
+//                                            }
+//                                        }
+//
+//                                        val title = buildAnnotatedString {
+//                                            append(offer.title ?: "")
+//                                        }
+//
+//                                        val s = buildAnnotatedString {
+//                                            withStyle(
+//                                                SpanStyle(
+//                                                    color = colors.priceTextColor
+//                                                )
+//                                            ) {
+//                                                append(offer.currentPricePerItem.toString())
+//                                                append(sign)
+//                                            }
+//                                        }
+//
+//                                        val imageUrl = offer.getOfferImagePreview()
+//
+//
+//                                        MesHeaderItem(
+//                                            title = title,
+//                                            subtitle = s,
+//                                            image = imageUrl,
+//                                        ) {
+//                                            component.goToOffer(offer.id)
+//                                        }
+//
+//                                    }
+//
+//                                    order != null -> {
+//                                        if (order.sellerData?.markedAsDeleted == true) {
+//                                            isDisabledSendMes.value = true
+//                                            isDisabledAddPhotos.value = true
+//                                        } else {
+//                                            isDisabledSendMes.value = false
+//                                            isDisabledAddPhotos.value = false
+//
+//                                            if (order.sellerData?.id == conversation.interlocutor?.id) {
+//                                                userRole.value = "buyer"
+//                                            } else {
+//                                                userRole.value = "seller"
+//                                            }
+//                                        }
+//                                        val title = buildAnnotatedString {
+//                                            withStyle(SpanStyle(color = colors.titleTextColor)) {
+//                                                append(orderLabel)
+//                                            }
+//                                            append(" #${order.id}")
+//                                        }
+//
+//                                        val subtitle = buildAnnotatedString {
+//                                            withStyle(
+//                                                SpanStyle(
+//                                                    color = colors.actionTextColor,
+//                                                )
+//                                            ) {
+//                                                append(order.suborders.firstOrNull()?.title)
+//                                            }
+//                                        }
+//
+//                                        val imageUrl =
+//                                            order.suborders.firstOrNull()?.getOfferImagePreview()
+//
+//                                        MesHeaderItem(
+//                                            title = title,
+//                                            subtitle = subtitle,
+//                                            image = imageUrl,
+//                                        ) {
+//                                            val type = if (userRole.value != "seller") {
+//                                                DealTypeGroup.BUY
+//                                            } else {
+//                                                DealTypeGroup.SELL
+//                                            }
+//                                            component.goToOrder(order.id, type)
+//                                        }
+//                                    }
+//
+//                                    else -> {
+//                                        null
+//                                    }
+//                                }
+//                                Column {
+//                                    AnimatedVisibility(
+//                                        headerItem != null,
+//                                        enter = expandIn(),
+//                                        exit = fadeOut()
+//                                    ) {
+//                                        if (headerItem != null) {
+//                                            DialogsHeader(
+//                                                headerItem
+//                                            )
+//                                        }
+//                                    }
+//                                }
+//                            },
+//                            filtersContent = null,
+//                            scrollState = scrollState,
+//                            item = { messageItem ->
+//                                val isDeleteItem = remember { mutableStateOf(false) }
+//                                when (messageItem) {
+//                                    is DialogsData.MessageItem -> {
+//                                        if(!isDeleteItem.value){
+//                                            DialogItem(
+//                                                messageItem,
+//                                                openImage = { index ->
+//                                                    scope.launch {
+//                                                        images.clear()
+//                                                        images.addAll(messageItem.images?.map {
+//                                                            it.url ?: ""
+//                                                        } ?: emptyList())
+//                                                        imageSize.value = images.size
+//                                                        pagerFullState.scrollToPage(index)
+//                                                        isImageViewerVisible.value = true
+//                                                    }
+//                                                },
+//                                                onMenuClick = { key ->
+//                                                    when (key) {
+//                                                        "delete" -> {
+//                                                            viewModel.deleteMessage(messageItem.id){
+//                                                                isDeleteItem.value = true
+//                                                            }
+//                                                        }
+//
+//                                                        "copy" -> {
+//                                                            clipBoardEvent(richText.setHtml(messageItem.message).annotatedString.text)
+//                                                            viewModel.showToast(
+//                                                                successToastItem.copy(
+//                                                                    message = textCopied
+//                                                                )
+//                                                            )
+//                                                        }
+//                                                    }
+//                                                },
+//                                                goToUser = {
+//                                                    component.goToUser(it)
+//                                                },
+//                                                goToOffer = {
+//                                                    component.goToOffer(it)
+//                                                },
+//                                                goToListing = {
+//                                                    component.goToNewSearch(it)
+//                                                }
+//                                            )
+//                                        }
+//                                    }
+//
+//                                    is DialogsData.SeparatorItem -> {
+//                                        SeparatorDialogItem(
+//                                            messageItem as? DialogsData.SeparatorItem
+//                                                ?: return@ListingBaseContent,
+//                                        )
+//                                    }
+//                                }
+//                            },
+//                            modifier = Modifier
+//                                .fillMaxSize()
+//                        )
                     }
 
                     MessengerBar(

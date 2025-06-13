@@ -158,8 +158,8 @@ fun createBasketChild(
 
         is BasketConfig.ListingScreen -> {
             val ld = ListingData(
-                searchData = mutableStateOf(config.searchData),
-                data = mutableStateOf(config.listingData)
+                searchData = config.searchData,
+                data = config.listingData
             )
             ChildBasket.ListingChild(
                 DefaultListingComponent(
@@ -171,15 +171,14 @@ fun createBasketChild(
                     selectedBack = {
                         basketNavigation.pop()
                     },
-                    isOpenCategory = false,
                     navigateToSubscribe = {
                         navigateToSubscribe()
                     },
                     navigateToListing = { data ->
                         basketNavigation.pushNew(
                             BasketConfig.ListingScreen(
-                                data.data.value,
-                                data.searchData.value,
+                                data.data,
+                                data.searchData,
                                 getCurrentDate()
                             )
                         )
@@ -208,7 +207,7 @@ fun createBasketChild(
                 },
                 onListingSelected = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                        BasketConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
@@ -285,7 +284,7 @@ fun createBasketChild(
                 config.aboutMe,
                 goToLogin = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                        BasketConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
                 goBack = {
@@ -355,7 +354,7 @@ fun createBasketChild(
                 },
                 navigateToListingSelected = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                        BasketConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 }
             )

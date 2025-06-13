@@ -1,9 +1,9 @@
 package market.engine.core.data.baseFilters
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ListingData(
-    var searchData : MutableState<SD> = mutableStateOf(SD()),
-    var data: MutableState<LD> = mutableStateOf(LD())
+    val searchData : SD = SD(),
+    val data: LD = LD()
 )

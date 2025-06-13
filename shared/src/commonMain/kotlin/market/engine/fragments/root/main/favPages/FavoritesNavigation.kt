@@ -162,7 +162,7 @@ fun createFavoritesChild(
                 },
                 onListingSelected = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                        FavoritesConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
@@ -208,8 +208,8 @@ fun createFavoritesChild(
 
         is FavoritesConfig.ListingScreen -> {
             val ld = ListingData(
-                searchData = mutableStateOf(config.searchData),
-                data = mutableStateOf(config.listingData)
+                searchData = config.searchData,
+                data = config.listingData
             )
             ChildFavorites.ListingChild(
                 component = DefaultListingComponent(
@@ -223,13 +223,12 @@ fun createFavoritesChild(
                     selectedBack = {
                         favoritesNavigation.pop()
                     },
-                    isOpenCategory = false,
                     navigateToSubscribe = {
                         favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
                     },
                     navigateToListing = { data ->
                         favoritesNavigation.pushNew(
-                            FavoritesConfig.ListingScreen(data.data.value, data.searchData.value, getCurrentDate())
+                            FavoritesConfig.ListingScreen(data.data, data.searchData, getCurrentDate())
                         )
                     },
                     navigateToNewSubscription = {
@@ -249,7 +248,7 @@ fun createFavoritesChild(
                 config.aboutMe,
                 goToLogin = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                        FavoritesConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
                 goBack = {
@@ -356,7 +355,7 @@ fun createFavoritesChild(
             },
             navigateToListingSelected = {
                 favoritesNavigation.pushNew(
-                    FavoritesConfig.ListingScreen(it.data.value, it.searchData.value, getCurrentDate())
+                    FavoritesConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
                 )
             }
         )
