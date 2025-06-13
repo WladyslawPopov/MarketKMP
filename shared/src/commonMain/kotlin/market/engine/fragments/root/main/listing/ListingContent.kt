@@ -1,6 +1,8 @@
 package market.engine.fragments.root.main.listing
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -147,43 +149,40 @@ fun ListingContent(
 
     BaseContent(
         topBar = remember(activeWindowType.value){{
-            AnimatedContent(activeWindowType.value) {
-                when(activeWindowType.value){
+            when(activeWindowType.value) {
                     ActiveWindowType.SEARCH -> {
-                        if (uiSearchState.appBarData != null) {
+                        AnimatedVisibility(
+                            uiSearchState.appBarData != null,
+                            enter = fadeIn()
+                        ) {
                             SimpleAppBar(
-                                data = uiSearchState.appBarData
+                                data = uiSearchState.appBarData!!
                             )
                         }
                     }
+
                     ActiveWindowType.CATEGORY_FILTERS -> {
-                        if (uiSearchState.closeAppBar != null) {
+                        AnimatedVisibility(
+                            uiSearchState.appBarData != null,
+                            enter = fadeIn()
+                        ) {
                             SimpleAppBar(
-                                data = uiSearchState.closeAppBar
+                                data = uiSearchState.closeAppBar!!
                             )
                         }
                     }
+
                     else -> {
-                        if (uiState.value.appBarData != null) {
+                        AnimatedVisibility(
+                            uiSearchState.appBarData != null,
+                            enter = fadeIn()
+                        ) {
                             SimpleAppBar(
                                 data = uiState.value.appBarData!!
                             )
                         }
                     }
                 }
-            }
-
-            CreateSubscribeDialog(
-                listingViewModel.errorString.value != "",
-                listingViewModel.errorString.value,
-                onDismiss = {
-                    listingViewModel.errorString.value = ""
-                },
-                goToSubscribe = {
-                    component.goToSubscribe()
-                    listingViewModel.errorString.value = ""
-                }
-            )
         }},
         onRefresh = onRefresh,
         error = error,
@@ -248,18 +247,20 @@ fun ListingContent(
                     }
                 },
                 additionalBar = { state ->
-                    SwipeTabsBar(
-                        isVisibility = true,
-                        listingData,
-                        state,
-                        onRefresh = {
-                            onRefresh()
-                        }
-                    )
+                    Column {
+                        SwipeTabsBar(
+                            isVisibility = true,
+                            listingData,
+                            state,
+                            onRefresh = {
+                                onRefresh()
+                            }
+                        )
 
-                    FiltersBar(
-                        uiState.value.filterBarData
-                    )
+                        FiltersBar(
+                            uiState.value.filterBarData
+                        )
+                    }
                 },
                 item = { offer ->
                     when (listingData.listingType) {
@@ -306,4 +307,16 @@ fun ListingContent(
             )
         }
     }
+
+    CreateSubscribeDialog(
+        listingViewModel.errorString.value != "",
+        listingViewModel.errorString.value,
+        onDismiss = {
+            listingViewModel.errorString.value = ""
+        },
+        goToSubscribe = {
+            component.goToSubscribe()
+            listingViewModel.errorString.value = ""
+        }
+    )
 }

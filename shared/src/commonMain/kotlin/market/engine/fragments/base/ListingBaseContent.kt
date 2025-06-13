@@ -1,5 +1,7 @@
 package market.engine.fragments.base
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,7 +95,11 @@ fun <T : Any>ListingBaseContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if(uiState.activeWindowType == ListingViewModel.ActiveWindowType.LISTING || uiState.activeWindowType == ListingViewModel.ActiveWindowType.CATEGORY){
+        AnimatedVisibility(
+            uiState.activeWindowType == ListingViewModel.ActiveWindowType.LISTING ||
+                    uiState.activeWindowType == ListingViewModel.ActiveWindowType.CATEGORY,
+            enter = fadeIn()
+        ){
             additionalBar(scrollState)
         }
 
@@ -110,7 +116,7 @@ fun <T : Any>ListingBaseContent(
                     filtersContent?.invoke()
                 }
             },
-            modifier = Modifier.zIndex(1200f)
+            modifier = Modifier.zIndex(120f).weight(1f)
         ) {
             when {
                 noFound != null -> {

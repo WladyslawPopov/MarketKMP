@@ -691,20 +691,21 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
     }
 
     fun changeOpenCategory() {
-        if (activeWindowType.value == ActiveWindowType.LISTING) {
-            if (listingData.value.searchData.searchCategoryID != listingCategoryModel.categoryId.value) {
-                listingCategoryModel.updateFromSearchData(listingData.value.searchData)
-                listingCategoryModel.initialize(listingData.value.data.filters)
-            }
+        listingCategoryModel.run {
+            if (activeWindowType.value == ActiveWindowType.LISTING) {
+                if (listingData.value.searchData.searchCategoryID != categoryId.value || categories.value.isEmpty()) {
+                    listingCategoryModel.updateFromSearchData(listingData.value.searchData)
+                    listingCategoryModel.initialize(listingData.value.data.filters)
+                }
 
-            activeWindowType.value = ActiveWindowType.CATEGORY
-            val eventParameters = mapOf(
-                "category_name" to listingData.value.searchData.searchCategoryName,
-                "category_id" to listingData.value.searchData.searchCategoryID,
-            )
-            analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
-        } else {
-            listingCategoryModel.run {
+                activeWindowType.value = ActiveWindowType.CATEGORY
+                val eventParameters = mapOf(
+                    "category_name" to listingData.value.searchData.searchCategoryName,
+                    "category_id" to listingData.value.searchData.searchCategoryID,
+                )
+                analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
+            } else {
+
                 if (listingData.value.searchData.searchCategoryID != categoryId.value) {
                     listingData.update { currentListingData ->
                         currentListingData.copy(
@@ -713,13 +714,15 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
                                 searchCategoryName = categoryName.value,
                                 searchParentID = parentId.value,
                                 searchIsLeaf = isLeaf.value,
-                                isRefreshing = true
                             )
                         )
                     }
+
+                    component.refresh()
                 }
+
+                activeWindowType.value = ActiveWindowType.LISTING
             }
-            activeWindowType.value = ActiveWindowType.LISTING
         }
     }
 
