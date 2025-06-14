@@ -31,7 +31,7 @@ class SubViewModel(
 
     fun refresh(){
         updateUserInfo()
-        pagingRepository.refresh(listingData.value)
+        pagingRepository.refresh()
     }
 
     fun getSubscription(subId : Long, onSuccess : (Subscription?) -> Unit ) {

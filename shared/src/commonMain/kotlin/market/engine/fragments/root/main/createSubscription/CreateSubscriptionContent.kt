@@ -105,7 +105,7 @@ fun CreateSubscriptionContent(
 
     val onBack = {
         if (openBottomSheet.value) {
-            viewModel.catBack.value = true
+//            viewModel.catBack.value = true
         } else {
             component.onBackClicked()
         }
@@ -236,7 +236,7 @@ fun CreateSubscriptionContent(
                                                             searchParentID = searchCategoryID
                                                         }
 
-                                                        viewModel.openFiltersCat.value = true
+//                                                        viewModel.openFiltersCat.value = true
                                                     },
                                                     onCancelClick =
                                                         if (selectedCategoryID.value != 1L) {

@@ -59,8 +59,8 @@ fun FeedbacksContent(
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
 
     val state = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
-        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
+//        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
+//        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
     )
 
     val type = model.type
@@ -159,7 +159,7 @@ fun FeedbacksContent(
             filters[(listingData.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
         }
 
-        state.scrollToItem(viewModel.scrollItem.value, viewModel.offsetScrollItem.value)
+//        state.scrollToItem(viewModel.scrollItem.value, viewModel.offsetScrollItem.value)
     }
 
     Column {

@@ -133,14 +133,14 @@ fun ProfileSettingsContent(
     )
 
     BackHandler(model.backHandler){
-        when{
-            viewModel.activeFiltersType.value != "" ->{
-                viewModel.activeFiltersType.value = ""
-            }
-            else -> {
-                component.goToBack()
-            }
-        }
+//        when{
+//            viewModel.activeFiltersType.value != "" ->{
+//                viewModel.activeFiltersType.value = ""
+//            }
+//            else -> {
+//                component.goToBack()
+//            }
+//        }
     }
 
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()){

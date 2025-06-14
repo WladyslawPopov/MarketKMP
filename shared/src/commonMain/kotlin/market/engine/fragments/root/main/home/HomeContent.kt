@@ -56,16 +56,16 @@ fun HomeContent(
     BackHandler(model.backHandler){}
 
     val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = homeViewModel.scrollItem.value,
-        initialFirstVisibleItemScrollOffset = homeViewModel.offsetScrollItem.value
+//        initialFirstVisibleItemIndex = homeViewModel.scrollItem.value,
+//        initialFirstVisibleItemScrollOffset = homeViewModel.offsetScrollItem.value
     )
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            homeViewModel.scrollItem.value = index
-            homeViewModel.offsetScrollItem.value = offset
+//            homeViewModel.scrollItem.value = index
+//            homeViewModel.offsetScrollItem.value = offset
         }
     }
 

@@ -64,14 +64,14 @@ fun MyOrdersContent(
     }}
 
     BackHandler(model.backHandler){
-        when{
-            viewModel.activeFiltersType.value != "" ->{
-                viewModel.activeFiltersType.value = ""
-            }
-            else -> {
-                component.goToBack()
-            }
-        }
+//        when{
+//            viewModel.activeFiltersType.value != "" ->{
+//                viewModel.activeFiltersType.value = ""
+//            }
+//            else -> {
+//                component.goToBack()
+//            }
+//        }
     }
 
     val noFound = @Composable {

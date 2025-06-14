@@ -50,18 +50,18 @@ fun MyProposalsContent(
     }}
 
     BackHandler(model.backHandler){
-        when{
-            viewModel.activeFiltersType.value != "" ->{
-                if (viewModel.openFiltersCat.value){
-                    viewModel.catBack.value = true
-                } else {
-                    viewModel.activeFiltersType.value = ""
-                }
-            }
-            else -> {
-                component.goToBack()
-            }
-        }
+//        when{
+//            viewModel.activeFiltersType.value != "" ->{
+//                if (viewModel.openFiltersCat.value){
+//                    viewModel.catBack.value = true
+//                } else {
+//                    viewModel.activeFiltersType.value = ""
+//                }
+//            }
+//            else -> {
+//                component.goToBack()
+//            }
+//        }
     }
 
     val noFound = @Composable {

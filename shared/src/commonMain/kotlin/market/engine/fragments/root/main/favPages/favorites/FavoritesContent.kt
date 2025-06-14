@@ -51,18 +51,18 @@ fun FavoritesContent(
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     BackHandler(model.backHandler){
-        when{
-            favViewModel.activeFiltersType.value != "" ->{
-                if (favViewModel.openFiltersCat.value){
-                    favViewModel.catBack.value = true
-                }else {
-                    favViewModel.activeFiltersType.value = ""
-                }
-            }
-            else -> {
-
-            }
-        }
+//        when{
+//            favViewModel.activeFiltersType.value != "" ->{
+//                if (favViewModel.openFiltersCat.value){
+//                    favViewModel.catBack.value = true
+//                }else {
+//                    favViewModel.activeFiltersType.value = ""
+//                }
+//            }
+//            else -> {
+//
+//            }
+//        }
     }
 
     val updateFilters = remember { favViewModel.updateFilters }

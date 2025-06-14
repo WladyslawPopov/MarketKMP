@@ -1,7 +1,6 @@
 package market.engine.fragments.base
 
 import androidx.compose.material.BottomSheetValue
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -30,6 +29,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
+import market.engine.core.data.states.ScrollDataState
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.functions.OfferOperations
@@ -61,21 +61,21 @@ import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 open class BaseViewModel: ViewModel() {
-
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     //select items and updateItem
-    var selectItems : MutableList<Long> = mutableStateListOf()
+    val selectItems : MutableList<Long> = mutableStateListOf()
     val updateItemTrigger = mutableStateOf(0)
-    val updateItem : MutableState<Long?> = mutableStateOf(null)
+    val updateItem = MutableStateFlow<Long?>(null)
 
-    //filters params
-    val catBack = mutableStateOf(false)
-    val openFiltersCat = mutableStateOf(false)
-    val activeFiltersType = MutableStateFlow("")
-    var bottomSheetState : MutableState<BottomSheetValue> = mutableStateOf(BottomSheetValue.Collapsed)
-    var scrollItem : MutableState<Int> = mutableStateOf(0)
-    var offsetScrollItem : MutableState<Int> = mutableStateOf(0)
+    //filters params***
+    val catDef = mutableStateOf("")
+    val scrollState  = MutableStateFlow(ScrollDataState())
+
+    val bottomSheetState = MutableStateFlow(BottomSheetValue.Collapsed)
+
     val showLogoutDialog = mutableStateOf(false)
+    val deliveryCards = mutableStateOf(emptyList<DeliveryAddress>())
+    val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
 
     val apiService by lazy {  getKoin().get<APIService>() }
     val userRepository: UserRepository by lazy { getKoin().get() }
@@ -89,21 +89,15 @@ open class BaseViewModel: ViewModel() {
     val settings : SettingsRepository by lazy { getKoin().get() }
     val db : MarketDB by lazy { getKoin().get() }
 
-
-    val deliveryCards = mutableStateOf(emptyList<DeliveryAddress>())
-    val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
-
-    val _errorMessage = MutableStateFlow(ServerErrorException())
+    private val _errorMessage = MutableStateFlow(ServerErrorException())
     val errorMessage: StateFlow<ServerErrorException> = _errorMessage.asStateFlow()
+
+    private val _isShowProgress = MutableStateFlow(false)
+    val isShowProgress: StateFlow<Boolean> = _isShowProgress.asStateFlow()
 
     val toastItem = mutableStateOf(ToastItem(message = "", type = ToastType.WARNING, isVisible = false))
 
-    val _isShowProgress = MutableStateFlow(false)
-    val isShowProgress: StateFlow<Boolean> = _isShowProgress.asStateFlow()
-
     val viewModelScope = CoroutineScope(Dispatchers.Default)
-
-    val catDef = mutableStateOf("")
 
     init {
         viewModelScope.launch {
@@ -1406,7 +1400,7 @@ open class BaseViewModel: ViewModel() {
     }
 
     fun resetScroll() {
-        scrollItem.value = 0
-        offsetScrollItem.value = 0
+//        scrollItem.value = 0
+//        offsetScrollItem.value = 0
     }
 }

@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.listing.search
+package market.engine.widgets.filterContents.search
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,7 +47,7 @@ fun FiltersSearchBar(
                 else
                     colors.themeButtonColors,
                 onClick = {
-                    searchEvents.openSearchCategory(true)
+                    searchEvents.openSearchCategory(true, false)
                 },
                 onCancelClick =
                     if(searchData.searchCategoryID != 1L){

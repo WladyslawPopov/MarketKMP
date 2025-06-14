@@ -53,7 +53,7 @@ class UserViewModel : BaseViewModel() {
     }
 
     fun refresh(){
-        pagingRepository.refresh(listingData.value)
+        pagingRepository.refresh()
     }
 
     private fun initializeUserData(user: User) {

@@ -16,6 +16,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -37,14 +39,31 @@ import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+data class OfferItemState(
+    val item : OfferItem,
+    val onItemClick: () -> Unit = {},
+    val addToFavorites : (OfferItem) -> Unit = {},
+    val updateItemState : () -> Unit = {}
+)
+
 @Composable
 fun PublicOfferItem(
-    item : OfferItem,
-    onItemClick: () -> Unit = {},
-    addToFavorites : (OfferItem) -> Unit = {},
-    updateTrigger : Int = 0,
+    state: OfferItemState,
+    updateItem : Long?
 ) {
-    if (updateTrigger < 0) return
+    val item = state.item
+    val onItemClick = state.onItemClick
+    val addToFavorites = state.addToFavorites
+
+    LaunchedEffect(updateItem) {
+        snapshotFlow {
+            updateItem
+        }.collect { id ->
+            if (id == item.id){
+                state.updateItemState()
+            }
+        }
+    }
 
     val pagerState = rememberPagerState(
         pageCount = { item.images.size },

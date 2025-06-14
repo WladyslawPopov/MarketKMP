@@ -54,16 +54,16 @@ fun MyBidsContent(
 
     BackHandler(model.backHandler){
         when{
-            viewModel.activeFiltersType.value != "" ->{
-                if (viewModel.openFiltersCat.value){
-                    viewModel.catBack.value = true
-                } else {
-                    viewModel.activeFiltersType.value = ""
-                }
-            }
-            else -> {
-                component.goToBack()
-            }
+//            viewModel.activeFiltersType.value != "" ->{
+//                if (viewModel.openFiltersCat.value){
+//                    viewModel.catBack.value = true
+//                } else {
+//                    viewModel.activeFiltersType.value = ""
+//                }
+//            }
+//            else -> {
+//                component.goToBack()
+//            }
         }
     }
 

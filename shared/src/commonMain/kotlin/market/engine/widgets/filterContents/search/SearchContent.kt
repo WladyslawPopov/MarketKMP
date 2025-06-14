@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.listing.search
+package market.engine.widgets.filterContents.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -30,7 +30,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
-import market.engine.fragments.root.main.listing.SearchEvents
 import market.engine.fragments.root.main.listing.SearchPagesComponents
 import market.engine.fragments.root.main.listing.SearchUiState
 import market.engine.widgets.buttons.AcceptedPageButton
@@ -43,11 +42,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SearchContent(
     uiSearchUiState: SearchUiState,
-    searchEvents: SearchEvents,
     searchPages : Value<ChildPages<*, SearchPagesComponents>>,
 ) {
     val focusManager = LocalFocusManager.current
     val scaffoldState = rememberBottomSheetScaffoldState()
+    val searchEvents = uiSearchUiState.searchEvents
 
     LaunchedEffect(uiSearchUiState){
         snapshotFlow {
@@ -74,8 +73,11 @@ fun SearchContent(
         sheetContent = {
             CategoryContent(
                 viewModel = uiSearchUiState.categoryState.categoryViewModel,
+                onCompleted = {
+                    searchEvents.openSearchCategory(false, true)
+                },
                 onClose = {
-                    searchEvents.openSearchCategory(false)
+                    searchEvents.openSearchCategory(false, false)
                 }
             )
         },

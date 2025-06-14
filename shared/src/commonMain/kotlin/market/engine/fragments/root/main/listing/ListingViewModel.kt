@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +26,7 @@ import androidx.paging.map
 import app.cash.paging.PagingData
 import com.arkivanov.decompose.router.pages.select
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -53,6 +54,7 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.items.Tab
+import market.engine.core.data.states.ListingBaseState
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
@@ -61,40 +63,50 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.parseToOfferItem
+import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.BaseViewModel
-import market.engine.fragments.base.ListingBaseData
-import market.engine.fragments.base.ListingBaseEvents
-import market.engine.fragments.base.ScrollDataState
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.shared.SearchHistory
 import market.engine.widgets.bars.SimpleAppBarData
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import market.engine.widgets.items.FilterListingBtnItem
+import market.engine.widgets.items.offer_Items.OfferItemState
 import market.engine.widgets.textFields.SearchTextField
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import kotlin.String
 
+data class ListingEvents(
+    val onRefresh: () -> Unit = {},
+    val changeActiveWindowType : (ActiveWindowType) -> Unit = {},
+    val clearListingData: () -> Unit = {},
+    val backClick: () -> Unit = {},
+    val clickCategory: (complete : Boolean) -> Unit = {},
+    val closeFilters: (update : Boolean, clear: Boolean) -> Unit = {_,_ ->},
+    val updateItem: (OfferItem?) -> Unit = {},
+    val clearError: () -> Unit = {},
+)
 
-interface SearchEvents {
-    fun onRefresh()
-    fun goToListing()
-    fun onDeleteHistory()
-    fun onDeleteHistoryItem(id: Long)
-    fun openSearchCategory(value : Boolean)
-    fun clearCategory()
-    fun clickUser()
-    fun clearUser()
-    fun clickUserFinished()
-    fun onHistoryItemClicked(item: SearchHistoryItem)
-    fun editHistoryItem(item: SearchHistoryItem)
-    fun onTabSelect(tab: Int)
-}
+data class SearchEvents(
+    val onRefresh : () -> Unit = {},
+    val goToListing: () -> Unit = {},
+    val onDeleteHistory: () -> Unit = {},
+    val onDeleteHistoryItem: (Long) -> Unit = {},
+    val openSearchCategory: (value : Boolean, complete : Boolean) -> Unit = { _, _ -> },
+    val clearCategory: () -> Unit = {},
+    val clickUser: () -> Unit = {},
+    val clearUser: () -> Unit = {},
+    val clickUserFinished: () -> Unit = {},
+    val onHistoryItemClicked: (SearchHistoryItem) -> Unit = {},
+    val editHistoryItem: (SearchHistoryItem) -> Unit = {},
+    val onTabSelect : (Int) -> Unit = {}
+)
 
 data class CategoryState(
     val openCategory: Boolean = false,
     val categoryViewModel: CategoryViewModel = CategoryViewModel(),
 )
+
 data class SearchUiState(
     val openSearch: Boolean = false,
     val searchData: SD = SD(),
@@ -104,9 +116,10 @@ data class SearchUiState(
 
     val searchHistory: List<SearchHistoryItem> = emptyList(),
 
-    val appBarData: SimpleAppBarData? = null,
-    val closeAppBar: SimpleAppBarData? = null,
+    val appBarData: SimpleAppBarData,
+    val closeAppBar: SimpleAppBarData,
     val categoryState: CategoryState = CategoryState(),
+    val searchEvents: SearchEvents = SearchEvents(),
 )
 
 data class FilterBarUiState(
@@ -117,19 +130,22 @@ data class FilterBarUiState(
 )
 
 data class ListingStateContent(
-    val appBarData: SimpleAppBarData? = null,
-
-    val pagingDataFlow: Flow<PagingData<OfferItem>>? = null,
+    val appBarData: SimpleAppBarData,
+    val listingData: ListingData = ListingData(),
     val regions: List<Options> = emptyList(),
 
     val filterBarData: FilterBarUiState = FilterBarUiState(),
     val listingCategoryState: CategoryState = CategoryState(),
-    val searchState: SearchUiState = SearchUiState(),
-    val searchEvents: SearchEvents? = null,
-    val listingBaseData: ListingBaseData? = null,
-    val listingBaseEvents: ListingBaseEvents? = null
+    val listingBaseState: ListingBaseState = ListingBaseState(),
+
+    val listingEvents: ListingEvents = ListingEvents(),
 )
 
+enum class ActiveWindowType {
+    SEARCH, FILTERS, SORTING, CATEGORY, LISTING, CATEGORY_FILTERS
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
@@ -138,274 +154,291 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
 
     private val _responseHistory = MutableStateFlow<List<SearchHistoryItem>>(emptyList())
 
-    private val _pagingDataFlow = MutableStateFlow<Flow<PagingData<OfferItem>>?>(null)
-
     private val _regionOptions = MutableStateFlow<List<Options>>(emptyList())
 
     private val _changeSearchTab = MutableStateFlow<Int>(0)
 
-    val listingData = MutableStateFlow(ListingData())
+    private val _listingData = MutableStateFlow(ListingData())
 
-    val searchString = mutableStateOf(TextFieldValue(""))
+    private val _activeWindowType = MutableStateFlow(ActiveWindowType.LISTING)
 
-    val errorString = mutableStateOf("")
+    private val searchString = mutableStateOf(TextFieldValue(""))
 
-    val updateFilters = MutableStateFlow(false)
+    val errorString = MutableStateFlow("")
 
-    val searchCategoryModel = CategoryViewModel(
+    private val searchCategoryModel = CategoryViewModel(
         isFilters = true,
     )
+    private val listingCategoryModel = CategoryViewModel()
 
-    val listingCategoryModel = CategoryViewModel()
+    var searchTitle = mutableStateOf("")
+    var searchHistory = mutableStateOf("")
+    var subTitle = mutableStateOf("")
+    val userDef = mutableStateOf("")
+    val filterString = mutableStateOf("")
+    val sortString = mutableStateOf("")
+    val menuString = mutableStateOf("")
+    val userString = mutableStateOf("")
+    val searchFinishedString = mutableStateOf("")
 
-    enum class ActiveWindowType {
-        SEARCH, FILTERS, SORTING, CATEGORY, LISTING, CATEGORY_FILTERS
-    }
-
-    val activeWindowType = MutableStateFlow(ActiveWindowType.LISTING)
-
-    val listingDataState: StateFlow<ListingStateContent> = combine(
-        _responseOffersRecommendedInListing,
-        activeWindowType,
-        _responseHistory,
-        _changeSearchTab,
-        listingData
-    ) { responseOffersRecommendedInListing, activeWindowType, responseHistory, changeSearchTab, listingData ->
-        var searchTitle = getString(strings.searchTitle)
-        val searchState =  SearchUiState(
-            openSearch = activeWindowType == ActiveWindowType.SEARCH,
-            searchData = listingData.searchData,
-            searchHistory = responseHistory,
-            tabs = buildList {
-                add(
-                    Tab(getString(strings.searchHistory))
-                )
-                if (UserData.token != "") {
-                    add(Tab(getString(strings.mySubscribedTitle)))
-                }
-            },
-            selectedTabIndex = changeSearchTab,
-            appBarData = object : SimpleAppBarData {
-                override val modifier: Modifier
-                    get() = Modifier
-                override val color: Color
-                    get() = colors.white
-                override val content: @Composable () -> Unit
-                    get() = {
-                        SearchTextField(
-                            activeWindowType == ActiveWindowType.SEARCH,
-                            searchString.value,
-                            onValueChange = { newVal ->
-                                searchString.value = newVal
-                                getHistory(newVal.text)
-                            },
-                            goToListing = {
-                                changeOpenSearch(false)
-                            },
-                            onClearSearch = {
-                                clearSearch()
-                            }
-                        )
+    private val searchAppBar = object : SimpleAppBarData {
+        override val modifier: Modifier
+            get() = Modifier
+        override val color: Color
+            get() = colors.white
+        override val content: @Composable () -> Unit
+            get() = {
+                SearchTextField(
+                    _activeWindowType.value == ActiveWindowType.SEARCH,
+                    searchString.value,
+                    onValueChange = { newVal ->
+                        searchString.value = newVal
+                        getHistory(newVal.text)
+                    },
+                    goToListing = {
+                        changeOpenSearch(false)
+                    },
+                    onClearSearch = {
+                        clearSearch()
                     }
-                override val onBackClick: () -> Unit
-                    get() = {
+                )
+            }
+        override val onBackClick: () -> Unit
+            get() = {
+                changeOpenSearch(false)
+            }
+        override val listItems: List<NavigationItem>
+            get() = listOf(
+                NavigationItem(
+                    title = searchTitle.value,
+                    icon = drawables.searchIcon,
+                    tint = colors.black,
+                    hasNews = false,
+                    badgeCount = null,
+                    onClick = {
                         changeOpenSearch(false)
                     }
-                override val listItems: List<NavigationItem>
-                    get() = listOf(
-                        NavigationItem(
-                            title = searchTitle,
-                            icon = drawables.searchIcon,
-                            tint = colors.black,
-                            hasNews = false,
-                            badgeCount = null,
-                            onClick = {
-                                changeOpenSearch(false)
-                            }
-                        )
-                    )
-                override val showMenu: MutableState<Boolean>
-                    get() = mutableStateOf(false)
-                override val menuItems: List<MenuItem>
-                    get() = emptyList()
-            },
-            closeAppBar = object : SimpleAppBarData {
-                override val modifier: Modifier
-                    get() = Modifier
-                override val color: Color
-                    get() = colors.white
-                override val content: @Composable () -> Unit
-                    get() = {}
-                override val onBackClick: () -> Unit
-                    get() = {
-                        openSearchCategory(false)
-                    }
-                override val listItems: List<NavigationItem>
-                    get() = emptyList()
-                override val showMenu: MutableState<Boolean>
-                    get() = mutableStateOf(false)
-                override val menuItems: List<MenuItem>
-                    get() = emptyList()
-            },
-            categoryState = CategoryState(
-                openCategory = activeWindowType == ActiveWindowType.CATEGORY_FILTERS,
-                categoryViewModel = searchCategoryModel
+                )
             )
-        )
-        Triple(responseOffersRecommendedInListing, listingData, searchState)
-    }.combine(
-        _regionOptions,
-    ) { searchState, regionOptions ->
-        val ld = searchState.second
-        val userDef = getString(strings.searchUsersSearch)
-        val searchData = ld.searchData
-        val filters = ld.data.filters.filter { it.interpretation != "" && it.interpretation != null }
+        override val showMenu: MutableState<Boolean>
+            get() = mutableStateOf(false)
+        override val menuItems: List<MenuItem>
+            get() = emptyList()
+    }
+    private val closeAppBar = object : SimpleAppBarData {
+        override val modifier: Modifier
+            get() = Modifier
+        override val color: Color
+            get() = colors.white
+        override val content: @Composable () -> Unit
+            get() = {}
+        override val onBackClick: () -> Unit
+            get() = {
+                openSearchCategory(false, false)
+            }
+        override val listItems: List<NavigationItem>
+            get() = emptyList()
+        override val showMenu: MutableState<Boolean>
+            get() = mutableStateOf(false)
+        override val menuItems: List<MenuItem>
+            get() = emptyList()
+    }
 
-        Triple(searchState, regionOptions, FilterBarUiState(
-            listFiltersButtons = buildList {
-                filters.forEach { filter ->
-                    filter.interpretation?.let { text ->
-                        add(
-                            FilterListingBtnItem(
-                                text = text,
-                                itemClick = {
-                                    activeWindowType.value = ActiveWindowType.FILTERS
-                                },
-                                removeFilter = {
-                                    filters.find {
-                                        it.key == filter.key && it.operation == filter.operation
-                                    }?.value = ""
+    private val searchEvents = SearchEvents(
+        onRefresh = {
+            setLoading(true)
+            onError(ServerErrorException())
+            getHistory(searchString.value.text)
+            setSearchFilters()
+            viewModelScope.launch {
+                delay(1000)
+                setLoading(false)
+            }
+        },
+        goToListing = {
+            changeOpenSearch(false)
+        },
+        onDeleteHistory = {
+            deleteHistory()
+        },
+        onDeleteHistoryItem = { id ->
+            deleteItemHistory(id)
+        },
+        openSearchCategory = { value, completed ->
+            this@ListingViewModel.openSearchCategory(value, completed)
+        },
+        clearCategory = {
+            clearSearchCategory()
+        },
+        clickUser = {
+            selectUserSearch()
+        },
+        clearUser = {
+            clearUserSearch()
+        },
+        clickUserFinished = {
+            selectUserFinished()
+        },
+        onHistoryItemClicked = { item ->
+            this@ListingViewModel.onClickHistoryItem(item)
+        },
+        editHistoryItem = { item ->
+            this@ListingViewModel.editHistoryItem(item)
+        },
+        onTabSelect = { tab ->
+            component.model.value.searchNavigator.select(tab)
+            changeSearchTab(tab)
+        }
+    )
 
-                                    filters.find {
-                                        it.key == filter.key && it.operation == filter.operation
-                                    }?.interpretation = null
-
-                                    component.refresh()
-                                }
-                            )
-                        )
-                    }
-                }
-                if (searchData.userSearch && searchData.userLogin != null) {
-                    add(
-                        FilterListingBtnItem(
-                            text = getString(strings.searchUsersSearch) + ": " + (searchData.userLogin
-                                ?: userDef),
-                            itemClick = {
-                                activeWindowType.value = ActiveWindowType.SEARCH
-                            },
-                            removeFilter = {
-                                searchData.userLogin = null
-                                searchData.userSearch = false
-                                searchData.searchFinished = false
-                                component.refresh()
-                            }
-                        )
-                    )
-                }
-                if (searchData.searchString.isNotEmpty()) {
-                    add(
-                        FilterListingBtnItem(
-                            text = getString(strings.searchTitle) + ": " + searchData.searchString,
-                            itemClick = {
-                                activeWindowType.value = ActiveWindowType.SEARCH
-                            },
-                            removeFilter = {
-                                searchData.searchString = ""
-                                component.refresh()
-                            }
-                        )
-                    )
-                }
-                if (searchData.searchFinished) {
-                    add(
-                        FilterListingBtnItem(
-                            text = getString(strings.searchUserFinishedStringChoice),
-                            itemClick = {
-                                activeWindowType.value = ActiveWindowType.SEARCH
-                            },
-                            removeFilter = {
-                                searchData.searchFinished = false
-                                component.refresh()
-                            }
-                        )
-                    )
-                }
-                if (ld.data.sort != null) {
-                    add(
-                        FilterListingBtnItem(
-                            text = getString(strings.searchUserFinishedStringChoice),
-                            itemClick = {
-                                activeWindowType.value = ActiveWindowType.SORTING
-                            },
-                            removeFilter = {
-                                ld.data.sort = null
-                                component.refresh()
-                            }
-                        )
-                    )
-                }
-            },
-            listNavigation = buildList {
-                add(
-                    NavigationItem(
-                        title = getString(strings.filter),
-                        icon = drawables.filterIcon,
-                        tint = colors.black,
-                        hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
-                        badgeCount = if (filters.isNotEmpty()) filters.size else null,
-                        onClick = {
-                            activeWindowType.value = ActiveWindowType.FILTERS
-                        }
-                    )
-                )
-                add(
-                    NavigationItem(
-                        title = getString(strings.sort),
-                        icon = drawables.sortIcon,
-                        tint = colors.black,
-                        hasNews = ld.data.sort != null,
-                        badgeCount = null,
-                        onClick = {
-                            activeWindowType.value = ActiveWindowType.SORTING
-                        }
-                    )
-                )
-                add(
-                    NavigationItem(
-                        title = getString(strings.menuTitle),
-                        icon = if (ld.data.listingType == 0) drawables.iconWidget else drawables.iconSliderHorizontal,
-                        tint = colors.black,
-                        hasNews = false,
-                        badgeCount = null,
-                        isVisible = true,
-                        onClick = {
-                            val newType = if (ld.data.listingType == 0) 1 else 0
-                            settings.setSettingValue("listingType", newType)
-                            ld.data.listingType = newType
-                            updateFilters.value = !updateFilters.value
-                            component.refresh()
-                        }
+    private val listingEvents = ListingEvents(
+        onRefresh = {
+            refresh()
+        },
+        changeActiveWindowType = { type ->
+            _activeWindowType.value = type
+        },
+        clearListingData = {
+            _listingData.update { listingData ->
+                listingData.searchData.clear(catDef.value)
+                listingData.copy(
+                    searchData = listingData.searchData,
+                    data = listingData.data.copy(
+                        filters = ListingFilters.getEmpty()
                     )
                 )
             }
-        ))
-    }.combine(
-        _pagingDataFlow
-    ) { state , pagingDataFlow ->
-        val subs = getString(strings.subscribersLabel)
-        val searchTitle = getString(strings.searchTitle)
 
-        val listingData = state.first.second
-        val promoOffers = state.first.first
-        val searchState = state.first.third
+            refresh()
+        },
+        backClick = {
+            when {
+                _activeWindowType.value == ActiveWindowType.CATEGORY_FILTERS &&
+                        searchCategoryModel.categoryId.value != 1L -> {
+                    searchCategoryModel.navigateBack()
+                }
+                _activeWindowType.value == ActiveWindowType.CATEGORY &&
+                        listingCategoryModel.categoryId.value != 1L -> {
+                    listingCategoryModel.navigateBack()
+                }
+                _activeWindowType.value != ActiveWindowType.LISTING -> {
+                    _activeWindowType.value = ActiveWindowType.LISTING
+                }
+                else -> {
+                    component.goBack()
+                }
+            }
+        },
+        clickCategory = { complete ->
+            changeOpenCategory(complete)
+        },
+        closeFilters = { update, clear ->
+            if (clear){
+                _listingData.update {
+                    it.copy(
+                        data = it.data.copy(
+                            filters = ListingFilters.getEmpty()
+                        )
+                    )
+                }
+            }
+            if (update){
+                refresh()
+            }
+            _activeWindowType.value = ActiveWindowType.LISTING
+        },
+        updateItem = { item ->
+            this@ListingViewModel.updateItem(item)
+        },
+        clearError = {
+            errorString.value = ""
+        }
+    )
 
-        val regionOptions = state.second
+    val pagingDataFlow: Flow<PagingData<OfferItemState>> = _listingData.flatMapLatest { listingParams ->
+        pagingRepository.getListing(listingParams, apiService, Offer.serializer()).map { pagingData ->
+            pagingData.map { offer ->
+                if (offer.promoOptions != null && offer.sellerData?.id != UserData.login) {
+                    val isBackLight =
+                        offer.promoOptions.find { it.id == "backlignt_in_listing" }
+                    if (isBackLight != null) {
+                        val eventParameters = mapOf(
+                            "catalog_category" to offer.catpath.lastOrNull(),
+                            "lot_category" to if (offer.catpath.isEmpty()) 1 else offer.catpath.firstOrNull(),
+                            "offer_id" to offer.id,
+                        )
 
-        val filterState = state.third
+                        analyticsHelper.reportEvent("show_top_lots", eventParameters)
+                    }
+                }
+                val item = offer.parseToOfferItem()
+
+                OfferItemState(
+                    item = item,
+                    onItemClick = {
+                        component.goToOffer(item)
+                    },
+                    addToFavorites = {
+                        addToFavorites(item) {
+                            updateItem.value = offer.id
+                        }
+                    },
+                    updateItemState = {
+                        updateItem(item)
+                    }
+                )
+            }
+        }
+    }.cachedIn(viewModelScope)
+
+    val searchDataState: StateFlow<SearchUiState> = combine(
+        _activeWindowType,
+        _responseHistory,
+        _changeSearchTab,
+        _listingData
+    ){ activeWindowType, responseHistory, changeSearchTab, listingData ->
+        SearchUiState(
+            openSearch = activeWindowType == ActiveWindowType.SEARCH,
+            searchData = listingData.searchData,
+            searchHistory = responseHistory,
+            selectedTabIndex = changeSearchTab,
+            tabs = buildList {
+                add(
+                    Tab(searchHistory.value)
+                )
+                if (UserData.token != "") {
+                    add(Tab(subTitle.value))
+                }
+            },
+            appBarData = searchAppBar,
+            closeAppBar = closeAppBar,
+            categoryState = CategoryState(
+                openCategory = activeWindowType == ActiveWindowType.CATEGORY_FILTERS,
+                categoryViewModel = searchCategoryModel
+            ),
+            searchEvents = searchEvents,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        SearchUiState(
+            appBarData = searchAppBar,
+            closeAppBar = closeAppBar,
+        )
+    )
+
+    val listingDataState: StateFlow<ListingStateContent> = combine(
+        _responseOffersRecommendedInListing,
+        _activeWindowType,
+        _regionOptions,
+        _listingData
+    ) { promoOffers, activeWindowType, regionOptions, listingData ->
+        val ld = listingData.data
+        val searchData = listingData.searchData
+
+        val filters = ld.filters.filter { it.value != "" }
 
         ListingStateContent(
-            pagingDataFlow = pagingDataFlow,
             regions = regionOptions,
             appBarData = object : SimpleAppBarData {
                 override val modifier: Modifier
@@ -434,8 +467,8 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
                             )
 
                             Text(
-                                text = if (listingData.searchData.searchCategoryName.isNotEmpty())
-                                    listingData.searchData.searchCategoryName
+                                text = if (searchData.searchCategoryName.isNotEmpty())
+                                    searchData.searchCategoryName
                                 else catDef.value,
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold,
@@ -455,11 +488,11 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
                     }
                 override val onBackClick: () -> Unit
                     get() = {
-                        if (activeFiltersType.value.isEmpty()) {
+                        if (activeWindowType == ActiveWindowType.LISTING) {
                             component.goBack()
                             changeOpenCategory()
                         } else {
-                            activeFiltersType.value = ""
+                            _activeWindowType.value = ActiveWindowType.LISTING
                         }
                     }
                 override val listItems: List<NavigationItem>
@@ -471,20 +504,20 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
                             hasNews = false,
                             isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
                             badgeCount = null,
-                            onClick = { component.refresh() }
+                            onClick = { refresh() }
                         ),
                         NavigationItem(
-                            title = subs,
+                            title = subTitle.value,
                             icon = drawables.favoritesIcon,
                             tint = colors.inactiveBottomNavIconColor,
                             hasNews = false,
                             badgeCount = null,
-                            isVisible = (listingData.searchData.searchCategoryID != 1L || listingData.searchData.userSearch || listingData.searchData.searchString != ""),
+                            isVisible = (searchData.searchCategoryID != 1L || searchData.userSearch || searchData.searchString != ""),
                             onClick = {
                                 if (UserData.token != "") {
                                     addNewSubscribe(
-                                        listingData.data,
-                                        listingData.searchData,
+                                        ld,
+                                        searchData,
                                         onSuccess = {},
                                         errorCallback = { es ->
                                             errorString.value = es
@@ -496,7 +529,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
                             }
                         ),
                         NavigationItem(
-                            title = searchTitle,
+                            title = searchTitle.value,
                             icon = drawables.searchIcon,
                             tint = colors.black,
                             hasNews = false,
@@ -510,102 +543,212 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
                     get() = emptyList()
             },
             listingCategoryState = CategoryState(
-                openCategory = activeWindowType.value == ActiveWindowType.CATEGORY,
+                openCategory = activeWindowType == ActiveWindowType.CATEGORY,
                 categoryViewModel = listingCategoryModel
             ),
-            filterBarData = filterState,
-            searchState = searchState,
-            listingBaseData = ListingBaseData(
-                bottomSheetState = bottomSheetState.value,
+            listingData = listingData,
+            filterBarData = FilterBarUiState(
+                listFiltersButtons = buildList {
+                    filters.forEach { filter ->
+                        filter.interpretation?.let { text ->
+                            add(
+                                FilterListingBtnItem(
+                                    text = text,
+                                    itemClick = {
+                                        _activeWindowType.value = ActiveWindowType.FILTERS
+                                    },
+                                    removeFilter = {
+                                        filters.find {
+                                            it.key == filter.key && it.operation == filter.operation
+                                        }?.value = ""
+
+                                        filters.find {
+                                            it.key == filter.key && it.operation == filter.operation
+                                        }?.interpretation = null
+
+                                        _listingData.update {
+                                            it.copy(data = it.data.copy(filters = ArrayList(filters)))
+                                        }
+
+                                        refresh()
+                                    }
+                                )
+                            )
+                        }
+                    }
+
+                    if (ld.sort != null) {
+                        add(
+                            FilterListingBtnItem(
+                                text = sortString.value,
+                                itemClick = {
+                                    _activeWindowType.value = ActiveWindowType.SORTING
+                                },
+                                removeFilter = {
+                                    _listingData.update {
+                                        it.copy(data = it.data.copy(sort = null))
+                                    }
+                                    refresh()
+                                }
+                            )
+                        )
+                    }
+
+                    if (searchData.userSearch && searchData.userLogin != null) {
+                        add(
+                            FilterListingBtnItem(
+                                text = userString.value + ": " + (searchData.userLogin ?: userDef),
+                                itemClick = {
+                                    _activeWindowType.value = ActiveWindowType.SEARCH
+                                },
+                                removeFilter = {
+                                    _listingData.update {
+                                        it.copy(
+                                            searchData = it.searchData.copy(
+                                                userSearch = false,
+                                                userLogin = null,
+                                                searchFinished = false
+
+                                            )
+                                        )
+                                    }
+                                    refresh()
+                                }
+                            )
+                        )
+                    }
+                    if (searchData.searchString.isNotEmpty()) {
+                        add(
+                            FilterListingBtnItem(
+                                text = searchTitle.value + ": " + searchData.searchString,
+                                itemClick = {
+                                    _activeWindowType.value = ActiveWindowType.SEARCH
+                                },
+                                removeFilter = {
+                                    _listingData.update {
+                                        it.copy(searchData = it.searchData.copy(searchString = ""))
+                                    }
+                                    refresh()
+                                }
+                            )
+                        )
+                    }
+                    if (searchData.searchFinished) {
+                        add(
+                            FilterListingBtnItem(
+                                text = searchFinishedString.value,
+                                itemClick = {
+                                    _activeWindowType.value = ActiveWindowType.SEARCH
+                                },
+                                removeFilter = {
+                                    _listingData.update {
+                                        it.copy(searchData = it.searchData.copy(searchFinished = false))
+                                    }
+                                    refresh()
+                                }
+                            )
+                        )
+                    }
+
+                },
+                listNavigation = buildList {
+                    add(
+                        NavigationItem(
+                            title = filterString.value,
+                            icon = drawables.filterIcon,
+                            tint = colors.black,
+                            hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
+                            badgeCount = if (filters.isNotEmpty()) filters.size else null,
+                            onClick = {
+                                _activeWindowType.value = ActiveWindowType.FILTERS
+                            }
+                        )
+                    )
+                    add(
+                        NavigationItem(
+                            title = sortString.value,
+                            icon = drawables.sortIcon,
+                            tint = colors.black,
+                            hasNews = ld.sort != null,
+                            badgeCount = null,
+                            onClick = {
+                                _activeWindowType.value = ActiveWindowType.SORTING
+                            }
+                        )
+                    )
+                    add(
+                        NavigationItem(
+                            title = menuString.value,
+                            icon = if (ld.listingType == 0) drawables.iconWidget else drawables.iconSliderHorizontal,
+                            tint = colors.black,
+                            hasNews = false,
+                            badgeCount = null,
+                            isVisible = true,
+                            onClick = {
+                                val newType = if (_listingData.value.data.listingType == 0) 1 else 0
+                                settings.setSettingValue("listingType", newType)
+                                _listingData.update {
+                                    it.copy(data = it.data.copy(listingType = newType))
+                                }
+                                refresh()
+                            }
+                        )
+                    )
+                }
+            ),
+            listingBaseState = ListingBaseState(
                 listingData = listingData.data,
                 searchData = listingData.searchData,
                 promoList = promoOffers,
-                activeWindowType = activeWindowType.value,
-                columns = 1,
-                scrollDataState = ScrollDataState(
-                    scrollItem = scrollItem.value,
-                    offsetScrollItem = offsetScrollItem.value
-                )
+                activeWindowType = activeWindowType,
+                columns = if(ld.listingType == 1) 2 else 1,
             ),
-            listingBaseEvents = object : ListingBaseEvents {
-                override fun changeBottomSheetState(state: BottomSheetValue) {
-                    bottomSheetState.value = state
-                }
-                override fun saveScrollState(state: ScrollDataState) {
-                    scrollItem.value = state.scrollItem
-                    offsetScrollItem.value = state.offsetScrollItem
-                }
-            },
-            searchEvents =  object : SearchEvents {
-                override fun onRefresh() {
-                    setLoading(true)
-                    onError(ServerErrorException())
-                    getHistory(searchString.value.text)
-                    setSearchFilters()
-                    viewModelScope.launch {
-                        delay(1000)
-                        setLoading(false)
-                    }
-                }
-
-                override fun goToListing() {
-                    changeOpenSearch(false)
-                }
-
-                override fun onDeleteHistory() {
-                    deleteHistory()
-                }
-
-                override fun onDeleteHistoryItem(id: Long) {
-                    deleteItemHistory(id)
-                }
-
-                override fun openSearchCategory(value : Boolean) {
-                    this@ListingViewModel.openSearchCategory(value)
-                }
-
-                override fun clearCategory() {
-                    clearSearchCategory()
-                }
-
-                override fun clickUser() {
-                    selectUserSearch()
-                }
-
-                override fun clearUser() {
-                    clearUserSearch()
-                }
-
-                override fun clickUserFinished() {
-                    selectUserFinished()
-                }
-
-                override fun onHistoryItemClicked(item: SearchHistoryItem) {
-                    this@ListingViewModel.onClickHistoryItem(item)
-                }
-
-                override fun editHistoryItem(item: SearchHistoryItem) {
-                    this@ListingViewModel.editHistoryItem(item)
-                }
-
-                override fun onTabSelect(tab: Int) {
-                    component.model.value.searchNavigator.select(tab)
-                    changeSearchTab(tab)
-                }
-            }
+            listingEvents = listingEvents
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = ListingStateContent()
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ListingStateContent(
+            appBarData = object : SimpleAppBarData {
+                override val modifier: Modifier
+                    get() = Modifier
+                override val color: Color
+                    get() = colors.white
+                override val content: @Composable () -> Unit
+                    get() = {}
+                override val onBackClick: () -> Unit
+                    get() = {}
+                override val listItems: List<NavigationItem>
+                    get() = emptyList()
+                override val showMenu: MutableState<Boolean>
+                    get() = mutableStateOf(false)
+                override val menuItems: List<MenuItem>
+                    get() = emptyList()
+            },
+        )
     )
 
     fun clearSearch() {
         searchString.value = TextFieldValue("")
     }
 
+    fun updateItem(item : OfferItem?){
+        viewModelScope.launch {
+            val offer = withContext(Dispatchers.IO) {
+                getOfferById(item?.id ?: 1L)
+            }
+
+            withContext(Dispatchers.Main) {
+                if (offer != null) {
+                    item?.setNewParams(offer)
+                }
+                updateItem.value = null
+            }
+        }
+    }
+
     fun setSearchFilters(){
-        val searchData = listingData.value.searchData
+        val searchData = _listingData.value.searchData
 
         val selectedUser = searchData.userSearch
         val selectedUserLogin = searchData.userLogin
@@ -648,86 +791,78 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
 
         searchAnalytic(searchData)
 
-        listingData.value = listingData.value.copy(searchData = searchData)
+        _listingData.value = _listingData.value.copy(searchData = searchData)
     }
 
     fun init(ld: ListingData) {
-        listingData.value = ld
-
-        listingData.value.data.methodServer = "get_public_listing"
-        listingData.value.data.objServer = "offers"
-
-        if (listingData.value.data.filters.isEmpty()) {
-            listingData.value.data.filters = ListingFilters.getEmpty()
+        viewModelScope.launch {
+            searchTitle.value = getString(strings.searchTitle)
+            searchHistory.value = getString(strings.searchHistory)
+            subTitle.value = getString(strings.mySubscribedTitle)
+            userDef.value = getString(strings.searchUsersSearch)
+            filterString.value = getString(strings.filter)
+            sortString.value = getString(strings.sort)
+            menuString.value = getString(strings.menuTitle)
+            searchFinishedString.value = getString(strings.searchUserFinishedStringChoice)
+            userString.value = getString(strings.searchUsersSearch)
         }
 
-        listingData.value.data.listingType = settings.getSettingValue("listingType", 0) ?: 0
+        ld.data.methodServer = "get_public_listing"
+        ld.data.objServer = "offers"
+
+        if (ld.data.filters.isEmpty()) {
+            ld.data.filters = ListingFilters.getEmpty()
+        }
+
+        ld.data.listingType = settings.getSettingValue("listingType", 0) ?: 0
+
+        _listingData.update { ld }
 
         getRegions()
 
-        getOffersRecommendedInListing(listingData.value.searchData.searchCategoryID)
-
-        _pagingDataFlow.value =
-            pagingRepository.getListing(listingData.value, apiService, Offer.serializer())
-                .map { offer ->
-                    offer.map {
-                        if (it.promoOptions != null && it.sellerData?.id != UserData.login) {
-                            val isBackLight =
-                                it.promoOptions.find { it.id == "backlignt_in_listing" }
-                            if (isBackLight != null) {
-                                val eventParameters = mapOf(
-                                    "catalog_category" to it.catpath.lastOrNull(),
-                                    "lot_category" to if (it.catpath.isEmpty()) 1 else it.catpath.firstOrNull(),
-                                    "offer_id" to it.id,
-                                )
-
-                                analyticsHelper.reportEvent("show_top_lots", eventParameters)
-                            }
-                        }
-
-                        it.parseToOfferItem()
-                    }
-                }.cachedIn(viewModelScope)
+        getOffersRecommendedInListing(_listingData.value.searchData.searchCategoryID)
     }
 
-    fun changeOpenCategory() {
+    fun changeOpenCategory(complete: Boolean = false) {
         listingCategoryModel.run {
-            if (activeWindowType.value == ActiveWindowType.LISTING) {
-                if (listingData.value.searchData.searchCategoryID != categoryId.value || categories.value.isEmpty()) {
-                    listingCategoryModel.updateFromSearchData(listingData.value.searchData)
-                    listingCategoryModel.initialize(listingData.value.data.filters)
+            if (_activeWindowType.value == ActiveWindowType.LISTING) {
+                if (_listingData.value.searchData.searchCategoryID != categoryId.value || categories.value.isEmpty()) {
+                    listingCategoryModel.updateFromSearchData(_listingData.value.searchData)
+                    listingCategoryModel.initialize(_listingData.value.data.filters)
                 }
-
-                activeWindowType.value = ActiveWindowType.CATEGORY
+                _activeWindowType.value = ActiveWindowType.CATEGORY
                 val eventParameters = mapOf(
-                    "category_name" to listingData.value.searchData.searchCategoryName,
-                    "category_id" to listingData.value.searchData.searchCategoryID,
+                    "category_name" to _listingData.value.searchData.searchCategoryName,
+                    "category_id" to _listingData.value.searchData.searchCategoryID,
                 )
                 analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
             } else {
+                if (complete) {
+                    listingCategoryModel.run {
+                        if (_listingData.value.searchData.searchCategoryID != categoryId.value) {
+                            _listingData.update { currentListingData ->
+                                currentListingData.copy(
+                                    searchData = currentListingData.searchData.copy(
+                                        searchCategoryID = categoryId.value,
+                                        searchCategoryName = categoryName.value,
+                                        searchParentID = parentId.value,
+                                        searchIsLeaf = isLeaf.value,
+                                    )
+                                )
+                            }
 
-                if (listingData.value.searchData.searchCategoryID != categoryId.value) {
-                    listingData.update { currentListingData ->
-                        currentListingData.copy(
-                            searchData = currentListingData.searchData.copy(
-                                searchCategoryID = categoryId.value,
-                                searchCategoryName = categoryName.value,
-                                searchParentID = parentId.value,
-                                searchIsLeaf = isLeaf.value,
-                            )
-                        )
+                            refresh()
+                        }
                     }
-
-                    component.refresh()
                 }
 
-                activeWindowType.value = ActiveWindowType.LISTING
+                _activeWindowType.value = ActiveWindowType.LISTING
             }
         }
     }
 
     fun changeOpenSearch(value : Boolean) {
-        val sd = listingData.value.searchData
+        val sd = _listingData.value.searchData
         if (value) {
             searchString.value = TextFieldValue(
                 sd.searchString,
@@ -746,49 +881,52 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
 
             getHistory()
 
-            activeWindowType.value = ActiveWindowType.SEARCH
+            _activeWindowType.value = ActiveWindowType.SEARCH
         }else{
             setSearchFilters()
             if (sd.isRefreshing) {
-                component.refresh()
+                refresh()
                 sd.isRefreshing = false
             }
-            activeWindowType.value = ActiveWindowType.LISTING
+            _activeWindowType.value = ActiveWindowType.LISTING
         }
     }
 
-    fun openSearchCategory(value : Boolean) {
+    fun openSearchCategory(value : Boolean, complete: Boolean) {
         searchCategoryModel.run {
             if (!value) {
-                if (listingData.value.searchData.searchCategoryID != categoryId.value) {
-                    listingData.update { currentListingData ->
-                        currentListingData.copy(
-                            searchData = currentListingData.searchData.copy(
-                                searchCategoryID = categoryId.value,
-                                searchCategoryName = categoryName.value,
-                                searchParentID = parentId.value,
-                                searchIsLeaf = isLeaf.value,
-                                isRefreshing = true
+                if (complete) {
+                    if (_listingData.value.searchData.searchCategoryID != categoryId.value) {
+                        _listingData.update { currentListingData ->
+                            currentListingData.copy(
+                                searchData = currentListingData.searchData.copy(
+                                    searchCategoryID = categoryId.value,
+                                    searchCategoryName = categoryName.value,
+                                    searchParentID = parentId.value,
+                                    searchIsLeaf = isLeaf.value,
+                                    isRefreshing = true
+                                )
                             )
-                        )
+                        }
                     }
                 }
-                activeWindowType.value = ActiveWindowType.SEARCH
+                _activeWindowType.value = ActiveWindowType.SEARCH
             } else {
                 searchCategoryModel.run {
-                    if (listingData.value.searchData.searchCategoryID != categoryId.value || categories.value.isEmpty()) {
-                        updateFromSearchData(listingData.value.searchData)
+                    if (_listingData.value.searchData.searchCategoryID != categoryId.value || categories.value.isEmpty()) {
+                        updateFromSearchData(_listingData.value.searchData)
                         initialize()
                     }
                 }
-                activeWindowType.value = ActiveWindowType.CATEGORY_FILTERS
+                _activeWindowType.value = ActiveWindowType.CATEGORY_FILTERS
             }
         }
     }
 
     fun refresh(){
-        listingData.value = listingData.value.copy()
-        pagingRepository.refresh(listingData.value)
+        resetScroll()
+        onError(ServerErrorException())
+        pagingRepository.refresh()
     }
 
     private fun getOffersRecommendedInListing(categoryID:Long) {
@@ -863,7 +1001,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
     }
 
     fun clearSearchCategory() {
-        listingData.update { currentListingData ->
+        _listingData.update { currentListingData ->
             currentListingData.searchData.clear(catDef.value)
             currentListingData.copy()
         }
@@ -874,7 +1012,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
     }
 
     fun selectUserSearch(){
-        listingData.update { currentListingData ->
+        _listingData.update { currentListingData ->
             currentListingData.copy(
                 searchData = currentListingData.searchData.copy(
                     userSearch = !currentListingData.searchData.userSearch
@@ -884,7 +1022,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
     }
 
     fun selectUserFinished(){
-        listingData.update { currentListingData ->
+        _listingData.update { currentListingData ->
             currentListingData.copy(
                 searchData = currentListingData.searchData.copy(
                     searchFinished = !currentListingData.searchData.searchFinished
@@ -894,7 +1032,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
     }
 
     fun clearUserSearch(){
-        listingData.update { currentListingData ->
+        _listingData.update { currentListingData ->
             currentListingData.copy(
                 searchData = currentListingData.searchData.copy(
                     userSearch = false,
@@ -908,7 +1046,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
     fun onClickHistoryItem(item: SearchHistoryItem) {
         searchString.value = searchString.value.copy(text = item.query)
 
-        listingData.update { currentListingData ->
+        _listingData.update { currentListingData ->
             currentListingData.copy(
                 searchData = currentListingData.searchData.copy(
                     userSearch = item.isUsersSearch,

@@ -157,7 +157,7 @@ fun OfferContent(
     val focusManager = LocalFocusManager.current
 
     val stateColumn = rememberLazyListState(
-        initialFirstVisibleItemIndex = offerViewModel.scrollItem.value,
+//        initialFirstVisibleItemIndex = offerViewModel.scrollItem.value,
     )
 
     val scope = rememberCoroutineScope()
@@ -170,7 +170,7 @@ fun OfferContent(
         snapshotFlow {
             stateColumn.firstVisibleItemIndex
         }.collect { item->
-            offerViewModel.scrollItem.value = item
+//            offerViewModel.scrollItem.value = item
         }
     }
 

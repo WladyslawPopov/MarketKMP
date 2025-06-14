@@ -1,6 +1,5 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -44,11 +43,10 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilterListingContent(
-    isRefreshing: Boolean,
     listingData: List<Filter>,
     regionsOptions: List<Options>,
     onClear: () -> Unit,
-    onClosed: () -> Unit,
+    onClosed: (isRefresh: Boolean) -> Unit,
 ) {
     val checkSize: () -> Boolean = remember { {
         listingData.any { it.interpretation?.isNotBlank() == true }
@@ -57,6 +55,8 @@ fun FilterListingContent(
     val isShowClear = remember { mutableStateOf(checkSize()) }
 
     val focusManager: FocusManager = LocalFocusManager.current
+    
+    val isRefreshing = remember { mutableStateOf(false) }
 
     val saleTypeFilters = listOf(
         "starting_price" to stringResource(strings.saleTypeNameFromOne) + " 1 ${
@@ -170,10 +170,9 @@ fun FilterListingContent(
             onClear = {
                 isShowClear.value = false
                 onClear()
-                onClosed()
             },
             onClosed = {
-                onClosed()
+                onClosed(isRefreshing.value)
             }
         )
 
@@ -213,7 +212,7 @@ fun FilterListingContent(
                                         )
                                     }
                                     isShowClear.value = checkSize()
-                                    //isRefreshing.value = true
+                                    isRefreshing.value = true
                                 }
                             }
                         }
@@ -254,7 +253,7 @@ fun FilterListingContent(
                                         listingData
                                     )
                                     isShowClear.value = checkSize()
-                                    //isRefreshing.value = true
+                                    isRefreshing.value = true
                                 }
                             }
                         }
@@ -285,14 +284,14 @@ fun FilterListingContent(
                             regionSelected.value = newRegion
 
                             isShowClear.value = checkSize()
-                           // isRefreshing.value = true
+                           isRefreshing.value = true
                         },
                         onClearItem = {
                             listingData.find { it.key == "region" }?.interpretation =
                                 null
                             regionSelected.value = null
                             isShowClear.value = checkSize()
-                            //isRefreshing.value = true
+                            isRefreshing.value = true
                         }
                     )
                 }
@@ -301,7 +300,7 @@ fun FilterListingContent(
             item {
                 PriceFilter(listingData) {
                     isShowClear.value = checkSize()
-                    //isRefreshing.value = true
+                    isRefreshing.value = true
                 }
             }
             //time filter
@@ -347,7 +346,7 @@ fun FilterListingContent(
                                             timeNewSelected.value = time
 
                                             isShowClear.value = checkSize()
-                                            //isRefreshing.value = true
+                                            isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.find { it.key == "new" }?.value =
@@ -357,7 +356,7 @@ fun FilterListingContent(
 
                                             timeNewSelected.value = null
                                             isShowClear.value = checkSize()
-                                           // isRefreshing.value = true
+                                           isRefreshing.value = true
                                         }
                                     )
                                 }
@@ -389,7 +388,7 @@ fun FilterListingContent(
                                             timeNewWithoutRelistedSelected.value = time
 
                                             isShowClear.value = checkSize()
-                                            //isRefreshing.value = true
+                                            isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.find { it.key == "new_without_relisted" }?.value =
@@ -400,7 +399,7 @@ fun FilterListingContent(
                                             timeNewWithoutRelistedSelected.value = null
 
                                             isShowClear.value = checkSize()
-                                            //isRefreshing.value = true
+                                            isRefreshing.value = true
                                         }
                                     )
                                 }
@@ -431,7 +430,7 @@ fun FilterListingContent(
                                             timeEndingSelected.value = time
 
                                             isShowClear.value = checkSize()
-                                           // isRefreshing.value = true
+                                           isRefreshing.value = true
                                         },
                                         onClearItem = {
                                             listingData.find { it.key == "ending" }?.value =
@@ -442,7 +441,7 @@ fun FilterListingContent(
                                             timeEndingSelected.value = null
 
                                             isShowClear.value = checkSize()
-                                           // isRefreshing.value = true
+                                           isRefreshing.value = true
                                         }
                                     )
                                 }
@@ -460,7 +459,7 @@ fun FilterListingContent(
             Modifier.wrapContentWidth().padding(dimens.smallPadding)
                 .align(Alignment.BottomCenter)
         ) {
-            onClosed()
+            onClosed(isRefreshing.value)
         }
     }
 }

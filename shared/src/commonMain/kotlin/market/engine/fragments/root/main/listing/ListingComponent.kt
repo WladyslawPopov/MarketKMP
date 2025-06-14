@@ -10,8 +10,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
@@ -19,7 +17,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.SearchPagesType
-import market.engine.core.utils.printLogD
 import market.engine.fragments.root.main.favPages.itemSubscriptions
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 
@@ -37,8 +34,6 @@ interface ListingComponent {
     fun goBack()
     fun goToSubscribe()
     fun onTabSelect(tab: Int)
-
-    var refresh : () -> Unit
 }
 
 class DefaultListingComponent(
@@ -117,16 +112,11 @@ class DefaultListingComponent(
         )
         analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
 
-        listingViewModel.viewModelScope.launch {
-            delay(50)
-            if(isOpenSearch)
-                listingViewModel.changeOpenSearch(isOpenSearch)
-        }
-
+        if(isOpenSearch)
+            listingViewModel.changeOpenSearch(isOpenSearch)
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
-
         if (isTopPromo){
             val eventParameters = mapOf(
                 "lot_category" to offer.catPath.lastOrNull(),
@@ -169,10 +159,8 @@ class DefaultListingComponent(
             )
         }
         selectOffer(offer.id)
-
         lifecycle.doOnResume {
             listingViewModel.updateItem.value = offer.id
-            printLogD("Update item Listing", offer.id.toString())
         }
     }
 
@@ -187,8 +175,6 @@ class DefaultListingComponent(
     override fun onTabSelect(tab: Int) {
         navigator.select(tab)
     }
-
-    override var refresh = {}
 }
 
 @Serializable

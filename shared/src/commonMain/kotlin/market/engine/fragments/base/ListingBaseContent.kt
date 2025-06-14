@@ -1,7 +1,5 @@
 package market.engine.fragments.base
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,68 +7,52 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.cash.paging.compose.LazyPagingItems
-import market.engine.core.data.baseFilters.LD
-import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.items.OfferItem
-import market.engine.fragments.root.main.listing.ListingViewModel
+import market.engine.core.data.states.ListingBaseState
+import market.engine.core.data.states.ScrollDataState
+import market.engine.fragments.root.main.listing.ActiveWindowType
 import market.engine.widgets.grids.PagingList
 
-data class ScrollDataState(
-    val scrollItem : Int = 0,
-    val offsetScrollItem : Int = 0,
-)
-
-data class ListingBaseData(
-    val bottomSheetState : BottomSheetValue,
-    val listingData : LD,
-    val searchData : SD,
-    val promoList: List<OfferItem>?,
-    val isReversingPaging : Boolean = false,
-    val activeWindowType: ListingViewModel.ActiveWindowType,
-    val columns : Int = 1,
-    val scrollDataState : ScrollDataState,
-)
-
-interface ListingBaseEvents{
-   fun changeBottomSheetState(state : BottomSheetValue)
-   fun saveScrollState(state : ScrollDataState)
-}
 
 @Composable
 fun <T : Any>ListingBaseContent(
-    uiState : ListingBaseData,
-    events: ListingBaseEvents,
     modifier : Modifier = Modifier,
+    uiState : ListingBaseState,
+    baseViewModel: BaseViewModel,
     data : LazyPagingItems<T>,
     item : @Composable (T) -> Unit,
     noFound : (@Composable () -> Unit)? = null,
     filtersContent : (@Composable () -> Unit)? = null,
     additionalBar : @Composable (LazyListState) -> Unit = {},
     promoContent : (@Composable (OfferItem) -> Unit)? = null,
-    scrollState:  LazyListState = rememberLazyListState(
-        initialFirstVisibleItemIndex = uiState.scrollDataState.scrollItem,
-        initialFirstVisibleItemScrollOffset = uiState.scrollDataState.offsetScrollItem
-    ),
 ){
+    val scrollStateData = baseViewModel.scrollState.collectAsState()
+    val bottomSheetState = baseViewModel.bottomSheetState.collectAsState()
+
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(uiState.bottomSheetState)
+        bottomSheetState = rememberBottomSheetState(bottomSheetState.value)
+    )
+
+    val scrollState = rememberLazyListState(
+        initialFirstVisibleItemIndex = scrollStateData.value.scrollItem,
+        initialFirstVisibleItemScrollOffset = scrollStateData.value.offsetScrollItem
     )
 
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
-                events.changeBottomSheetState(sheetValue)
+                baseViewModel.bottomSheetState.value = sheetValue
             }
     }
 
@@ -78,7 +60,7 @@ fun <T : Any>ListingBaseContent(
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            events.saveScrollState(ScrollDataState(index, offset))
+            baseViewModel.scrollState.value = ScrollDataState(index, offset)
         }
     }
 
@@ -86,7 +68,7 @@ fun <T : Any>ListingBaseContent(
         snapshotFlow {
             uiState.activeWindowType
         }.collect { type ->
-            if (type != ListingViewModel.ActiveWindowType.LISTING) {
+            if (type != ActiveWindowType.LISTING) {
                 scaffoldState.bottomSheetState.expand()
             } else {
                 scaffoldState.bottomSheetState.collapse()
@@ -95,11 +77,8 @@ fun <T : Any>ListingBaseContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            uiState.activeWindowType == ListingViewModel.ActiveWindowType.LISTING ||
-                    uiState.activeWindowType == ListingViewModel.ActiveWindowType.CATEGORY,
-            enter = fadeIn()
-        ){
+        if (uiState.activeWindowType == ActiveWindowType.LISTING ||
+                    uiState.activeWindowType == ActiveWindowType.CATEGORY){
             additionalBar(scrollState)
         }
 
@@ -112,7 +91,7 @@ fun <T : Any>ListingBaseContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                if (uiState.activeWindowType != ListingViewModel.ActiveWindowType.LISTING) {
+                if (uiState.activeWindowType != ActiveWindowType.LISTING) {
                     filtersContent?.invoke()
                 }
             },

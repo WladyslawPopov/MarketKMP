@@ -13,6 +13,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -23,7 +25,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.OfferItem
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
@@ -35,12 +36,22 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PublicOfferItemGrid(
-    item : OfferItem,
-    onItemClick: () -> Unit = {},
-    addToFavorites : (OfferItem) -> Unit = {},
-    updateTrigger : Int = 0,
+    state: OfferItemState,
+    updateItem : Long?
 ) {
-    if (updateTrigger < 0) return
+    val item = state.item
+    val onItemClick = state.onItemClick
+    val addToFavorites = state.addToFavorites
+
+    LaunchedEffect(updateItem) {
+        snapshotFlow {
+            updateItem
+        }.collect { id ->
+            if (id == item.id){
+                state.updateItemState()
+            }
+        }
+    }
 
     val pagerState = rememberPagerState(
         pageCount = { item.images.size },

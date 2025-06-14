@@ -75,14 +75,14 @@ fun SubscriptionsContent(
     }
 
     BackHandler(modelState.value.backHandler){
-        when{
-            subViewModel.activeFiltersType.value != "" ->{
-                subViewModel.activeFiltersType.value = ""
-            }
-            else -> {
-
-            }
-        }
+//        when{
+//            subViewModel.activeFiltersType.value != "" ->{
+//                subViewModel.activeFiltersType.value = ""
+//            }
+//            else -> {
+//
+//            }
+//        }
     }
 
     //update item when we back

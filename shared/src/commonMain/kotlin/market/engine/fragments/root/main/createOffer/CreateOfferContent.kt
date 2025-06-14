@@ -170,11 +170,11 @@ fun CreateOfferContent(
     )
 
     BackHandler(model.value.backHandler){
-        if (viewModel.activeFiltersType.value == "") {
-            component.onBackClicked()
-        }else{
-            viewModel.catBack.value = true
-        }
+//        if (viewModel.activeFiltersType.value == "") {
+//            component.onBackClicked()
+//        }else{
+//            viewModel.catBack.value = true
+//        }
     }
 
     val refresh = {
@@ -286,20 +286,20 @@ fun CreateOfferContent(
         }
     }
 
-    LaunchedEffect(viewModel.activeFiltersType){
-        snapshotFlow{
-            viewModel.activeFiltersType.value
-        }.collect { filter ->
-            if (filter == "") {
-                scaffoldState.bottomSheetState.collapse()
-                if(!viewModel.searchIsLeaf.value){
-                    component.onBackClicked()
-                }
-            } else {
-                scaffoldState.bottomSheetState.expand()
-            }
-        }
-    }
+//    LaunchedEffect(viewModel.activeFiltersType){
+//        snapshotFlow{
+//            viewModel.activeFiltersType.value
+//        }.collect { filter ->
+//            if (filter == "") {
+//                scaffoldState.bottomSheetState.collapse()
+//                if(!viewModel.searchIsLeaf.value){
+//                    component.onBackClicked()
+//                }
+//            } else {
+//                scaffoldState.bottomSheetState.expand()
+//            }
+//        }
+//    }
 
     LaunchedEffect(richTextState){
         snapshotFlow{
@@ -521,8 +521,8 @@ fun CreateOfferContent(
                                         alignment = Alignment.TopEnd,
                                     ) {
                                         isEditCat.value = true
-                                        viewModel.activeFiltersType.value = "categories"
-                                        viewModel.openFiltersCat.value = true
+//                                        viewModel.activeFiltersType.value = "categories"
+//                                        viewModel.openFiltersCat.value = true
                                     }
                                 }
                             }

@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.listing.search
+package market.engine.widgets.filterContents.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn

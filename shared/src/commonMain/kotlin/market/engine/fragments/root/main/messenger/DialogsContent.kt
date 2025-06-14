@@ -91,8 +91,8 @@ fun DialogsContent(
     val richText = rememberRichTextState()
 
     val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
-        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
+//        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
+//        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
     )
 
     LaunchedEffect(data.loadState.refresh){

@@ -1,19 +1,21 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.runtime.MutableState
 import market.engine.core.data.baseFilters.LD
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.strings
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SortingOffersContent(
-    isRefreshing: Boolean,
     listingData: LD,
     isCabinet: Boolean,
-    onClose: () -> Unit,
+    onClose: (Boolean) -> Unit,
 ) {
+    val isRefreshing = remember { mutableStateOf(false) }
+
     val sortSections = listOf(
         stringResource(strings.timeToEnd) to listOf(
             Sort("session_end", "asc", stringResource(strings.timeToEnd) + " : " + stringResource(strings.sortModeIncreasing), null, null),
@@ -51,13 +53,15 @@ fun SortingOffersContent(
     ContentSort(
         currentSort = listingData.sort,
         sortSections = sortSections,
-        onClose = onClose,
+        onClose = {
+            onClose(isRefreshing.value)
+        },
         selectItem = {
-            //isRefreshing.value = true
+            isRefreshing.value = true
             listingData.sort = it
         },
         onClear = {
-            //isRefreshing.value = true
+            isRefreshing.value = true
             listingData.sort = null
         }
     )
