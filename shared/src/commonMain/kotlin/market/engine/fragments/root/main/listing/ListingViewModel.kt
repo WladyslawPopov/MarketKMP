@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.listing
 
+import androidx.compose.material.BottomSheetValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.paging.cachedIn
@@ -239,6 +240,15 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
             else -> allString
         }
 
+        listingCategoryModel.updateFromSearchData(listingData.searchData)
+        listingCategoryModel.initialize(listingData.data.filters)
+
+        if(activeType != ActiveWindowListingType.LISTING){
+            bottomSheetState.value = BottomSheetValue.Expanded
+        }else{
+            bottomSheetState.value = BottomSheetValue.Collapsed
+        }
+
         val tabs = listOf(
             Tab(
                 title = allString,
@@ -475,9 +485,6 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
     fun changeOpenCategory(complete: Boolean = false) {
         listingCategoryModel.run {
             if (_activeWindowType.value == ActiveWindowListingType.LISTING) {
-                listingCategoryModel.updateFromSearchData(_listingData.value.searchData)
-                listingCategoryModel.initialize(_listingData.value.data.filters)
-
                 _activeWindowType.value = ActiveWindowListingType.CATEGORY
                 val eventParameters = mapOf(
                     "category_name" to _listingData.value.searchData.searchCategoryName,
