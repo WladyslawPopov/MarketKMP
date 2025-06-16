@@ -26,13 +26,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.constants.minExpandedElement
+import market.engine.core.data.events.BasketEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.fragments.root.main.basket.BasketEvents
-import market.engine.fragments.root.main.basket.BasketGroupUiState
+import market.engine.core.data.states.BasketGroupUiState
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
@@ -48,8 +48,8 @@ fun BasketItemContent(
     state: BasketGroupUiState,
     events: BasketEvents,
 ) {
-    val user = state.user
-    val bodes = state.offersInGroup
+    val user = remember(state.user) { state.user }
+    val bodes = remember(state.offersInGroup) { state.offersInGroup }
 
     Column(
         modifier = Modifier

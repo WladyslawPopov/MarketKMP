@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,10 +58,12 @@ fun FeedbacksContent(
     val viewModel = model.feedbacksViewModel
     val listingData = viewModel.listingData.value.data
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
+    val totalCount = viewModel.totalCount.collectAsState()
+    var prevIndex by remember { mutableStateOf<Int?>(null) }
 
     val state = rememberLazyListState(
-//        initialFirstVisibleItemIndex = viewModel.scrollItem.value,
-//        initialFirstVisibleItemScrollOffset = viewModel.offsetScrollItem.value
+        initialFirstVisibleItemIndex = viewModel.scrollState.value.scrollItem,
+        initialFirstVisibleItemScrollOffset = viewModel.scrollState.value.offsetScrollItem
     )
 
     val type = model.type
@@ -80,7 +83,7 @@ fun FeedbacksContent(
 
     val currentIndex by remember {
         derivedStateOf {
-            state.firstVisibleItemIndex + if(listingData.totalCount > 1) 2 else 1
+            state.firstVisibleItemIndex + if(totalCount.value > 1) 2 else 1
         }
     }
 
@@ -148,8 +151,8 @@ fun FeedbacksContent(
             onScrollDirectionChange(isAtTop)
         }
         showUpButton = 2 < (state.firstVisibleItemIndex / PAGE_SIZE)
-        showDownButton = listingData.prevIndex != null &&
-                state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
+        showDownButton = prevIndex != null &&
+                state.firstVisibleItemIndex < (prevIndex ?: 0)
     }
 
     LaunchedEffect(Unit){
@@ -159,7 +162,7 @@ fun FeedbacksContent(
             filters[(listingData.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
         }
 
-//        state.scrollToItem(viewModel.scrollItem.value, viewModel.offsetScrollItem.value)
+        state.scrollToItem(viewModel.scrollState.value.scrollItem, viewModel.scrollState.value.offsetScrollItem)
     }
 
     Column {
@@ -267,10 +270,10 @@ fun FeedbacksContent(
                     }
                 }
 
-                if (listingData.totalCount > 0) {
+                if (totalCount.value > 0) {
                     PagingCounterBar(
                         currentPage = currentIndex,
-                        totalPages = listingData.totalCount,
+                        totalPages = totalCount.value,
                         modifier = Modifier.align(Alignment.BottomStart),
                         showUpButton = showUpButton,
                         showDownButton = showDownButton,
@@ -278,7 +281,7 @@ fun FeedbacksContent(
                             when {
                                 showUpButton -> {
                                     CoroutineScope(Dispatchers.Main).launch {
-                                        listingData.prevIndex = currentIndex
+                                        prevIndex = currentIndex
                                         state.scrollToItem(0)
                                         showUpButton = false
                                         showDownButton = true
@@ -287,8 +290,8 @@ fun FeedbacksContent(
 
                                 showDownButton -> {
                                     CoroutineScope(Dispatchers.Main).launch {
-                                        state.scrollToItem(listingData.prevIndex ?: 1)
-                                        listingData.prevIndex = null
+                                        state.scrollToItem(prevIndex ?: 1)
+                                        prevIndex = null
                                         showDownButton = false
                                         showUpButton = true
                                     }

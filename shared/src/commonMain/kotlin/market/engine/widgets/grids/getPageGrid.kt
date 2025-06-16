@@ -27,7 +27,6 @@ import app.cash.paging.compose.LazyPagingItems
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -50,13 +49,14 @@ fun <T : Any> BoxScope.PagingList(
     data: LazyPagingItems<T>,
     state: LazyListState,
     columns : Int = 1,
-    listingData: LD,
+    totalCount : Int = 0,
     searchData: SD? = null,
     promoList: List<OfferItem>? = null,
     isReversingPaging : Boolean = false,
     promoContent: (@Composable (OfferItem) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
+    var prevIndex by remember { mutableStateOf<Int?>(null) }
     var showUpButton by remember { mutableStateOf(false) }
     var showDownButton by remember { mutableStateOf(false) }
 
@@ -80,8 +80,8 @@ fun <T : Any> BoxScope.PagingList(
 
     LaunchedEffect(state.firstVisibleItemIndex){
         showUpButton = (state.firstVisibleItemIndex >= PAGE_SIZE)
-        showDownButton = listingData.prevIndex != null &&
-                state.firstVisibleItemIndex < (listingData.prevIndex ?: 0)
+        showDownButton = prevIndex != null &&
+                state.firstVisibleItemIndex < (prevIndex ?: 0)
     }
 
     LazyColumnWithScrollBars(
@@ -191,7 +191,7 @@ fun <T : Any> BoxScope.PagingList(
 
     PagingCounterBar(
         currentPage = currentIndex,
-        totalPages = listingData.totalCount,
+        totalPages = totalCount,
         modifier = Modifier.align(Alignment.BottomStart),
         showUpButton = showUpButton,
         showDownButton = showDownButton,
@@ -199,7 +199,7 @@ fun <T : Any> BoxScope.PagingList(
             when{
                 showUpButton -> {
                     CoroutineScope(Dispatchers.Main).launch {
-                        listingData.prevIndex = currentIndex
+                        prevIndex = currentIndex
                         state.scrollToItem(0)
                         showUpButton = false
                         showDownButton = true
@@ -207,8 +207,8 @@ fun <T : Any> BoxScope.PagingList(
                 }
                 showDownButton -> {
                     CoroutineScope(Dispatchers.Main).launch {
-                        state.scrollToItem(listingData.prevIndex ?: 1)
-                        listingData.prevIndex = null
+                        state.scrollToItem(prevIndex ?: 1)
+                        prevIndex = null
                         showDownButton = false
                         showUpButton = true
                     }

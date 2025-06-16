@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.Platform
 import market.engine.core.data.constants.minExpandedElement
 import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.events.BasketEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -27,6 +28,10 @@ import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
+import market.engine.core.data.states.BasketGroupUiState
+import market.engine.core.data.states.BasketUiState
+import market.engine.core.data.states.SelectedBasketList
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.BodyListPayload
@@ -34,41 +39,8 @@ import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
 import market.engine.fragments.base.BaseViewModel
-import market.engine.widgets.bars.appBars.SimpleAppBarData
 import org.jetbrains.compose.resources.getString
 
-interface BasketEvents {
-    fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean)
-    fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean)
-    fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit)
-    fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit)
-    fun onDeleteOffersRequest(ids : List<Long>)
-    fun onExpandClicked(userId: Long, currentOffersSize: Int)
-    fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>)
-    fun onGoToUser(userId: Long)
-    fun onGoToOffer(offerId: Long)
-}
-
-data class SelectedBasketList(
-    val userId: Long,
-    val selectedOffers: List<SelectedBasketItem>
-)
-
-data class BasketGroupUiState(
-    val user: User,
-    val offersInGroup: List<OfferItem?>,
-    val selectedOffers: List<SelectedBasketItem>,
-    val showItemsCount: Int,
-    val selectedOffersCount: Int = selectedOffers.size,
-    val isAllSelected: Boolean,
-)
-
-data class BasketUiState(
-    val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val isLoading: Boolean = false,
-    val errorMessage: ServerErrorException = ServerErrorException(),
-    val basketEvents: BasketEvents
-)
 
 class BasketViewModel(component: BasketComponent): BaseViewModel() {
 
@@ -406,9 +378,9 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
         deleteIds.value = emptyList()
     }
 
-    fun refresh(){
-        onError(ServerErrorException())
+    fun refreshPage(){
         getUserCart()
+        refresh()
     }
 
     fun deleteItems(

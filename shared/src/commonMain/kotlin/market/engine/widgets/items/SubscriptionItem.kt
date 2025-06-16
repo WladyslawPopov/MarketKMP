@@ -17,11 +17,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -29,42 +29,41 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.MenuItem
-import market.engine.core.network.networkObjects.Subscription
-import market.engine.core.utils.onClickSubOperationItem
-import market.engine.fragments.root.main.favPages.subscriptions.SubViewModel
+import market.engine.core.data.states.SubItemState
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.dialogs.SubOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SubscriptionItem(
-    subscription: Subscription,
-    viewModel: SubViewModel,
-    goToEditSubscription: (Long) -> Unit,
-    onUpdateItem: () -> Unit,
-    onItemClick: () -> Unit
+    state: SubItemState,
+    updateId : Long?
 ) {
-    val user = subscription.sellerData
-    val showMenu = remember { mutableStateOf(false) }
-    val isEnabled = mutableStateOf(subscription.isEnabled)
-
-    val showOperationsDialog = remember { mutableStateOf("") }
-    val title = remember { mutableStateOf(AnnotatedString("")) }
-
+    val events = state.events
+    val subscription = state.subscription
+    val user = remember(subscription.sellerData) { subscription.sellerData }
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
     }
 
-    if (viewModel.updateItemTrigger.value >= 0)
+    if(subscription.id == 1L) return
+
+    LaunchedEffect(updateId) {
+        if (updateId == subscription.id) {
+            events.onUpdateItem()
+        }
+    }
 
     Card(
         colors = colors.cardColors,
         shape = MaterialTheme.shapes.small,
-        onClick = onItemClick
+        onClick = {
+            events.onItemClick()
+        }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
@@ -75,8 +74,8 @@ fun SubscriptionItem(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ){
+                verticalAlignment = Alignment.Top
+            ) {
                 Card(
                     modifier = Modifier.wrapContentSize().padding(dimens.smallPadding),
                     shape = CircleShape,
@@ -89,7 +88,7 @@ fun SubscriptionItem(
                             isShowLoading = false,
                             isShowEmpty = false
                         )
-                    }else{
+                    } else {
                         Icon(
                             painter = painterResource(drawables.searchIcon),
                             contentDescription = null,
@@ -105,19 +104,22 @@ fun SubscriptionItem(
                     verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                 ) {
                     Text(
-                        text = if (user != null) "${user.login} (${user.rating})" else subscription.name ?: subscription.searchQuery ?: "",
+                        text = if (user != null) "${user.login} (${user.rating})" else subscription.name
+                            ?: subscription.searchQuery ?: "",
                         style = MaterialTheme.typography.titleSmall,
                         color = if (user != null) colors.brightBlue else colors.black,
                     )
 
-                    if(subscription.catpath != null) {
+                    if (subscription.catpath != null) {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             subscription.catpath?.toList()?.reversed()
                                 ?.forEachIndexed { index, cat ->
                                     Text(
-                                        text = if ((subscription.catpath?.size ?: 0) - 1 == index)
+                                        text = if ((subscription.catpath?.size
+                                                ?: 0) - 1 == index
+                                        )
                                             cat.second
                                         else cat.second + "->",
                                         style = MaterialTheme.typography.bodySmall.copy(
@@ -136,35 +138,16 @@ fun SubscriptionItem(
                     SmallIconButton(
                         drawables.menuIcon,
                         color = colors.black,
-                    ){
-                        viewModel.getSubOperations(subscription.id) { listOperations ->
-                            menuList.value = buildList {
-                                addAll(listOperations.map { operation ->
-                                    MenuItem(
-                                        id = operation.id ?: "",
-                                        title = operation.name ?: "",
-                                        onClick = {
-                                            operation.onClickSubOperationItem(
-                                                subscription,
-                                                title,
-                                                viewModel,
-                                                showOperationsDialog,
-                                                goToEditSubscription,
-                                            ) {
-                                                onUpdateItem()
-                                            }
-                                        }
-                                    )
-                                })
-                            }
-                            showMenu.value = true
+                    ) {
+                        events.getMenuOperations {
+                            menuList.value = it
                         }
                     }
 
                     PopUpMenu(
-                        openPopup = showMenu.value,
+                        openPopup = menuList.value.isNotEmpty(),
                         menuList = menuList.value,
-                        onClosed = { showMenu.value = false }
+                        onClosed = { menuList.value = emptyList() }
                     )
                 }
             }
@@ -215,11 +198,23 @@ fun SubscriptionItem(
                 // price param
                 if (subscription.priceTo != null || subscription.priceFrom != null) {
                     val price = buildString {
-                        if (subscription.priceFrom != null) append("${stringResource(strings.fromAboutParameterName)} ${subscription.priceFrom} ${stringResource(
-                            strings.currencySign)}")
-                        if (subscription.priceFrom != null && subscription.priceTo != null) append(" - ")
-                        if (subscription.priceTo != null) append("${stringResource(strings.toAboutParameterName)}  ${subscription.priceTo} ${stringResource(
-                            strings.currencySign)}")
+                        if (subscription.priceFrom != null) append(
+                            "${stringResource(strings.fromAboutParameterName)} ${subscription.priceFrom} ${
+                                stringResource(
+                                    strings.currencySign
+                                )
+                            }"
+                        )
+                        if (subscription.priceFrom != null && subscription.priceTo != null) append(
+                            " - "
+                        )
+                        if (subscription.priceTo != null) append(
+                            "${stringResource(strings.toAboutParameterName)}  ${subscription.priceTo} ${
+                                stringResource(
+                                    strings.currencySign
+                                )
+                            }"
+                        )
                     }
 
                     Row(
@@ -248,9 +243,11 @@ fun SubscriptionItem(
                             typeString = stringResource(strings.buyNow)
                             colorType = colors.buyNowColor
                         }
+
                         "ordinary_auction" -> {
                             typeString = stringResource(strings.ordinaryAuction)
                         }
+
                         "auction_with_buy_now" -> {
                             typeString = stringResource(strings.blitzAuction)
                             colorType = colors.auctionWithBuyNow
@@ -290,7 +287,7 @@ fun SubscriptionItem(
 
                 Text(
                     text = stringResource(
-                        if (isEnabled.value)
+                        if (subscription.isEnabled)
                             strings.subscriptionOnLabel
                         else strings.subscriptionOffLabel
                     ),
@@ -299,18 +296,9 @@ fun SubscriptionItem(
                 )
 
                 Switch(
-                    checked = isEnabled.value,
+                    checked = subscription.isEnabled,
                     onCheckedChange = {
-                        if (isEnabled.value)
-                            viewModel.disableSubscription(subscription.id){
-                                subscription.isEnabled = !subscription.isEnabled
-                                isEnabled.value = !isEnabled.value
-                            }
-                        else
-                            viewModel.enableSubscription(subscription.id){
-                                subscription.isEnabled = !subscription.isEnabled
-                                isEnabled.value = !isEnabled.value
-                            }
+                        events.changeActiveSub()
                     },
                     colors = SwitchDefaults.colors(
                         checkedBorderColor = colors.transparent,
@@ -322,16 +310,6 @@ fun SubscriptionItem(
                     ),
                 )
             }
-
-            SubOperationsDialogs(
-                subscription,
-                title,
-                showOperationsDialog,
-                viewModel,
-                updateItem = {
-                    onUpdateItem()
-                }
-            )
         }
     }
 }

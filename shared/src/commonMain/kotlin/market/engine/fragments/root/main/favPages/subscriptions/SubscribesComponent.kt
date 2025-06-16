@@ -13,7 +13,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.Subscription
 import org.jetbrains.compose.resources.getString
-import org.koin.mp.KoinPlatform.getKoin
 
 
 interface SubscriptionsComponent {
@@ -25,9 +24,7 @@ interface SubscriptionsComponent {
     )
 
     fun goToCreateNewSubscription(editId : Long? = null)
-
     fun goToListing(item : Subscription)
-    fun updateItem(oldItem: Subscription?)
 }
 
 class DefaultSubscriptionsComponent(
@@ -38,9 +35,7 @@ class DefaultSubscriptionsComponent(
     val navigateToListing : (ListingData) -> Unit,
 ) : SubscriptionsComponent, ComponentContext by componentContext {
 
-    private val subViewModel : SubViewModel = SubViewModel(
-        getKoin().get(),
-    )
+    private val subViewModel : SubViewModel = SubViewModel(this)
 
     private val _model = MutableValue(
         SubscriptionsComponent.Model(
@@ -140,29 +135,6 @@ class DefaultSubscriptionsComponent(
                 subscription.catpath?.values?.firstOrNull() ?: defCat
 
             navigateToListing(ld)
-        }
-    }
-
-    override fun updateItem(oldItem: Subscription?) {
-        subViewModel.viewModelScope.launch {
-            subViewModel.getSubscription(subViewModel.updateItem.value!!){ item ->
-                if (item != null) {
-                    if (oldItem != null) {
-                        oldItem.catpath = item.catpath
-                        oldItem.isEnabled = item.isEnabled
-                        oldItem.name = item.name
-                        oldItem.priceFrom = item.priceFrom
-                        oldItem.priceTo = item.priceTo
-                        oldItem.region = item.region
-                        oldItem.searchQuery = item.searchQuery
-                        oldItem.saleType = item.saleType
-                    }
-                } else {
-                    oldItem?.id = 1L
-                }
-                subViewModel.updateItemTrigger.value++
-                subViewModel.updateItem.value = null
-            }
         }
     }
 }

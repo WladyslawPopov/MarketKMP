@@ -5,7 +5,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.events.SearchEvents
 import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.items.Tab
-import market.engine.widgets.bars.appBars.SimpleAppBarData
 
 data class SearchUiState(
     val openSearch: Boolean = false,

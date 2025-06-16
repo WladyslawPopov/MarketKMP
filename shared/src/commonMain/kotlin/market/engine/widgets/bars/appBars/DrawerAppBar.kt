@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.MenuHamburgerButton
 

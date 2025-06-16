@@ -48,14 +48,14 @@ fun HomeContent(
     val uiState = homeViewModel.uiState.collectAsState()
     val state = uiState.value
 
-    val isLoading = remember(state.isLoading) { state.isLoading }
-    val error = remember(state.error) { state.error }
+    val isLoading = homeViewModel.isShowProgress.collectAsState()
+    val error = homeViewModel.errorMessage.collectAsState()
 
     val listTopCategory = remember(listTopCategory) { listTopCategory }
 
-    val errorContent: (@Composable () -> Unit)? = remember(error.humanMessage) {
-        if (error.humanMessage.isNotBlank()) {
-            { onError(error) { homeViewModel.updateModel() } }
+    val errorContent: (@Composable () -> Unit)? = remember(error.value.humanMessage) {
+        if (error.value.humanMessage.isNotBlank()) {
+            { onError(error.value) { homeViewModel.updateModel() } }
         } else {
             null
         }
@@ -89,7 +89,7 @@ fun HomeContent(
                 )
             }
         },
-        isLoading = isLoading,
+        isLoading = isLoading.value,
         onRefresh = { homeViewModel.updateModel() },
         floatingActionButton = {
             floatingCreateOfferButton {
@@ -130,7 +130,7 @@ fun HomeContent(
                         CategoryList(
                             categories = state.categories
                         ) { category ->
-                            state.events.goToCategory(category)
+                            homeViewModel.goToCategory(category)
                         }
                     }
                     item {
@@ -140,13 +140,13 @@ fun HomeContent(
                                 component.goToOffer(it)
                             },
                             onAllClickButton = {
-                                state.events.goToAllPromo()
+                                homeViewModel.goToAllPromo()
                             }
                         )
                     }
                     item {
                         GridPopularCategory(listTopCategory) { topCategory ->
-                            state.events.goToCategory(topCategory)
+                            homeViewModel.goToCategory(topCategory)
                         }
                     }
                     item {
@@ -156,7 +156,7 @@ fun HomeContent(
                                 component.goToOffer(it)
                             },
                             onAllClickButton = {
-                                state.events.goToAllPromo()
+                                homeViewModel.goToAllPromo()
                             }
                         )
                     }

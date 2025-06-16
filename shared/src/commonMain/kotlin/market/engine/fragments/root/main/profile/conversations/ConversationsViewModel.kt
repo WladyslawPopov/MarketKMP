@@ -25,6 +25,5 @@ class ConversationsViewModel: BaseViewModel() {
     }
 
     fun onRefresh(){
-        conversationsPagingRepository.refresh()
     }
 }

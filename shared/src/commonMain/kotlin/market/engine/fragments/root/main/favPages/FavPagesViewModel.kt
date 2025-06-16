@@ -80,11 +80,6 @@ class FavPagesViewModel : BaseViewModel() {
         }.cachedIn(viewModelScope)
     }
 
-    fun refresh(){
-        updateUserInfo()
-        pagingRepository.refresh()
-    }
-
     fun getList(id: Long, onSuccess: (FavoriteListItem) -> Unit) {
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) { offersListOperations.getOffersListItem(id) }

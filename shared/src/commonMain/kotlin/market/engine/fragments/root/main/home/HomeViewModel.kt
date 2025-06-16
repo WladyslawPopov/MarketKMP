@@ -27,32 +27,16 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.TopCategory
+import market.engine.core.data.states.HomeUiState
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
-import market.engine.widgets.bars.appBars.SimpleAppBarData
 import org.jetbrains.compose.resources.getString
 
-interface HomeEvents {
-    fun goToCategory(category: TopCategory)
-    fun goToAllPromo()
-}
 
-data class HomeUiState(
-    val categories: List<TopCategory> = emptyList(),
-    val promoOffers1: List<OfferItem> = emptyList(),
-    val promoOffers2: List<OfferItem> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: ServerErrorException = ServerErrorException(),
-    val unreadNotificationsCount: Int? = null,
-    val appBarData : SimpleAppBarData = SimpleAppBarData(),
-    val events : HomeEvents,
-    val listFooter: List<TopCategory> = emptyList(),
-    val drawerList: List<NavigationItem> = emptyList(),
-)
-
-class HomeViewModel(component: HomeComponent) : BaseViewModel() {
+class HomeViewModel(val component: HomeComponent) : BaseViewModel() {
 
     private val _responseOffersPromotedOnMainPage1 = MutableStateFlow<List<OfferItem>>(emptyList())
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<OfferItem>>(emptyList())
@@ -60,42 +44,11 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
 
     private val listingData = ListingData()
 
-    val homeEvents = object : HomeEvents {
-        override fun goToCategory(category: TopCategory) {
-            listingData.searchData.searchCategoryID = category.id
-            listingData.searchData.searchParentID = category.parentId
-            listingData.searchData.searchCategoryName = category.name
-            listingData.searchData.searchParentName = category.parentName
-
-            component.goToNewSearch(listingData, false)
-        }
-
-        override fun goToAllPromo() {
-            listingData.data.filters = ListingFilters.getEmpty()
-            viewModelScope.launch {
-                val allPromo = getString(strings.allPromoOffersBtn)
-
-                listingData.data.filters.find { filter ->
-                    filter.key == "promo_main_page"
-                }?.value = "promo_main_page"
-                listingData.data.filters.find { filter ->
-                    filter.key == "promo_main_page"
-                }?.interpretation = allPromo
-
-                listingData.searchData.clear(allPromo)
-
-                component.goToNewSearch(listingData, false)
-            }
-        }
-    }
-
     val uiState: StateFlow<HomeUiState> = combine(
         _responseCategory,
         _responseOffersPromotedOnMainPage1,
         _responseOffersPromotedOnMainPage2,
-        isShowProgress,
-        errorMessage
-    ) { categories, promoOffers1, promoOffers2, isLoading, error ->
+    ) { categories, promoOffers1, promoOffers2 ->
         val userInfo = UserData.userInfo
 
         val proposalString = getString(strings.proposalTitle)
@@ -106,8 +59,6 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
             categories = categories,
             promoOffers1 = promoOffers1,
             promoOffers2 = promoOffers2,
-            isLoading = isLoading,
-            error = error,
             unreadNotificationsCount = getUnreadNotificationsCount(),
             appBarData = SimpleAppBarData(
                 color = colors.white,
@@ -157,7 +108,6 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
                     ),
                 )
             ),
-            events = homeEvents,
             listFooter = listOf(
                 TopCategory(
                     id = 1,
@@ -258,9 +208,7 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = HomeUiState(
-            events = homeEvents
-        )
+        initialValue = HomeUiState()
     )
 
     fun updateModel() {
@@ -307,5 +255,32 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
                 setLoading(false)
             }
         }
+    }
+
+    fun goToAllPromo() {
+        listingData.data.filters = ListingFilters.getEmpty()
+        viewModelScope.launch {
+            val allPromo = getString(strings.allPromoOffersBtn)
+
+            listingData.data.filters.find { filter ->
+                filter.key == "promo_main_page"
+            }?.value = "promo_main_page"
+            listingData.data.filters.find { filter ->
+                filter.key == "promo_main_page"
+            }?.interpretation = allPromo
+
+            listingData.searchData.clear(allPromo)
+
+            component.goToNewSearch(listingData, false)
+        }
+    }
+
+    fun goToCategory(category: TopCategory) {
+        listingData.searchData.searchCategoryID = category.id
+        listingData.searchData.searchParentID = category.parentId
+        listingData.searchData.searchCategoryName = category.name
+        listingData.searchData.searchParentName = category.parentName
+
+        component.goToNewSearch(listingData, false)
     }
 }

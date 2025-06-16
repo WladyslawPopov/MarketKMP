@@ -5,16 +5,17 @@ import androidx.paging.PagingState
 import kotlinx.serialization.KSerializer
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.UrlBuilder
 import market.engine.core.network.APIService
 import market.engine.core.utils.deserializePayload
 
+
 open class GenericPagingSource<T : Any>(
     private val apiService: APIService,
     private val listingData: ListingData,
-    private val serializer: KSerializer<T>
+    private val serializer: KSerializer<T>,
+    private val onTotalCountReceived: (Int) -> Unit
 ) : PagingSource<Int, T>() {
 
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
@@ -38,16 +39,7 @@ open class GenericPagingSource<T : Any>(
                     try {
                         val serializer = Payload.serializer(serializer)
                         val value = deserializePayload(data.payload, serializer)
-                        listingData.data.totalCount = value.totalCount
-
-                        if (listingData.searchData.userID != 1L &&
-                            listingData.searchData.userLogin.isNullOrEmpty()
-                        ){
-                            val firstObject = value.objects.firstOrNull()
-                            if (firstObject is Offer) {
-                                listingData.searchData.userLogin = firstObject.sellerData?.login
-                            }
-                        }
+                        onTotalCountReceived(value.totalCount)
 
                         LoadResult.Page(
                             data = value.objects.toList(),

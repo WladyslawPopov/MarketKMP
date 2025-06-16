@@ -52,10 +52,6 @@ class UserViewModel : BaseViewModel() {
         return pagingRepository.getListing(listingData.value, apiService, serializer).cachedIn(viewModelScope)
     }
 
-    fun refresh(){
-        pagingRepository.refresh()
-    }
-
     private fun initializeUserData(user: User) {
         viewModelScope.launch {
             try {

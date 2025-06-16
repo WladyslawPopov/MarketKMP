@@ -76,7 +76,6 @@ fun ContentSort(
                             .fillMaxWidth()
                             .clickable {
                                 selectItem(sortOption)
-                                onClose()
                             }
                             .background(colors.white, MaterialTheme.shapes.small)
                             .clip(MaterialTheme.shapes.small)

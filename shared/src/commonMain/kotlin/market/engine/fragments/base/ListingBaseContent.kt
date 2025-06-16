@@ -39,6 +39,7 @@ fun <T : Any>ListingBaseContent(
 ){
     val scrollStateData = baseViewModel.scrollState.collectAsState()
     val bottomSheetState = baseViewModel.bottomSheetState.collectAsState()
+    val totalCount = baseViewModel.totalCount.collectAsState()
 
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(bottomSheetState.value)
@@ -112,7 +113,7 @@ fun <T : Any>ListingBaseContent(
                         PagingList(
                             state = scrollState,
                             data = data,
-                            listingData = uiState.listingData,
+                            totalCount = totalCount.value,
                             isReversingPaging = uiState.isReversingPaging,
                             searchData = uiState.searchData,
                             columns = uiState.columns,

@@ -8,26 +8,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.widgets.dropdown_menu.PopUpMenu
 
-data class SimpleAppBarData(
-    val color: Color = colors.white,
-    val onBackClick: (() -> Unit)? = null,
-    val listItems: List<NavigationItem> = emptyList(),
-    val showMenu: MutableState<Boolean> = mutableStateOf(false),
-    val menuItems: List<MenuItem> = emptyList(),
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

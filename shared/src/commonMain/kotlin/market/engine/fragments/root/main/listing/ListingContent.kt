@@ -60,20 +60,19 @@ fun ListingContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
-    val listingViewModel = model.listingViewModel
-    val uiState = listingViewModel.listingDataState.collectAsState()
-    val searchDataState = listingViewModel.searchDataState.collectAsState()
+    val viewModel = model.listingViewModel
+    val uiState = viewModel.listingDataState.collectAsState()
+    val searchDataState = viewModel.searchDataState.collectAsState()
 
-    val updateItem = listingViewModel.updateItem.collectAsState()
-    val errorString = listingViewModel.errorString.collectAsState()
-    val data = listingViewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val updateItem = viewModel.updateItem.collectAsState()
+    val errorString = viewModel.errorString.collectAsState()
+    val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val isLoadingListing: State<Boolean> =
         rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val err = listingViewModel.errorMessage.collectAsState()
+    val err = viewModel.errorMessage.collectAsState()
 
-    val listingEvents = uiState.value.listingEvents
     val listingData = uiState.value.listingData.data
     val searchData = uiState.value.listingData.searchData
     val activeWindowType = uiState.value.listingBaseState.activeWindowType
@@ -81,15 +80,15 @@ fun ListingContent(
     val listingBaseData = uiState.value.listingBaseState
     val regions = uiState.value.regions
 
-    val catDef = listingViewModel.catDef.value
+    val catDef = remember(viewModel.catDef.value) { viewModel.catDef.value }
 
     BackHandler(model.backHandler) {
-        listingEvents.backClick()
+        viewModel.backClick()
     }
 
     val error: (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { onError(err.value) { listingEvents.onRefresh() } }
+            { onError(err.value) { viewModel.refresh() } }
         } else {
             null
         }
@@ -104,11 +103,11 @@ fun ListingContent(
                     showNoItemLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
-                        listingEvents.clearListingData()
+                        viewModel.clearListingData()
                     }
                 } else {
                     showNoItemLayout {
-                        listingEvents.onRefresh()
+                        viewModel.refresh()
                     }
                 }
             }
@@ -137,7 +136,7 @@ fun ListingContent(
                                 searchDataState.value.searchEvents.goToListing()
                             },
                             onClearSearch = {
-                                listingViewModel.clearSearch()
+                                viewModel.clearSearch()
                             }
                         )
                     }
@@ -145,7 +144,7 @@ fun ListingContent(
 
                 ActiveWindowListingType.CATEGORY_FILTERS -> {
                     CloseAppBar {
-                        listingViewModel.openSearchCategory(false, false)
+                        viewModel.openSearchCategory(false, false)
                     }
                 }
 
@@ -158,7 +157,7 @@ fun ListingContent(
                                 .background(colors.white, MaterialTheme.shapes.small)
                                 .clip(MaterialTheme.shapes.small)
                                 .clickable {
-                                    listingViewModel.changeOpenCategory(true)
+                                    viewModel.changeOpenCategory()
                                 }
                                 .fillMaxWidth()
                                 .padding(dimens.smallPadding),
@@ -195,16 +194,16 @@ fun ListingContent(
                 }
             }
         },
-        onRefresh = listingEvents::onRefresh,
+        onRefresh = viewModel::updatePage,
         error = error,
         noFound = null,
         isLoading = isLoadingListing.value && activeWindowType != ActiveWindowListingType.SEARCH,
-        toastItem = listingViewModel.toastItem,
+        toastItem = viewModel.toastItem,
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
             uiState = listingBaseData,
-            baseViewModel = listingViewModel,
+            baseViewModel = viewModel,
             data = data,
             noFound = noFound,
             filtersContent = {
@@ -214,20 +213,20 @@ fun ListingContent(
                             initialFilters = listingData.filters,
                             regionsOptions = regions,
                             onClosed = { newList ->
-                                listingViewModel.applyFilters(newList)
+                                viewModel.applyFilters(newList)
                             },
                             onClear = {
-                                listingEvents.closeFilters(listingData, true)
+                                viewModel.clearAllFilters()
                             }
                         )
                     }
 
                     ActiveWindowListingType.SORTING -> {
                         SortingOffersContent(
-                            listingData,
+                            listingData.sort,
                             isCabinet = false,
-                            onClose = { update ->
-                                listingEvents.closeFilters(listingData, false)
+                            onClose = { newSort ->
+                               viewModel.applySorting(newSort)
                             }
                         )
                     }
@@ -243,10 +242,10 @@ fun ListingContent(
                         CategoryContent(
                             uiState.value.listingCategoryState.categoryViewModel,
                             onCompleted = {
-                                listingEvents.clickCategory(true)
+                                viewModel.changeOpenCategory(true)
                             },
                             onClose = {
-                                listingEvents.clickCategory(false)
+                                viewModel.changeOpenCategory()
                             }
                         )
                     }
@@ -257,12 +256,8 @@ fun ListingContent(
             additionalBar = { state ->
                 Column {
                     SwipeTabsBar(
-                        isVisibility = true,
-                        listingData,
-                        state,
-                        onRefresh = {
-                            listingEvents.closeFilters(listingData, false)
-                        }
+                        uiState = uiState.value.swipeTabsBarState,
+                        scrollState = state,
                     )
 
                     FiltersBar(
@@ -271,20 +266,16 @@ fun ListingContent(
                 }
             },
             item = { offer ->
-                when (listingData.listingType) {
-                    0 -> {
-                        PublicOfferItem(
-                            offer,
-                            updateItem.value,
-                        )
-                    }
-
-                    1 -> {
-                        PublicOfferItemGrid(
-                            offer,
-                            updateItem.value,
-                        )
-                    }
+                if (uiState.value.listingBaseState.columns == 1) {
+                    PublicOfferItem(
+                        offer,
+                        updateItem.value,
+                    )
+                } else {
+                    PublicOfferItemGrid(
+                        offer,
+                        updateItem.value,
+                    )
                 }
             },
             promoContent = { offer ->
@@ -300,11 +291,11 @@ fun ListingContent(
             errorString.value != "",
             errorString.value,
             onDismiss = {
-                listingEvents.clearError()
+                viewModel.clearErrorSubDialog()
             },
             goToSubscribe = {
                 component.goToSubscribe()
-                listingEvents.clearError()
+                viewModel.clearErrorSubDialog()
             }
         )
     }

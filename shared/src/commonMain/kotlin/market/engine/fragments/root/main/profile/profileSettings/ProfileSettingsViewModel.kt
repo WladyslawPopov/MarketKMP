@@ -25,7 +25,7 @@ class ProfileSettingsViewModel : BaseViewModel() {
     private val _genderSelects = MutableStateFlow<List<Choices>>(emptyList())
     val genderSelects : StateFlow<List<Choices>> = _genderSelects.asStateFlow()
 
-    fun refresh(){
+    fun refreshPage(){
         setLoading(true)
         viewModelScope.launch {
             updateUserInfo()

@@ -27,57 +27,8 @@ fun SubOperationsDialogs(
 
     when (showDialog.value) {
         "delete_subscription" -> {
-            AccessDialog(
-                showDialog = showDialog.value != "",
-                title = title.value,
-                onDismiss = {
-                    showDialog.value = ""
-                    isClicked.value = false
-                },
-                onSuccess = {
-                    if (!isClicked.value) {
-                        isClicked.value = true
-                        viewModel.postOperationFields(
-                            item.id,
-                            showDialog.value,
-                            "subscriptions",
-                            onSuccess = {
-                                val eventParameters = mapOf(
-                                    "buyer_id" to UserData.login,
-                                    "item_id" to item.id
-                                )
-                                viewModel.analyticsHelper.reportEvent(
-                                    "delete_subscription",
-                                    eventParameters
-                                )
-                                viewModel.showToast(
-                                    successToastItem.copy(
-                                        message = operationString
-                                    )
-                                )
-                                updateItem()
-                            },
-                            errorCallback = {
 
-                            }
-                        )
-                    }
-                }
-            )
         }
-        "error" -> {
-            CustomDialog(
-                showDialog = showDialog.value != "",
-                title = buildAnnotatedString {
-                    append(stringResource(strings.messageAboutError))
-                },
-                body = {
-                    Text(title.value)
-                },
-                onDismiss = { showDialog.value = "" }
-            )
-        }
-
         else -> {
 
         }

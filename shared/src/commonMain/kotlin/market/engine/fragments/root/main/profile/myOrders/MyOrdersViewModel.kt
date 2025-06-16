@@ -49,7 +49,6 @@ class MyOrdersViewModel(
     }
 
     fun onRefresh(){
-        orderPagingRepository.refresh()
     }
 
     suspend fun updateItem(id : Long?) : Order? {

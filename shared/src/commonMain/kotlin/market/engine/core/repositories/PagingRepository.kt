@@ -1,7 +1,5 @@
 package market.engine.core.repositories
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -15,9 +13,12 @@ import market.engine.core.network.paging.GenericPagingSource
 
 
 class PagingRepository<T : Any>{
-    private var genericPagingSource: MutableState<GenericPagingSource<T>?> = mutableStateOf(null)
-
-    fun getListing(ld: ListingData, apiService: APIService, serializer: KSerializer<T>): Flow<PagingData<T>> {
+   fun getListing(
+       ld: ListingData,
+       apiService: APIService,
+       serializer: KSerializer<T>,
+       onTotalCountReceived: (Int) -> Unit = {}
+   ): Flow<PagingData<T>> {
         return Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
@@ -28,14 +29,8 @@ class PagingRepository<T : Any>{
 
             ),
             pagingSourceFactory = {
-                GenericPagingSource(apiService, ld, serializer).also {
-                    genericPagingSource.value = it
-                }
+                GenericPagingSource(apiService, ld, serializer, onTotalCountReceived)
             }
         ).flow
-    }
-
-    fun refresh() {
-        genericPagingSource.value?.invalidate()
-    }
+   }
 }

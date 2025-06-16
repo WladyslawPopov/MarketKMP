@@ -70,9 +70,10 @@ open class BaseViewModel: ViewModel() {
 
     //filters params***
     val catDef = mutableStateOf("")
+    val updatePage = MutableStateFlow(0)
+    val totalCount = MutableStateFlow(0)
     val scrollState  = MutableStateFlow(ScrollDataState())
     val bottomSheetState = MutableStateFlow(BottomSheetValue.Collapsed)
-    val activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
 
     val showLogoutDialog = mutableStateOf(false)
     val deliveryCards = mutableStateOf(emptyList<DeliveryAddress>())
@@ -198,6 +199,12 @@ open class BaseViewModel: ViewModel() {
                 }
             }
         }
+    }
+
+    fun refresh(){
+        updateUserInfo()
+        onError(ServerErrorException())
+        resetScroll()
     }
 
     fun postOperationAdditionalData(

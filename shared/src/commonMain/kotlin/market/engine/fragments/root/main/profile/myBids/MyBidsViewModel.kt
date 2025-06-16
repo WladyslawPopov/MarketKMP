@@ -37,6 +37,5 @@ class MyBidsViewModel(
     }
 
     fun onRefresh(){
-        offerPagingRepository.refresh()
     }
 }

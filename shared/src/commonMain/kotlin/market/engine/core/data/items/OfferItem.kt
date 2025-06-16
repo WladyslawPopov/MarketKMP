@@ -1,5 +1,6 @@
 package market.engine.core.data.items
 
+import kotlinx.serialization.Serializable
 import market.engine.core.network.networkObjects.Bids
 import market.engine.core.network.networkObjects.BuyerData
 import market.engine.core.network.networkObjects.DeliveryMethod
@@ -9,6 +10,7 @@ import market.engine.core.network.networkObjects.Session
 import market.engine.core.network.networkObjects.User
 import market.engine.core.utils.getCurrentDate
 
+@Serializable
 data class OfferItem(
     val id: Long,
     var title: String,

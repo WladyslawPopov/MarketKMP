@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -21,7 +20,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
-import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.ActiveFilterListingItem
@@ -29,6 +27,7 @@ import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
+import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.SubscriptionItem
 import org.jetbrains.compose.resources.stringResource
@@ -44,17 +43,11 @@ fun SubscriptionsContent(
     val listingData = uiState.value.listingData.data
     val activeWindowType = uiState.value.listingBaseState.activeWindowType
     val data = subViewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val updateItem = subViewModel.updateItem.collectAsState()
+    val titleDialog = subViewModel.titleDialog.collectAsState()
+    val deleteId = subViewModel.deleteId.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
-    val refresh = remember {
-        {
-            subViewModel.onError(ServerErrorException())
-            subViewModel.resetScroll()
-            subViewModel.refresh()
-            data.refresh()
-        }
-    }
 
     val noFound = remember(data.loadState.refresh) {
         if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
@@ -63,7 +56,7 @@ fun SubscriptionsContent(
                     title = stringResource(strings.emptySubscriptionsLabel),
                     image = drawables.emptyFavoritesImage
                 ) {
-                    refresh()
+                    subViewModel.refresh()
                 }
             }
         } else {
@@ -74,7 +67,7 @@ fun SubscriptionsContent(
     val err = subViewModel.errorMessage.collectAsState()
 
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) { refresh() } }
+        { onError(err.value) { subViewModel.refresh() } }
     }else{
         null
     }
@@ -83,18 +76,10 @@ fun SubscriptionsContent(
         subViewModel.backClick()
     }
 
-    //update item when we back
-    LaunchedEffect(subViewModel.updateItem.value) {
-        if (subViewModel.updateItem.value != null) {
-            val oldItem = data.itemSnapshotList.find { it?.id == subViewModel.updateItem.value }
-            component.updateItem(oldItem)
-        }
-    }
-
     BaseContent(
         topBar = null,
         onRefresh = {
-           refresh()
+            subViewModel.refresh()
         },
         error = error,
         noFound = null,
@@ -111,9 +96,9 @@ fun SubscriptionsContent(
                 when (activeWindowType){
                     ActiveWindowListingType.SORTING -> {
                         SortingOrdersContent(
-                            listingData,
-                        ){ update ->
-
+                            listingData.sort,
+                        ){ newSort ->
+                            subViewModel.applySorting(newSort)
                         }
                     }
                     else -> {}
@@ -145,22 +130,21 @@ fun SubscriptionsContent(
                 }
             },
             item = { subscription ->
-                if (subscription.id != 1L && subViewModel.updateItemTrigger.value >= 0) {
-                    SubscriptionItem(
-                        subscription,
-                        subViewModel,
-                        goToEditSubscription = {
-                            component.goToCreateNewSubscription(it)
-                        },
-                        onUpdateItem = {
-                            subViewModel.updateItem.value = subscription.id
-                            subViewModel.updateItemTrigger.value++
-                        },
-                        onItemClick = {
-                            component.goToListing(subscription)
-                        }
-                    )
-                }
+                SubscriptionItem(
+                    subscription,
+                    updateItem.value
+                )
+            }
+        )
+
+        AccessDialog(
+            showDialog = deleteId.value != 1L,
+            title = titleDialog.value,
+            onDismiss = {
+                subViewModel.closeDialog()
+            },
+            onSuccess = {
+                subViewModel.deleteSubscription(deleteId.value)
             }
         )
     }
