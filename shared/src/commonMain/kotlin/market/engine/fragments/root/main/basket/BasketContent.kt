@@ -1,17 +1,23 @@
 package market.engine.fragments.root.main.basket
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -20,10 +26,11 @@ import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.onError
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.widgets.bars.SimpleAppBar
+import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.items.BasketItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
+import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -92,10 +99,28 @@ fun BasketContent(
 
     BaseContent(
         topBar = {
-            if (basketState.value.appBarData != null) {
-                SimpleAppBar(
-                    basketState.value.appBarData!!
-                )
+            SimpleAppBar(
+                data = basketState.value.appBarData
+            ){
+                val title = stringResource(strings.yourBasketTitle)
+
+                val subtitle = remember(viewModel.subtitle) { viewModel.subtitle.value }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    TextAppBar(title)
+
+                    if (subtitle.isNotBlank()) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.titleTextColor
+                        )
+                    }
+                }
             }
         },
         onRefresh = {
@@ -114,12 +139,10 @@ fun BasketContent(
             contentPadding = dimens.smallPadding
         ) {
             items(basketItemsState.value, key = { item -> item.user.id }) { itemState ->
-                if (basketState.value.basketEvents != null) {
-                    BasketItemContent(
-                        state = itemState,
-                        events = basketState.value.basketEvents!!
-                    )
-                }
+                BasketItemContent(
+                    state = itemState,
+                    events = basketState.value.basketEvents
+                )
             }
         }
 

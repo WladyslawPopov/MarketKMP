@@ -1,12 +1,10 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
-import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
@@ -22,7 +20,6 @@ interface SubscriptionsComponent {
     val model : Value<Model>
     data class Model(
         val favType: FavScreenType,
-        val pagingDataFlow : Flow<PagingData<Subscription>>,
         val subViewModel: SubViewModel,
         val backHandler: BackHandler
     )
@@ -48,7 +45,6 @@ class DefaultSubscriptionsComponent(
     private val _model = MutableValue(
         SubscriptionsComponent.Model(
             favType = favType,
-            pagingDataFlow = subViewModel.init(),
             subViewModel = subViewModel,
             backHandler = backHandler
         )

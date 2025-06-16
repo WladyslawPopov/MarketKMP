@@ -43,11 +43,15 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilterListingContent(
-    listingData: List<Filter>,
+    initialFilters: List<Filter>,
     regionsOptions: List<Options>,
     onClear: () -> Unit,
-    onClosed: (isRefresh: Boolean) -> Unit,
+    onClosed: (newFilters : List<Filter>) -> Unit,
 ) {
+    var listingData by remember(initialFilters) {
+        mutableStateOf(initialFilters.map { it.copy() })
+    }
+
     val checkSize: () -> Boolean = remember { {
         listingData.any { it.interpretation?.isNotBlank() == true }
     } }
@@ -172,7 +176,7 @@ fun FilterListingContent(
                 onClear()
             },
             onClosed = {
-                onClosed(isRefreshing.value)
+                onClosed(listingData)
             }
         )
 
@@ -459,7 +463,7 @@ fun FilterListingContent(
             Modifier.wrapContentWidth().padding(dimens.smallPadding)
                 .align(Alignment.BottomCenter)
         ) {
-            onClosed(isRefreshing.value)
+            onClosed(listingData)
         }
     }
 }

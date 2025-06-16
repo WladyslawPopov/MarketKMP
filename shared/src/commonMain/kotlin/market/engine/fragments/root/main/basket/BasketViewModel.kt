@@ -1,17 +1,7 @@
 package market.engine.fragments.root.main.basket
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -44,8 +34,7 @@ import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
 import market.engine.fragments.base.BaseViewModel
-import market.engine.widgets.bars.SimpleAppBarData
-import market.engine.widgets.texts.TextAppBar
+import market.engine.widgets.bars.appBars.SimpleAppBarData
 import org.jetbrains.compose.resources.getString
 
 interface BasketEvents {
@@ -75,10 +64,10 @@ data class BasketGroupUiState(
 )
 
 data class BasketUiState(
-    val appBarData: SimpleAppBarData? = null,
+    val appBarData: SimpleAppBarData = SimpleAppBarData(),
     val isLoading: Boolean = false,
     val errorMessage: ServerErrorException = ServerErrorException(),
-    val basketEvents: BasketEvents? = null
+    val basketEvents: BasketEvents
 )
 
 class BasketViewModel(component: BasketComponent): BaseViewModel() {
@@ -93,6 +82,53 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
     val showMenuBasket = mutableStateOf(false)
 
     val deleteIds = MutableStateFlow(emptyList<Long>())
+
+    val basketsEvents = object : BasketEvents {
+        override fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean) {
+            checkSelected(userId, item, isChecked)
+        }
+        override fun onExpandClicked(userId: Long, currentOffersSize: Int) {
+            clickExpanded(userId, currentOffersSize)
+        }
+        override fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean) {
+            if (isChecked) {
+                allOffers.filter { it?.safeDeal == true }.mapNotNull { it }.forEach { offer ->
+                    checkSelected(userId, SelectedBasketItem(
+                        offerId = offer.id,
+                        pricePerItem = offer.price.toDouble(),
+                        selectedQuantity = offer.quantity
+                    ), true)
+                }
+            } else {
+                uncheckAll(userId)
+            }
+        }
+        override fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit) {
+            val body = HashMap<String, JsonElement>()
+            body["offer_id"] = JsonPrimitive(offerId)
+            body["quantity"] = JsonPrimitive(newQuantity)
+            addOfferToBasket(body) { onResult(newQuantity) }
+            updateQuantityInState(offerId, newQuantity)
+        }
+        override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {
+            addToFavorites(offer) {
+                offer.isWatchedByMe = it
+                onFinish(it)
+            }
+        }
+        override fun onDeleteOffersRequest(ids: List<Long>) {
+            deleteIds.value = ids
+        }
+        override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
+            component.goToCreateOrder(Pair(userId, selectedOffers))
+        }
+        override fun onGoToUser(userId: Long) {
+            component.goToUser(userId)
+        }
+        override fun onGoToOffer(offerId: Long) {
+            component.goToOffer(offerId)
+        }
+    }
 
     val uiDataState: StateFlow<List<BasketGroupUiState>> = combine(
         responseGetUserCart,
@@ -126,37 +162,13 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
     ) { isLoading, error ->
         val menuString = getString(strings.menuTitle)
         val clearBasketString = getString(strings.actionClearBasket)
-        val title = getString(strings.yourBasketTitle)
 
         BasketUiState(
             isLoading = isLoading,
             errorMessage = error,
-            appBarData = object : SimpleAppBarData {
-                override val modifier: Modifier
-                    get() = Modifier.fillMaxWidth()
-                override val color: Color
-                    get() = colors.white
-                override val content: @Composable (() -> Unit)
-                    get() = {
-                        Column(
-                            modifier = modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            TextAppBar(title)
-
-                            if (subtitle.value.isNotBlank()) {
-                                Text(
-                                    text = subtitle.value,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = colors.titleTextColor
-                                )
-                            }
-                        }
-                    }
-                override val onBackClick: (() -> Unit)?
-                    get() = null
-                override val listItems = listOf(
+            appBarData = SimpleAppBarData(
+                color = colors.white,
+                listItems = listOf(
                     NavigationItem(
                         title = "",
                         icon = drawables.recycleIcon,
@@ -175,78 +187,32 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
                         hasNews = false,
                         badgeCount = null,
                         onClick = {
-                            showMenu.value = true
+                            showMenuBasket.value = true
                         }
                     ),
-                )
-                override val showMenu: MutableState<Boolean>
-                    get() = showMenuBasket
-                override val menuItems: List<MenuItem>
-                    get() = listOf(
-                        MenuItem(
-                            id = "delete_basket",
-                            title = clearBasketString,
-                            icon = drawables.deleteIcon,
-                            onClick = {
-                                clearBasket{
-                                    refresh()
-                                }
+                ),
+                showMenu = showMenuBasket,
+                menuItems = listOf(
+                    MenuItem(
+                        id = "delete_basket",
+                        title = clearBasketString,
+                        icon = drawables.deleteIcon,
+                        onClick = {
+                            clearBasket{
+                                refresh()
                             }
-                        )
-                    )
-
-            },
-            basketEvents = object : BasketEvents {
-                override fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean) {
-                    checkSelected(userId, item, isChecked)
-                }
-                override fun onExpandClicked(userId: Long, currentOffersSize: Int) {
-                    clickExpanded(userId, currentOffersSize)
-                }
-                override fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean) {
-                    if (isChecked) {
-                        allOffers.filter { it?.safeDeal == true }.mapNotNull { it }.forEach { offer ->
-                            checkSelected(userId, SelectedBasketItem(
-                                offerId = offer.id,
-                                pricePerItem = offer.price.toDouble(),
-                                selectedQuantity = offer.quantity
-                            ), true)
                         }
-                    } else {
-                        uncheckAll(userId)
-                    }
-                }
-                override fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit) {
-                    val body = HashMap<String, JsonElement>()
-                    body["offer_id"] = JsonPrimitive(offerId)
-                    body["quantity"] = JsonPrimitive(newQuantity)
-                    addOfferToBasket(body) { onResult(newQuantity) }
-                    updateQuantityInState(offerId, newQuantity)
-                }
-                override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {
-                    addToFavorites(offer) {
-                        offer.isWatchedByMe = it
-                        onFinish(it)
-                    }
-                }
-                override fun onDeleteOffersRequest(ids: List<Long>) {
-                    deleteIds.value = ids
-                }
-                override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
-                    component.goToCreateOrder(Pair(userId, selectedOffers))
-                }
-                override fun onGoToUser(userId: Long) {
-                    component.goToUser(userId)
-                }
-                override fun onGoToOffer(offerId: Long) {
-                    component.goToOffer(offerId)
-                }
-            }
+                    )
+                )
+            ),
+            basketEvents = basketsEvents
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = BasketUiState()
+        initialValue = BasketUiState(
+            basketEvents = basketsEvents
+        )
     )
 
     init {

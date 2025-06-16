@@ -1,12 +1,5 @@
 package market.engine.fragments.root.main.home
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
@@ -38,10 +31,8 @@ import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
-import market.engine.widgets.bars.DrawerAppBarData
+import market.engine.widgets.bars.appBars.SimpleAppBarData
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 interface HomeEvents {
     fun goToCategory(category: TopCategory)
@@ -55,8 +46,8 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val error: ServerErrorException = ServerErrorException(),
     val unreadNotificationsCount: Int? = null,
-    val appBarData : DrawerAppBarData? = null,
-    val events : HomeEvents? = null,
+    val appBarData : SimpleAppBarData = SimpleAppBarData(),
+    val events : HomeEvents,
     val listFooter: List<TopCategory> = emptyList(),
     val drawerList: List<NavigationItem> = emptyList(),
 )
@@ -69,6 +60,34 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
 
     private val listingData = ListingData()
 
+    val homeEvents = object : HomeEvents {
+        override fun goToCategory(category: TopCategory) {
+            listingData.searchData.searchCategoryID = category.id
+            listingData.searchData.searchParentID = category.parentId
+            listingData.searchData.searchCategoryName = category.name
+            listingData.searchData.searchParentName = category.parentName
+
+            component.goToNewSearch(listingData, false)
+        }
+
+        override fun goToAllPromo() {
+            listingData.data.filters = ListingFilters.getEmpty()
+            viewModelScope.launch {
+                val allPromo = getString(strings.allPromoOffersBtn)
+
+                listingData.data.filters.find { filter ->
+                    filter.key == "promo_main_page"
+                }?.value = "promo_main_page"
+                listingData.data.filters.find { filter ->
+                    filter.key == "promo_main_page"
+                }?.interpretation = allPromo
+
+                listingData.searchData.clear(allPromo)
+
+                component.goToNewSearch(listingData, false)
+            }
+        }
+    }
 
     val uiState: StateFlow<HomeUiState> = combine(
         _responseCategory,
@@ -90,93 +109,55 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
             isLoading = isLoading,
             error = error,
             unreadNotificationsCount = getUnreadNotificationsCount(),
-            appBarData = object : DrawerAppBarData {
-                override val modifier: Modifier
-                    get() = Modifier.fillMaxWidth()
-                override val color: Color
-                    get() = colors.white
-                override val content: @Composable (() -> Unit)
-                    get() = {
-                        Image(
-                            painter = painterResource(drawables.logo),
-                            contentDescription = stringResource(strings.homeTitle),
-                            modifier = Modifier.size(140.dp, 68.dp),
-                        )
-                    }
-                override val listItems: List<NavigationItem>
-                    get() = listOf(
-                        NavigationItem(
-                            title = "",
-                            icon = drawables.recycleIcon,
-                            tint = colors.inactiveBottomNavIconColor,
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
-                            onClick = { updateModel() }
-                        ),
-                        NavigationItem(
-                            title = proposalString,
-                            icon = drawables.currencyIcon,
-                            tint = colors.titleTextColor,
-                            hasNews = false,
-                            badgeCount = userInfo?.countUnreadPriceProposals,
-                            isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
-                            onClick = {
-                                component.goToMyProposals()
-                            }
-                        ),
-                        NavigationItem(
-                            title = messageString,
-                            icon = drawables.mail,
-                            tint = colors.brightBlue,
-                            hasNews = false,
-                            badgeCount = if ((userInfo?.countUnreadMessages
-                                    ?: 0) > 0
-                            ) (userInfo?.countUnreadMessages ?: 0) else null,
-                            onClick = {
-                                component.goToMessenger()
-                            }
-                        ),
-                        NavigationItem(
-                            title = notificationString,
-                            icon = drawables.notification,
-                            tint = colors.titleTextColor,
-                            isVisible = (getUnreadNotificationsCount() ?: 0) > 0,
-                            hasNews = false,
-                            badgeCount = getUnreadNotificationsCount(),
-                            onClick = {
-                                component.goToNotificationHistory()
-                            }
-                        ),
-                    )
-            },
-            events = object : HomeEvents {
-                override fun goToCategory(category: TopCategory) {
-                    listingData.searchData.searchCategoryID = category.id
-                    listingData.searchData.searchParentID = category.parentId
-                    listingData.searchData.searchCategoryName = category.name
-                    listingData.searchData.searchParentName = category.parentName
-
-                    component.goToNewSearch(listingData, false)
-                }
-                override fun goToAllPromo() {
-                    listingData.data.filters = ListingFilters.getEmpty()
-                    viewModelScope.launch {
-                        val allPromo = getString(strings.allPromoOffersBtn)
-
-                        listingData.data.filters.find {
-                                filter -> filter.key == "promo_main_page"
-                        }?.value = "promo_main_page"
-                        listingData.data.filters.find {
-                                filter -> filter.key == "promo_main_page"
-                        }?.interpretation = allPromo
-
-                        listingData.searchData.clear(allPromo)
-
-                        component.goToNewSearch(listingData, false)
-                    }
-                }
-            },
+            appBarData = SimpleAppBarData(
+                color = colors.white,
+                listItems = listOf(
+                    NavigationItem(
+                        title = "",
+                        icon = drawables.recycleIcon,
+                        tint = colors.inactiveBottomNavIconColor,
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
+                        onClick = { updateModel() }
+                    ),
+                    NavigationItem(
+                        title = proposalString,
+                        icon = drawables.currencyIcon,
+                        tint = colors.titleTextColor,
+                        hasNews = false,
+                        badgeCount = userInfo?.countUnreadPriceProposals,
+                        isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
+                        onClick = {
+                            component.goToMyProposals()
+                        }
+                    ),
+                    NavigationItem(
+                        title = messageString,
+                        icon = drawables.mail,
+                        tint = colors.brightBlue,
+                        hasNews = false,
+                        badgeCount = if ((userInfo?.countUnreadMessages
+                                ?: 0) > 0
+                        ) (userInfo?.countUnreadMessages ?: 0) else null,
+                        onClick = {
+                            component.goToMessenger()
+                        }
+                    ),
+                    NavigationItem(
+                        title = notificationString,
+                        icon = drawables.notification,
+                        tint = colors.titleTextColor,
+                        isVisible = (getUnreadNotificationsCount() ?: 0) > 0,
+                        hasNews = false,
+                        badgeCount = getUnreadNotificationsCount(),
+                        onClick = {
+                            component.goToNotificationHistory()
+                        }
+                    ),
+                )
+            ),
+            events = homeEvents,
             listFooter = listOf(
                 TopCategory(
                     id = 1,
@@ -277,7 +258,9 @@ class HomeViewModel(component: HomeComponent) : BaseViewModel() {
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = HomeUiState()
+        initialValue = HomeUiState(
+            events = homeEvents
+        )
     )
 
     fun updateModel() {

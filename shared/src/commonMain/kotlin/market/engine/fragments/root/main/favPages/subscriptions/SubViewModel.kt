@@ -1,18 +1,38 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
-import app.cash.paging.cachedIn
+import androidx.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.FilterListingBtnItem
+import market.engine.core.data.states.ListingBaseState
+import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
+import market.engine.widgets.bars.appBars.SimpleAppBarData
+
+data class SubContentState(
+    val listingBaseState : ListingBaseState = ListingBaseState(),
+    val appState : SimpleAppBarData = SimpleAppBarData(),
+    val listingData : ListingData = ListingData(),
+    val activeFilterListingBtnItem: FilterListingBtnItem = FilterListingBtnItem()
+)
 
 class SubViewModel(
     private val subscriptionOperations: SubscriptionOperations
@@ -20,16 +40,61 @@ class SubViewModel(
 
     private val pagingRepository: PagingRepository<Subscription> = PagingRepository()
 
-    val listingData = mutableStateOf(ListingData())
+    private val _listingData = MutableStateFlow(ListingData().copy(
+        data = LD(
+            methodServer = "get_cabinet_listing",
+            objServer = "subscriptions",
+        )
+    ))
 
-    fun init(): Flow<PagingData<Subscription>> {
-        listingData.value.data.methodServer = "get_cabinet_listing"
-        listingData.value.data.objServer = "subscriptions"
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pagingDataFlow: Flow<PagingData<Subscription>> = _listingData
+        .flatMapLatest { listingParams ->
+            pagingRepository.getListing(listingParams, apiService, Subscription.serializer())
+        }.cachedIn(viewModelScope)
 
-        return pagingRepository.getListing(listingData.value, apiService, Subscription.serializer()).cachedIn(viewModelScope)
-    }
+    val subContentState: StateFlow<SubContentState> = combine(
+        _listingData,
+        activeWindowType
+    ){ listingData, activeType ->
+        SubContentState(
+            listingBaseState = ListingBaseState(
+                columns = if (isBigScreen.value) 2 else 1,
+                activeWindowType = activeType
+            ),
+            appState = SimpleAppBarData(
+                onBackClick = {
+
+                }
+            ),
+            listingData = listingData,
+            activeFilterListingBtnItem = FilterListingBtnItem(
+                text = listingData.data.sort?.interpretation ?: "",
+                removeFilter = {
+                    _listingData.update {
+                        it.copy(
+                            data = it.data.copy(
+                                sort = null
+                            )
+                        )
+                    }
+                    refresh()
+                },
+                itemClick = {
+                    activeWindowType.value = ActiveWindowListingType.SORTING
+                }
+            )
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        SubContentState()
+    )
 
     fun refresh(){
+        _listingData.update {
+            it.copy()
+        }
         updateUserInfo()
         pagingRepository.refresh()
     }
@@ -93,5 +158,20 @@ class SubViewModel(
                 }
             }
         }
+    }
+
+    fun backClick(){
+        when{
+            activeWindowType.value != ActiveWindowListingType.LISTING ->{
+                activeWindowType.value = ActiveWindowListingType.LISTING
+            }
+            else -> {
+
+            }
+        }
+    }
+
+    fun openSort(){
+        activeWindowType.value = ActiveWindowListingType.SORTING
     }
 }

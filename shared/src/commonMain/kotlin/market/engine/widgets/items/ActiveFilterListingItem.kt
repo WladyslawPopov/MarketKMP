@@ -10,13 +10,8 @@ import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.widgets.buttons.SmallIconButton
-
-data class FilterListingBtnItem(
-    val text : String,
-    val removeFilter : () -> Unit,
-    val itemClick : () -> Unit
-)
 
 @Composable
 fun ActiveFilterListingItem(

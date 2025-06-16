@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
@@ -13,8 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.listTopCategory
+import market.engine.core.data.states.ScrollDataState
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.rows.CategoryList
 import market.engine.widgets.rows.FooterRow
@@ -24,8 +30,10 @@ import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.onError
-import market.engine.widgets.bars.DrawerAppBar
+import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun HomeContent(
@@ -56,25 +64,28 @@ fun HomeContent(
     BackHandler(model.backHandler){}
 
     val scrollState = rememberLazyListState(
-//        initialFirstVisibleItemIndex = homeViewModel.scrollItem.value,
-//        initialFirstVisibleItemScrollOffset = homeViewModel.offsetScrollItem.value
+        initialFirstVisibleItemIndex = homeViewModel.scrollState.value.scrollItem,
+        initialFirstVisibleItemScrollOffset = homeViewModel.scrollState.value.scrollItem
     )
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-//            homeViewModel.scrollItem.value = index
-//            homeViewModel.offsetScrollItem.value = offset
+            homeViewModel.scrollState.value = ScrollDataState(index, offset)
         }
     }
 
     BaseContent(
         topBar = {
-            if (state.appBarData != null) {
-                DrawerAppBar(
-                    state.appBarData,
-                    drawerState = drawerState
+            DrawerAppBar(
+                data = state.appBarData,
+                drawerState = drawerState
+            ){
+                Image(
+                    painter = painterResource(drawables.logo),
+                    contentDescription = stringResource(strings.homeTitle),
+                    modifier = Modifier.size(140.dp, 68.dp),
                 )
             }
         },
@@ -119,7 +130,7 @@ fun HomeContent(
                         CategoryList(
                             categories = state.categories
                         ) { category ->
-                            state.events?.goToCategory(category)
+                            state.events.goToCategory(category)
                         }
                     }
                     item {
@@ -129,13 +140,13 @@ fun HomeContent(
                                 component.goToOffer(it)
                             },
                             onAllClickButton = {
-                                state.events?.goToAllPromo()
+                                state.events.goToAllPromo()
                             }
                         )
                     }
                     item {
                         GridPopularCategory(listTopCategory) { topCategory ->
-                            state.events?.goToCategory(topCategory)
+                            state.events.goToCategory(topCategory)
                         }
                     }
                     item {
@@ -145,7 +156,7 @@ fun HomeContent(
                                 component.goToOffer(it)
                             },
                             onAllClickButton = {
-                                state.events?.goToAllPromo()
+                                state.events.goToAllPromo()
                             }
                         )
                     }

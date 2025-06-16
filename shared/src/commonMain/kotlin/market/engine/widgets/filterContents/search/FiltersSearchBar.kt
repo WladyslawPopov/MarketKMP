@@ -7,11 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import market.engine.core.data.events.SearchEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.fragments.root.main.listing.SearchEvents
-import market.engine.fragments.root.main.listing.SearchUiState
+import market.engine.core.data.states.SearchUiState
 import market.engine.widgets.buttons.FilterButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -77,7 +77,7 @@ fun FiltersSearchBar(
                 text = stringResource(strings.searchUserFinishedStringChoice),
                 color = if (!searchData.searchFinished) colors.simpleButtonColors else colors.themeButtonColors,
                 onClick = {
-                    searchEvents.clickUserFinished()
+                    searchEvents.clickSearchFinished()
                 },
             )
         }

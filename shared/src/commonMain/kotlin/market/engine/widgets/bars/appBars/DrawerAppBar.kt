@@ -1,4 +1,4 @@
-package market.engine.widgets.bars
+package market.engine.widgets.bars.appBars
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,29 +11,22 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.MenuHamburgerButton
-
-interface DrawerAppBarData{
-    val modifier: Modifier
-    val color: Color
-    val content : @Composable () -> Unit
-    val listItems: List<NavigationItem>
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrawerAppBar(
-    data: DrawerAppBarData,
-    drawerState: DrawerState
+    modifier: Modifier = Modifier,
+    data: SimpleAppBarData,
+    drawerState: DrawerState,
+    content: @Composable () -> Unit,
 ) {
     TopAppBar(
-        modifier = data.modifier,
+        modifier = modifier,
         title = {
-            data.content()
+            content()
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = data.color

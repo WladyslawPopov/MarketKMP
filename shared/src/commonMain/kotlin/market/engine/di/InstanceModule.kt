@@ -37,13 +37,6 @@ val databaseModule = module {
     singleOf(::createSqlDriver)
     single {
         val driver = get<SqlDriver>()
-//
-//        MarketDB.Schema.migrate(
-//            driver = driver,
-//            oldVersion = 11,
-//            newVersion = MarketDB.Schema.version,
-//        )
-
         MarketDB(driver)
     }
     singleOf(::createSettings)

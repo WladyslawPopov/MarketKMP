@@ -59,8 +59,13 @@ class FavPagesViewModel : BaseViewModel() {
                 listingData.value.data.objServer = "offers"
             }
             FavScreenType.FAV_LIST ->{
-                listingData.value.data.filters.add(
-                    Filter("list_id", "$listId", "", null),
+                listingData.value.data.copy(
+                    filters = buildList {
+                        add(
+                            Filter("list_id", "$listId", "", null)
+                        )
+                        addAll(listingData.value.data.filters)
+                    }
                 )
                 listingData.value.data.methodServer = "get_cabinet_listing_in_list"
                 listingData.value.data.objServer = "offers"

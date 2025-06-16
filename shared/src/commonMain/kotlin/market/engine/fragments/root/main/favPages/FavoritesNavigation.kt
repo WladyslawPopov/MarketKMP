@@ -3,7 +3,6 @@ package market.engine.fragments.root.main.favPages
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -140,14 +139,13 @@ fun createFavoritesChild(
     navigateToConversations: () -> Unit,
 ): ChildFavorites = when (config) {
         is FavoritesConfig.FavPagesScreen -> ChildFavorites.FavPagesChild(
-            itemFavPages(
-                componentContext,
-                favPagesViewModel,
-                favoritesNavigation,
-                config.favScreenType
+            DefaultFavPagesComponent(
+                favoritesNavigation = favoritesNavigation,
+                componentContext = componentContext,
+                viewModel = favPagesViewModel,
+                favType = config.favScreenType
             )
         )
-
         is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
             component = offerFactory(
                 componentContext,
@@ -380,19 +378,5 @@ fun createFavoritesChild(
                 )
             }
         )
-    )
-}
-
-fun itemFavPages(
-    componentContext: ComponentContext,
-    favPagesViewModel: FavPagesViewModel,
-    favoritesNavigation : StackNavigation<FavoritesConfig>,
-    favType: FavScreenType = FavScreenType.FAVORITES
-): FavPagesComponent {
-    return DefaultFavPagesComponent(
-        favoritesNavigation = favoritesNavigation,
-        componentContext = componentContext,
-        viewModel = favPagesViewModel,
-        favType = favType
     )
 }

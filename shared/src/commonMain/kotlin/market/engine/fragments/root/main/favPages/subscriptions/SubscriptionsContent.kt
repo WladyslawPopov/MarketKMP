@@ -8,19 +8,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
+import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
@@ -40,13 +40,12 @@ fun SubscriptionsContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val subViewModel = modelState.value.subViewModel
-    val searchData = subViewModel.listingData.value.searchData
-    val listingData = subViewModel.listingData.value.data
-    val data = modelState.value.pagingDataFlow.collectAsLazyPagingItems()
+    val uiState = subViewModel.subContentState.collectAsState()
+    val listingData = uiState.value.listingData.data
+    val activeWindowType = uiState.value.listingBaseState.activeWindowType
+    val data = subViewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
-    val columns = remember { mutableStateOf(if (isBigScreen.value) 2 else 1) }
 
     val refresh = remember {
         {
@@ -57,12 +56,18 @@ fun SubscriptionsContent(
         }
     }
 
-    val noFound = @Composable {
-        showNoItemLayout(
-            title = stringResource(strings.emptySubscriptionsLabel),
-            image = drawables.emptyFavoritesImage
-        ) {
-            refresh()
+    val noFound = remember(data.loadState.refresh) {
+        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
+            @Composable {
+                showNoItemLayout(
+                    title = stringResource(strings.emptySubscriptionsLabel),
+                    image = drawables.emptyFavoritesImage
+                ) {
+                    refresh()
+                }
+            }
+        } else {
+            null
         }
     }
 
@@ -75,14 +80,7 @@ fun SubscriptionsContent(
     }
 
     BackHandler(modelState.value.backHandler){
-//        when{
-//            subViewModel.activeFiltersType.value != "" ->{
-//                subViewModel.activeFiltersType.value = ""
-//            }
-//            else -> {
-//
-//            }
-//        }
+        subViewModel.backClick()
     }
 
     //update item when we back
@@ -104,79 +102,66 @@ fun SubscriptionsContent(
         toastItem = subViewModel.toastItem,
         modifier = modifier.fillMaxSize()
     ) {
-//        ListingBaseContent(
-//            listingData = listingData.value,
-//            data = data,
-//            searchData = searchData,
-//            baseViewModel = subViewModel,
-//            onRefresh = {
-//                subViewModel.resetScroll()
-//                data.refresh()
-//            },
-//            noFound = noFound,
-//            columns = columns.value,
-//            filtersContent = { isRefreshingFromFilters , onClose ->
-//                when (subViewModel.activeFiltersType.value){
-//                    "sorting" -> SortingOrdersContent(
-//                        isRefreshingFromFilters,
-//                        listingData.value,
-//                        onClose
-//                    )
-//                }
-//            },
-//            additionalBar = {
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    SmallIconButton(
-//                        drawables.newLotIcon,
-//                        color = colors.positiveGreen
-//                    ) {
-//                        component.goToCreateNewSubscription()
-//                    }
-//
-////                    if (listingData.value.sort != null){
-////                        if (listingData.value.sort != null){
-////                            ActiveFilterListingItem(
-////                                text = listingData.value.sort?.interpretation ?: "",
-////                                removeFilter = {
-////                                    listingData.value.sort = null
-////                                    refresh()
-////                                },
-////                            ){
-////                                subViewModel.activeFiltersType.value = "sorting"
-////                            }
-////                        }
-////                    }
-//
-//                    SmallIconButton(
-//                        drawables.sortIcon,
-//                        color = colors.black
-//                    ){
-//                        subViewModel.activeFiltersType.value = "sorting"
-//                    }
-//                }
-//            },
-//            item = { subscription ->
-//                if (subscription.id != 1L && subViewModel.updateItemTrigger.value >= 0) {
-//                    SubscriptionItem(
-//                        subscription,
-//                        subViewModel,
-//                        goToEditSubscription = {
-//                            component.goToCreateNewSubscription(it)
-//                        },
-//                        onUpdateItem = {
-//                            subViewModel.updateItem.value = subscription.id
-//                            subViewModel.updateItemTrigger.value++
-//                        },
-//                        onItemClick = {
-//                            component.goToListing(subscription)
-//                        }
-//                    )
-//                }
-//            }
-//        )
+        ListingBaseContent(
+            uiState = uiState.value.listingBaseState,
+            data = data,
+            baseViewModel = subViewModel,
+            noFound = noFound,
+            filtersContent = {
+                when (activeWindowType){
+                    ActiveWindowListingType.SORTING -> {
+                        SortingOrdersContent(
+                            listingData,
+                        ){ update ->
+
+                        }
+                    }
+                    else -> {}
+                }
+            },
+            additionalBar = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SmallIconButton(
+                        drawables.newLotIcon,
+                        color = colors.positiveGreen
+                    ) {
+                        component.goToCreateNewSubscription()
+                    }
+
+                    if (listingData.sort != null){
+                        ActiveFilterListingItem(uiState.value.activeFilterListingBtnItem)
+                    }
+
+                    SmallIconButton(
+                        drawables.sortIcon,
+                        color = colors.black
+                    ){
+                        subViewModel.openSort()
+                    }
+                }
+            },
+            item = { subscription ->
+                if (subscription.id != 1L && subViewModel.updateItemTrigger.value >= 0) {
+                    SubscriptionItem(
+                        subscription,
+                        subViewModel,
+                        goToEditSubscription = {
+                            component.goToCreateNewSubscription(it)
+                        },
+                        onUpdateItem = {
+                            subViewModel.updateItem.value = subscription.id
+                            subViewModel.updateItemTrigger.value++
+                        },
+                        onItemClick = {
+                            component.goToListing(subscription)
+                        }
+                    )
+                }
+            }
+        )
     }
 }

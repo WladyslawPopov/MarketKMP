@@ -30,6 +30,7 @@ import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.ScrollDataState
+import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.functions.OfferOperations
@@ -70,8 +71,8 @@ open class BaseViewModel: ViewModel() {
     //filters params***
     val catDef = mutableStateOf("")
     val scrollState  = MutableStateFlow(ScrollDataState())
-
     val bottomSheetState = MutableStateFlow(BottomSheetValue.Collapsed)
+    val activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
 
     val showLogoutDialog = mutableStateOf(false)
     val deliveryCards = mutableStateOf(emptyList<DeliveryAddress>())
@@ -1400,7 +1401,10 @@ open class BaseViewModel: ViewModel() {
     }
 
     fun resetScroll() {
-//        scrollItem.value = 0
-//        offsetScrollItem.value = 0
+        scrollState.value = ScrollDataState()
+    }
+
+    fun clearError(){
+        onError(ServerErrorException())
     }
 }

@@ -21,7 +21,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.states.ListingBaseState
 import market.engine.core.data.states.ScrollDataState
-import market.engine.fragments.root.main.listing.ActiveWindowType
+import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.widgets.grids.PagingList
 
 
@@ -68,7 +68,7 @@ fun <T : Any>ListingBaseContent(
         snapshotFlow {
             uiState.activeWindowType
         }.collect { type ->
-            if (type != ActiveWindowType.LISTING) {
+            if (type != ActiveWindowListingType.LISTING) {
                 scaffoldState.bottomSheetState.expand()
             } else {
                 scaffoldState.bottomSheetState.collapse()
@@ -77,8 +77,8 @@ fun <T : Any>ListingBaseContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if (uiState.activeWindowType == ActiveWindowType.LISTING ||
-                    uiState.activeWindowType == ActiveWindowType.CATEGORY){
+        if (uiState.activeWindowType == ActiveWindowListingType.LISTING ||
+                    uiState.activeWindowType == ActiveWindowListingType.CATEGORY){
             additionalBar(scrollState)
         }
 
@@ -91,7 +91,7 @@ fun <T : Any>ListingBaseContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-                if (uiState.activeWindowType != ActiveWindowType.LISTING) {
+                if (uiState.activeWindowType != ActiveWindowListingType.LISTING) {
                     filtersContent?.invoke()
                 }
             },

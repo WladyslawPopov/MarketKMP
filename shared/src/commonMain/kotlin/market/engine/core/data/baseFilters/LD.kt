@@ -5,7 +5,7 @@ import market.engine.core.data.constants.PAGE_SIZE
 
 @Serializable
 data class LD(
-    var filters : ArrayList<Filter> = arrayListOf(),
+    var filters : List<Filter> = emptyList(),
     var sort : Sort? = null,
     var listingType : Int = 0,
 

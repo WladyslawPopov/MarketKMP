@@ -78,7 +78,7 @@ class DefaultListingComponent(
                 selectedIndex = 0
             )
         },
-        handleBackButton = true,
+        handleBackButton = false,
         key = "SearchPagesComponents",
         childFactory = { config, componentContext ->
             when (config.type){

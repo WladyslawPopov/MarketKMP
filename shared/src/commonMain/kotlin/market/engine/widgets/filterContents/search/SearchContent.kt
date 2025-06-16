@@ -29,9 +29,9 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.states.SearchUiState
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.fragments.root.main.listing.SearchPagesComponents
-import market.engine.fragments.root.main.listing.SearchUiState
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.tabs.PageTab

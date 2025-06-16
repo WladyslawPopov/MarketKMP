@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.fragments.root.main.listing.FilterBarUiState
+import market.engine.core.data.states.FilterBarUiState
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.rows.LazyRowWithScrollBars

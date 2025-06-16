@@ -4,8 +4,8 @@ import market.engine.core.data.baseFilters.Filter
 
 
 object ListingFilters {
-    fun getEmpty(): ArrayList<Filter> {
-        return arrayListOf(
+    fun getEmpty(): List<Filter> {
+        return listOf(
             Filter("sale_type", "", null, null),
             Filter("session_end", "", null, null),
             Filter("starting_price", "", null, null),
