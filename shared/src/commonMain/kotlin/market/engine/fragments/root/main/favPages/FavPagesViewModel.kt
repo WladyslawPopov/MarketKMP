@@ -1,84 +1,32 @@
 package market.engine.fragments.root.main.favPages
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.paging.PagingData
-import androidx.paging.map
-import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.core.data.baseFilters.Filter
-import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.OfferItem
-import market.engine.core.data.types.FavScreenType
-import market.engine.core.data.types.LotsType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
-import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class FavPagesViewModel : BaseViewModel() {
+
+class FavPagesViewModel() : BaseViewModel() {
 
     private val offersListOperations = OffersListOperations(apiService)
-
-    private val pagingRepository: PagingRepository<Offer> = PagingRepository()
-
-    val listingData = mutableStateOf(ListingData())
 
     private val _favoritesTabList = MutableStateFlow(emptyList<FavoriteListItem>())
     val favoritesTabList = _favoritesTabList.asStateFlow()
 
-    val updateFilters = mutableStateOf(0)
-
     val initPosition = mutableStateOf(0)
 
     val isDragMode = mutableStateOf(false)
-
-    fun init(type: FavScreenType, listId: Long?= null): Flow<PagingData<OfferItem>> {
-        when(type){
-            FavScreenType.FAVORITES -> {
-                listingData.value.data.filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES)
-                listingData.value.data.methodServer = "get_cabinet_listing_watched_by_me"
-                listingData.value.data.objServer = "offers"
-            }
-            FavScreenType.NOTES ->{
-                listingData.value.data.methodServer = "get_cabinet_listing_my_notes"
-                listingData.value.data.objServer = "offers"
-            }
-            FavScreenType.FAV_LIST ->{
-                listingData.value.data.copy(
-                    filters = buildList {
-                        add(
-                            Filter("list_id", "$listId", "", null)
-                        )
-                        addAll(listingData.value.data.filters)
-                    }
-                )
-                listingData.value.data.methodServer = "get_cabinet_listing_in_list"
-                listingData.value.data.objServer = "offers"
-            }
-            else -> {}
-        }
-
-        return pagingRepository.getListing(listingData.value, apiService, Offer.serializer()).map {
-            it.map { offer ->
-                offer.parseToOfferItem()
-            }
-        }.cachedIn(viewModelScope)
-    }
 
     fun getList(id: Long, onSuccess: (FavoriteListItem) -> Unit) {
         viewModelScope.launch {

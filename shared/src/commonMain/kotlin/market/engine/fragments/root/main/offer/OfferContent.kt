@@ -86,7 +86,6 @@ import market.engine.core.network.networkObjects.Bids
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.onClickOfferOperationItem
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
@@ -302,33 +301,33 @@ fun OfferContent(
                 id = operation.id ?: "",
                 title = operation.name ?: "",
                 onClick = {
-                    operation.onClickOfferOperationItem(
-                        offer.parseToOfferItem(),
-                        offerViewModel,
-                        title,
-                        fields,
-                        showOperationsDialog,
-                        onUpdateOfferItem = {
-                            when(operation.id){
-                                "watch", "unwatch","create_blank_offer_list"  -> {
-                                    lotState.value?.isWatchedByMe = !offer.isWatchedByMe
-                                    offerViewModel.getOperations(offer.id)
-                                }
-                                else -> {
-                                    component.updateOffer(it, model.isSnapshot)
-                                }
-                            }
-                        },
-                        {
-                            component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
-                        },
-                        {
-                            component.goToCreateOffer(CreateOfferType.COPY, offer.catpath, offer.id, offer.externalImages)
-                        },
-                        { t, id ->
-                            component.goToDynamicSettings(t, id)
-                        },
-                    )
+//                    operation.onClickOfferOperationItem(
+//                        offer.parseToOfferItem(),
+//                        offerViewModel,
+//                        title,
+//                        fields,
+//                        showOperationsDialog,
+//                        onUpdateOfferItem = {
+//                            when(operation.id){
+//                                "watch", "unwatch","create_blank_offer_list"  -> {
+//                                    lotState.value?.isWatchedByMe = !offer.isWatchedByMe
+//                                    offerViewModel.getOperations(offer.id)
+//                                }
+//                                else -> {
+//                                    component.updateOffer(it, model.isSnapshot)
+//                                }
+//                            }
+//                        },
+//                        {
+//                            component.goToProposalPage(ProposalType.ACT_ON_PROPOSAL)
+//                        },
+//                        {
+//                            component.goToCreateOffer(CreateOfferType.COPY, offer.catpath, offer.id, offer.externalImages)
+//                        },
+//                        { t, id ->
+//                            component.goToDynamicSettings(t, id)
+//                        },
+//                    )
                 }
             )
         }
@@ -1153,16 +1152,16 @@ fun OfferContent(
                     },
                 )
 
-                OfferOperationsDialogs(
-                    offer.parseToOfferItem(),
-                    title,
-                    fields,
-                    showOperationsDialog,
-                    offerViewModel,
-                    updateItem = { id ->
-                        component.updateOffer(id, model.isSnapshot)
-                    }
-                )
+//                OfferOperationsDialogs(
+//                    offer.parseToOfferItem(),
+//                    title,
+//                    fields,
+//                    showOperationsDialog,
+//                    offerViewModel,
+//                    updateItem = { id ->
+//                        component.updateOffer(id, model.isSnapshot)
+//                    }
+//                )
             }
         }
     }

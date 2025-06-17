@@ -3,6 +3,7 @@ package market.engine.core.data.states
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.network.networkObjects.Options
 
+
 data class ListingStateContent(
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
     val listingData: ListingData = ListingData(),

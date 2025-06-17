@@ -64,14 +64,14 @@ fun ListingContent(
     val uiState = viewModel.listingDataState.collectAsState()
     val searchDataState = viewModel.searchDataState.collectAsState()
 
+    val err = viewModel.errorMessage.collectAsState()
+
     val updateItem = viewModel.updateItem.collectAsState()
     val errorString = viewModel.errorString.collectAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val isLoadingListing: State<Boolean> =
         rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
-    val err = viewModel.errorMessage.collectAsState()
 
     val listingData = uiState.value.listingData.data
     val searchData = uiState.value.listingData.searchData

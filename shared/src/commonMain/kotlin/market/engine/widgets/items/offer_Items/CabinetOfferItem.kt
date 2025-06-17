@@ -21,16 +21,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -39,19 +37,13 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.OfferItem
-import market.engine.core.data.types.CreateOfferType
-import market.engine.core.data.types.ProposalType
-import market.engine.core.network.networkObjects.Fields
+import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.onClickOfferOperationItem
-import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
 import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallImageButton
-import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.widgets.rows.PromoRow
@@ -61,55 +53,43 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetOfferItem(
-    item : OfferItem,
-    isVisible : Boolean,
-    baseViewModel: BaseViewModel,
-    onItemClick: () -> Unit = {},
-    isSelected : Boolean = false,
-    updateTrigger : Int = 0,
-    goToProposal : (ProposalType) -> Unit= { _ -> },
-    onUpdateOfferItem : ((Long) -> Unit)? = null,
-    refreshPage : (() -> Unit)? = null,
-    onSelectionChange: ((Boolean) -> Unit)? = null,
-    goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
-    goToDynamicSettings : (String, Long?) -> Unit = { _, _ -> },
+    state : CabinetOfferItemState,
+    updateItem : Long? = null,
 ) {
-    if (updateTrigger < 0) return
+    val item = state.item
+    val events = state.events
 
     val pagerState = rememberPagerState(
         pageCount = { item.images.size },
     )
 
-    val isOpenPopup = remember { mutableStateOf(false) }
-    val isOpenPromoPopup = remember { mutableStateOf(false) }
-
-    val showOperationsDialog = remember { mutableStateOf("") }
-    val title = remember { mutableStateOf(AnnotatedString("")) }
-    val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
-
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
     }
 
-    AnimatedVisibility(isVisible, enter = fadeIn(), exit = fadeOut()) {
+    val menuPromotionsList = remember {
+        mutableStateOf<List<MenuItem>>(emptyList())
+    }
+
+    LaunchedEffect(updateItem) {
+        if (updateItem == item.id) {
+            events.onUpdateItem()
+        }
+    }
+
+    AnimatedVisibility(state.isVisible, enter = fadeIn(), exit = fadeOut()) {
         Card(
             colors = if (!item.isPromo) colors.cardColors else colors.cardColorsPromo,
             shape = MaterialTheme.shapes.small,
             onClick = {
-                onItemClick()
+                events.onItemClick()
             }
         ) {
-            if (onUpdateOfferItem != null) {
-                HeaderOfferBar(
-                    offer = item,
-                    isSelected = isSelected,
-                    onUpdateTrigger = updateTrigger,
-                    baseViewModel = baseViewModel,
-                    onSelectionChange = onSelectionChange,
-                    onUpdateOfferItem = onUpdateOfferItem,
-                    refreshPage = refreshPage,
-                )
-            }
+            HeaderOfferBar(
+                offer = item,
+                selectedState = state.selectedItem,
+                defOptions = state.defOptions
+            )
 
             Row(
                 modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
@@ -122,7 +102,6 @@ fun CabinetOfferItem(
                     } else {
                         165.dp
                     }
-
 
                 Column(
                     modifier = Modifier.width(imageSize).padding(dimens.smallPadding),
@@ -176,36 +155,15 @@ fun CabinetOfferItem(
                             )
                         },
                     ) {
-                        baseViewModel.getOfferOperations(item.id) { listOperations ->
-                            menuList.value = buildList {
-                                addAll(listOperations.map { operation ->
-                                    MenuItem(
-                                        id = operation.id ?: "",
-                                        title = operation.name ?: "",
-                                        onClick = {
-                                            operation.onClickOfferOperationItem(
-                                                item,
-                                                baseViewModel,
-                                                title,
-                                                fields,
-                                                showOperationsDialog,
-                                                onUpdateOfferItem,
-                                                goToProposal,
-                                                goToCreateOffer,
-                                                goToDynamicSettings,
-                                            )
-                                        }
-                                    )
-                                })
-                            }
-                            isOpenPopup.value = true
+                        events.getMenuOperations {
+                            menuList.value = it
                         }
                     }
 
                     PopUpMenu(
-                        openPopup = isOpenPopup.value,
+                        openPopup = menuList.value.isNotEmpty(),
                         menuList = menuList.value,
-                        onClosed = { isOpenPopup.value = false }
+                        onClosed = { menuList.value = emptyList() }
                     )
                 }
 
@@ -460,51 +418,19 @@ fun CabinetOfferItem(
                         )
 
                         if (UserData.login == item.seller.id && item.state == "active") {
-                            val currency = stringResource(strings.currencySign)
                             PromoBuyBtn {
-                                baseViewModel.getOfferOperations(
-                                    item.id,
+                                events.getMenuOperations(
                                     "promo"
-                                ) { listOperations ->
-                                    menuList.value = buildList {
-                                        addAll(listOperations.map { operation ->
-                                            MenuItem(
-                                                id = operation.id ?: "",
-                                                title = "${(operation.name ?: "")} (${operation.price * -1}$currency)",
-                                                onClick = {
-                                                    baseViewModel.getOperationFields(
-                                                        item.id,
-                                                        operation.id ?: "",
-                                                        "offers"
-                                                    ) { t, f ->
-                                                        title.value = buildAnnotatedString {
-                                                            append(t)
-                                                            withStyle(
-                                                                SpanStyle(
-                                                                    color = colors.notifyTextColor,
-                                                                )
-                                                            ) {
-                                                                append(" ${operation.price}$currency")
-                                                            }
-                                                        }
-                                                        fields.value.clear()
-                                                        fields.value.addAll(f)
-                                                        showOperationsDialog.value =
-                                                            operation.id ?: ""
-                                                    }
-                                                }
-                                            )
-                                        })
-                                    }
-                                    isOpenPromoPopup.value = true
+                                ) {
+                                    menuPromotionsList.value = it
                                 }
                             }
                         }
 
                         PopUpMenu(
-                            openPopup = isOpenPromoPopup.value,
-                            menuList = menuList.value,
-                            onClosed = { isOpenPromoPopup.value = false }
+                            openPopup = menuPromotionsList.value.isNotEmpty(),
+                            menuList = menuPromotionsList.value,
+                            onClosed = { menuPromotionsList.value = emptyList() }
                         )
                     }
 
@@ -528,7 +454,7 @@ fun CabinetOfferItem(
                 }
             }
 
-            if (item.relistingMode != null && UserData.login == item.seller.id && onUpdateOfferItem != null) {
+            if (item.relistingMode != null && UserData.login == item.seller.id) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically,
@@ -549,17 +475,6 @@ fun CabinetOfferItem(
                     )
                 }
             }
-
-            OfferOperationsDialogs(
-                offer = item,
-                showDialog = showOperationsDialog,
-                viewModel = baseViewModel,
-                title = title,
-                fields = fields,
-                updateItem = {
-                    onUpdateOfferItem?.invoke(it)
-                }
-            )
         }
     }
 }

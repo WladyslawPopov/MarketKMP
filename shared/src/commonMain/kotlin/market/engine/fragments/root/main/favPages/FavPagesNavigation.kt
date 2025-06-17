@@ -15,25 +15,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.onError
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
-import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
-import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.widgets.dialogs.CustomDialog
 import market.engine.widgets.tooltip.TooltipState
@@ -292,23 +287,5 @@ fun FavPagesNavigation(
             }
         )
     }
-}
-
-fun itemSubscriptions(
-    componentContext: ComponentContext,
-    selectedType : FavScreenType,
-    navigateToCreateNewSubscription : (Long?) -> Unit,
-    navigateToListing : (ListingData) -> Unit
-): SubscriptionsComponent {
-    return DefaultSubscriptionsComponent(
-        componentContext = componentContext,
-        favType = selectedType,
-        navigateToCreateNewSubscription = {
-            navigateToCreateNewSubscription(it)
-        },
-        navigateToListing = {
-            navigateToListing(it)
-        }
-    )
 }
 

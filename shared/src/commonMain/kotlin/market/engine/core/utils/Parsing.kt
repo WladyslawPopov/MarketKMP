@@ -2,7 +2,6 @@ package market.engine.core.utils
 
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.util.fastForEach
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -15,14 +14,10 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.NotificationItem
 import market.engine.core.data.items.OfferItem
-import market.engine.core.data.types.CreateOfferType
-import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Order
-import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.network.networkObjects.User
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
@@ -177,90 +172,6 @@ fun deleteReadNotifications() {
 }
 
 
-fun Operations.onClickOfferOperationItem(
-    item : OfferItem,
-    baseViewModel : BaseViewModel,
-    title : MutableState<AnnotatedString>,
-    fields : MutableState<ArrayList<Fields>>,
-    showOperationsDialog : MutableState<String>,
-    onUpdateOfferItem : ((Long) -> Unit)? = null,
-    goToProposal : (ProposalType) -> Unit= { _ -> },
-    goToCreateOffer : (CreateOfferType) -> Unit = { _ -> },
-    goToDynamicSettings : (String, Long?) -> Unit = { _, _ -> },
-) {
-    when  {
-        id == "activate_offer_for_future" || id == "activate_offer" -> {
-            title.value = AnnotatedString(name ?: "")
-            showOperationsDialog.value = id
-        }
-
-        id == "copy_offer_without_old_photo" -> {
-            goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE)
-        }
-
-        id == "edit_offer" -> {
-            goToCreateOffer(CreateOfferType.EDIT)
-        }
-
-        id == "copy_offer" -> {
-            goToCreateOffer(CreateOfferType.COPY)
-        }
-
-        id == "act_on_proposal" -> {
-            goToProposal(ProposalType.ACT_ON_PROPOSAL)
-        }
-
-        id == "make_proposal" -> {
-            goToProposal(ProposalType.MAKE_PROPOSAL)
-        }
-
-        id == "cancel_all_bids" -> {
-            goToDynamicSettings("cancel_all_bids", item.id)
-        }
-
-        id == "remove_bids_of_users" -> {
-            goToDynamicSettings("remove_bids_of_users", item.id)
-        }
-
-        isDataless == false -> {
-            baseViewModel.getOperationFields(
-                item.id,
-                id ?: "",
-                "offers",
-            ) { t, f ->
-                title.value = AnnotatedString(t)
-                fields.value.clear()
-                fields.value.addAll(f)
-                showOperationsDialog.value = id ?: ""
-            }
-        }
-        else -> {
-            baseViewModel.postOperationFields(
-                item.id,
-                id ?: "",
-                "offers",
-                onSuccess = {
-                    val eventParameters = mapOf(
-                        "lot_id" to item.id,
-                        "lot_name" to item.title,
-                        "lot_city" to item.location,
-                        "auc_delivery" to item.safeDeal,
-                        "lot_category" to item.catPath.firstOrNull(),
-                        "seller_id" to item.seller.id,
-                        "lot_price_start" to item.price,
-                    )
-                    baseViewModel.analyticsHelper.reportEvent("${id}_success", eventParameters)
-
-                    baseViewModel.updateUserInfo()
-
-                    onUpdateOfferItem?.invoke(item.id)
-                },
-                errorCallback = {}
-            )
-        }
-    }
-}
-
 fun Operations.onClickOrderOperationItem(
     item : Order,
     title : MutableState<String>,
@@ -292,48 +203,6 @@ fun Operations.onClickOrderOperationItem(
                 id ?: "",
                 "orders",
                 onSuccess = {
-                    onUpdateOfferItem()
-                },
-                errorCallback = {
-
-                }
-            )
-        }
-    }
-}
-
-fun Operations.onClickSubOperationItem(
-    item : Subscription,
-    title : MutableState<AnnotatedString>,
-    viewModel : BaseViewModel,
-    showOperationsDialog : MutableState<String>,
-    goToEditSubscription : (Long) -> Unit,
-    onUpdateOfferItem : () -> Unit,
-) {
-    when (id)  {
-        "edit_subscription" ->{
-            goToEditSubscription(item.id)
-        }
-        "delete_subscription" ->{
-            title.value = AnnotatedString(name.toString())
-            showOperationsDialog.value = id
-        }
-        else -> {
-            viewModel.postOperationFields(
-                item.id,
-                id ?: "",
-                "subscriptions",
-                onSuccess = {
-                    val eventParameters = mapOf(
-                        "buyer_id" to UserData.login,
-                        "item_id" to item.id
-                    )
-                    viewModel.analyticsHelper.reportEvent(
-                        "delete_subscription",
-                        eventParameters
-                    )
-
-                    viewModel.updateItemTrigger.value++
                     onUpdateOfferItem()
                 },
                 errorCallback = {

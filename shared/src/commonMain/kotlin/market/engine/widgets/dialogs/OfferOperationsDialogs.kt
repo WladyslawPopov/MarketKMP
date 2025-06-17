@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.AnnotatedString
@@ -16,7 +15,6 @@ import kotlinx.serialization.json.buildJsonArray
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.OfferItem
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseViewModel
@@ -25,12 +23,13 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfferOperationsDialogs(
-    offer: OfferItem,
-    title: MutableState<AnnotatedString>,
-    fields: MutableState<ArrayList<Fields>>,
-    showDialog: MutableState<String>,
+    offerId : Long,
+    title: AnnotatedString,
+    fields: ArrayList<Fields>,
+    showDialog: String,
     viewModel : BaseViewModel,
     updateItem: (Long) -> Unit,
+    close : () -> Unit
 ) {
     val isClicked = remember { mutableStateOf(false) }
     val showFields = remember { mutableStateOf(false) }
@@ -38,10 +37,10 @@ fun OfferOperationsDialogs(
     val getOffersListFields : (ArrayList<Fields>) -> Unit by lazy {
         { fields ->
             viewModel.getOffersList { list ->
-                when (showDialog.value) {
+                when (showDialog) {
                     "add_to_list" -> {
                         fields.firstOrNull()?.choices = buildList {
-                            list.filter { !it.offers.contains(offer.id) }.fastForEach { item ->
+                            list.filter { !it.offers.contains(offerId) }.fastForEach { item ->
                                 add(
                                     Choices(
                                         code = JsonPrimitive(item.id),
@@ -54,7 +53,7 @@ fun OfferOperationsDialogs(
 
                     "remove_from_list" -> {
                         fields.firstOrNull()?.choices = buildList {
-                            list.filter { it.offers.contains(offer.id) }.fastForEach { item ->
+                            list.filter { it.offers.contains(offerId) }.fastForEach { item ->
                                 add(
                                     Choices(
                                         code = JsonPrimitive(item.id),
@@ -95,11 +94,11 @@ fun OfferOperationsDialogs(
         }
     }
 
-    LaunchedEffect(showDialog.value) {
-        if (showDialog.value != "") {
-            when (showDialog.value) {
+    LaunchedEffect(showDialog) {
+        if (showDialog != "") {
+            when (showDialog) {
                 "edit_offer_in_list", "add_to_list", "remove_from_list" -> {
-                    getOffersListFields(fields.value)
+                    getOffersListFields(fields)
                 }
                 else -> {
                     showFields.value = true
@@ -110,32 +109,32 @@ fun OfferOperationsDialogs(
         }
     }
 
-    if (showDialog.value != "") {
-        when (showDialog.value) {
+    if (showDialog != "") {
+        when (showDialog) {
             "delete_offer" -> {
                 AccessDialog(
-                    showDialog = showDialog.value != "",
-                    title = title.value,
+                    showDialog = showDialog != "",
+                    title = title,
                     onDismiss = {
-                        showDialog.value = ""
                         isClicked.value = false
+                        close()
                     },
                     onSuccess = {
                         if (!isClicked.value) {
                             isClicked.value = true
                             viewModel.postOperationFields(
-                                offer.id,
-                                showDialog.value,
+                                offerId,
+                                showDialog,
                                 "offers",
                                 onSuccess = {
-                                    showDialog.value = ""
-                                    updateItem(offer.id)
+                                    updateItem(offerId)
                                     isClicked.value = false
+                                    close()
                                 },
                                 errorCallback = {
-                                    showDialog.value = ""
-                                    updateItem(offer.id)
+                                    updateItem(offerId)
                                     isClicked.value = false
+                                    close()
                                 }
                             )
                         }
@@ -145,11 +144,11 @@ fun OfferOperationsDialogs(
 
             "activate_offer_for_future" -> {
                 DateDialog(
-                    showDialog = showDialog.value != "",
+                    showDialog = showDialog != "",
                     isSelectableDates = true,
                     onDismiss = {
-                        showDialog.value = ""
                         isClicked.value = false
+                        close()
                     },
                     onSucceed = { futureTimeInSeconds ->
                         if (!isClicked.value) {
@@ -157,18 +156,18 @@ fun OfferOperationsDialogs(
                             val body = HashMap<String, JsonElement>()
                             body["future_time"] = JsonPrimitive(futureTimeInSeconds)
                             viewModel.postOperationFields(
-                                offer.id,
-                                showDialog.value,
+                                offerId,
+                                showDialog,
                                 "offers",
                                 body = body,
                                 onSuccess = {
-                                    updateItem(offer.id)
-                                    showDialog.value = ""
+                                    updateItem(offerId)
                                     isClicked.value = false
+                                    close()
                                 },
                                 errorCallback = {
-                                    showDialog.value = ""
                                     isClicked.value = false
+                                    close()
                                 }
                             )
                         }
@@ -178,47 +177,47 @@ fun OfferOperationsDialogs(
 
             "error" -> {
                 CustomDialog(
-                    showDialog = showDialog.value != "",
+                    showDialog = showDialog != "",
                     title = buildAnnotatedString {
                         append(stringResource(strings.messageAboutError))
                     },
                     body = {
-                        Text(title.value)
+                        Text(title)
                     },
-                    onDismiss = { showDialog.value = "" }
+                    onDismiss = { close() }
                 )
             }
 
             else -> {
                 CustomDialog(
-                    showDialog = showDialog.value != "",
-                    title = title.value,
+                    showDialog = showDialog != "",
+                    title = title,
                     containerColor = colors.grayLayout,
                     body = {
                         Column {
                             if (showFields.value) {
-                                SetUpDynamicFields(fields.value)
+                                SetUpDynamicFields(fields)
                             }
                         }
                     },
                     onDismiss = {
-                        showDialog.value = ""
                         isClicked.value = false
+                        close()
                     },
                     onSuccessful = {
                         if (!isClicked.value) {
-                            var id = offer.id
+                            var id = offerId
 
                             var method = "offers"
 
                             isClicked.value = true
                             val body = HashMap<String, JsonElement>()
-                            when (showDialog.value) {
+                            when (showDialog) {
                                 "edit_offer_in_list" -> {
                                     val addList =
-                                        fields.value.find { it.widgetType == "checkbox_group" }?.data
+                                        fields.find { it.widgetType == "checkbox_group" }?.data
                                     val removeList = buildJsonArray {
-                                        fields.value.find { it.widgetType == "checkbox_group" }?.choices?.filter {
+                                        fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
                                             !addList.toString().contains(it.code.toString())
                                         }?.map { it.code }?.fastForEach {
                                             if (it != null) {
@@ -226,7 +225,7 @@ fun OfferOperationsDialogs(
                                             }
                                         }
                                     }
-                                    fields.value.forEach { field ->
+                                    fields.forEach { field ->
                                         if (field.widgetType == "hidden") {
                                             when (field.key) {
                                                 "offers_list_ids_add" -> {
@@ -239,7 +238,7 @@ fun OfferOperationsDialogs(
                                             }
                                         }
                                     }
-                                    fields.value.remove(fields.value.find { it.widgetType == "checkbox_group" })
+                                    fields.remove(fields.find { it.widgetType == "checkbox_group" })
                                 }
                                 "create_blank_offer_list" -> {
                                     id = UserData.login
@@ -247,7 +246,7 @@ fun OfferOperationsDialogs(
                                 }
                             }
 
-                            fields.value.forEach {
+                            fields.forEach {
                                 if (it.data != null) {
                                     body[it.key ?: ""] = it.data!!
                                 }
@@ -255,22 +254,22 @@ fun OfferOperationsDialogs(
 
                             viewModel.postOperationFields(
                                 id,
-                                showDialog.value,
+                                showDialog,
                                 method,
                                 body = body,
                                 onSuccess = {
-                                    showDialog.value = ""
                                     isClicked.value = false
-                                    updateItem(offer.id)
+                                    updateItem(offerId)
+                                    close()
                                 },
                                 errorCallback = { errFields ->
-                                    showDialog.value = ""
                                     isClicked.value = false
                                     if (errFields != null) {
-                                        fields.value.clear()
-                                        fields.value.addAll(errFields)
-                                        getOffersListFields(fields.value)
+                                        fields.clear()
+                                        fields.addAll(errFields)
+                                        getOffersListFields(fields)
                                     }
+                                    close()
                                 }
                             )
                         }

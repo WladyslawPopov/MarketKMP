@@ -17,7 +17,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.SearchPagesType
-import market.engine.fragments.root.main.favPages.itemSubscriptions
+import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 
 interface ListingComponent {
@@ -87,13 +87,13 @@ class DefaultListingComponent(
                 }
                 SearchPagesType.SUBSCRIBED -> {
                     SearchPagesComponents.SubscriptionsChild(
-                        component = itemSubscriptions(
-                            componentContext,
-                            selectedType = FavScreenType.SUBSCRIBED,
+                        component = DefaultSubscriptionsComponent(
+                            componentContext = componentContext,
+                            favType = FavScreenType.SUBSCRIBED,
                             navigateToCreateNewSubscription = {
                                 navigateToNewSubscription(it)
                             },
-                            navigateToListing = { listingData ->
+                            navigateToListing = {
                                 navigateToListing(listingData)
                             }
                         )

@@ -71,7 +71,6 @@ fun CategoryContent(
     }
 
     BaseContent(
-        topBar = null,
         onRefresh = refresh,
         error = null,
         noFound = null,//important, because we have our own noFound

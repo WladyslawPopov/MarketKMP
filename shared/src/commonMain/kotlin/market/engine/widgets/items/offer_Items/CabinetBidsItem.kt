@@ -32,7 +32,6 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
-import market.engine.core.utils.onClickOfferOperationItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.dialogs.OfferMessagingDialog
@@ -89,12 +88,12 @@ fun CabinetBidsItem(
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.Start
             ) {
-                HeaderOfferBar(
-                    offer = offer,
-                    baseViewModel = baseViewModel,
-                    onUpdateTrigger = updateTrigger,
-                    onUpdateOfferItem = onUpdateOfferItem
-                )
+//                HeaderOfferBar(
+//                    offer = offer,
+//                    baseViewModel = baseViewModel,
+//                    onUpdateTrigger = updateTrigger,
+//                    onUpdateOfferItem = onUpdateOfferItem
+//                )
 
                 Row(
                     modifier = Modifier.clickable {
@@ -140,14 +139,14 @@ fun CabinetBidsItem(
                                             id = operation.id ?: "",
                                             title = operation.name ?: "",
                                             onClick = {
-                                                operation.onClickOfferOperationItem(
-                                                    offer,
-                                                    baseViewModel,
-                                                    title,
-                                                    fields,
-                                                    showDialog,
-                                                    onUpdateOfferItem,
-                                                )
+//                                                operation.onClickOfferOperationItem(
+//                                                    offer,
+//                                                    baseViewModel,
+//                                                    title,
+//                                                    fields,
+//                                                    showDialog,
+//                                                    onUpdateOfferItem,
+//                                                )
                                             }
                                         )
                                     })
@@ -383,7 +382,7 @@ fun CabinetBidsItem(
                     )
                 }
 
-                OfferOperationsDialogs(
+              /*  OfferOperationsDialogs(
                     offer = offer,
                     showDialog = showDialog,
                     viewModel = baseViewModel,
@@ -392,7 +391,7 @@ fun CabinetBidsItem(
                     updateItem = {
                         onUpdateOfferItem(it)
                     }
-                )
+                )*/
             }
         }
     }

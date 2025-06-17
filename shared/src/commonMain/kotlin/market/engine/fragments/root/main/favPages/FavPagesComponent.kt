@@ -16,6 +16,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
+import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
 
 
@@ -80,9 +81,9 @@ class DefaultFavPagesComponent(
                 when (config.favItem.id) {
                     222L -> {
                         FavPagesComponents.SubscribedChild(
-                            component = itemSubscriptions(
-                                componentContext,
-                                selectedType = FavScreenType.SUBSCRIBED,
+                            component = DefaultSubscriptionsComponent(
+                                componentContext = componentContext,
+                                favType = FavScreenType.SUBSCRIBED,
                                 navigateToCreateNewSubscription = {
                                     favoritesNavigation.pushNew(
                                         FavoritesConfig.CreateSubscriptionScreen(it)
