@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.listing
 
-import androidx.compose.material.BottomSheetValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.paging.cachedIn
@@ -96,7 +95,11 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
         updatePage
     ) { listingData, _ ->
         listingData
-    }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        ListingData()
+    )
 
     val pagingDataFlow: Flow<PagingData<OfferItemState>> = pagingParamsFlow.flatMapLatest{ listingData ->
         pagingRepository.getListing(
@@ -242,12 +245,6 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
 
         listingCategoryModel.updateFromSearchData(listingData.searchData)
         listingCategoryModel.initialize(listingData.data.filters)
-
-        if(activeType != ActiveWindowListingType.LISTING){
-            bottomSheetState.value = BottomSheetValue.Expanded
-        }else{
-            bottomSheetState.value = BottomSheetValue.Collapsed
-        }
 
         val tabs = listOf(
             Tab(
@@ -815,9 +812,11 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
 
     fun clearListingData() {
         _listingData.update { listingData ->
-            listingData.searchData.clear(catDef.value)
+            val sd = listingData.searchData.copy()
+            sd.clear(catDef.value)
+
             listingData.copy(
-                searchData = listingData.searchData,
+                searchData = sd,
                 data = listingData.data.copy(
                     filters = ListingFilters.getEmpty()
                 )

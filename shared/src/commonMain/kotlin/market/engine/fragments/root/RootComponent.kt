@@ -55,7 +55,7 @@ interface RootComponent {
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
-    var deepLink: DeepLink?
+    var deepLink: DeepLink?,
 ) : RootComponent, ComponentContext by componentContext {
 
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()

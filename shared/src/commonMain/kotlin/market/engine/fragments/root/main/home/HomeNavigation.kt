@@ -3,7 +3,6 @@ package market.engine.fragments.root.main.home
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -176,314 +175,317 @@ fun createHomeChild(
     navigateToSubscribe: () -> Unit,
     navigateToMyProposals: () -> Unit,
     navigateToDeepLink: (DeepLink) -> Unit,
-): ChildHome = when (config) {
-    HomeScreen -> HomeChild(
-        DefaultHomeComponent(
-            componentContext = componentContext,
-            navigation = homeNavigation,
-            navigateToListingSelected = { ld, isNewSearch ->
-                homeNavigation.pushNew(
-                    ListingScreen(
-                        isNewSearch,
-                        ld.data,
-                        ld.searchData,
-                        getCurrentDate()
-                    )
-                )
-            },
-            navigateToLoginSelected = {
-                goToLogin(true)
-            },
-            navigateToOfferSelected = { id ->
-                homeNavigation.pushNew(OfferScreen(id, getCurrentDate()))
-            },
-            navigateToCreateOfferSelected = {
-                if(UserData.token != "") {
-                    homeNavigation.pushNew(
-                        CreateOfferScreen(
-                            null,
-                            null,
-                            CreateOfferType.CREATE,
-                            null
-                        )
-                    )
-                }else{
-                    goToLogin(true)
-                }
-            },
-            navigateToMessengerSelected = {
-                navigateToConversations()
-            },
-            navigateToContactUsSelected = {
-                goToContactUs(null)
-            },
-            navigateToSettingsSelected = {
-                goToDynamicSettings("app_settings", null, null)
-            },
-            navigateToMyProposalsSelected = {
-                navigateToMyProposals()
-            },
-            navigateToNotificationHistorySelected = {
-                homeNavigation.pushNew(
-                    NotificationHistoryScreen
-                )
-            }
-        )
-    )
-
-    is OfferScreen -> OfferChild(
-        component = offerFactory(
-            componentContext,
-            config.id,
-            selectOffer = {
-                val offerConfig = OfferScreen(it, getCurrentDate())
-                homeNavigation.pushNew(offerConfig)
-            },
-            onBack = {
-                homeNavigation.pop()
-            },
-            onListingSelected = {
-                homeNavigation.pushNew(
-                    ListingScreen(false, it.data, it.searchData, getCurrentDate())
-                )
-            },
-            onUserSelected = { ui, about ->
-                homeNavigation.pushNew(
-                    UserScreen(ui, getCurrentDate(), about)
-                )
-            },
-            isSnapshot = config.isSnapshot,
-            navigateToCreateOffer = { type, catPath, offerId, externalImages ->
-                if (UserData.token != "") {
-                    homeNavigation.pushNew(
-                        CreateOfferScreen(
-                            catPath,
-                            offerId,
-                            type,
-                            externalImages
-                        )
-                    )
-                } else {
-                    goToLogin(false)
-                }
-            },
-            navigateToCreateOrder = {
-                homeNavigation.pushNew(
-                    CreateOrderScreen(it)
-                )
-            },
-            navigateToLogin = {
-                goToLogin(false)
-            },
-            navigateToDialog = { dialogId ->
-                if (dialogId != null)
-                   homeNavigation.pushNew(
-                       MessagesScreen(dialogId,null, getCurrentDate())
-                   )
-                else
-                    navigateToConversations()
-            },
-            navigationSubscribes = {
-                navigateToSubscribe()
-            },
-            navigateToProposalPage = { offerId, type ->
-                homeNavigation.pushNew(
-                    ProposalScreen(offerId, type, getCurrentDate())
-                )
-            }
-        )
-    )
-    is ListingScreen -> {
-        val ld = ListingData(
-            searchData = config.searchData,
-            data = config.listingData
-        )
-        ListingChild(
-            component = DefaultListingComponent(
+): ChildHome =
+    when (config) {
+        HomeScreen -> HomeChild(
+            DefaultHomeComponent(
                 componentContext = componentContext,
-                listingData = ld,
-                selectOffer = {
+                navigation = homeNavigation,
+                navigateToListingSelected = { ld, isNewSearch ->
                     homeNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
+                        ListingScreen(
+                            isNewSearch,
+                            ld.data,
+                            ld.searchData,
+                            getCurrentDate()
+                        )
                     )
                 },
-                selectedBack = {
+                navigateToLoginSelected = {
+                    goToLogin(true)
+                },
+                navigateToOfferSelected = { id ->
+                    homeNavigation.pushNew(OfferScreen(id, getCurrentDate()))
+                },
+                navigateToCreateOfferSelected = {
+                    if (UserData.token != "") {
+                        homeNavigation.pushNew(
+                            CreateOfferScreen(
+                                null,
+                                null,
+                                CreateOfferType.CREATE,
+                                null
+                            )
+                        )
+                    } else {
+                        goToLogin(true)
+                    }
+                },
+                navigateToMessengerSelected = {
+                    navigateToConversations()
+                },
+                navigateToContactUsSelected = {
+                    goToContactUs(null)
+                },
+                navigateToSettingsSelected = {
+                    goToDynamicSettings("app_settings", null, null)
+                },
+                navigateToMyProposalsSelected = {
+                    navigateToMyProposals()
+                },
+                navigateToNotificationHistorySelected = {
+                    homeNavigation.pushNew(
+                        NotificationHistoryScreen
+                    )
+                }
+            )
+        )
+
+        is OfferScreen -> OfferChild(
+            component = offerFactory(
+                componentContext,
+                config.id,
+                selectOffer = {
+                    val offerConfig = OfferScreen(it, getCurrentDate())
+                    homeNavigation.pushNew(offerConfig)
+                },
+                onBack = {
                     homeNavigation.pop()
                 },
-                isOpenSearch = config.isOpenSearch,
-                navigateToSubscribe = {
-                    navigateToSubscribe()
-                },
-                navigateToListing = {
+                onListingSelected = {
                     homeNavigation.pushNew(
                         ListingScreen(false, it.data, it.searchData, getCurrentDate())
                     )
                 },
-                navigateToNewSubscription = {
+                onUserSelected = { ui, about ->
                     homeNavigation.pushNew(
-                        CreateSubscriptionScreen(it)
+                        UserScreen(ui, getCurrentDate(), about)
+                    )
+                },
+                isSnapshot = config.isSnapshot,
+                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
+                    if (UserData.token != "") {
+                        homeNavigation.pushNew(
+                            CreateOfferScreen(
+                                catPath,
+                                offerId,
+                                type,
+                                externalImages
+                            )
+                        )
+                    } else {
+                        goToLogin(false)
+                    }
+                },
+                navigateToCreateOrder = {
+                    homeNavigation.pushNew(
+                        CreateOrderScreen(it)
+                    )
+                },
+                navigateToLogin = {
+                    goToLogin(false)
+                },
+                navigateToDialog = { dialogId ->
+                    if (dialogId != null)
+                        homeNavigation.pushNew(
+                            MessagesScreen(dialogId, null, getCurrentDate())
+                        )
+                    else
+                        navigateToConversations()
+                },
+                navigationSubscribes = {
+                    navigateToSubscribe()
+                },
+                navigateToProposalPage = { offerId, type ->
+                    homeNavigation.pushNew(
+                        ProposalScreen(offerId, type, getCurrentDate())
                     )
                 }
-            ),
+            )
         )
-    }
 
-    is UserScreen -> UserChild(
-        component = userFactory(
-            componentContext,
-            config.userId,
-            config.aboutMe,
-            goToLogin = {
-                homeNavigation.pushNew(
-                    ListingScreen(false, it.data, it.searchData, getCurrentDate())
-                )
-            },
-            goBack = {
-                homeNavigation.pop()
-            },
-            goToSnapshot = { id ->
-                homeNavigation.pushNew(
-                    OfferScreen(id, getCurrentDate(), true)
-                )
-            },
-            goToUser = {
-                homeNavigation.pushNew(
-                    UserScreen(it, getCurrentDate(), false)
-                )
-            },
-            goToSubscriptions = {
-                navigateToSubscribe()
-            },
-            goToOrder = { id, type ->
-                navigateToMyOrders(id, type)
-            }
-        )
-    )
-    is CreateOfferScreen -> CreateOfferChild(
-        component = createOfferFactory(
-            componentContext = componentContext,
-            catPath = config.catPath,
-            offerId = config.offerId,
-            type = config.createOfferType,
-            externalImages = config.externalImages,
-            navigateOffer = { id ->
-                homeNavigation.pushNew(
-                    OfferScreen(id, getCurrentDate())
-                )
-            },
-            navigateCreateOffer = { id, path, t ->
-                homeNavigation.replaceCurrent(
-                    CreateOfferScreen(
-                        catPath = path,
-                        offerId = id,
-                        createOfferType = t,
+        is ListingScreen -> {
+            val ld = ListingData(
+                searchData = config.searchData,
+                data = config.listingData
+            )
+            ListingChild(
+                component = DefaultListingComponent(
+                    componentContext = componentContext,
+                    listingData = ld,
+                    selectOffer = {
+                        homeNavigation.pushNew(
+                            OfferScreen(it, getCurrentDate())
+                        )
+                    },
+                    selectedBack = {
+                        homeNavigation.pop()
+                    },
+                    isOpenSearch = config.isOpenSearch,
+                    navigateToSubscribe = {
+                        navigateToSubscribe()
+                    },
+                    navigateToListing = {
+                        homeNavigation.pushNew(
+                            ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                        )
+                    },
+                    navigateToNewSubscription = {
+                        homeNavigation.pushNew(
+                            CreateSubscriptionScreen(it)
+                        )
+                    }
+                ),
+            )
+        }
+
+        is UserScreen -> UserChild(
+            component = userFactory(
+                componentContext,
+                config.userId,
+                config.aboutMe,
+                goToLogin = {
+                    homeNavigation.pushNew(
+                        ListingScreen(false, it.data, it.searchData, getCurrentDate())
                     )
-                )
-            },
-            navigateBack = {
-                homeNavigation.pop()
-            }
+                },
+                goBack = {
+                    homeNavigation.pop()
+                },
+                goToSnapshot = { id ->
+                    homeNavigation.pushNew(
+                        OfferScreen(id, getCurrentDate(), true)
+                    )
+                },
+                goToUser = {
+                    homeNavigation.pushNew(
+                        UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                goToSubscriptions = {
+                    navigateToSubscribe()
+                },
+                goToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
+                }
+            )
         )
-    )
 
-    is CreateOrderScreen -> CreateOrderChild(
-        component = createOrderFactory(
-            componentContext = componentContext,
-            selectedItems = config.basketItem,
-            navigateUser = {
-                homeNavigation.pushNew(
-                    UserScreen(it, getCurrentDate(), false)
-                )
-            },
-            navigateOffer = {
-                homeNavigation.pushNew(
-                    OfferScreen(it, getCurrentDate())
-                )
-            },
-            navigateBack = {
-                homeNavigation.pop()
-            },
-            navigateToMyOrders = {
-                navigateToMyOrders(null, DealTypeGroup.BUY)
-            }
-        )
-    )
-
-    is MessagesScreen -> MessagesChild(
-        component = messengerFactory(
-            componentContext = componentContext,
-            dialogId = config.dialogId,
-            message = config.text,
-            navigateBack = {
-                homeNavigation.pop()
-            },
-            navigateToOrder = { id, type ->
-                navigateToMyOrders(id,type)
-            },
-            navigateToUser = {
-                homeNavigation.pushNew(
-                    UserScreen(it, getCurrentDate(), false)
-                )
-            },
-            navigateToOffer = {
-                homeNavigation.pushNew(
-                    OfferScreen(it, getCurrentDate())
-                )
-            },
-            navigateToListingSelected = {
-                homeNavigation.pushNew(
-                    ListingScreen(false, it.data, it.searchData, getCurrentDate())
-                )
-            }
-        )
-    )
-
-    is ProposalScreen -> ProposalChild(
-        component = proposalFactory(
-            componentContext = componentContext,
-            offerId = config.offerId,
-            proposalType = config.proposalType,
-            navigateBack = {
-                homeNavigation.pop()
-            },
-            navigateToOffer = {
-                homeNavigation.pop()
-                homeNavigation.pushNew(
-                    OfferScreen(it, getCurrentDate(),false)
-                )
-            },
-            navigateToUser = {
-                homeNavigation.pop()
-                homeNavigation.pushNew(
-                    UserScreen(it, getCurrentDate(), false)
-                )
-            }
-        )
-    )
-
-    is CreateSubscriptionScreen -> {
-        CreateSubscriptionChild(
-            component = createSubscriptionFactory(
+        is CreateOfferScreen -> CreateOfferChild(
+            component = createOfferFactory(
                 componentContext = componentContext,
-                editId = config.editId,
+                catPath = config.catPath,
+                offerId = config.offerId,
+                type = config.createOfferType,
+                externalImages = config.externalImages,
+                navigateOffer = { id ->
+                    homeNavigation.pushNew(
+                        OfferScreen(id, getCurrentDate())
+                    )
+                },
+                navigateCreateOffer = { id, path, t ->
+                    homeNavigation.replaceCurrent(
+                        CreateOfferScreen(
+                            catPath = path,
+                            offerId = id,
+                            createOfferType = t,
+                        )
+                    )
+                },
                 navigateBack = {
                     homeNavigation.pop()
                 }
             )
         )
-    }
 
-    NotificationHistoryScreen -> {
-        NotificationHistoryChild(
-            DefaultNotificationsHistoryComponent(
+        is CreateOrderScreen -> CreateOrderChild(
+            component = createOrderFactory(
                 componentContext = componentContext,
+                selectedItems = config.basketItem,
+                navigateUser = {
+                    homeNavigation.pushNew(
+                        UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateOffer = {
+                    homeNavigation.pushNew(
+                        OfferScreen(it, getCurrentDate())
+                    )
+                },
                 navigateBack = {
                     homeNavigation.pop()
                 },
-                navigateDeepLink = {
-                    navigateToDeepLink(it)
+                navigateToMyOrders = {
+                    navigateToMyOrders(null, DealTypeGroup.BUY)
                 }
             )
         )
+
+        is MessagesScreen -> MessagesChild(
+            component = messengerFactory(
+                componentContext = componentContext,
+                dialogId = config.dialogId,
+                message = config.text,
+                navigateBack = {
+                    homeNavigation.pop()
+                },
+                navigateToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
+                },
+                navigateToUser = {
+                    homeNavigation.pushNew(
+                        UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateToOffer = {
+                    homeNavigation.pushNew(
+                        OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateToListingSelected = {
+                    homeNavigation.pushNew(
+                        ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                    )
+                }
+            )
+        )
+
+        is ProposalScreen -> ProposalChild(
+            component = proposalFactory(
+                componentContext = componentContext,
+                offerId = config.offerId,
+                proposalType = config.proposalType,
+                navigateBack = {
+                    homeNavigation.pop()
+                },
+                navigateToOffer = {
+                    homeNavigation.pop()
+                    homeNavigation.pushNew(
+                        OfferScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateToUser = {
+                    homeNavigation.pop()
+                    homeNavigation.pushNew(
+                        UserScreen(it, getCurrentDate(), false)
+                    )
+                }
+            )
+        )
+
+        is CreateSubscriptionScreen -> {
+            CreateSubscriptionChild(
+                component = createSubscriptionFactory(
+                    componentContext = componentContext,
+                    editId = config.editId,
+                    navigateBack = {
+                        homeNavigation.pop()
+                    }
+                )
+            )
+        }
+
+        NotificationHistoryScreen -> {
+            NotificationHistoryChild(
+                DefaultNotificationsHistoryComponent(
+                    componentContext = componentContext,
+                    navigateBack = {
+                        homeNavigation.pop()
+                    },
+                    navigateDeepLink = {
+                        navigateToDeepLink(it)
+                    }
+                )
+            )
+        }
     }
-}
