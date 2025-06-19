@@ -95,11 +95,7 @@ class ListingViewModel(val component: ListingComponent) : BaseViewModel() {
         updatePage
     ) { listingData, _ ->
         listingData
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        ListingData()
-    )
+    }
 
     val pagingDataFlow: Flow<PagingData<OfferItemState>> = pagingParamsFlow.flatMapLatest{ listingData ->
         pagingRepository.getListing(

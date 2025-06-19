@@ -21,6 +21,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.states.ScrollDataState
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
@@ -40,16 +41,18 @@ fun BasketContent(
     val modelState = component.model.subscribeAsState()
     val viewModel = modelState.value.basketViewModel
 
-    val state = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.firstVisibleItem.value
+    val scrollState = rememberLazyListState(
+        initialFirstVisibleItemIndex = viewModel.scrollState.value.scrollItem,
+        initialFirstVisibleItemScrollOffset = viewModel.scrollState.value.offsetScrollItem
     )
 
     val basketState = viewModel.uiState.collectAsState()
     val basketItemsState = viewModel.uiDataState.collectAsState()
-    val deleteIds = viewModel.deleteIds.collectAsState()
+    val deleteIds = basketState.value.deleteIds
+    val subtitle = basketState.value.subtitle
 
-    val isLoading = remember(basketState.value.isLoading) { basketState.value.isLoading }
-    val isError = remember(basketState.value.errorMessage) { basketState.value.errorMessage }
+    val isLoading = viewModel.isShowProgress.collectAsState()
+    val isError = viewModel.errorMessage.collectAsState()
 
     BackHandler(
         modelState.value.backHandler
@@ -57,11 +60,11 @@ fun BasketContent(
 
     }
 
-    LaunchedEffect(state){
+    LaunchedEffect(scrollState) {
         snapshotFlow {
-            state.firstVisibleItemIndex
-        }.collect {
-            viewModel.firstVisibleItem.value = it
+            scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
+        }.collect { (index, offset) ->
+            viewModel.scrollState.value = ScrollDataState(index, offset)
         }
     }
 
@@ -82,11 +85,11 @@ fun BasketContent(
         }
     }
 
-    val error : (@Composable () ->Unit)? = remember(isError.humanMessage) {
-        if (isError.humanMessage.isNotBlank()) {
+    val error : (@Composable () ->Unit)? = remember(isError.value) {
+        if (isError.value.humanMessage.isNotBlank()) {
             {
                 onError(
-                    isError
+                    isError.value
                 ) {
                     viewModel.onError(ServerErrorException())
                     viewModel.getUserCart()
@@ -103,8 +106,6 @@ fun BasketContent(
                 data = basketState.value.appBarData
             ){
                 val title = stringResource(strings.yourBasketTitle)
-
-                val subtitle = remember(viewModel.subtitle) { viewModel.subtitle.value }
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -124,18 +125,18 @@ fun BasketContent(
             }
         },
         onRefresh = {
-            viewModel.refresh()
+            viewModel.refreshPage()
         },
         error = error,
         noFound = noFound,
-        isLoading = isLoading,
+        isLoading = isLoading.value,
         toastItem = viewModel.toastItem,
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumnWithScrollBars(
             modifierList = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-            state = state,
+            state = scrollState,
             contentPadding = dimens.smallPadding
         ) {
             items(basketItemsState.value, key = { item -> item.user.id }) { itemState ->
@@ -147,9 +148,9 @@ fun BasketContent(
         }
 
         AccessDialog(
-            deleteIds.value.isNotEmpty(),
+            deleteIds.isNotEmpty(),
             buildAnnotatedString {
-                if (deleteIds.value.size == 1) {
+                if (deleteIds.size == 1) {
                     append(stringResource(strings.warningDeleteOfferBasket))
                 } else {
                     append(stringResource(strings.warningDeleteSelectedOfferFromBasket))
@@ -160,7 +161,7 @@ fun BasketContent(
             },
             onSuccess = {
                 viewModel.deleteItems(
-                    deleteIds.value
+                    deleteIds
                 ) {
                     viewModel.clearDeleteIds()
                     viewModel.refresh()

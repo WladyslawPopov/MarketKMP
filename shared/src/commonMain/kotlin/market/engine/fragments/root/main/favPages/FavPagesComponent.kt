@@ -47,6 +47,11 @@ class DefaultFavPagesComponent(
     private val navigation = PagesNavigation<FavPagesConfig>()
 
     override val favScreenType: FavScreenType = favType
+
+    val favTabs = viewModel.favoritesTabList
+    val initPos = viewModel.initPosition
+
+
     private var initialModel = MutableValue(
         FavPagesComponent.Model(
             viewModel = viewModel,
@@ -59,7 +64,7 @@ class DefaultFavPagesComponent(
             serializer = FavPagesConfig.serializer(),
             handleBackButton = true,
             initialPages = {
-                val list = viewModel.favoritesTabList.value.map {
+                val list = favTabs.value.map {
                     FavPagesConfig(it)
                 }
 
@@ -71,7 +76,7 @@ class DefaultFavPagesComponent(
                                 list.indexOf(list.find { it.favItem.id == 222L })
                             }
                             else -> {
-                                (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
+                                (initPos.value).coerceIn(0, (initPos.value-1).coerceAtLeast(0))
                             }
                         },
                 )
@@ -142,10 +147,10 @@ class DefaultFavPagesComponent(
             }
         )
 
-
     override val model = initialModel
 
     override fun selectPage(p: Int) {
+        viewModel.selectPage(p)
         navigation.select(p)
     }
 
@@ -168,7 +173,7 @@ class DefaultFavPagesComponent(
                 item.component.onRefresh()
             }
             is FavPagesComponents.SubscribedChild -> {
-                item.component.model.value.subViewModel.refresh()
+                item.component.onRefresh()
             }
             null -> {}
         }

@@ -11,15 +11,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 @Composable
 fun TooltipWrapper(
     modifier: Modifier = Modifier,
+    tooltipState: TooltipState = rememberTooltipState(),
     content: @Composable BoxScope.(tooltipState: TooltipState) -> Unit,
     onClick: MutableState<() -> Unit>
 ) {
-    val tooltipState = rememberTooltipState()
-
     Box(
         modifier = modifier
             .clipToBounds()
-            // отправляем информацию о лейауте в стейт
             .onGloballyPositioned { tooltipState.changeTooltipWrapperLayoutCoordinates(it) },
     ) {
         content(tooltipState)

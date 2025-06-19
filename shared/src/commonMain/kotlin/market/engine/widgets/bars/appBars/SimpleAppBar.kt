@@ -59,10 +59,10 @@ fun SimpleAppBar(
                 }
 
                 PopUpMenu(
-                    openPopup = data.showMenu.value,
+                    openPopup = data.menuItems.isNotEmpty(),
                     menuList = data.menuItems,
                 ) {
-                    data.showMenu.value = false
+                    data.closeMenu()
                 }
             }
         }

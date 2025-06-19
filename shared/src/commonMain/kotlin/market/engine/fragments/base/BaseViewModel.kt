@@ -30,7 +30,6 @@ import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.ScrollDataState
-import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.core.network.functions.OfferOperations
@@ -1254,63 +1253,6 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun postOfferListFieldForOffer(
-        offerId : Long,
-        type : String,
-        body : HashMap<String, JsonElement>,
-        onSuccess: () -> Unit,
-        onError: (ArrayList<Fields>) -> Unit
-    ) {
-        viewModelScope.launch {
-            val buf = withContext(Dispatchers.IO) {
-                when(type){
-                    "create_blank_offer_list" -> {
-                        operationsMethods.postOperationFields(
-                            offerId,
-                            type,
-                            "users",
-                            body
-                        )
-                    }
-                    else -> {
-                        operationsMethods.postOperationFields(
-                            offerId,
-                            type,
-                            "offers",
-                            body
-                        )
-                    }
-                }
-            }
-
-            val res = buf.success
-
-            withContext(Dispatchers.Main) {
-                if (res != null) {
-                    if (res.status == "operation_success") {
-                        analyticsHelper.reportEvent(
-                            "${type}_success",
-                            eventParameters = mapOf(
-                                "lot_id" to offerId,
-                                "body" to body
-                            )
-                        )
-                        showToast(
-                            ToastItem(
-                                isVisible = true,
-                                type = ToastType.SUCCESS,
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-                        onSuccess()
-                    } else {
-                        res.recipe?.fields?.let { onError(it) }
-                    }
-                }
-            }
-        }
-    }
-
     fun getOffersList(onSuccess: (List<FavoriteListItem>) -> Unit) {
         val offersListOperations = OffersListOperations(apiService)
         viewModelScope.launch {
@@ -1409,6 +1351,63 @@ open class BaseViewModel: ViewModel() {
 
     fun resetScroll() {
         scrollState.value = ScrollDataState()
+    }
+
+    fun postOfferListFieldForOffer(
+        offerId : Long,
+        type : String,
+        body : HashMap<String, JsonElement>,
+        onSuccess: () -> Unit,
+        onError: (ArrayList<Fields>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val buf = withContext(Dispatchers.IO) {
+                when(type){
+                    "create_blank_offer_list" -> {
+                        operationsMethods.postOperationFields(
+                            offerId,
+                            type,
+                            "users",
+                            body
+                        )
+                    }
+                    else -> {
+                        operationsMethods.postOperationFields(
+                            offerId,
+                            type,
+                            "offers",
+                            body
+                        )
+                    }
+                }
+            }
+
+            val res = buf.success
+
+            withContext(Dispatchers.Main) {
+                if (res != null) {
+                    if (res.status == "operation_success") {
+                        analyticsHelper.reportEvent(
+                            "${type}_success",
+                            eventParameters = mapOf(
+                                "lot_id" to offerId,
+                                "body" to body
+                            )
+                        )
+                        showToast(
+                            ToastItem(
+                                isVisible = true,
+                                type = ToastType.SUCCESS,
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        onSuccess()
+                    } else {
+                        res.recipe?.fields?.let { onError(it) }
+                    }
+                }
+            }
+        }
     }
 
     fun clearError(){

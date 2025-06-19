@@ -108,7 +108,14 @@ class DefaultMainComponent(
         )
     )
 
-    private val favPagesViewModel by lazy { FavPagesViewModel() }
+    private val favPagesViewModel by lazy {
+        FavPagesViewModel(
+            fullRefresh = {
+                (childFavoritesStack.value.items.firstOrNull()?.instance as?
+                        ChildFavorites.FavPagesChild)?.component?.fullRefresh()
+            }
+        )
+    }
 
     val checkShowBar : () -> Boolean = {
         val platform = Platform().getPlatform()
@@ -487,7 +494,7 @@ class DefaultMainComponent(
     override val childFavoritesStack: Value<ChildStack<*, ChildFavorites>> by lazy {
         childStack(
             source = modelNavigation.value.favoritesNavigation,
-            initialConfiguration = FavoritesConfig.FavPagesScreen(if(openPage == "subscribe") FavScreenType.SUBSCRIBED else FavScreenType.FAVORITES),
+            initialConfiguration = FavoritesConfig.FavPagesScreen(if (openPage == "subscribe") FavScreenType.SUBSCRIBED else FavScreenType.FAVORITES),
             serializer = FavoritesConfig.serializer(),
             handleBackButton = true,
             childFactory = { config, componentContext ->
@@ -497,7 +504,10 @@ class DefaultMainComponent(
                     favPagesViewModel,
                     modelNavigation.value.favoritesNavigation,
                     navigateToMyOrders = { id, type ->
-                        navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
+                        navigateToBottomItem(
+                            MainConfig.Profile,
+                            if (type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id"
+                        )
                     },
                     navigateToConversations = {
                         navigateToBottomItem(MainConfig.Profile, "conversations")
@@ -507,6 +517,7 @@ class DefaultMainComponent(
             key = "FavoritesStack"
         )
     }
+
 
     override val childProfileStack: Value<ChildStack<*, ChildProfile>> by lazy {
         childStack(
@@ -587,12 +598,13 @@ class DefaultMainComponent(
             is MainConfig.Favorites -> {
                 if (UserData.token == "") {
                     goToLogin(true)
-                }else{
+                }else {
                     favPagesViewModel.getFavTabList {
                         when {
                             activeCurrent == "Favorites" -> {
                                 modelNavigation.value.favoritesNavigation.popToFirst()
                             }
+
                             openPage == "subscribe" -> {
                                 modelNavigation.value.favoritesNavigation.replaceCurrent(
                                     FavoritesConfig.FavPagesScreen(

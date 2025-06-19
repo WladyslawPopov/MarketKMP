@@ -79,7 +79,7 @@ fun SubscriptionsContent(
     BaseContent(
         topBar = null,
         onRefresh = {
-            subViewModel.refresh()
+            component.onRefresh()
         },
         error = error,
         noFound = null,

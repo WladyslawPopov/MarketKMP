@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.basket
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -48,59 +47,13 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
     private var selectedOffers = MutableStateFlow<List<SelectedBasketList>>(emptyList())
     private var showExpanded = MutableStateFlow<List<Pair<Long, Int>>>(emptyList())
 
-    val firstVisibleItem = MutableStateFlow(0)
+    private val basketsEvents = BasketEventsImpl(this, component)
 
-    val subtitle = mutableStateOf<String>("")
-    val showMenuBasket = mutableStateOf(false)
-
-    val deleteIds = MutableStateFlow(emptyList<Long>())
-
-    val basketsEvents = object : BasketEvents {
-        override fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean) {
-            checkSelected(userId, item, isChecked)
-        }
-        override fun onExpandClicked(userId: Long, currentOffersSize: Int) {
-            clickExpanded(userId, currentOffersSize)
-        }
-        override fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean) {
-            if (isChecked) {
-                allOffers.filter { it?.safeDeal == true }.mapNotNull { it }.forEach { offer ->
-                    checkSelected(userId, SelectedBasketItem(
-                        offerId = offer.id,
-                        pricePerItem = offer.price.toDouble(),
-                        selectedQuantity = offer.quantity
-                    ), true)
-                }
-            } else {
-                uncheckAll(userId)
-            }
-        }
-        override fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit) {
-            val body = HashMap<String, JsonElement>()
-            body["offer_id"] = JsonPrimitive(offerId)
-            body["quantity"] = JsonPrimitive(newQuantity)
-            addOfferToBasket(body) { onResult(newQuantity) }
-            updateQuantityInState(offerId, newQuantity)
-        }
-        override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {
-            addToFavorites(offer) {
-                offer.isWatchedByMe = it
-                onFinish(it)
-            }
-        }
-        override fun onDeleteOffersRequest(ids: List<Long>) {
-            deleteIds.value = ids
-        }
-        override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
-            component.goToCreateOrder(Pair(userId, selectedOffers))
-        }
-        override fun onGoToUser(userId: Long) {
-            component.goToUser(userId)
-        }
-        override fun onGoToOffer(offerId: Long) {
-            component.goToOffer(offerId)
-        }
-    }
+    private val _menuItems = MutableStateFlow(
+        listOf<MenuItem>()
+    )
+    private val _subtitle = MutableStateFlow<String>("")
+    private val _deleteIds = MutableStateFlow(emptyList<Long>())
 
     val uiDataState: StateFlow<List<BasketGroupUiState>> = combine(
         responseGetUserCart,
@@ -129,15 +82,14 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
     )
 
     val uiState: StateFlow<BasketUiState> = combine(
-        isShowProgress,
-        errorMessage
-    ) { isLoading, error ->
+        _menuItems,
+        _subtitle,
+        _deleteIds
+    ) { menuItems, subtitle, deleteIds ->
         val menuString = getString(strings.menuTitle)
         val clearBasketString = getString(strings.actionClearBasket)
 
         BasketUiState(
-            isLoading = isLoading,
-            errorMessage = error,
             appBarData = SimpleAppBarData(
                 color = colors.white,
                 listItems = listOf(
@@ -159,25 +111,29 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
                         hasNews = false,
                         badgeCount = null,
                         onClick = {
-                            showMenuBasket.value = true
+                           _menuItems.value = listOf(
+                               MenuItem(
+                                   id = "delete_basket",
+                                   title = clearBasketString,
+                                   icon = drawables.deleteIcon,
+                                   onClick = {
+                                       clearBasket{
+                                           refresh()
+                                       }
+                                   }
+                               )
+                           )
                         }
                     ),
                 ),
-                showMenu = showMenuBasket,
-                menuItems = listOf(
-                    MenuItem(
-                        id = "delete_basket",
-                        title = clearBasketString,
-                        icon = drawables.deleteIcon,
-                        onClick = {
-                            clearBasket{
-                                refresh()
-                            }
-                        }
-                    )
-                )
+                closeMenu = {
+                    _menuItems.value = emptyList()
+                },
+                menuItems = menuItems,
             ),
-            basketEvents = basketsEvents
+            basketEvents = basketsEvents,
+            subtitle = subtitle,
+            deleteIds = deleteIds
         )
     }.stateIn(
         scope = viewModelScope,
@@ -198,7 +154,7 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
             }.collectLatest { info ->
                 val countOffers = info?.countOffersInCart
 
-                subtitle.value = buildString {
+                _subtitle.value = buildString {
                     if (countOffers.toString()
                             .matches(Regex("""([^1]1)$""")) || countOffers == 1
                     ) {
@@ -375,7 +331,11 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
     }
 
     fun clearDeleteIds() {
-        deleteIds.value = emptyList()
+        _deleteIds.value = emptyList()
+    }
+
+    fun setDeleteItems(list: List<Long>){
+        _deleteIds.value = list
     }
 
     fun refreshPage(){
@@ -448,5 +408,55 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
                 }
             }
         }
+    }
+}
+
+data class BasketEventsImpl(
+    val viewModel: BasketViewModel,
+    val component: BasketComponent
+) : BasketEvents {
+    override fun onOfferSelected(userId: Long, item: SelectedBasketItem, isChecked: Boolean) {
+        viewModel.checkSelected(userId, item, isChecked)
+    }
+    override fun onExpandClicked(userId: Long, currentOffersSize: Int) {
+        viewModel.clickExpanded(userId, currentOffersSize)
+    }
+    override fun onSelectAll(userId: Long, allOffers: List<OfferItem?>, isChecked: Boolean) {
+        if (isChecked) {
+            allOffers.filter { it?.safeDeal == true }.mapNotNull { it }.forEach { offer ->
+                viewModel.checkSelected(userId, SelectedBasketItem(
+                    offerId = offer.id,
+                    pricePerItem = offer.price.toDouble(),
+                    selectedQuantity = offer.quantity
+                ), true)
+            }
+        } else {
+            viewModel.uncheckAll(userId)
+        }
+    }
+    override fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit) {
+        val body = HashMap<String, JsonElement>()
+        body["offer_id"] = JsonPrimitive(offerId)
+        body["quantity"] = JsonPrimitive(newQuantity)
+        viewModel. addOfferToBasket(body) { onResult(newQuantity) }
+        viewModel.updateQuantityInState(offerId, newQuantity)
+    }
+    override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {
+        viewModel.addToFavorites(offer) {
+            offer.isWatchedByMe = it
+            onFinish(it)
+        }
+    }
+    override fun onDeleteOffersRequest(ids: List<Long>) {
+        viewModel.setDeleteItems(ids)
+    }
+    override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
+        component.goToCreateOrder(Pair(userId, selectedOffers))
+    }
+    override fun onGoToUser(userId: Long) {
+        component.goToUser(userId)
+    }
+    override fun onGoToOffer(offerId: Long) {
+        component.goToOffer(offerId)
     }
 }

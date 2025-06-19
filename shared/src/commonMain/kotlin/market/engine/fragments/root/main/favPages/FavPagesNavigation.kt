@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -14,25 +15,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.AnnotatedString
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.Tab
 import market.engine.core.network.networkObjects.FavoriteListItem
-import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.onError
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
+import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.dialogs.CustomDialog
-import market.engine.widgets.tooltip.TooltipState
+import market.engine.widgets.tabs.ReorderTabRow
 import market.engine.widgets.tooltip.TooltipWrapper
+import market.engine.widgets.tooltip.rememberTooltipState
 
 
 @Serializable
@@ -46,37 +46,49 @@ fun FavPagesNavigation(
     component: FavPagesComponent,
     modifier: Modifier
 ) {
-    val select = remember {
-        mutableStateOf(0)
-    }
-
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
-    val favTabList = viewModel.favoritesTabList.collectAsState()
+    val err = viewModel.errorMessage.collectAsState()
 
-    val isDragMode = remember { viewModel.isDragMode }
-    val showCreatedDialog = remember { mutableStateOf("") }
-    val postId = remember { mutableStateOf(0L) }
-    val isClicked = remember { mutableStateOf(false) }
-    val method = remember { mutableStateOf("offers_lists") }
-    val fields = remember { mutableStateOf<List<Fields>>(emptyList()) }
-    val title = remember { mutableStateOf(AnnotatedString("")) }
+    val uiState = viewModel.favPagesState.collectAsState()
+    val favTabList = uiState.value.favTabList
+    val isDragMode = uiState.value.isDragMode
+    val initPosition = uiState.value.initPosition
+    val appBarState = uiState.value.appState
+
+    val tooltipState = rememberTooltipState()
+
+    val onTooltipClick = remember {
+        mutableStateOf<(() -> Unit)>(
+            {
+                viewModel.settings.setSettingValue(
+                    "create_blank_offer_list_notify_badge",
+                    false
+                )
+                tooltipState.hide()
+            }
+        )
+    }
+
+    val dialogFields = viewModel.fieldsDialog.collectAsState()
+    val dialogTitle = viewModel.titleDialog.collectAsState()
+
+
     val lazyListState = rememberLazyListState(
-        initialFirstVisibleItemIndex = (viewModel.initPosition.value).coerceIn(0, (viewModel.favoritesTabList.value.size-1).coerceAtLeast(0))
+        initialFirstVisibleItemIndex =
+            (initPosition).coerceIn(0, (favTabList.size-1).coerceAtLeast(0))
     )
 
-    val onClickTooltip = remember { mutableStateOf<() -> Unit>({}) }
-
-    val err = viewModel.errorMessage.collectAsState()
-    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        {
-            onError(err.value) {
-                isClicked.value = false
-                component.onRefresh()
+    val error : (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage != "") {
+            {
+                onError(err.value) {
+                    component.onRefresh()
+                }
             }
+        } else {
+            null
         }
-    }else{
-        null
     }
 
     BaseContent(
@@ -91,108 +103,40 @@ fun FavPagesNavigation(
     ) {
         TooltipWrapper(
             modifier= Modifier,
-            onClick = onClickTooltip,
-            content = { tooltipState: TooltipState ->
+            tooltipState = tooltipState,
+            onClick = onTooltipClick,
+            content = { tooltipState ->
                 Column {
-                    FavPagesAppBar(
-                        select.value,
-                        favTabList = favTabList.value,
-                        isDragMode = isDragMode.value,
-                        modifier = Modifier.fillMaxWidth(),
-                        tooltipState = tooltipState,
-                        navigationClick = {
-                            select.value = it
-                            viewModel.initPosition.value = it
-                            component.selectPage(select.value)
-                        },
-                        onTabsReordered = {
-                            viewModel.updateFavTabList(it)
-                        },
-                        getOperations = { id, callback ->
-                            viewModel.getOperationFavTab(id, callback)
-                        },
-                        makeOperation = { type, id ->
-                            when (type) {
-                                "create_blank_offer_list" -> {
-                                    viewModel.getOperationFields(
-                                        UserData.login,
-                                        type,
-                                        "users"
-                                    ) { t, f ->
-                                        title.value = AnnotatedString(t)
-                                        fields.value = f
-                                        showCreatedDialog.value = type
-                                        postId.value = UserData.login
-                                        method.value = "users"
-                                    }
+                    SimpleAppBar(
+                        data = appBarState
+                    ){
+                        ReorderTabRow(
+                            tabs = favTabList.map {
+                                Tab(
+                                    id = it.id,
+                                    title = it.title ?: "",
+                                    image = it.images.firstOrNull(),
+                                    isPined = it.markedAsPrimary,
+                                )
+                            }.toList(),
+                            selectedTab = initPosition,
+                            onTabSelected = {
+                                component.selectPage(it)
+                            },
+                            isDragMode = isDragMode,
+                            onTabsReordered = { list ->
+                                val newList = list.map { listItem ->
+                                    favTabList.find { it.title == listItem.title} ?: FavoriteListItem()
                                 }
-
-                                "copy_offers_list", "rename_offers_list" -> {
-                                    viewModel.getOperationFields(id, type, "offers_lists") { t, f ->
-                                        title.value = AnnotatedString(t)
-                                        fields.value = f
-                                        showCreatedDialog.value = type
-                                        postId.value = id
-                                        method.value = "offers_lists"
-                                    }
-                                }
-
-                                "reorder" -> {
-                                    viewModel.isDragMode.value = true
-
-                                    viewModel.analyticsHelper.reportEvent(
-                                        "reorder_offers_list", mapOf(
-                                            "list_id" to id
-                                        )
-                                    )
-                                }
-
-                                "delete_offers_list" -> {
-                                    viewModel.postOperationFields(
-                                        id,
-                                        type,
-                                        "offers_lists",
-                                        onSuccess = {
-                                            viewModel.db.favoritesTabListItemQueries.deleteById(
-                                                itemId = id,
-                                                owner = UserData.login
-                                            )
-                                            viewModel.initPosition.value =
-                                                viewModel.initPosition.value.coerceIn(
-                                                    0,
-                                                    favTabList.value.size - 2
-                                                )
-                                            select.value = viewModel.initPosition.value
-                                            component.fullRefresh()
-                                        },
-                                        errorCallback = {}
-                                    )
-                                }
-
-                                "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
-                                    viewModel.postOperationFields(
-                                        id,
-                                        type,
-                                        "offers_lists",
-                                        onSuccess = {
-                                            component.fullRefresh()
-                                        },
-                                        errorCallback = {}
-                                    )
-                                }
-
-                                else -> {
-
-                                }
-                            }
-                        },
-                        settings = viewModel.settings,
-                        lazyListState = lazyListState,
-                        onTooltipClick = onClickTooltip,
-                        onRefresh = {
-                            component.onRefresh()
-                        }
-                    )
+                                viewModel.updateFavTabList(newList)
+                            },
+                            lazyListState = lazyListState,
+                            getOperations = { id, callback ->
+                                viewModel.getOperationFavTab(id, callback)
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(end = dimens.smallPadding),
+                        )
+                    }
 
                     Box(modifier = Modifier.fillMaxSize()) {
                         ChildPages(
@@ -200,9 +144,7 @@ fun FavPagesNavigation(
                             pages = component.componentsPages,
                             scrollAnimation = PagesScrollAnimation.Default,
                             onPageSelected = {
-                                select.value = it
-                                viewModel.initPosition.value = it
-                                component.selectPage(select.value)
+                                component.selectPage(it)
                             }
                         ) { _, page ->
                             when (page) {
@@ -222,7 +164,7 @@ fun FavPagesNavigation(
                             }
                         }
 
-                        if (isDragMode.value) {
+                        if (isDragMode) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -230,7 +172,7 @@ fun FavPagesNavigation(
                                     .blur(dimens.extraLargePadding)
                                     .pointerInput(Unit) {
                                         detectTapGestures {
-                                            viewModel.isDragMode.value = false
+                                            viewModel.closeDragMode()
                                             component.fullRefresh()
                                         }
                                     }
@@ -239,48 +181,17 @@ fun FavPagesNavigation(
                     }
 
                     CustomDialog(
-                        showDialog = showCreatedDialog.value != "",
+                        showDialog = dialogFields.value.isNotEmpty(),
                         containerColor = colors.primaryColor,
-                        title = title.value,
+                        title = dialogTitle.value,
                         body = {
-                            SetUpDynamicFields(fields.value)
+                            SetUpDynamicFields(dialogFields.value)
                         },
                         onDismiss = {
-                            showCreatedDialog.value = ""
-                            isClicked.value = false
+                            viewModel.closeDialog()
                         },
                         onSuccessful = {
-                            if (!isClicked.value) {
-                                isClicked.value = true
-                                val bodyPost = HashMap<String, JsonElement>()
-                                fields.value.forEach { field ->
-                                    if (field.data != null) {
-                                        bodyPost[field.key ?: ""] = field.data!!
-                                    }
-                                }
-
-                                viewModel.postOperationFields(
-                                    postId.value,
-                                    showCreatedDialog.value,
-                                    method.value,
-                                    bodyPost,
-                                    onSuccess = {
-                                        showCreatedDialog.value = ""
-                                        isClicked.value = false
-                                        viewModel.initPosition.value =
-                                            favTabList.value.lastIndex + 1
-                                        component.fullRefresh()
-                                    },
-                                    errorCallback = { f ->
-                                        if (f != null) {
-                                            fields.value = f
-                                        } else {
-                                            showCreatedDialog.value = ""
-                                        }
-                                        isClicked.value = false
-                                    }
-                                )
-                            }
+                            viewModel.postOperation()
                         }
                     )
                 }

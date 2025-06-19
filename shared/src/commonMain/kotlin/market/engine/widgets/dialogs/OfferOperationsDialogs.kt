@@ -29,7 +29,7 @@ fun OfferOperationsDialogs(
     showDialog: String,
     viewModel : BaseViewModel,
     updateItem: (Long) -> Unit,
-    close : () -> Unit
+    close : (fullRefresh : Boolean) -> Unit
 ) {
     val isClicked = remember { mutableStateOf(false) }
     val showFields = remember { mutableStateOf(false) }
@@ -117,7 +117,7 @@ fun OfferOperationsDialogs(
                     title = title,
                     onDismiss = {
                         isClicked.value = false
-                        close()
+                        close(false)
                     },
                     onSuccess = {
                         if (!isClicked.value) {
@@ -129,12 +129,12 @@ fun OfferOperationsDialogs(
                                 onSuccess = {
                                     updateItem(offerId)
                                     isClicked.value = false
-                                    close()
+                                    close(false)
                                 },
                                 errorCallback = {
                                     updateItem(offerId)
                                     isClicked.value = false
-                                    close()
+                                    close(false)
                                 }
                             )
                         }
@@ -148,7 +148,7 @@ fun OfferOperationsDialogs(
                     isSelectableDates = true,
                     onDismiss = {
                         isClicked.value = false
-                        close()
+                        close(false)
                     },
                     onSucceed = { futureTimeInSeconds ->
                         if (!isClicked.value) {
@@ -163,11 +163,11 @@ fun OfferOperationsDialogs(
                                 onSuccess = {
                                     updateItem(offerId)
                                     isClicked.value = false
-                                    close()
+                                    close(false)
                                 },
                                 errorCallback = {
                                     isClicked.value = false
-                                    close()
+                                    close(false)
                                 }
                             )
                         }
@@ -184,7 +184,7 @@ fun OfferOperationsDialogs(
                     body = {
                         Text(title)
                     },
-                    onDismiss = { close() }
+                    onDismiss = { close(false) }
                 )
             }
 
@@ -202,7 +202,7 @@ fun OfferOperationsDialogs(
                     },
                     onDismiss = {
                         isClicked.value = false
-                        close()
+                        close(false)
                     },
                     onSuccessful = {
                         if (!isClicked.value) {
@@ -260,7 +260,7 @@ fun OfferOperationsDialogs(
                                 onSuccess = {
                                     isClicked.value = false
                                     updateItem(offerId)
-                                    close()
+                                    close(showDialog == "create_blank_offer_list")
                                 },
                                 errorCallback = { errFields ->
                                     isClicked.value = false
@@ -269,7 +269,6 @@ fun OfferOperationsDialogs(
                                         fields.addAll(errFields)
                                         getOffersListFields(fields)
                                     }
-                                    close()
                                 }
                             )
                         }

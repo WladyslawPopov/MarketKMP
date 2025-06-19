@@ -84,8 +84,6 @@ class FavViewModel(val favType : FavScreenType,val idList : Long?, component: Fa
     private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
 
     val showOperationsDialog = MutableStateFlow("")
-
-    val showCreatedDialog = MutableStateFlow("")
     val titleDialog = MutableStateFlow(AnnotatedString(""))
     val fieldsDialog = MutableStateFlow< ArrayList<Fields>>(arrayListOf())
     val dialogItemId = MutableStateFlow(1L)
@@ -95,11 +93,7 @@ class FavViewModel(val favType : FavScreenType,val idList : Long?, component: Fa
         updatePage
     ) { listingData, _ ->
         listingData
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        ListingData()
-    )
+    }
 
     private val filtersCategoryModel = CategoryViewModel(
         isFilters = true,
@@ -161,7 +155,7 @@ class FavViewModel(val favType : FavScreenType,val idList : Long?, component: Fa
                                     titleDialog.value = AnnotatedString(t)
                                     fieldsDialog.value.clear()
                                     fieldsDialog.value.addAll(f)
-                                    showCreatedDialog.value = "create_blank_offer_list"
+                                    showOperationsDialog.value = "create_blank_offer_list"
                                 }
                             }
                         ),
@@ -527,32 +521,8 @@ class FavViewModel(val favType : FavScreenType,val idList : Long?, component: Fa
         refresh()
     }
 
-    fun createField(){
-        val bodyPost = HashMap<String, JsonElement>()
-        fieldsDialog.value.forEach { field ->
-            if (field.data != null) {
-                bodyPost[field.key ?: ""] = field.data!!
-            }
-        }
-
-        postOfferListFieldForOffer(
-            dialogItemId.value,
-            showCreatedDialog.value,
-            bodyPost,
-            onSuccess = {
-                showCreatedDialog.value = ""
-                updateItem.value = dialogItemId.value
-                updatePage()
-            },
-            onError = { f ->
-                fieldsDialog.value = f
-            }
-        )
-    }
-
     fun clearDialogFields(){
         dialogItemId.value = 1
-        showCreatedDialog.value = ""
         fieldsDialog.value.clear()
         showOperationsDialog.value = ""
     }

@@ -29,27 +29,22 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.Tab
-import market.engine.core.network.networkObjects.Operations
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.rows.LazyRowWithScrollBars
-import org.jetbrains.compose.resources.stringResource
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReorderTabRow(
-    tabs: List<Tab>, // Your data class with id and title
-    selectedTab: Int, // Index of the selected tab
+    tabs: List<Tab>,
+    selectedTab: Int,
     lazyListState: LazyListState,
     onTabSelected: (Int) -> Unit, // Callback when a tab is clicked
     onTabsReordered: (List<Tab>) -> Unit, // Callback when tabs are reordered
-    getOperations: (Long, (List<Operations>) -> Unit) -> Unit,
-    makeOperation: (String, Long) -> Unit,
+    getOperations: (Long, (List<MenuItem>) -> Unit) -> Unit,
     isDragMode: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -106,24 +101,10 @@ fun ReorderTabRow(
             itemsIndexed(currentTabsState.value, key = { _, item -> item.id }) { index, item ->
                 ReorderableItem(reorderableState, key = item.id) {
                     val interactionSource = remember { MutableInteractionSource() }
-                    val openPopup = remember { mutableStateOf(false) }
-
-                    val defReorderMenuItem = MenuItem(
-                        icon = drawables.reorderIcon,
-                        id = "reorder",
-                        title = stringResource(strings.reorderTabLabel),
-                        onClick = {
-                            makeOperation("reorder", 1L)
-                        }
-                    )
-
                     val menuList = remember {
-                        mutableStateOf(
-                            listOf(
-                                defReorderMenuItem
-                            )
-                        )
+                        mutableStateOf(emptyList<MenuItem>())
                     }
+
 
                     PageTab(
                         tab = item,
@@ -139,27 +120,9 @@ fun ReorderTabRow(
                                 },
                                 onLongClick = {
                                     if (!isDragMode) {
-                                        getOperations(item.id) { operations ->
-                                            menuList.value = buildList {
-                                                addAll(
-                                                    listOf(
-                                                        defReorderMenuItem
-                                                    )
-                                                )
-                                                addAll(
-                                                    operations.map {
-                                                        MenuItem(
-                                                            id = it.id ?: "",
-                                                            title = it.name ?: "",
-                                                            onClick = {
-                                                                makeOperation(it.id ?: "", item.id)
-                                                            }
-                                                        )
-                                                    }
-                                                )
-                                            }
+                                        getOperations(item.id) { menuItems ->
+                                            menuList.value = menuItems
                                         }
-                                        openPopup.value = true
                                     }
                                 }
                             )
@@ -187,16 +150,8 @@ fun ReorderTabRow(
 
                     if (selectedTab == index && !isDragMode) {
                         val density = LocalDensity.current
-
-                        val selectedTabLayoutInfo =
-                           // remember(selectedTab, lazyListState.layoutInfo.visibleItemsInfo) {
-                                lazyListState.layoutInfo.visibleItemsInfo.find { it.index == selectedTab }
-                          //  }
-
-                        val targetWidthDp = //remember(selectedTabLayoutInfo) {
-                            selectedTabLayoutInfo?.size?.let { with(density) { it.toDp() } } ?: 0.dp
-                      //  }
-
+                        val selectedTabLayoutInfo = lazyListState.layoutInfo.visibleItemsInfo.find { it.index == selectedTab }
+                        val targetWidthDp = selectedTabLayoutInfo?.size?.let { with(density) { it.toDp() } } ?: 0.dp
                         val animatedIndicatorWidth by animateDpAsState(
                             targetValue = targetWidthDp,
                             animationSpec = tween(durationMillis = 200),
@@ -220,10 +175,10 @@ fun ReorderTabRow(
                     }
 
                     PopUpMenu(
-                        openPopup = openPopup.value,
+                        openPopup = menuList.value.isNotEmpty(),
                         menuList = menuList.value,
                         onClosed = {
-                            openPopup.value = false
+                            menuList.value = emptyList()
                         }
                     )
                 }

@@ -137,6 +137,10 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
         }
     }
 
+    fun updatePage(){
+        updatePage.value++
+    }
+
     fun getSubscription(subId : Long, onSuccess : (Subscription?) -> Unit ) {
          viewModelScope.launch {
              val buffer = withContext(Dispatchers.IO) {

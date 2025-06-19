@@ -170,26 +170,12 @@ fun FavoritesContent(
         updateItem = {
             viewModel.updateItem.value = itemIdDialog.value
         },
-        close = {
+        close = { fullRefresh ->
             viewModel.clearDialogFields()
+            if (fullRefresh) {
+                component.onRefresh()
+                component.refreshTabs()
+            }
         }
     )
-
-
-//    if (openDialog.value.isNotEmpty()) {
-//        CustomDialog(
-//            showDialog = openDialog.value != "",
-//            containerColor = colors.primaryColor,
-//            title = dialogTitle.value,
-//            body = {
-//                SetUpDynamicFields(dialogFields.value)
-//            },
-//            onDismiss = {
-//                viewModel.clearDialogFields()
-//            },
-//            onSuccessful = {
-//                viewModel.createField()
-//            }
-//        )
-//    }
 }

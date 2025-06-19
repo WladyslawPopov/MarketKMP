@@ -25,6 +25,7 @@ interface SubscriptionsComponent {
 
     fun goToCreateNewSubscription(editId : Long? = null)
     fun goToListing(item : Subscription)
+    fun onRefresh()
 }
 
 class DefaultSubscriptionsComponent(
@@ -136,5 +137,9 @@ class DefaultSubscriptionsComponent(
 
             navigateToListing(ld)
         }
+    }
+
+    override fun onRefresh() {
+        subViewModel.updatePage()
     }
 }

@@ -3,7 +3,6 @@ package market.engine.core.data.states
 import market.engine.core.data.events.BasketEvents
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.User
 
 data class SelectedBasketList(
@@ -22,7 +21,7 @@ data class BasketGroupUiState(
 
 data class BasketUiState(
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val isLoading: Boolean = false,
-    val errorMessage: ServerErrorException = ServerErrorException(),
-    val basketEvents: BasketEvents
+    val basketEvents: BasketEvents,
+    val deleteIds: List<Long> = emptyList(),
+    val subtitle: String = ""
 )

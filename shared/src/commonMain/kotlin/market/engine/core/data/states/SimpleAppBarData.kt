@@ -1,7 +1,5 @@
 package market.engine.core.data.states
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.items.MenuItem
@@ -11,6 +9,6 @@ data class SimpleAppBarData(
     val color: Color = colors.white,
     val onBackClick: (() -> Unit)? = null,
     val listItems: List<NavigationItem> = emptyList(),
-    val showMenu: MutableState<Boolean> = mutableStateOf(false),
+    val closeMenu: (() -> Unit) = {},
     val menuItems: List<MenuItem> = emptyList(),
 )
