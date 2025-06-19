@@ -1,13 +1,11 @@
 package market.engine.fragments.root.main.profile.myOffers
 
-import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
@@ -23,7 +21,6 @@ import market.engine.core.utils.setNewParams
 interface MyOffersComponent {
     val model : Value<Model>
     data class Model(
-        val pagingDataFlow : Flow<PagingData<OfferItem>>,
         val viewModel: MyOffersViewModel,
         var type : LotsType,
         val backHandler: BackHandler
@@ -51,11 +48,10 @@ class DefaultMyOffersComponent(
     val navigateToDynamicSettings: (String, Long?) -> Unit,
 ) : MyOffersComponent, ComponentContext by componentContext {
 
-    private val viewModel : MyOffersViewModel = MyOffersViewModel(type)
+    private val viewModel : MyOffersViewModel = MyOffersViewModel(type, this)
 
     private val _model = MutableValue(
         MyOffersComponent.Model(
-            pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             type = type,
             backHandler = backHandler

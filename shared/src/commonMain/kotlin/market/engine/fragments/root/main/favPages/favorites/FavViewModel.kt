@@ -73,7 +73,11 @@ data class FavPagesContent(
     val listingBaseState: ListingBaseState = ListingBaseState(),
 )
 
-class FavViewModel(val favType : FavScreenType,val idList : Long?, component: FavoritesComponent) : BaseViewModel() {
+class FavViewModel(
+    val favType : FavScreenType,
+    val idList : Long?,
+    component: FavoritesComponent
+) : BaseViewModel() {
 
     private val offersListOperations = OffersListOperations(apiService)
 
