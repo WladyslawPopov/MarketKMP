@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusManager
@@ -40,11 +42,14 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OrderFilterContent(
-    isRefreshing: MutableState<Boolean>,
-    filters: ArrayList<Filter>,
+    initialFilters: List<Filter>,
     typeFilters: DealType,
-    onClose : () -> Unit,
+    onClose: (newFilters : List<Filter>) -> Unit,
 ) {
+    var filters by remember { mutableStateOf(initialFilters.map { it.copy() }) }
+
+    val isRefreshing = remember { mutableStateOf(false) }
+
     val focusManager: FocusManager = LocalFocusManager.current
 
     val checkSize: () -> Boolean = {
@@ -86,14 +91,13 @@ fun OrderFilterContent(
             isShowClearBtn = isShowClear.value,
             onClear = {
                 DealFilters.clearTypeFilter(typeFilters)
-                filters.clear()
-                filters.addAll(DealFilters.getByTypeFilter(typeFilters))
+                filters = DealFilters.getByTypeFilter(typeFilters)
                 isRefreshing.value = true
                 isShowClear.value = checkSize()
-                onClose()
+                onClose(filters)
             },
             onClosed = {
-                onClose()
+                onClose(filters)
             }
         )
 
@@ -386,7 +390,7 @@ fun OrderFilterContent(
                 .align(Alignment.BottomCenter)
                 .padding(dimens.mediumPadding)
         ){
-            onClose()
+            onClose(filters)
         }
     }
 }

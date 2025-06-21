@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
@@ -25,20 +24,17 @@ import org.jetbrains.compose.resources.stringResource
 fun OrderDetailsDialog(
     isDialogOpen: Boolean,
     order: Order,
-    updateTrigger: Int,
     onDismiss: () -> Unit,
 ) {
-    if (updateTrigger < 0) return
-
-    val address = remember { order.deliveryAddress?.address.orEmpty() }
-    val city = remember { order.deliveryAddress?.city?.jsonPrimitive?.content.orEmpty() }
-    val dealType = remember { order.dealType?.name.orEmpty() }
-    val deliveryMethod = remember { order.deliveryMethod?.name.orEmpty() }
-    val name = remember { order.deliveryAddress?.name.orEmpty() }
-    val country = remember { order.deliveryAddress?.country.orEmpty() }
-    val paymentMethod = remember { order.paymentMethod?.name.orEmpty() }
-    val phone = remember { order.deliveryAddress?.phone.orEmpty() }
-    val index = remember { order.deliveryAddress?.zip.orEmpty() }
+    val address = order.deliveryAddress?.address.orEmpty()
+    val city = order.deliveryAddress?.city?.jsonPrimitive?.content.orEmpty()
+    val dealType = order.dealType?.name.orEmpty()
+    val deliveryMethod = order.deliveryMethod?.name.orEmpty()
+    val name = order.deliveryAddress?.name.orEmpty()
+    val country = order.deliveryAddress?.country.orEmpty()
+    val paymentMethod = order.paymentMethod?.name.orEmpty()
+    val phone = order.deliveryAddress?.phone.orEmpty()
+    val index = order.deliveryAddress?.zip.orEmpty()
 
     CustomDialog(
         isDialogOpen,

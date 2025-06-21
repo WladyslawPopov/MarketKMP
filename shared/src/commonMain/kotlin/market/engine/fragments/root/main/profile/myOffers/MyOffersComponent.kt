@@ -5,17 +5,12 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.utils.getCurrentDate
-import market.engine.core.utils.setNewParams
 
 
 interface MyOffersComponent {
@@ -33,8 +28,6 @@ interface MyOffersComponent {
     fun goToDynamicSettings(type : String, id : Long? = null)
     fun goToBack()
     fun onRefresh()
-    fun isHideItem(offer: OfferItem) : Boolean
-    fun updateItem(oldItem: OfferItem?)
 }
 
 class DefaultMyOffersComponent(
@@ -107,58 +100,6 @@ class DefaultMyOffersComponent(
     }
 
     override fun onRefresh() {
-        viewModel.onRefresh()
-    }
-
-    override fun isHideItem(offer: OfferItem): Boolean {
-        return when (model.value.type) {
-            LotsType.MY_LOT_ACTIVE -> {
-                offer.state != "active" && offer.session == null
-            }
-
-            LotsType.MY_LOT_INACTIVE -> {
-                offer.state == "active"
-            }
-
-            LotsType.MY_LOT_IN_FUTURE -> {
-                val currentDate: Long? = getCurrentDate().toLongOrNull()
-                if (currentDate != null) {
-                    val initD = (offer.session?.start?.toLongOrNull() ?: 1L) - currentDate
-
-                    offer.state != "active" && initD < 0
-                }else{
-                    false
-                }
-            }
-
-            else -> {
-                false
-            }
-        }
-    }
-
-    override fun updateItem(oldItem: OfferItem?) {
-        viewModel.viewModelScope.launch {
-            val offer = withContext(Dispatchers.Default) {
-                viewModel.getOfferById(viewModel.updateItem.value!!)
-            }
-
-            withContext(Dispatchers.Main) {
-                if (offer != null) {
-                    oldItem?.setNewParams(offer)
-                }else{
-                    oldItem?.session = null
-                    oldItem?.state = null
-                }
-                if (oldItem != null) {
-                    if (!isHideItem(oldItem)) {
-                        onRefresh()
-                    }
-                }
-
-                viewModel.updateItem.value = null
-                viewModel.updateItemTrigger.value++
-            }
-        }
+        viewModel.updatePage()
     }
 }

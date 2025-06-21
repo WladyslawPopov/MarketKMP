@@ -15,24 +15,23 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.fragments.root.main.profile.navigation.MyOfferConfig
-import market.engine.fragments.root.main.profile.navigation.ProfileConfig
-import market.engine.fragments.root.main.profile.navigation.itemMyOffers
+import market.engine.fragments.root.main.profile.myOffers.MyOfferConfig
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
+import market.engine.fragments.root.main.profile.myBids.DefaultMyBidsComponent
 import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
+import market.engine.fragments.root.main.profile.myOffers.DefaultMyOffersComponent
 import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.fragments.root.main.profile.myOrders.DefaultMyOrdersComponent
 import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.myProposals.MyProposalsComponent
-import market.engine.fragments.root.main.profile.navigation.MyBidsConfig
-import market.engine.fragments.root.main.profile.navigation.MyOrderConfig
-import market.engine.fragments.root.main.profile.navigation.MyProposalsConfig
-import market.engine.fragments.root.main.profile.navigation.ProfileSettingsConfig
-import market.engine.fragments.root.main.profile.navigation.itemMyBids
-import market.engine.fragments.root.main.profile.navigation.itemMyProposals
+import market.engine.fragments.root.main.profile.myBids.MyBidsConfig
+import market.engine.fragments.root.main.profile.myOrders.MyOrderConfig
+import market.engine.fragments.root.main.profile.myProposals.MyProposalsConfig
+import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsConfig
+import market.engine.fragments.root.main.profile.myProposals.itemMyProposals
 import market.engine.fragments.root.main.profile.profileSettings.DefaultProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 
@@ -254,7 +253,34 @@ class DefaultProfileChildrenComponent(
             },
             key = "ProfileMyOffersStack",
             childFactory = { config, componentContext ->
-                itemMyOffers(config, componentContext, navigationProfile,::selectOfferPage)
+                DefaultMyOffersComponent(
+                    componentContext = componentContext,
+                    type = config.lotsType,
+                    offerSelected = { id ->
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+                    },
+                    selectedMyOfferPage = { type ->
+                        selectOfferPage(type)
+                    },
+                    navigateToCreateOffer = { type, offerId, catPath ->
+                        navigationProfile.pushNew(
+                            ProfileConfig.CreateOfferScreen(
+                                catPath = catPath,
+                                createOfferType = type,
+                                offerId = offerId,
+                            )
+                        )
+                    },
+                    navigateToBack = {
+                        navigationProfile.replaceCurrent(ProfileConfig.ProfileScreen())
+                    },
+                    navigateToProposal = { id, type ->
+                        navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
+                    },
+                    navigateToDynamicSettings = { type, id ->
+                        goToDynamicSettings(type, id, null)
+                    }
+                )
             }
         )
     }
@@ -275,7 +301,31 @@ class DefaultProfileChildrenComponent(
             },
             key = "ProfileMyBidsStack",
             childFactory = { config, componentContext ->
-                itemMyBids(config, componentContext, navigationProfile,::selectOfferPage)
+                DefaultMyBidsComponent(
+                    componentContext = componentContext,
+                    type = config.lotsType,
+                    offerSelected = { id ->
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+                    },
+                    selectedMyBidsPage = { type ->
+                        selectOfferPage(type)
+                    },
+                    navigateToUser = { userId ->
+                        navigationProfile.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
+                    },
+                    navigateToPurchases = {
+                        navigationProfile.replaceCurrent(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
+                    },
+                    navigateToDialog = { dialogId ->
+                        if (dialogId != null)
+                            navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
+                        else
+                            navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                    },
+                    navigateBack = {
+                        navigationProfile.replaceCurrent(ProfileConfig.ProfileScreen())
+                    }
+                )
             }
         )
     }

@@ -45,6 +45,7 @@ import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.ListingBaseState
+import market.engine.core.data.states.ListingOfferContentState
 import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
@@ -65,13 +66,6 @@ import market.engine.fragments.root.DefaultRootComponent
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
-data class FavPagesContent(
-    val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val listingData: ListingData = ListingData(),
-    val filterBarData: FilterBarUiState = FilterBarUiState(),
-    val filtersCategoryState: CategoryState = CategoryState(),
-    val listingBaseState: ListingBaseState = ListingBaseState(),
-)
 
 class FavViewModel(
     val favType : FavScreenType,
@@ -167,7 +161,6 @@ class FavViewModel(
 
                     CabinetOfferItemState(
                         item = item,
-                        isVisible = !isHideItem(item),
                         events = CabinetOfferItemEventsImpl(this, item, component),
                         defOptions = defOption,
                         selectedItem = SelectedOfferItemState(
@@ -189,7 +182,7 @@ class FavViewModel(
             PagingData.empty()
         ).cachedIn(viewModelScope)
 
-    val favDataState: StateFlow<FavPagesContent> = combine(
+    val favDataState: StateFlow<ListingOfferContentState> = combine(
         _activeWindowType,
         _listingData,
     ) { activeType, listingData ->
@@ -201,7 +194,7 @@ class FavViewModel(
         filtersCategoryModel.updateFromSearchData(listingData.searchData)
         filtersCategoryModel.initialize(listingData.data.filters)
 
-        FavPagesContent(
+        ListingOfferContentState(
             appBarData = SimpleAppBarData(
                 color = colors.primaryColor,
                 onBackClick = {
@@ -292,7 +285,7 @@ class FavViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
-        initialValue = FavPagesContent()
+        initialValue = ListingOfferContentState()
     )
 
     init {
@@ -711,5 +704,21 @@ data class CabinetOfferItemEventsImpl(
 
     override fun onUpdateItem() {
         viewModel.updateItem(offer)
+    }
+
+    override fun goToUser() {
+
+    }
+
+    override fun goToPurchase() {
+
+    }
+
+    override fun sendMessageToUser() {
+
+    }
+
+    override fun isHideItem(): Boolean {
+        return viewModel.isHideItem(offer)
     }
 }

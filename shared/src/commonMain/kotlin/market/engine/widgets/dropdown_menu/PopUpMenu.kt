@@ -1,6 +1,5 @@
 package market.engine.widgets.dropdown_menu
 
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.Divider
@@ -27,7 +26,7 @@ fun PopUpMenu(
     onClosed: () -> Unit,
 ) {
     DropdownMenu(
-        modifier = Modifier.widthIn(max = 350.dp).heightIn(max = 800.dp),
+        modifier = Modifier.widthIn(max = 350.dp),
         expanded = openPopup,
         onDismissRequest = { onClosed() },
         containerColor = colors.white,

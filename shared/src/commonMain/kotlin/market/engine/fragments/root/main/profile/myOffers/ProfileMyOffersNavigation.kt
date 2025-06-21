@@ -1,35 +1,36 @@
-package market.engine.fragments.root.main.profile.navigation
+package market.engine.fragments.root.main.profile.myOffers
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
+import market.engine.common.Platform
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.LotsType
-import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
-import market.engine.fragments.root.main.profile.myOffers.DefaultMyOffersComponent
-import market.engine.fragments.root.main.profile.myOffers.MyOffersAppBar
-import market.engine.fragments.root.main.profile.myOffers.MyOffersComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.root.main.profile.myOffers.MyOffersContent
+import market.engine.widgets.bars.appBars.DrawerAppBar
+import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -57,24 +58,63 @@ fun ProfileMyOffersNavigation(
         Column(
             modifier = mod
         ) {
-            MyOffersAppBar(
-                select.value,
+            DrawerAppBar(
                 drawerState = drawerState,
-                showMenu = hideDrawer.value,
-                openMenu = if (isBigScreen.value) {
-                    {
-                        hideDrawer.value = !hideDrawer.value
+                data = SimpleAppBarData(
+                    listItems = listOf(
+                        NavigationItem(
+                            title = "",
+                            icon = drawables.recycleIcon,
+                            tint = colors.inactiveBottomNavIconColor,
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
+                            onClick = {
+                                component.onRefreshOffers()
+                            }
+                        ),
+                    ),
+                    color = colors.primaryColor,
+                )
+            ){
+                val active = stringResource(strings.activeTab)
+                val inactive = stringResource(strings.inactiveTab)
+                val future = stringResource(strings.futureTab)
+
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    item {
+                        SimpleTextButton(
+                            active,
+                            backgroundColor = if (select.value == LotsType.MY_LOT_ACTIVE) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodySmall
+                        ) {
+                            component.selectOfferPage(LotsType.MY_LOT_ACTIVE)
+                        }
                     }
-                }else{
-                    null
-                },
-                navigationClick = { newType ->
-                    component.selectOfferPage(newType)
-                },
-                onRefresh = {
-                    component.onRefreshOffers()
+                    item {
+                        SimpleTextButton(
+                            inactive,
+                            if (select.value == LotsType.MY_LOT_INACTIVE) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodySmall
+                        ) {
+                            component.selectOfferPage(LotsType.MY_LOT_INACTIVE)
+                        }
+                    }
+                    item {
+                        SimpleTextButton(
+                            future,
+                            if (select.value == LotsType.MY_LOT_IN_FUTURE) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodySmall
+                        ) {
+                            component.selectOfferPage(LotsType.MY_LOT_IN_FUTURE)
+                        }
+                    }
                 }
-            )
+            }
 
             ChildPages(
                 pages = component.myOffersPages,
@@ -133,38 +173,3 @@ fun ProfileMyOffersNavigation(
     }
 }
 
-fun itemMyOffers(
-    config: MyOfferConfig,
-    componentContext: ComponentContext,
-    profileNavigation: StackNavigation<ProfileConfig>,
-    selectMyOfferPage: (LotsType) -> Unit
-): MyOffersComponent {
-    return DefaultMyOffersComponent(
-        componentContext = componentContext,
-        type = config.lotsType,
-        offerSelected = { id ->
-            profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
-        },
-        selectedMyOfferPage = { type ->
-            selectMyOfferPage(type)
-        },
-        navigateToCreateOffer = { type, offerId, catPath ->
-            profileNavigation.pushNew(
-                ProfileConfig.CreateOfferScreen(
-                    catPath = catPath,
-                    createOfferType = type,
-                    offerId = offerId,
-                )
-            )
-        },
-        navigateToBack = {
-            profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
-        },
-        navigateToProposal = { id, type ->
-            profileNavigation.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
-        },
-        navigateToDynamicSettings = { type, id ->
-            goToDynamicSettings(type, id, null)
-        }
-    )
-}

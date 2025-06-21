@@ -1,7 +1,5 @@
 package market.engine.core.utils
 
-
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.util.fastForEach
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -16,10 +14,7 @@ import market.engine.core.data.items.NotificationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.networkObjects.Operations
-import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.User
-import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
 import market.engine.shared.NotificationsHistory
 import org.jetbrains.compose.resources.DrawableResource
@@ -170,49 +165,6 @@ fun deleteReadNotifications() {
         }
     } catch (_ : Exception) {}
 }
-
-
-fun Operations.onClickOrderOperationItem(
-    item : Order,
-    title : MutableState<String>,
-    baseViewModel : BaseViewModel,
-    showOperationsDialog : MutableState<String>,
-    onUpdateOfferItem : () -> Unit,
-) {
-    when (id) {
-        "give_feedback_to_seller" -> {
-            title.value = name.toString()
-            showOperationsDialog.value = "give_feedback_to_seller"
-        }
-        "give_feedback_to_buyer" -> {
-            title.value = name.toString()
-            showOperationsDialog.value = "give_feedback_to_buyer"
-        }
-        "set_comment" -> {
-            title.value = name.toString()
-            showOperationsDialog.value = "set_comment"
-        }
-        "provide_track_id" -> {
-            title.value = name.toString()
-            showOperationsDialog.value = "provide_track_id"
-        }
-        else -> {
-            title.value = name.toString()
-            baseViewModel.postOperationFields(
-                item.id,
-                id ?: "",
-                "orders",
-                onSuccess = {
-                    onUpdateOfferItem()
-                },
-                errorCallback = {
-
-                }
-            )
-        }
-    }
-}
-
 
 fun OfferItem.setNewParams(offer: Offer) {
     images = buildList {

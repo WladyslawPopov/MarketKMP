@@ -9,7 +9,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,7 +22,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.networkObjects.Order
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField
@@ -31,11 +29,12 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OrderOperationsDialogs(
-    order: Order,
-    title: MutableState<String>,
-    showDialog: MutableState<String>,
+    orderId: Long,
+    title: String,
+    showDialog: String,
     viewModel : BaseViewModel,
     updateItem: (Long) -> Unit,
+    onClose: () -> Unit
 ) {
     val feedbackType = remember { mutableStateOf(1) }
 
@@ -43,24 +42,24 @@ fun OrderOperationsDialogs(
     val feedbacksTypeNeutralLabel = stringResource(strings.feedbackTypeNeutralLabel)
     val feedbacksTypeNegativeLabel = stringResource(strings.feedbackTypeNegativeLabel)
 
-    when (showDialog.value) {
+    when (showDialog) {
         "error" -> {
             CustomDialog(
-                showDialog = showDialog.value != "",
+                showDialog = showDialog != "",
                 title = buildAnnotatedString {
                     append(stringResource(strings.messageAboutError))
                 },
                 body = {
-                    Text(title.value)
+                    Text(title)
                 },
-                onDismiss = { showDialog.value = "" }
+                onDismiss = { onClose() }
             )
         }
         "give_feedback_to_buyer","give_feedback_to_seller" -> {
             val commentText = mutableStateOf(TextFieldValue(stringResource(strings.defaultCommentReport)))
             CustomDialog(
-                showDialog.value != "",
-                title = AnnotatedString(title.value),
+                showDialog != "",
+                title = AnnotatedString(title),
                 body = {
                     LazyColumnWithScrollBars(
                         heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
@@ -159,17 +158,17 @@ fun OrderOperationsDialogs(
                     body["comment"] = JsonPrimitive(commentText.value.text)
 
                     viewModel.postOperationAdditionalData(
-                        order.id,
-                        showDialog.value,
+                        orderId,
+                        showDialog,
                         "orders",
                         body = body,
                         onSuccess = {
-                            updateItem(order.id)
+                            updateItem(orderId)
                         }
                     )
                 },
                 onDismiss = {
-                    showDialog.value = ""
+                    onClose()
                 },
             )
         }
@@ -177,8 +176,8 @@ fun OrderOperationsDialogs(
         "set_comment" -> {
             val commentText = mutableStateOf(TextFieldValue(""))
             CustomDialog(
-                showDialog.value != "",
-                title = AnnotatedString(title.value),
+                showDialog != "",
+                title = AnnotatedString(title),
                 body = {
                     OutlinedTextInputField(
                         value = commentText.value,
@@ -195,18 +194,18 @@ fun OrderOperationsDialogs(
                     body["comment"] = JsonPrimitive(commentText.value.text)
 
                    viewModel.postOperationAdditionalData(
-                        order.id,
+                       orderId,
                         "set_comment",
                         "orders",
                         body,
                         onSuccess = {
-                            updateItem(order.id)
-                            showDialog.value = ""
+                            updateItem(orderId)
+                            onClose()
                         }
                     )
                 },
                 onDismiss = {
-                    showDialog.value = ""
+                    onClose()
                 },
             )
         }
@@ -214,8 +213,8 @@ fun OrderOperationsDialogs(
         "provide_track_id" -> {
             val commentText = mutableStateOf(TextFieldValue(""))
             CustomDialog(
-                showDialog.value != "",
-                title = AnnotatedString(title.value),
+                showDialog != "",
+                title = AnnotatedString(title),
                 body = {
                     OutlinedTextInputField(
                         value = commentText.value,
@@ -232,18 +231,18 @@ fun OrderOperationsDialogs(
                     body["track_id"] = JsonPrimitive(commentText.value.text)
 
                     viewModel.postOperationAdditionalData(
-                        order.id,
+                        orderId,
                         "provide_track_id",
                         "orders",
                         body = body,
                         onSuccess = {
-                            updateItem(order.id)
-                            showDialog.value = ""
+                            updateItem(orderId)
+                            onClose()
                         }
                     )
                 },
                 onDismiss = {
-                    showDialog.value = ""
+                    onClose()
                 },
             )
         }

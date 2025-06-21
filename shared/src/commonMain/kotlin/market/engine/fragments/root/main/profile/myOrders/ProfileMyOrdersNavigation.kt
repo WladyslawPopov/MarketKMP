@@ -1,30 +1,38 @@
-package market.engine.fragments.root.main.profile.navigation
+package market.engine.fragments.root.main.profile.myOrders
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import kotlinx.serialization.Serializable
+import market.engine.common.Platform
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.root.main.profile.myOrders.MyOrderAppBar
-import market.engine.fragments.root.main.profile.myOrders.MyOrdersContent
+import market.engine.widgets.bars.appBars.DrawerAppBar
+import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
-
 
 @Serializable
 data class MyOrderConfig(
@@ -51,25 +59,59 @@ fun ProfileMyOrdersNavigation(
             mutableStateOf(if(typeGroup == DealTypeGroup.SELL) DealType.SELL_ALL else DealType.BUY_IN_WORK)
         }
         Column {
-            MyOrderAppBar(
-                select.value,
-                typeGroup,
+            DrawerAppBar(
                 drawerState = drawerState,
-                showMenu = hideDrawer.value,
-                openMenu = if (isBigScreen.value) {
-                    {
-                        hideDrawer.value = !hideDrawer.value
+                data = SimpleAppBarData(
+                    listItems = listOf(
+                        NavigationItem(
+                            title = "",
+                            icon = drawables.recycleIcon,
+                            tint = colors.inactiveBottomNavIconColor,
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
+                            onClick = {
+                                component.onRefreshOffers()
+                            }
+                        ),
+                    ),
+                    color = colors.primaryColor,
+                )
+            ) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    val tabs = when (typeGroup){
+                        DealTypeGroup.BUY -> {
+                            listOf(
+                                DealType.BUY_IN_WORK to strings.tabInWorkLabel,
+                                DealType.BUY_ARCHIVE to strings.tabArchiveLabel
+                            )
+                        }
+                        DealTypeGroup.SELL -> {
+                            listOf(
+                                DealType.SELL_ALL to strings.tabAllLabel,
+                                DealType.SELL_IN_WORK to strings.tabInWorkLabel,
+                                DealType.SELL_ARCHIVE to strings.tabArchiveLabel,
+                            )
+                        }
                     }
-                }else{
-                    null
-                },
-                navigationClick = { newType->
-                    component.selectMyOrderPage(newType)
-                },
-                onRefresh = {
-                    component.onRefreshOrders()
+
+                    tabs.forEach { tab ->
+                        item {
+                            SimpleTextButton(
+                                stringResource(tab.second),
+                                backgroundColor = if (select.value == tab.first) colors.rippleColor else colors.white,
+                                textStyle = MaterialTheme.typography.bodyMedium,
+                            ) {
+                                component.selectMyOrderPage(tab.first)
+                            }
+                        }
+                    }
                 }
-            )
+            }
 
             ChildPages(
                 pages = component.myOrdersPages,

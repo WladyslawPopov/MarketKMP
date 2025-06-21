@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.util.fastForEach
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -19,6 +20,7 @@ import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.base.SetUpDynamicFields
+import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -29,6 +31,7 @@ fun OfferOperationsDialogs(
     showDialog: String,
     viewModel : BaseViewModel,
     updateItem: (Long) -> Unit,
+    onSuccess: (Long?) -> Unit = {},
     close : (fullRefresh : Boolean) -> Unit
 ) {
     val isClicked = remember { mutableStateOf(false) }
@@ -111,33 +114,36 @@ fun OfferOperationsDialogs(
 
     if (showDialog != "") {
         when (showDialog) {
-            "delete_offer" -> {
-                AccessDialog(
-                    showDialog = showDialog != "",
+            "send_message" -> {
+                val messageText = remember { mutableStateOf(TextFieldValue()) }
+
+                CustomDialog(
+                    showDialog != "",
                     title = title,
-                    onDismiss = {
-                        isClicked.value = false
-                        close(false)
-                    },
-                    onSuccess = {
-                        if (!isClicked.value) {
-                            isClicked.value = true
-                            viewModel.postOperationFields(
-                                offerId,
-                                showDialog,
-                                "offers",
-                                onSuccess = {
-                                    updateItem(offerId)
-                                    isClicked.value = false
-                                    close(false)
+                    containerColor = colors.white,
+                    body = {
+                        Column {
+                            OutlinedTextInputField(
+                                value = messageText.value,
+                                onValueChange = {
+                                    messageText.value = it
                                 },
-                                errorCallback = {
-                                    updateItem(offerId)
-                                    isClicked.value = false
-                                    close(false)
-                                }
+                                label = stringResource(strings.messageLabel),
+                                maxSymbols = 2000,
+                                singleLine = false
                             )
                         }
+                    },
+                    onSuccessful = {
+                        viewModel.writeToSeller(
+                            offerId, messageText.value.text,
+                        ) {
+                            onSuccess(it)
+                            close(false)
+                        }
+                    },
+                    onDismiss = {
+                        close(false)
                     }
                 )
             }

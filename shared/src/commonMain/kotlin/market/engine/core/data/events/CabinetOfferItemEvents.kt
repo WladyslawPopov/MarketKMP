@@ -9,4 +9,8 @@ interface CabinetOfferItemEvents {
     fun goToCreateOffer(type : CreateOfferType)
     fun goToDynamicSettings(type : String, id: Long?)
     fun onUpdateItem()
+    fun goToUser()
+    fun goToPurchase()
+    fun sendMessageToUser()
+    fun isHideItem() : Boolean
 }

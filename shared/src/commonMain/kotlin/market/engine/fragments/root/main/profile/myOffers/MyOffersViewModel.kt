@@ -44,6 +44,7 @@ import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.ListingBaseState
+import market.engine.core.data.states.ListingOfferContentState
 import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
@@ -53,6 +54,7 @@ import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.BaseViewModel
@@ -60,14 +62,6 @@ import market.engine.fragments.root.DefaultRootComponent
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.collections.map
-
-data class MyOffersContentState(
-    val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val listingData: ListingData = ListingData(),
-    val filterBarData: FilterBarUiState = FilterBarUiState(),
-    val filtersCategoryState: CategoryState = CategoryState(),
-    val listingBaseState: ListingBaseState = ListingBaseState(),
-)
 
 class MyOffersViewModel(
     val type: LotsType,
@@ -85,7 +79,6 @@ class MyOffersViewModel(
     ))
 
     private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
-
     val showOperationsDialog = MutableStateFlow("")
     val titleDialog = MutableStateFlow(AnnotatedString(""))
     val fieldsDialog = MutableStateFlow< ArrayList<Fields>>(arrayListOf())
@@ -97,7 +90,6 @@ class MyOffersViewModel(
     ) { listingData, _ ->
         listingData
     }
-
 
     private val filtersCategoryModel = CategoryViewModel(
         isFilters = true,
@@ -167,8 +159,6 @@ class MyOffersViewModel(
 
                     CabinetOfferItemState(
                         item = item,
-                        isVisible = !isHideItem(item),
-                        events = CabinetOfferItemEventsImpl(this, item, component),
                         defOptions = defOption,
                         selectedItem = SelectedOfferItemState(
                             isSelected = selectItems.contains(offer.id),
@@ -180,6 +170,7 @@ class MyOffersViewModel(
                                 }
                             }
                         ),
+                        events = CabinetOfferItemEventsImpl(this, item, component)
                     )
                 }
             }
@@ -189,7 +180,7 @@ class MyOffersViewModel(
             PagingData.empty()
         ).cachedIn(viewModelScope)
 
-    val uiDataState: StateFlow<MyOffersContentState> = combine(
+    val uiDataState: StateFlow<ListingOfferContentState> = combine(
         _activeWindowType,
         _listingData,
     ) { activeType, listingData ->
@@ -201,7 +192,7 @@ class MyOffersViewModel(
         filtersCategoryModel.updateFromSearchData(listingData.searchData)
         filtersCategoryModel.initialize(listingData.data.filters)
 
-        MyOffersContentState(
+        ListingOfferContentState(
             appBarData = SimpleAppBarData(
                 color = colors.primaryColor,
                 onBackClick = {
@@ -292,16 +283,12 @@ class MyOffersViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
-        initialValue = MyOffersContentState()
+        initialValue = ListingOfferContentState()
     )
-
-    fun onRefresh(){
-    }
 
     fun updatePage(){
         updatePage.value++
     }
-
     fun onBackNavigation(activeType: ActiveWindowListingType){
         when(activeType){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
@@ -325,6 +312,9 @@ class MyOffersViewModel(
             withContext(Dispatchers.Main) {
                 if (offer != null) {
                     oldItem.setNewParams(offer)
+                }else{
+                    oldItem.session = null
+                    oldItem.state = null
                 }
 
                 updateItem.value = null
@@ -333,9 +323,31 @@ class MyOffersViewModel(
     }
 
     fun isHideItem(offer: OfferItem): Boolean {
-        return component.isHideItem(offer)
-    }
+        return when (type) {
+            LotsType.MY_LOT_ACTIVE -> {
+                offer.state != "active" || offer.session == null
+            }
 
+            LotsType.MY_LOT_INACTIVE -> {
+                offer.state == "active" || offer.session == null
+            }
+
+            LotsType.MY_LOT_IN_FUTURE -> {
+                val currentDate: Long? = getCurrentDate().toLongOrNull()
+                if (currentDate != null) {
+                    val initD = (offer.session?.start?.toLongOrNull() ?: 1L) - currentDate
+
+                    offer.state != "active" && initD < 0
+                }else{
+                    false
+                }
+            }
+
+            else -> {
+                false
+            }
+        }
+    }
     fun applyFilters(newFilters: List<Filter>) {
         _listingData.update { currentState ->
             currentState.copy(
@@ -347,7 +359,6 @@ class MyOffersViewModel(
         refresh()
         _activeWindowType.value = ActiveWindowListingType.LISTING
     }
-
     fun applySorting(newSort: Sort?) {
         _listingData.update { currentState ->
             currentState.copy(
@@ -359,7 +370,6 @@ class MyOffersViewModel(
         refresh()
         _activeWindowType.value = ActiveWindowListingType.LISTING
     }
-
     fun removeFilter(filter: Filter){
         _listingData.update { currentListingData ->
             val currentData = currentListingData.data
@@ -376,14 +386,12 @@ class MyOffersViewModel(
         }
         refresh()
     }
-
     fun removeSort(){
         _listingData.update {
             it.copy(data = it.data.copy(sort = null))
         }
         refresh()
     }
-
     fun clearAllFilters() {
         OfferFilters.clearTypeFilter(type)
         _listingData.update {
@@ -393,13 +401,11 @@ class MyOffersViewModel(
         }
         refresh()
     }
-
     fun clearDialogFields(){
         dialogItemId.value = 1
         fieldsDialog.value.clear()
         showOperationsDialog.value = ""
     }
-
 }
 
 
@@ -462,7 +468,7 @@ data class CabinetOfferItemEventsImpl(
                                     onClick = {
                                         operation.run {
                                             when {
-                                                id == "activate_offer_for_future" || id == "activate_offer" -> {
+                                                id == "activate_offer_for_future" || id == "delete_offer" || id == "finalize_session" -> {
                                                     viewModel.titleDialog.value = AnnotatedString(name ?: "")
                                                     viewModel.showOperationsDialog.value = id
                                                     viewModel.dialogItemId.value = offer.id
@@ -582,5 +588,21 @@ data class CabinetOfferItemEventsImpl(
 
     override fun onUpdateItem() {
         viewModel.updateItem(offer)
+    }
+
+    override fun goToUser() {
+
+    }
+
+    override fun goToPurchase() {
+
+    }
+
+    override fun sendMessageToUser() {
+
+    }
+
+    override fun isHideItem(): Boolean {
+        return viewModel.isHideItem(offer)
     }
 }

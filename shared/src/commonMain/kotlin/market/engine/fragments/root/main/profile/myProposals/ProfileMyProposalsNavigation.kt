@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.navigation
+package market.engine.fragments.root.main.profile.myProposals
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -22,26 +22,21 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.LotsType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
-import market.engine.fragments.root.main.profile.myBids.MyBidsAppBar
-import market.engine.fragments.root.main.profile.myBids.MyBidsContent
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.root.main.profile.myBids.DefaultMyBidsComponent
-import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
+import market.engine.fragments.root.main.profile.ProfileConfig
 import org.jetbrains.compose.resources.stringResource
 
-
 @Serializable
-data class MyBidsConfig(
+data class MyProposalsConfig(
     @Serializable
     val lotsType: LotsType
 )
 
 @Composable
-fun ProfileMyBidsNavigation(
+fun ProfileMyProposalsNavigation(
     component: ProfileChildrenComponent,
     modifier: Modifier,
     publicProfileNavigationItems: List<NavigationItem>
@@ -52,10 +47,10 @@ fun ProfileMyBidsNavigation(
 
     val content : @Composable (Modifier) -> Unit = {
         val select = remember {
-            mutableStateOf(LotsType.MY_BIDS_ACTIVE)
+            mutableStateOf(LotsType.ALL_PROPOSAL)
         }
         Column {
-            MyBidsAppBar(
+            MyProposalsAppBar(
                 select.value,
                 drawerState = drawerState,
                 showMenu = hideDrawer.value,
@@ -70,32 +65,31 @@ fun ProfileMyBidsNavigation(
                     component.selectOfferPage(newType)
                 },
                 onRefresh = {
-                    component.onRefreshBids()
+                    component.onRefreshProposals()
                 }
             )
 
             ChildPages(
-                pages = component.myBidsPages,
+                pages = component.myProposalsPages,
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
                     select.value = when(it){
-                        0 -> LotsType.MY_BIDS_ACTIVE
-                        1 -> LotsType.MY_BIDS_INACTIVE
+                        0 -> LotsType.ALL_PROPOSAL
+                        1 -> LotsType.NEED_RESPONSE
                         else -> {
-                            LotsType.MY_BIDS_ACTIVE
+                            LotsType.ALL_PROPOSAL
                         }
                     }
                     component.selectOfferPage(select.value)
                 }
             ) { _, page ->
-                MyBidsContent(
+                MyProposalsContent(
                     component = page,
                     modifier = modifier
                 )
             }
         }
     }
-
     ModalNavigationDrawer(
         modifier = modifier,
         drawerState = drawerState,
@@ -105,16 +99,10 @@ fun ProfileMyBidsNavigation(
             ) {
                 if (isBigScreen.value) {
                     AnimatedVisibility(hideDrawer.value) {
-                        ProfileDrawer(
-                            stringResource(strings.myBidsTitle),
-                            publicProfileNavigationItems
-                        )
+                        ProfileDrawer(stringResource(strings.proposalTitle), publicProfileNavigationItems)
                     }
                 }else{
-                    ProfileDrawer(
-                        stringResource(strings.myBidsTitle),
-                        publicProfileNavigationItems
-                    )
+                    ProfileDrawer(stringResource(strings.proposalTitle), publicProfileNavigationItems)
                 }
 
                 if (isBigScreen.value) {
@@ -130,26 +118,23 @@ fun ProfileMyBidsNavigation(
     }
 }
 
-fun itemMyBids(
-    config: MyBidsConfig,
+fun itemMyProposals(
+    config: MyProposalsConfig,
     componentContext: ComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
-    selectMyBidsPage: (LotsType) -> Unit
-): MyBidsComponent {
-    return DefaultMyBidsComponent(
+    selectMyProposalPage: (LotsType) -> Unit
+): MyProposalsComponent {
+    return DefaultMyProposalsComponent(
         componentContext = componentContext,
         type = config.lotsType,
         offerSelected = { id ->
             profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
         },
-        selectedMyBidsPage = { type ->
-            selectMyBidsPage(type)
+        selectedMyProposalsPage = {
+            selectMyProposalPage(it)
         },
         navigateToUser = { userId ->
             profileNavigation.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
-        },
-        navigateToPurchases = {
-            profileNavigation.replaceCurrent(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
         },
         navigateToDialog = { dialogId ->
             if (dialogId != null)
@@ -159,6 +144,9 @@ fun itemMyBids(
         },
         navigateBack = {
             profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
+        },
+        navigateToProposal = { offerId, proposalType ->
+            profileNavigation.pushNew(ProfileConfig.ProposalScreen(offerId, proposalType, getCurrentDate()))
         }
     )
 }

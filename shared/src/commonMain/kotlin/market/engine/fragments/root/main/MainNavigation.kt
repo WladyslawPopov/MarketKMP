@@ -16,7 +16,6 @@ import kotlinx.serialization.Serializable
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
-import market.engine.fragments.root.main.profile.navigation.ProfileNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.fragments.root.main.favPages.FavoritesNavigation
 import market.engine.widgets.bars.getBottomNavBar

@@ -1,8 +1,5 @@
 package market.engine.widgets.dialogs
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -28,11 +25,7 @@ fun CustomDialog(
     onDismiss: () -> Unit,
     onSuccessful: (() -> Unit) ?= null,
 ) {
-    AnimatedVisibility(
-        showDialog,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
+   if (showDialog) {
         AlertDialog(
             containerColor = containerColor,
             tonalElevation = 0.dp,

@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.profile.navigation
+package market.engine.fragments.root.main.profile.profileSettings
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -20,8 +20,6 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsAppBar
-import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsContent
 import org.jetbrains.compose.resources.stringResource
 
 @Serializable

@@ -1112,10 +1112,10 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    fun writeToSeller(offer : OfferItem, messageText : String, onSuccess: (Long?) -> Unit){
+    fun writeToSeller(offerId : Long, messageText : String, onSuccess: (Long?) -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
             val res = operationsMethods.postOperationAdditionalData(
-                offer.id,
+                offerId,
                 "write_to_seller",
                 "offers",
                 hashMapOf("message" to JsonPrimitive(messageText))
@@ -1125,16 +1125,6 @@ open class BaseViewModel: ViewModel() {
             withContext(Dispatchers.Main) {
                 if (buffer1 != null) {
                     if (buffer1.operationResult?.result == "ok") {
-                        val eventParameters = mapOf(
-                            "seller_id" to offer.seller.id.toString(),
-                            "buyer_id" to UserData.userInfo?.id.toString(),
-                            "message_type" to "lot",
-                            "lot_id" to offer.id.toString()
-                        )
-
-                        analyticsHelper.reportEvent("start_message_to_seller",
-                            eventParameters
-                        )
                         onSuccess(buffer1.body?.toLongOrNull())
                     } else {
                         showToast(

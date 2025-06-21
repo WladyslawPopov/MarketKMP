@@ -43,6 +43,7 @@ fun MyOffersContent(
     val listingBaseState = uiState.value.listingBaseState
     val filterBarUiState = uiState.value.filterBarData
     val categoriesData = uiState.value.filtersCategoryState
+
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = viewModel.updateItem.collectAsState()
 
@@ -147,23 +148,22 @@ fun MyOffersContent(
                 )
             }
         )
-    }
 
-
-    OfferOperationsDialogs(
-        offerId = itemIdDialog.value,
-        showDialog = openDialog.value,
-        viewModel = viewModel,
-        title = dialogTitle.value,
-        fields = dialogFields.value,
-        updateItem = {
-            viewModel.updateItem.value = itemIdDialog.value
-        },
-        close = { fullRefresh ->
-            viewModel.clearDialogFields()
-            if (fullRefresh) {
-                component.onRefresh()
+        OfferOperationsDialogs(
+            offerId = itemIdDialog.value,
+            showDialog = openDialog.value,
+            viewModel = viewModel,
+            title = dialogTitle.value,
+            fields = dialogFields.value,
+            updateItem = {
+                viewModel.updateItem.value = itemIdDialog.value
+            },
+            close = { fullRefresh ->
+                viewModel.clearDialogFields()
+                if (fullRefresh) {
+                    component.onRefresh()
+                }
             }
-        }
-    )
+        )
+    }
 }

@@ -46,9 +46,8 @@ import market.engine.fragments.root.main.favPages.FavoritesConfig
 import market.engine.fragments.root.main.basket.createBasketChild
 import market.engine.fragments.root.main.favPages.FavPagesViewModel
 import market.engine.fragments.root.main.favPages.createFavoritesChild
-import market.engine.fragments.root.main.profile.navigation.ChildProfile
-import market.engine.fragments.root.main.profile.navigation.ProfileConfig
-import market.engine.fragments.root.main.profile.navigation.createProfileChild
+import market.engine.fragments.root.main.profile.ChildProfile
+import market.engine.fragments.root.main.profile.ProfileConfig
 import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.listing.SearchConfig
 import market.engine.fragments.root.main.listing.createSearchChild

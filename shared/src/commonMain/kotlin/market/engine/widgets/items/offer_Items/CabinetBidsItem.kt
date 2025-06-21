@@ -14,12 +14,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -28,15 +28,11 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.OfferItem
-import market.engine.core.network.networkObjects.Fields
+import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.dialogs.OfferMessagingDialog
 import market.engine.widgets.bars.HeaderOfferBar
-import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.rows.UserRow
@@ -46,36 +42,27 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetBidsItem(
-    offer: OfferItem,
-    onUpdateOfferItem : (Long) -> Unit,
-    baseViewModel: BaseViewModel,
-    updateTrigger : Int,
-    goToUser: (Long) -> Unit,
-    goToOffer: (Long) -> Unit,
-    goToMyPurchases: () -> Unit,
-    goToDialog: (Long?) -> Unit
+    state : CabinetOfferItemState,
+    updateItem : Long? = null,
 ) {
-    if(updateTrigger < 0) return
-
-    val showMesDialog = remember { mutableStateOf(false) }
-
-    val isOpenPopup = remember { mutableStateOf(false) }
-
-    val showDialog = remember { mutableStateOf("") }
-
-    val title = remember { mutableStateOf(AnnotatedString("")) }
-    val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
+    val offer = state.item
+    val events = state.events
 
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
     }
 
-    val currentDate = getCurrentDate().toLongOrNull() ?: 1L
-    val isActive = ((offer.session?.end?.toLongOrNull() ?: 1L) > currentDate)
+    LaunchedEffect(updateItem) {
+        if (updateItem == offer.id) {
+            events.onUpdateItem()
+        }
+    }
 
-    val date1 = offer.session?.start?.convertDateWithMinutes()
-    val date2 = offer.session?.end?.convertDateWithMinutes()
-    val d3 = "$date1 – $date2"
+    val currentDate = remember { getCurrentDate().toLongOrNull() ?: 1L }
+    val isActive = remember(offer.session?.end) { ((offer.session?.end?.toLongOrNull() ?: 1L) > currentDate) }
+    val date1 = remember(offer.session?.start) { offer.session?.start?.convertDateWithMinutes() }
+    val date2 = remember(offer.session?.end) { offer.session?.end?.convertDateWithMinutes() }
+    val d3 = remember(date2) { "$date1 – $date2" }
 
     if(offer.bids?.isNotEmpty() == true) {
         Card(
@@ -88,16 +75,15 @@ fun CabinetBidsItem(
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 horizontalAlignment = Alignment.Start
             ) {
-//                HeaderOfferBar(
-//                    offer = offer,
-//                    baseViewModel = baseViewModel,
-//                    onUpdateTrigger = updateTrigger,
-//                    onUpdateOfferItem = onUpdateOfferItem
-//                )
+                HeaderOfferBar(
+                    offer = offer,
+                    selectedState = state.selectedItem,
+                    defOptions = state.defOptions
+                )
 
                 Row(
                     modifier = Modifier.clickable {
-                        goToOffer(offer.id)
+                        events.onItemClick()
                     }.fillMaxWidth().padding(dimens.extraSmallPadding),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
@@ -132,33 +118,15 @@ fun CabinetBidsItem(
                                 )
                             },
                         ) {
-                            baseViewModel.getOfferOperations(offer.id) { listOperations ->
-                                menuList.value = buildList {
-                                    addAll(listOperations.map { operation ->
-                                        MenuItem(
-                                            id = operation.id ?: "",
-                                            title = operation.name ?: "",
-                                            onClick = {
-//                                                operation.onClickOfferOperationItem(
-//                                                    offer,
-//                                                    baseViewModel,
-//                                                    title,
-//                                                    fields,
-//                                                    showDialog,
-//                                                    onUpdateOfferItem,
-//                                                )
-                                            }
-                                        )
-                                    })
-                                }
-                                isOpenPopup.value = true
+                            events.getMenuOperations {
+                                menuList.value = it
                             }
                         }
 
                         PopUpMenu(
-                            openPopup = isOpenPopup.value,
+                            openPopup = menuList.value.isNotEmpty(),
                             menuList = menuList.value,
-                            onClosed = { isOpenPopup.value = false }
+                            onClosed = { menuList.value = emptyList() }
                         )
                     }
 
@@ -248,14 +216,12 @@ fun CabinetBidsItem(
                             )
                         }
 
-                        offer.seller.let {
-                            UserRow(
-                                it,
-                                Modifier.clip(MaterialTheme.shapes.small).clickable {
-                                    goToUser(it.id)
-                                }.padding(dimens.extraSmallPadding),
-                            )
-                        }
+                        UserRow(
+                            offer.seller,
+                            Modifier.clip(MaterialTheme.shapes.small).clickable {
+                                events.goToUser()
+                            }.padding(dimens.extraSmallPadding),
+                        )
                     }
                 }
 
@@ -271,7 +237,7 @@ fun CabinetBidsItem(
                             backgroundColor = colors.solidGreen,
                             textColor = colors.alwaysWhite,
                         ) {
-                            goToMyPurchases()
+                            events.goToPurchase()
                         }
                     }
 
@@ -292,21 +258,8 @@ fun CabinetBidsItem(
                             backgroundColor = colors.steelBlue,
                             textColor = colors.alwaysWhite
                         ) {
-                            showMesDialog.value = true
+                            events.sendMessageToUser()
                         }
-
-                        OfferMessagingDialog(
-                            showMesDialog.value,
-                            offer,
-                            onSuccess = { dialogId ->
-                                goToDialog(dialogId)
-                                showMesDialog.value = false
-                            },
-                            onDismiss = {
-                                showMesDialog.value = false
-                            },
-                            baseViewModel = baseViewModel
-                        )
                     }
                 }
 
@@ -381,17 +334,6 @@ fun CabinetBidsItem(
                         color = colors.actionTextColor
                     )
                 }
-
-              /*  OfferOperationsDialogs(
-                    offer = offer,
-                    showDialog = showDialog,
-                    viewModel = baseViewModel,
-                    title = title,
-                    fields = fields,
-                    updateItem = {
-                        onUpdateOfferItem(it)
-                    }
-                )*/
             }
         }
     }

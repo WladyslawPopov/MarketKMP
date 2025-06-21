@@ -63,6 +63,8 @@ fun CabinetOfferItem(
         pageCount = { item.images.size },
     )
 
+    val openMenu = remember { mutableStateOf(false) }
+
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
     }
@@ -77,7 +79,7 @@ fun CabinetOfferItem(
         }
     }
 
-    AnimatedVisibility(state.isVisible, enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(!state.events.isHideItem(), enter = fadeIn(), exit = fadeOut()) {
         Card(
             colors = if (!item.isPromo) colors.cardColors else colors.cardColorsPromo,
             shape = MaterialTheme.shapes.small,
@@ -141,30 +143,33 @@ fun CabinetOfferItem(
                         }
                     }
 
-                    SimpleTextButton(
-                        text = stringResource(strings.actionsLabel),
-                        textStyle = MaterialTheme.typography.labelSmall,
-                        textColor = colors.actionTextColor,
-                        backgroundColor = colors.grayLayout,
-                        leadIcon = {
-                            Icon(
-                                painter = painterResource(drawables.shareMenuIcon),
-                                contentDescription = "",
-                                modifier = Modifier.size(dimens.extraSmallIconSize),
-                                tint = colors.actionTextColor
-                            )
-                        },
-                    ) {
-                        events.getMenuOperations {
-                            menuList.value = it
+                    Column {
+                        SimpleTextButton(
+                            text = stringResource(strings.actionsLabel),
+                            textStyle = MaterialTheme.typography.labelSmall,
+                            textColor = colors.actionTextColor,
+                            backgroundColor = colors.grayLayout,
+                            leadIcon = {
+                                Icon(
+                                    painter = painterResource(drawables.shareMenuIcon),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(dimens.extraSmallIconSize),
+                                    tint = colors.actionTextColor
+                                )
+                            },
+                        ) {
+                            events.getMenuOperations {
+                                menuList.value = it
+                                openMenu.value = true
+                            }
                         }
-                    }
 
-                    PopUpMenu(
-                        openPopup = menuList.value.isNotEmpty(),
-                        menuList = menuList.value,
-                        onClosed = { menuList.value = emptyList() }
-                    )
+                        PopUpMenu(
+                            openPopup = openMenu.value,
+                            menuList = menuList.value,
+                            onClosed = { openMenu.value = false }
+                        )
+                    }
                 }
 
                 Column(
@@ -417,21 +422,24 @@ fun CabinetOfferItem(
                             textAlign = TextAlign.Center
                         )
 
-                        if (UserData.login == item.seller.id && item.state == "active") {
-                            PromoBuyBtn {
-                                events.getMenuOperations(
-                                    "promo"
-                                ) {
-                                    menuPromotionsList.value = it
+                        Column {
+                            if (UserData.login == item.seller.id && item.state == "active") {
+                                PromoBuyBtn {
+                                    events.getMenuOperations(
+                                        "promo"
+                                    ) {
+                                        menuPromotionsList.value = it
+                                        openMenu.value = true
+                                    }
                                 }
                             }
-                        }
 
-                        PopUpMenu(
-                            openPopup = menuPromotionsList.value.isNotEmpty(),
-                            menuList = menuPromotionsList.value,
-                            onClosed = { menuPromotionsList.value = emptyList() }
-                        )
+                            PopUpMenu(
+                                openPopup = openMenu.value,
+                                menuList = menuPromotionsList.value,
+                                onClosed = { openMenu.value = false }
+                            )
+                        }
                     }
 
                     Row(

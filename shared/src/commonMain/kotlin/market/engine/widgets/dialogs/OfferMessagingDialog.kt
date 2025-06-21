@@ -103,7 +103,7 @@ fun OfferMessagingDialog(
         },
         onSuccessful = {
             baseViewModel.writeToSeller(
-                offer, messageText.value.text,
+                offer.id, messageText.value.text,
             ) {
                 onSuccess(it)
                 onDismiss()

@@ -10,7 +10,7 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProfileSettingsTypes
-import market.engine.fragments.root.main.profile.navigation.ProfileConfig
+import market.engine.fragments.root.main.profile.ProfileConfig
 
 interface ProfileSettingsComponent {
     val model : Value<Model>

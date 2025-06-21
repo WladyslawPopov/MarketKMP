@@ -12,7 +12,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.fragments.root.main.profile.navigation.ProfileConfig
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings

@@ -10,7 +10,6 @@ data class SelectedOfferItemState(
 )
 
 data class CabinetOfferItemState(
-    val isVisible : Boolean,
     val selectedItem : SelectedOfferItemState? = null,
     val defOptions : List<MenuItem>,
     val item : OfferItem,

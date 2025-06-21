@@ -1,26 +1,19 @@
 package market.engine.fragments.root.main.profile.myBids
 
-import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.LotsType
-import market.engine.core.utils.setNewParams
 
 
 interface MyBidsComponent {
     val model : Value<Model>
     data class Model(
-        val pagingDataFlow : Flow<PagingData<OfferItem>>,
         val viewModel: MyBidsViewModel,
         var type : LotsType,
         val backHandler: BackHandler
@@ -33,7 +26,6 @@ interface MyBidsComponent {
     fun goToDialog(dialogId : Long?)
     fun goToBack()
     fun onRefresh()
-    fun updateItem(item: OfferItem?)
 }
 
 class DefaultMyBidsComponent(
@@ -47,11 +39,10 @@ class DefaultMyBidsComponent(
     val navigateBack: () -> Unit
 ) : MyBidsComponent, ComponentContext by componentContext {
 
-    private val viewModel : MyBidsViewModel = MyBidsViewModel(type)
+    private val viewModel : MyBidsViewModel = MyBidsViewModel(type, this)
 
     private val _model = MutableValue(
         MyBidsComponent.Model(
-            pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             type = type,
             backHandler = backHandler
@@ -96,22 +87,7 @@ class DefaultMyBidsComponent(
     }
 
     override fun onRefresh() {
-        viewModel.onRefresh()
-    }
-
-    override fun updateItem(oldItem: OfferItem?) {
-        viewModel.viewModelScope.launch {
-            val offer = withContext(Dispatchers.Default) {
-                viewModel.getOfferById(viewModel.updateItem.value!!)
-            }
-            withContext(Dispatchers.Main) {
-                if (offer != null)
-                    oldItem?.setNewParams(offer)
-
-                viewModel.updateItemTrigger.value++
-                viewModel.updateItem.value = null
-            }
-        }
+        viewModel.updatePage()
     }
 
     override fun goToUser(userId: Long) {

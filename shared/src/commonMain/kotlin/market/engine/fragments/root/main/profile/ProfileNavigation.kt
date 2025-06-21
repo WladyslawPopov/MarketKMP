@@ -1,9 +1,8 @@
-package market.engine.fragments.root.main.profile.navigation
+package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -47,15 +46,15 @@ import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
-import market.engine.fragments.root.main.profile.DefaultProfileComponent
-import market.engine.fragments.root.main.profile.ProfileComponent
-import market.engine.fragments.root.main.profile.ProfileContent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
-import market.engine.fragments.root.main.profile.DefaultProfileChildrenComponent
-import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.conversations.DefaultConversationsComponent
+import market.engine.fragments.root.main.profile.myBids.ProfileMyBidsNavigation
+import market.engine.fragments.root.main.profile.myOffers.ProfileMyOffersNavigation
+import market.engine.fragments.root.main.profile.myOrders.ProfileMyOrdersNavigation
+import market.engine.fragments.root.main.profile.myProposals.ProfileMyProposalsNavigation
+import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsNavigation
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
@@ -151,18 +150,39 @@ fun ProfileNavigation(
     ) { child ->
         when (val screen = child.instance) {
             is ChildProfile.ProfileChild -> ProfileContent(screen.component, modifier, publicProfileNavigationItems)
-            is ChildProfile.MyOffersChild -> ProfileMyOffersNavigation(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.MyOffersChild -> ProfileMyOffersNavigation(
+                screen.component,
+                modifier,
+                publicProfileNavigationItems
+            )
             is ChildProfile.OfferChild -> OfferContent(screen.component, modifier)
             is ChildProfile.ListingChild -> ListingContent(screen.component, modifier)
             is ChildProfile.UserChild -> UserContent(screen.component, modifier)
             is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildProfile.CreateOrderChild -> CreateOrderContent(screen.component)
-            is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(screen.type, screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.MyOrdersChild -> ProfileMyOrdersNavigation(
+                screen.type,
+                screen.component,
+                modifier,
+                publicProfileNavigationItems
+            )
             is ChildProfile.ConversationsChild -> ConversationsContent(screen.component, modifier, publicProfileNavigationItems)
-            is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.MyBidsChild -> ProfileMyBidsNavigation(
+                screen.component,
+                modifier,
+                publicProfileNavigationItems
+            )
             is ChildProfile.DialogsChild -> DialogsContent(screen.component, modifier)
-            is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(screen.component, modifier, publicProfileNavigationItems)
-            is ChildProfile.MyProposalsChild -> ProfileMyProposalsNavigation(screen.component, modifier, publicProfileNavigationItems)
+            is ChildProfile.ProfileSettingsChild -> ProfileSettingsNavigation(
+                screen.component,
+                modifier,
+                publicProfileNavigationItems
+            )
+            is ChildProfile.MyProposalsChild -> ProfileMyProposalsNavigation(
+                screen.component,
+                modifier,
+                publicProfileNavigationItems
+            )
             is ChildProfile.ProposalChild -> ProposalContent(screen.component)
             is ChildProfile.CreateSubscriptionChild -> CreateSubscriptionContent(screen.component)
         }
@@ -176,10 +196,9 @@ fun createProfileChild(
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToSubscribe: () -> Unit
 ): ChildProfile {
-
     return when (config) {
         is ProfileConfig.ProfileScreen -> ChildProfile.ProfileChild(
-            itemProfile(
+            DefaultProfileComponent(
                 componentContext,
                 config.openPage,
                 profileNavigation,
@@ -485,18 +504,4 @@ fun createProfileChild(
             )
         }
     }
-}
-
-fun itemProfile(
-    componentContext: ComponentContext,
-    selectedPage : String? = null,
-    profileNavigation: StackNavigation<ProfileConfig>,
-    navigateToSubscriptions: () -> Unit
-): ProfileComponent {
-    return DefaultProfileComponent(
-        componentContext,
-        selectedPage,
-        profileNavigation,
-        navigateToSubscriptions
-    )
 }

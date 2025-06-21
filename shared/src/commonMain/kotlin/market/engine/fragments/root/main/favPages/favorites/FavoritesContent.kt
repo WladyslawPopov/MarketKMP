@@ -159,23 +159,23 @@ fun FavoritesContent(
             },
             modifier = modifier
         )
-    }
 
-    OfferOperationsDialogs(
-        offerId = itemIdDialog.value,
-        showDialog = openDialog.value,
-        viewModel = viewModel,
-        title = dialogTitle.value,
-        fields = dialogFields.value,
-        updateItem = {
-            viewModel.updateItem.value = itemIdDialog.value
-        },
-        close = { fullRefresh ->
-            viewModel.clearDialogFields()
-            if (fullRefresh) {
-                component.onRefresh()
-                component.refreshTabs()
+        OfferOperationsDialogs(
+            offerId = itemIdDialog.value,
+            showDialog = openDialog.value,
+            viewModel = viewModel,
+            title = dialogTitle.value,
+            fields = dialogFields.value,
+            updateItem = {
+                viewModel.updateItem.value = itemIdDialog.value
+            },
+            close = { fullRefresh ->
+                viewModel.clearDialogFields()
+                if (fullRefresh) {
+                    component.onRefresh()
+                    component.refreshTabs()
+                }
             }
-        }
-    )
+        )
+    }
 }
