@@ -17,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,7 +25,7 @@ import market.engine.common.setShortcutForDialog
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.network.networkObjects.Conversations
+import market.engine.core.data.states.CabinetConversationsItemState
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.getBadge
 import market.engine.widgets.checkboxs.ThemeCheckBox
@@ -34,14 +35,19 @@ import org.jetbrains.compose.resources.painterResource
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationItem(
-    conversation: Conversations,
-    isVisibleCBMode : Boolean = false,
-    isSelected: Boolean = false,
-    updateTrigger: Int,
-    onSelectionChange: (Boolean) -> Unit,
-    goToMessenger: () -> Unit,
+    data: CabinetConversationsItemState,
+    updateItem: Long? = null,
 ) {
-    if (conversation.interlocutor != null && updateTrigger >= 0) {
+    val conversation = data.conversation
+    val events = data.events
+
+    LaunchedEffect(updateItem) {
+        if (updateItem == conversation.id){
+            events.updateItem()
+        }
+    }
+
+    if (conversation.interlocutor != null) {
         Card(
             colors = colors.cardColors,
             shape = MaterialTheme.shapes.small,
@@ -50,10 +56,10 @@ fun ConversationItem(
                 modifier = Modifier.combinedClickable(
                     onClick = {
                         setShortcutForDialog(conversation)
-                        goToMessenger()
+                        events.goToMessenger()
                     },
                     onLongClick = {
-                        onSelectionChange(!isSelected)
+                        data.selectedItem?.onSelectionChange?.invoke(conversation.id)
                     }
                 ).fillMaxWidth().padding(dimens.smallPadding),
                 verticalAlignment = Alignment.Top,
@@ -64,13 +70,15 @@ fun ConversationItem(
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     AnimatedVisibility(
-                        isVisibleCBMode,
+                        data.selectedItem?.selected?.isNotEmpty() == true,
                         enter = expandIn(),
                         exit = fadeOut()
                     ) {
                         ThemeCheckBox(
-                            isSelected = isSelected,
-                            onSelectionChange = onSelectionChange,
+                            isSelected = data.selectedItem?.selected?.contains(conversation.id) == true,
+                            onSelectionChange = {
+                                data.selectedItem?.onSelectionChange?.invoke(conversation.id)
+                            },
                             modifier = Modifier
                         )
                     }

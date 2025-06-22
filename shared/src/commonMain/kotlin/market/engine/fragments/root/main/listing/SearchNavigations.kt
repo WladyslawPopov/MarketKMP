@@ -20,7 +20,6 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
@@ -35,15 +34,19 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.listing.SearchConfig.ListingScreen
+import market.engine.fragments.root.main.listing.SearchConfig.OfferScreen
+import market.engine.fragments.root.main.listing.SearchConfig.UserScreen
+import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
-import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
+import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
 
@@ -129,7 +132,7 @@ fun createSearchChild(
     navigateToConversations: () -> Unit,
 ): ChildSearch =
     when (config) {
-        is SearchConfig.ListingScreen -> {
+        is ListingScreen -> {
             val ld = ListingData(
                 searchData = config.searchData,
                 data = config.listingData
@@ -142,7 +145,7 @@ fun createSearchChild(
                     listingData = ld,
                     selectOffer = { id ->
                         searchNavigation.pushNew(
-                            SearchConfig.OfferScreen(
+                            OfferScreen(
                                 id,
                                 getCurrentDate()
                             )
@@ -156,7 +159,7 @@ fun createSearchChild(
                     },
                     navigateToListing = { ld ->
                         searchNavigation.pushNew(
-                            SearchConfig.ListingScreen(
+                            ListingScreen(
                                 ld.data,
                                 ld.searchData,
                                 false,
@@ -172,13 +175,13 @@ fun createSearchChild(
                 )
             )
         }
-        is SearchConfig.OfferScreen -> ChildSearch.OfferChild(
+        is OfferScreen -> ChildSearch.OfferChild(
             component = offerFactory(
                 componentContext,
                 config.id,
                 selectOffer = {
                     searchNavigation.pushNew(
-                        SearchConfig.OfferScreen(
+                        OfferScreen(
                             it,
                             getCurrentDate(),
                         )
@@ -189,12 +192,12 @@ fun createSearchChild(
                 },
                 onListingSelected = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data, it.searchData, false, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, false, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
                     searchNavigation.pushNew(
-                        SearchConfig.UserScreen(ui, getCurrentDate(), about)
+                        UserScreen(ui, getCurrentDate(), about)
                     )
                 },
                 config.isSnapshot,
@@ -234,36 +237,37 @@ fun createSearchChild(
                 }
             )
         )
-        is SearchConfig.UserScreen -> ChildSearch.UserChild(
-            component = userFactory(
-                componentContext,
-                config.id,
-                config.aboutMe,
-                goToLogin = {
-                    searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data, it.searchData, false, getCurrentDate())
-                    )
-                },
-                goBack = {
-                    searchNavigation.pop()
-                },
-                goToSnapshot = { id ->
-                    searchNavigation.pushNew(
-                        SearchConfig.OfferScreen(id, getCurrentDate(), true)
-                    )
-                },
-                goToUser = {
-                    searchNavigation.pushNew(
-                        SearchConfig.UserScreen(it, getCurrentDate(), false)
-                    )
-                },
-                goToSubscriptions = {
-                    navigateToSubscribe()
-                },
-                goToOrder = { id, type ->
-                    navigateToMyOrders(id, type)
-                }
-            )
+        is UserScreen -> ChildSearch.UserChild(
+            component =
+                DefaultUserComponent(
+                    userId = config.id,
+                    isClickedAboutMe = config.aboutMe,
+                    componentContext = componentContext,
+                    goToListing = {
+                        searchNavigation.pushNew(
+                            ListingScreen(it.data, it.searchData,false, getCurrentDate())
+                        )
+                    },
+                    navigateBack = {
+                        searchNavigation.pop()
+                    },
+                    navigateToOrder = { id, type ->
+                        navigateToMyOrders(id, type)
+                    },
+                    navigateToSnapshot = { id ->
+                        searchNavigation.pushNew(
+                            OfferScreen(id, getCurrentDate(), true)
+                        )
+                    },
+                    navigateToUser = {
+                        searchNavigation.pushNew(
+                            UserScreen(it, getCurrentDate(), false)
+                        )
+                    },
+                    navigateToSubscriptions = {
+                        navigateToSubscribe()
+                    },
+                )
         )
         is SearchConfig.CreateOfferScreen -> ChildSearch.CreateOfferChild(
             component = createOfferFactory(
@@ -274,7 +278,7 @@ fun createSearchChild(
                 externalImages = config.externalImages,
                 navigateOffer = { id ->
                     searchNavigation.pushNew(
-                        SearchConfig.OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, getCurrentDate())
                     )
                 },
                 navigateCreateOffer = { id, path, t ->
@@ -298,12 +302,12 @@ fun createSearchChild(
                 selectedItems = config.basketItem,
                 navigateUser = {
                     searchNavigation.pushNew(
-                        SearchConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 },
                 navigateOffer = {
                     searchNavigation.pushNew(
-                        SearchConfig.OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateBack = {
@@ -316,28 +320,29 @@ fun createSearchChild(
         )
 
         is SearchConfig.MessageScreen -> ChildSearch.MessageChild(
-            component = messengerFactory(
+            component = DefaultDialogsComponent(
                 componentContext = componentContext,
                 dialogId = config.id,
+                message = null,
                 navigateBack = {
                     searchNavigation.pop()
-                },
-                navigateToUser = {
-                    searchNavigation.pushNew(
-                        SearchConfig.UserScreen(it, getCurrentDate(), false)
-                    )
-                },
-                navigateToOffer = {
-                    searchNavigation.pushNew(
-                        SearchConfig.OfferScreen(it, getCurrentDate())
-                    )
                 },
                 navigateToOrder = { id, type ->
                     navigateToMyOrders(id, type)
                 },
+                navigateToUser = {
+                    searchNavigation.pushNew(
+                        UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateToOffer = {
+                    searchNavigation.pushNew(
+                        OfferScreen(it, getCurrentDate())
+                    )
+                },
                 navigateToListingSelected = {
                     searchNavigation.pushNew(
-                        SearchConfig.ListingScreen(it.data, it.searchData, false, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, false, getCurrentDate())
                     )
                 }
             )
@@ -353,7 +358,7 @@ fun createSearchChild(
                 },
                 navigateToUser = {
                     searchNavigation.pushNew(
-                        SearchConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 },
                 navigateToOffer = {

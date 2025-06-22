@@ -55,7 +55,7 @@ fun MyOrderItem(
     val typeGroup = data.typeGroup
 
     LaunchedEffect(updateItem) {
-        if (updateItem != order.id) {
+        if (updateItem == order.id) {
             events.onUpdateItem()
         }
     }

@@ -100,7 +100,6 @@ import market.engine.widgets.ilustrations.LoadImage
 import market.engine.fragments.base.onError
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dialogs.DateDialog
-import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.grids.PhotoDraggableGrid
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.DescriptionTextField

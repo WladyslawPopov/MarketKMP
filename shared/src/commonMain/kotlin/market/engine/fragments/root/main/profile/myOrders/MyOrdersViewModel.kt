@@ -34,7 +34,6 @@ import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.ToastItem
-import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.ListingBaseState
 import market.engine.core.data.states.ListingOfferContentState
@@ -53,7 +52,6 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
-import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
 class MyOrdersViewModel(
@@ -68,12 +66,14 @@ class MyOrdersViewModel(
         data = LD(
             filters = buildList {
                 val filters = if (orderSelected != null){
-                    val f = DealFilters.getByTypeFilter(type)
-                    f.find { it.key == "id" }?.copy(
-                        interpretation = "id: $orderSelected",
-                        value = orderSelected.toString()
-                    )
-                    f
+                    DealFilters.getByTypeFilter(type).map {
+                        if (it.key == "id")
+                            it.copy(
+                                value = orderSelected.toString(),
+                                interpretation = "id: $orderSelected"
+                            )
+                        else it.copy()
+                    }
                 }else{
                     DealFilters.getByTypeFilter(type)
                 }
@@ -106,10 +106,6 @@ class MyOrdersViewModel(
     ) { listingData, _ ->
         listingData
     }
-
-    private val filtersCategoryModel = CategoryViewModel(
-        isFilters = true,
-    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagingDataFlow: Flow<PagingData<MyOrderItemState>> = pagingParamsFlow
@@ -152,14 +148,11 @@ class MyOrdersViewModel(
         val sortString = getString(strings.sort)
         val filters = ld.filters.filter { it.value != "" && it.interpretation?.isNotBlank() == true }
 
-        filtersCategoryModel.updateFromSearchData(listingData.searchData)
-        filtersCategoryModel.initialize(listingData.data.filters)
-
         ListingOfferContentState(
             appBarData = SimpleAppBarData(
                 color = colors.primaryColor,
                 onBackClick = {
-                    onBackNavigation(activeType)
+                    onBack()
                 },
                 listItems = listOf(
                     NavigationItem(
@@ -172,10 +165,6 @@ class MyOrdersViewModel(
                         onClick = { refresh() }
                     ),
                 )
-            ),
-            filtersCategoryState = CategoryState(
-                openCategory = activeType == ActiveWindowListingType.CATEGORY,
-                categoryViewModel = filtersCategoryModel
             ),
             listingData = listingData,
             filterBarData = FilterBarUiState(
@@ -254,18 +243,11 @@ class MyOrdersViewModel(
         refresh()
     }
 
-    fun onBackNavigation(activeType: ActiveWindowListingType) {
-        when(activeType){
-            ActiveWindowListingType.CATEGORY_FILTERS -> {
-                if (filtersCategoryModel.categoryId.value != 1L){
-                    filtersCategoryModel.navigateBack()
-                }else{
-                    _activeWindowType.value = ActiveWindowListingType.LISTING
-                }
-            }
-            else -> {
-                _activeWindowType.value = ActiveWindowListingType.LISTING
-            }
+    fun onBack(){
+        if(_activeWindowType.value != ActiveWindowListingType.LISTING){
+            _activeWindowType.value = ActiveWindowListingType.LISTING
+        }else{
+            component.goToBack()
         }
     }
 
@@ -364,21 +346,25 @@ class MyOrdersViewModel(
                                             "give_feedback_to_seller" -> {
                                                 titleDialog.value = AnnotatedString(name ?: "")
                                                 showOperationsDialog.value = "give_feedback_to_seller"
+                                                dialogItemId.value = order.id
                                             }
 
                                             "give_feedback_to_buyer" -> {
                                                 titleDialog.value = AnnotatedString(name ?: "")
                                                 showOperationsDialog.value = "give_feedback_to_buyer"
+                                                dialogItemId.value = order.id
                                             }
 
                                             "set_comment" -> {
                                                 titleDialog.value = AnnotatedString(name ?: "")
                                                 showOperationsDialog.value = "set_comment"
+                                                dialogItemId.value = order.id
                                             }
 
                                             "provide_track_id" -> {
                                                 titleDialog.value = AnnotatedString(name ?: "")
                                                 showOperationsDialog.value = "provide_track_id"
+                                                dialogItemId.value = order.id
                                             }
 
                                             else -> {

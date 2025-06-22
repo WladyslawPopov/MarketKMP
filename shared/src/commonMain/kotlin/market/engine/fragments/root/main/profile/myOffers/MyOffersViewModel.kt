@@ -45,12 +45,12 @@ import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.ListingBaseState
 import market.engine.core.data.states.ListingOfferContentState
-import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.PlatformWindowType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.PagingRepository
@@ -160,7 +160,6 @@ class MyOffersViewModel(
                     CabinetOfferItemState(
                         item = item,
                         defOptions = defOption,
-                        selectedItem = SelectedOfferItemState(),
                         events = CabinetOfferItemEventsImpl(this, item, component)
                     )
                 }
@@ -312,7 +311,6 @@ class MyOffersViewModel(
             }
         }
     }
-
     fun isHideItem(offer: OfferItem): Boolean {
         return when (type) {
             LotsType.MY_LOT_ACTIVE -> {
@@ -586,6 +584,10 @@ data class CabinetOfferItemEventsImpl(
     }
 
     override fun goToPurchase() {
+
+    }
+
+    override fun goToProposal(type: ProposalType) {
 
     }
 

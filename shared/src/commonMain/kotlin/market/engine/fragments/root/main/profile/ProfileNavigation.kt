@@ -22,7 +22,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
@@ -40,12 +39,15 @@ import market.engine.fragments.root.main.createSubscription.createSubscriptionFa
 import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
+import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
-import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
+import market.engine.fragments.root.main.profile.ProfileConfig.ListingScreen
+import market.engine.fragments.root.main.profile.ProfileConfig.OfferScreen
+import market.engine.fragments.root.main.profile.ProfileConfig.UserScreen
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsContent
@@ -58,6 +60,7 @@ import market.engine.fragments.root.main.profile.profileSettings.ProfileSettings
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
+import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserContent
 
 @Serializable
@@ -214,19 +217,19 @@ fun createProfileChild(
             )
         )
 
-        is ProfileConfig.OfferScreen -> ChildProfile.OfferChild(
+        is OfferScreen -> ChildProfile.OfferChild(
             component = offerFactory(
                 componentContext,
                 config.id,
                 selectOffer = {
-                    profileNavigation.pushNew(ProfileConfig.OfferScreen(it, getCurrentDate()))
+                    profileNavigation.pushNew(OfferScreen(it, getCurrentDate()))
                 },
                 onBack = {
                     profileNavigation.pop()
                 },
                 onListingSelected = { ld ->
                     profileNavigation.pushNew(
-                        ProfileConfig.ListingScreen(
+                        ListingScreen(
                             ld.data,
                             ld.searchData,
                             getCurrentDate()
@@ -234,7 +237,7 @@ fun createProfileChild(
                     )
                 },
                 onUserSelected = { ui, about ->
-                    profileNavigation.pushNew(ProfileConfig.UserScreen(ui, getCurrentDate(), about))
+                    profileNavigation.pushNew(UserScreen(ui, getCurrentDate(), about))
                 },
                 isSnapshot = config.isSnapshot,
                 navigateToCreateOffer = { type, catPath, offerId, externalImages ->
@@ -272,7 +275,7 @@ fun createProfileChild(
             )
         )
 
-        is ProfileConfig.ListingScreen -> {
+        is ListingScreen -> {
             val ld = ListingData(
                 searchData = config.searchData,
                 data = config.listingData
@@ -283,7 +286,7 @@ fun createProfileChild(
                     listingData = ld,
                     selectOffer = {
                         profileNavigation.pushNew(
-                            ProfileConfig.OfferScreen(it, getCurrentDate())
+                            OfferScreen(it, getCurrentDate())
                         )
                     },
                     selectedBack = {
@@ -294,7 +297,7 @@ fun createProfileChild(
                     },
                     navigateToListing = {
                         profileNavigation.pushNew(
-                            ProfileConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
+                            ListingScreen(it.data, it.searchData, getCurrentDate())
                         )
                     },
                     navigateToNewSubscription = {
@@ -307,37 +310,38 @@ fun createProfileChild(
             )
         }
 
-        is ProfileConfig.UserScreen -> {
+        is UserScreen -> {
             ChildProfile.UserChild(
-                component = userFactory(
-                    componentContext,
-                    config.userId,
-                    config.aboutMe,
-                    goToLogin = {
-                        profileNavigation.pushNew(
-                            ProfileConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
-                        )
-                    },
-                    goBack = {
-                        profileNavigation.pop()
-                    },
-                    goToSnapshot = { id ->
-                        profileNavigation.pushNew(
-                            ProfileConfig.OfferScreen(id, getCurrentDate(), true)
-                        )
-                    },
-                    goToUser = {
-                        profileNavigation.pushNew(
-                            ProfileConfig.UserScreen(it, getCurrentDate(), false)
-                        )
-                    },
-                    goToSubscriptions = {
-                        navigateToSubscribe()
-                    },
-                    goToOrder = { id, type ->
-                        navigateToMyOrders(id, type)
-                    }
-                )
+                component =
+                    DefaultUserComponent(
+                        userId = config.userId,
+                        isClickedAboutMe = config.aboutMe,
+                        componentContext = componentContext,
+                        goToListing = {
+                            profileNavigation.pushNew(
+                                ListingScreen(it.data, it.searchData, getCurrentDate())
+                            )
+                        },
+                        navigateBack = {
+                            profileNavigation.pop()
+                        },
+                        navigateToOrder = { id, type ->
+                            navigateToMyOrders(id, type)
+                        },
+                        navigateToSnapshot = { id ->
+                            profileNavigation.pushNew(
+                                OfferScreen(id, getCurrentDate(), true)
+                            )
+                        },
+                        navigateToUser = {
+                            profileNavigation.pushNew(
+                                UserScreen(it, getCurrentDate(), false)
+                            )
+                        },
+                        navigateToSubscriptions = {
+                            navigateToSubscribe()
+                        },
+                    )
             )
         }
 
@@ -350,7 +354,7 @@ fun createProfileChild(
                 externalImages = config.externalImages,
                 navigateOffer = { id ->
                     profileNavigation.pushNew(
-                        ProfileConfig.OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, getCurrentDate())
                     )
                 },
                 navigateCreateOffer = { id, path, t ->
@@ -373,12 +377,12 @@ fun createProfileChild(
                 selectedItems = config.basketItem,
                 navigateUser = {
                     profileNavigation.pushNew(
-                        ProfileConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 },
                 navigateOffer = {
                     profileNavigation.pushNew(
-                        ProfileConfig.OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateBack = {
@@ -423,33 +427,29 @@ fun createProfileChild(
         )
 
         is ProfileConfig.DialogsScreen -> ChildProfile.DialogsChild(
-            messengerFactory(
-                componentContext,
-                config.dialogId,
-                config.message,
+            DefaultDialogsComponent(
+                componentContext = componentContext,
+                dialogId = config.dialogId,
+                message = config.message,
                 navigateBack = {
                     profileNavigation.pop()
                 },
                 navigateToOrder = { id, type ->
-                    profileNavigation.replaceAll(
-                        ProfileConfig.MyOrdersScreen(
-                            type, id
-                        )
+                    navigateToMyOrders(id, type)
+                },
+                navigateToUser = {
+                    profileNavigation.pushNew(
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 },
                 navigateToOffer = {
                     profileNavigation.pushNew(
-                        ProfileConfig.OfferScreen(it, getCurrentDate())
-                    )
-                },
-                navigateToUser = {
-                    profileNavigation.pushNew(
-                        ProfileConfig.UserScreen(it, getCurrentDate(), false)
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateToListingSelected = {
                     profileNavigation.pushNew(
-                        ProfileConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 }
             )
@@ -481,12 +481,12 @@ fun createProfileChild(
                 },
                 navigateToOffer = {
                     profileNavigation.pushNew(
-                        ProfileConfig.OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateToUser = {
                     profileNavigation.pushNew(
-                        ProfileConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 }
             )

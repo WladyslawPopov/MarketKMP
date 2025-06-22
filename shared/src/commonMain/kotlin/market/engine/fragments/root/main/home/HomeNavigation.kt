@@ -22,7 +22,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
@@ -44,9 +43,9 @@ import market.engine.fragments.root.main.home.HomeConfig.*
 import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
+import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
-import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.notificationsHistory.DefaultNotificationsHistoryComponent
 import market.engine.fragments.root.main.notificationsHistory.NotificationsHistoryComponent
 import market.engine.fragments.root.main.notificationsHistory.NotificationsHistoryContent
@@ -56,6 +55,7 @@ import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
+import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
 
@@ -330,34 +330,34 @@ fun createHomeChild(
         }
 
         is UserScreen -> UserChild(
-            component = userFactory(
-                componentContext,
-                config.userId,
-                config.aboutMe,
-                goToLogin = {
+            component = DefaultUserComponent(
+                userId = config.userId,
+                isClickedAboutMe = config.aboutMe,
+                componentContext = componentContext,
+                goToListing = {
                     homeNavigation.pushNew(
                         ListingScreen(false, it.data, it.searchData, getCurrentDate())
                     )
                 },
-                goBack = {
+                navigateBack = {
                     homeNavigation.pop()
                 },
-                goToSnapshot = { id ->
+                navigateToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
+                },
+                navigateToSnapshot = { id ->
                     homeNavigation.pushNew(
                         OfferScreen(id, getCurrentDate(), true)
                     )
                 },
-                goToUser = {
+                navigateToUser = {
                     homeNavigation.pushNew(
                         UserScreen(it, getCurrentDate(), false)
                     )
                 },
-                goToSubscriptions = {
+                navigateToSubscriptions = {
                     navigateToSubscribe()
                 },
-                goToOrder = { id, type ->
-                    navigateToMyOrders(id, type)
-                }
             )
         )
 
@@ -412,32 +412,33 @@ fun createHomeChild(
         )
 
         is MessagesScreen -> MessagesChild(
-            component = messengerFactory(
-                componentContext = componentContext,
-                dialogId = config.dialogId,
-                message = config.text,
-                navigateBack = {
-                    homeNavigation.pop()
-                },
-                navigateToOrder = { id, type ->
-                    navigateToMyOrders(id, type)
-                },
-                navigateToUser = {
-                    homeNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
-                    )
-                },
-                navigateToOffer = {
-                    homeNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
-                    )
-                },
-                navigateToListingSelected = {
-                    homeNavigation.pushNew(
-                        ListingScreen(false, it.data, it.searchData, getCurrentDate())
-                    )
-                }
-            )
+            component =
+                DefaultDialogsComponent(
+                    componentContext = componentContext,
+                    dialogId = config.dialogId,
+                    message = config.text,
+                    navigateBack = {
+                        homeNavigation.pop()
+                    },
+                    navigateToOrder = { id, type ->
+                        navigateToMyOrders(id, type)
+                    },
+                    navigateToUser = {
+                        homeNavigation.pushNew(
+                            UserScreen(it, getCurrentDate(), false)
+                        )
+                    },
+                    navigateToOffer = {
+                        homeNavigation.pushNew(
+                            OfferScreen(it, getCurrentDate())
+                        )
+                    },
+                    navigateToListingSelected = {
+                        homeNavigation.pushNew(
+                            ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                        )
+                    }
+                )
         )
 
         is ProposalScreen -> ProposalChild(

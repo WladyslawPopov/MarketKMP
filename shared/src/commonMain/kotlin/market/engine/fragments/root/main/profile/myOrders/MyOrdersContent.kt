@@ -67,7 +67,7 @@ fun MyOrdersContent(
     ) DealTypeGroup.SELL else DealTypeGroup.BUY }
 
     BackHandler(model.backHandler){
-        viewModel.onBackNavigation(activeWindowType)
+        viewModel.onBack()
     }
 
     val noFound = remember(data.loadState.refresh) {

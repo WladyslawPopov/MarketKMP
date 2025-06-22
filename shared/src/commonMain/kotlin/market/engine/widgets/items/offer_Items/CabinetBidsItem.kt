@@ -52,6 +52,8 @@ fun CabinetBidsItem(
         mutableStateOf<List<MenuItem>>(emptyList())
     }
 
+    val openMenu = remember { mutableStateOf(false) }
+
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
             events.onUpdateItem()
@@ -120,13 +122,14 @@ fun CabinetBidsItem(
                         ) {
                             events.getMenuOperations {
                                 menuList.value = it
+                                openMenu.value = true
                             }
                         }
 
                         PopUpMenu(
-                            openPopup = menuList.value.isNotEmpty(),
+                            openPopup = openMenu.value,
                             menuList = menuList.value,
-                            onClosed = { menuList.value = emptyList() }
+                            onClosed = { openMenu.value = false }
                         )
                     }
 

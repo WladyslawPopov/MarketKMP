@@ -1,32 +1,36 @@
 package market.engine.fragments.root.main.profile.myProposals
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceAll
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
+import market.engine.common.Platform
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.LotsType
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.root.main.profile.ProfileConfig
+import market.engine.widgets.bars.appBars.DrawerAppBar
+import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
 
 @Serializable
@@ -50,24 +54,53 @@ fun ProfileMyProposalsNavigation(
             mutableStateOf(LotsType.ALL_PROPOSAL)
         }
         Column {
-            MyProposalsAppBar(
-                select.value,
+            DrawerAppBar(
                 drawerState = drawerState,
-                showMenu = hideDrawer.value,
-                openMenu = if (isBigScreen.value) {
-                    {
-                        hideDrawer.value = !hideDrawer.value
+                data = SimpleAppBarData(
+                    listItems = listOf(
+                        NavigationItem(
+                            title = "",
+                            icon = drawables.recycleIcon,
+                            tint = colors.inactiveBottomNavIconColor,
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
+                            onClick = {
+                                component.onRefreshOffers()
+                            }
+                        ),
+                    ),
+                    color = colors.primaryColor,
+                )
+            ){
+                val allP = stringResource(strings.allProposalLabel)
+                val needP = stringResource(strings.needResponseProposalLabel)
+
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    item {
+                        SimpleTextButton(
+                            allP,
+                            backgroundColor = if (select.value == LotsType.ALL_PROPOSAL) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodySmall
+                        ) {
+                            component.selectOfferPage(LotsType.ALL_PROPOSAL)
+                        }
                     }
-                }else{
-                    null
-                },
-                navigationClick = { newType->
-                    component.selectOfferPage(newType)
-                },
-                onRefresh = {
-                    component.onRefreshProposals()
+                    item {
+                        SimpleTextButton(
+                            needP,
+                            if (select.value == LotsType.NEED_RESPONSE) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodySmall
+                        ) {
+                            component.selectOfferPage(LotsType.NEED_RESPONSE)
+                        }
+                    }
                 }
-            )
+            }
 
             ChildPages(
                 pages = component.myProposalsPages,
@@ -90,6 +123,7 @@ fun ProfileMyProposalsNavigation(
             }
         }
     }
+
     ModalNavigationDrawer(
         modifier = modifier,
         drawerState = drawerState,
@@ -116,37 +150,4 @@ fun ProfileMyProposalsNavigation(
             content(Modifier.fillMaxWidth())
         }
     }
-}
-
-fun itemMyProposals(
-    config: MyProposalsConfig,
-    componentContext: ComponentContext,
-    profileNavigation: StackNavigation<ProfileConfig>,
-    selectMyProposalPage: (LotsType) -> Unit
-): MyProposalsComponent {
-    return DefaultMyProposalsComponent(
-        componentContext = componentContext,
-        type = config.lotsType,
-        offerSelected = { id ->
-            profileNavigation.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
-        },
-        selectedMyProposalsPage = {
-            selectMyProposalPage(it)
-        },
-        navigateToUser = { userId ->
-            profileNavigation.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
-        },
-        navigateToDialog = { dialogId ->
-            if (dialogId != null)
-                profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
-            else
-                profileNavigation.replaceAll(ProfileConfig.ConversationsScreen())
-        },
-        navigateBack = {
-            profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
-        },
-        navigateToProposal = { offerId, proposalType ->
-            profileNavigation.pushNew(ProfileConfig.ProposalScreen(offerId, proposalType, getCurrentDate()))
-        }
-    )
 }

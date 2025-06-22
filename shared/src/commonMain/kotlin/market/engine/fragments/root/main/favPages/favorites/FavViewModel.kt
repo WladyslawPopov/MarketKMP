@@ -165,14 +165,13 @@ class FavViewModel(
                         defOptions = defOption,
                         selectedItem = SelectedOfferItemState(
                             selected = selectItems,
-                            onSelectionChange = { value ->
-                                if (!selectItems.contains(value.id)) {
-                                    selectItems.add(value.id)
+                            onSelectionChange = { id ->
+                                if (!selectItems.contains(id)) {
+                                    selectItems.add(id)
                                 } else {
-                                    selectItems.remove(value.id)
+                                    selectItems.remove(id)
                                 }
                             }
-
                         )
                     )
                 }
@@ -712,6 +711,10 @@ data class CabinetOfferItemEventsImpl(
     }
 
     override fun goToPurchase() {
+
+    }
+
+    override fun goToProposal(type: ProposalType) {
 
     }
 

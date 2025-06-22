@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material.Text
@@ -22,35 +20,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import market.engine.common.openUrl
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.types.MessageType
 import market.engine.core.utils.convertHoursAndMinutes
-import market.engine.core.utils.parseDeepLink
+import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.grids.ImagesPreviewGrid
 import org.jetbrains.compose.resources.stringResource
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DialogItem(
-    item: DialogsData.MessageItem,
     modifier: Modifier = Modifier,
-    openImage: (Int) -> Unit,
-    onMenuClick: (String) -> Unit,
-    goToOffer: (Long) -> Unit,
-    goToListing: (Long) -> Unit,
-    goToUser: (Long) -> Unit
+    item: DialogsData.MessageItem,
 ) {
+    val showMenu = remember { mutableStateOf(false) }
     val richText = rememberRichTextState()
     val isIncoming = (item.messageType == MessageType.INCOMING)
+
+    val events = item.events
 
     val arrangement = if (isIncoming) Arrangement.Start else Arrangement.End
     val alignment = if (isIncoming) Alignment.Start else Alignment.End
@@ -60,16 +54,6 @@ fun DialogItem(
         } else {
             colors.outgoingBubble
         }
-
-
-    val showMenu = remember { mutableStateOf(false) }
-
-    val listDialogOperations =
-        listOf(
-            "copy" to stringResource(strings.actionCopy),
-            "delete" to stringResource(strings.actionDelete)
-        )
-
 
     val chatBubbleShape = remember {
         RoundedCornerShape(
@@ -112,45 +96,7 @@ fun DialogItem(
     val modClick = remember {
         if (url.isNotBlank()) {
             Modifier.clickable {
-                when (val deepLink = parseDeepLink(url)) {
-                        is DeepLink.GoToOffer -> {
-                            goToOffer(deepLink.offerId)
-                        }
-
-                        is DeepLink.GoToListing -> {
-                            goToListing(deepLink.ownerId)
-                        }
-
-                        is DeepLink.GoToUser -> {
-                            goToUser(deepLink.userId)
-                        }
-
-                        is DeepLink.GoToAuth -> {
-                            openUrl(url)
-                        }
-
-                        is DeepLink.GoToDialog -> {
-                            openUrl(url)
-                        }
-
-                        is DeepLink.GoToDynamicSettings -> {
-                            openUrl(url)
-                        }
-
-                        DeepLink.GoToRegistration -> {
-                            openUrl(url)
-                        }
-
-                        is DeepLink.GoToVerification -> {
-                            openUrl(url)
-                        }
-
-                        is DeepLink.Unknown -> {
-                            openUrl(url)
-                        }
-
-                        null -> {}
-                    }
+                events
             }
         }else{
             Modifier
@@ -174,22 +120,22 @@ fun DialogItem(
                     modifier = Modifier.combinedClickable(
                         onClick = { /* single click */ },
                         onLongClick = { showMenu.value = true }
-                    ).padding(dimens.extraSmallPadding),
-                    verticalArrangement = Arrangement.SpaceEvenly,
+                    ).padding(dimens.smallPadding),
+                    verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
                         text = annotatedString,
                         style = MaterialTheme.typography.bodyLarge,
                         color = colors.black,
-                        modifier = modClick.padding(dimens.smallPadding)
+                        modifier = modClick
                     )
 
                     if (!item.images.isNullOrEmpty()) {
                         ImagesPreviewGrid(
                             images = item.images!!
                         ){ index ->
-                            openImage(index)
+                            events.openImage(index)
                         }
                     }
 
@@ -214,28 +160,11 @@ fun DialogItem(
                         )
                     }
 
-                    DropdownMenu(
-                        expanded = showMenu.value,
-                        onDismissRequest = { showMenu.value = false },
-                        containerColor = colors.white,
-                        offset = DpOffset(40.dp, 0.dp)
-                    ) {
-                        listDialogOperations.forEach { action ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = action.second,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.black
-                                    )
-                                },
-                                onClick = {
-                                    onMenuClick(action.first)
-                                    showMenu.value = false
-                                }
-                            )
-                        }
-                    }
+                    PopUpMenu(
+                        showMenu.value,
+                        item.options,
+                        onClosed = { showMenu.value = false }
+                    )
                 }
             }
         }

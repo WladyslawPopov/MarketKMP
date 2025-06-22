@@ -1,6 +1,5 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,10 +33,13 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun DialogsFilterContent(
-    isRefreshing: MutableState<Boolean>,
-    filters: ArrayList<Filter>,
-    onClose : () -> Unit,
+    initialFilters: List<Filter>,
+    onClose : (List<Filter>) -> Unit,
 ) {
+    var filters by remember { mutableStateOf(initialFilters.map { it.copy() }) }
+
+    val isRefreshing = remember { mutableStateOf(false) }
+
     val focusManager: FocusManager = LocalFocusManager.current
 
     val checkSize: () -> Boolean = {
@@ -80,14 +82,13 @@ fun DialogsFilterContent(
             isShowClear.value,
             {
                 MsgFilters.clearFilters()
-                filters.clear()
-                filters.addAll(MsgFilters.filters)
+                filters = MsgFilters.filters
                 isRefreshing.value = true
                 isShowClear.value = checkSize()
-                onClose()
+                onClose(filters)
             },
             {
-                onClose()
+                onClose(filters)
             }
         )
         LazyColumnWithScrollBars(
@@ -235,9 +236,8 @@ fun DialogsFilterContent(
                 .align(Alignment.BottomCenter)
                 .padding(dimens.mediumPadding)
         ){
-            onClose()
+            onClose(filters)
         }
     }
-
 }
 

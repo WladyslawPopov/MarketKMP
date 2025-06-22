@@ -14,12 +14,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -27,16 +27,12 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.OfferItem
+import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.widgets.dialogs.OfferMessagingDialog
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.bars.HeaderOfferBar
-import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.TitleText
@@ -44,27 +40,23 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun MyProposalItem(
-    offer: OfferItem,
-    onUpdateOfferItem : (Long) -> Unit,
-    baseViewModel: BaseViewModel,
-    updateTrigger : Int,
-    goToUser: (Long) -> Unit,
-    goToOffer: (Long) -> Unit,
-    goToDialog: (Long?) -> Unit,
-    goToProposal: (ProposalType) -> Unit
+fun CabinetProposalItem(
+    state : CabinetOfferItemState,
+    updateItem : Long? = null,
 ) {
-    if(updateTrigger < 0) return
-
-    val showMesDialog = remember { mutableStateOf(false) }
-    val isOpenPopup = remember { mutableStateOf(false) }
-
-    val showDialog = remember { mutableStateOf("") }
-    val title = remember { mutableStateOf(AnnotatedString("")) }
-    val fields = remember { mutableStateOf< ArrayList<Fields>>(arrayListOf()) }
+    val offer = state.item
+    val events = state.events
 
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
+    }
+
+    val openMenu = remember { mutableStateOf(false) }
+
+    LaunchedEffect(updateItem) {
+        if (updateItem == offer.id) {
+            events.onUpdateItem()
+        }
     }
 
     val date1 = offer.session?.start?.convertDateWithMinutes()
@@ -82,15 +74,14 @@ fun MyProposalItem(
             verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
             horizontalAlignment = Alignment.Start
         ) {
-//            HeaderOfferBar(
-//                offer = offer,
-//                baseViewModel = baseViewModel,
-//                onUpdateTrigger = updateTrigger,
-//                onUpdateOfferItem = onUpdateOfferItem
-//            )
+            HeaderOfferBar(
+                offer = offer,
+                selectedState = state.selectedItem,
+                defOptions = state.defOptions
+            )
             Row(
                 modifier = Modifier.clickable {
-                    goToOffer(offer.id)
+                    events.onItemClick()
                 }.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
                 verticalAlignment = Alignment.CenterVertically
@@ -109,49 +100,34 @@ fun MyProposalItem(
                             modifier = Modifier.size(imageSize)
                         )
                     }
-                    SimpleTextButton(
-                        text = stringResource(strings.actionsLabel),
-                        textStyle = MaterialTheme.typography.labelSmall,
-                        textColor = colors.actionTextColor,
-                        backgroundColor = colors.grayLayout,
-                        leadIcon = {
-                            Icon(
-                                painter = painterResource(drawables.shareMenuIcon),
-                                contentDescription = "",
-                                modifier = Modifier.size(dimens.extraSmallIconSize),
-                                tint = colors.actionTextColor
-                            )
-                        },
-                    ) {
-//                        baseViewModel.getOfferOperations(offer.id) { listOperations ->
-//                            menuList.value = buildList {
-//                                addAll(listOperations.map { operation ->
-//                                    MenuItem(
-//                                        id = operation.id ?: "",
-//                                        title = operation.name ?: "",
-//                                        onClick = {
-//                                            operation.onClickOfferOperationItem(
-//                                                offer,
-//                                                baseViewModel,
-//                                                title,
-//                                                fields,
-//                                                showDialog,
-//                                                onUpdateOfferItem,
-//                                                goToProposal,
-//                                            )
-//                                        }
-//                                    )
-//                                })
-//                            }
-//                            isOpenPopup.value = true
-//                        }
-                    }
 
-                    PopUpMenu(
-                        openPopup = isOpenPopup.value,
-                        menuList = menuList.value,
-                        onClosed = { isOpenPopup.value = false }
-                    )
+                    Column {
+                        SimpleTextButton(
+                            text = stringResource(strings.actionsLabel),
+                            textStyle = MaterialTheme.typography.labelSmall,
+                            textColor = colors.actionTextColor,
+                            backgroundColor = colors.grayLayout,
+                            leadIcon = {
+                                Icon(
+                                    painter = painterResource(drawables.shareMenuIcon),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(dimens.extraSmallIconSize),
+                                    tint = colors.actionTextColor
+                                )
+                            },
+                        ) {
+                            events.getMenuOperations {
+                                menuList.value = it
+                                openMenu.value = true
+                            }
+                        }
+
+                        PopUpMenu(
+                            openPopup = openMenu.value,
+                            menuList = menuList.value,
+                            onClosed = { openMenu.value = false }
+                        )
+                    }
                 }
 
                 Column(
@@ -223,14 +199,12 @@ fun MyProposalItem(
                         )
                     }
 
-                    offer.seller.let {
-                        UserRow(
-                            it,
-                            Modifier.clip(MaterialTheme.shapes.small).clickable {
-                                goToUser(it.id)
-                            }.padding(dimens.extraSmallPadding),
-                        )
-                    }
+                    UserRow(
+                        offer.seller,
+                        Modifier.clip(MaterialTheme.shapes.small).clickable {
+                            events.goToUser()
+                        }.padding(dimens.extraSmallPadding),
+                    )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -272,7 +246,11 @@ fun MyProposalItem(
                     textColor = colors.alwaysWhite,
                     modifier = Modifier.weight(1f)
                 ) {
-                    goToProposal(if(offer.seller.id == UserData.login) ProposalType.ACT_ON_PROPOSAL else ProposalType.MAKE_PROPOSAL)
+                    events.goToProposal(
+                        if(offer.seller.id == UserData.login)
+                         ProposalType.ACT_ON_PROPOSAL
+                        else ProposalType.MAKE_PROPOSAL
+                    )
                 }
 
                 SimpleTextButton(
@@ -291,32 +269,8 @@ fun MyProposalItem(
                     textColor = colors.alwaysWhite,
                     modifier = Modifier.weight(1f)
                 ) {
-                    showMesDialog.value = true
+                    events.sendMessageToUser()
                 }
-
-                OfferMessagingDialog(
-                    showMesDialog.value,
-                    offer,
-                    onSuccess = { dialogId ->
-                        goToDialog(dialogId)
-                        showMesDialog.value = false
-                    },
-                    onDismiss = {
-                        showMesDialog.value = false
-                    },
-                    baseViewModel = baseViewModel
-                )
-
-//                OfferOperationsDialogs(
-//                    offer = offer,
-//                    showDialog = showDialog,
-//                    viewModel = baseViewModel,
-//                    title = title,
-//                    fields = fields,
-//                    updateItem = {
-//                        onUpdateOfferItem(it)
-//                    }
-//                )
             }
         }
     }

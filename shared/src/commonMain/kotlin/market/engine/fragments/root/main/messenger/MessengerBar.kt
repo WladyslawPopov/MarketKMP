@@ -12,21 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
-import io.github.vinceglb.filekit.core.PlatformFiles
 import market.engine.common.getPermissionHandler
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
+import market.engine.core.data.events.MessengerBarEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.states.MessengerBarState
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.items.DialogsImgUploadItem
 import market.engine.widgets.textFields.TextFieldWithState
@@ -35,14 +35,14 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MessengerBar(
-    messageTextState: MutableState<String>,
-    imagesUpload: List<PhotoTemp>,
-    isDisabledSendMes: Boolean,
-    isDisabledAddPhotos: Boolean,
-    getImages : (PlatformFiles) -> Unit,
-    deleteImage : (PhotoTemp) -> Unit,
-    sendMessage : () -> Unit,
+    data: MessengerBarState,
+    events: MessengerBarEvents
 ) {
+    val messageTextState = data.messageTextState
+    val imagesUpload = data.imagesUpload
+    val isDisabledSendMes = data.isDisabledSendMes
+    val isDisabledAddPhotos = data.isDisabledAddPhotos
+
     val launcher = rememberFilePickerLauncher(
         type = PickerType.Image,
         mode = PickerMode.Multiple(
@@ -51,7 +51,7 @@ fun MessengerBar(
         initialDirectory = "market/temp/"
     ) { files ->
         if (files != null) {
-            getImages(files)
+            events.getImages(files)
         }
     }
 
@@ -75,7 +75,7 @@ fun MessengerBar(
                 DialogsImgUploadItem(
                     item = item,
                     delete = {
-                        deleteImage(item)
+                        events.deleteImage(item)
                     }
                 )
             }
@@ -111,11 +111,11 @@ fun MessengerBar(
 
         TextFieldWithState(
             label = stringResource(strings.messageLabel),
-            textState = messageTextState,
+            textState = mutableStateOf(messageTextState),
             modifier = Modifier.fillMaxWidth(0.85f)
                 .heightIn(max= 150.dp),
             onTextChange = {
-                messageTextState.value = it
+                events.onTextChanged(it)
             },
             readOnly = isDisabledSendMes,
             maxLines = Int.MAX_VALUE,
@@ -124,10 +124,10 @@ fun MessengerBar(
         SmallIconButton(
             drawables.sendMesIcon,
             colors.black,
-            enabled = messageTextState.value.trim().isNotEmpty(),
+            enabled = messageTextState.trim().isNotEmpty(),
             modifierIconSize = Modifier.size(dimens.mediumIconSize),
         ){
-            sendMessage()
+            events.sendMessage()
         }
     }
 }

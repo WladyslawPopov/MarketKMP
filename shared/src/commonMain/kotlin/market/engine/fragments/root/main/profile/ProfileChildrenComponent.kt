@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.pages.PagesNavigation
 import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
@@ -29,9 +30,9 @@ import market.engine.fragments.root.main.profile.myOrders.MyOrdersComponent
 import market.engine.fragments.root.main.profile.myProposals.MyProposalsComponent
 import market.engine.fragments.root.main.profile.myBids.MyBidsConfig
 import market.engine.fragments.root.main.profile.myOrders.MyOrderConfig
+import market.engine.fragments.root.main.profile.myProposals.DefaultMyProposalsComponent
 import market.engine.fragments.root.main.profile.myProposals.MyProposalsConfig
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsConfig
-import market.engine.fragments.root.main.profile.myProposals.itemMyProposals
 import market.engine.fragments.root.main.profile.profileSettings.DefaultProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 
@@ -346,7 +347,36 @@ class DefaultProfileChildrenComponent(
             },
             key = "ProfileMyProposalsStack",
             childFactory = { config, componentContext ->
-                itemMyProposals(config, componentContext, navigationProfile,::selectOfferPage)
+                DefaultMyProposalsComponent(
+                    componentContext,
+                    offerSelected = { id ->
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+                    },
+                    selectedMyProposalsPage = {
+                        selectOfferPage(it)
+                    },
+                    navigateToUser = { userId ->
+                        navigationProfile.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
+                    },
+                    navigateToDialog = { dialogId ->
+                        if (dialogId != null)
+                            navigationProfile.pushNew(
+                                ProfileConfig.DialogsScreen(
+                                    dialogId,
+                                    null,
+                                    getCurrentDate()
+                                )
+                            )
+                        else
+                            navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                    },
+                    navigateToProposal = { id, type ->
+                        navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
+                    },
+                    navigateBack = {
+                        navigationProfile.pop()
+                    },
+                )
             }
         )
     }

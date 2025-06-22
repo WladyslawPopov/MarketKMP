@@ -46,7 +46,7 @@ fun DialogsImgUploadItem(
             }
 
             LoadImage(
-                url = item.url ?: "",
+                url = item.url ?: item.uri ?: item.tempId ?: "",
                 modifier = Modifier,
                 contentScale = ContentScale.Crop
             )

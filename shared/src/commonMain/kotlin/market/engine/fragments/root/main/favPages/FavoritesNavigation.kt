@@ -21,7 +21,6 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.fragments.root.main.user.userFactory
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
@@ -37,18 +36,22 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.favPages.FavoritesConfig.ListingScreen
+import market.engine.fragments.root.main.favPages.FavoritesConfig.OfferScreen
+import market.engine.fragments.root.main.favPages.FavoritesConfig.UserScreen
 import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
+import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
-import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
+import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
 
@@ -146,13 +149,13 @@ fun createFavoritesChild(
                 favType = config.favScreenType
             )
         )
-        is FavoritesConfig.OfferScreen -> ChildFavorites.OfferChild(
+        is OfferScreen -> ChildFavorites.OfferChild(
             component = offerFactory(
                 componentContext,
                 config.id,
                 selectOffer = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 onBack = {
@@ -160,12 +163,12 @@ fun createFavoritesChild(
                 },
                 onListingSelected = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.UserScreen(ui, getCurrentDate(), about)
+                        UserScreen(ui, getCurrentDate(), about)
                     )
                 },
                 isSnapshot = config.isSnap,
@@ -204,7 +207,7 @@ fun createFavoritesChild(
             )
         )
 
-        is FavoritesConfig.ListingScreen -> {
+        is ListingScreen -> {
             val ld = ListingData(
                 searchData = config.searchData,
                 data = config.listingData
@@ -215,7 +218,7 @@ fun createFavoritesChild(
                     listingData = ld,
                     selectOffer = {
                         favoritesNavigation.pushNew(
-                            FavoritesConfig.OfferScreen(it, getCurrentDate())
+                            OfferScreen(it, getCurrentDate())
                         )
                     },
                     selectedBack = {
@@ -226,7 +229,7 @@ fun createFavoritesChild(
                     },
                     navigateToListing = { data ->
                         favoritesNavigation.pushNew(
-                            FavoritesConfig.ListingScreen(data.data, data.searchData, getCurrentDate())
+                            ListingScreen(data.data, data.searchData, getCurrentDate())
                         )
                     },
                     navigateToNewSubscription = {
@@ -239,35 +242,35 @@ fun createFavoritesChild(
             )
         }
 
-        is FavoritesConfig.UserScreen -> ChildFavorites.UserChild(
-            userFactory(
-                componentContext,
-                config.userId,
-                config.aboutMe,
-                goToLogin = {
+        is UserScreen -> ChildFavorites.UserChild(
+            DefaultUserComponent(
+                userId = config.userId,
+                isClickedAboutMe = config.aboutMe,
+                componentContext = componentContext,
+                goToListing = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
-                goBack = {
+                navigateBack = {
                     favoritesNavigation.pop()
                 },
-                goToSnapshot = { id ->
+                navigateToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
+                },
+                navigateToSnapshot = { id ->
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.OfferScreen(id, getCurrentDate(), true)
+                        OfferScreen(id, getCurrentDate(), true)
                     )
                 },
-                goToUser = {
+                navigateToUser = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 },
-                goToSubscriptions = {
+                navigateToSubscriptions = {
                     favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
                 },
-                goToOrder = { id, type ->
-                    navigateToMyOrders(id, type)
-                }
             )
         )
 
@@ -280,7 +283,7 @@ fun createFavoritesChild(
                 externalImages = config.externalImages,
                 navigateOffer = { id ->
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, getCurrentDate())
                     )
                 },
                 navigateCreateOffer = { id, path, t ->
@@ -304,12 +307,12 @@ fun createFavoritesChild(
                 selectedItems = config.basketItem,
                 navigateUser = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 },
                 navigateOffer = {
                     favoritesNavigation.pushNew(
-                        FavoritesConfig.OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateBack = {
@@ -332,31 +335,33 @@ fun createFavoritesChild(
     )
 
     is FavoritesConfig.MessengerScreen -> ChildFavorites.MessengerChild(
-        component = messengerFactory(
-            componentContext = componentContext,
-            dialogId = config.dialogId,
-            navigateBack = {
-                favoritesNavigation.pop()
-            },
-            navigateToOrder = { id, type ->
-                navigateToMyOrders(id, type)
-            },
-            navigateToUser = {
-                favoritesNavigation.pushNew(
-                    FavoritesConfig.UserScreen(it, getCurrentDate(), false)
-                )
-            },
-            navigateToOffer = {
-                favoritesNavigation.pushNew(
-                    FavoritesConfig.OfferScreen(it, getCurrentDate())
-                )
-            },
-            navigateToListingSelected = {
-                favoritesNavigation.pushNew(
-                    FavoritesConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
-                )
-            }
-        )
+        component =
+            DefaultDialogsComponent(
+                componentContext = componentContext,
+                dialogId = config.dialogId,
+                message = null,
+                navigateBack = {
+                    favoritesNavigation.pop()
+                },
+                navigateToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
+                },
+                navigateToUser = {
+                    favoritesNavigation.pushNew(
+                        UserScreen(it, getCurrentDate(), false)
+                    )
+                },
+                navigateToOffer = {
+                    favoritesNavigation.pushNew(
+                        OfferScreen(it, getCurrentDate())
+                    )
+                },
+                navigateToListingSelected = {
+                    favoritesNavigation.pushNew(
+                        ListingScreen(it.data, it.searchData, getCurrentDate())
+                    )
+                }
+            )
     )
 
     is FavoritesConfig.ProposalScreen -> ChildFavorites.ProposalChild(
@@ -369,12 +374,12 @@ fun createFavoritesChild(
             },
             navigateToOffer = {
                 favoritesNavigation.pushNew(
-                    FavoritesConfig.OfferScreen(it, getCurrentDate())
+                    OfferScreen(it, getCurrentDate())
                 )
             },
             navigateToUser = {
                 favoritesNavigation.pushNew(
-                    FavoritesConfig.UserScreen(it, getCurrentDate(), false)
+                    UserScreen(it, getCurrentDate(), false)
                 )
             }
         )

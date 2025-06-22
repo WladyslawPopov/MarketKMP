@@ -1,12 +1,10 @@
 package market.engine.fragments.root.main.profile.conversations
 
-import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import kotlinx.coroutines.flow.Flow
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Conversations
@@ -15,13 +13,11 @@ interface ConversationsComponent {
     val model : Value<Model>
     data class Model(
         var message : String?,
-        val pagingDataFlow : Flow<PagingData<Conversations>>,
         val viewModel: ConversationsViewModel,
         val backHandler: BackHandler
     )
 
     fun goToMessenger(conversation : Conversations)
-    fun updateItem(conversation : Conversations?)
     fun onBack()
 }
 
@@ -32,12 +28,11 @@ class DefaultConversationsComponent(
     val navigateToMessenger : (Long, String?) -> Unit,
 ) : ConversationsComponent, ComponentContext by componentContext {
 
-    private val viewModel : ConversationsViewModel = ConversationsViewModel()
+    private val viewModel : ConversationsViewModel = ConversationsViewModel(this)
 
     private val _model = MutableValue(
         ConversationsComponent.Model(
             message = copyMessage,
-            pagingDataFlow = viewModel.init(),
             viewModel = viewModel,
             backHandler = backHandler
         )
@@ -53,26 +48,6 @@ class DefaultConversationsComponent(
         }
         navigateToMessenger(conversation.id, model.value.message)
         model.value.message = null
-    }
-
-    override fun updateItem(oldItem: Conversations?) {
-        viewModel.getConversation(
-            viewModel.updateItem.value!!,
-            onSuccess = { res->
-                if (oldItem != null) {
-                    oldItem.interlocutor = res.interlocutor
-                    oldItem.newMessage = res.newMessage
-                    oldItem.newMessageTs = res.newMessageTs
-                    oldItem.countUnreadMessages = res.countUnreadMessages
-                    oldItem.aboutObjectIcon = res.aboutObjectIcon
-                }
-                viewModel.updateItemTrigger.value++
-                viewModel.updateItem.value = null
-            },
-            error = {
-                viewModel.updateItem.value = null
-            }
-        )
     }
 
     override fun onBack() {

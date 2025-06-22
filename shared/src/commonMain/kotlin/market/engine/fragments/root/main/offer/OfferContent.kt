@@ -73,6 +73,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.SelectedBasketItem
+import market.engine.core.data.states.ScrollDataState
 import market.engine.core.network.networkObjects.DealType
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.Offer
@@ -106,7 +107,6 @@ import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.CustomDialog
-import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
@@ -156,7 +156,8 @@ fun OfferContent(
     val focusManager = LocalFocusManager.current
 
     val stateColumn = rememberLazyListState(
-//        initialFirstVisibleItemIndex = offerViewModel.scrollItem.value,
+        initialFirstVisibleItemIndex = offerViewModel.scrollState.value.scrollItem,
+        initialFirstVisibleItemScrollOffset = offerViewModel.scrollState.value.offsetScrollItem
     )
 
     val scope = rememberCoroutineScope()
@@ -167,9 +168,9 @@ fun OfferContent(
 
     LaunchedEffect(stateColumn){
         snapshotFlow {
-            stateColumn.firstVisibleItemIndex
-        }.collect { item->
-//            offerViewModel.scrollItem.value = item
+            stateColumn.firstVisibleItemIndex to stateColumn.firstVisibleItemScrollOffset
+        }.collect { (index , offset) ->
+            offerViewModel.scrollState.value = ScrollDataState(index, offset)
         }
     }
 

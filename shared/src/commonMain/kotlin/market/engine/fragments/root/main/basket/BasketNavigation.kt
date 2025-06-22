@@ -3,7 +3,6 @@ package market.engine.fragments.root.main.basket
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -26,6 +25,9 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
+import market.engine.fragments.root.main.basket.BasketConfig.ListingScreen
+import market.engine.fragments.root.main.basket.BasketConfig.OfferScreen
+import market.engine.fragments.root.main.basket.BasketConfig.UserScreen
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.createOfferFactory
@@ -38,18 +40,18 @@ import market.engine.fragments.root.main.createSubscription.createSubscriptionFa
 import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
+import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
-import market.engine.fragments.root.main.messenger.messengerFactory
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
+import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
-import market.engine.fragments.root.main.user.userFactory
 
 @Serializable
 sealed class BasketConfig {
@@ -142,13 +144,13 @@ fun createBasketChild(
             DefaultBasketComponent(
                 componentContext = componentContext,
                 navigateToListing = {
-                    basketNavigation.pushNew(BasketConfig.ListingScreen(LD(), SD(), getCurrentDate()))
+                    basketNavigation.pushNew(ListingScreen(LD(), SD(), getCurrentDate()))
                 },
                 navigateToUser = {
-                    basketNavigation.pushNew(BasketConfig.UserScreen(it, getCurrentDate(), false))
+                    basketNavigation.pushNew(UserScreen(it, getCurrentDate(), false))
                 },
                 navigateToOffer = {
-                    basketNavigation.pushNew(BasketConfig.OfferScreen(it, getCurrentDate()))
+                    basketNavigation.pushNew(OfferScreen(it, getCurrentDate()))
                 },
                 navigateToCreateOrder = {
                     basketNavigation.pushNew(BasketConfig.CreateOrderScreen(it))
@@ -156,7 +158,7 @@ fun createBasketChild(
             )
         )
 
-        is BasketConfig.ListingScreen -> {
+        is ListingScreen -> {
             val ld = ListingData(
                 searchData = config.searchData,
                 data = config.listingData
@@ -166,7 +168,7 @@ fun createBasketChild(
                     componentContext = componentContext,
                     listingData = ld,
                     selectOffer = {
-                        basketNavigation.pushNew(BasketConfig.OfferScreen(it, getCurrentDate()))
+                        basketNavigation.pushNew(OfferScreen(it, getCurrentDate()))
                     },
                     selectedBack = {
                         basketNavigation.pop()
@@ -176,7 +178,7 @@ fun createBasketChild(
                     },
                     navigateToListing = { data ->
                         basketNavigation.pushNew(
-                            BasketConfig.ListingScreen(
+                            ListingScreen(
                                 data.data,
                                 data.searchData,
                                 getCurrentDate()
@@ -193,13 +195,13 @@ fun createBasketChild(
             )
         }
 
-        is BasketConfig.OfferScreen -> ChildBasket.OfferChild(
+        is OfferScreen -> ChildBasket.OfferChild(
             component = offerFactory(
                 componentContext,
                 config.id,
                 selectOffer = {
                     basketNavigation.pushNew(
-                        BasketConfig.OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 onBack = {
@@ -207,12 +209,12 @@ fun createBasketChild(
                 },
                 onListingSelected = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
                 onUserSelected = { ui, about ->
                     basketNavigation.pushNew(
-                        BasketConfig.UserScreen(ui, getCurrentDate(), about)
+                        UserScreen(ui, getCurrentDate(), about)
                     )
                 },
                 isSnapshot = config.isSnap,
@@ -260,7 +262,7 @@ fun createBasketChild(
                 externalImages = config.externalImages,
                 navigateOffer = { id ->
                     basketNavigation.pushNew(
-                        BasketConfig.OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, getCurrentDate())
                     )
                 },
                 navigateCreateOffer = { id, path, t ->
@@ -277,35 +279,35 @@ fun createBasketChild(
                 }
             )
         )
-        is BasketConfig.UserScreen -> ChildBasket.UserChild(
-            userFactory(
-                componentContext,
-                config.userId,
-                config.aboutMe,
-                goToLogin = {
+        is UserScreen -> ChildBasket.UserChild(
+            DefaultUserComponent(
+                userId = config.userId,
+                isClickedAboutMe = config.aboutMe,
+                componentContext = componentContext,
+                goToListing = {
                     basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, getCurrentDate())
                     )
                 },
-                goBack = {
+                navigateBack = {
                     basketNavigation.pop()
                 },
-                goToSnapshot = { id ->
+                navigateToOrder = { id, type ->
+                    navigateToMyOrders(id, type)
+                },
+                navigateToSnapshot = { id ->
                     basketNavigation.pushNew(
-                        BasketConfig.OfferScreen(id, getCurrentDate(), true)
+                        OfferScreen(id, getCurrentDate(), true)
                     )
                 },
-                goToUser = {
+                navigateToUser = {
                     basketNavigation.pushNew(
-                        BasketConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 },
-                goToSubscriptions = {
+                navigateToSubscriptions = {
                     navigateToSubscribe()
                 },
-                goToOrder = { id, type ->
-                    navigateToMyOrders(id, type)
-                }
             )
         )
 
@@ -318,12 +320,12 @@ fun createBasketChild(
                 },
                 navigateOffer = { id ->
                     basketNavigation.pushNew(
-                        BasketConfig.OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, getCurrentDate())
                     )
                 },
                 navigateUser = { id ->
                     basketNavigation.pushNew(
-                        BasketConfig.UserScreen(id, getCurrentDate(), false)
+                        UserScreen(id, getCurrentDate(), false)
                     )
                 },
                 navigateToMyOrders = {
@@ -333,31 +335,33 @@ fun createBasketChild(
         )
 
         is BasketConfig.MessengerScreen -> ChildBasket.MessengerChild(
-            component = messengerFactory(
-                componentContext,
-                config.id,
-                navigateBack = {
-                    basketNavigation.pop()
-                },
-                navigateToUser = {
-                    basketNavigation.pushNew(
-                        BasketConfig.UserScreen(it, getCurrentDate(), false)
-                    )
-                },
-                navigateToOffer = {
-                    basketNavigation.pushNew(
-                        BasketConfig.OfferScreen(it, getCurrentDate())
-                    )
-                },
-                navigateToOrder = { id, type ->
-                    navigateToMyOrders(id, type)
-                },
-                navigateToListingSelected = {
-                    basketNavigation.pushNew(
-                        BasketConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
-                    )
-                }
-            )
+            component =
+                DefaultDialogsComponent(
+                    componentContext = componentContext,
+                    dialogId = config.id,
+                    message = null,
+                    navigateBack = {
+                        basketNavigation.pop()
+                    },
+                    navigateToOrder = { id, type ->
+                        navigateToMyOrders(id, type)
+                    },
+                    navigateToUser = {
+                        basketNavigation.pushNew(
+                            UserScreen(it, getCurrentDate(), false)
+                        )
+                    },
+                    navigateToOffer = {
+                        basketNavigation.pushNew(
+                            OfferScreen(it, getCurrentDate())
+                        )
+                    },
+                    navigateToListingSelected = {
+                        basketNavigation.pushNew(
+                            ListingScreen(it.data, it.searchData, getCurrentDate())
+                        )
+                    }
+                )
         )
         is BasketConfig.ProposalScreen -> ChildBasket.ProposalChild(
             component = proposalFactory(
@@ -372,7 +376,7 @@ fun createBasketChild(
                 },
                 navigateToUser = {
                     basketNavigation.pushNew(
-                        BasketConfig.UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, getCurrentDate(), false)
                     )
                 }
             )

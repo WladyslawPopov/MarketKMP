@@ -47,12 +47,12 @@ import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.ListingBaseState
 import market.engine.core.data.states.ListingOfferContentState
-import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.PlatformWindowType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.PagingRepository
@@ -164,7 +164,6 @@ class MyBidsViewModel(
                         item = item,
                         events = CabinetOfferItemEventsImpl(this, item, component),
                         defOptions = defOption,
-                        selectedItem = SelectedOfferItemState(),
                     )
                 }
             }
@@ -581,6 +580,10 @@ data class CabinetOfferItemEventsImpl(
 
     override fun goToPurchase() {
         component.goToPurchases()
+    }
+
+    override fun goToProposal(type: ProposalType) {
+
     }
 
     override fun sendMessageToUser() {

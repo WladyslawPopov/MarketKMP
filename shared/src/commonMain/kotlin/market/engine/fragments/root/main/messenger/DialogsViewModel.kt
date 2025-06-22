@@ -1,34 +1,58 @@
 package market.engine.fragments.root.main.messenger
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.paging.PagingData
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
-import app.cash.paging.cachedIn
-import app.cash.paging.map
+import androidx.paging.map
+import app.cash.paging.PagingData
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import market.engine.common.clipBoardEvent
 import market.engine.common.compressImage
 import market.engine.common.getImageUriFromPlatformFile
+import market.engine.common.openUrl
 import market.engine.core.data.baseFilters.Filter
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.events.DialogItemEvents
+import market.engine.core.data.events.MessengerBarEvents
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.DialogsData
-import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.items.MenuItem
+import market.engine.core.data.items.MesHeaderItem
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.states.FilterBarUiState
+import market.engine.core.data.states.ListingBaseState
+import market.engine.core.data.states.MessengerBarState
+import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.MessageType
 import market.engine.core.network.functions.PrivateMessagesOperation
 import market.engine.core.network.networkObjects.Conversations
@@ -39,101 +63,399 @@ import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.convertDateYear
+import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.utils.parseDeepLink
+import market.engine.core.utils.printLogD
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
+import kotlin.String
+import kotlin.collections.map
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+data class DialogContentState(
+    val appBarState: SimpleAppBarData = SimpleAppBarData(),
+    val responseGetOfferInfo: Offer? = null,
+    val responseGetOrderInfo: Order? = null,
+    val conversations: Conversations? = null,
+
+    val listingBaseState: ListingBaseState = ListingBaseState(),
+    val filterBarData: FilterBarUiState = FilterBarUiState(),
+    val listingData: ListingData = ListingData(),
+
+    val mesHeader : MesHeaderItem? = null
+)
+
 class DialogsViewModel(
-    private val privateMessagesOperation: PrivateMessagesOperation,
+    val dialogId: Long,
+    val message: String?,
+    val component: DialogsComponent,
 ) : BaseViewModel() {
-    private val dialogsPagingRepository: PagingRepository<Dialog> = PagingRepository()
+    private val privateMessagesOperation: PrivateMessagesOperation = getKoin().get()
+    private val pagingRepository: PagingRepository<Dialog> = PagingRepository()
 
     val listingData = mutableStateOf(ListingData())
 
-    val responseGetConversation = mutableStateOf<Conversations?>(null)
+    private val _responseGetConversation = MutableStateFlow<Conversations?>(null)
 
     private val _responseGetOfferInfo = MutableStateFlow<Offer?>(null)
-    val responseGetOfferInfo: StateFlow<Offer?> = _responseGetOfferInfo.asStateFlow()
 
     private val _responseGetOrderInfo = MutableStateFlow<Order?>(null)
-    val responseGetOrderInfo: StateFlow<Order?> = _responseGetOrderInfo.asStateFlow()
 
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
-    val responseImages: StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
 
-    val messageTextState = mutableStateOf("")
+    private val _messageTextState = MutableStateFlow("")
 
-    private val dialogID = mutableStateOf(0L)
+    private val _isDisabledSendMes = MutableStateFlow(true)
+    private val _isDisabledAddPhotos = MutableStateFlow(true)
 
-    fun init(dialogId: Long): Flow<PagingData<DialogsData>> {
-        dialogID.value = dialogId
-        setLoading(true)
+    private val _imageSize = MutableStateFlow(0)
+    val imageSize = _imageSize.asStateFlow()
 
-        listingData.value.data.filters = arrayListOf(
-            Filter(
-                "dialog_id",
-                dialogId.toString(),
+    private val _selectedImageIndex = MutableStateFlow<Int?>(null)
+    val selectedImageIndex = _selectedImageIndex.asStateFlow()
+
+    private val _images = MutableStateFlow<List<String>>(emptyList())
+    val images = _images.asStateFlow()
+
+    private val _menuItems = MutableStateFlow(
+        listOf<MenuItem>()
+    )
+
+    val messageBarEvents = MessageBarEventsImpl(this)
+
+    private val _listingData = MutableStateFlow(ListingData(
+        data = LD(
+            filters = listOf(
+                Filter(
+                    "dialog_id",
+                    dialogId.toString(),
+                    "",
+                    null
+                )
+            ),
+            sort = Sort(
+                "created_ts",
+                "desc",
                 "",
+                null,
                 null
-            )
+            ),
+            methodServer = "get_cabinet_listing",
+            objServer = "private_messages"
         )
-        listingData.value.data.sort = Sort(
-            "created_ts",
-            "desc",
-            "",
-            null,
-            null
+    ))
+
+    val messageBarState : StateFlow<MessengerBarState> = combine(
+        _isDisabledSendMes,
+        _isDisabledAddPhotos,
+        _responseImages,
+        _messageTextState,
+    ){ disabledSendMes, disabledAddPhotos, images, messageTextState ->
+        MessengerBarState(
+            isDisabledSendMes = disabledSendMes,
+            isDisabledAddPhotos = disabledAddPhotos,
+            imagesUpload = images,
+            messageTextState = messageTextState
         )
-        listingData.value.data.methodServer = "get_cabinet_listing"
-        listingData.value.data.objServer = "private_messages"
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        MessengerBarState()
+    )
 
-        return dialogsPagingRepository.getListing(
-            listingData.value,
-            apiService,
-            Dialog.serializer()
-        )
-            .map { pagingData ->
-                pagingData.map { dialog ->
-                    val isIncoming = (UserData.login != dialog.sender)
-                    val type = if (isIncoming) MessageType.INCOMING else MessageType.OUTGOING
+    val dialogContentState : StateFlow<DialogContentState> = combine(
+        _menuItems,
+        _responseGetConversation,
+        _responseGetOfferInfo,
+        _responseGetOrderInfo,
+        _listingData
+    ){ menu, conversation, offerInfo, orderInfo, listingData ->
+        val copyId = getString(strings.idCopied)
 
-                    DialogsData.MessageItem(
-                        id = dialog.id,
-                        message = dialog.message.orEmpty(),
-                        dateTime = dialog.createdTs ?: 1L,
-                        user = if (isIncoming)
-                            responseGetConversation.value?.interlocutor?.id.toString()
-                        else
-                            UserData.userInfo?.login.toString(),
-                        messageType = type,
-                        images = dialog.images?.mapTo(ArrayList()) {
-                            MesImage(
-                                it.thumbUrl,
-                                it.url
-                            )
-                        },
-                        readByReceiver = dialog.readByReceiver == true
-                    )
-                }
-                    .insertSeparators { before: DialogsData.MessageItem?, after: DialogsData.MessageItem? ->
-                        val beforeDate = before?.dateTime.toString().convertDateYear()
-                        val afterDate = after?.dateTime.toString().convertDateYear()
+        val offer = offerInfo
+        val order = orderInfo
+        val sign = getString(strings.currencySign)
+        val orderLabel = getString(strings.orderLabel)
+        val copyOfferId = getString(strings.copyOfferId)
+        val copyOrderId = getString(strings.copyOrderId)
+        val deleteDialogLabel = getString(strings.deleteDialogLabel)
+        var userRole = ""
 
-                        if (beforeDate != afterDate && before != null) {
-                            DialogsData.SeparatorItem(
-                                dateTime = beforeDate
-                            )
-                        } else {
-                            null
-                        }
+        val headerItem = when {
+            offer != null -> {
+                if (offer.sellerData?.markedAsDeleted == true) {
+                    _isDisabledSendMes.value = true
+                    _isDisabledAddPhotos.value = true
+                } else {
+                    _isDisabledSendMes.value = false
+
+                    if (offer.sellerData?.id == conversation?.interlocutor?.id) {
+                        userRole = "buyer"
+                        _isDisabledAddPhotos.value = true
+                    } else {
+                        userRole = "seller"
+                        _isDisabledAddPhotos.value = false
                     }
+                }
+
+                val title = buildAnnotatedString {
+                    append(offer.title ?: "")
+                }
+
+                val s = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = colors.priceTextColor
+                        )
+                    ) {
+                        append(offer.currentPricePerItem.toString())
+                        append(sign)
+                    }
+                }
+
+                val imageUrl = offer.getOfferImagePreview()
+
+
+                MesHeaderItem(
+                    title = title,
+                    subtitle = s,
+                    image = imageUrl,
+                ) {
+                    component.goToOffer(offer.id)
+                }
+
             }
-            .cachedIn(viewModelScope)
+
+            order != null -> {
+                if (order.sellerData?.markedAsDeleted == true) {
+                    _isDisabledSendMes.value = true
+                    _isDisabledAddPhotos.value = true
+                } else {
+                    _isDisabledSendMes.value = false
+                    _isDisabledAddPhotos.value = false
+
+                    userRole = if (order.sellerData?.id == conversation?.interlocutor?.id) {
+                        "buyer"
+                    } else {
+                        "seller"
+                    }
+                }
+                val title = buildAnnotatedString {
+                    withStyle(SpanStyle(color = colors.titleTextColor)) {
+                        append(orderLabel)
+                    }
+                    append(" #${order.id}")
+                }
+
+                val subtitle = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = colors.actionTextColor,
+                        )
+                    ) {
+                        append(order.suborders.firstOrNull()?.title)
+                    }
+                }
+
+                val imageUrl =
+                    order.suborders.firstOrNull()?.getOfferImagePreview()
+
+                MesHeaderItem(
+                    title = title,
+                    subtitle = subtitle,
+                    image = imageUrl,
+                ) {
+                    val type = if (userRole != "seller") {
+                        DealTypeGroup.BUY
+                    } else {
+                        DealTypeGroup.SELL
+                    }
+                    component.goToOrder(order.id, type)
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
+
+        DialogContentState(
+            appBarState = SimpleAppBarData(
+               listItems = listOf(
+                   NavigationItem(
+                       title = "",
+                       icon = drawables.recycleIcon,
+                       tint = colors.inactiveBottomNavIconColor,
+                       hasNews = false,
+                       badgeCount = null,
+                       onClick = {
+                           updatePage()
+                       }
+                   ),
+                   NavigationItem(
+                       title = getString(strings.menuTitle),
+                       icon = drawables.menuIcon,
+                       tint = colors.black,
+                       hasNews = false,
+                       badgeCount = null,
+                       onClick = {
+                           _menuItems.value = listOf(
+                               MenuItem(
+                                   id = "copyId",
+                                   title = if(conversation?.aboutObjectClass == "offer")
+                                       copyOfferId
+                                   else copyOrderId,
+                                   icon = drawables.copyIcon,
+                               ){
+                                   clipBoardEvent(conversation?.aboutObjectId.toString())
+                                   showToast(
+                                       successToastItem.copy(
+                                           message = copyId
+                                       )
+                                   )
+                               },
+                               MenuItem(
+                                   id = "delete_dialog",
+                                   title = deleteDialogLabel,
+                                   icon = drawables.deleteIcon,
+                               ) {
+                                   deleteConversation(conversation?.id ?: 1L){
+                                       component.onBackClicked()
+                                   }
+                               }
+                           )
+                       }
+                   )
+               ),
+                menuItems = menu,
+                onBackClick = {
+                    if (!images.value.isNotEmpty()) {
+                        component.onBackClicked()
+                    }else{
+                        closeImages()
+                    }
+                },
+                closeMenu = {
+                    _menuItems.value = emptyList()
+                }
+            ),
+            responseGetOfferInfo = offerInfo,
+            responseGetOrderInfo = orderInfo,
+            listingBaseState = ListingBaseState(
+                isReversingPaging = true
+            ),
+            mesHeader = headerItem,
+            conversations = conversation
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        DialogContentState()
+    )
+
+    val pagingParamsFlow: Flow<Pair<Conversations?,ListingData>> = combine(
+        _responseGetConversation,
+        _listingData,
+        updatePage
+    ) { conversations, listingData, _ ->
+        Pair(conversations, listingData)
     }
 
-    fun onRefresh() {
-        markReadConversation(dialogID.value)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pagingDataFlow: Flow<PagingData<DialogsData>> = pagingParamsFlow.flatMapLatest{ pair ->
+        val conversation = pair.first
+        val listingData = pair.second
+
+        pagingRepository.getListing(
+            listingData,
+            apiService,
+            Dialog.serializer(),
+            onTotalCountReceived = {
+                totalCount.value = it
+            }
+        ).map { pagingData ->
+            pagingData.map { dialog ->
+                val isIncoming = (UserData.login != dialog.sender)
+                val type = if (isIncoming) MessageType.INCOMING else MessageType.OUTGOING
+                val textCopied = getString(strings.textCopied)
+
+                DialogsData.MessageItem(
+                    id = dialog.id,
+                    message = dialog.message.orEmpty(),
+                    dateTime = dialog.createdTs ?: 1L,
+                    user = if (isIncoming)
+                        conversation?.interlocutor?.id.toString()
+                    else
+                        UserData.userInfo?.login.toString(),
+                    messageType = type,
+                    images = dialog.images?.mapTo(ArrayList()) {
+                        MesImage(
+                            it.thumbUrl,
+                            it.url
+                        )
+                    },
+                    readByReceiver = dialog.readByReceiver == true,
+                    options = listOf(
+                        MenuItem(
+                            id = "delete_message",
+                            title = getString(strings.actionDelete),
+                            icon = drawables.deleteIcon,
+                        ) {
+                            deleteMessage(dialog.id){
+                                //isDeleteItem.value = true
+                            }
+                        },
+                        MenuItem(
+                            id = "copy_message",
+                            title = getString(strings.actionCopy),
+                            icon = drawables.copyIcon,
+                        ){
+                            clipBoardEvent(dialog.message ?: "")
+                            showToast(
+                                successToastItem.copy(
+                                    message = textCopied
+                                )
+                            )
+                        }
+                    ),
+                    events = DialogItemEventsImpl(this, dialog, component)
+                )
+            }
+                .insertSeparators { before: DialogsData.MessageItem?, after: DialogsData.MessageItem? ->
+                    val beforeDate = before?.dateTime.toString().convertDateYear()
+                    val afterDate = after?.dateTime.toString().convertDateYear()
+
+                    if (beforeDate != afterDate && before != null) {
+                        DialogsData.SeparatorItem(
+                            dateTime = beforeDate
+                        )
+                    } else {
+                        null
+                    }
+                }
+            }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        PagingData.empty()
+    ).cachedIn(viewModelScope)
+
+    init {
+        _messageTextState.value = message ?: ""
+        getConversation(
+            dialogId,
+            onSuccess = { conversation ->
+                _responseGetConversation.value = conversation
+                updateDialogInfo(conversation)
+                printLogD("updateDialogInfo", conversation.toString())
+            },
+            error = {
+                component.onBackClicked()
+            }
+        )
+        markReadConversation(dialogId)
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -165,23 +487,24 @@ class DialogsViewModel(
         }
     }
 
-    fun sendMessage(dialogId: Long, message: String) {
+    fun sendMessage() {
         viewModelScope.launch {
             setLoading(true)
 
-            val userId = responseGetConversation.value?.interlocutor?.id
-            val interlocutorRole = responseGetConversation.value?.interlocutor?.role
-            val idAboutDialog = responseGetConversation.value?.aboutObjectId
-            val aboutObject = responseGetConversation.value?.aboutObjectClass
+            val userId = _responseGetConversation.value?.interlocutor?.id
+            val interlocutorRole = _responseGetConversation.value?.interlocutor?.role
+            val idAboutDialog = _responseGetConversation.value?.aboutObjectId
+            val aboutObject = _responseGetConversation.value?.aboutObjectClass
+            val message = _messageTextState.value
 
             val bodyMessage = buildJsonObject {
                 put("message", JsonPrimitive(message))
-                responseImages.value.forEachIndexed { index, photo ->
+                _responseImages.value.forEachIndexed { index, photo ->
                     put("image_${index + 1}", JsonPrimitive(photo.tempId))
                 }
             }
             _responseImages.value = emptyList()
-            messageTextState.value = ""
+            _messageTextState.value = ""
 
             val res = withContext(Dispatchers.IO) {
                 conversationsOperations.postAddMessage(dialogId, bodyMessage)
@@ -208,7 +531,7 @@ class DialogsViewModel(
                             analyticsHelper.reportEvent("sent_message_to_seller", eventParameters)
                         }
 
-                        onRefresh()
+                        updatePage()
                     } else {
                         showToast(
                             errorToastItem.copy(
@@ -217,6 +540,8 @@ class DialogsViewModel(
                         )
                     }
                 }
+
+                setLoading(false)
             }
         }
     }
@@ -241,6 +566,11 @@ class DialogsViewModel(
         }
     }
 
+    fun updatePage(){
+        refresh()
+        updatePage.value++
+    }
+
     fun deleteMessage(id: Long, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
@@ -251,7 +581,7 @@ class DialogsViewModel(
             withContext(Dispatchers.Main) {
                 if (buf != null) {
                     showToast(
-                        successToastItem.copy(
+                        newToast = successToastItem.copy(
                             message = getString(strings.operationSuccess)
                         )
                     )
@@ -267,5 +597,96 @@ class DialogsViewModel(
             }
         }
     }
+
+    fun onMessageTextChanged(text: String){
+        _messageTextState.value = text
+    }
+
+    fun openImages(index: Int, dialogItem: Dialog){
+        viewModelScope.launch {
+            _images.value = dialogItem.images?.map {
+                it.url ?: ""
+            } ?: emptyList()
+            _imageSize.value = _images.value.size
+            _selectedImageIndex.value = index
+        }
+    }
+
+    fun closeImages(){
+        _imageSize.value = 0
+        _selectedImageIndex.value = null
+        _images.value = emptyList()
+    }
 }
 
+data class DialogItemEventsImpl(
+    val viewModel: DialogsViewModel,
+    val dialogItem: Dialog,
+    val component: DialogsComponent,
+) : DialogItemEvents {
+    override fun openImage(index: Int) {
+        viewModel.openImages(index, dialogItem)
+    }
+
+    override fun linkClicked(url: String) {
+        when (val deepLink = parseDeepLink(url)) {
+            is DeepLink.GoToOffer -> {
+                component.goToOffer(deepLink.offerId)
+            }
+
+            is DeepLink.GoToListing -> {
+                component.goToNewSearch(deepLink.ownerId)
+            }
+
+            is DeepLink.GoToUser -> {
+                component.goToUser(deepLink.userId)
+            }
+
+            is DeepLink.GoToAuth -> {
+                openUrl(url)
+            }
+
+            is DeepLink.GoToDialog -> {
+                openUrl(url)
+            }
+
+            is DeepLink.GoToDynamicSettings -> {
+                openUrl(url)
+            }
+
+            DeepLink.GoToRegistration -> {
+                openUrl(url)
+            }
+
+            is DeepLink.GoToVerification -> {
+                openUrl(url)
+            }
+
+            is DeepLink.Unknown -> {
+                openUrl(url)
+            }
+
+            null -> {}
+        }
+    }
+}
+
+data class MessageBarEventsImpl(
+    val viewModel: DialogsViewModel,
+) : MessengerBarEvents {
+    override fun getImages(images: PlatformFiles) {
+        viewModel.getImages(images)
+    }
+
+    override fun deleteImage(image: PhotoTemp) {
+        viewModel.deleteImage(image)
+    }
+
+    override fun onTextChanged(text: String) {
+        viewModel.onMessageTextChanged(text)
+    }
+
+    override fun sendMessage() {
+        viewModel.sendMessage()
+    }
+}

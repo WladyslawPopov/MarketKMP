@@ -8,6 +8,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -24,6 +28,28 @@ fun SimpleAppBar(
     data: SimpleAppBarData,
     content : @Composable () -> Unit
 ) {
+    val openMenu = remember { mutableStateOf(false) }
+
+    LaunchedEffect(data.menuItems) {
+        snapshotFlow {
+            data.menuItems
+        }.collect {
+            if (it.isNotEmpty()) {
+                openMenu.value = true
+            }
+        }
+    }
+
+    LaunchedEffect(openMenu.value) {
+        snapshotFlow {
+            openMenu.value
+        }.collect {
+            if (!it) {
+                data.closeMenu()
+            }
+        }
+    }
+
     TopAppBar(
         modifier = modifier,
         title = {
@@ -59,10 +85,10 @@ fun SimpleAppBar(
                 }
 
                 PopUpMenu(
-                    openPopup = data.menuItems.isNotEmpty(),
+                    openPopup = openMenu.value,
                     menuList = data.menuItems,
                 ) {
-                    data.closeMenu()
+                    openMenu.value = false
                 }
             }
         }
