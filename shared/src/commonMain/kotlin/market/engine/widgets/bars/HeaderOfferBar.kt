@@ -50,8 +50,10 @@ fun HeaderOfferBar(
         ) {
             if (selectedState != null) {
                ThemeCheckBox(
-                   isSelected = selectedState.isSelected,
-                   onSelectionChange = selectedState.onSelectionChange,
+                   isSelected = selectedState.selected.contains(offer.id),
+                   onSelectionChange = {
+                       selectedState.onSelectionChange(offer)
+                   },
                    modifier = Modifier.size(dimens.smallIconSize)
                )
             }

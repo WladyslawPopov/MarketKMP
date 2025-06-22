@@ -164,16 +164,7 @@ class MyBidsViewModel(
                         item = item,
                         events = CabinetOfferItemEventsImpl(this, item, component),
                         defOptions = defOption,
-                        selectedItem = SelectedOfferItemState(
-                            isSelected = selectItems.contains(offer.id),
-                            onSelectionChange = { value ->
-                                if (value) {
-                                    selectItems.add(offer.id)
-                                } else {
-                                    selectItems.remove(offer.id)
-                                }
-                            }
-                        ),
+                        selectedItem = SelectedOfferItemState(),
                     )
                 }
             }

@@ -8,4 +8,5 @@ data class ListingOfferContentState(
     val filterBarData: FilterBarUiState = FilterBarUiState(),
     val filtersCategoryState: CategoryState = CategoryState(),
     val listingBaseState: ListingBaseState = ListingBaseState(),
+    val selectedItem: SelectedOfferItemState = SelectedOfferItemState(),
 )

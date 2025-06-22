@@ -5,8 +5,8 @@ import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.OfferItem
 
 data class SelectedOfferItemState(
-    val isSelected : Boolean = false,
-    val onSelectionChange: (value : Boolean) -> Unit,
+    val selected : List<Long> = emptyList(),
+    val onSelectionChange: (offer : OfferItem) -> Unit = {},
 )
 
 data class CabinetOfferItemState(

@@ -164,15 +164,16 @@ class FavViewModel(
                         events = CabinetOfferItemEventsImpl(this, item, component),
                         defOptions = defOption,
                         selectedItem = SelectedOfferItemState(
-                            isSelected = selectItems.contains(offer.id),
+                            selected = selectItems,
                             onSelectionChange = { value ->
-                                if (value) {
-                                    selectItems.add(offer.id)
+                                if (!selectItems.contains(value.id)) {
+                                    selectItems.add(value.id)
                                 } else {
-                                    selectItems.remove(offer.id)
+                                    selectItems.remove(value.id)
                                 }
                             }
-                        ),
+
+                        )
                     )
                 }
             }
@@ -434,7 +435,7 @@ class FavViewModel(
                     body,
                     onSuccess = {
                         selectItems.clear()
-                        refresh()
+                        updatePage()
                     },
                     errorCallback = {
 

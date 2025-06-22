@@ -160,16 +160,7 @@ class MyOffersViewModel(
                     CabinetOfferItemState(
                         item = item,
                         defOptions = defOption,
-                        selectedItem = SelectedOfferItemState(
-                            isSelected = selectItems.contains(offer.id),
-                            onSelectionChange = { value ->
-                                if (value) {
-                                    selectItems.add(offer.id)
-                                } else {
-                                    selectItems.remove(offer.id)
-                                }
-                            }
-                        ),
+                        selectedItem = SelectedOfferItemState(),
                         events = CabinetOfferItemEventsImpl(this, item, component)
                     )
                 }

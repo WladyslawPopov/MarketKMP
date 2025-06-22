@@ -51,6 +51,7 @@ import market.engine.fragments.root.main.profile.ProfileConfig
 import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.listing.SearchConfig
 import market.engine.fragments.root.main.listing.createSearchChild
+import market.engine.fragments.root.main.profile.createProfileChild
 import org.jetbrains.compose.resources.getString
 
 interface MainComponent {

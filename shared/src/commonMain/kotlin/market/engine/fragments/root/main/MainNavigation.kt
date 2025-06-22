@@ -18,6 +18,7 @@ import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.fragments.root.main.favPages.FavoritesNavigation
+import market.engine.fragments.root.main.profile.ProfileNavigation
 import market.engine.widgets.bars.getBottomNavBar
 import market.engine.widgets.bars.getRailNavBar
 import market.engine.widgets.dialogs.LogoutDialog
