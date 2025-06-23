@@ -29,7 +29,7 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
-import market.engine.fragments.root.main.createOffer.createOfferFactory
+import market.engine.fragments.root.main.createOffer.DefaultCreateOfferComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
@@ -275,30 +275,31 @@ fun createFavoritesChild(
         )
 
         is FavoritesConfig.CreateOfferScreen -> ChildFavorites.CreateOfferChild(
-            component = createOfferFactory(
-                componentContext = componentContext,
-                catPath = config.catPath,
-                offerId = config.offerId,
-                type = config.createOfferType,
-                externalImages = config.externalImages,
-                navigateOffer = { id ->
-                    favoritesNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
-                    )
-                },
-                navigateCreateOffer = { id, path, t ->
-                    favoritesNavigation.replaceCurrent(
-                        FavoritesConfig.CreateOfferScreen(
-                            catPath = path,
-                            offerId = id,
-                            createOfferType = t,
+            component =
+                DefaultCreateOfferComponent(
+                    catPath = config.catPath,
+                    offerId = config.offerId,
+                    type = config.createOfferType,
+                    externalImages = config.externalImages,
+                    componentContext,
+                    navigateToOffer = { id->
+                        favoritesNavigation.pushNew(
+                            OfferScreen(id, getCurrentDate())
                         )
-                    )
-                },
-                navigateBack = {
-                    favoritesNavigation.pop()
-                }
-            )
+                    },
+                    navigateToCreateOffer = { id, path, t ->
+                        favoritesNavigation.replaceCurrent(
+                            FavoritesConfig.CreateOfferScreen(
+                                catPath = path,
+                                offerId = id,
+                                createOfferType = t,
+                            )
+                        )
+                    },
+                    navigateBack = {
+                        favoritesNavigation.pop()
+                    }
+                )
         )
 
         is FavoritesConfig.CreateOrderScreen -> ChildFavorites.CreateOrderChild(

@@ -14,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
+import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -41,6 +43,10 @@ fun DescriptionTextField(
     field: Fields,
     richTextState: RichTextState
 ) {
+    LaunchedEffect(Unit) {
+        richTextState.setHtml(field.data?.jsonPrimitive?.content ?: "")
+    }
+
     val errorState = rememberUpdatedState(field.errors)
 
     val isMandatory = remember {

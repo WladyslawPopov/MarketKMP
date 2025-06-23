@@ -115,7 +115,7 @@ fun PhotoCard(
                 }
             } else {
                 LoadImage(
-                    url = item.url ?: "",
+                    url = item.url ?: item.uri ?: item.tempId ?: "",
                     modifier = Modifier.rotate(rotate.value.toFloat()).fillMaxSize(),
                     contentScale = ContentScale.Crop,
                 )

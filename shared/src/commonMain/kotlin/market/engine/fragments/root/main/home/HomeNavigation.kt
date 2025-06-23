@@ -31,7 +31,7 @@ import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSe
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
-import market.engine.fragments.root.main.createOffer.createOfferFactory
+import market.engine.fragments.root.main.createOffer.DefaultCreateOfferComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
@@ -362,30 +362,31 @@ fun createHomeChild(
         )
 
         is CreateOfferScreen -> CreateOfferChild(
-            component = createOfferFactory(
-                componentContext = componentContext,
-                catPath = config.catPath,
-                offerId = config.offerId,
-                type = config.createOfferType,
-                externalImages = config.externalImages,
-                navigateOffer = { id ->
-                    homeNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
-                    )
-                },
-                navigateCreateOffer = { id, path, t ->
-                    homeNavigation.replaceCurrent(
-                        CreateOfferScreen(
-                            catPath = path,
-                            offerId = id,
-                            createOfferType = t,
+            component =
+                DefaultCreateOfferComponent(
+                    catPath = config.catPath,
+                    offerId = config.offerId,
+                    type = config.createOfferType,
+                    externalImages = config.externalImages,
+                    componentContext,
+                    navigateToOffer = { id->
+                        homeNavigation.pushNew(
+                            OfferScreen(id, getCurrentDate())
                         )
-                    )
-                },
-                navigateBack = {
-                    homeNavigation.pop()
-                }
-            )
+                    },
+                    navigateToCreateOffer = { id, path, t ->
+                        homeNavigation.replaceCurrent(
+                            CreateOfferScreen(
+                                catPath = path,
+                                offerId = id,
+                                createOfferType = t,
+                            )
+                        )
+                    },
+                    navigateBack = {
+                        homeNavigation.pop()
+                    }
+                )
         )
 
         is CreateOrderScreen -> CreateOrderChild(

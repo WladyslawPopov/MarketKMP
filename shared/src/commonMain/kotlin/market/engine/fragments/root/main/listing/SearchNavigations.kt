@@ -27,13 +27,14 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
-import market.engine.fragments.root.main.createOffer.createOfferFactory
+import market.engine.fragments.root.main.createOffer.DefaultCreateOfferComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.listing.SearchConfig.CreateOfferScreen
 import market.engine.fragments.root.main.listing.SearchConfig.ListingScreen
 import market.engine.fragments.root.main.listing.SearchConfig.OfferScreen
 import market.engine.fragments.root.main.listing.SearchConfig.UserScreen
@@ -203,7 +204,7 @@ fun createSearchChild(
                 config.isSnapshot,
                 navigateToCreateOffer = { type, catPath, offerId, externalImages ->
                     searchNavigation.pushNew(
-                        SearchConfig.CreateOfferScreen(
+                        CreateOfferScreen(
                             catPath = catPath,
                             createOfferType = type,
                             externalImages = externalImages,
@@ -269,31 +270,32 @@ fun createSearchChild(
                     },
                 )
         )
-        is SearchConfig.CreateOfferScreen -> ChildSearch.CreateOfferChild(
-            component = createOfferFactory(
-                componentContext = componentContext,
-                catPath = config.catPath,
-                offerId = config.offerId,
-                type = config.createOfferType,
-                externalImages = config.externalImages,
-                navigateOffer = { id ->
-                    searchNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
-                    )
-                },
-                navigateCreateOffer = { id, path, t ->
-                    searchNavigation.replaceCurrent(
-                        SearchConfig.CreateOfferScreen(
-                            catPath = path,
-                            offerId = id,
-                            createOfferType = t,
+        is CreateOfferScreen -> ChildSearch.CreateOfferChild(
+            component =
+                DefaultCreateOfferComponent(
+                    catPath = config.catPath,
+                    offerId = config.offerId,
+                    type = config.createOfferType,
+                    externalImages = config.externalImages,
+                    componentContext,
+                    navigateToOffer = { id->
+                        searchNavigation.pushNew(
+                            OfferScreen(id, getCurrentDate())
                         )
-                    )
-                },
-                navigateBack = {
-                    searchNavigation.pop()
-                }
-            )
+                    },
+                    navigateToCreateOffer = { id, path, t ->
+                        searchNavigation.replaceCurrent(
+                            CreateOfferScreen(
+                                catPath = path,
+                                offerId = id,
+                                createOfferType = t,
+                            )
+                        )
+                    },
+                    navigateBack = {
+                        searchNavigation.pop()
+                    }
+                )
         )
 
         is SearchConfig.CreateOrderScreen -> ChildSearch.CreateOrderChild(

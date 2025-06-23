@@ -43,8 +43,8 @@ interface CategoryActions {
 }
 
 class CategoryViewModel(
-    isFilters: Boolean = false,
-    isCreateOffer: Boolean = false,
+    val isFilters: Boolean = false,
+    val isCreateOffer: Boolean = false,
 ) : CategoryActions, CategoryState, BaseViewModel() {
 
     // State implementation
@@ -191,7 +191,7 @@ class CategoryViewModel(
             viewModelScope.launch {
                 onCatBack(_parentId.value ?: 1L) { newCat ->
                     val cat = if (_parentId.value == newCat.id && newCat.isLeaf) {
-                        newCat.copy(id = newCat.parentId)
+                        newCat.copy(id = newCat.parentId, isLeaf = false)
                     } else {
                         newCat
                     }

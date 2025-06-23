@@ -29,7 +29,7 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
-import market.engine.fragments.root.main.createOffer.createOfferFactory
+import market.engine.fragments.root.main.createOffer.DefaultCreateOfferComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
@@ -45,6 +45,7 @@ import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
 import market.engine.fragments.root.main.offer.offerFactory
+import market.engine.fragments.root.main.profile.ProfileConfig.CreateOfferScreen
 import market.engine.fragments.root.main.profile.ProfileConfig.ListingScreen
 import market.engine.fragments.root.main.profile.ProfileConfig.OfferScreen
 import market.engine.fragments.root.main.profile.ProfileConfig.UserScreen
@@ -242,7 +243,7 @@ fun createProfileChild(
                 isSnapshot = config.isSnapshot,
                 navigateToCreateOffer = { type, catPath, offerId, externalImages ->
                     profileNavigation.pushNew(
-                        ProfileConfig.CreateOfferScreen(
+                        CreateOfferScreen(
                             catPath = catPath,
                             createOfferType = type,
                             externalImages = externalImages,
@@ -345,30 +346,32 @@ fun createProfileChild(
             )
         }
 
-        is ProfileConfig.CreateOfferScreen -> ChildProfile.CreateOfferChild(
-            component = createOfferFactory(
-                componentContext = componentContext,
-                catPath = config.catPath,
-                offerId = config.offerId,
-                type = config.createOfferType,
-                externalImages = config.externalImages,
-                navigateOffer = { id ->
-                    profileNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
-                    )
-                },
-                navigateCreateOffer = { id, path, t ->
-                    profileNavigation.replaceCurrent(
-                        ProfileConfig.CreateOfferScreen(
-                            catPath = path,
-                            offerId = id,
-                            createOfferType = t,
+        is CreateOfferScreen -> ChildProfile.CreateOfferChild(
+            component =
+                DefaultCreateOfferComponent(
+                    catPath = config.catPath,
+                    offerId = config.offerId,
+                    type = config.createOfferType,
+                    externalImages = config.externalImages,
+                    componentContext,
+                    navigateToOffer = { id->
+                        profileNavigation.pushNew(
+                            OfferScreen(id, getCurrentDate())
                         )
-                    )
-                },
-            ) {
-                profileNavigation.pop()
-            }
+                    },
+                    navigateToCreateOffer = { id, path, t ->
+                        profileNavigation.replaceCurrent(
+                            CreateOfferScreen(
+                                catPath = path,
+                                offerId = id,
+                                createOfferType = t,
+                            )
+                        )
+                    },
+                    navigateBack = {
+                        profileNavigation.pop()
+                    }
+                )
         )
 
         is ProfileConfig.CreateOrderScreen -> ChildProfile.CreateOrderChild(

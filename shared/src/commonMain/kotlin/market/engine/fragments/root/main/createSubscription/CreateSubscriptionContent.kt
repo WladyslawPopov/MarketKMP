@@ -26,7 +26,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import market.engine.core.data.baseFilters.SD
@@ -43,7 +42,6 @@ import market.engine.widgets.checkboxs.DynamicCheckbox
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.onError
-import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.textFields.DynamicInputField
 import org.jetbrains.compose.resources.stringResource
 

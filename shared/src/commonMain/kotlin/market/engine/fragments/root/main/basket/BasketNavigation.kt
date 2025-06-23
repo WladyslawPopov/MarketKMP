@@ -30,7 +30,7 @@ import market.engine.fragments.root.main.basket.BasketConfig.OfferScreen
 import market.engine.fragments.root.main.basket.BasketConfig.UserScreen
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
-import market.engine.fragments.root.main.createOffer.createOfferFactory
+import market.engine.fragments.root.main.createOffer.DefaultCreateOfferComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
@@ -254,30 +254,31 @@ fun createBasketChild(
         )
 
         is BasketConfig.CreateOfferScreen -> ChildBasket.CreateOfferChild(
-            component = createOfferFactory(
-                componentContext = componentContext,
-                catPath = config.catPath,
-                offerId = config.offerId,
-                type = config.createOfferType,
-                externalImages = config.externalImages,
-                navigateOffer = { id ->
-                    basketNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
-                    )
-                },
-                navigateCreateOffer = { id, path, t ->
-                    basketNavigation.replaceCurrent(
-                        BasketConfig.CreateOfferScreen(
-                            catPath = path,
-                            offerId = id,
-                            createOfferType = t,
+            component =
+                DefaultCreateOfferComponent(
+                    catPath = config.catPath,
+                    offerId = config.offerId,
+                    type = config.createOfferType,
+                    externalImages = config.externalImages,
+                    componentContext,
+                    navigateToOffer = { id->
+                        basketNavigation.pushNew(
+                            OfferScreen(id, getCurrentDate())
                         )
-                    )
-                },
-                navigateBack = {
-                    basketNavigation.pop()
-                }
-            )
+                    },
+                    navigateToCreateOffer = { id, path, t ->
+                        basketNavigation.replaceCurrent(
+                            BasketConfig.CreateOfferScreen(
+                                catPath = path,
+                                offerId = id,
+                                createOfferType = t,
+                            )
+                        )
+                    },
+                    navigateBack = {
+                        basketNavigation.pop()
+                    }
+                )
         )
         is UserScreen -> ChildBasket.UserChild(
             DefaultUserComponent(

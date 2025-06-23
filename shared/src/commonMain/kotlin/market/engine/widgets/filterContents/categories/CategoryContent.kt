@@ -44,6 +44,7 @@ fun CategoryContent(
     val isLoading = viewModel.isLoading.collectAsState()
     val categories = viewModel.categories.collectAsState()
     val selectedId = viewModel.selectedId.collectAsState()
+    val isLeaf = viewModel.isLeaf.collectAsState()
 
     val onBack = remember {{
         if (searchCategoryId.value != 1L) {
@@ -64,14 +65,10 @@ fun CategoryContent(
         }
     }}
 
-    val refresh = remember {
-        {
-            viewModel.onRefresh()
-        }
-    }
-
     BaseContent(
-        onRefresh = refresh,
+        onRefresh = {
+            viewModel.onRefresh()
+        },
         error = null,
         noFound = null,//important, because we have our own noFound
         isLoading = isLoading.value,
@@ -170,7 +167,7 @@ fun CategoryContent(
         AcceptedPageButton(
             viewModel.catBtn.value,
             Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f).padding(dimens.smallPadding).align(Alignment.BottomCenter),
-            enabled = viewModel.enabledBtn.value
+            enabled = viewModel.enabledBtn.value || isLeaf.value
         ) {
             onCompleted()
         }

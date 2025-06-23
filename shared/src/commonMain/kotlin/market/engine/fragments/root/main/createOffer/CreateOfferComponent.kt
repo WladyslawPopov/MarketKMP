@@ -38,7 +38,13 @@ class DefaultCreateOfferComponent(
     val navigateToCreateOffer: (Long?, List<Long>?, CreateOfferType) -> Unit
 ) : CreateOfferComponent, ComponentContext by componentContext {
 
-    private val createOfferViewModel : CreateOfferViewModel = CreateOfferViewModel()
+    private val createOfferViewModel : CreateOfferViewModel = CreateOfferViewModel(
+        catPath = catPath,
+        offerId = offerId,
+        type = type,
+        externalImages = externalImages,
+        component = this
+    )
 
     private val _model = MutableValue(
         CreateOfferComponent.Model(
@@ -53,46 +59,12 @@ class DefaultCreateOfferComponent(
 
     override val model = _model
 
-    val setCatHistory = {
-        createOfferViewModel.selectedCategoryId.value = catPath?.firstOrNull() ?: 1L
-        createOfferViewModel.selectedParentId.value = catPath?.get(1) ?: 1L
-        createOfferViewModel.searchIsLeaf.value = true
-        createOfferViewModel.getCategoriesHistory(catPath?.firstOrNull())
-    }
-
     init {
         lifecycle.doOnResume {
             createOfferViewModel.updateUserInfo()
 
             if (UserData.token == ""){
                 navigateBack()
-            }
-        }
-        when(type){
-            CreateOfferType.CREATE -> {
-//                createOfferViewModel.openFiltersCat.value = true
-//                createOfferViewModel.activeFiltersType.value = "category"
-                createOfferViewModel.analyticsHelper.reportEvent("add_offer_start", mapOf())
-            }
-            CreateOfferType.EDIT -> {
-                setCatHistory()
-                createOfferViewModel.getPage("offers/$offerId/operations/edit_offer")
-                createOfferViewModel.analyticsHelper.reportEvent("edit_offer_start", mapOf())
-            }
-            CreateOfferType.COPY -> {
-                setCatHistory()
-                createOfferViewModel.getPage("offers/$offerId/operations/copy_offer")
-                createOfferViewModel.analyticsHelper.reportEvent("copy_offer_start", mapOf())
-            }
-            CreateOfferType.COPY_WITHOUT_IMAGE ->{
-                setCatHistory()
-                createOfferViewModel.getPage("offers/$offerId/operations/copy_offer_without_old_photo")
-                createOfferViewModel.analyticsHelper.reportEvent("copy_offer_without_image_start", mapOf())
-            }
-            CreateOfferType.COPY_PROTOTYPE ->{
-                setCatHistory()
-                createOfferViewModel.getPage("offers/$offerId/operations/copy_offer_from_prototype")
-                createOfferViewModel.analyticsHelper.reportEvent("copy_offer_prototype_start", mapOf())
             }
         }
     }

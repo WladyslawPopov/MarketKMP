@@ -1,22 +1,44 @@
 package market.engine.fragments.root.main.createOffer
 
-import androidx.compose.runtime.mutableStateOf
+import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
+import market.engine.common.Platform
+import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.items.ToastItem
+import market.engine.core.data.states.CategoryState
+import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
@@ -25,34 +47,244 @@ import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
 import market.engine.fragments.base.BaseViewModel
+import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class CreateOfferViewModel : BaseViewModel() {
+data class CreateOfferContentState(
+    val appBarState: SimpleAppBarData = SimpleAppBarData(),
+    val dynamicPayloadState: DynamicPayload<OperationResult>? = null,
+    val categoryState: CategoryState = CategoryState(),
 
-    private var _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    val responseDynamicPayload : StateFlow<DynamicPayload<OperationResult>?> = _responseGetPage.asStateFlow()
+    val images : List<PhotoTemp> = emptyList(),
+    val catHistory : List<Category> = emptyList(),
+    val deleteImages : List<JsonPrimitive> = emptyList(),
 
-    private var _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    val responseCreateOffer : StateFlow<DynamicPayload<OperationResult>?> = _responsePostPage.asStateFlow()
+    val textState : String = "",
+    val futureTime : Long = 1L,
+    val selectedDate : Long? = null,
+    val showSuccessContent : Boolean = false,
 
+    val firstDynamicContent : List<String> = listOf(
+        "title",
+        "saletype",
+    ),
+    val secondDynamicContent : List<String> = listOf("params"),
+    val thirdDynamicContent : List<String> = listOf(
+        "length_in_days",
+        "quantity",
+        "relisting_mode",
+        "whopaysfordelivery",
+        "region",
+        "freelocation",
+        "paymentmethods",
+        "dealtype",
+        "deliverymethods",
+    ),
+    val endDynamicContent : List<String> = listOf(
+        "images",
+        "session_start",
+        "description",
+    )
+)
+
+
+class CreateOfferViewModel(
+    val catPath : List<Long>?,
+    val offerId : Long?,
+    val type : CreateOfferType,
+    val externalImages : List<String>?,
+    val component: CreateOfferComponent
+) : BaseViewModel() {
+    val categoryViewModel = CategoryViewModel(
+        isCreateOffer = true
+    )
+    private val _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
+    private val _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
-    val responseImages: StateFlow<List<PhotoTemp>> = _responseImages.asStateFlow()
-
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
-    val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
-    val positionList = mutableStateOf(0)
-    val isEditCat = mutableStateOf(false)
-    val choiceCodeSaleType = mutableStateOf<Int?>(null)
-    val futureTime = mutableStateOf(responseDynamicPayload.value?.fields?.find { it.key == "future_time" })
-    val selectedDate =  mutableStateOf(futureTime.value?.data?.jsonPrimitive?.longOrNull)
+    private val _isEditCat = MutableStateFlow(false)
 
-    val selectedCategoryId = mutableStateOf(1L)
-    val selectedParentId = mutableStateOf<Long?>(null)
-    val selectedCategoryName = mutableStateOf("")
-    val searchIsLeaf = mutableStateOf(false)
+    private val _choiceCodeSaleType = MutableStateFlow<Int?>(null)
+    val choiceCodeSaleType = _choiceCodeSaleType.asStateFlow()
+    private val _selectedDate = MutableStateFlow<Long?>(_responseGetPage.value?.fields?.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull)
+    val selectedDate = _selectedDate.asStateFlow()
+    private val _newOfferId = MutableStateFlow<Long?>(null)
+    val newOfferId = _newOfferId.asStateFlow()
+
+    private val deleteImages = MutableStateFlow<List<JsonPrimitive>>(emptyList())
+
+    val createOfferContentState : StateFlow<CreateOfferContentState> = combine(
+        _responsePostPage,
+        _responseGetPage,
+        _responseImages,
+        _responseCatHistory,
+        _isEditCat,
+    ) { postPage, dynamicPayload, images, catHistory, openCategory ->
+        val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
+
+        if (images.isEmpty()) {
+            when (type) {
+                CreateOfferType.EDIT, CreateOfferType.COPY -> {
+                    val photos =
+                        dynamicPayload?.fields?.filter { it.key?.contains("photo_") == true }
+                            ?: emptyList()
+
+                    photos.forEach { field ->
+                        if (field.links != null) {
+                            tempPhotos.add(
+                                PhotoTemp(
+                                    id = field.key,
+                                    url = field.links.mid?.jsonPrimitive?.content,
+                                    tempId = ""
+                                )
+                            )
+                        }
+                    }
+
+                    setImages(tempPhotos.toList())
+                }
+
+                else -> {
+                    if (externalImages != null) {
+                        externalImages.forEach {
+                            tempPhotos.add(
+                                PhotoTemp(
+                                    url = it
+                                )
+                            )
+                        }
+                        setImages(tempPhotos.toList())
+                    }
+                }
+            }
+        }
+
+        dynamicPayload?.fields?.find { it.key == "category_id" }
+            ?.let { field ->
+                field.data?.jsonPrimitive?.longOrNull?.let {
+                    if (categoryViewModel.categoryId.value == 1L) {
+                        categoryViewModel.updateFromSearchData(SD(
+                            searchCategoryID = it,
+                            searchCategoryName = "",
+                            searchParentID = it,
+                            searchIsLeaf = true
+                        ))
+                    }
+                }
+            }
+
+        dynamicPayload?.fields?.find { it.key == "session_start" }?.data = if (selectedDate.value != null){
+            JsonPrimitive(2)
+        }else{
+            JsonPrimitive(0)
+        }
+
+        CreateOfferContentState(
+            appBarState = SimpleAppBarData(
+                onBackClick = {
+                    onBack()
+                },
+                color = colors.white,
+                listItems = listOf(
+                    NavigationItem(
+                        title = "",
+                        icon = drawables.recycleIcon,
+                        tint = colors.inactiveBottomNavIconColor,
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
+                        onClick = {
+                            refresh()
+                        }
+                    )
+                )
+            ),
+            dynamicPayloadState = dynamicPayload,
+            images = images,
+            catHistory = catHistory,
+            categoryState = CategoryState(
+                openCategory = openCategory,
+                categoryViewModel = categoryViewModel
+            ),
+            showSuccessContent = postPage?.operationResult?.message == "operation_success",
+            textState = dynamicPayload?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        CreateOfferContentState()
+    )
+
+    init {
+        when(type){
+            CreateOfferType.CREATE -> {
+                categoryViewModel.initialize()
+                _isEditCat.value = categoryViewModel.categoryId.value == 1L
+                analyticsHelper.reportEvent("add_offer_start", mapOf())
+            }
+            CreateOfferType.EDIT -> {
+                setCatHistory()
+                getPage("offers/$offerId/operations/edit_offer")
+                analyticsHelper.reportEvent("edit_offer_start", mapOf())
+            }
+            CreateOfferType.COPY -> {
+                setCatHistory()
+                getPage("offers/$offerId/operations/copy_offer")
+                analyticsHelper.reportEvent("copy_offer_start", mapOf())
+            }
+            CreateOfferType.COPY_WITHOUT_IMAGE ->{
+                setCatHistory()
+                getPage("offers/$offerId/operations/copy_offer_without_old_photo")
+                analyticsHelper.reportEvent("copy_offer_without_image_start", mapOf())
+            }
+            CreateOfferType.COPY_PROTOTYPE ->{
+                setCatHistory()
+                getPage("offers/$offerId/operations/copy_offer_from_prototype")
+                analyticsHelper.reportEvent("copy_offer_prototype_start", mapOf())
+            }
+        }
+    }
+
+    fun refreshPage(){
+        refresh()
+
+        if(categoryViewModel.categoryId.value != 1L) {
+            getCategoriesHistory(categoryViewModel.categoryId.value)
+
+            // update params after category change
+            if (_isEditCat.value) {
+                updateParams(categoryViewModel.categoryId.value)
+                _isEditCat.value = false
+            } else {
+                val url = when (type) {
+                    CreateOfferType.CREATE -> "categories/${categoryViewModel.categoryId.value}/operations/create_offer"
+                    CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
+                    CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
+                    CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
+                    CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
+                }
+                if (type != CreateOfferType.CREATE) {
+                    updateParams(categoryViewModel.categoryId.value)
+                }
+                getPage(url)
+            }
+        }
+    }
+
+    fun onBack(){
+        if (!_isEditCat.value || categoryViewModel.categoryId.value == 1L) {
+            component.onBackClicked()
+        }else{
+            categoryViewModel.navigateBack()
+        }
+    }
+
+    fun setCatHistory() {
+        getCategoriesHistory(catPath?.firstOrNull())
+    }
 
     @OptIn(ExperimentalUuidApi::class)
     fun getImages(pickImagesRaw : PlatformFiles) {
@@ -80,7 +312,6 @@ class CreateOfferViewModel : BaseViewModel() {
     }
 
     fun getPage(url: String) {
-
         updateUserInfo()
 
         viewModelScope.launch {
@@ -98,7 +329,7 @@ class CreateOfferViewModel : BaseViewModel() {
                             deserializePayload(response.payload, serializer)
                         _responseGetPage.value = payload
                     }
-                }catch (e: Exception){
+                }catch (_: Exception){
                     throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                 }
             } catch (exception: ServerErrorException) {
@@ -123,7 +354,6 @@ class CreateOfferViewModel : BaseViewModel() {
                         val payload: DynamicPayload<OperationResult> =
                             deserializePayload(res.payload, serializer)
 
-
                         val newFields = payload.fields.filter { it.key.toString().contains("par_") }
 
                         withContext(Dispatchers.Main) {
@@ -136,7 +366,7 @@ class CreateOfferViewModel : BaseViewModel() {
                             }
                             updateItemTrigger.value++
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         throw ServerErrorException(
                             errorCode = res.errorCode.toString(),
                             humanMessage = res.errorCode.toString()
@@ -156,7 +386,29 @@ class CreateOfferViewModel : BaseViewModel() {
         }
     }
 
-    fun postPage(url: String, body: JsonObject) {
+    fun postPage() {
+        val body = createJsonBody()
+        val url = when (type) {
+            CreateOfferType.CREATE -> {
+                "categories/${categoryViewModel.categoryId.value}/operations/create_offer"
+            }
+
+            CreateOfferType.EDIT -> {
+                "offers/$offerId/operations/edit_offer"
+            }
+
+            CreateOfferType.COPY -> {
+                "offers/$offerId/operations/copy_offer"
+            }
+
+            CreateOfferType.COPY_WITHOUT_IMAGE -> {
+                "offers/$offerId/operations/copy_offer_without_old_photo"
+            }
+
+            CreateOfferType.COPY_PROTOTYPE -> {
+                "offers/$offerId/operations/copy_offer_from_prototype"
+            }
+        }
         setLoading(true)
         viewModelScope.launch {
             try {
@@ -166,17 +418,50 @@ class CreateOfferViewModel : BaseViewModel() {
                 withContext(Dispatchers.Main) {
                     try {
                         val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                        val payload: DynamicPayload<OperationResult> =
+                            deserializePayload(response.payload, serializer)
                         if (payload.status == "operation_success") {
                             showToast(
                                 ToastItem(
                                     isVisible = true,
-                                    message = payload.operationResult?.message ?: getString(strings.operationSuccess),
+                                    message = payload.operationResult?.message ?: getString(
+                                        strings.operationSuccess
+                                    ),
                                     type = ToastType.SUCCESS
                                 )
                             )
+
+                            val title =
+                                _responseGetPage.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content
+                                    ?: ""
+                            val loc =
+                                _responseGetPage.value?.fields?.find { it.key == "location" }?.data?.jsonPrimitive?.content
+                                    ?: ""
+
+                            val eventParams = mapOf(
+                                "lot_id" to offerId,
+                                "lot_name" to title,
+                                "lot_city" to loc,
+                                "lot_category" to "${categoryViewModel.categoryId.value}",
+                                "seller_id" to UserData.userInfo?.id
+                            )
+
+                            if (type != CreateOfferType.EDIT) {
+                                _newOfferId.value = payload.body?.jsonPrimitive?.longOrNull
+                                analyticsHelper.reportEvent("added_offer_success", eventParams)
+                            } else {
+                                analyticsHelper.reportEvent("edit_offer_success", eventParams)
+                            }
+
+                            if (type == CreateOfferType.EDIT) {
+                                delay(2000L)
+                                withContext(Dispatchers.Main) {
+                                    component.onBackClicked()
+                                }
+                            }
+
                             _responsePostPage.value = payload
-                        }else{
+                        } else {
                             val eventParams = mapOf(
                                 "error_type" to payload.globalErrorMessage,
                                 "seller_id" to UserData.userInfo?.id,
@@ -186,24 +471,37 @@ class CreateOfferViewModel : BaseViewModel() {
                             showToast(
                                 ToastItem(
                                     isVisible = true,
-                                    message = payload.operationResult?.message ?: getString(strings.operationFailed),
+                                    message = payload.operationResult?.message ?: getString(
+                                        strings.operationFailed
+                                    ),
                                     type = ToastType.ERROR
                                 )
                             )
-                            _responseGetPage.value = _responseGetPage.value?.let { currentPayload ->
-                                val updatedFields = arrayListOf<Fields>()
-                                updatedFields.addAll(payload.recipe?.fields ?: currentPayload.fields)
-                                currentPayload.copy(fields = updatedFields)
-                            }
+                            _responseGetPage.value =
+                                _responseGetPage.value?.let { currentPayload ->
+                                    val updatedFields = arrayListOf<Fields>()
+                                    updatedFields.addAll(
+                                        payload.recipe?.fields ?: currentPayload.fields
+                                    )
+                                    currentPayload.copy(fields = updatedFields)
+                                }
                         }
-                    }catch (e: Exception){
-                        throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.humanMessage.toString())
+                    } catch (_: Exception) {
+                        throw ServerErrorException(
+                            errorCode = response.errorCode.toString(),
+                            humanMessage = response.humanMessage.toString()
+                        )
                     }
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
             } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
+                onError(
+                    ServerErrorException(
+                        errorCode = exception.message.toString(),
+                        humanMessage = exception.message.toString()
+                    )
+                )
             } finally {
                 setLoading(false)
             }
@@ -232,6 +530,157 @@ class CreateOfferViewModel : BaseViewModel() {
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
+            }
+        }
+    }
+
+    fun setSelectData(data: Long) {
+        _responseGetPage.update {
+            val date = it?.fields?.map {
+                if(it.key == "future_time"){
+                    it.copy(data = JsonPrimitive(data) )
+                } else it.copy()
+            } ?: it?.fields ?: emptyList()
+
+            it?.copy(
+                fields = ArrayList(date)
+            )
+        }
+        _selectedDate.value = data
+    }
+
+    fun setDescription(description: String) {
+        val text = KsoupEntities.decodeHtml(description)
+        _responseGetPage.update {
+            val date = it?.fields?.map {
+                if(it.key == "description"){
+                    it.copy(data = JsonPrimitive(text) )
+                } else it.copy()
+            } ?: it?.fields ?: emptyList()
+
+            it?.copy(
+                fields = ArrayList(date)
+            )
+        }
+    }
+
+    fun setDeleteImages(item : PhotoTemp) {
+        if (item.url != null && item.id != null) {
+            deleteImages.value += JsonPrimitive(item.id!!.last().toString())
+        }
+    }
+
+    fun setChoiceCodeSaleType(code: Int) {
+        _choiceCodeSaleType.value = code
+    }
+
+    fun openCategory() {
+        categoryViewModel.initialize()
+        _isEditCat.value = true
+    }
+
+    fun closeCategory() {
+        _isEditCat.value = false
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    fun createJsonBody() : JsonObject {
+        val fields = _responseGetPage.value?.fields?.filter { it.data != null }
+        val categoryID = categoryViewModel.categoryId.value
+        val selectedDate = selectedDate.value
+        val deleteImages = deleteImages.value
+        val images = _responseImages.value
+
+        return buildJsonObject {
+            fields?.forEach { field ->
+                when (field.key) {
+                    "deliverymethods" -> {
+                        val valuesDelivery = arrayListOf<JsonObject>()
+                        field.data?.jsonArray?.forEach { choices ->
+                            val deliveryPart = buildJsonObject {
+                                put(
+                                    "code",
+                                    JsonPrimitive(choices.jsonObject["code"]?.jsonPrimitive?.intOrNull)
+                                )
+
+                                field.choices?.find {
+                                    it.code?.jsonPrimitive?.intOrNull ==
+                                            choices.jsonObject["code"]?.jsonPrimitive?.intOrNull
+                                }?.extendedFields?.forEach { field ->
+                                    if (field.data != null) {
+                                        put(
+                                            field.key.toString(),
+                                            field.data!!.jsonPrimitive
+                                        )
+                                    }
+                                }
+                            }
+                            valuesDelivery.add(deliveryPart)
+                        }
+                        put(field.key, JsonArray(valuesDelivery))
+                    }
+
+                    "category_id" -> {
+                        put(field.key, JsonPrimitive(categoryID))
+                    }
+
+                    "session_start" -> {
+                        if (selectedDate == null) {
+                            put(field.key, field.data ?: JsonPrimitive(null))
+                        }
+
+                    }
+                    "future_time" ->{
+                        if (selectedDate != null) {
+                            put(field.key, field.data ?: JsonPrimitive(null))
+                        }
+                    }
+
+                    else -> {
+                        put(field.key ?: "", field.data ?: JsonPrimitive(null))
+                    }
+                }
+            }
+
+            when (type) {
+                CreateOfferType.EDIT, CreateOfferType.COPY -> {
+                    put("delete_images", JsonArray(deleteImages))
+                }
+
+                else -> {}
+            }
+
+            val positionArray = buildJsonArray {
+                images.forEach { photo ->
+                    val listIndex = images.indexOf(photo) + 1
+                    if (photo.url != null) {
+                        add(buildJsonObject {
+                            put("key", JsonPrimitive(photo.id))
+                            put("position", JsonPrimitive(listIndex))
+                        })
+                    }
+                }
+            }
+
+            val tempImagesArray = buildJsonArray {
+                images.forEach { photo ->
+                    val listIndex = images.indexOf(photo) + 1
+                    if (photo.tempId?.isNotBlank() == true) {
+                        add(buildJsonObject {
+                            put("id", JsonPrimitive(photo.tempId))
+                            put("rotation", JsonPrimitive(photo.rotate))
+                            put("position", JsonPrimitive(listIndex))
+                        })
+                    }
+                }
+            }
+
+            if (tempImagesArray.isNotEmpty()) {
+                put("temp_images", tempImagesArray)
+            }
+
+            if (positionArray.isNotEmpty()) {
+                put("position_images", positionArray)
             }
         }
     }
