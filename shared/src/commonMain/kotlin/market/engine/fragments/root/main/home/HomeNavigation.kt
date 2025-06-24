@@ -49,9 +49,9 @@ import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.notificationsHistory.DefaultNotificationsHistoryComponent
 import market.engine.fragments.root.main.notificationsHistory.NotificationsHistoryComponent
 import market.engine.fragments.root.main.notificationsHistory.NotificationsHistoryContent
+import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
-import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
@@ -232,66 +232,65 @@ fun createHomeChild(
         )
 
         is OfferScreen -> OfferChild(
-            component = offerFactory(
-                componentContext,
-                config.id,
-                selectOffer = {
-                    val offerConfig = OfferScreen(it, getCurrentDate())
-                    homeNavigation.pushNew(offerConfig)
-                },
-                onBack = {
-                    homeNavigation.pop()
-                },
-                onListingSelected = {
-                    homeNavigation.pushNew(
-                        ListingScreen(false, it.data, it.searchData, getCurrentDate())
-                    )
-                },
-                onUserSelected = { ui, about ->
-                    homeNavigation.pushNew(
-                        UserScreen(ui, getCurrentDate(), about)
-                    )
-                },
-                isSnapshot = config.isSnapshot,
-                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
-                    if (UserData.token != "") {
+            component =
+                DefaultOfferComponent(
+                    config.id,
+                    config.isSnapshot,
+                    componentContext,
+                    selectOffer = { newId->
+                        homeNavigation.pushNew(
+                            OfferScreen(newId, getCurrentDate())
+                        )
+                    },
+                    navigationBack = {
+                        homeNavigation.pop()
+                    },
+                    navigationListing = {
+                        homeNavigation.pushNew(
+                            ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                        )
+                    },
+                    navigateToUser = { ui, about ->
+                        homeNavigation.pushNew(
+                            UserScreen(ui, getCurrentDate(), about)
+                        )
+                    },
+                    navigationCreateOffer = { type, catPath, offerId, externalImages ->
                         homeNavigation.pushNew(
                             CreateOfferScreen(
-                                catPath,
-                                offerId,
-                                type,
-                                externalImages
+                                catPath = catPath,
+                                createOfferType = type,
+                                externalImages = externalImages,
+                                offerId = offerId
                             )
                         )
-                    } else {
-                        goToLogin(false)
-                    }
-                },
-                navigateToCreateOrder = {
-                    homeNavigation.pushNew(
-                        CreateOrderScreen(it)
-                    )
-                },
-                navigateToLogin = {
-                    goToLogin(false)
-                },
-                navigateToDialog = { dialogId ->
-                    if (dialogId != null)
+                    },
+                    navigateToCreateOrder = { item ->
                         homeNavigation.pushNew(
-                            MessagesScreen(dialogId, null, getCurrentDate())
+                            CreateOrderScreen(item)
                         )
-                    else
-                        navigateToConversations()
-                },
-                navigationSubscribes = {
-                    navigateToSubscribe()
-                },
-                navigateToProposalPage = { offerId, type ->
-                    homeNavigation.pushNew(
-                        ProposalScreen(offerId, type, getCurrentDate())
-                    )
-                }
-            )
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
+                    },
+                    navigateToDialog = { dialogId ->
+                        if(dialogId != null)
+                            homeNavigation.pushNew(MessagesScreen(dialogId, null, getCurrentDate()))
+                        else
+                            navigateToConversations()
+                    },
+                    navigationSubscribes = {
+                        navigateToSubscribe()
+                    },
+                    navigateToProposalPage = { offerId, type ->
+                        homeNavigation.pushNew(
+                            ProposalScreen(offerId, type, getCurrentDate())
+                        )
+                    },
+                    navigateDynamicSettings = { type, owner ->
+                        goToDynamicSettings(type, owner, null)
+                    }
+                )
         )
 
         is ListingScreen -> {

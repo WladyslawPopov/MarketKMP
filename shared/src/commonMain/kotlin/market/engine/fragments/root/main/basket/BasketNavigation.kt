@@ -24,6 +24,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketConfig.ListingScreen
 import market.engine.fragments.root.main.basket.BasketConfig.OfferScreen
@@ -43,9 +44,9 @@ import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
-import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
@@ -196,61 +197,65 @@ fun createBasketChild(
         }
 
         is OfferScreen -> ChildBasket.OfferChild(
-            component = offerFactory(
-                componentContext,
-                config.id,
-                selectOffer = {
-                    basketNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
-                    )
-                },
-                onBack = {
-                    basketNavigation.pop()
-                },
-                onListingSelected = {
-                    basketNavigation.pushNew(
-                        ListingScreen(it.data, it.searchData, getCurrentDate())
-                    )
-                },
-                onUserSelected = { ui, about ->
-                    basketNavigation.pushNew(
-                        UserScreen(ui, getCurrentDate(), about)
-                    )
-                },
-                isSnapshot = config.isSnap,
-                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
-                    basketNavigation.pushNew(
-                        BasketConfig.CreateOfferScreen(
-                            catPath = catPath,
-                            createOfferType = type,
-                            externalImages = externalImages,
-                            offerId = offerId
+            component =
+                DefaultOfferComponent(
+                    config.id,
+                    config.isSnap,
+                    componentContext,
+                    selectOffer = { newId->
+                        basketNavigation.pushNew(
+                            OfferScreen(newId, getCurrentDate())
                         )
-                    )
-                },
-                navigateToCreateOrder = { item ->
-                    basketNavigation.pushNew(
-                        BasketConfig.CreateOrderScreen(item)
-                    )
-                },
-                navigateToLogin = {
-                    goToLogin(true)
-                },
-                navigateToDialog = { dialogId ->
-                    if(dialogId != null)
-                        basketNavigation.pushNew(BasketConfig.MessengerScreen(dialogId, getCurrentDate()))
-                    else
-                        navigateToConversations()
-                },
-                navigationSubscribes = {
-                    navigateToSubscribe()
-                },
-                navigateToProposalPage = { offerId, type ->
-                    basketNavigation.pushNew(
-                        BasketConfig.ProposalScreen(offerId, type, getCurrentDate())
-                    )
-                }
-            )
+                    },
+                    navigationBack = {
+                        basketNavigation.pop()
+                    },
+                    navigationListing = {
+                        basketNavigation.pushNew(
+                            ListingScreen(it.data, it.searchData, getCurrentDate())
+                        )
+                    },
+                    navigateToUser = { ui, about ->
+                        basketNavigation.pushNew(
+                            UserScreen(ui, getCurrentDate(), about)
+                        )
+                    },
+                    navigationCreateOffer = { type, catPath, offerId, externalImages ->
+                        basketNavigation.pushNew(
+                            BasketConfig.CreateOfferScreen(
+                                catPath = catPath,
+                                createOfferType = type,
+                                externalImages = externalImages,
+                                offerId = offerId
+                            )
+                        )
+                    },
+                    navigateToCreateOrder = { item ->
+                        basketNavigation.pushNew(
+                            BasketConfig.CreateOrderScreen(item)
+                        )
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
+                    },
+                    navigateToDialog = { dialogId ->
+                        if(dialogId != null)
+                            basketNavigation.pushNew(BasketConfig.MessengerScreen(dialogId, getCurrentDate()))
+                        else
+                            navigateToConversations()
+                    },
+                    navigationSubscribes = {
+                        navigateToSubscribe()
+                    },
+                    navigateToProposalPage = { offerId, type ->
+                        basketNavigation.pushNew(
+                            BasketConfig.ProposalScreen(offerId, type, getCurrentDate())
+                        )
+                    },
+                    navigateDynamicSettings = { type, owner ->
+                        goToDynamicSettings(type, owner, null)
+                    }
+                )
         )
 
         is BasketConfig.CreateOfferScreen -> ChildBasket.CreateOfferChild(

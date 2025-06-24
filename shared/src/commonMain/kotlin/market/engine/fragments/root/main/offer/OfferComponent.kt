@@ -27,7 +27,6 @@ interface OfferComponent {
         val backHandler: BackHandler
     )
 
-    fun updateOffer(id: Long, isSnapshot: Boolean)
     fun navigateToOffers(id: Long)
     fun onBackClick()
     fun goToCategory(cat: Category)
@@ -66,7 +65,7 @@ class DefaultOfferComponent(
 ) : OfferComponent, ComponentContext by componentContext {
 
     val viewModel : OfferViewModel = OfferViewModel(
-        getKoin().get(),
+        getKoin().get(), this, id, isSnapshot
     )
 
     private val _model = MutableValue(
@@ -80,15 +79,6 @@ class DefaultOfferComponent(
     override val model: Value<OfferComponent.Model> = _model
     private val offerViewModel = model.value.offerViewModel
 
-
-    init {
-        updateOffer(id, isSnapshot)
-    }
-
-    override fun updateOffer(id: Long, isSnapshot: Boolean) {
-        offerViewModel.onError(ServerErrorException())
-        offerViewModel.getOffer(id, isSnapshot)
-    }
 
     override fun navigateToOffers(id: Long) {
         selectOffer(id)
@@ -143,14 +133,14 @@ class DefaultOfferComponent(
     ) {
         navigationCreateOffer(type, catPath, offerId, externalImages)
         lifecycle.doOnResume {
-            updateOffer(id, isSnapshot)
+            viewModel.refreshPage()
         }
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
         navigateToCreateOrder(item)
         lifecycle.doOnResume {
-            updateOffer(id, isSnapshot)
+            viewModel.refreshPage()
         }
     }
 
@@ -161,14 +151,14 @@ class DefaultOfferComponent(
     override fun goToProposalPage(type: ProposalType) {
         navigateToProposalPage(id, type)
         lifecycle.doOnResume {
-            updateOffer(id, isSnapshot)
+            viewModel.refreshPage()
         }
     }
 
     override fun goToDynamicSettings(type: String, offerId: Long?) {
         navigateDynamicSettings(type, offerId)
         lifecycle.doOnResume {
-            updateOffer(id, isSnapshot)
+            viewModel.refreshPage()
         }
     }
 

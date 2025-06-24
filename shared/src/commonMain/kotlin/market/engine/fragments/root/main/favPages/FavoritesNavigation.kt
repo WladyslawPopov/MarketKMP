@@ -26,6 +26,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -36,8 +37,12 @@ import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.favPages.FavoritesConfig.CreateOfferScreen
+import market.engine.fragments.root.main.favPages.FavoritesConfig.CreateOrderScreen
 import market.engine.fragments.root.main.favPages.FavoritesConfig.ListingScreen
+import market.engine.fragments.root.main.favPages.FavoritesConfig.MessengerScreen
 import market.engine.fragments.root.main.favPages.FavoritesConfig.OfferScreen
+import market.engine.fragments.root.main.favPages.FavoritesConfig.ProposalScreen
 import market.engine.fragments.root.main.favPages.FavoritesConfig.UserScreen
 import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
@@ -45,9 +50,9 @@ import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
-import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
@@ -150,61 +155,65 @@ fun createFavoritesChild(
             )
         )
         is OfferScreen -> ChildFavorites.OfferChild(
-            component = offerFactory(
-                componentContext,
-                config.id,
-                selectOffer = {
-                    favoritesNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
-                    )
-                },
-                onBack = {
-                    favoritesNavigation.pop()
-                },
-                onListingSelected = {
-                    favoritesNavigation.pushNew(
-                        ListingScreen(it.data, it.searchData, getCurrentDate())
-                    )
-                },
-                onUserSelected = { ui, about ->
-                    favoritesNavigation.pushNew(
-                        UserScreen(ui, getCurrentDate(), about)
-                    )
-                },
-                isSnapshot = config.isSnap,
-                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
-                    favoritesNavigation.pushNew(
-                        FavoritesConfig.CreateOfferScreen(
-                            catPath = catPath,
-                            createOfferType = type,
-                            externalImages = externalImages,
-                            offerId = offerId
+            component =
+                DefaultOfferComponent(
+                    config.id,
+                    config.isSnap,
+                    componentContext,
+                    selectOffer = { newId->
+                        favoritesNavigation.pushNew(
+                            OfferScreen(newId, getCurrentDate())
                         )
-                    )
-                },
-                navigateToCreateOrder = { item ->
-                    favoritesNavigation.pushNew(
-                        FavoritesConfig.CreateOrderScreen(item)
-                    )
-                },
-                navigateToLogin = {
-                    goToLogin(true)
-                },
-                navigateToDialog = { dialogId ->
-                    if (dialogId != null)
-                        favoritesNavigation.pushNew(FavoritesConfig.MessengerScreen(dialogId, getCurrentDate()))
-                    else
-                        navigateToConversations()
-                },
-                navigationSubscribes = {
-                    favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
-                },
-                navigateToProposalPage = { offerId, type ->
-                    favoritesNavigation.pushNew(
-                        FavoritesConfig.ProposalScreen(offerId, type, getCurrentDate())
-                    )
-                }
-            )
+                    },
+                    navigationBack = {
+                        favoritesNavigation.pop()
+                    },
+                    navigationListing = {
+                        favoritesNavigation.pushNew(
+                            ListingScreen(it.data, it.searchData, getCurrentDate())
+                        )
+                    },
+                    navigateToUser = { ui, about ->
+                        favoritesNavigation.pushNew(
+                            UserScreen(ui, getCurrentDate(), about)
+                        )
+                    },
+                    navigationCreateOffer = { type, catPath, offerId, externalImages ->
+                        favoritesNavigation.pushNew(
+                            CreateOfferScreen(
+                                catPath = catPath,
+                                createOfferType = type,
+                                externalImages = externalImages,
+                                offerId = offerId
+                            )
+                        )
+                    },
+                    navigateToCreateOrder = { item ->
+                        favoritesNavigation.pushNew(
+                            CreateOrderScreen(item)
+                        )
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
+                    },
+                    navigateToDialog = { dialogId ->
+                        if(dialogId != null)
+                            favoritesNavigation.pushNew(MessengerScreen(dialogId, getCurrentDate()))
+                        else
+                            navigateToConversations()
+                    },
+                    navigationSubscribes = {
+                        favoritesNavigation.replaceAll(FavoritesConfig.FavPagesScreen(FavScreenType.SUBSCRIBED))
+                    },
+                    navigateToProposalPage = { offerId, type ->
+                        favoritesNavigation.pushNew(
+                            ProposalScreen(offerId, type, getCurrentDate())
+                        )
+                    },
+                    navigateDynamicSettings = { type, owner ->
+                        goToDynamicSettings(type, owner, null)
+                    }
+                )
         )
 
         is ListingScreen -> {
@@ -274,7 +283,7 @@ fun createFavoritesChild(
             )
         )
 
-        is FavoritesConfig.CreateOfferScreen -> ChildFavorites.CreateOfferChild(
+        is CreateOfferScreen -> ChildFavorites.CreateOfferChild(
             component =
                 DefaultCreateOfferComponent(
                     catPath = config.catPath,
@@ -289,7 +298,7 @@ fun createFavoritesChild(
                     },
                     navigateToCreateOffer = { id, path, t ->
                         favoritesNavigation.replaceCurrent(
-                            FavoritesConfig.CreateOfferScreen(
+                            CreateOfferScreen(
                                 catPath = path,
                                 offerId = id,
                                 createOfferType = t,
@@ -302,7 +311,7 @@ fun createFavoritesChild(
                 )
         )
 
-        is FavoritesConfig.CreateOrderScreen -> ChildFavorites.CreateOrderChild(
+        is CreateOrderScreen -> ChildFavorites.CreateOrderChild(
             component = createOrderFactory(
                 componentContext = componentContext,
                 selectedItems = config.basketItem,
@@ -335,7 +344,7 @@ fun createFavoritesChild(
         )
     )
 
-    is FavoritesConfig.MessengerScreen -> ChildFavorites.MessengerChild(
+    is MessengerScreen -> ChildFavorites.MessengerChild(
         component =
             DefaultDialogsComponent(
                 componentContext = componentContext,
@@ -365,7 +374,7 @@ fun createFavoritesChild(
             )
     )
 
-    is FavoritesConfig.ProposalScreen -> ChildFavorites.ProposalChild(
+    is ProposalScreen -> ChildFavorites.ProposalChild(
         component = proposalFactory(
             componentContext = componentContext,
             offerId = config.offerId,

@@ -26,6 +26,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -42,12 +43,15 @@ import market.engine.fragments.root.main.listing.ListingContent
 import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
-import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.profile.ProfileConfig.CreateOfferScreen
+import market.engine.fragments.root.main.profile.ProfileConfig.CreateOrderScreen
+import market.engine.fragments.root.main.profile.ProfileConfig.DialogsScreen
 import market.engine.fragments.root.main.profile.ProfileConfig.ListingScreen
 import market.engine.fragments.root.main.profile.ProfileConfig.OfferScreen
+import market.engine.fragments.root.main.profile.ProfileConfig.ProposalScreen
 import market.engine.fragments.root.main.profile.ProfileConfig.UserScreen
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.profile.conversations.ConversationsComponent
@@ -219,61 +223,66 @@ fun createProfileChild(
         )
 
         is OfferScreen -> ChildProfile.OfferChild(
-            component = offerFactory(
-                componentContext,
-                config.id,
-                selectOffer = {
-                    profileNavigation.pushNew(OfferScreen(it, getCurrentDate()))
-                },
-                onBack = {
-                    profileNavigation.pop()
-                },
-                onListingSelected = { ld ->
-                    profileNavigation.pushNew(
-                        ListingScreen(
-                            ld.data,
-                            ld.searchData,
-                            getCurrentDate()
+            component =
+
+                DefaultOfferComponent(
+                    config.id,
+                    config.isSnapshot,
+                    componentContext,
+                    selectOffer = { newId->
+                        profileNavigation.pushNew(
+                            OfferScreen(newId, getCurrentDate())
                         )
-                    )
-                },
-                onUserSelected = { ui, about ->
-                    profileNavigation.pushNew(UserScreen(ui, getCurrentDate(), about))
-                },
-                isSnapshot = config.isSnapshot,
-                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
-                    profileNavigation.pushNew(
-                        CreateOfferScreen(
-                            catPath = catPath,
-                            createOfferType = type,
-                            externalImages = externalImages,
-                            offerId = offerId
+                    },
+                    navigationBack = {
+                        profileNavigation.pop()
+                    },
+                    navigationListing = {
+                        profileNavigation.pushNew(
+                            ListingScreen(it.data, it.searchData, getCurrentDate())
                         )
-                    )
-                },
-                navigateToCreateOrder = {
-                    profileNavigation.pushNew(
-                        ProfileConfig.CreateOrderScreen(it)
-                    )
-                },
-                navigateToLogin = {
-                    goToLogin(false)
-                },
-                navigateToDialog = { dialogId ->
-                    if(dialogId != null)
-                        profileNavigation.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
-                    else
-                        profileNavigation.replaceAll(ProfileConfig.ConversationsScreen())
-                },
-                navigationSubscribes = {
-                    navigateToSubscribe()
-                },
-                navigateToProposalPage = { offerId, type ->
-                    profileNavigation.pushNew(
-                        ProfileConfig.ProposalScreen(offerId, type, getCurrentDate())
-                    )
-                }
-            )
+                    },
+                    navigateToUser = { ui, about ->
+                        profileNavigation.pushNew(
+                            UserScreen(ui, getCurrentDate(), about)
+                        )
+                    },
+                    navigationCreateOffer = { type, catPath, offerId, externalImages ->
+                        profileNavigation.pushNew(
+                            CreateOfferScreen(
+                                catPath = catPath,
+                                createOfferType = type,
+                                externalImages = externalImages,
+                                offerId = offerId
+                            )
+                        )
+                    },
+                    navigateToCreateOrder = { item ->
+                        profileNavigation.pushNew(
+                            CreateOrderScreen(item)
+                        )
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
+                    },
+                    navigateToDialog = { dialogId ->
+                        if(dialogId != null)
+                            profileNavigation.pushNew(DialogsScreen(dialogId, null, getCurrentDate()))
+                        else
+                            profileNavigation.replaceAll(ProfileConfig.ConversationsScreen())
+                    },
+                    navigationSubscribes = {
+                        navigateToSubscribe()
+                    },
+                    navigateToProposalPage = { offerId, type ->
+                        profileNavigation.pushNew(
+                            ProposalScreen(offerId, type, getCurrentDate())
+                        )
+                    },
+                    navigateDynamicSettings = { type, owner ->
+                        goToDynamicSettings(type, owner, null)
+                    }
+                )
         )
 
         is ListingScreen -> {
@@ -374,7 +383,7 @@ fun createProfileChild(
                 )
         )
 
-        is ProfileConfig.CreateOrderScreen -> ChildProfile.CreateOrderChild(
+        is CreateOrderScreen -> ChildProfile.CreateOrderChild(
             component = createOrderFactory(
                 componentContext = componentContext,
                 selectedItems = config.basketItem,
@@ -415,7 +424,7 @@ fun createProfileChild(
                 },
                 navigateToMessenger = { id, message ->
                     profileNavigation.pushNew(
-                        ProfileConfig.DialogsScreen(id,message, getCurrentDate())
+                        DialogsScreen(id,message, getCurrentDate())
                     )
                 },
             )
@@ -429,7 +438,7 @@ fun createProfileChild(
             )
         )
 
-        is ProfileConfig.DialogsScreen -> ChildProfile.DialogsChild(
+        is DialogsScreen -> ChildProfile.DialogsChild(
             DefaultDialogsComponent(
                 componentContext = componentContext,
                 dialogId = config.dialogId,
@@ -474,7 +483,7 @@ fun createProfileChild(
             )
         )
 
-        is ProfileConfig.ProposalScreen -> ChildProfile.ProposalChild(
+        is ProposalScreen -> ChildProfile.ProposalChild(
             component = proposalFactory(
                 config.offerId,
                 config.proposalType,

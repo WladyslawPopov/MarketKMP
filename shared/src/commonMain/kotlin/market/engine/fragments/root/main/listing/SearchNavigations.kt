@@ -24,6 +24,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getCurrentDate
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
 import market.engine.fragments.root.main.createOffer.CreateOfferContent
@@ -41,9 +42,9 @@ import market.engine.fragments.root.main.listing.SearchConfig.UserScreen
 import market.engine.fragments.root.main.messenger.DefaultDialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsComponent
 import market.engine.fragments.root.main.messenger.DialogsContent
+import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
-import market.engine.fragments.root.main.offer.offerFactory
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
 import market.engine.fragments.root.main.proposalPage.proposalFactory
@@ -177,66 +178,65 @@ fun createSearchChild(
             )
         }
         is OfferScreen -> ChildSearch.OfferChild(
-            component = offerFactory(
-                componentContext,
-                config.id,
-                selectOffer = {
-                    searchNavigation.pushNew(
-                        OfferScreen(
-                            it,
-                            getCurrentDate(),
-                        )
-                    )
-                },
-                onBack = {
-                    searchNavigation.pop()
-                },
-                onListingSelected = {
-                    searchNavigation.pushNew(
-                        ListingScreen(it.data, it.searchData, false, getCurrentDate())
-                    )
-                },
-                onUserSelected = { ui, about ->
-                    searchNavigation.pushNew(
-                        UserScreen(ui, getCurrentDate(), about)
-                    )
-                },
-                config.isSnapshot,
-                navigateToCreateOffer = { type, catPath, offerId, externalImages ->
-                    searchNavigation.pushNew(
-                        CreateOfferScreen(
-                            catPath = catPath,
-                            createOfferType = type,
-                            externalImages = externalImages,
-                            offerId = offerId
-                        )
-                    )
-                },
-                navigateToCreateOrder = {
-                    searchNavigation.pushNew(
-                        SearchConfig.CreateOrderScreen(it)
-                    )
-                },
-                navigateToLogin = {
-                    goToLogin(false)
-                },
-                navigateToDialog = { dialogId ->
-                    if(dialogId != null)
+            component =
+                DefaultOfferComponent(
+                    config.id,
+                    config.isSnapshot,
+                    componentContext,
+                    selectOffer = { newId->
                         searchNavigation.pushNew(
-                            SearchConfig.MessageScreen(dialogId, getCurrentDate())
+                            OfferScreen(newId, getCurrentDate())
                         )
-                    else
-                        navigateToConversations()
-                },
-                navigationSubscribes = {
-                    navigateToSubscribe()
-                },
-                navigateToProposalPage = { offerId, type ->
-                    searchNavigation.pushNew(
-                        SearchConfig.ProposalScreen(offerId, type, getCurrentDate())
-                    )
-                }
-            )
+                    },
+                    navigationBack = {
+                        searchNavigation.pop()
+                    },
+                    navigationListing = {
+                        searchNavigation.pushNew(
+                            ListingScreen(it.data, it.searchData, false, getCurrentDate())
+                        )
+                    },
+                    navigateToUser = { ui, about ->
+                        searchNavigation.pushNew(
+                            UserScreen(ui, getCurrentDate(), about)
+                        )
+                    },
+                    navigationCreateOffer = { type, catPath, offerId, externalImages ->
+                        searchNavigation.pushNew(
+                            CreateOfferScreen(
+                                catPath = catPath,
+                                createOfferType = type,
+                                externalImages = externalImages,
+                                offerId = offerId
+                            )
+                        )
+                    },
+                    navigateToCreateOrder = { item ->
+                        searchNavigation.pushNew(
+                            SearchConfig.CreateOrderScreen(item)
+                        )
+                    },
+                    navigateToLogin = {
+                        goToLogin(true)
+                    },
+                    navigateToDialog = { dialogId ->
+                        if(dialogId != null)
+                            searchNavigation.pushNew(SearchConfig.MessageScreen(dialogId, getCurrentDate()))
+                        else
+                            navigateToConversations()
+                    },
+                    navigationSubscribes = {
+                        navigateToSubscribe()
+                    },
+                    navigateToProposalPage = { offerId, type ->
+                        searchNavigation.pushNew(
+                            SearchConfig.ProposalScreen(offerId, type, getCurrentDate())
+                        )
+                    },
+                    navigateDynamicSettings = { type, owner ->
+                        goToDynamicSettings(type, owner, null)
+                    }
+                )
         )
         is UserScreen -> ChildSearch.UserChild(
             component =
