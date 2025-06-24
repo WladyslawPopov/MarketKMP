@@ -1027,7 +1027,8 @@ fun OfferContent(
                 title = dialogTitle.value,
                 fields = dialogFields.value,
                 updateItem = {
-                    viewModel.updateItem.value = itemIdDialog.value
+                    viewModel.updateBidsInfo(offer)
+                    viewModel.updateOperations(offer)
                 },
                 close = { fullRefresh ->
                     viewModel.clearDialogFields()

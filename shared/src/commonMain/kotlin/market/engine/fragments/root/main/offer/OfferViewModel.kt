@@ -272,7 +272,7 @@ class OfferViewModel(
             ),
             NavigationItem(
                 title = getString(strings.favoritesTitle),
-                icon = if (offer.isWatchedByMe) drawables.favoritesIconSelected else drawables.favoritesIcon,
+                icon = if (operationsList.find { it.id == "watch" } != null) drawables.favoritesIconSelected else drawables.favoritesIcon,
                 tint = colors.inactiveBottomNavIconColor,
                 hasNews = false,
                 badgeCount = null,
@@ -292,6 +292,8 @@ class OfferViewModel(
                 }
             )
         )
+
+        offer.isProposalEnabled = operationsList.find { it.id == "make_proposal" } != null
 
         OfferViewState(
             appBarData = SimpleAppBarData(
@@ -398,169 +400,175 @@ class OfferViewModel(
                     val serializer = ListSerializer(Offer.serializer())
                     val data = deserializePayload(response.payload, serializer).firstOrNull()
                     data?.let { offer ->
-                        val currency = getString(strings.currencyCode)
-                        getOfferOperations(
-                            offerId
-                        ) { list ->
-                            _operationsList.value = buildList {
-                                addAll(list.map { operation ->
-                                    MenuItem(
-                                        id = operation.id ?: "",
-                                        title = operation.name ?: "",
-                                        onClick = {
-                                            operation.run {
-                                                when {
-                                                    id == "activate_offer_for_future" || id == "activate_offer" -> {
-                                                        titleDialog.value = AnnotatedString(name ?: "")
-                                                        showOperationsDialog.value = id
-                                                        dialogItemId.value = offer.id
-                                                    }
-
-                                                    id == "copy_offer_without_old_photo" -> {
-                                                        component.goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE,
-                                                            offer.catpath, offer.id, offer.externalImages)
-                                                    }
-
-                                                    id == "edit_offer" -> {
-                                                        component.goToCreateOffer(CreateOfferType.EDIT,
-                                                            offer.catpath, offer.id, offer.externalImages)
-                                                    }
-
-                                                    id == "copy_offer" -> {
-                                                        component.goToCreateOffer(CreateOfferType.COPY,
-                                                            offer.catpath, offer.id, offer.externalImages)
-                                                    }
-
-                                                    id == "act_on_proposal" -> {
-                                                        component.goToProposalPage(
-                                                            ProposalType.ACT_ON_PROPOSAL
-                                                        )
-                                                    }
-
-                                                    id == "make_proposal" -> {
-                                                        component.goToProposalPage(
-                                                            ProposalType.MAKE_PROPOSAL
-                                                        )
-                                                    }
-
-                                                    id == "cancel_all_bids" -> {
-                                                        component.goToDynamicSettings(
-                                                            "cancel_all_bids",
-                                                            offer.id
-                                                        )
-                                                    }
-
-                                                    id == "remove_bids_of_users" -> {
-                                                        component.goToDynamicSettings(
-                                                            "remove_bids_of_users",
-                                                            offer.id
-                                                        )
-                                                    }
-
-                                                    isDataless == false -> {
-                                                        getOperationFields(
-                                                            offer.id,
-                                                            id ?: "",
-                                                            "offers",
-                                                        ) { t, f ->
-                                                            titleDialog.value = AnnotatedString(t)
-                                                            fieldsDialog.value.clear()
-                                                            fieldsDialog.value.addAll(f)
-                                                            showOperationsDialog.value = id ?: ""
-                                                            dialogItemId.value = offer.id
-                                                        }
-                                                    }
-
-                                                    else -> {
-                                                        postOperationFields(
-                                                            offer.id,
-                                                            id ?: "",
-                                                            "offers",
-                                                            onSuccess = {
-                                                                val eventParameters = mapOf(
-                                                                    "lot_id" to offer.id,
-                                                                    "lot_name" to offer.title,
-                                                                    "lot_city" to offer.freeLocation,
-                                                                    "auc_delivery" to offer.safeDeal,
-                                                                    "lot_category" to offer.catpath.firstOrNull(),
-                                                                    "seller_id" to offer.sellerData?.id,
-                                                                    "lot_price_start" to offer.currentPricePerItem,
-                                                                )
-                                                                analyticsHelper.reportEvent(
-                                                                    "${id}_success",
-                                                                    eventParameters
-                                                                )
-
-                                                                updateUserInfo()
-                                                                when (operation.id) {
-                                                                    "watch", "unwatch", "create_blank_offer_list" -> {
-                                                                        _responseOffer.update {
-                                                                            it?.copy(
-                                                                                isWatchedByMe = !offer.isWatchedByMe
-                                                                            )
-                                                                        }
-                                                                    }
-
-                                                                    else -> {
-                                                                        refreshPage()
-                                                                    }
-                                                                }
-                                                            },
-                                                            errorCallback = {}
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    )
-                                })
-                            }
-
-                            offer.isProposalEnabled = list.find { it.id == "make_proposal" } != null
-                            _responseOffer.value = offer
-                        }
-
-                        getOfferOperations(
-                            offerId,
-                            "promo"
-                        ) { listOperations ->
-                            _promoList.value = buildList {
-                                addAll(listOperations.map { operation ->
-                                    MenuItem(
-                                        id = operation.id ?: "",
-                                        title = "${(operation.name ?: "")} (${operation.price * -1}$currency)",
-                                        onClick = {
-                                            getOperationFields(
-                                                offer.id,
-                                                operation.id ?: "",
-                                                "offers"
-                                            ) { t, f ->
-                                                titleDialog.value = buildAnnotatedString {
-                                                    append(t)
-                                                    withStyle(
-                                                        SpanStyle(
-                                                            color = colors.notifyTextColor,
-                                                        )
-                                                    ) {
-                                                        append(" ${operation.price}$currency")
-                                                    }
-                                                }
-                                                fieldsDialog.value.clear()
-                                                fieldsDialog.value.addAll(f)
-                                                showOperationsDialog.value =
-                                                    operation.id ?: ""
-                                                dialogItemId.value = offer.id
-                                            }
-                                        }
-                                    )
-                                })
-                            }
-                        }
+                        updateOperations(offer)
+                        _responseOffer.value = offer
                     }
                 }
 
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))
+            }
+        }
+    }
+
+    fun updateOperations(offer: Offer){
+        viewModelScope.launch {
+            val currency = getString(strings.currencyCode)
+            getOfferOperations(
+                offer.id
+            ) { list ->
+                _operationsList.value = buildList {
+                    addAll(list.map { operation ->
+                        MenuItem(
+                            id = operation.id ?: "",
+                            title = operation.name ?: "",
+                            onClick = {
+                                operation.run {
+                                    when {
+                                        id == "activate_offer_for_future" || id == "activate_offer" -> {
+                                            titleDialog.value = AnnotatedString(name ?: "")
+                                            showOperationsDialog.value = id
+                                            dialogItemId.value = offer.id
+                                        }
+
+                                        id == "copy_offer_without_old_photo" -> {
+                                            component.goToCreateOffer(
+                                                CreateOfferType.COPY_WITHOUT_IMAGE,
+                                                offer.catpath, offer.id, offer.externalImages
+                                            )
+                                        }
+
+                                        id == "edit_offer" -> {
+                                            component.goToCreateOffer(
+                                                CreateOfferType.EDIT,
+                                                offer.catpath, offer.id, offer.externalImages
+                                            )
+                                        }
+
+                                        id == "copy_offer" -> {
+                                            component.goToCreateOffer(
+                                                CreateOfferType.COPY,
+                                                offer.catpath, offer.id, offer.externalImages
+                                            )
+                                        }
+
+                                        id == "act_on_proposal" -> {
+                                            component.goToProposalPage(
+                                                ProposalType.ACT_ON_PROPOSAL
+                                            )
+                                        }
+
+                                        id == "make_proposal" -> {
+                                            component.goToProposalPage(
+                                                ProposalType.MAKE_PROPOSAL
+                                            )
+                                        }
+
+                                        id == "cancel_all_bids" -> {
+                                            component.goToDynamicSettings(
+                                                "cancel_all_bids",
+                                                offer.id
+                                            )
+                                        }
+
+                                        id == "remove_bids_of_users" -> {
+                                            component.goToDynamicSettings(
+                                                "remove_bids_of_users",
+                                                offer.id
+                                            )
+                                        }
+
+                                        isDataless == false -> {
+                                            getOperationFields(
+                                                offer.id,
+                                                id ?: "",
+                                                "offers",
+                                            ) { t, f ->
+                                                titleDialog.value = AnnotatedString(t)
+                                                fieldsDialog.value.clear()
+                                                fieldsDialog.value.addAll(f)
+                                                showOperationsDialog.value = id ?: ""
+                                                dialogItemId.value = offer.id
+                                            }
+                                        }
+
+                                        else -> {
+                                            postOperationFields(
+                                                offer.id,
+                                                id ?: "",
+                                                "offers",
+                                                onSuccess = {
+                                                    val eventParameters = mapOf(
+                                                        "lot_id" to offer.id,
+                                                        "lot_name" to offer.title,
+                                                        "lot_city" to offer.freeLocation,
+                                                        "auc_delivery" to offer.safeDeal,
+                                                        "lot_category" to offer.catpath.firstOrNull(),
+                                                        "seller_id" to offer.sellerData?.id,
+                                                        "lot_price_start" to offer.currentPricePerItem,
+                                                    )
+                                                    analyticsHelper.reportEvent(
+                                                        "${id}_success",
+                                                        eventParameters
+                                                    )
+
+                                                    updateUserInfo()
+                                                    when (operation.id) {
+                                                        "watch", "unwatch", "create_blank_offer_list" -> {
+                                                            updateOperations(offer)
+                                                        }
+
+                                                        else -> {
+                                                            refreshPage()
+                                                        }
+                                                    }
+                                                },
+                                                errorCallback = {}
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                    })
+                }
+            }
+
+            getOfferOperations(
+                offer.id,
+                "promo"
+            ) { listOperations ->
+                _promoList.value = buildList {
+                    addAll(listOperations.map { operation ->
+                        MenuItem(
+                            id = operation.id ?: "",
+                            title = "${(operation.name ?: "")} (${operation.price * -1}$currency)",
+                            onClick = {
+                                getOperationFields(
+                                    offer.id,
+                                    operation.id ?: "",
+                                    "offers"
+                                ) { t, f ->
+                                    titleDialog.value = buildAnnotatedString {
+                                        append(t)
+                                        withStyle(
+                                            SpanStyle(
+                                                color = colors.notifyTextColor,
+                                            )
+                                        ) {
+                                            append(" ${operation.price}$currency")
+                                        }
+                                    }
+                                    fieldsDialog.value.clear()
+                                    fieldsDialog.value.addAll(f)
+                                    showOperationsDialog.value =
+                                        operation.id ?: ""
+                                    dialogItemId.value = offer.id
+                                }
+                            }
+                        )
+                    })
+                }
             }
         }
     }
@@ -722,14 +730,14 @@ class OfferViewModel(
                 withContext(Dispatchers.Main) {
                     response.success?.body?.let { body ->
                         if (body.isChanged) {
-                            offer.apply {
-                                bids = body.bids
-                                version = JsonPrimitive(body.currentVersion)
-                                currentPricePerItem = body.currentPrice
-                                minimalAcceptablePrice = body.minimalAcceptablePrice
+                            _responseOffer.update {
+                                it?.copy(
+                                    bids = body.bids,
+                                    version = JsonPrimitive(body.currentVersion),
+                                    currentPricePerItem = body.currentPrice,
+                                    minimalAcceptablePrice = body.minimalAcceptablePrice,
+                                )
                             }
-                            _responseOffer.value = offer
-                            updateItemTrigger.value++
                         }
                     }
                 }
