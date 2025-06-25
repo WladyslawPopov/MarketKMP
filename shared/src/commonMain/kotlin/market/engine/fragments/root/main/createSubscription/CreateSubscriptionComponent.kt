@@ -4,7 +4,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import market.engine.common.AnalyticsFactory
 
 interface CreateSubscriptionComponent {
     val model : Value<Model>
@@ -24,7 +23,7 @@ class DefaultCreateSubscriptionComponent(
     val navigateBack: () -> Unit,
 ) : CreateSubscriptionComponent, ComponentContext by componentContext {
 
-    private val createSubscriptionViewModel : CreateSubscriptionViewModel = CreateSubscriptionViewModel()
+    private val createSubscriptionViewModel : CreateSubscriptionViewModel = CreateSubscriptionViewModel(editId, this)
 
     private val _model = MutableValue(
         CreateSubscriptionComponent.Model(
@@ -33,15 +32,7 @@ class DefaultCreateSubscriptionComponent(
             backHandler = backHandler
         )
     )
-
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
     override val model = _model
-
-    init {
-        createSubscriptionViewModel.getPage(editId)
-        analyticsHelper.reportEvent("view_create_subscription", mapOf())
-    }
 
     override fun onBackClicked() {
         navigateBack()

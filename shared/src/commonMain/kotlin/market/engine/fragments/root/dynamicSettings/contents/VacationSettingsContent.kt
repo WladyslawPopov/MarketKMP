@@ -28,7 +28,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VacationSettingsContent(
-    fields : ArrayList<Fields>,
+    fields : List<Fields>,
     onConfirm : () -> Unit,
 ) {
     val from = stringResource(strings.fromAboutTimeLabel)

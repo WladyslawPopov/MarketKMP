@@ -14,11 +14,13 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
@@ -26,14 +28,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.longOrNull
-import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
@@ -42,6 +40,8 @@ import market.engine.widgets.checkboxs.DynamicCheckbox
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.onError
+import market.engine.widgets.bars.appBars.SimpleAppBar
+import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.textFields.DynamicInputField
 import org.jetbrains.compose.resources.stringResource
 
@@ -55,101 +55,66 @@ fun CreateSubscriptionContent(
     val isLoading = viewModel.isShowProgress.collectAsState()
     val err = viewModel.errorMessage.collectAsState()
 
-    val responseGetPage = viewModel.responseGetPage.collectAsState()
+    val uiState = viewModel.createSubContentState.collectAsState()
 
-    val refresh = {
-        viewModel.onError(ServerErrorException())
-    }
+    val appBar = uiState.value.appBar
+    val page = uiState.value.page
+    val categoryState = uiState.value.categoryState
+    val title = uiState.value.title
 
-    val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        {
-            onError(err.value)
+    val error: (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage.isNotBlank()) {
             {
-                refresh()
+                onError(err.value)
+                {
+                    viewModel.refreshPage()
+                }
             }
+        } else {
+            null
         }
-    } else {
-        null
     }
 
     val focusManager: FocusManager = LocalFocusManager.current
 
     val scaffoldState = rememberBottomSheetScaffoldState()
-    val openBottomSheet = remember { mutableStateOf(false) }
 
-    val defCat = stringResource(strings.selectCategory)
+    val selectedCategory = categoryState.categoryViewModel.categoryName.collectAsState()
+    val selectedCategoryID = categoryState.categoryViewModel.categoryId.collectAsState()
 
-    val selectedCategory = remember { viewModel.selectedCategory }
-    val selectedCategoryID = remember { viewModel.selectedCategoryID }
-
-    val searchData = remember { mutableStateOf(SD()) }
-
-    LaunchedEffect(openBottomSheet.value){
-        if (openBottomSheet.value) {
-            scaffoldState.bottomSheetState.expand()
-        }else{
-            scaffoldState.bottomSheetState.collapse()
-        }
-    }
-
-    LaunchedEffect(responseGetPage.value){
-        if (responseGetPage.value != null){
-            viewModel.selectedCategory.value = responseGetPage.value?.fields?.find {
-                it.key == "category_id" }?.shortDescription ?: defCat
-            viewModel.selectedCategoryID.value = responseGetPage.value?.fields?.find {
-                it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
-        }
-    }
-
-    val onBack = {
-        if (openBottomSheet.value) {
-//            viewModel.catBack.value = true
-        } else {
-            component.onBackClicked()
+    LaunchedEffect(categoryState.openCategory){
+        snapshotFlow {
+            categoryState.openCategory
+        }.collect {
+            if (it) {
+                scaffoldState.bottomSheetState.expand()
+            }else{
+                scaffoldState.bottomSheetState.collapse()
+            }
         }
     }
 
     BackHandler(
         backHandler = model.value.backHandler,
         onBack = {
-            onBack()
+            viewModel.onBack()
         }
     )
-
-    val title = stringResource(
-        if (model.value.editId == null)
-            strings.createNewSubscriptionTitle
-        else strings.editLabel
-    )
-
-    val clear = remember {
-        {
-            searchData.value.clear(defCat)
-
-            selectedCategory.value = defCat
-            selectedCategoryID.value = 1L
-
-            responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription =
-                defCat
-            responseGetPage.value?.fields?.find { it.key == "category_id" }?.data =
-                null
-        }
-    }
 
     BaseContent(
         topBar = {
-            CreateSubscriptionAppBar(
-                title,
-                onBackClick = {
-                    onBack()
-                },
-                onRefresh = {
-                    refresh()
-                }
-            )
+            SimpleAppBar(
+                data = appBar
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         },
         onRefresh = {
-            refresh()
+            viewModel.refreshPage()
         },
         error = error,
         noFound = null,
@@ -168,20 +133,19 @@ fun CreateSubscriptionContent(
             sheetPeekHeight = 0.dp,
             sheetGesturesEnabled = false,
             sheetContent = {
-//                CategoryContent(
-//                    isOpen = viewModel.openFiltersCat.value,
-//                    searchData = searchData,
-//                    baseViewModel = viewModel,
-//                    onBackClicked = viewModel.catBack,
-//                    isFilters = true,
-//                ){
-//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.shortDescription = searchData.searchCategoryName
-//                    responseGetPage.value?.fields?.find { it.key == "category_id" }?.data = JsonPrimitive(searchData.searchCategoryID)
-//                    selectedCategory.value = searchData.searchCategoryName
-//                    selectedCategoryID.value = searchData.searchCategoryID
-//
-//                    openBottomSheet.value = false
-//                }
+                CategoryContent(
+                    viewModel= categoryState.categoryViewModel,
+                    onCompleted = {
+                        viewModel.applyCategory(
+                            categoryName = selectedCategory.value,
+                            categoryId = selectedCategoryID.value
+                        )
+                        viewModel.closeCategory()
+                    },
+                    onClose = {
+                        viewModel.closeCategory()
+                    }
+                )
             },
         ) {
             Box(
@@ -206,7 +170,7 @@ fun CreateSubscriptionContent(
                     ),
                     verticalItemSpacing = dimens.smallPadding,
                     content = {
-                        val items = responseGetPage.value?.fields
+                        val items = page?.fields
                         if (items != null) {
                             items(
                                 items.size,
@@ -226,22 +190,15 @@ fun CreateSubscriptionContent(
                                                     color = if(selectedCategoryID.value == 1L)
                                                         colors.simpleButtonColors else colors.themeButtonColors,
                                                     onClick = {
-                                                        openBottomSheet.value = !openBottomSheet.value
-
-                                                        searchData.value.run {
-                                                            searchCategoryName = selectedCategory.value
-                                                            searchCategoryID = selectedCategoryID.value
-                                                            searchParentID = searchCategoryID
-                                                        }
-
-//                                                        viewModel.openFiltersCat.value = true
+                                                        viewModel.openCategory()
                                                     },
-                                                    onCancelClick =
-                                                        if (selectedCategoryID.value != 1L) {
-                                                            clear
-                                                        }else{
-                                                            null
+                                                    onCancelClick =if(selectedCategoryID.value != 1L) {
+                                                        {
+                                                            viewModel.clearCategory()
                                                         }
+                                                    }else{
+                                                        null
+                                                    }
                                                 )
                                             }
                                         }else{

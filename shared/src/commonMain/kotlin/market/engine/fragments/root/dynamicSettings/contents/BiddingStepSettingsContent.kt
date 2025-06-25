@@ -25,7 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BiddingStepSettingsContent(
-    fields : ArrayList<Fields>,
+    fields : List<Fields>,
     onConfirm : () -> Unit,
 ) {
     val biddingStepField = remember { fields.find { it.key == "bidding_step" } }

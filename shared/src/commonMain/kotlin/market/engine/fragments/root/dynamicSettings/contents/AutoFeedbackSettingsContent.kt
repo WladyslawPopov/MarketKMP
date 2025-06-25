@@ -27,7 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AutoFeedbackSettingsContent(
-    fields: ArrayList<Fields>,
+    fields: List<Fields>,
     onConfirm: () -> Unit
 ) {
     fields.forEach { field ->

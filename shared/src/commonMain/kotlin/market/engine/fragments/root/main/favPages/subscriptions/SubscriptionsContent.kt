@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -112,7 +113,8 @@ fun SubscriptionsContent(
                 ) {
                     SmallIconButton(
                         drawables.newLotIcon,
-                        color = colors.positiveGreen
+                        color = colors.positiveGreen,
+                        modifier = Modifier.size(dimens.smallIconSize)
                     ) {
                         component.goToCreateNewSubscription()
                     }

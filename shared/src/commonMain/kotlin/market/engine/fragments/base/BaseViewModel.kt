@@ -694,7 +694,7 @@ open class BaseViewModel: ViewModel() {
         }
     }
 
-    suspend fun getDeliveryFields(): ArrayList<Fields>? {
+    suspend fun getDeliveryFields(): List<Fields>? {
         val res = withContext(Dispatchers.IO) {
             operationsMethods.getOperationFields(
                 UserData.login,
@@ -1348,7 +1348,7 @@ open class BaseViewModel: ViewModel() {
         type : String,
         body : HashMap<String, JsonElement>,
         onSuccess: () -> Unit,
-        onError: (ArrayList<Fields>) -> Unit
+        onError: (List<Fields>) -> Unit
     ) {
         viewModelScope.launch {
             val buf = withContext(Dispatchers.IO) {
