@@ -1,5 +1,10 @@
 package market.engine.core.utils
 
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.util.fastForEach
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -15,6 +20,7 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.User
+import market.engine.core.network.networkObjects.Value
 import market.engine.shared.MarketDB
 import market.engine.shared.NotificationsHistory
 import org.jetbrains.compose.resources.DrawableResource
@@ -52,6 +58,69 @@ fun Offer.getOfferImagePreview(): String {
 
 fun String.cleanSearchString(): String {
     return this.replace(Regex("[^a-zA-Zа-яА-Я0-9]"), "_")
+}
+
+fun formatRemainingTimeAnnotated(
+    millisUntilFinished: Long,
+    beforeGraduationLabel: String,
+    daysLabel: String,
+    hoursLabel: String,
+    minutesLabel: String,
+    secondsLabel: String
+): AnnotatedString {
+    val days = millisUntilFinished / (1000 * 60 * 60 * 24)
+    val hours = (millisUntilFinished / (1000 * 60 * 60)) % 24
+    val minutes = (millisUntilFinished / (1000 * 60)) % 60
+    val seconds = (millisUntilFinished / 1000) % 60
+
+    return buildAnnotatedString {
+        if (days > 0) {
+            append("$days ")
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(daysLabel)
+            }
+            append(" $beforeGraduationLabel")
+        } else {
+            if (hours > 0) {
+                append("$hours ")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(hoursLabel)
+                }
+                append(" ")
+            }
+            if (minutes > 0) {
+                append("$minutes ")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(minutesLabel)
+                }
+                append(" ")
+            }
+
+            if (seconds > 0) {
+                append("$seconds ")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(secondsLabel)
+                }
+            }
+
+            append(" $beforeGraduationLabel")
+        }
+    }
+}
+
+fun formatParameterValue(value: Value?): String {
+    return buildString {
+        value?.valueFree?.let { append(it) }
+
+        value?.valueChoices?.forEach {
+            if (isNotEmpty()) append("; ")
+            append(it.name)
+        }
+
+        if (isNotEmpty() && last() == ' ') {
+            dropLast(2)
+        }
+    }
 }
 
 fun provideByType(notificationItem: NotificationsHistory, onProvide : (DeepLink) -> Unit) {

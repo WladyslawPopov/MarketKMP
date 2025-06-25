@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -56,39 +55,29 @@ import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.openUrl
-import market.engine.core.data.baseFilters.LD
-import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.ScrollDataState
-import market.engine.core.network.networkObjects.DealType
-import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Param
-import market.engine.core.network.networkObjects.PaymentMethod
-import market.engine.core.network.networkObjects.Value
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Bids
 import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.parseToOfferItem
+import market.engine.core.utils.formatParameterValue
+import market.engine.core.utils.formatRemainingTimeAnnotated
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.dialogs.AddBidDialog
-import market.engine.widgets.dialogs.OfferMessagingDialog
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
@@ -141,8 +130,9 @@ fun OfferContent(
     val openOperationDialog = viewModel.showOperationsDialog.collectAsState()
     val itemIdDialog = viewModel.dialogItemId.collectAsState()
     val showDialog = viewModel.showDialog.collectAsState()
-
     val myMaximalBid = viewModel.myMaximalBid.collectAsState()
+    val remainingTime = viewModel.remainingTime.collectAsState()
+    val errorString = viewModel.errorString.collectAsState()
 
     val offer = uiState.value.offer
     val offerState = uiState.value.offerState
@@ -152,13 +142,12 @@ fun OfferContent(
     val operationsList = uiState.value.menuList
     val images = uiState.value.images
     val statusList = uiState.value.statusList
-    val remainingTime = uiState.value.remainingTime
+    val columns = uiState.value.columns
 
     val isImageViewerVisible = remember { mutableStateOf(false) }
 
-    val isShowMesDialog = remember { mutableStateOf(false) }
-
     val scaffoldState = rememberBottomSheetScaffoldState()
+    val valuesPickerState = rememberPickerState()
 
     val goToBids = 6
 
@@ -342,17 +331,14 @@ fun OfferContent(
                 //count and views label
                 item {
                     if (offerState == OfferStates.ACTIVE || isMyOffer) {
-                        val countString =
-                            getCountString(offerState, offer)
-
                         FlowRow(
                             horizontalArrangement = Arrangement.Start,
                             verticalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            if (countString.isNotEmpty()) {
+                            if (uiState.value.countString.isNotEmpty()) {
                                 Text(
-                                    text = countString,
+                                    text = uiState.value.countString,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = colors.grayText,
                                     modifier = Modifier.padding(dimens.smallPadding)
@@ -377,11 +363,6 @@ fun OfferContent(
                 }
 
                 item {
-                    val columns = remember {
-                        if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(
-                            1
-                        )
-                    }
                     LazyVerticalStaggeredGrid(
                         columns = columns,
                         modifier = Modifier
@@ -556,7 +537,7 @@ fun OfferContent(
 
                                     TimeOfferSession(
                                         offer,
-                                        remainingTime,
+                                        remainingTime.value,
                                         offerState,
                                     )
 
@@ -572,7 +553,6 @@ fun OfferContent(
                                 if (offer.saleType != "buy_now" && !isMyOffer && offerState == OfferStates.ACTIVE) {
                                     AuctionPriceLayout(
                                         offer = offer,
-                                        viewModel.updateItemTrigger.value,
                                         onAddBidClick = { bid ->
                                             viewModel.onAddBidClick(bid)
                                         },
@@ -584,50 +564,14 @@ fun OfferContent(
                             item {
                                 //buy now price
                                 if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer) {
-                                    val values =
-                                        remember { (1..offer.originalQuantity).map { it.toString() } }
-                                    val valuesPickerState = rememberPickerState()
-
                                     BuyNowPriceLayout(
                                         offer = offer,
                                         offerState,
                                         onBuyNowClick = {
-                                            if (UserData.token != "") {
-                                                if (offer.originalQuantity > 1) {
-                                                    viewModel.openDialog()
-                                                } else {
-                                                    val item = Pair(
-                                                        offer.sellerData?.id ?: 1L, listOf(
-                                                            SelectedBasketItem(
-                                                                offerId = offer.id,
-                                                                pricePerItem = offer.currentPricePerItem?.toDouble()
-                                                                    ?: 0.0,
-                                                                selectedQuantity = 1
-                                                            )
-                                                        )
-                                                    )
-                                                    component.goToCreateOrder(item)
-                                                }
-                                            } else {
-                                                component.goToLogin()
-                                            }
+                                            viewModel.buyNowClick(offer)
                                         },
                                         onAddToCartClick = {
-                                            if (UserData.token != "") {
-                                                val bodyAddB = HashMap<String, JsonElement>()
-                                                bodyAddB["offer_id"] = JsonPrimitive(offer.id)
-                                                viewModel.addOfferToBasket(
-                                                    bodyAddB
-                                                ) { hm ->
-                                                    viewModel.showToast(
-                                                        successToastItem.copy(
-                                                            message = hm
-                                                        )
-                                                    )
-                                                }
-                                            } else {
-                                                component.goToLogin()
-                                            }
+                                           viewModel.onAddToCartClick(offer)
                                         },
                                         onSaleClick = {
                                             component.goToCreateOffer(
@@ -638,56 +582,6 @@ fun OfferContent(
                                             )
                                         },
                                         modifier = Modifier
-                                    )
-
-                                    CustomDialog(
-                                        showDialog = showDialog.value,
-                                        title = AnnotatedString(""),
-                                        body = {
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
-                                            ) {
-                                                SeparatorLabel(
-                                                    stringResource(strings.chooseAmountLabel)
-                                                )
-
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth()
-                                                        .padding(dimens.mediumPadding),
-                                                    horizontalArrangement = Arrangement.Center,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    ListPicker(
-                                                        state = valuesPickerState,
-                                                        items = values,
-                                                        visibleItemsCount = 3,
-                                                        modifier = Modifier.fillMaxWidth(0.5f),
-                                                        textModifier = Modifier.padding(dimens.smallPadding),
-                                                        textStyle = MaterialTheme.typography.titleLarge,
-                                                        dividerColor = colors.textA0AE
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        onSuccessful = {
-                                            val item = Pair(
-                                                offer.sellerData?.id ?: 1L, listOf(
-                                                    SelectedBasketItem(
-                                                        offerId = offer.id,
-                                                        pricePerItem = offer.currentPricePerItem?.toDouble()
-                                                            ?: 0.0,
-                                                        selectedQuantity = valuesPickerState.selectedItem.toIntOrNull()
-                                                            ?: 1
-                                                    )
-                                                )
-                                            )
-                                            component.goToCreateOrder(item)
-                                            viewModel.closeDialog()
-                                        },
-                                        onDismiss = {
-                                            viewModel.closeDialog()
-                                        }
                                     )
                                 }
                             }
@@ -700,9 +594,6 @@ fun OfferContent(
                                         horizontalAlignment = Alignment.Start,
                                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                                     ) {
-                                        // SeparatorLabel(stringResource(strings.sellerLabel))
-                                        val errorString = remember { mutableStateOf("") }
-
                                         UserPanel(
                                             modifier = Modifier
                                                 .background(
@@ -725,24 +616,7 @@ fun OfferContent(
                                                 component.goToUser(offer.sellerData?.id ?: 1L, true)
                                             },
                                             addToSubscriptions = {
-                                                if (UserData.token != "") {
-                                                    viewModel.addNewSubscribe(
-                                                        LD(),
-                                                        SD().copy(
-                                                            userLogin = offer.sellerData?.login,
-                                                            userID = offer.sellerData?.id ?: 1L,
-                                                            userSearch = true
-                                                        ),
-                                                        onSuccess = {
-                                                            viewModel.updateUserState(offer.sellerData?.id ?: 1L)
-                                                        },
-                                                        errorCallback = { es ->
-                                                            errorString.value = es
-                                                        }
-                                                    )
-                                                } else {
-                                                    component.goToLogin()
-                                                }
+                                                viewModel.addToSubscriptions(offer)
                                             },
                                             goToSubscriptions = {
                                                 component.goToSubscribes()
@@ -752,21 +626,10 @@ fun OfferContent(
                                             },
                                             isBlackList = statusList
                                         )
-
-                                        CreateSubscribeDialog(
-                                            errorString.value != "",
-                                            errorString.value,
-                                            onDismiss = {
-                                                errorString.value = ""
-                                            },
-                                            goToSubscribe = {
-                                                component.goToSubscribes()
-                                                errorString.value = ""
-                                            }
-                                        )
                                     }
                                 }
                             }
+
                             item {
                                 // actions and other status
                                 Column(
@@ -787,28 +650,9 @@ fun OfferContent(
                                         MessageToSeller(
                                             offer,
                                             onClick = {
-                                                if (UserData.token != "") {
-                                                    isShowMesDialog.value = true
-                                                } else {
-                                                    component.goToLogin()
-                                                }
+                                                viewModel.openMesDialog(offer)
                                             }
                                         )
-
-                                        if (isShowMesDialog.value) {
-                                            OfferMessagingDialog(
-                                                isShowMesDialog.value,
-                                                offer.parseToOfferItem(),
-                                                onSuccess = { dialogId ->
-                                                    component.goToDialog(dialogId)
-                                                    isShowMesDialog.value = false
-                                                },
-                                                onDismiss = {
-                                                    isShowMesDialog.value = false
-                                                },
-                                                baseViewModel = viewModel
-                                            )
-                                        }
                                     }
 
                                     //make proposal to seller
@@ -892,13 +736,14 @@ fun OfferContent(
                                 //payment and delivery
                                 if (offerState != OfferStates.PROTOTYPE) {
                                     PaymentAndDeliverySection(
-                                        offer.dealTypes,
-                                        offer.paymentMethods,
-                                        offer.deliveryMethods,
+                                        uiState.value.dealTypeString,
+                                        uiState.value.paymentMethodString,
+                                        uiState.value.deliveryMethodString,
                                         if (!isBigScreen.value) Modifier.fillMaxWidth() else Modifier
                                     )
                                 }
                             }
+
                             item {
                                 if (offerState != OfferStates.PROTOTYPE) {
                                     //Parameters
@@ -922,7 +767,6 @@ fun OfferContent(
                     if (offerState == OfferStates.ACTIVE) {
                         AuctionBidsSection(
                             offer,
-                            viewModel.updateItemTrigger.value,
                             isDeletesBids = false,
                             onRebidClick = {
                                 if (UserData.token != "") {
@@ -942,7 +786,6 @@ fun OfferContent(
                     if (offerState == OfferStates.ACTIVE) {
                         AuctionBidsSection(
                             offer,
-                            viewModel.updateItemTrigger.value,
                             isDeletesBids = true,
                             onRebidClick = {
                                 if (UserData.token != "") {
@@ -1000,7 +843,7 @@ fun OfferContent(
                 showDialog.value,
                 myMaximalBid.value,
                 onDismiss = {
-                    viewModel.closeDialog()
+                    viewModel.clearDialogFields()
                 },
                 onSuccess = {
                     viewModel.addBid(
@@ -1008,13 +851,13 @@ fun OfferContent(
                         offer,
                         onSuccess = {
                             viewModel.updateBidsInfo(offer)
-                            viewModel.closeDialog()
+                            viewModel.clearDialogFields()
                             scope.launch {
                                 stateColumn.animateScrollToItem(goToBids)
                             }
                         },
                         onDismiss = {
-                            viewModel.closeDialog()
+                            viewModel.clearDialogFields()
                         }
                     )
                 },
@@ -1033,6 +876,56 @@ fun OfferContent(
                 close = { fullRefresh ->
                     viewModel.clearDialogFields()
                     viewModel.refreshPage()
+                }
+            )
+
+            CustomDialog(
+                showDialog = showDialog.value,
+                title = AnnotatedString(""),
+                body = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        SeparatorLabel(
+                            stringResource(strings.chooseAmountLabel)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(dimens.mediumPadding),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ListPicker(
+                                state = valuesPickerState,
+                                items = uiState.value.buyNowCounts,
+                                visibleItemsCount = 3,
+                                modifier = Modifier.fillMaxWidth(0.5f),
+                                textModifier = Modifier.padding(dimens.smallPadding),
+                                textStyle = MaterialTheme.typography.titleLarge,
+                                dividerColor = colors.textA0AE
+                            )
+                        }
+                    }
+                },
+                onSuccessful = {
+                  viewModel.buyNowSuccessDialog(offer, valuesPickerState.selectedItem.toIntOrNull() ?: 1)
+                },
+                onDismiss = {
+                    viewModel.clearDialogFields()
+                }
+            )
+
+            CreateSubscribeDialog(
+                errorString.value != "",
+                errorString.value,
+                onDismiss = {
+                    viewModel.clearDialogFields()
+                },
+                goToSubscribe = {
+                    component.goToSubscribes()
+                    viewModel.clearDialogFields()
                 }
             )
         }
@@ -1122,45 +1015,11 @@ fun DescriptionHtmlOffer(
 }
 
 @Composable
-fun getCountString(offerState: OfferStates, offer: Offer): String {
-    val saleType = offer.saleType
-    val isCompleted = offerState == OfferStates.COMPLETED
-    val isCompletedOrInActive = isCompleted || offerState == OfferStates.INACTIVE
-
-    val quantityInfo = "${stringResource(strings.quantityParameterName)}: ${offer.estimatedActiveOffersCount}"
-
-    val qFullInfo = "${stringResource(strings.quantityParameterName)}: ${offer.currentQuantity} ${stringResource(strings.fromParameterName)} ${offer.originalQuantity}"
-
-    return when {
-        saleType == "buy_now" -> {
-            if (isCompletedOrInActive) {
-                quantityInfo
-            } else {
-                qFullInfo
-            }
-        }
-
-        saleType == "auction_with_buy_now" && offer.originalQuantity > 1 -> {
-            if (isCompletedOrInActive) {
-                quantityInfo
-            } else {
-                qFullInfo
-            }
-        }
-
-        else -> ""
-    }
-}
-
-@Composable
 fun AuctionPriceLayout(
     offer: Offer,
-    updateTrigger: Int,
     onAddBidClick: (String) -> Unit,
     modifier: Modifier
 ) {
-    if (updateTrigger < 0) return
-
     val myMaximalBid = remember {
         mutableStateOf(
             TextFieldValue(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "")
@@ -1555,7 +1414,7 @@ fun TimeOfferSession(
         val endTime = offer.session?.end?.toLongOrNull()
 
         // AnnotatedString to track the styled remaining time
-        val remainingTime = when (state) {
+        val remainingTime = remember(state) { when (state) {
             OfferStates.ACTIVE -> {
                 if (endTime != null) {
                     buildAnnotatedString {
@@ -1602,7 +1461,7 @@ fun TimeOfferSession(
             else -> {
                 AnnotatedString("")
             }
-        }
+        } }
 
         Row(
             modifier = Modifier
@@ -1638,59 +1497,11 @@ fun TimeOfferSession(
     }
 }
 
-fun formatRemainingTimeAnnotated(
-    millisUntilFinished: Long,
-    beforeGraduationLabel: String,
-    daysLabel: String,
-    hoursLabel: String,
-    minutesLabel: String,
-    secondsLabel: String
-): AnnotatedString {
-    val days = millisUntilFinished / (1000 * 60 * 60 * 24)
-    val hours = (millisUntilFinished / (1000 * 60 * 60)) % 24
-    val minutes = (millisUntilFinished / (1000 * 60)) % 60
-    val seconds = (millisUntilFinished / 1000) % 60
-
-    return buildAnnotatedString {
-        if (days > 0) {
-            append("$days ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(daysLabel)
-            }
-            append(" $beforeGraduationLabel")
-        } else {
-            if (hours > 0) {
-                append("$hours ")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(hoursLabel)
-                }
-                append(" ")
-            }
-            if (minutes > 0) {
-                append("$minutes ")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(minutesLabel)
-                }
-                append(" ")
-            }
-
-            if (seconds > 0) {
-                append("$seconds ")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(secondsLabel)
-                }
-            }
-
-            append(" $beforeGraduationLabel")
-        }
-    }
-}
-
 @Composable
 fun PaymentAndDeliverySection(
-    dealTypes: List<DealType>?,
-    paymentMethods: List<PaymentMethod>?,
-    deliveryMethods: List<DeliveryMethod>?,
+    dealTypesString: String,
+    paymentMethodsString: String,
+    deliveryMethodsString: String,
     modifier: Modifier
 ) {
     Column(
@@ -1711,80 +1522,20 @@ fun PaymentAndDeliverySection(
             // Deal Types
             InfoBlock(
                 title = stringResource(strings.dealTypeLabel),
-                content = dealTypes?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
+                content = dealTypesString
             )
-
             // Payment Methods
             InfoBlock(
                 title = stringResource(strings.paymentMethodLabel),
-                content = paymentMethods?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
+                content = paymentMethodsString
             )
-
             // Delivery Methods
             InfoBlock(
                 title = stringResource(strings.deliveryMethodLabel),
-                content = formatDeliveryMethods(deliveryMethods)
+                content = deliveryMethodsString
             )
         }
     }
-}
-
-@Composable
-fun InfoBlock(title: String, content: String) {
-    Column(
-        modifier = Modifier
-            .padding(vertical = dimens.smallPadding),
-        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-        horizontalAlignment = Alignment.Start
-    ) {
-        // Title
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = colors.grayText,
-        )
-
-        // Content
-        Text(
-            text = content,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.black,
-        )
-    }
-}
-
-@Composable
-fun formatDeliveryMethods(deliveryMethods: List<DeliveryMethod>?): String {
-    val currencySign = stringResource(strings.currencySign)
-    val withCountry = stringResource(strings.withinCountry)
-    val withWorld = stringResource(strings.withinWorld)
-    val withCity = stringResource(strings.withinCity)
-    val comment = stringResource(strings.commentLabel)
-
-    return deliveryMethods?.joinToString(separator = "\n\n") { dm ->
-        buildString {
-            append(dm.name)
-            dm.priceWithinCity?.let { price ->
-                if (price.toDouble().toLong() != -1L) {
-                    append("\n$withCity $price$currencySign")
-                }
-            }
-            dm.priceWithinCountry?.let { price ->
-                if (price.toDouble().toLong() != -1L) {
-                    append("\n$withCountry $price$currencySign")
-                }
-            }
-            dm.priceWithinWorld?.let { price ->
-                if (price.toDouble().toLong() != -1L) {
-                    append("\n$withWorld $price$currencySign")
-                }
-            }
-            if (!dm.comment.isNullOrEmpty()) {
-                append("\n$comment ${dm.comment}")
-            }
-        }
-    } ?: ""
 }
 
 @Composable
@@ -1818,31 +1569,14 @@ fun ParametersSection(
 }
 
 @Composable
-fun formatParameterValue(value: Value?): String {
-    return buildString {
-        value?.valueFree?.let { append(it) }
-
-        value?.valueChoices?.forEach {
-            if (isNotEmpty()) append("; ")
-            append(it.name)
-        }
-
-        if (isNotEmpty() && last() == ' ') {
-            dropLast(2)
-        }
-    }
-}
-
-@Composable
 fun AuctionBidsSection(
     offer: Offer,
-    updateTrigger : Int,
     isDeletesBids : Boolean,
     onRebidClick: (id: Long) -> Unit,
     goToUser: (id: Long) -> Unit = {}
 ) {
-    if (updateTrigger < 0) return
     val bids = if(isDeletesBids) offer.removedBids else offer.bids
+
     if (bids != null) {
         SeparatorLabel(
             title = stringResource(strings.bidsLabel),
@@ -1866,8 +1600,8 @@ fun AuctionBidsSection(
 
         ColumnWithScrollBars(
             modifier = Modifier.background(color = colors.white, shape = MaterialTheme.shapes.small)
-            .heightIn(max = 400.dp)
-            .padding(bottom = dimens.largePadding, top = dimens.mediumPadding)
+                .heightIn(max = 400.dp)
+                .padding(bottom = dimens.largePadding, top = dimens.mediumPadding)
         ) {
             // Header row
             Row(
@@ -1933,5 +1667,30 @@ fun AuctionBidsSection(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun InfoBlock(title: String, content: String) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = dimens.smallPadding),
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+        horizontalAlignment = Alignment.Start
+    ) {
+        // Title
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = colors.grayText,
+        )
+
+        // Content
+        Text(
+            text = content,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.black,
+        )
     }
 }

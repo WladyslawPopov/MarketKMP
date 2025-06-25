@@ -34,7 +34,7 @@ import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
-import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.createSubscription.DefaultCreateSubscriptionComponent
 import market.engine.fragments.root.main.listing.SearchConfig.CreateOfferScreen
 import market.engine.fragments.root.main.listing.SearchConfig.ListingScreen
 import market.engine.fragments.root.main.listing.SearchConfig.OfferScreen
@@ -371,13 +371,14 @@ fun createSearchChild(
 
         is SearchConfig.CreateSubscriptionScreen -> {
             ChildSearch.CreateSubscriptionChild(
-                component = createSubscriptionFactory(
-                    componentContext = componentContext,
-                    editId = config.editId,
-                    navigateBack = {
-                        searchNavigation.pop()
-                    }
-                )
+                component =
+                    DefaultCreateSubscriptionComponent(
+                        componentContext,
+                        config.editId,
+                        navigateBack = {
+                            searchNavigation.pop()
+                        },
+                    )
             )
         }
     }

@@ -1,8 +1,10 @@
 package market.engine.fragments.root.main.offer
 
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,19 +15,24 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.Platform
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
 import market.engine.common.openShare
+import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.ServerErrorException
@@ -36,6 +43,7 @@ import market.engine.core.utils.deserializePayload
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.User
 import market.engine.core.utils.getCurrentDate
@@ -45,17 +53,28 @@ import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
 
 data class OfferViewState(
-    val appBarData: SimpleAppBarData = SimpleAppBarData(),
+    val appBarData: SimpleAppBarData = SimpleAppBarData(
+        onBackClick = {},
+        listItems = emptyList(),
+        menuItems = emptyList(),
+        closeMenu = {}
+    ),
     val offer: Offer = Offer(),
 
     val statusList: List<String> = emptyList(),
     val promoList: List<MenuItem> = emptyList(),
     val menuList: List<MenuItem> = emptyList(),
     val images: List<String> = emptyList(),
+    val columns: StaggeredGridCells = StaggeredGridCells.Fixed(1),
+    val countString : String = "",
+    val buyNowCounts : List<String> = emptyList(),
+
+    val dealTypeString : String = "",
+    val deliveryMethodString : String = "",
+    val paymentMethodString : String = "",
 
     val isMyOffer: Boolean = false,
     val offerState: OfferStates = OfferStates.ACTIVE,
-    val remainingTime: Long = 1
 )
 
 class OfferViewModel(
@@ -75,6 +94,7 @@ class OfferViewModel(
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
     private val _remainingTime = MutableStateFlow(0L)
+    val remainingTime: StateFlow<Long> = _remainingTime.asStateFlow()
 
     private var timerJob: Job? = null
     private var timerBidsJob: Job? = null
@@ -82,6 +102,9 @@ class OfferViewModel(
 
     private val _showDialog = MutableStateFlow(false)
     val showDialog = _showDialog.asStateFlow()
+
+    private val _errorString = MutableStateFlow("")
+    val errorString = _errorString.asStateFlow()
 
     val showOperationsDialog = MutableStateFlow("")
     val titleDialog = MutableStateFlow(AnnotatedString(""))
@@ -96,12 +119,11 @@ class OfferViewModel(
 
     val offerViewState : StateFlow<OfferViewState> = combine(
         _responseOffer,
-        _remainingTime,
         _menuList,
         _operationsList,
         _promoList
-    ) { offer, remainingTime, menuList, operationsList, promoList ->
-        if (offer == null) return@combine OfferViewState(remainingTime = remainingTime)
+    ) { offer, menuList, operationsList, promoList ->
+        if (offer == null) return@combine OfferViewState()
 
         val images = when {
             offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() }
@@ -176,9 +198,6 @@ class OfferViewModel(
         } else {
             _remainingTime.value = initTimer
         }
-
-        getCategoriesHistory(offer.catpath)
-        updateUserInfo()
 
         myMaximalBid.value = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: ""
 
@@ -295,6 +314,10 @@ class OfferViewModel(
 
         offer.isProposalEnabled = operationsList.find { it.id == "make_proposal" } != null
 
+        val columns  = if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
+
+        val counts = (1..offer.originalQuantity).map { it.toString() }
+
         OfferViewState(
             appBarData = SimpleAppBarData(
                 onBackClick = {
@@ -310,10 +333,15 @@ class OfferViewModel(
             statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
             promoList = promoList,
             menuList = operationsList,
+            columns = columns,
             images = images,
+            countString = getCountString(offerState, offer),
+            buyNowCounts = counts,
             isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
             offerState = offerState,
-            remainingTime = remainingTime
+            dealTypeString = offer.dealTypes?.joinToString(separator = ". ") { it.name ?: "" } ?: "",
+            deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
+            paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
         )
     }.stateIn(
         viewModelScope,
@@ -323,39 +351,6 @@ class OfferViewModel(
 
     init {
         refreshPage()
-    }
-
-    fun onAddBidClick(bid : String){
-        if (UserData.token != "") {
-            myMaximalBid.value = bid
-            openDialog()
-        } else {
-            component.goToLogin()
-        }
-    }
-    fun openDialog(){
-        _showDialog.value = true
-    }
-
-    fun closeDialog(){
-        _showDialog.value = false
-    }
-
-    fun updateUserState(id: Long){
-        viewModelScope.launch {
-            val user = withContext(Dispatchers.IO) {
-                getUserInfo(id)
-            }
-            withContext(Dispatchers.Main) {
-                if (user != null) {
-                    _responseOffer.update {
-                        it?.copy(
-                            sellerData = user
-                        )
-                    }
-                }
-            }
-        }
     }
 
     fun refreshPage() {
@@ -393,6 +388,7 @@ class OfferViewModel(
                 setLoading(true)
                 getHistory(offerId)
                 getOurChoice(offerId)
+                updateUserInfo()
 
                 withContext(Dispatchers.IO) {
                     val response =
@@ -401,6 +397,7 @@ class OfferViewModel(
                     val data = deserializePayload(response.payload, serializer).firstOrNull()
                     data?.let { offer ->
                         updateOperations(offer)
+                        getCategoriesHistory(offer.catpath)
                         _responseOffer.value = offer
                     }
                 }
@@ -577,6 +574,8 @@ class OfferViewModel(
         dialogItemId.value = 1
         fieldsDialog.value.clear()
         showOperationsDialog.value = ""
+        _showDialog.value = false
+        _errorString.value = ""
     }
 
     suspend fun getUserInfo(id: Long) : User? {
@@ -607,7 +606,6 @@ class OfferViewModel(
             null
         }
     }
-
 
     private fun getHistory(currentId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -712,6 +710,36 @@ class OfferViewModel(
         }
     }
 
+    fun onAddBidClick(bid : String){
+        if (UserData.token != "") {
+            myMaximalBid.value = bid
+            openDialog()
+        } else {
+            component.goToLogin()
+        }
+    }
+
+    fun openDialog(){
+        _showDialog.value = true
+    }
+
+    fun updateUserState(id: Long){
+        viewModelScope.launch {
+            val user = withContext(Dispatchers.IO) {
+                getUserInfo(id)
+            }
+            withContext(Dispatchers.Main) {
+                if (user != null) {
+                    _responseOffer.update {
+                        it?.copy(
+                            sellerData = user
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun calculateNewInterval(millisUntilFinished: Long): Long {
         return when {
             millisUntilFinished > 2 * 60 * 1000 -> 10_000L // Every 10 seconds
@@ -743,6 +771,133 @@ class OfferViewModel(
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
+            }
+        }
+    }
+
+    fun buyNowSuccessDialog(offer: Offer, valuesPicker: Int){
+        val item = Pair(
+            offer.sellerData?.id ?: 1L, listOf(
+                SelectedBasketItem(
+                    offerId = offer.id,
+                    pricePerItem = offer.currentPricePerItem?.toDouble()
+                        ?: 0.0,
+                    selectedQuantity = valuesPicker
+                )
+            )
+        )
+        component.goToCreateOrder(item)
+        clearDialogFields()
+    }
+
+    fun buyNowClick(offer: Offer){
+        if (UserData.token != "") {
+            if (offer.originalQuantity > 1) {
+                openDialog()
+            } else {
+                val item = Pair(
+                    offer.sellerData?.id ?: 1L, listOf(
+                        SelectedBasketItem(
+                            offerId = offer.id,
+                            pricePerItem = offer.currentPricePerItem?.toDouble()
+                                ?: 0.0,
+                            selectedQuantity = 1
+                        )
+                    )
+                )
+                component.goToCreateOrder(item)
+            }
+        } else {
+            component.goToLogin()
+        }
+    }
+
+    fun onAddToCartClick(offer: Offer){
+        if (UserData.token != "") {
+            val bodyAddB = HashMap<String, JsonElement>()
+            bodyAddB["offer_id"] = JsonPrimitive(offer.id)
+            addOfferToBasket(
+                bodyAddB
+            ) { hm ->
+                showToast(
+                    successToastItem.copy(
+                        message = hm
+                    )
+                )
+            }
+        } else {
+            component.goToLogin()
+        }
+    }
+
+    fun addToSubscriptions(offer: Offer){
+        if (UserData.token != "") {
+            addNewSubscribe(
+                LD(),
+                SD().copy(
+                    userLogin = offer.sellerData?.login,
+                    userID = offer.sellerData?.id ?: 1L,
+                    userSearch = true
+                ),
+                onSuccess = {
+                    updateUserState(offer.sellerData?.id ?: 1L)
+                },
+                errorCallback = { es ->
+                    _errorString.value = es
+                }
+            )
+        } else {
+            component.goToLogin()
+        }
+    }
+
+    fun openMesDialog(offer: Offer){
+        viewModelScope.launch {
+            if (UserData.token != "") {
+                val userName = offer.sellerData?.login ?: getString(strings.sellerLabel)
+                val conversationTitle = getString(strings.createConversationLabel)
+                val aboutOrder = getString(strings.aboutOfferLabel)
+                titleDialog.value = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = colors.grayText,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append(
+                            conversationTitle
+                        )
+                    }
+
+                    withStyle(
+                        SpanStyle(
+                            color = colors.actionTextColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append(" $userName ")
+                    }
+
+                    withStyle(
+                        SpanStyle(
+                            color = colors.grayText,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append(aboutOrder)
+                    }
+
+                    withStyle(
+                        SpanStyle(
+                            color = colors.titleTextColor,
+                        )
+                    ) {
+                        append(" #${offer.id}")
+                    }
+                }
+                showOperationsDialog.value = "send_message"
+            } else {
+                component.goToLogin()
             }
         }
     }
@@ -802,5 +957,67 @@ class OfferViewModel(
     fun clearTimers() {
         timerJob?.cancel()
         timerBidsJob?.cancel()
+    }
+
+    private suspend fun getCountString(offerState: OfferStates, offer: Offer): String {
+        val saleType = offer.saleType
+        val isCompleted = offerState == OfferStates.COMPLETED
+        val isCompletedOrInActive = isCompleted || offerState == OfferStates.INACTIVE
+
+        val quantityInfo = "${getString(strings.quantityParameterName)}: ${offer.estimatedActiveOffersCount}"
+
+        val qFullInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity} ${getString(strings.fromParameterName)} ${offer.originalQuantity}"
+
+        return when {
+            saleType == "buy_now" -> {
+                if (isCompletedOrInActive) {
+                    quantityInfo
+                } else {
+                    qFullInfo
+                }
+            }
+
+            saleType == "auction_with_buy_now" && offer.originalQuantity > 1 -> {
+                if (isCompletedOrInActive) {
+                    quantityInfo
+                } else {
+                    qFullInfo
+                }
+            }
+
+            else -> ""
+        }
+    }
+
+    private suspend fun formatDeliveryMethods(deliveryMethods: List<DeliveryMethod>?): String {
+        val currencySign = getString(strings.currencySign)
+        val withCountry = getString(strings.withinCountry)
+        val withWorld = getString(strings.withinWorld)
+        val withCity = getString(strings.withinCity)
+        val comment = getString(strings.commentLabel)
+
+        return deliveryMethods?.joinToString(separator = "\n\n") { dm ->
+            buildString {
+                append(dm.name)
+                dm.priceWithinCity?.let { price ->
+                    if (price.toDouble().toLong() != -1L) {
+                        append("\n$withCity $price$currencySign")
+                    }
+                }
+                dm.priceWithinCountry?.let { price ->
+                    if (price.toDouble().toLong() != -1L) {
+                        append("\n$withCountry $price$currencySign")
+                    }
+                }
+                dm.priceWithinWorld?.let { price ->
+                    if (price.toDouble().toLong() != -1L) {
+                        append("\n$withWorld $price$currencySign")
+                    }
+                }
+                if (!dm.comment.isNullOrEmpty()) {
+                    append("\n$comment ${dm.comment}")
+                }
+            }
+        } ?: ""
     }
 }

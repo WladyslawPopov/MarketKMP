@@ -37,7 +37,7 @@ import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
-import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.createSubscription.DefaultCreateSubscriptionComponent
 import market.engine.fragments.root.main.listing.DefaultListingComponent
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.fragments.root.main.listing.ListingContent
@@ -389,12 +389,13 @@ fun createBasketChild(
         )
 
         is BasketConfig.CreateSubscriptionScreen -> ChildBasket.CreateSubscriptionChild(
-            component = createSubscriptionFactory(
-                componentContext,
-                config.editId,
-                navigateBack = {
-                    basketNavigation.pop()
-                }
-            )
+            component =
+                DefaultCreateSubscriptionComponent(
+                    componentContext,
+                    config.editId,
+                    navigateBack = {
+                        basketNavigation.pop()
+                    },
+                )
         )
     }

@@ -13,7 +13,6 @@ import market.engine.core.network.networkObjects.Region
 import market.engine.core.network.networkObjects.User
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.ServerErrorException
 import org.koin.mp.KoinPlatform.getKoin
 
 interface OfferComponent {

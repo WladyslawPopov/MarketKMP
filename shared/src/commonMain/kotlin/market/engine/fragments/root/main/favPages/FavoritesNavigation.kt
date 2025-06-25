@@ -36,7 +36,7 @@ import market.engine.fragments.root.main.createOrder.CreateOrderContent
 import market.engine.fragments.root.main.createOrder.createOrderFactory
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
-import market.engine.fragments.root.main.createSubscription.createSubscriptionFactory
+import market.engine.fragments.root.main.createSubscription.DefaultCreateSubscriptionComponent
 import market.engine.fragments.root.main.favPages.FavoritesConfig.CreateOfferScreen
 import market.engine.fragments.root.main.favPages.FavoritesConfig.CreateOrderScreen
 import market.engine.fragments.root.main.favPages.FavoritesConfig.ListingScreen
@@ -335,12 +335,12 @@ fun createFavoritesChild(
         )
 
     is FavoritesConfig.CreateSubscriptionScreen -> ChildFavorites.CreateSubscriptionChild(
-        createSubscriptionFactory(
-            componentContext = componentContext,
-            editId = config.editId,
+        DefaultCreateSubscriptionComponent(
+            componentContext,
+            config.editId,
             navigateBack = {
                 favoritesNavigation.pop()
-            }
+            },
         )
     )
 
