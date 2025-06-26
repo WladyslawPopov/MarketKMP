@@ -34,7 +34,7 @@ class ProposalViewModel: BaseViewModel() {
 
     val firstVisibleItem = MutableStateFlow(0)
 
-    val rememberFields = mutableStateOf<MutableMap<Long, List<Fields>?>>(mutableMapOf())
+    val rememberFields = mutableStateOf<MutableMap<Long, ArrayList<Fields>?>>(mutableMapOf())
 
     val rememberChoice = mutableStateOf<MutableMap<Long, Int>>(mutableMapOf())
 
@@ -67,7 +67,7 @@ class ProposalViewModel: BaseViewModel() {
         }
     }
 
-    suspend fun getFieldsProposal(offerId : Long, buyerId : Long, proposalType : String) : List<Fields>?{
+    suspend fun getFieldsProposal(offerId : Long, buyerId : Long, proposalType : String) : ArrayList<Fields>?{
         val buffer = withContext(Dispatchers.IO) {
             operationsMethods.getOperationFields(offerId, proposalType, "offers")
         }
@@ -80,7 +80,7 @@ class ProposalViewModel: BaseViewModel() {
                 }else{
                     mutableMapOf(Pair(buyerId, 0))
                 }
-                return@withContext payload.fields
+                return@withContext ArrayList(payload.fields)
             }else{
                 if (error != null) {
                     onError(error)
@@ -90,7 +90,7 @@ class ProposalViewModel: BaseViewModel() {
         }
     }
 
-    fun confirmProposal(offerId : Long, proposalType : ProposalType, fields: List<Fields>, onSuccess: () -> Unit, onError: (List<Fields>) -> Unit) {
+    fun confirmProposal(offerId : Long, proposalType : ProposalType, fields: ArrayList<Fields>, onSuccess: () -> Unit, onError: (ArrayList<Fields>) -> Unit) {
         setLoading(true)
         viewModelScope.launch {
             val bodyProposals = HashMap<String,JsonElement>()
@@ -165,7 +165,7 @@ class ProposalViewModel: BaseViewModel() {
                                 )
                             )
 
-                            onError(payload.recipe?.fields ?: payload.fields)
+                            onError(ArrayList(payload.recipe?.fields ?: payload.fields))
                         }
                     }else{
                         throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())

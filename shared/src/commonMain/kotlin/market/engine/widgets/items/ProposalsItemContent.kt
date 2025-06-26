@@ -14,10 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -496,7 +494,7 @@ fun ProposalsItemContent(
                     }
 
                     if (showBody.value) {
-                        getBody(offer.id, type, proposals.buyerInfo?.id ?: 1L, viewModel, refresh)
+                        GetBody(offer.id, type, proposals.buyerInfo?.id ?: 1L, viewModel, refresh)
                     }
 
                     if (showEnd.value) {
@@ -566,7 +564,7 @@ fun ProposalsItemContent(
                         .padding(dimens.mediumPadding)
                         .fillMaxWidth(),
                 ) {
-                    getBody(offer.id, type, proposals.buyerInfo?.id ?: 0L, viewModel, refresh)
+                    GetBody(offer.id, type, proposals.buyerInfo?.id ?: 0L, viewModel, refresh)
                 }
             }
         }
@@ -574,7 +572,7 @@ fun ProposalsItemContent(
 }
 
 @Composable
-fun getBody(
+fun GetBody(
     offerId: Long,
     proposalType: ProposalType,
     buyerId : Long,
@@ -582,204 +580,204 @@ fun getBody(
     refresh : () -> Unit
 ) {
     val fieldsState = remember { mutableStateOf(viewModel.rememberFields.value[buyerId]) }
-    var fields by remember(fieldsState.value) { mutableStateOf(fieldsState.value ?: emptyList()) }
+    val fields = fieldsState.value
 
-    LaunchedEffect(fieldsState.value) {
+    LaunchedEffect(fieldsState.value){
         if (fieldsState.value == null) {
-            fieldsState.value = viewModel.getFieldsProposal(
-                offerId,
-                buyerId,
-                if (proposalType == ProposalType.MAKE_PROPOSAL) "make_proposal" else "act_on_proposal"
-            )
+            fieldsState.value = viewModel.getFieldsProposal(offerId, buyerId, if(proposalType == ProposalType.MAKE_PROPOSAL) "make_proposal" else "act_on_proposal")
             viewModel.rememberFields.value.remove(buyerId)
             viewModel.rememberFields.value[buyerId] = fieldsState.value
-        } else {
+        }else{
             fieldsState.value?.find { it.key == "quantity" }?.data = JsonPrimitive(1)
         }
     }
 
-    val quantityTextState = remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = (fields.find { it.key == "quantity" }?.data?.jsonPrimitive?.intOrNull
-                    ?: 1).toString()
+    if(fields != null) {
+        val quantityTextState = remember {
+            mutableStateOf(
+                TextFieldValue(
+                    text = (fields.find { it.key == "quantity" }?.data?.jsonPrimitive?.intOrNull
+                        ?: 1).toString()
+                )
             )
-        )
-    }
-    val priceTextState = remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = fields.find { it.key == "price" }?.data?.jsonPrimitive?.content ?: ""
+        }
+        val priceTextState = remember {
+            mutableStateOf(
+                TextFieldValue(
+                    text = fields.find { it.key == "price" }?.data?.jsonPrimitive?.content ?: ""
+                )
             )
-        )
-    }
-    val commentTextState = remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = fields.find { it.key == "comment" }?.data?.jsonPrimitive?.content ?: ""
+        }
+        val commentTextState = remember {
+            mutableStateOf(
+                TextFieldValue(
+                    text = fields.find { it.key == "comment" }?.data?.jsonPrimitive?.content ?: ""
+                )
             )
+        }
+
+        val currency = stringResource(strings.currencyCode)
+        val forLabel = stringResource(strings.forLabel)
+        val counterLabel = stringResource(strings.countsSign)
+
+        val errorState = remember { mutableStateOf<String?>(null) }
+
+        val selectedChoice =
+            remember { mutableStateOf(viewModel.rememberChoice.value[buyerId] ?: 0) }
+
+        val focusManager = LocalFocusManager.current
+
+        Column(
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         )
-    }
+        {
 
-    val currency = stringResource(strings.currencyCode)
-    val forLabel = stringResource(strings.forLabel)
-    val counterLabel = stringResource(strings.countsSign)
-
-    val errorState = remember { mutableStateOf<String?>(null) }
-
-    val selectedChoice = remember { mutableStateOf(viewModel.rememberChoice.value[buyerId] ?: 0) }
-
-    val focusManager = LocalFocusManager.current
-
-    Column(
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                focusManager.clearFocus()
-            })
-        },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-    ) {
-
-        fields.forEach { field ->
-            when (field.key) {
-                "type" -> {
-                    if (buyerId != 0L) {
-                        DynamicRadioButtons(field) { isChecked, choice ->
-                            if (isChecked) {
-                                selectedChoice.value = choice
-                            } else {
-                                selectedChoice.value = 0
-                            }
-                            viewModel.rememberChoice.value[buyerId] = selectedChoice.value
-
-                            if (selectedChoice.value != 2) {
-                                priceTextState.value = TextFieldValue(text = "")
-                                commentTextState.value = TextFieldValue(text = "")
-                                quantityTextState.value = TextFieldValue(text = "")
-                                errorState.value = null
-
-                                fields.find { it.key == "comment" }?.data = null
-                                fields.find { it.key == "price" }?.data = null
-                                fields.find { it.key == "quantity" }?.data = null
-                            }
-                        }
-                    }
-                }
-
-                "comment" -> {
-                    AnimatedVisibility(selectedChoice.value == 2) {
-                        val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
-
-                        val labelString = buildString {
-                            when {
-                                field.shortDescription != null -> append(field.shortDescription)
-                                field.longDescription != null -> append(field.longDescription)
-                            }
-                        }
-
-                        OutlinedTextInputField(
-                            value = commentTextState.value,
-                            onValueChange = {
-                                field.data = JsonPrimitive(it.text)
-                                commentTextState.value = it
-                            },
-                            singleLine = false,
-                            maxSymbols = maxSymbols,
-                            label = labelString,
-                            keyboardType = KeyboardType.Text,
-                        )
-                    }
-                }
-
-                "price", "quantity" -> {
-                    AnimatedVisibility(selectedChoice.value == 2) {
-                        val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
-                        val maxNumber =
-                            field.validators?.find { it.type == "between" }?.parameters?.max
-
-                        val labelString = buildString {
-                            when {
-                                field.shortDescription != null -> append(field.shortDescription)
-                                field.longDescription != null -> append(field.longDescription)
-                            }
-                            if (maxNumber != null) {
-                                append("( ${stringResource(strings.totalLabel)}")
-                                append(" $maxNumber )")
-                            }
-                        }
-
-                        OutlinedTextInputField(
-                            value = if (field.key == "price") priceTextState.value else quantityTextState.value,
-                            onValueChange = {
-                                if (field.key == "price") {
-                                    priceTextState.value = it
+            fields.forEach { field ->
+                when (field.key) {
+                    "type" -> {
+                        if (buyerId != 0L) {
+                            DynamicRadioButtons(field) { isChecked, choice ->
+                                if (isChecked) {
+                                    selectedChoice.value = choice
                                 } else {
-                                    quantityTextState.value = it
+                                    selectedChoice.value = 0
                                 }
+                                viewModel.rememberChoice.value[buyerId] = selectedChoice.value
 
-                                field.data = checkValidation(field, it.text)
+                                if (selectedChoice.value != 2) {
+                                    priceTextState.value = TextFieldValue(text = "")
+                                    commentTextState.value = TextFieldValue(text = "")
+                                    quantityTextState.value = TextFieldValue(text = "")
+                                    errorState.value = null
 
-                                val price = priceTextState.value.text.toDoubleOrNull() ?: 1.0
-                                val count = quantityTextState.value.text.toIntOrNull() ?: 1
-
-                                errorState.value = buildString {
-                                    append((price / count).roundToLong())
-                                    append(" ")
-                                    append(currency)
-                                    append(" ")
-                                    append(forLabel)
-                                    append(" ")
-                                    append(1)
-                                    append(" ")
-                                    append(counterLabel)
+                                    fields.find { it.key == "comment" }?.data = null
+                                    fields.find { it.key == "price" }?.data = null
+                                    fields.find { it.key == "quantity" }?.data = null
                                 }
-                            },
-                            maxSymbols = maxSymbols,
-                            maxNumber = maxNumber,
-                            isMandatory = true,
-                            label = labelString,
-                            suffix = stringResource(if (field.key == "price") strings.currencyCode else strings.countsSign),
-                            keyboardType = KeyboardType.Number,
-                            error = if (field.key == "price") errorState.value else null
-                        )
+                            }
+                        }
+                    }
+
+                    "comment" -> {
+                        AnimatedVisibility(selectedChoice.value == 2) {
+                            val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
+
+                            val labelString = buildString {
+                                when {
+                                    field.shortDescription != null -> append(field.shortDescription)
+                                    field.longDescription != null -> append(field.longDescription)
+                                }
+                            }
+
+                            OutlinedTextInputField(
+                                value = commentTextState.value,
+                                onValueChange = {
+                                    field.data = JsonPrimitive(it.text)
+                                    commentTextState.value = it
+                                },
+                                singleLine = false,
+                                maxSymbols = maxSymbols,
+                                label = labelString,
+                                keyboardType = KeyboardType.Text,
+                            )
+                        }
+                    }
+
+                    "price", "quantity" -> {
+                        AnimatedVisibility(selectedChoice.value == 2) {
+                            val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
+                            val maxNumber =
+                                field.validators?.find { it.type == "between" }?.parameters?.max
+
+                            val labelString = buildString {
+                                when {
+                                    field.shortDescription != null -> append(field.shortDescription)
+                                    field.longDescription != null -> append(field.longDescription)
+                                }
+                                if (maxNumber != null) {
+                                    append("( ${stringResource(strings.totalLabel)}")
+                                    append(" $maxNumber )")
+                                }
+                            }
+
+                            OutlinedTextInputField(
+                                value = if (field.key == "price") priceTextState.value else quantityTextState.value,
+                                onValueChange = {
+                                    if (field.key == "price") {
+                                        priceTextState.value = it
+                                    } else {
+                                        quantityTextState.value = it
+                                    }
+
+                                    field.data = checkValidation(field, it.text)
+
+                                    val price = priceTextState.value.text.toDoubleOrNull() ?: 1.0
+                                    val count = quantityTextState.value.text.toIntOrNull() ?: 1
+
+                                    errorState.value = buildString {
+                                        append((price / count).roundToLong())
+                                        append(" ")
+                                        append(currency)
+                                        append(" ")
+                                        append(forLabel)
+                                        append(" ")
+                                        append(1)
+                                        append(" ")
+                                        append(counterLabel)
+                                    }
+                                },
+                                maxSymbols = maxSymbols,
+                                maxNumber = maxNumber,
+                                isMandatory = true,
+                                label = labelString,
+                                suffix = stringResource(if (field.key == "price") strings.currencyCode else strings.countsSign),
+                                keyboardType = KeyboardType.Number,
+                                error = if (field.key == "price") errorState.value else null
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SimpleTextButton(
-                stringResource(strings.actionConfirm),
-                backgroundColor = colors.inactiveBottomNavIconColor,
-                textColor = colors.alwaysWhite,
-                enabled = !viewModel.isShowProgress.value && (selectedChoice.value != 2 || priceTextState.value.text.isNotBlank())
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (fields.find { it.key == "type" }?.data == null) {
-                    fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice.value)
-                }
-                if (buyerId != 1L) {
-                    fields.find { it.key == "buyer_id" }?.data = JsonPrimitive(buyerId)
-                }
-
-                viewModel.confirmProposal(
-                    offerId,
-                    proposalType,
-                    fields = fields,
-                    onSuccess = {
-                        fields = emptyList()
-                        viewModel.rememberChoice.value[buyerId] = 0
-                        viewModel.rememberFields.value[buyerId] = fields
-                        refresh()
-                    },
-                    onError = { fields ->
-                        fieldsState.value = fields
+                SimpleTextButton(
+                    stringResource(strings.actionConfirm),
+                    backgroundColor = colors.inactiveBottomNavIconColor,
+                    textColor = colors.alwaysWhite,
+                    enabled = !viewModel.isShowProgress.value && (selectedChoice.value != 2 || priceTextState.value.text.isNotBlank())
+                ) {
+                    if (fields.find { it.key == "type" }?.data == null) {
+                        fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice.value)
                     }
-                )
+                    if (buyerId != 1L) {
+                        fields.find { it.key == "buyer_id" }?.data = JsonPrimitive(buyerId)
+                    }
+
+                    viewModel.confirmProposal(
+                        offerId,
+                        proposalType,
+                        fields = fields,
+                        onSuccess = {
+                            fields.clear()
+                            viewModel.rememberChoice.value[buyerId] = 0
+                            viewModel.rememberFields.value[buyerId] = fields
+                            refresh()
+                        },
+                        onError = { fields ->
+                            fieldsState.value = fields
+                        }
+                    )
+                }
             }
         }
     }
