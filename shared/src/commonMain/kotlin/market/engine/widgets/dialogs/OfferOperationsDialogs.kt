@@ -27,22 +27,23 @@ import org.jetbrains.compose.resources.stringResource
 fun OfferOperationsDialogs(
     offerId : Long,
     title: AnnotatedString,
-    fields: ArrayList<Fields>,
+    initFields: List<Fields>,
     showDialog: String,
     viewModel : BaseViewModel,
     updateItem: (Long) -> Unit,
     onSuccess: (Long?) -> Unit = {},
     close : (fullRefresh : Boolean) -> Unit
 ) {
+    val fields = mutableStateOf(ArrayList(initFields))
     val isClicked = remember { mutableStateOf(false) }
     val showFields = remember { mutableStateOf(false) }
 
     val getOffersListFields : (ArrayList<Fields>) -> Unit by lazy {
-        { fields ->
+        { choicesFields ->
             viewModel.getOffersList { list ->
                 when (showDialog) {
                     "add_to_list" -> {
-                        fields.firstOrNull()?.choices = buildList {
+                        choicesFields.firstOrNull()?.choices = buildList {
                             list.filter { !it.offers.contains(offerId) }.fastForEach { item ->
                                 add(
                                     Choices(
@@ -55,7 +56,7 @@ fun OfferOperationsDialogs(
                     }
 
                     "remove_from_list" -> {
-                        fields.firstOrNull()?.choices = buildList {
+                        choicesFields.firstOrNull()?.choices = buildList {
                             list.filter { it.offers.contains(offerId) }.fastForEach { item ->
                                 add(
                                     Choices(
@@ -76,16 +77,16 @@ fun OfferOperationsDialogs(
                                     name = it.title
                                 )
                             },
-                            data = fields.firstOrNull()?.data,
-                            key = fields.firstOrNull()?.key,
-                            errors = fields.firstOrNull()?.errors,
-                            shortDescription = fields.firstOrNull()?.shortDescription,
-                            longDescription = fields.firstOrNull()?.longDescription,
-                            validators = fields.firstOrNull()?.validators,
+                            data = choicesFields.firstOrNull()?.data,
+                            key = choicesFields.firstOrNull()?.key,
+                            errors = choicesFields.firstOrNull()?.errors,
+                            shortDescription = choicesFields.firstOrNull()?.shortDescription,
+                            longDescription = choicesFields.firstOrNull()?.longDescription,
+                            validators = choicesFields.firstOrNull()?.validators,
                         )
-                        fields.remove(newField)
-                        fields.add(newField)
-                        fields.fastForEach {
+                        choicesFields.remove(newField)
+                        choicesFields.add(newField)
+                        choicesFields.fastForEach {
                             if (it.widgetType == "input") {
                                 it.widgetType = "hidden"
                             }
@@ -101,7 +102,7 @@ fun OfferOperationsDialogs(
         if (showDialog != "") {
             when (showDialog) {
                 "edit_offer_in_list", "add_to_list", "remove_from_list" -> {
-                    getOffersListFields(fields)
+                    getOffersListFields(fields.value)
                 }
                 else -> {
                     showFields.value = true
@@ -202,7 +203,7 @@ fun OfferOperationsDialogs(
                     body = {
                         Column {
                             if (showFields.value) {
-                                SetUpDynamicFields(fields)
+                                SetUpDynamicFields(fields.value)
                             }
                         }
                     },
@@ -221,9 +222,9 @@ fun OfferOperationsDialogs(
                             when (showDialog) {
                                 "edit_offer_in_list" -> {
                                     val addList =
-                                        fields.find { it.widgetType == "checkbox_group" }?.data
+                                        fields.value.find { it.widgetType == "checkbox_group" }?.data
                                     val removeList = buildJsonArray {
-                                        fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
+                                        fields.value.find { it.widgetType == "checkbox_group" }?.choices?.filter {
                                             !addList.toString().contains(it.code.toString())
                                         }?.map { it.code }?.fastForEach {
                                             if (it != null) {
@@ -231,7 +232,7 @@ fun OfferOperationsDialogs(
                                             }
                                         }
                                     }
-                                    fields.forEach { field ->
+                                    fields.value.forEach { field ->
                                         if (field.widgetType == "hidden") {
                                             when (field.key) {
                                                 "offers_list_ids_add" -> {
@@ -244,7 +245,7 @@ fun OfferOperationsDialogs(
                                             }
                                         }
                                     }
-                                    fields.remove(fields.find { it.widgetType == "checkbox_group" })
+                                    fields.value.remove(fields.value.find { it.widgetType == "checkbox_group" })
                                 }
                                 "create_blank_offer_list" -> {
                                     id = UserData.login
@@ -252,7 +253,7 @@ fun OfferOperationsDialogs(
                                 }
                             }
 
-                            fields.forEach {
+                            fields.value.forEach {
                                 if (it.data != null) {
                                     body[it.key ?: ""] = it.data!!
                                 }
@@ -266,14 +267,14 @@ fun OfferOperationsDialogs(
                                 onSuccess = {
                                     isClicked.value = false
                                     updateItem(offerId)
-                                    close(showDialog == "create_blank_offer_list")
+                                    close(showDialog == "create_blank_offer_list" || showDialog == "edit_note")
                                 },
                                 errorCallback = { errFields ->
                                     isClicked.value = false
                                     if (errFields != null) {
-                                        fields.clear()
-                                        fields.addAll(errFields)
-                                        getOffersListFields(fields)
+                                        fields.value.clear()
+                                        fields.value.addAll(errFields)
+                                        getOffersListFields(fields.value)
                                     }
                                 }
                             )

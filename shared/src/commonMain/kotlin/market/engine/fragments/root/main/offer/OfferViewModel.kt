@@ -108,7 +108,7 @@ class OfferViewModel(
 
     val showOperationsDialog = MutableStateFlow("")
     val titleDialog = MutableStateFlow(AnnotatedString(""))
-    val fieldsDialog = MutableStateFlow< ArrayList<Fields>>(arrayListOf())
+    val fieldsDialog = MutableStateFlow< List<Fields>>(arrayListOf())
     val dialogItemId = MutableStateFlow(1L)
     val myMaximalBid = MutableStateFlow("")
 
@@ -245,8 +245,7 @@ class OfferViewModel(
                         onClick = {
                             getFieldsCreateBlankOfferList { t, f ->
                                 titleDialog.value = AnnotatedString(t)
-                                fieldsDialog.value.clear()
-                                fieldsDialog.value.addAll(f)
+                                fieldsDialog.value = f
                                 showOperationsDialog.value = "create_blank_offer_list"
                             }
                         }
@@ -291,7 +290,7 @@ class OfferViewModel(
             ),
             NavigationItem(
                 title = getString(strings.favoritesTitle),
-                icon = if (operationsList.find { it.id == "watch" } != null) drawables.favoritesIconSelected else drawables.favoritesIcon,
+                icon = if (operationsList.find { it.id == "watch" } == null) drawables.favoritesIconSelected else drawables.favoritesIcon,
                 tint = colors.inactiveBottomNavIconColor,
                 hasNews = false,
                 badgeCount = null,
@@ -317,7 +316,7 @@ class OfferViewModel(
         val columns  = if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
 
         val counts = (1..offer.originalQuantity).map { it.toString() }
-
+        setLoading(false)
         OfferViewState(
             appBarData = SimpleAppBarData(
                 onBackClick = {
@@ -343,6 +342,7 @@ class OfferViewModel(
             deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
             paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") { it.name ?: "" } ?: ""
         )
+
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
@@ -366,8 +366,8 @@ class OfferViewModel(
                 "offers",
                 onSuccess = { t, f ->
                     titleDialog.value = AnnotatedString(t)
-                    fieldsDialog.value.clear()
-                    fieldsDialog.value.addAll(f)
+                    fieldsDialog.value = f
+                    dialogItemId.value = id
                     showOperationsDialog.value = "edit_note"
                 }
             )
@@ -422,7 +422,7 @@ class OfferViewModel(
                             onClick = {
                                 operation.run {
                                     when {
-                                        id == "activate_offer_for_future" || id == "activate_offer" -> {
+                                        id == "activate_offer_for_future" || id == "delete_offer" || id == "finalize_session" -> {
                                             titleDialog.value = AnnotatedString(name ?: "")
                                             showOperationsDialog.value = id
                                             dialogItemId.value = offer.id
@@ -482,8 +482,7 @@ class OfferViewModel(
                                                 "offers",
                                             ) { t, f ->
                                                 titleDialog.value = AnnotatedString(t)
-                                                fieldsDialog.value.clear()
-                                                fieldsDialog.value.addAll(f)
+                                                fieldsDialog.value = f
                                                 showOperationsDialog.value = id ?: ""
                                                 dialogItemId.value = offer.id
                                             }
@@ -556,8 +555,7 @@ class OfferViewModel(
                                             append(" ${operation.price}$currency")
                                         }
                                     }
-                                    fieldsDialog.value.clear()
-                                    fieldsDialog.value.addAll(f)
+                                    fieldsDialog.value = f
                                     showOperationsDialog.value =
                                         operation.id ?: ""
                                     dialogItemId.value = offer.id
@@ -572,7 +570,7 @@ class OfferViewModel(
 
     fun clearDialogFields(){
         dialogItemId.value = 1
-        fieldsDialog.value.clear()
+        fieldsDialog.value = emptyList()
         showOperationsDialog.value = ""
         _showDialog.value = ""
         _errorString.value = ""

@@ -74,10 +74,10 @@ fun SearchContent(
             CategoryContent(
                 viewModel = uiSearchUiState.categoryState.categoryViewModel,
                 onCompleted = {
-                    searchEvents.openSearchCategory(false, true)
+                    searchEvents.openSearchCategory(value = false, complete = true)
                 },
                 onClose = {
-                    searchEvents.openSearchCategory(false, false)
+                    searchEvents.openSearchCategory(value = false, complete = false)
                 }
             )
         },
@@ -107,6 +107,7 @@ fun SearchContent(
                 if(uiSearchUiState.tabs.size > 1) {
                     TabRow(
                         uiSearchUiState.tabs,
+                        dividerColor = colors.transparent,
                         selectedTab = uiSearchUiState.selectedTabIndex,
                         containerColor = colors.primaryColor,
                         modifier = Modifier.fillMaxWidth(),

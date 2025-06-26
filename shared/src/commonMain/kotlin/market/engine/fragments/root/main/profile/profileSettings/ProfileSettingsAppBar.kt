@@ -62,7 +62,6 @@ fun ProfileSettingsAppBar(
             TabRow(
                 tabs,
                 selectedTab = currentTab,
-                edgePadding = 0.dp,
                 containerColor = colors.white,
                 modifier = Modifier.fillMaxWidth(),
             ){ index, tab ->

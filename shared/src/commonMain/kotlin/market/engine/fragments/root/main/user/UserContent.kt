@@ -216,7 +216,7 @@ fun UserContent(
                 TabRow(
                     tabs,
                     selectedTab = selectedTabIndex.value,
-                    edgePadding = dimens.smallPadding,
+//                    edgePadding = dimens.smallPadding,
                     containerColor = colors.primaryColor,
                     modifier = Modifier.fillMaxWidth(),
                 ){ index, tab ->

@@ -234,7 +234,7 @@ fun OfferContent(
                 )
             }
         },
-        isLoading = isLoading.value && offer.id == 1L,
+        isLoading = isLoading.value || offer.id == 1L,
         error = error,
         noFound = null,
         toastItem = viewModel.toastItem,
@@ -876,14 +876,17 @@ fun OfferContent(
                 showDialog = openOperationDialog.value,
                 viewModel = viewModel,
                 title = dialogTitle.value,
-                fields = dialogFields.value,
+                initFields = dialogFields.value,
                 updateItem = {
                     viewModel.updateBidsInfo(offer)
                     viewModel.updateOperations(offer)
                 },
                 close = { fullRefresh ->
                     viewModel.clearDialogFields()
-                    viewModel.refreshPage()
+
+                    if (fullRefresh) {
+                        viewModel.refreshPage()
+                    }
                 }
             )
 
@@ -955,7 +958,7 @@ fun DescriptionHtmlOffer(
             buildAnnotatedString {
 
                 offer.standardDescriptions?.forEach { standard ->
-                    if ( standard.description != null) {
+                    if (standard.description != null) {
                         val formattedDate =
                             standard.timestamp.toString().convertDateWithMinutes()
 
@@ -978,7 +981,7 @@ fun DescriptionHtmlOffer(
                 }
 
                 offer.addedDescriptions?.forEach { added ->
-                    if ( added.text != null) {
+                    if (added.text != null) {
                         val formattedDate =
                             added.timestamp.toString().convertDateWithMinutes()
 
@@ -995,6 +998,10 @@ fun DescriptionHtmlOffer(
         )
     }
 
+    LaunchedEffect(Unit){
+        state.setHtml(offer.description ?: "")
+    }
+
     SeparatorLabel(stringResource(strings.description))
 
     Box(
@@ -1004,17 +1011,17 @@ fun DescriptionHtmlOffer(
             .fillMaxWidth()
             .padding(dimens.smallPadding)
     ) {
-        state.setHtml(offer.description ?: "")
-
         Column {
             Text(
                 text = state.annotatedString,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                color = colors.darkBodyTextColor,
                 modifier = Modifier.padding(dimens.smallPadding)
             )
 
             Text(
                 text = descriptionsDecodeHtmlString.value,
+                color = colors.darkBodyTextColor,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
                 modifier = Modifier.padding(dimens.smallPadding)
             )

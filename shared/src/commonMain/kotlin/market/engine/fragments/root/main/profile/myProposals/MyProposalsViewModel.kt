@@ -461,7 +461,7 @@ data class CabinetOfferItemEventsImpl(
                                     onClick = {
                                         operation.run {
                                             when {
-                                                id == "activate_offer_for_future" || id == "activate_offer" -> {
+                                                id == "activate_offer_for_future" || id == "delete_offer" || id == "finalize_session" -> {
                                                     viewModel.titleDialog.value = AnnotatedString(name ?: "")
                                                     viewModel.showOperationsDialog.value = id
                                                     viewModel.dialogItemId.value = offer.id
@@ -507,7 +507,7 @@ data class CabinetOfferItemEventsImpl(
                                                     )
                                                 }
 
-                                                isDataless == false -> {
+                                                !isDataless -> {
                                                     viewModel.getOperationFields(
                                                         offer.id,
                                                         id ?: "",

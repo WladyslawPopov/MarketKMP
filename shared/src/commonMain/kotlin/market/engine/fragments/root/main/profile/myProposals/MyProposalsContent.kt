@@ -145,7 +145,7 @@ fun MyProposalsContent(
             showDialog = openDialog.value,
             viewModel = viewModel,
             title = dialogTitle.value,
-            fields = dialogFields.value,
+            initFields = dialogFields.value,
             updateItem = {
                 viewModel.updateItem.value = itemIdDialog.value
             },
