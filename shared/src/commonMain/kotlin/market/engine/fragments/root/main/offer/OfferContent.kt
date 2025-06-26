@@ -22,10 +22,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -107,7 +109,7 @@ import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun OfferContent(
     component: OfferComponent,
@@ -181,23 +183,28 @@ fun OfferContent(
     )
 
     LaunchedEffect(isImageViewerVisible.value) {
-        if (!isImageViewerVisible.value) {
-            scaffoldState.bottomSheetState.collapse()
-            pagerState.scrollToPage(pagerFullState.currentPage)
-        } else {
-            if (pagerState.currentPage != pagerFullState.currentPage) {
-                pagerFullState.scrollToPage(pagerState.currentPage)
+        try {
+            if (!isImageViewerVisible.value) {
+                scaffoldState.bottomSheetState.hide()
+                pagerState.scrollToPage(pagerFullState.currentPage)
+            } else {
+                if (pagerState.currentPage != pagerFullState.currentPage) {
+                    pagerFullState.scrollToPage(pagerState.currentPage)
+                }
+                if (images.isNotEmpty()) {
+                    scaffoldState.bottomSheetState.expand()
+                }
             }
-            if (images.isNotEmpty()) {
-                scaffoldState.bottomSheetState.expand()
-            }
+        } catch (_: Exception) {
         }
     }
 
-    LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed) {
-        if (scaffoldState.bottomSheetState.isCollapsed) {
+    LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
+        if (scaffoldState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded) {
             isImageViewerVisible.value = false
-            pagerState.scrollToPage(pagerFullState.currentPage)
+            if (pagerState.pageCount > 0 && pagerFullState.currentPage < pagerState.pageCount) {
+                pagerState.scrollToPage(pagerFullState.currentPage)
+            }
         }
     }
 
@@ -240,11 +247,11 @@ fun OfferContent(
             scaffoldState = scaffoldState,
             modifier = Modifier.fillMaxSize(),
             sheetContentColor = colors.transparent,
-            sheetBackgroundColor = colors.transparent,
+            sheetContainerColor = colors.white,
+            containerColor = colors.transparent,
             contentColor = colors.transparent,
-            backgroundColor = colors.transparent,
             sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = true,
+            sheetSwipeEnabled = true,
             sheetContent = {
                 FullScreenImageViewer(
                     pagerFullState = pagerFullState,
@@ -261,7 +268,8 @@ fun OfferContent(
                         })
                     },
                 contentPadding = dimens.smallPadding
-            ) {
+            )
+            {
                 //images offer
                 item {
                     Box(
@@ -770,7 +778,7 @@ fun OfferContent(
                             isDeletesBids = false,
                             onRebidClick = {
                                 if (UserData.token != "") {
-                                    viewModel.openDialog()
+                                    viewModel.openDialog("add_bid")
                                 } else {
                                     component.goToLogin()
                                 }
@@ -789,7 +797,7 @@ fun OfferContent(
                             isDeletesBids = true,
                             onRebidClick = {
                                 if (UserData.token != "") {
-                                    viewModel.openDialog()
+                                    viewModel.openDialog("add_bid")
                                 } else {
                                     component.goToLogin()
                                 }
@@ -840,7 +848,7 @@ fun OfferContent(
             }
 
             AddBidDialog(
-                showDialog.value,
+                showDialog.value == "add_bid",
                 myMaximalBid.value,
                 onDismiss = {
                     viewModel.clearDialogFields()
@@ -880,7 +888,7 @@ fun OfferContent(
             )
 
             CustomDialog(
-                showDialog = showDialog.value,
+                showDialog = showDialog.value == "buy_now",
                 title = AnnotatedString(""),
                 body = {
                     Column(

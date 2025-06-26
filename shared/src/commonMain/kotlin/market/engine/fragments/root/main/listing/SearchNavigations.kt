@@ -31,7 +31,7 @@ import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.DefaultCreateOfferComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
-import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.createOrder.DefaultCreateOrderComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.DefaultCreateSubscriptionComponent
@@ -299,23 +299,24 @@ fun createSearchChild(
         )
 
         is SearchConfig.CreateOrderScreen -> ChildSearch.CreateOrderChild(
-            component = createOrderFactory(
-                componentContext = componentContext,
-                selectedItems = config.basketItem,
-                navigateUser = {
+            component = DefaultCreateOrderComponent(
+                componentContext,
+                config.basketItem,
+                navigateToOffer = { id->
                     searchNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
-                    )
-                },
-                navigateOffer = {
-                    searchNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
+                        OfferScreen(id, getCurrentDate())
                     )
                 },
                 navigateBack = {
                     searchNavigation.pop()
                 },
+                navigateToUser = { id->
+                    searchNavigation.pushNew(
+                        UserScreen(id, getCurrentDate(), false)
+                    )
+                },
                 navigateToMyOrders = {
+                    searchNavigation.pop()
                     navigateToMyOrders(null, DealTypeGroup.BUY)
                 }
             )

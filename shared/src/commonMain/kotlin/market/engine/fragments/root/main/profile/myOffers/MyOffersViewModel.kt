@@ -278,6 +278,7 @@ class MyOffersViewModel(
 
     fun updatePage(){
         updatePage.value++
+        refresh()
     }
     fun onBackNavigation(activeType: ActiveWindowListingType){
         when(activeType){

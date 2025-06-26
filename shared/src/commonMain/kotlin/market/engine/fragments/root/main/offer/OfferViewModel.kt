@@ -100,7 +100,7 @@ class OfferViewModel(
     private var timerBidsJob: Job? = null
     private var eventParameters: Map<String, Any?> = mapOf()
 
-    private val _showDialog = MutableStateFlow(false)
+    private val _showDialog = MutableStateFlow("")
     val showDialog = _showDialog.asStateFlow()
 
     private val _errorString = MutableStateFlow("")
@@ -475,7 +475,7 @@ class OfferViewModel(
                                             )
                                         }
 
-                                        isDataless == false -> {
+                                        !isDataless -> {
                                             getOperationFields(
                                                 offer.id,
                                                 id ?: "",
@@ -574,7 +574,7 @@ class OfferViewModel(
         dialogItemId.value = 1
         fieldsDialog.value.clear()
         showOperationsDialog.value = ""
-        _showDialog.value = false
+        _showDialog.value = ""
         _errorString.value = ""
     }
 
@@ -713,14 +713,14 @@ class OfferViewModel(
     fun onAddBidClick(bid : String){
         if (UserData.token != "") {
             myMaximalBid.value = bid
-            openDialog()
+            openDialog("add_bid")
         } else {
             component.goToLogin()
         }
     }
 
-    fun openDialog(){
-        _showDialog.value = true
+    fun openDialog(dialog : String){
+        _showDialog.value = dialog
     }
 
     fun updateUserState(id: Long){
@@ -793,7 +793,7 @@ class OfferViewModel(
     fun buyNowClick(offer: Offer){
         if (UserData.token != "") {
             if (offer.originalQuantity > 1) {
-                openDialog()
+                openDialog("buy_now")
             } else {
                 val item = Pair(
                     offer.sellerData?.id ?: 1L, listOf(

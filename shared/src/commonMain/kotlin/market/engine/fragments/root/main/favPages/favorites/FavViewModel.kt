@@ -630,7 +630,7 @@ data class CabinetOfferItemEventsImpl(
                                                     )
                                                 }
 
-                                                isDataless == false -> {
+                                                !isDataless -> {
                                                     viewModel.getOperationFields(
                                                         offer.id,
                                                         id ?: "",

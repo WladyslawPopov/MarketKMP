@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -27,21 +25,17 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.root.dynamicSettings.contents.DeliveryCardsContent
 import market.engine.fragments.base.onError
+import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.items.offer_Items.OrderOfferItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.rows.UserRow
@@ -55,74 +49,57 @@ fun CreateOrderContent(
 ) {
     val model = component.model.subscribeAsState()
     val viewModel = model.value.createOrderViewModel
-    val selectDeliveryMethod = rememberUpdatedState(viewModel.selectDeliveryMethod.value)
-    val selectDealType = rememberUpdatedState(viewModel.selectDealType.value)
-    val selectPaymentType = rememberUpdatedState(viewModel.selectPaymentType.value)
 
-    val offers = viewModel.responseGetOffers.collectAsState()
-    val additionalFields = viewModel.responseGetAdditionalData.collectAsState()
-    val createOrderResponse = viewModel.responseCreateOrder.collectAsState()
+    val uiState = viewModel.createOrderState.collectAsState()
+
+    val selectDeliveryMethod = uiState.value.selectDeliveryMethod
+    val selectDealType = uiState.value.selectDealType
+    val selectPaymentType = uiState.value.selectPaymentType
+
+    val offers = uiState.value.responseGetOffers
+    val additionalFields = uiState.value.responseGetAdditionalData
+    val basketItem = model.value.basketItem
+
+    val appBarData = uiState.value.appBarData
 
     val isLoading = viewModel.isShowProgress.collectAsState()
     val err = viewModel.errorMessage.collectAsState()
 
-    val scope = rememberCoroutineScope()
-
     val focusManager = LocalFocusManager.current
-
-    val basketItem = model.value.basketItem
 
     BackHandler(model.value.backHandler){
         component.onBackClicked()
     }
 
-    val refresh = {
-        viewModel.onError(ServerErrorException())
-        viewModel.getDeliveryCards()
-        viewModel.getOffers(basketItem.second.map { it.offerId })
-        viewModel.getAdditionalFields(
-            basketItem.first,
-            basketItem.second.map { it.offerId },
-            basketItem.second.map { it.selectedQuantity }
-        ){
-           component.onBackClicked()
-        }
-    }
-
-    val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        {
-            onError(err.value) {
-                refresh()
+    val error: (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage.isNotBlank()) {
+            {
+                onError(err.value) {
+                    viewModel.refreshPage()
+                }
             }
+        } else {
+            null
         }
-    } else {
-        null
     }
 
     val state = rememberLazyListState()
 
-    LaunchedEffect(createOrderResponse.value){
-        if (createOrderResponse.value?.status == "operation_success"){
-            delay(2000)
-            withContext(Dispatchers.Main) {
-                component.goToMyOrders()
-            }
-        }
-    }
-
     BaseContent(
         topBar = {
-            CreateOrderAppBar(
-                onBackClick = {
-                    component.onBackClicked()
-                },
-                onRefresh = {
-                    refresh()
-                }
-            )
+            SimpleAppBar(
+                data = appBarData
+            ){
+                val title = stringResource(strings.createNewOrderTitle)
+                Text(
+                    text = title,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         },
         onRefresh = {
-            refresh()
+            viewModel.refreshPage()
         },
         error = error,
         noFound = null,
@@ -150,7 +127,7 @@ fun CreateOrderContent(
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     //user header
-                    offers.value.firstOrNull()?.seller?.let {
+                    offers.firstOrNull()?.seller?.let {
                         UserRow(
                             it,
                             modifier = Modifier.clickable {
@@ -160,10 +137,10 @@ fun CreateOrderContent(
                         )
                     }
 
-                    Divider(
-                        color = colors.primaryColor,
-                        thickness = 1.dp,
-                        modifier = Modifier.fillMaxWidth()
+                    HorizontalDivider(
+                        Modifier.fillMaxWidth(),
+                        1.dp,
+                        colors.primaryColor
                     )
 
                     //offers
@@ -171,10 +148,11 @@ fun CreateOrderContent(
                         heightMod = Modifier.heightIn(max = 2000.dp),
                     ) {
                         items(
-                            offers.value.size,
-                            key = { index -> offers.value[index].id }
-                        ) { index ->
-                            val offer = offers.value[index]
+                            offers.size,
+                            key = { index -> offers[index].id }
+                        )
+                        { index ->
+                            val offer = offers[index]
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
@@ -205,10 +183,10 @@ fun CreateOrderContent(
                         }
                     }
 
-                    Divider(
-                        color = colors.primaryColor,
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(),
                         thickness = 1.dp,
-                        modifier = Modifier.fillMaxWidth()
+                        color = colors.primaryColor
                     )
 
                     //total sum
@@ -247,9 +225,9 @@ fun CreateOrderContent(
             item {
                 // delivery cards
                 DeliveryCardsContent(
-                    viewModel
+                    viewModel.deliveryCardsViewModel
                 ) {
-                    refresh()
+                    viewModel.refreshPage()
                 }
             }
 
@@ -259,66 +237,64 @@ fun CreateOrderContent(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     horizontalAlignment = Alignment.Start
-                ) {
-                    if (additionalFields.value?.deliveryMethods != null) {
+                )
+                {
+                    if (additionalFields?.deliveryMethods != null) {
                         SeparatorLabel(
                             stringResource(strings.deliveryMethodLabel),
                         )
 
                         getDropdownMenu(
-                            selectedText = additionalFields.value?.deliveryMethods?.find {
-                                selectDeliveryMethod.value == it.code
+                            selectedText = additionalFields.deliveryMethods.find {
+                                selectDeliveryMethod == it.code
                             }?.name ?: "",
-                            selectedTextDef = additionalFields.value?.deliveryMethods?.firstOrNull()?.name
+                            selectedTextDef = additionalFields.deliveryMethods.firstOrNull()?.name
                                 ?: "",
-                            selects = additionalFields.value?.deliveryMethods?.map { it.name ?: "" }
-                                ?: emptyList(),
+                            selects = additionalFields.deliveryMethods.map { it.name ?: "" },
                             onItemClick = { select ->
-                                viewModel.selectDeliveryMethod.value =
-                                    additionalFields.value?.deliveryMethods?.find { it.name == select }?.code
-                                        ?: 0
+                                viewModel.changeDeliveryMethod(
+                                    additionalFields.deliveryMethods.find { it.name == select }?.code ?: 0
+                                )
                             },
                             onClearItem = null,
                             modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
                         )
                     }
-                    if (additionalFields.value?.dealTypes != null) {
+                    if (additionalFields?.dealTypes != null) {
                         SeparatorLabel(
                             stringResource(strings.dealTypeLabel),
                         )
                         getDropdownMenu(
-                            selectedText = additionalFields.value?.dealTypes?.find {
-                                selectDealType.value == it.code
+                            selectedText = additionalFields.dealTypes.find {
+                                selectDealType == it.code
                             }?.name ?: "",
-                            selectedTextDef = additionalFields.value?.dealTypes?.firstOrNull()?.name
+                            selectedTextDef = additionalFields.dealTypes.firstOrNull()?.name
                                 ?: "",
-                            selects = additionalFields.value?.dealTypes?.map { it.name ?: "" }
-                                ?: emptyList(),
+                            selects = additionalFields.dealTypes.map { it.name ?: "" },
                             onItemClick = { select ->
-                                viewModel.selectDealType.value =
-                                    additionalFields.value?.dealTypes?.find { it.name == select }?.code
-                                        ?: 0
+                                viewModel.changeDealType(
+                                    additionalFields.dealTypes.find { it.name == select }?.code ?: 0
+                                )
                             },
                             onClearItem = null,
                             modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
                         )
                     }
-                    if (additionalFields.value?.paymentMethods != null) {
+                    if (additionalFields?.paymentMethods != null) {
                         SeparatorLabel(
                             stringResource(strings.paymentMethodLabel),
                         )
                         getDropdownMenu(
-                            selectedText = additionalFields.value?.paymentMethods?.find {
-                                selectPaymentType.value == it.code
+                            selectedText = additionalFields.paymentMethods.find {
+                                selectPaymentType == it.code
                             }?.name ?: "",
-                            selectedTextDef = additionalFields.value?.paymentMethods?.firstOrNull()?.name
+                            selectedTextDef = additionalFields.paymentMethods.firstOrNull()?.name
                                 ?: "",
-                            selects = additionalFields.value?.paymentMethods?.map { it.name ?: "" }
-                                ?: emptyList(),
+                            selects = additionalFields.paymentMethods.map { it.name ?: "" },
                             onItemClick = { select ->
-                                viewModel.selectPaymentType.value =
-                                    additionalFields.value?.paymentMethods?.find { it.name == select }?.code
-                                        ?: 0
+                                viewModel.changePaymentType(
+                                    additionalFields.paymentMethods.find { it.name == select }?.code ?: 0
+                                )
                             },
                             onClearItem = null,
                             modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 0.9f)
@@ -333,32 +309,15 @@ fun CreateOrderContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
-                ) {
+                )
+                {
                     AcceptedPageButton(
                         stringResource(strings.actionComplete),
                         modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 1f)
                             .padding(dimens.mediumPadding),
                         enabled = !isLoading.value
                     ) {
-                        val fields = viewModel.deliveryFields.value
-
-                        if(fields.isEmpty()){
-                            viewModel.saveDeliveryCard(
-                                viewModel.deliveryCards.value.firstOrNull()?.id ?: 1L,
-                                onSaved = {
-                                    viewModel.postPage(fields, basketItem)
-                                },
-                                onError = {
-                                    viewModel.deliveryFields.value = it
-                                    scope.launch {
-                                        delay(200)
-                                        state.scrollToItem(0)
-                                    }
-                                }
-                            )
-                        }else{
-                            viewModel.postPage(fields, basketItem)
-                        }
+                       viewModel.acceptButton(basketItem)
                     }
                 }
             }

@@ -65,6 +65,8 @@ fun CabinetOfferItem(
 
     val openMenu = remember { mutableStateOf(false) }
 
+    val openPromoMenu = remember { mutableStateOf(false) }
+
     val menuList = remember {
         mutableStateOf<List<MenuItem>>(emptyList())
     }
@@ -167,7 +169,9 @@ fun CabinetOfferItem(
                         PopUpMenu(
                             openPopup = openMenu.value,
                             menuList = menuList.value,
-                            onClosed = { openMenu.value = false }
+                            onClosed = {
+                                openMenu.value = false
+                            }
                         )
                     }
                 }
@@ -201,7 +205,7 @@ fun CabinetOfferItem(
                     }
 
                     if (!item.isPrototype) {
-                        var sessionEnd = stringResource(strings.offerSessionInactiveLabel)
+                        val sessionEnd = stringResource(strings.offerSessionInactiveLabel)
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -429,15 +433,15 @@ fun CabinetOfferItem(
                                         "promo"
                                     ) {
                                         menuPromotionsList.value = it
-                                        openMenu.value = true
+                                        openPromoMenu.value = true
                                     }
                                 }
                             }
 
                             PopUpMenu(
-                                openPopup = openMenu.value,
+                                openPopup = openPromoMenu.value,
                                 menuList = menuPromotionsList.value,
-                                onClosed = { openMenu.value = false }
+                                onClosed = { openPromoMenu.value = false }
                             )
                         }
                     }

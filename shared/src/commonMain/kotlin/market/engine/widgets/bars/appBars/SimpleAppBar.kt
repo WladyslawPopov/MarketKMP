@@ -14,6 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.widgets.badges.BadgedButton
@@ -43,8 +45,9 @@ fun SimpleAppBar(
     LaunchedEffect(openMenu.value) {
         snapshotFlow {
             openMenu.value
-        }.collect {
+        }.collectLatest {
             if (!it) {
+                delay(300)
                 data.closeMenu()
             }
         }

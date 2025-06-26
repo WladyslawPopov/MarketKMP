@@ -75,8 +75,6 @@ open class BaseViewModel: ViewModel() {
     val bottomSheetState = MutableStateFlow(BottomSheetValue.Collapsed)
 
     val showLogoutDialog = mutableStateOf(false)
-    val deliveryCards = mutableStateOf(emptyList<DeliveryAddress>())
-    val deliveryFields = mutableStateOf<List<Fields>>(emptyList())
 
     val apiService by lazy {  getKoin().get<APIService>() }
     val userRepository: UserRepository by lazy { getKoin().get() }
@@ -603,97 +601,6 @@ open class BaseViewModel: ViewModel() {
         return check
     }
 
-    fun getDeliveryCards() {
-        viewModelScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    userOperations.getUsersOperationsAddressCards(UserData.login)
-                }
-
-                val payload = response.success
-                val err = response.error
-                val cards = payload?.body?.addressCards
-
-                if (cards != null) {
-                    payload.body.addressCards.find { it.isDefault }?.id?.let {
-                        setDeliveryFields(it)
-                    }
-                    deliveryCards.value = payload.body.addressCards
-                } else {
-                    throw err ?: ServerErrorException(errorCode = "Error", humanMessage = "")
-                }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(
-                    ServerErrorException(
-                        errorCode = exception.message.toString(),
-                        humanMessage = exception.message.toString()
-                    )
-                )
-            }
-        }
-    }
-
-    fun setDeliveryFields(selectedId : Long?) {
-        viewModelScope.launch {
-            val cards = deliveryCards.value
-            val fields = getDeliveryFields() ?: emptyList()
-            val card = cards.find { it.id == selectedId }
-            if (card != null) {
-                fields.forEach { field ->
-                    when (field.key) {
-                        "zip" -> {
-                            if (card.zip != null) {
-                                field.data = JsonPrimitive(card.zip)
-                            }
-                        }
-
-                        "city" -> {
-                            field.data = card.city
-                        }
-
-                        "address" -> {
-                            if (card.address != null) {
-                                field.data = JsonPrimitive(card.address)
-                            }
-                        }
-
-                        "phone" -> {
-                            if (card.phone != null) {
-                                field.data = JsonPrimitive(card.phone)
-                            }
-                        }
-
-                        "surname" -> {
-                            if (card.surname != null) {
-                                field.data = JsonPrimitive(card.surname)
-                            }
-                        }
-
-                        "other_country" -> {
-                            if (card.country != null) {
-                                field.data = JsonPrimitive(card.country)
-                            }
-                        }
-
-                        "country" -> {
-                            field.data =
-                                JsonPrimitive(if (card.country == getString(strings.countryDefault)) 0 else 1)
-                        }
-                    }
-                    field.errors = null
-                }
-            } else {
-                fields.forEach {
-                    it.data = null
-                    it.errors = null
-                }
-            }
-            deliveryFields.value = fields
-        }
-    }
-
     suspend fun getDeliveryFields(): List<Fields>? {
         val res = withContext(Dispatchers.IO) {
             operationsMethods.getOperationFields(
@@ -784,88 +691,6 @@ open class BaseViewModel: ViewModel() {
     fun getUnreadNotificationsCount() : Int? {
         val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
         return if (list.isEmpty()) null else list.filter { it.isRead < 1 || it.isRead > 1 }.size
-    }
-
-    fun saveDeliveryCard(cardId: Long?, onSaved: () -> Unit, onError: (List<Fields>) -> Unit) {
-        setLoading(true)
-        viewModelScope.launch {
-            val jsonBody : HashMap<String, JsonElement> = hashMapOf()
-            deliveryFields.value.forEach { field ->
-                    when (field.widgetType) {
-                        "input" -> {
-                            if (field.data != null) {
-                                jsonBody.put(field.key.toString(), field.data!!)
-                            }
-                        }
-
-                        "hidden" -> {
-                            if (cardId != null) {
-                                jsonBody.put(field.key.toString(), JsonPrimitive(cardId))
-                            }
-                        }
-
-                        else -> {}
-                    }
-                }
-
-            val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperationFields(
-                    UserData.login,
-                    "save_address_cards",
-                    "users",
-                    jsonBody
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                val payload = res.success
-                val err = res.error
-
-                if (payload != null) {
-                    if (payload.status == "operation_success") {
-
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "body" to jsonBody
-                        )
-                        analyticsHelper.reportEvent(
-                            "save_address_cards_success",
-                            eventParameters
-                        )
-
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-                        delay(2000)
-                        onSaved()
-                    } else {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "body" to jsonBody
-                        )
-                        analyticsHelper.reportEvent(
-                            "save_address_cards_failed",
-                            eventParameters
-                        )
-                        payload.recipe?.fields?.let { onError(it) }
-
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(strings.operationFailed)
-                            )
-                        )
-                    }
-                } else {
-                    err?.let { onError(it) }
-                }
-
-                setLoading(false)
-            }
-        }
     }
 
     fun getBlocList(type : String, onSuccess: (ArrayList<ListItem>) -> Unit) {
@@ -1398,9 +1223,5 @@ open class BaseViewModel: ViewModel() {
                 }
             }
         }
-    }
-
-    fun clearError(){
-        onError(ServerErrorException())
     }
 }

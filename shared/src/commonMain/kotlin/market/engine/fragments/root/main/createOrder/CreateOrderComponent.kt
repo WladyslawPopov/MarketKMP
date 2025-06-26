@@ -33,7 +33,7 @@ class DefaultCreateOrderComponent(
     val navigateToMyOrders: () -> Unit
 ) : CreateOrderComponent, ComponentContext by componentContext {
 
-    private val createOrderViewModel : CreateOrderViewModel = CreateOrderViewModel()
+    private val createOrderViewModel : CreateOrderViewModel = CreateOrderViewModel(basketItem, this)
 
     private val _model = MutableValue(
         CreateOrderComponent.Model(
@@ -53,17 +53,6 @@ class DefaultCreateOrderComponent(
                 navigateBack()
             }
         }
-        createOrderViewModel.getDeliveryCards()
-        createOrderViewModel.getOffers(basketItem.second.map { it.offerId })
-        createOrderViewModel.getAdditionalFields(
-            basketItem.first,
-            basketItem.second.map { it.offerId },
-            basketItem.second.map { it.selectedQuantity }
-        ){
-            navigateBack()
-        }
-
-        createOrderViewModel.analyticsHelper.reportEvent("view_create_order", mapOf())
     }
 
     override fun onBackClicked() {

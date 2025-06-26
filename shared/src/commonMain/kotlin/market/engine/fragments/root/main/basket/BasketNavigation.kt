@@ -34,7 +34,7 @@ import market.engine.fragments.root.main.createOffer.CreateOfferContent
 import market.engine.fragments.root.main.createOffer.DefaultCreateOfferComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderComponent
 import market.engine.fragments.root.main.createOrder.CreateOrderContent
-import market.engine.fragments.root.main.createOrder.createOrderFactory
+import market.engine.fragments.root.main.createOrder.DefaultCreateOrderComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionComponent
 import market.engine.fragments.root.main.createSubscription.CreateSubscriptionContent
 import market.engine.fragments.root.main.createSubscription.DefaultCreateSubscriptionComponent
@@ -318,23 +318,24 @@ fun createBasketChild(
         )
 
         is BasketConfig.CreateOrderScreen -> ChildBasket.CreateOrderChild(
-            createOrderFactory(
+            DefaultCreateOrderComponent(
                 componentContext,
                 config.basketItem,
-                navigateBack = {
-                    basketNavigation.pop()
-                },
-                navigateOffer = { id ->
+                navigateToOffer = { id->
                     basketNavigation.pushNew(
                         OfferScreen(id, getCurrentDate())
                     )
                 },
-                navigateUser = { id ->
+                navigateBack = {
+                    basketNavigation.pop()
+                },
+                navigateToUser = { id->
                     basketNavigation.pushNew(
                         UserScreen(id, getCurrentDate(), false)
                     )
                 },
                 navigateToMyOrders = {
+                    basketNavigation.pop()
                     navigateToMyOrders(null, DealTypeGroup.BUY)
                 }
             )

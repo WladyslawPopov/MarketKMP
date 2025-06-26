@@ -208,9 +208,9 @@ fun DynamicSettingsContent(
                             )
 
                             DeliveryCardsContent(
-                                viewModel,
+                                viewModel.deliveryCardsViewModel,
                                 refresh = {
-                                    viewModel.getDeliveryCards()
+                                    viewModel.deliveryCardsViewModel.refreshCards()
                                 }
                             )
                         }

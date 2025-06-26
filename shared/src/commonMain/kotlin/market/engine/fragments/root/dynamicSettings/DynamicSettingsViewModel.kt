@@ -33,6 +33,8 @@ class DynamicSettingsViewModel : BaseViewModel() {
     private val _errorSettings = MutableStateFlow<Pair<AnnotatedString, String>?>(null)
     val errorSettings : StateFlow<Pair<AnnotatedString, String>?> = _errorSettings.asStateFlow()
 
+    val deliveryCardsViewModel = DeliveryCardsViewModel()
+
     fun init(settingsType : String, owner : Long?) {
         viewModelScope.launch {
             setLoading(true)
@@ -45,7 +47,6 @@ class DynamicSettingsViewModel : BaseViewModel() {
                         userOperations.getUsersOperationsResetPassword()
                     }
                     "set_address_cards" -> {
-                        getDeliveryCards()
                         null
                     }
                     "remove_bids_of_users" -> {
