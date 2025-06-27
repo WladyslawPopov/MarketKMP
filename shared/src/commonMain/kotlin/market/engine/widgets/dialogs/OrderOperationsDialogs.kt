@@ -44,207 +44,207 @@ fun OrderOperationsDialogs(
 
     when (showDialog) {
         "error" -> {
-            CustomDialog(
-                showDialog = showDialog != "",
-                title = buildAnnotatedString {
-                    append(stringResource(strings.messageAboutError))
-                },
-                body = {
-                    Text(title)
-                },
-                onDismiss = { onClose() }
-            )
+//            CustomDialog(
+//                showDialog = showDialog != "",
+//                title = buildAnnotatedString {
+//                    append(stringResource(strings.messageAboutError))
+//                },
+//                body = {
+//                    Text(title)
+//                },
+//                onDismiss = { onClose() }
+//            )
         }
         "give_feedback_to_buyer","give_feedback_to_seller" -> {
             val commentText = mutableStateOf(TextFieldValue(stringResource(strings.defaultCommentReport)))
-            CustomDialog(
-                showDialog != "",
-                title = AnnotatedString(title),
-                body = {
-                    LazyColumnWithScrollBars(
-                        heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
-                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        item {
-                            Row(
-                                modifier = Modifier.clickable {
-                                    feedbackType.value = 1
-                                },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                            ) {
-                                RadioButton(
-                                    selected = feedbackType.value == 1, // positive
-                                    onClick = {
-                                        feedbackType.value = 1
-                                    },
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                        unselectedColor = colors.black
-                                    )
-                                )
-                                Text(
-                                    text = feedbacksTypePositiveLabel,
-                                    color = colors.positiveGreen
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier.clickable {
-                                    feedbackType.value = 2
-                                },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                            ) {
-                                RadioButton(
-                                    selected = feedbackType.value == 2, // neutral
-                                    onClick = {
-                                        feedbackType.value = 2
-                                    },
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                        unselectedColor = colors.black
-                                    )
-                                )
-                                Text(
-                                    text = feedbacksTypeNeutralLabel,
-                                    modifier = Modifier,
-                                    color = colors.grayText
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier.clickable {
-                                    feedbackType.value = 0
-                                },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                            ) {
-                                RadioButton(
-                                    selected = feedbackType.value == 0, // negative
-                                    onClick = {
-                                        feedbackType.value = 0
-                                    },
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = colors.inactiveBottomNavIconColor,
-                                        unselectedColor = colors.black
-                                    )
-                                )
-                                Text(
-                                    text = feedbacksTypeNegativeLabel,
-                                    modifier = Modifier,
-                                    color = colors.negativeRed
-                                )
-                            }
-                        }
-
-                        item {
-                            OutlinedTextInputField(
-                                value = commentText.value,
-                                onValueChange = {
-                                    commentText.value = it
-                                },
-                                label = stringResource(strings.commentLabel),
-                                maxSymbols = 200,
-                                singleLine = false
-                            )
-                        }
-                    }
-                },
-                onSuccessful = {
-                    val body = HashMap<String, JsonElement>()
-                    body["feedback_type"] = JsonPrimitive(feedbackType.value)
-                    body["comment"] = JsonPrimitive(commentText.value.text)
-
-                    viewModel.postOperationAdditionalData(
-                        orderId,
-                        showDialog,
-                        "orders",
-                        body = body,
-                        onSuccess = {
-                            updateItem(orderId)
-                        }
-                    )
-                },
-                onDismiss = {
-                    onClose()
-                },
-            )
+//            CustomDialog(
+//                showDialog != "",
+//                title = AnnotatedString(title),
+//                body = {
+//                    LazyColumnWithScrollBars(
+//                        heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+//                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+//                        horizontalAlignment = Alignment.Start
+//                    ) {
+//                        item {
+//                            Row(
+//                                modifier = Modifier.clickable {
+//                                    feedbackType.value = 1
+//                                },
+//                                verticalAlignment = Alignment.CenterVertically,
+//                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+//                            ) {
+//                                RadioButton(
+//                                    selected = feedbackType.value == 1, // positive
+//                                    onClick = {
+//                                        feedbackType.value = 1
+//                                    },
+//                                    colors = RadioButtonDefaults.colors(
+//                                        selectedColor = colors.inactiveBottomNavIconColor,
+//                                        unselectedColor = colors.black
+//                                    )
+//                                )
+//                                Text(
+//                                    text = feedbacksTypePositiveLabel,
+//                                    color = colors.positiveGreen
+//                                )
+//                            }
+//
+//                            Row(
+//                                modifier = Modifier.clickable {
+//                                    feedbackType.value = 2
+//                                },
+//                                verticalAlignment = Alignment.CenterVertically,
+//                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+//                            ) {
+//                                RadioButton(
+//                                    selected = feedbackType.value == 2, // neutral
+//                                    onClick = {
+//                                        feedbackType.value = 2
+//                                    },
+//                                    colors = RadioButtonDefaults.colors(
+//                                        selectedColor = colors.inactiveBottomNavIconColor,
+//                                        unselectedColor = colors.black
+//                                    )
+//                                )
+//                                Text(
+//                                    text = feedbacksTypeNeutralLabel,
+//                                    modifier = Modifier,
+//                                    color = colors.grayText
+//                                )
+//                            }
+//
+//                            Row(
+//                                modifier = Modifier.clickable {
+//                                    feedbackType.value = 0
+//                                },
+//                                verticalAlignment = Alignment.CenterVertically,
+//                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+//                            ) {
+//                                RadioButton(
+//                                    selected = feedbackType.value == 0, // negative
+//                                    onClick = {
+//                                        feedbackType.value = 0
+//                                    },
+//                                    colors = RadioButtonDefaults.colors(
+//                                        selectedColor = colors.inactiveBottomNavIconColor,
+//                                        unselectedColor = colors.black
+//                                    )
+//                                )
+//                                Text(
+//                                    text = feedbacksTypeNegativeLabel,
+//                                    modifier = Modifier,
+//                                    color = colors.negativeRed
+//                                )
+//                            }
+//                        }
+//
+//                        item {
+//                            OutlinedTextInputField(
+//                                value = commentText.value,
+//                                onValueChange = {
+//                                    commentText.value = it
+//                                },
+//                                label = stringResource(strings.commentLabel),
+//                                maxSymbols = 200,
+//                                singleLine = false
+//                            )
+//                        }
+//                    }
+//                },
+//                onSuccessful = {
+//                    val body = HashMap<String, JsonElement>()
+//                    body["feedback_type"] = JsonPrimitive(feedbackType.value)
+//                    body["comment"] = JsonPrimitive(commentText.value.text)
+//
+//                    viewModel.postOperationAdditionalData(
+//                        orderId,
+//                        showDialog,
+//                        "orders",
+//                        body = body,
+//                        onSuccess = {
+//                            updateItem(orderId)
+//                        }
+//                    )
+//                },
+//                onDismiss = {
+//                    onClose()
+//                },
+//            )
         }
 
         "set_comment" -> {
             val commentText = mutableStateOf(TextFieldValue(""))
-            CustomDialog(
-                showDialog != "",
-                title = AnnotatedString(title),
-                body = {
-                    OutlinedTextInputField(
-                        value = commentText.value,
-                        onValueChange = {
-                            commentText.value = it
-                        },
-                        label = stringResource(strings.commentLabel),
-                        maxSymbols = 200,
-                        singleLine = false
-                    )
-                },
-                onSuccessful = {
-                    val body = HashMap<String, JsonElement>()
-                    body["comment"] = JsonPrimitive(commentText.value.text)
-
-                   viewModel.postOperationAdditionalData(
-                       orderId,
-                        "set_comment",
-                        "orders",
-                        body,
-                        onSuccess = {
-                            updateItem(orderId)
-                            onClose()
-                        }
-                    )
-                },
-                onDismiss = {
-                    onClose()
-                },
-            )
+//            CustomDialog(
+//                showDialog != "",
+//                title = AnnotatedString(title),
+//                body = {
+//                    OutlinedTextInputField(
+//                        value = commentText.value,
+//                        onValueChange = {
+//                            commentText.value = it
+//                        },
+//                        label = stringResource(strings.commentLabel),
+//                        maxSymbols = 200,
+//                        singleLine = false
+//                    )
+//                },
+//                onSuccessful = {
+//                    val body = HashMap<String, JsonElement>()
+//                    body["comment"] = JsonPrimitive(commentText.value.text)
+//
+//                   viewModel.postOperationAdditionalData(
+//                       orderId,
+//                        "set_comment",
+//                        "orders",
+//                        body,
+//                        onSuccess = {
+//                            updateItem(orderId)
+//                            onClose()
+//                        }
+//                    )
+//                },
+//                onDismiss = {
+//                    onClose()
+//                },
+//            )
         }
 
         "provide_track_id" -> {
             val commentText = mutableStateOf(TextFieldValue(""))
-            CustomDialog(
-                showDialog != "",
-                title = AnnotatedString(title),
-                body = {
-                    OutlinedTextInputField(
-                        value = commentText.value,
-                        onValueChange = {
-                            commentText.value = it
-                        },
-                        label = stringResource(strings.trackIdLabel),
-                        maxSymbols = 200,
-                        singleLine = false
-                    )
-                },
-                onSuccessful = {
-                    val body = HashMap<String, JsonElement>()
-                    body["track_id"] = JsonPrimitive(commentText.value.text)
-
-                    viewModel.postOperationAdditionalData(
-                        orderId,
-                        "provide_track_id",
-                        "orders",
-                        body = body,
-                        onSuccess = {
-                            updateItem(orderId)
-                            onClose()
-                        }
-                    )
-                },
-                onDismiss = {
-                    onClose()
-                },
-            )
+//            CustomDialog(
+//                showDialog != "",
+//                title = AnnotatedString(title),
+//                body = {
+//                    OutlinedTextInputField(
+//                        value = commentText.value,
+//                        onValueChange = {
+//                            commentText.value = it
+//                        },
+//                        label = stringResource(strings.trackIdLabel),
+//                        maxSymbols = 200,
+//                        singleLine = false
+//                    )
+//                },
+//                onSuccessful = {
+//                    val body = HashMap<String, JsonElement>()
+//                    body["track_id"] = JsonPrimitive(commentText.value.text)
+//
+//                    viewModel.postOperationAdditionalData(
+//                        orderId,
+//                        "provide_track_id",
+//                        "orders",
+//                        body = body,
+//                        onSuccess = {
+//                            updateItem(orderId)
+//                            onClose()
+//                        }
+//                    )
+//                },
+//                onDismiss = {
+//                    onClose()
+//                },
+//            )
         }
         else -> {
 

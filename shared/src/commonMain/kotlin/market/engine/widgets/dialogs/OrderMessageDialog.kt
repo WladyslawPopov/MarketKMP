@@ -93,39 +93,39 @@ fun OrderMessageDialog(
         }
     }
 
-    CustomDialog(
-        isShowDialog.value,
-        title = titleText,
-        containerColor = colors.white,
-        body = {
-            Column {
-                OutlinedTextInputField(
-                    value = messageText.value,
-                    onValueChange = {
-                        messageText.value = it
-                    },
-                    label = stringResource(strings.messageLabel),
-                    maxSymbols = 2000,
-                    singleLine = false
-                )
-            }
-        },
-        onDismiss = {
-            isShowDialog.value = false
-            onDismiss()
-        },
-        onSuccessful = {
-            baseViewModel.postOperationAdditionalData(
-                order.id,
-                "write_to_partner",
-                "orders",
-                hashMapOf("message" to JsonPrimitive(messageText.value.text)),
-                onSuccess = {
-                    val dialogId = it?.operationResult?.additionalData?.conversationId
-                    onSuccess(dialogId)
-                    onDismiss()
-                }
-            )
-        }
-    )
+//    CustomDialog(
+//        isShowDialog.value,
+//        title = titleText,
+//        containerColor = colors.white,
+//        body = {
+//            Column {
+//                OutlinedTextInputField(
+//                    value = messageText.value,
+//                    onValueChange = {
+//                        messageText.value = it
+//                    },
+//                    label = stringResource(strings.messageLabel),
+//                    maxSymbols = 2000,
+//                    singleLine = false
+//                )
+//            }
+//        },
+//        onDismiss = {
+//            isShowDialog.value = false
+//            onDismiss()
+//        },
+//        onSuccessful = {
+//            baseViewModel.postOperationAdditionalData(
+//                order.id,
+//                "write_to_partner",
+//                "orders",
+//                hashMapOf("message" to JsonPrimitive(messageText.value.text)),
+//                onSuccess = {
+//                    val dialogId = it?.operationResult?.additionalData?.conversationId
+//                    onSuccess(dialogId)
+//                    onDismiss()
+//                }
+//            )
+//        }
+//    )
 }

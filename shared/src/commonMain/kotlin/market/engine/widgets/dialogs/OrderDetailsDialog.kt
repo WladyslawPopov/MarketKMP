@@ -36,33 +36,33 @@ fun OrderDetailsDialog(
     val phone = order.deliveryAddress?.phone.orEmpty()
     val index = order.deliveryAddress?.zip.orEmpty()
 
-    CustomDialog(
-        isDialogOpen,
-        title = AnnotatedString(stringResource(strings.paymentAndDeliveryLabel)),
-        containerColor = colors.white,
-        body = {
-            LazyColumnWithScrollBars(
-                heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
-                item {
-                    InfoRow(label = stringResource(strings.paymentMethodLabel), value = paymentMethod)
-                    InfoRow(label = stringResource(strings.deliveryMethodLabel), value = deliveryMethod)
-                    InfoRow(label = stringResource(strings.dealTypeLabel), value = dealType)
-                    InfoRow(label = stringResource(strings.dialogFio), value = name)
-                    InfoRow(label = stringResource(strings.dialogCountry), value = country)
-                    InfoRow(label = stringResource(strings.dialogPhone), value = phone)
-                    InfoRow(label = stringResource(strings.dialogCity), value = city)
-                    InfoRow(label = stringResource(strings.dialogZip), value = index)
-                    InfoRow(label = stringResource(strings.dialogAddress), value = address)
-                }
-            }
-        },
-        onDismiss = {
-            onDismiss()
-        },
-    )
+//    CustomDialog(
+//        isDialogOpen,
+//        title = AnnotatedString(stringResource(strings.paymentAndDeliveryLabel)),
+//        containerColor = colors.white,
+//        body = {
+//            LazyColumnWithScrollBars(
+//                heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+//                horizontalAlignment = Alignment.Start,
+//                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+//            ) {
+//                item {
+//                    InfoRow(label = stringResource(strings.paymentMethodLabel), value = paymentMethod)
+//                    InfoRow(label = stringResource(strings.deliveryMethodLabel), value = deliveryMethod)
+//                    InfoRow(label = stringResource(strings.dealTypeLabel), value = dealType)
+//                    InfoRow(label = stringResource(strings.dialogFio), value = name)
+//                    InfoRow(label = stringResource(strings.dialogCountry), value = country)
+//                    InfoRow(label = stringResource(strings.dialogPhone), value = phone)
+//                    InfoRow(label = stringResource(strings.dialogCity), value = city)
+//                    InfoRow(label = stringResource(strings.dialogZip), value = index)
+//                    InfoRow(label = stringResource(strings.dialogAddress), value = address)
+//                }
+//            }
+//        },
+//        onDismiss = {
+//            onDismiss()
+//        },
+//    )
 }
 
 

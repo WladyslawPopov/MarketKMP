@@ -7,7 +7,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,7 +35,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import kotlinx.coroutines.launch
 import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -79,13 +76,12 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallImageButton
-import market.engine.widgets.dialogs.AddBidDialog
 import market.engine.widgets.dialogs.CreateSubscribeDialog
-import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.onError
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
@@ -94,7 +90,8 @@ import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.CustomDialog
-import market.engine.widgets.dialogs.OfferOperationsDialogs
+import market.engine.widgets.dialogs.DateDialog
+import market.engine.widgets.dialogs.ListPicker
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
@@ -108,8 +105,10 @@ import market.engine.widgets.texts.TextAppBar
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.toString
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferContent(
     component: OfferComponent,
@@ -123,25 +122,27 @@ fun OfferContent(
 
     val uiState = viewModel.offerViewState.collectAsState()
 
+    val scrollPos = viewModel.scrollPosition.collectAsState()
+
+    val offerRepository = uiState.value.offerRepository
+
     val catHistory = viewModel.responseCatHistory.collectAsState()
     val offerVisitedHistory = viewModel.responseHistory.collectAsState()
     val ourChoiceList = viewModel.responseOurChoice.collectAsState()
 
-    val dialogFields = viewModel.fieldsDialog.collectAsState()
-    val dialogTitle = viewModel.titleDialog.collectAsState()
-    val openOperationDialog = viewModel.showOperationsDialog.collectAsState()
-    val itemIdDialog = viewModel.dialogItemId.collectAsState()
-    val showDialog = viewModel.showDialog.collectAsState()
-    val myMaximalBid = viewModel.myMaximalBid.collectAsState()
+    val myMaximalBid = offerRepository.myMaximalBid.collectAsState()
+    val customDialogState = offerRepository.customDialogState.collectAsState()
     val remainingTime = viewModel.remainingTime.collectAsState()
     val errorString = viewModel.errorString.collectAsState()
+
+    val promoList = offerRepository.promoList.collectAsState()
+    val operationsList = offerRepository.operationsList.collectAsState()
 
     val offer = uiState.value.offer
     val offerState = uiState.value.offerState
     val isMyOffer = uiState.value.isMyOffer
     val appBarState = uiState.value.appBarData
-    val promoList = uiState.value.promoList
-    val operationsList = uiState.value.menuList
+
     val images = uiState.value.images
     val statusList = uiState.value.statusList
     val columns = uiState.value.columns
@@ -151,16 +152,12 @@ fun OfferContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val valuesPickerState = rememberPickerState()
 
-    val goToBids = 6
-
     val focusManager = LocalFocusManager.current
 
     val stateColumn = rememberLazyListState(
         initialFirstVisibleItemIndex = viewModel.scrollState.value.scrollItem,
         initialFirstVisibleItemScrollOffset = viewModel.scrollState.value.offsetScrollItem
     )
-
-    val scope = rememberCoroutineScope()
 
     BackHandler(model.backHandler) {
         component.onBackClick()
@@ -171,6 +168,14 @@ fun OfferContent(
             stateColumn.firstVisibleItemIndex to stateColumn.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
             viewModel.scrollState.value = ScrollDataState(index, offset)
+        }
+    }
+
+    LaunchedEffect(scrollPos.value){
+        snapshotFlow {
+            scrollPos.value
+        }.collect {
+            stateColumn.animateScrollToItem(it)
         }
     }
 
@@ -208,11 +213,19 @@ fun OfferContent(
         }
     }
 
+    LaunchedEffect(valuesPickerState.selectedItem){
+        snapshotFlow {
+            valuesPickerState.selectedItem
+        }.collect {
+            offerRepository.valuesPickerState.value = it
+        }
+    }
+
     val error: (@Composable () -> Unit)? = remember(isError.value) {
         if (isError.value.humanMessage != "") {
             {
                 onError(isError.value) {
-                    viewModel.clearDialogFields()
+                    offerRepository.clearDialogFields()
                     viewModel.refreshPage()
                 }
             }
@@ -390,7 +403,7 @@ fun OfferContent(
                                             colors.white,
                                             MaterialTheme.shapes.small
                                         ).clip(MaterialTheme.shapes.small).clickable {
-                                            viewModel.editNote(offer.id)
+                                            viewModel.editNote()
                                         }.padding(dimens.smallPadding),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
@@ -488,7 +501,7 @@ fun OfferContent(
                                                 PopUpMenu(
                                                     openPopup = isShowOptions.value,
                                                     onClosed = { isShowOptions.value = false },
-                                                    menuList = operationsList
+                                                    menuList = operationsList.value
                                                 )
                                             }
 
@@ -504,7 +517,7 @@ fun OfferContent(
 
                                                 PopUpMenu(
                                                     openPopup = isOpenPopup.value,
-                                                    menuList = promoList,
+                                                    menuList = promoList.value,
                                                     onClosed = { isOpenPopup.value = false }
                                                 )
                                             }
@@ -538,9 +551,7 @@ fun OfferContent(
                                 ) {
                                     //bids winner or last bid
                                     BidsWinnerOrLastBid(offer, offerState) {
-                                        scope.launch {
-                                            stateColumn.animateScrollToItem(goToBids)
-                                        }
+                                        viewModel.scrollToBids()
                                     }
 
                                     TimeOfferSession(
@@ -562,7 +573,7 @@ fun OfferContent(
                                     AuctionPriceLayout(
                                         offer = offer,
                                         onAddBidClick = { bid ->
-                                            viewModel.onAddBidClick(bid)
+                                            offerRepository.onAddBidClick(bid.toLongOrNull() ?: 1)
                                         },
                                         modifier = Modifier
                                     )
@@ -576,7 +587,7 @@ fun OfferContent(
                                         offer = offer,
                                         offerState,
                                         onBuyNowClick = {
-                                            viewModel.buyNowClick(offer)
+                                            offerRepository.buyNowClick()
                                         },
                                         onAddToCartClick = {
                                            viewModel.onAddToCartClick(offer)
@@ -658,7 +669,7 @@ fun OfferContent(
                                         MessageToSeller(
                                             offer,
                                             onClick = {
-                                                viewModel.openMesDialog(offer)
+                                                offerRepository.openMesDialog()
                                             }
                                         )
                                     }
@@ -776,9 +787,9 @@ fun OfferContent(
                         AuctionBidsSection(
                             offer,
                             isDeletesBids = false,
-                            onRebidClick = {
+                            onRebidClick = { bid ->
                                 if (UserData.token != "") {
-                                    viewModel.openDialog("add_bid")
+                                    offerRepository.onAddBidClick(bid)
                                 } else {
                                     component.goToLogin()
                                 }
@@ -795,9 +806,9 @@ fun OfferContent(
                         AuctionBidsSection(
                             offer,
                             isDeletesBids = true,
-                            onRebidClick = {
+                            onRebidClick = { bid ->
                                 if (UserData.token != "") {
-                                    viewModel.openDialog("add_bid")
+                                    offerRepository.onAddBidClick(bid)
                                 } else {
                                     component.goToLogin()
                                 }
@@ -847,96 +858,110 @@ fun OfferContent(
                 }
             }
 
-            AddBidDialog(
-                showDialog.value == "add_bid",
-                myMaximalBid.value,
-                onDismiss = {
-                    viewModel.clearDialogFields()
-                },
-                onSuccess = {
-                    viewModel.addBid(
-                        myMaximalBid.value,
-                        offer,
-                        onSuccess = {
-                            viewModel.updateBidsInfo(offer)
-                            viewModel.clearDialogFields()
-                            scope.launch {
-                                stateColumn.animateScrollToItem(goToBids)
-                            }
-                        },
-                        onDismiss = {
-                            viewModel.clearDialogFields()
-                        }
-                    )
-                },
-            )
-
-            OfferOperationsDialogs(
-                offerId = itemIdDialog.value,
-                showDialog = openOperationDialog.value,
-                viewModel = viewModel,
-                title = dialogTitle.value,
-                initFields = dialogFields.value,
-                updateItem = {
-                    viewModel.updateBidsInfo(offer)
-                    viewModel.updateOperations(offer)
-                },
-                close = { fullRefresh ->
-                    viewModel.clearDialogFields()
-
-                    if (fullRefresh) {
-                        viewModel.refreshPage()
-                    }
-                }
-            )
-
             CustomDialog(
-                showDialog = showDialog.value == "buy_now",
-                title = AnnotatedString(""),
-                body = {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        SeparatorLabel(
-                            stringResource(strings.chooseAmountLabel)
+                containerColor = colors.primaryColor,
+                uiState = customDialogState.value
+            )
+            { state->
+                when (state.typeDialog)  {
+                    "send_message" -> {
+                        OutlinedTextInputField(
+                            value = offerRepository.messageText.value,
+                            onValueChange = {
+                                offerRepository.messageText.value = it
+                            },
+                            label = stringResource(strings.messageLabel),
+                            maxSymbols = 2000,
+                            singleLine = false
                         )
+                    }
+                    "activate_offer_for_future" -> {
+                        DateDialog(
+                            showDialog = state.typeDialog != "",
+                            isSelectableDates = true,
+                            onDismiss = {
+                                offerRepository.clearDialogFields()
+                            },
+                            onSucceed = { futureTimeInSeconds ->
+                                offerRepository.futureTimeInSeconds.value = futureTimeInSeconds.toString()
+                            }
+                        )
+                    }
+                    "add_bid" -> {
+                        val aboutBid = stringResource(strings.placeBetOnTheAmount)
+                        val currency = stringResource(strings.currencySign)
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(dimens.mediumPadding),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+                        val text = buildAnnotatedString {
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.textA0AE,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(
+                                    aboutBid
+                                )
+                                append(": ")
+                            }
+
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.priceTextColor,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(myMaximalBid.value)
+                                append(currency)
+                            }
+                        }
+                        Text(text, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    "buy_now" -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            ListPicker(
-                                state = valuesPickerState,
-                                items = uiState.value.buyNowCounts,
-                                visibleItemsCount = 3,
-                                modifier = Modifier.fillMaxWidth(0.5f),
-                                textModifier = Modifier.padding(dimens.smallPadding),
-                                textStyle = MaterialTheme.typography.titleLarge,
-                                dividerColor = colors.textA0AE
+                            SeparatorLabel(
+                                stringResource(strings.chooseAmountLabel)
                             )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(dimens.mediumPadding),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                ListPicker(
+                                    state = valuesPickerState,
+                                    items = uiState.value.buyNowCounts,
+                                    visibleItemsCount = 3,
+                                    modifier = Modifier.fillMaxWidth(0.5f),
+                                    textModifier = Modifier.padding(dimens.smallPadding),
+                                    textStyle = MaterialTheme.typography.titleLarge,
+                                    dividerColor = colors.textA0AE
+                                )
+                            }
                         }
                     }
-                },
-                onSuccessful = {
-                  viewModel.buyNowSuccessDialog(offer, valuesPickerState.selectedItem.toIntOrNull() ?: 1)
-                },
-                onDismiss = {
-                    viewModel.clearDialogFields()
+                    else -> {
+                        Column {
+                            if (state.fields.isNotEmpty()) {
+                                SetUpDynamicFields(state.fields)
+                            }
+                        }
+                    }
                 }
-            )
+            }
 
             CreateSubscribeDialog(
                 errorString.value != "",
                 errorString.value,
                 onDismiss = {
-                    viewModel.clearDialogFields()
+                    offerRepository.clearDialogFields()
                 },
                 goToSubscribe = {
                     component.goToSubscribes()
-                    viewModel.clearDialogFields()
+                    offerRepository.clearDialogFields()
                 }
             )
         }

@@ -59,32 +59,32 @@ fun ReportDialog(
             else -> ""
         }
 
-        CustomDialog(
-            isDialogOpen,
-            title = AnnotatedString(type),
-            containerColor = colors.white,
-            body = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
-                ) {
-                    Text(
-                        text = moodLabel,
-                        color = moodColor,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            },
-            onDismiss = {
-                onDismiss()
-            }
-        )
+//        CustomDialog(
+//            isDialogOpen,
+//            title = AnnotatedString(type),
+//            containerColor = colors.white,
+//            body = {
+//                Column(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalAlignment = Alignment.Start,
+//                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
+//                ) {
+//                    Text(
+//                        text = moodLabel,
+//                        color = moodColor,
+//                        style = MaterialTheme.typography.titleMedium
+//                    )
+//
+//                    Text(
+//                        text = text,
+//                        style = MaterialTheme.typography.bodySmall,
+//                        color = MaterialTheme.colorScheme.onSurface
+//                    )
+//                }
+//            },
+//            onDismiss = {
+//                onDismiss()
+//            }
+//        )
     }
 }

@@ -12,31 +12,47 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.network.networkObjects.Fields
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
+data class CustomDialogState(
+    val typeDialog: String = "",
+    val title: AnnotatedString = AnnotatedString(""),
+    val fields : List<Fields> = emptyList(),
+    val onDismiss: () -> Unit = {},
+    val onSuccessful: (() -> Unit) ?= null,
+)
+
 @Composable
 fun CustomDialog(
-    showDialog: Boolean,
-    title: AnnotatedString,
+    uiState: CustomDialogState,
     containerColor: Color = colors.white,
-    body: @Composable () -> Unit = {},
-    onDismiss: () -> Unit,
-    onSuccessful: (() -> Unit) ?= null,
+    body: @Composable (uiState: CustomDialogState) -> Unit = {},
 ) {
-   if (showDialog) {
+    val showDialog = uiState.typeDialog
+    val title = uiState.title
+    val onDismiss = uiState.onDismiss
+    val onSuccessful = uiState.onSuccessful
+
+    if (showDialog != "") {
         AlertDialog(
             containerColor = containerColor,
             tonalElevation = 0.dp,
             onDismissRequest = { onDismiss() },
-            title = { Text(title, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)) },
+            title = {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                )
+            },
             text = {
                 LazyColumnWithScrollBars(
                     heightMod = Modifier.fillMaxWidth()
                 ) {
                     item {
-                        body()
+                        body(uiState)
                     }
                 }
             },

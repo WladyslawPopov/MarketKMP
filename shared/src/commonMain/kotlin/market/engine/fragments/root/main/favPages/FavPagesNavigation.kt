@@ -180,20 +180,20 @@ fun FavPagesNavigation(
                         }
                     }
 
-                    CustomDialog(
-                        showDialog = dialogFields.value.isNotEmpty(),
-                        containerColor = colors.primaryColor,
-                        title = dialogTitle.value,
-                        body = {
-                            SetUpDynamicFields(dialogFields.value)
-                        },
-                        onDismiss = {
-                            viewModel.closeDialog()
-                        },
-                        onSuccessful = {
-                            viewModel.postOperation()
-                        }
-                    )
+//                    CustomDialog(
+//                        showDialog = dialogFields.value.isNotEmpty(),
+//                        containerColor = colors.primaryColor,
+//                        title = dialogTitle.value,
+//                        body = {
+//                            SetUpDynamicFields(dialogFields.value)
+//                        },
+//                        onDismiss = {
+//                            viewModel.closeDialog()
+//                        },
+//                        onSuccessful = {
+//                            viewModel.postOperation()
+//                        }
+//                    )
                 }
             }
         )

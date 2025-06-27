@@ -58,7 +58,7 @@ fun AddBidDialog(
                 Text(conversationTitle, style = MaterialTheme.typography.titleSmall)
             },
             text = {
-                Text(text, style = MaterialTheme.typography.bodyMedium)
+
             },
             confirmButton = {
                 SimpleTextButton(
