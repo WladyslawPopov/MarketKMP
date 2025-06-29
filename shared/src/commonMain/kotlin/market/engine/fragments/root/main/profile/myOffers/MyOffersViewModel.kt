@@ -1,9 +1,5 @@
 package market.engine.fragments.root.main.profile.myOffers
 
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -22,24 +18,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.common.Platform
-import market.engine.common.clipBoardEvent
-import market.engine.common.openCalendarEvent
-import market.engine.common.openShare
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.Sort
-import market.engine.core.data.constants.successToastItem
-import market.engine.core.data.events.CabinetOfferItemEvents
+import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.FilterListingBtnItem
-import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
@@ -51,8 +43,8 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
@@ -79,10 +71,6 @@ class MyOffersViewModel(
     ))
 
     private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
-    val showOperationsDialog = MutableStateFlow("")
-    val titleDialog = MutableStateFlow(AnnotatedString(""))
-    val fieldsDialog = MutableStateFlow< ArrayList<Fields>>(arrayListOf())
-    val dialogItemId = MutableStateFlow(1L)
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         _listingData,
@@ -109,58 +97,14 @@ class MyOffersViewModel(
             }.map { pagingData ->
                 pagingData.map { offer ->
                     val item = offer.parseToOfferItem()
-                    val copyString = getString(strings.copyOfferId)
-                    val copiedString = getString(strings.idCopied)
-                    val defOption = listOf(
-                        MenuItem(
-                            id = "copyId",
-                            title = copyString,
-                            icon = drawables.copyIcon,
-                            onClick = {
-                                clipBoardEvent(offer.id.toString())
-
-                                showToast(
-                                    successToastItem.copy(
-                                        message = copiedString
-                                    )
-                                )
-                            }
-                        ),
-                        MenuItem(
-                            id = "share",
-                            title = getString(strings.shareOffer),
-                            icon = drawables.shareIcon,
-                            onClick = {
-                                offer.publicUrl?.let { openShare(it) }
-                            }
-                        ),
-                        MenuItem(
-                            id = "calendar",
-                            title = getString(strings.addToCalendar),
-                            icon = drawables.calendarIcon,
-                            onClick = {
-                                offer.publicUrl?.let { openCalendarEvent(it) }
-                            }
-                        ),
-                        MenuItem(
-                            id = "create_blank_offer_list",
-                            title = getString(strings.createNewOffersListLabel),
-                            icon = drawables.addFolderIcon,
-                            onClick = {
-                                getFieldsCreateBlankOfferList { t, f ->
-                                    titleDialog.value = AnnotatedString(t)
-                                    fieldsDialog.value.clear()
-                                    fieldsDialog.value.addAll(f)
-                                    showOperationsDialog.value = "create_blank_offer_list"
-                                }
-                            }
-                        ),
-                    )
 
                     CabinetOfferItemState(
                         item = item,
-                        defOptions = defOption,
-                        events = CabinetOfferItemEventsImpl(this, item, component)
+                        offerRepository = OfferRepository(
+                            item,
+                            OfferRepositoryEventsImpl(this, item, component),
+                            this@MyOffersViewModel
+                        )
                     )
                 }
             }
@@ -391,172 +335,45 @@ class MyOffersViewModel(
         }
         refresh()
     }
-    fun clearDialogFields(){
-        dialogItemId.value = 1
-        fieldsDialog.value.clear()
-        showOperationsDialog.value = ""
-    }
 }
 
-
-data class CabinetOfferItemEventsImpl(
+data class OfferRepositoryEventsImpl(
     val viewModel: MyOffersViewModel,
     val offer: OfferItem,
     val component: MyOffersComponent
-) : CabinetOfferItemEvents
-{
-    override fun getMenuOperations(
-        tag: String?,
-        callback: (List<MenuItem>) -> Unit
+) : OfferRepositoryEvents {
+    override fun goToCreateOffer(
+        type: CreateOfferType,
+        catpath: List<Long>,
+        id: Long,
+        externalImages: List<String>?
     ) {
-        viewModel.viewModelScope.launch {
-            val currency = getString(strings.currencySign)
-
-            viewModel.getOfferOperations(
-                offer.id,
-                tag ?: "default",
-            ) { listOperations ->
-                callback(
-                    if(tag == "promo") {
-                        buildList {
-                            addAll(listOperations.map { operation ->
-                                MenuItem(
-                                    id = operation.id ?: "",
-                                    title = "${(operation.name ?: "")} (${operation.price * -1}$currency)",
-                                    onClick = {
-                                        viewModel.getOperationFields(
-                                            offer.id,
-                                            operation.id ?: "",
-                                            "offers"
-                                        ) { t, f ->
-                                            viewModel.titleDialog.value = buildAnnotatedString {
-                                                append(t)
-                                                withStyle(
-                                                    SpanStyle(
-                                                        color = colors.notifyTextColor,
-                                                    )
-                                                ) {
-                                                    append(" ${operation.price}$currency")
-                                                }
-                                            }
-                                            viewModel.fieldsDialog.value.clear()
-                                            viewModel.fieldsDialog.value.addAll(f)
-                                            viewModel.showOperationsDialog.value =
-                                                operation.id ?: ""
-                                            viewModel.dialogItemId.value = offer.id
-                                        }
-                                    }
-                                )
-                            })
-                        }
-                    }else{
-                        buildList {
-                            addAll(listOperations.map { operation ->
-                                MenuItem(
-                                    id = operation.id ?: "",
-                                    title = operation.name ?: "",
-                                    onClick = {
-                                        operation.run {
-                                            when {
-                                                id == "activate_offer_for_future" || id == "delete_offer" || id == "finalize_session" -> {
-                                                    viewModel.titleDialog.value = AnnotatedString(name ?: "")
-                                                    viewModel.showOperationsDialog.value = id
-                                                    viewModel.dialogItemId.value = offer.id
-                                                }
-
-                                                id == "copy_offer_without_old_photo" -> {
-                                                    goToCreateOffer(CreateOfferType.COPY_WITHOUT_IMAGE)
-                                                }
-
-                                                id == "edit_offer" -> {
-                                                    goToCreateOffer(CreateOfferType.EDIT)
-                                                }
-
-                                                id == "copy_offer" -> {
-                                                    goToCreateOffer(CreateOfferType.COPY)
-                                                }
-
-                                                id == "act_on_proposal" -> {
-//                                                    component.goToProposal(
-//                                                        ProposalType.ACT_ON_PROPOSAL,
-//                                                        offer.id
-//                                                    )
-                                                }
-
-                                                id == "make_proposal" -> {
-//                                                    component.goToProposal(
-//                                                        ProposalType.MAKE_PROPOSAL,
-//                                                        offer.id
-//                                                    )
-                                                }
-
-                                                id == "cancel_all_bids" -> {
-                                                    goToDynamicSettings(
-                                                        "cancel_all_bids",
-                                                        offer.id
-                                                    )
-                                                }
-
-                                                id == "remove_bids_of_users" -> {
-                                                    goToDynamicSettings(
-                                                        "remove_bids_of_users",
-                                                        offer.id
-                                                    )
-                                                }
-
-                                                isDataless == false -> {
-                                                    viewModel.getOperationFields(
-                                                        offer.id,
-                                                        id ?: "",
-                                                        "offers",
-                                                    ) { t, f ->
-                                                        viewModel.titleDialog.value = AnnotatedString(t)
-                                                        viewModel.fieldsDialog.value.clear()
-                                                        viewModel.fieldsDialog.value.addAll(f)
-                                                        viewModel.showOperationsDialog.value = id ?: ""
-                                                        viewModel.dialogItemId.value = offer.id
-                                                    }
-                                                }
-
-                                                else -> {
-                                                    viewModel.postOperationFields(
-                                                        offer.id,
-                                                        id ?: "",
-                                                        "offers",
-                                                        onSuccess = {
-                                                            val eventParameters = mapOf(
-                                                                "lot_id" to offer.id,
-                                                                "lot_name" to offer.title,
-                                                                "lot_city" to offer.location,
-                                                                "auc_delivery" to offer.safeDeal,
-                                                                "lot_category" to offer.catPath.firstOrNull(),
-                                                                "seller_id" to offer.seller.id,
-                                                                "lot_price_start" to offer.price,
-                                                            )
-                                                            viewModel.analyticsHelper.reportEvent(
-                                                                "${id}_success",
-                                                                eventParameters
-                                                            )
-
-                                                            viewModel.updateUserInfo()
-                                                            viewModel.updateItem.value = offer.id
-                                                        },
-                                                        errorCallback = {}
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                            })
-                        }
-                    }
-                )
-            }
-        }
+        component.goToCreateOffer(type, id, catpath)
     }
 
-    override fun onItemClick() {
+    override fun goToProposalPage(type: ProposalType) {
+        component.goToProposals(offer.id, type)
+    }
+
+    override fun goToDynamicSettings(type: String, id: Long) {
+        component.goToDynamicSettings(type, id)
+    }
+
+    override fun goToLogin() {
+        DefaultRootComponent.Companion.goToLogin(false)
+    }
+
+    override fun goToDialog(id: Long?) {}
+    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {}
+    override fun goToUserPage() {}
+
+    override fun openCabinetOffer() {}
+
+    override fun isHideCabinetOffer(): Boolean {
+        return viewModel.isHideItem(offer)
+    }
+
+    override fun scrollToBids() {
         if (viewModel.selectItems.isNotEmpty()) {
             if (viewModel.selectItems.contains(offer.id)) {
                 viewModel.selectItems.remove(offer.id)
@@ -568,35 +385,8 @@ data class CabinetOfferItemEventsImpl(
         }
     }
 
-    override fun goToCreateOffer(type: CreateOfferType) {
-        component.goToCreateOffer(type, offer.id, offer.catPath)
-    }
-
-    override fun goToDynamicSettings(type: String, id: Long?) {
-        DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
-    }
-
-    override fun onUpdateItem() {
+    override fun update() {
         viewModel.updateItem(offer)
     }
 
-    override fun goToUser() {
-
-    }
-
-    override fun goToPurchase() {
-
-    }
-
-    override fun goToProposal(type: ProposalType) {
-
-    }
-
-    override fun sendMessageToUser() {
-
-    }
-
-    override fun isHideItem(): Boolean {
-        return viewModel.isHideItem(offer)
-    }
 }

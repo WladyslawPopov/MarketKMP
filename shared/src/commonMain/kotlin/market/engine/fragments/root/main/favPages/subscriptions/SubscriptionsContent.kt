@@ -26,7 +26,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.filterContents.SortingOrdersContent
@@ -68,7 +68,7 @@ fun SubscriptionsContent(
     val err = subViewModel.errorMessage.collectAsState()
 
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) { subViewModel.refresh() } }
+        { OnError(err.value) { subViewModel.refresh() } }
     }else{
         null
     }

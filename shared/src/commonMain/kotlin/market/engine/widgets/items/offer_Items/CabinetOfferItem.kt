@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ import market.engine.widgets.bars.HeaderOfferBar
 import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallImageButton
+import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.widgets.rows.PromoRow
@@ -57,7 +59,14 @@ fun CabinetOfferItem(
     updateItem : Long? = null,
 ) {
     val item = state.item
-    val events = state.events
+    val offerRepository = state.offerRepository
+
+    val events = offerRepository.events
+    val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
+
+    LaunchedEffect(offerRepository) {
+        defOptions.value = offerRepository.getDefOperations()
+    }
 
     val pagerState = rememberPagerState(
         pageCount = { item.images.size },
@@ -67,32 +76,27 @@ fun CabinetOfferItem(
 
     val openPromoMenu = remember { mutableStateOf(false) }
 
-    val menuList = remember {
-        mutableStateOf<List<MenuItem>>(emptyList())
-    }
-
-    val menuPromotionsList = remember {
-        mutableStateOf<List<MenuItem>>(emptyList())
-    }
+    val menuList = offerRepository.operationsList.collectAsState()
+    val menuPromotionsList = offerRepository.promoList.collectAsState()
 
     LaunchedEffect(updateItem) {
         if (updateItem == item.id) {
-            events.onUpdateItem()
+            events.update()
         }
     }
 
-    AnimatedVisibility(!state.events.isHideItem(), enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(!events.isHideCabinetOffer(), enter = fadeIn(), exit = fadeOut()) {
         Card(
             colors = if (!item.isPromo) colors.cardColors else colors.cardColorsPromo,
             shape = MaterialTheme.shapes.small,
             onClick = {
-                events.onItemClick()
+                events.openCabinetOffer()
             }
         ) {
             HeaderOfferBar(
                 offer = item,
                 selectedState = state.selectedItem,
-                defOptions = state.defOptions
+                defOptions = defOptions.value
             )
 
             Row(
@@ -160,10 +164,7 @@ fun CabinetOfferItem(
                                 )
                             },
                         ) {
-                            events.getMenuOperations {
-                                menuList.value = it
-                                openMenu.value = true
-                            }
+                            openMenu.value = true
                         }
 
                         PopUpMenu(
@@ -429,12 +430,7 @@ fun CabinetOfferItem(
                         Column {
                             if (UserData.login == item.seller.id && item.state == "active") {
                                 PromoBuyBtn {
-                                    events.getMenuOperations(
-                                        "promo"
-                                    ) {
-                                        menuPromotionsList.value = it
-                                        openPromoMenu.value = true
-                                    }
+                                    openPromoMenu.value = true
                                 }
                             }
 
@@ -489,4 +485,8 @@ fun CabinetOfferItem(
             }
         }
     }
+
+    OfferOperationsDialogs(
+        offerRepository = offerRepository,
+    )
 }

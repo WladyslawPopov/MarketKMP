@@ -61,7 +61,9 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.ScrollDataState
+import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Param
 import market.engine.core.data.types.CreateOfferType
@@ -81,17 +83,14 @@ import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.dialogs.CustomDialog
-import market.engine.widgets.dialogs.DateDialog
-import market.engine.widgets.dialogs.ListPicker
+import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
@@ -124,24 +123,25 @@ fun OfferContent(
 
     val scrollPos = viewModel.scrollPosition.collectAsState()
 
-    val offerRepository = uiState.value.offerRepository
+    val offerRepository = viewModel.offerRepository.collectAsState()
 
     val catHistory = viewModel.responseCatHistory.collectAsState()
     val offerVisitedHistory = viewModel.responseHistory.collectAsState()
     val ourChoiceList = viewModel.responseOurChoice.collectAsState()
 
-    val myMaximalBid = offerRepository.myMaximalBid.collectAsState()
-    val customDialogState = offerRepository.customDialogState.collectAsState()
     val remainingTime = viewModel.remainingTime.collectAsState()
     val errorString = viewModel.errorString.collectAsState()
 
-    val promoList = offerRepository.promoList.collectAsState()
-    val operationsList = offerRepository.operationsList.collectAsState()
+    val menuList = offerRepository.value.menuList.collectAsState()
+
+    val promoList = offerRepository.value.promoList.collectAsState()
+    val operationsList = offerRepository.value.operationsList.collectAsState()
+
+    val listItems = remember { mutableStateOf<List<NavigationItem>>(emptyList())}
 
     val offer = uiState.value.offer
     val offerState = uiState.value.offerState
     val isMyOffer = uiState.value.isMyOffer
-    val appBarState = uiState.value.appBarData
 
     val images = uiState.value.images
     val statusList = uiState.value.statusList
@@ -176,6 +176,14 @@ fun OfferContent(
             scrollPos.value
         }.collect {
             stateColumn.animateScrollToItem(it)
+        }
+    }
+
+    LaunchedEffect(operationsList.value){
+        snapshotFlow {
+            operationsList.value
+        }.collect {
+            listItems.value = offerRepository.value.getAppBarOfferList()
         }
     }
 
@@ -217,15 +225,15 @@ fun OfferContent(
         snapshotFlow {
             valuesPickerState.selectedItem
         }.collect {
-            offerRepository.valuesPickerState.value = it
+            offerRepository.value.setValuesPickerState(it)
         }
     }
 
     val error: (@Composable () -> Unit)? = remember(isError.value) {
         if (isError.value.humanMessage != "") {
             {
-                onError(isError.value) {
-                    offerRepository.clearDialogFields()
+                OnError(isError.value) {
+                    offerRepository.value.clearDialogFields()
                     viewModel.refreshPage()
                 }
             }
@@ -237,7 +245,16 @@ fun OfferContent(
     BaseContent(
         topBar = {
             SimpleAppBar(
-                data = appBarState
+                data = SimpleAppBarData(
+                    onBackClick = {
+                        component.onBackClick()
+                    },
+                    listItems = listItems.value,
+                    menuItems = menuList.value,
+                    closeMenu = {
+                        offerRepository.value.clearMenuList()
+                    }
+                )
             ) {
                 TextAppBar(
                     stringResource(
@@ -573,7 +590,7 @@ fun OfferContent(
                                     AuctionPriceLayout(
                                         offer = offer,
                                         onAddBidClick = { bid ->
-                                            offerRepository.onAddBidClick(bid.toLongOrNull() ?: 1)
+                                            offerRepository.value.onAddBidClick(bid.toLongOrNull() ?: 1)
                                         },
                                         modifier = Modifier
                                     )
@@ -587,7 +604,7 @@ fun OfferContent(
                                         offer = offer,
                                         offerState,
                                         onBuyNowClick = {
-                                            offerRepository.buyNowClick()
+                                            offerRepository.value.buyNowClick()
                                         },
                                         onAddToCartClick = {
                                            viewModel.onAddToCartClick(offer)
@@ -669,7 +686,7 @@ fun OfferContent(
                                         MessageToSeller(
                                             offer,
                                             onClick = {
-                                                offerRepository.openMesDialog()
+                                                offerRepository.value.openMesDialog()
                                             }
                                         )
                                     }
@@ -789,7 +806,7 @@ fun OfferContent(
                             isDeletesBids = false,
                             onRebidClick = { bid ->
                                 if (UserData.token != "") {
-                                    offerRepository.onAddBidClick(bid)
+                                    offerRepository.value.onAddBidClick(bid)
                                 } else {
                                     component.goToLogin()
                                 }
@@ -808,7 +825,7 @@ fun OfferContent(
                             isDeletesBids = true,
                             onRebidClick = { bid ->
                                 if (UserData.token != "") {
-                                    offerRepository.onAddBidClick(bid)
+                                    offerRepository.value.onAddBidClick(bid)
                                 } else {
                                     component.goToLogin()
                                 }
@@ -858,110 +875,21 @@ fun OfferContent(
                 }
             }
 
-            CustomDialog(
-                containerColor = colors.primaryColor,
-                uiState = customDialogState.value
+            OfferOperationsDialogs(
+                offerRepository.value,
+                valuesPickerState,
+                uiState.value.buyNowCounts
             )
-            { state->
-                when (state.typeDialog)  {
-                    "send_message" -> {
-                        OutlinedTextInputField(
-                            value = offerRepository.messageText.value,
-                            onValueChange = {
-                                offerRepository.messageText.value = it
-                            },
-                            label = stringResource(strings.messageLabel),
-                            maxSymbols = 2000,
-                            singleLine = false
-                        )
-                    }
-                    "activate_offer_for_future" -> {
-                        DateDialog(
-                            showDialog = state.typeDialog != "",
-                            isSelectableDates = true,
-                            onDismiss = {
-                                offerRepository.clearDialogFields()
-                            },
-                            onSucceed = { futureTimeInSeconds ->
-                                offerRepository.futureTimeInSeconds.value = futureTimeInSeconds.toString()
-                            }
-                        )
-                    }
-                    "add_bid" -> {
-                        val aboutBid = stringResource(strings.placeBetOnTheAmount)
-                        val currency = stringResource(strings.currencySign)
-
-                        val text = buildAnnotatedString {
-                            withStyle(
-                                SpanStyle(
-                                    color = colors.textA0AE,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append(
-                                    aboutBid
-                                )
-                                append(": ")
-                            }
-
-                            withStyle(
-                                SpanStyle(
-                                    color = colors.priceTextColor,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append(myMaximalBid.value)
-                                append(currency)
-                            }
-                        }
-                        Text(text, style = MaterialTheme.typography.bodyMedium)
-                    }
-                    "buy_now" -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            SeparatorLabel(
-                                stringResource(strings.chooseAmountLabel)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(dimens.mediumPadding),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                ListPicker(
-                                    state = valuesPickerState,
-                                    items = uiState.value.buyNowCounts,
-                                    visibleItemsCount = 3,
-                                    modifier = Modifier.fillMaxWidth(0.5f),
-                                    textModifier = Modifier.padding(dimens.smallPadding),
-                                    textStyle = MaterialTheme.typography.titleLarge,
-                                    dividerColor = colors.textA0AE
-                                )
-                            }
-                        }
-                    }
-                    else -> {
-                        Column {
-                            if (state.fields.isNotEmpty()) {
-                                SetUpDynamicFields(state.fields)
-                            }
-                        }
-                    }
-                }
-            }
 
             CreateSubscribeDialog(
                 errorString.value != "",
                 errorString.value,
                 onDismiss = {
-                    offerRepository.clearDialogFields()
+                    offerRepository.value.clearDialogFields()
                 },
                 goToSubscribe = {
                     component.goToSubscribes()
-                    offerRepository.clearDialogFields()
+                    offerRepository.value.clearDialogFields()
                 }
             )
         }

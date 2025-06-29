@@ -1,33 +1,25 @@
 package market.engine.fragments.root.main.offer
 
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import market.engine.common.Platform
-import market.engine.common.clipBoardEvent
-import market.engine.common.openCalendarEvent
-import market.engine.common.openShare
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.events.OfferRepositoryEvents
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.SimpleAppBarData
@@ -38,7 +30,6 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.data.types.OfferStates
-import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
@@ -47,7 +38,6 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.BaseViewModel
 import market.engine.shared.MarketDB
-import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
 import kotlin.toString
 
@@ -71,8 +61,7 @@ data class OfferViewState(
     val paymentMethodString : String = "",
 
     val isMyOffer: Boolean = false,
-    val offerState: OfferStates = OfferStates.ACTIVE,
-    val offerRepository: OfferRepository
+    val offerState: OfferStates = OfferStates.ACTIVE
 )
 
 class OfferViewModel(
@@ -82,7 +71,7 @@ class OfferViewModel(
     val isSnapshot : Boolean = false
 ) : BaseViewModel()
 {
-    private val _responseOffer: MutableStateFlow<Offer?> = MutableStateFlow(null)
+    private val _responseOffer: MutableStateFlow<Offer> = MutableStateFlow(Offer())
 
     private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
     val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
@@ -109,22 +98,19 @@ class OfferViewModel(
 
     val goToBids = 6
 
-    private val _menuList = MutableStateFlow<List<MenuItem>>(emptyList())
-
     private val offerRepositoryEvents = OfferRepositoryEventsImpl(component, this)
 
-    val offerViewState : StateFlow<OfferViewState> = combine(
-        _responseOffer,
-        _menuList
-    )
-    { offer, menuList ->
-        if (offer == null) return@combine OfferViewState(offerRepository = OfferRepository(events = offerRepositoryEvents))
+    private val _offerRepository = MutableStateFlow(OfferRepository(events = offerRepositoryEvents))
+    val offerRepository: StateFlow<OfferRepository> = _offerRepository.asStateFlow()
 
-        val offerRepository = OfferRepository(
-            offer,
-            offerRepositoryEvents,
-            this
-        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val offerViewState : StateFlow<OfferViewState> = _responseOffer.flatMapConcat { offer ->
+        //init timers
+        val initTimer =
+            ((offer.session?.end?.toLongOrNull()
+                ?: 1L) - (getCurrentDate().toLongOrNull()
+                ?: 1L)) * 1000
 
         val images = when {
             offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() }
@@ -133,15 +119,6 @@ class OfferViewModel(
             offer.externalImages?.isNotEmpty() == true -> offer.externalImages
             else -> listOf("empty")
         }
-
-        val copiedString = getString(strings.idCopied)
-
-        //init timers
-        val initTimer =
-            ((offer.session?.end?.toLongOrNull()
-                ?: 1L) - (getCurrentDate().toLongOrNull()
-                ?: 1L)) * 1000
-
         eventParameters = mapOf(
             "lot_id" to offer.id,
             "lot_name" to offer.title,
@@ -200,184 +177,35 @@ class OfferViewModel(
             _remainingTime.value = initTimer
         }
 
-        offerRepository.myMaximalBid.value = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: ""
+        offer.sellerData = getUserInfo(offer.sellerData?.id ?: 1) ?: offer.sellerData
 
-        offer.sellerData = getUserInfo(offer.sellerData?.id ?: 1L) ?: offer.sellerData
+        val columns =
+            if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
 
-        val defList = buildList {
-            add(MenuItem(
-                id = "copyId",
-                title = getString(strings.copyOfferId),
-                icon = drawables.copyIcon,
-                onClick = {
-                    clipBoardEvent(offer.id.toString())
-                    showToast(
-                        successToastItem.copy(
-                            message = copiedString
-                        )
-                    )
-                }
-            ))
-
-            add(MenuItem(
-                id = "share",
-                title = getString(strings.shareOffer),
-                icon = drawables.shareIcon,
-                onClick = {
-                    offer.publicUrl?.let { openShare(it) }
-                }
-            ))
-
-            add(MenuItem(
-                id = "calendar",
-                title = getString(strings.addToCalendar),
-                icon = drawables.calendarIcon,
-                onClick = {
-                    offer.publicUrl?.let { openCalendarEvent(it) }
-                }
-            ))
-
-            if (UserData.token != "") {
-                add(
-                    MenuItem(
-                        id = "create_blank_offer_list",
-                        title = getString(strings.createNewOffersListLabel),
-                        icon = drawables.addFolderIcon,
-                        onClick = {
-                            getFieldsCreateBlankOfferList { t, f ->
-                                offerRepository.setCustomDialogState(CustomDialogState(
-                                    title = AnnotatedString(t),
-                                    fields = f,
-                                    typeDialog = "create_blank_offer_list",
-                                    onDismiss = {
-                                        offerRepository.clearDialogFields()
-                                    },
-                                    onSuccessful = {
-                                        val body = HashMap<String, JsonElement>()
-
-                                        f.forEach {
-                                            if (it.data != null) {
-                                                body[it.key ?: ""] = it.data!!
-                                            }
-                                        }
-
-                                        postOperationFields(
-                                            UserData.login,
-                                            "create_blank_offer_list",
-                                            "users",
-                                            body = body,
-                                            onSuccess = {
-                                                refreshPage()
-                                            },
-                                            errorCallback = { errFields ->
-                                                if (errFields != null) {
-                                                    offerRepository.setCustomDialogState(
-                                                        offerRepository.customDialogState.value.copy(
-                                                            fields = errFields
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    }
-                                ))
-                            }
-                        }
-                    )
-                )
-            }
-        }
-        val listItems = listOf(
-            NavigationItem(
-                title = "",
-                icon = drawables.recycleIcon,
-                tint = colors.inactiveBottomNavIconColor,
-                hasNews = false,
-                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                badgeCount = null,
-                onClick = {
-                    refreshPage()
-                }
-            ),
-            NavigationItem(
-                title = getString(strings.editLabel),
-                icon = drawables.editIcon,
-                tint = colors.black,
-                hasNews = false,
-                badgeCount = null,
-                isVisible = offerRepository.operationsList.value.find { it.id == "edit_offer" } != null,
-                onClick = {
-                    offerRepository.operationsList.value.find { it.id == "edit_offer" }?.onClick?.invoke()
-                }
-            ),
-            NavigationItem(
-                title = getString(strings.myNotesTitle),
-                icon = drawables.editNoteIcon,
-                tint = colors.black,
-                hasNews = false,
-                badgeCount = null,
-                isVisible = offerRepository.operationsList.value.find { it.id == "create_note" || it.id == "edit_note" } != null,
-                onClick = {
-                    offerRepository.operationsList.value.find { it.id == "create_note" || it.id == "edit_note" }?.onClick?.invoke()
-                }
-            ),
-            NavigationItem(
-                title = getString(strings.favoritesTitle),
-                icon = if (offerRepository.operationsList.value.find { it.id == "watch" } == null) drawables.favoritesIconSelected else drawables.favoritesIcon,
-                tint = colors.inactiveBottomNavIconColor,
-                hasNews = false,
-                badgeCount = null,
-                isVisible = offerRepository.operationsList.value.find { it.id == "watch" || it.id == "unwatch" } != null,
-                onClick = {
-                    offerRepository.operationsList.value.find { it.id == "watch" || it.id == "unwatch" }?.onClick?.invoke()
-                }
-            ),
-            NavigationItem(
-                title = getString(strings.menuTitle),
-                icon = drawables.menuIcon,
-                tint = colors.black,
-                hasNews = false,
-                badgeCount = null,
-                onClick = {
-                    _menuList.value = defList
-                }
-            )
-        )
-
-        offer.isProposalEnabled = offerRepository.operationsList.value.find { it.id == "make_proposal" } != null
-
-        val columns  = if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
-
-        val counts = (1..offer.originalQuantity).map { it.toString() }
+        val counts = (1..offer.quantity).map { it.toString() }
         setLoading(false)
-        OfferViewState(
-            appBarData = SimpleAppBarData(
-                onBackClick = {
-                    component.onBackClick()
-                },
-                listItems = listItems,
-                menuItems = menuList,
-                closeMenu = {
-                    _menuList.value = emptyList()
-                }
-            ),
-            offer = offer,
-            statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
-            columns = columns,
-            images = images,
-            countString = getCountString(offerState, offer),
-            buyNowCounts = counts,
-            isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
-            offerState = offerState,
-            dealTypeString = offer.dealTypes?.joinToString(separator = ". ") { it.name ?: "" } ?: "",
-            deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
-            paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") { it.name ?: "" } ?: "",
-            offerRepository = offerRepository
+        flowOf(
+            OfferViewState(
+                offer = offer,
+                statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
+                columns = columns,
+                images = images,
+                countString = getCountString(offerState, offer),
+                buyNowCounts = counts,
+                isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
+                offerState = offerState,
+                dealTypeString = offer.dealTypes?.joinToString(separator = ". ") { it.name ?: "" }
+                    ?: "",
+                deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
+                paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") {
+                    it.name ?: ""
+                } ?: "",
+            )
         )
     }.stateIn(
         viewModelScope,
-        SharingStarted.Eagerly,
-        OfferViewState(offerRepository = OfferRepository(events = offerRepositoryEvents))
+        SharingStarted.Lazily,
+        OfferViewState()
     )
 
     init {
@@ -391,7 +219,7 @@ class OfferViewModel(
 
     fun editNote(){
         viewModelScope.launch {
-            offerViewState.value.offerRepository.operationsList.value.find { it.id == "edit_note" }?.onClick()
+            offerRepository.value.operationsList.value.find { it.id == "edit_note" }?.onClick()
         }
     }
 
@@ -418,10 +246,10 @@ class OfferViewModel(
                     val data = deserializePayload(response.payload, serializer).firstOrNull()
                     data?.let { offer ->
                         getCategoriesHistory(offer.catpath)
+                        _offerRepository.value = OfferRepository(offer = offer.parseToOfferItem(), events = offerRepositoryEvents, this@OfferViewModel)
                         _responseOffer.value = offer
                     }
                 }
-
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))
             }
@@ -568,7 +396,7 @@ class OfferViewModel(
             withContext(Dispatchers.Main) {
                 if (user != null) {
                     _responseOffer.update {
-                        it?.copy(
+                        it.copy(
                             sellerData = user
                         )
                     }
@@ -596,7 +424,7 @@ class OfferViewModel(
                     response.success?.body?.let { body ->
                         if (body.isChanged) {
                             _responseOffer.update {
-                                it?.copy(
+                                it.copy(
                                     bids = body.bids,
                                     version = JsonPrimitive(body.currentVersion),
                                     currentPricePerItem = body.currentPrice,
@@ -665,9 +493,9 @@ class OfferViewModel(
         val isCompleted = offerState == OfferStates.COMPLETED
         val isCompletedOrInActive = isCompleted || offerState == OfferStates.INACTIVE
 
-        val quantityInfo = "${getString(strings.quantityParameterName)}: ${offer.estimatedActiveOffersCount}"
+        val quantityInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity}"
 
-        val qFullInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity} ${getString(strings.fromParameterName)} ${offer.originalQuantity}"
+        val qFullInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity} ${getString(strings.fromParameterName)} ${offer.quantity}"
 
         return when {
             saleType == "buy_now" -> {
@@ -678,7 +506,7 @@ class OfferViewModel(
                 }
             }
 
-            saleType == "auction_with_buy_now" && offer.originalQuantity > 1 -> {
+            saleType == "auction_with_buy_now" && offer.quantity > 1 -> {
                 if (isCompletedOrInActive) {
                     quantityInfo
                 } else {
@@ -755,6 +583,14 @@ data class OfferRepositoryEventsImpl(
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
         component.goToCreateOrder(item)
+    }
+
+    override fun goToUserPage() {}
+
+    override fun openCabinetOffer() {}
+
+    override fun isHideCabinetOffer() : Boolean {
+        return true
     }
 
     override fun scrollToBids() {

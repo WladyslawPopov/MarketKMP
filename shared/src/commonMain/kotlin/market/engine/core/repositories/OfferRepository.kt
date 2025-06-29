@@ -18,45 +18,83 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
+import market.engine.common.Platform
+import market.engine.common.clipBoardEvent
+import market.engine.common.openCalendarEvent
+import market.engine.common.openShare
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
+import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
+import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
-import market.engine.core.network.networkObjects.Offer
+import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
 
 class OfferRepository(
-    val offer: Offer = Offer(),
+    val offer: OfferItem = OfferItem(),
     val events: OfferRepositoryEvents,
     val viewModel: BaseViewModel = BaseViewModel(),
 )
 {
     private val _operationsList = MutableStateFlow<List<MenuItem>>(emptyList())
     val operationsList: StateFlow<List<MenuItem>> = _operationsList.asStateFlow()
+
     private val _promoList = MutableStateFlow<List<MenuItem>>(emptyList())
     val promoList: StateFlow<List<MenuItem>> = _promoList.asStateFlow()
+
     private val _customDialogState = MutableStateFlow(CustomDialogState())
     val customDialogState = _customDialogState.asStateFlow()
 
-    val myMaximalBid = MutableStateFlow("")
+    private val _menuList = MutableStateFlow<List<MenuItem>>(emptyList())
+    val menuList: StateFlow<List<MenuItem>> = _menuList.asStateFlow()
 
-    val messageText = MutableStateFlow(TextFieldValue(""))
+    private val _myMaximalBid = MutableStateFlow(offer.myMaximalBid)
+    val myMaximalBid = _myMaximalBid.asStateFlow()
 
-    val valuesPickerState = MutableStateFlow("")
+    private val _messageText = MutableStateFlow(TextFieldValue(""))
+    val messageText = _messageText.asStateFlow()
 
-    val futureTimeInSeconds = MutableStateFlow("")
+    private val _valuesPickerState = MutableStateFlow("")
+    val valuesPickerState = _valuesPickerState.asStateFlow()
+
+    private val _futureTimeInSeconds = MutableStateFlow("")
+    val futureTimeInSeconds = _futureTimeInSeconds.asStateFlow()
+
     
     init {
         updateOperations()
+    }
+
+    fun refreshOffer(){
+        update()
+        updateOperations()
+        events.update()
+    }
+
+    fun update(){
+        viewModel.viewModelScope.launch {
+            val newOffer = withContext(Dispatchers.IO) {
+                viewModel.getOfferById(offer.id)
+            }
+
+            withContext(Dispatchers.Main) {
+                if (newOffer != null) {
+                    offer.setNewParams(newOffer)
+                }
+            }
+        }
     }
 
     fun updateOperations(){
@@ -76,21 +114,21 @@ class OfferRepository(
                                         id == "copy_offer_without_old_photo" -> {
                                             events.goToCreateOffer(
                                                 CreateOfferType.COPY_WITHOUT_IMAGE,
-                                                offer.catpath, offer.id, offer.externalImages
+                                                offer.catPath, offer.id, offer.externalImages
                                             )
                                         }
 
                                         id == "edit_offer" -> {
                                             events.goToCreateOffer(
                                                 CreateOfferType.EDIT,
-                                                offer.catpath, offer.id, offer.externalImages
+                                                offer.catPath, offer.id, offer.externalImages
                                             )
                                         }
 
                                         id == "copy_offer" -> {
                                             events.goToCreateOffer(
                                                 CreateOfferType.COPY,
-                                                offer.catpath, offer.id, offer.externalImages
+                                                offer.catPath, offer.id, offer.externalImages
                                             )
                                         }
 
@@ -252,7 +290,8 @@ class OfferRepository(
                                                                         method,
                                                                         body = body,
                                                                         onSuccess = {
-                                                                            events.update()
+                                                                            refreshOffer()
+                                                                            clearDialogFields()
                                                                         },
                                                                         errorCallback = { errFields ->
                                                                             if (errFields != null) {
@@ -291,7 +330,8 @@ class OfferRepository(
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
-                                                                                events.update()
+                                                                                refreshOffer()
+                                                                                clearDialogFields()
                                                                             },
                                                                             errorCallback = {
                                                                                 clearDialogFields()
@@ -312,7 +352,8 @@ class OfferRepository(
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
-                                                                                events.update()
+                                                                                refreshOffer()
+                                                                                clearDialogFields()
                                                                             },
                                                                             errorCallback = { errFields ->
                                                                                 if (errFields != null) {
@@ -341,27 +382,27 @@ class OfferRepository(
                                                     val eventParameters = mapOf(
                                                         "lot_id" to offer.id,
                                                         "lot_name" to offer.title,
-                                                        "lot_city" to offer.freeLocation,
+                                                        "lot_city" to offer.location,
                                                         "auc_delivery" to offer.safeDeal,
-                                                        "lot_category" to offer.catpath.firstOrNull(),
-                                                        "seller_id" to offer.sellerData?.id,
-                                                        "lot_price_start" to offer.currentPricePerItem,
+                                                        "lot_category" to offer.catPath.firstOrNull(),
+                                                        "seller_id" to offer.seller.id,
+                                                        "lot_price_start" to offer.price,
                                                     )
                                                     viewModel.analyticsHelper.reportEvent(
                                                         "${id}_success",
                                                         eventParameters
                                                     )
-
-                                                    viewModel.updateUserInfo()
                                                     when (operation.id) {
                                                         "watch", "unwatch", "create_blank_offer_list" -> {
                                                             updateOperations()
+                                                            update()
                                                         }
 
                                                         else -> {
-                                                            events.update()
+                                                            refreshOffer()
                                                         }
                                                     }
+                                                    viewModel.updateUserInfo()
                                                 },
                                                 errorCallback = {}
                                             )
@@ -372,6 +413,7 @@ class OfferRepository(
                         )
                     })
                 }
+                offer.isProposalEnabled = isProposalsEnabled()
             }
 
             viewModel.getOfferOperations(
@@ -420,7 +462,7 @@ class OfferRepository(
                                                 "offers",
                                                 body = body,
                                                 onSuccess = {
-                                                    events.update()
+                                                    refreshOffer()
                                                 },
                                                 errorCallback = { errFields ->
                                                     if (errFields != null) {
@@ -447,13 +489,9 @@ class OfferRepository(
         _customDialogState.value = CustomDialogState()
     }
 
-    fun setCustomDialogState(state: CustomDialogState){
-        _customDialogState.value = state
-    }
-
-    fun addBid(
+    private fun addBid(
         sum: String,
-        offer: Offer,
+        offer: OfferItem,
         onSuccess: () -> Unit,
         onDismiss: () -> Unit
     ) {
@@ -479,12 +517,12 @@ class OfferRepository(
                     )
                     val eventParameters = mapOf(
                         "lot_id" to offer.id,
-                        "lot_name" to offer.name,
-                        "lot_city" to offer.freeLocation,
+                        "lot_name" to offer.title,
+                        "lot_city" to offer.location,
                         "auc_delivery" to offer.safeDeal,
-                        "lot_category" to offer.catpath.firstOrNull(),
-                        "seller_id" to offer.sellerData?.id,
-                        "lot_price_start" to offer.currentPricePerItem,
+                        "lot_category" to offer.catPath.firstOrNull(),
+                        "seller_id" to offer.seller.id,
+                        "lot_price_start" to offer.price,
                         "buyer_id" to UserData.login,
                         "bid_amount" to sum,
                         "bids_all" to offer.bids?.size
@@ -506,59 +544,72 @@ class OfferRepository(
     fun openMesDialog() {
         viewModel.viewModelScope.launch {
             if (UserData.token != "") {
-                val userName = offer.sellerData?.login ?: getString(strings.sellerLabel)
+                val sellerLabel = getString(strings.sellerLabel)
                 val conversationTitle = getString(strings.createConversationLabel)
                 val aboutOrder = getString(strings.aboutOfferLabel)
-                _customDialogState.value = CustomDialogState(
-                    title = buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                color = colors.grayText,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append(
-                                conversationTitle
-                            )
-                        }
+                viewModel.postOperationAdditionalData(
+                    offer.id,
+                    "checking_conversation_existence",
+                    "offers",
+                    onSuccess = { body ->
+                        val dialogId = body?.operationResult?.additionalData?.conversationId
+                        if (dialogId != null) {
+                            events.goToDialog(dialogId)
+                        } else {
+                            val userName = offer.seller.login ?: sellerLabel
+                            _customDialogState.value = CustomDialogState(
+                                title = buildAnnotatedString {
+                                    withStyle(
+                                        SpanStyle(
+                                            color = colors.grayText,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    ) {
+                                        append(
+                                            conversationTitle
+                                        )
+                                    }
 
-                        withStyle(
-                            SpanStyle(
-                                color = colors.actionTextColor,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append(" $userName ")
-                        }
+                                    withStyle(
+                                        SpanStyle(
+                                            color = colors.actionTextColor,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    ) {
+                                        append(" $userName ")
+                                    }
 
-                        withStyle(
-                            SpanStyle(
-                                color = colors.grayText,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append(aboutOrder)
-                        }
+                                    withStyle(
+                                        SpanStyle(
+                                            color = colors.grayText,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    ) {
+                                        append(aboutOrder)
+                                    }
 
-                        withStyle(
-                            SpanStyle(
-                                color = colors.titleTextColor,
+                                    withStyle(
+                                        SpanStyle(
+                                            color = colors.titleTextColor,
+                                        )
+                                    ) {
+                                        append(" #${offer.id}")
+                                    }
+                                },
+                                fields = emptyList(),
+                                typeDialog = "send_message",
+                                onDismiss = {
+                                    clearDialogFields()
+                                },
+                                onSuccessful = {
+                                    viewModel.writeToSeller(
+                                        offer.id, messageText.value.text,
+                                    ) {
+                                        events.goToDialog(it)
+                                        clearDialogFields()
+                                    }
+                                }
                             )
-                        ) {
-                            append(" #${offer.id}")
-                        }
-                    },
-                    fields = emptyList(),
-                    typeDialog = "send_message",
-                    onDismiss = {
-                        clearDialogFields()
-                    },
-                    onSuccessful = {
-                        viewModel.writeToSeller(
-                            offer.id, messageText.value.text,
-                        ) {
-                            events.goToDialog(it)
-                            clearDialogFields()
                         }
                     }
                 )
@@ -567,9 +618,10 @@ class OfferRepository(
             }
         }
     }
+
     fun onAddBidClick(bid : Long){
         if (UserData.token != "") {
-            myMaximalBid.value = bid.toString()
+            _myMaximalBid.value = bid.toString()
 
             viewModel.viewModelScope.launch {
                 val conversationTitle = getString(strings.acceptAddBidsAction)
@@ -585,7 +637,7 @@ class OfferRepository(
                             myMaximalBid.value,
                             offer,
                             onSuccess = {
-                                events.update()
+                                refreshOffer()
                                 clearDialogFields()
                                 events.scrollToBids()
                             },
@@ -602,11 +654,10 @@ class OfferRepository(
     }
     fun buyNowSuccessDialog(valuesPicker: Int){
         val item = Pair(
-            offer.sellerData?.id ?: 1L, listOf(
+            offer.seller.id, listOf(
                 SelectedBasketItem(
                     offerId = offer.id,
-                    pricePerItem = offer.currentPricePerItem?.toDouble()
-                        ?: 0.0,
+                    pricePerItem = offer.price.toDouble(),
                     selectedQuantity = valuesPicker
                 )
             )
@@ -616,7 +667,7 @@ class OfferRepository(
     }
     fun buyNowClick(){
         if (UserData.token != "") {
-            if (offer.originalQuantity > 1) {
+            if (offer.quantity > 1) {
                 _customDialogState.value = CustomDialogState(
                     typeDialog = "buy_now",
                     onDismiss = {
@@ -628,11 +679,10 @@ class OfferRepository(
                 )
             } else {
                 val item = Pair(
-                    offer.sellerData?.id ?: 1L, listOf(
+                    offer.seller.id, listOf(
                         SelectedBasketItem(
                             offerId = offer.id,
-                            pricePerItem = offer.currentPricePerItem?.toDouble()
-                                ?: 0.0,
+                            pricePerItem = offer.price.toDouble(),
                             selectedQuantity = 1
                         )
                     )
@@ -642,5 +692,177 @@ class OfferRepository(
         } else {
             events.goToLogin()
         }
+    }
+
+    suspend fun getDefOperations() : List<MenuItem> {
+        val copiedString = getString(strings.textCopied)
+        return buildList {
+            add(
+                MenuItem(
+                    id = "copyId",
+                    title = getString(strings.copyOfferId),
+                    icon = drawables.copyIcon,
+                    onClick = {
+                        clipBoardEvent(offer.id.toString())
+                        viewModel.showToast(
+                            successToastItem.copy(
+                                message = copiedString
+                            )
+                        )
+                    }
+                ))
+
+            add(
+                MenuItem(
+                    id = "share",
+                    title = getString(strings.shareOffer),
+                    icon = drawables.shareIcon,
+                    onClick = {
+                        offer.publicUrl?.let { openShare(it) }
+                    }
+                ))
+
+            add(
+                MenuItem(
+                    id = "calendar",
+                    title = getString(strings.addToCalendar),
+                    icon = drawables.calendarIcon,
+                    onClick = {
+                        offer.publicUrl?.let { openCalendarEvent(it) }
+                    }
+                ))
+
+            if (UserData.token != "") {
+                add(
+                    MenuItem(
+                        id = "create_blank_offer_list",
+                        title = getString(strings.createNewOffersListLabel),
+                        icon = drawables.addFolderIcon,
+                        onClick = {
+                            viewModel.getFieldsCreateBlankOfferList { t, f ->
+                                _customDialogState.value = CustomDialogState(
+                                    title = AnnotatedString(t),
+                                    fields = f,
+                                    typeDialog = "create_blank_offer_list",
+                                    onDismiss = {
+                                        clearDialogFields()
+                                    },
+                                    onSuccessful = {
+                                        val body = HashMap<String, JsonElement>()
+
+                                        f.forEach {
+                                            if (it.data != null) {
+                                                body[it.key ?: ""] = it.data!!
+                                            }
+                                        }
+
+                                        viewModel.postOperationFields(
+                                            UserData.login,
+                                            "create_blank_offer_list",
+                                            "users",
+                                            body = body,
+                                            onSuccess = {
+                                                refreshOffer()
+                                            },
+                                            errorCallback = { errFields ->
+                                                if (errFields != null) {
+                                                    _customDialogState.update {
+                                                        it.copy(
+                                                            fields = errFields
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    suspend fun getAppBarOfferList(): List<NavigationItem> {
+        val operations = operationsList.value
+        return listOf(
+            NavigationItem(
+                title = "",
+                icon = drawables.recycleIcon,
+                tint = colors.inactiveBottomNavIconColor,
+                hasNews = false,
+                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                badgeCount = null,
+                onClick = {
+                    refreshOffer()
+                }
+            ),
+            NavigationItem(
+                title = getString(strings.editLabel),
+                icon = drawables.editIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                isVisible = operations.find { it.id == "edit_offer" } != null,
+                onClick = {
+                    operations.find { it.id == "edit_offer" }?.onClick?.invoke()
+                }
+            ),
+            NavigationItem(
+                title = getString(strings.myNotesTitle),
+                icon = drawables.editNoteIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                isVisible = operations.find { it.id == "create_note" || it.id == "edit_note" } != null,
+                onClick = {
+                    operations.find { it.id == "create_note" || it.id == "edit_note" }?.onClick?.invoke()
+                }
+            ),
+            NavigationItem(
+                title = getString(strings.favoritesTitle),
+                icon = if (operations.find { it.id == "watch" } == null) drawables.favoritesIconSelected else drawables.favoritesIcon,
+                tint = colors.inactiveBottomNavIconColor,
+                hasNews = false,
+                badgeCount = null,
+                isVisible = operations.find { it.id == "watch" || it.id == "unwatch" } != null,
+                onClick = {
+                    operations.find { it.id == "watch" || it.id == "unwatch" }?.onClick?.invoke()
+                }
+            ),
+            NavigationItem(
+                title = getString(strings.menuTitle),
+                icon = drawables.menuIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    viewModel.viewModelScope.launch {
+                        _menuList.value = getDefOperations()
+                    }
+                }
+            )
+        )
+    }
+
+    fun clearMenuList(){
+        _menuList.value = emptyList()
+    }
+
+    fun isProposalsEnabled() : Boolean {
+        return operationsList.value.find { it.id == "make_proposal" } != null
+    }
+
+    fun setMessageText(text: TextFieldValue){
+        _messageText.value = text
+    }
+
+    fun setValuesPickerState(text: String) {
+        _valuesPickerState.value = text
+    }
+
+    fun setFutureTimeInSeconds(text: String) {
+        _futureTimeInSeconds.value = text
     }
 }

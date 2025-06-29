@@ -11,11 +11,12 @@ import market.engine.core.repositories.UserRepository
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.dialogs.CustomDialog
+import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
-fun onError(
+fun OnError(
     error : ServerErrorException,
     onRefresh: () -> Unit,
 ) {
@@ -70,18 +71,20 @@ fun onError(
                         }
                     }
 
-//                    CustomDialog(
-//                        showDialog = showDialog.value,
-//                        title = richTextState.setHtml(humanMessage.value).annotatedString,
-//                        onDismiss = {
-//                            error.errorCode = ""
-//                            error.humanMessage = ""
-//                            humanMessage.value = ""
-//                            errorCode.value = ""
-//                            showDialog.value = false
-//                            onRefresh()
-//                        }
-//                    )
+                    CustomDialog(
+                        uiState = CustomDialogState(
+                            typeDialog = "error",
+                            title = richTextState.setHtml(humanMessage.value).annotatedString,
+                            onDismiss = {
+                                error.errorCode = ""
+                                error.humanMessage = ""
+                                humanMessage.value = ""
+                                errorCode.value = ""
+                                showDialog.value = false
+                                onRefresh()
+                            }
+                        )
+                    )
                 }
 
                 val eventParameters = mapOf(

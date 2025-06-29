@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.bars.HeaderOfferBar
+import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.rows.UserRow
@@ -46,17 +48,21 @@ fun CabinetBidsItem(
     updateItem : Long? = null,
 ) {
     val offer = state.item
-    val events = state.events
+    val offerRepository = state.offerRepository
 
-    val menuList = remember {
-        mutableStateOf<List<MenuItem>>(emptyList())
+    val events = offerRepository.events
+    val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        defOptions.value = offerRepository.getDefOperations()
     }
 
+    val menuList = offerRepository.operationsList.collectAsState()
     val openMenu = remember { mutableStateOf(false) }
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            events.onUpdateItem()
+            events.update()
         }
     }
 
@@ -80,12 +86,12 @@ fun CabinetBidsItem(
                 HeaderOfferBar(
                     offer = offer,
                     selectedState = state.selectedItem,
-                    defOptions = state.defOptions
+                    defOptions = defOptions.value,
                 )
 
                 Row(
                     modifier = Modifier.clickable {
-                        events.onItemClick()
+                        events.openCabinetOffer()
                     }.fillMaxWidth().padding(dimens.extraSmallPadding),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
@@ -120,10 +126,7 @@ fun CabinetBidsItem(
                                 )
                             },
                         ) {
-                            events.getMenuOperations {
-                                menuList.value = it
-                                openMenu.value = true
-                            }
+                            openMenu.value = true
                         }
 
                         PopUpMenu(
@@ -222,7 +225,7 @@ fun CabinetBidsItem(
                         UserRow(
                             offer.seller,
                             Modifier.clip(MaterialTheme.shapes.small).clickable {
-                                events.goToUser()
+                                events.goToUserPage()
                             }.padding(dimens.extraSmallPadding),
                         )
                     }
@@ -240,7 +243,8 @@ fun CabinetBidsItem(
                             backgroundColor = colors.solidGreen,
                             textColor = colors.alwaysWhite,
                         ) {
-                            events.goToPurchase()
+                            //go to purchase
+                            events.goToUserPage()
                         }
                     }
 
@@ -261,7 +265,7 @@ fun CabinetBidsItem(
                             backgroundColor = colors.steelBlue,
                             textColor = colors.alwaysWhite
                         ) {
-                            events.sendMessageToUser()
+                            offerRepository.openMesDialog()
                         }
                     }
                 }
@@ -340,4 +344,8 @@ fun CabinetBidsItem(
             }
         }
     }
+
+    OfferOperationsDialogs(
+        offerRepository = offerRepository,
+    )
 }

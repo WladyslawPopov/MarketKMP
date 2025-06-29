@@ -9,12 +9,15 @@ import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.widgets.checkboxs.DynamicCheckbox
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
+import market.engine.widgets.checkboxs.DynamicRadioButtons
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.widgets.ilustrations.CaptchaImage
 import market.engine.widgets.textFields.DynamicInputField
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SetUpDynamicFields(
@@ -32,9 +35,17 @@ fun SetUpDynamicFields(
             when(field.widgetType) {
                 "input" -> {
                     if(field.choices.isNullOrEmpty()) {
-                        DynamicInputField(
-                            field = field
-                        )
+                        if(fields.find { it.key == "feedback_type" } != null){
+                            field.data = JsonPrimitive(stringResource(strings.defaultCommentReport))
+                            DynamicInputField(
+                                field = field,
+                                singleLine = false
+                            )
+                        }else{
+                            DynamicInputField(
+                                field = field,
+                            )
+                        }
                     }else{
                         DynamicSelect(field)
                     }
@@ -80,6 +91,9 @@ fun SetUpDynamicFields(
                     DynamicSelect(
                         field
                     )
+                }
+                "radio_group" -> {
+                    DynamicRadioButtons(field)
                 }
             }
         }

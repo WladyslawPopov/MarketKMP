@@ -38,7 +38,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.bars.appBars.DrawerAppBar
@@ -74,7 +74,7 @@ fun ConversationsContent(
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { onError(err.value) {  } }
+            { OnError(err.value) {  } }
         }else{
             null
         }

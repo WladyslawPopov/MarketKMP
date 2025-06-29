@@ -38,7 +38,7 @@ import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.fragments.root.main.messenger.DialogsHeader
 import market.engine.widgets.items.ProposalsItemContent
@@ -136,7 +136,7 @@ fun ProposalContent(
 
     val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
         {
-            onError(
+            OnError(
                 isError.value
             ){
                 component.update()

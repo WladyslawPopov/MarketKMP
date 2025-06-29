@@ -208,7 +208,7 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
                                     quantity = item.quantity,
                                     seller = User(id = item.sellerId),
                                     location = item.freeLocation ?: "",
-                                    images = listOf(item.offerImage),
+                                    images = listOf(item.offerImage ?: ""),
                                     safeDeal = item.isBuyable == true,
                                     isWatchedByMe = item.isWatchedByMe == true,
                                     state = "active",

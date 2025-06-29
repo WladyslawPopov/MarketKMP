@@ -18,7 +18,7 @@ import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.root.main.profile.profileSettings.content.globalSettings
 import market.engine.fragments.root.main.profile.profileSettings.content.settingsContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -145,7 +145,7 @@ fun ProfileSettingsContent(
 
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()){
         {
-            onError(err.value){
+            OnError(err.value){
                 refresh()
             }
         }

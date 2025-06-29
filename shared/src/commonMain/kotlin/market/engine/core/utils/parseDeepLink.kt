@@ -6,48 +6,59 @@ import coil3.toUri
 import market.engine.core.data.items.DeepLink
 
 fun parseDeepLink(fullPath: String): DeepLink? {
-    val uri = fullPath.toUri()
-    val path = uri.pathSegments.firstOrNull()
-    return when (path) {
-        "user" -> {
-            uri.pathLongId()?.let { DeepLink.GoToUser(it) }
-        }
-        "listing" -> {
-            uri.getQueryParam("flt_prp_owner")?.let {
-                if(it.toLongOrNull() != null){
-                    DeepLink.GoToListing(it.toLong())
-                }else{
-                    null
+    return try {
+        val uri = fullPath.toUri()
+        val path = uri.pathSegments.firstOrNull()
+        when(path) {
+            "user" -> {
+                uri.pathLongId()?.let { DeepLink.GoToUser(it) }
+            }
+            "listing" -> {
+                uri.getQueryParam("flt_prp_owner")?.let {
+                    if(it.toLongOrNull() != null){
+                        DeepLink.GoToListing(it.toLong())
+                    }else{
+                        null
+                    }
                 }
             }
-        }
-        "offer" -> {
-            uri.pathLongId()?.let { DeepLink.GoToOffer(it) }
-        }
-        "auth" -> {
-            val queryParams = uri.parseQueryParameters()
-            val clientId = queryParams["client_id"]
-            val redirectUri = queryParams["redirect_uri"]
-            if (clientId != null && redirectUri != null) {
-                DeepLink.GoToAuth(clientId, redirectUri)
-            } else {
-                DeepLink.GoToAuth()
+            "offer" -> {
+                uri.pathLongId()?.let { DeepLink.GoToOffer(it) }
             }
+            "auth" -> {
+                val queryParams = uri.parseQueryParameters()
+                val clientId = queryParams["client_id"]
+                val redirectUri = queryParams["redirect_uri"]
+                if (clientId != null && redirectUri != null) {
+                    DeepLink.GoToAuth(clientId, redirectUri)
+                } else {
+                    DeepLink.GoToAuth()
+                }
+            }
+            "registration" -> DeepLink.GoToRegistration
+            "email" ->{
+                val queryParams = uri.parseQueryParameters()
+                val owner = queryParams["us_id"]?.toLongOrNull()
+                val code = queryParams["code"]
+                DeepLink.GoToVerification(owner,code, null)
+            }
+            "password" ->{
+                val queryParams = uri.parseQueryParameters()
+                val owner = queryParams["us_id"]?.toLongOrNull()
+                val code = queryParams["code"]
+                DeepLink.GoToDynamicSettings(owner,code,"set_password")
+            }
+            else -> null
         }
-        "registration" -> DeepLink.GoToRegistration
-        "email" ->{
-            val queryParams = uri.parseQueryParameters()
-            val owner = queryParams["us_id"]?.toLongOrNull()
-            val code = queryParams["code"]
-            DeepLink.GoToVerification(owner,code, null)
-        }
-        "password" ->{
-            val queryParams = uri.parseQueryParameters()
-            val owner = queryParams["us_id"]?.toLongOrNull()
-            val code = queryParams["code"]
-            DeepLink.GoToDynamicSettings(owner,code,"set_password")
-        }
-        else -> null
+    } catch (e: IllegalArgumentException) {
+        // Log that the fullPath was invalid
+        println("Invalid URI for deep link: $fullPath, Error: ${e.message}")
+        null
+    } catch (e: Exception) {
+        // Catch any other unexpected errors during parsing
+        println("Error parsing deep link: $fullPath, Error: ${e.message}")
+        e.printStackTrace()
+        null
     }
 }
 

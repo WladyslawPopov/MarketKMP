@@ -29,7 +29,7 @@ import market.engine.widgets.grids.GridPromoOffers
 import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.painterResource
@@ -55,7 +55,7 @@ fun HomeContent(
 
     val errorContent: (@Composable () -> Unit)? = remember(error.value.humanMessage) {
         if (error.value.humanMessage.isNotBlank()) {
-            { onError(error.value) { homeViewModel.updateModel() } }
+            { OnError(error.value) { homeViewModel.updateModel() } }
         } else {
             null
         }

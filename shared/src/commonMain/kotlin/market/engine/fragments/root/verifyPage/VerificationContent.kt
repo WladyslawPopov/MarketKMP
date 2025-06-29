@@ -32,7 +32,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.texts.DynamicLabel
@@ -52,7 +52,7 @@ fun VerificationContent(
     val focusManager = LocalFocusManager.current
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { onError(err.value) { viewModel.onError(ServerErrorException()) } }
+        { OnError(err.value) { viewModel.onError(ServerErrorException()) } }
     } else {
         null
     }

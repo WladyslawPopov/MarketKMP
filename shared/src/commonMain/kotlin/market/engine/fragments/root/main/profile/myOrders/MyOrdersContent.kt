@@ -17,16 +17,12 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.network.networkObjects.Order
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.widgets.dialogs.OrderDetailsDialog
-import market.engine.widgets.dialogs.OrderMessageDialog
-import market.engine.widgets.dialogs.OrderOperationsDialogs
 import market.engine.widgets.filterContents.OrderFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.MyOrderItem
@@ -49,12 +45,6 @@ fun MyOrdersContent(
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = viewModel.updateItem.collectAsState()
 
-    val dialogTitle = viewModel.titleDialog.collectAsState()
-    val openDialog = viewModel.showOperationsDialog.collectAsState()
-    val itemIdDialog = viewModel.dialogItemId.collectAsState()
-
-    val showMessageDialog = viewModel.showMessageDialog.collectAsState()
-    val showDetailsDialog = viewModel.showDetailsDialog.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -97,10 +87,10 @@ fun MyOrdersContent(
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { onError(err.value) {
-                viewModel.updatePage()
-                viewModel.clearDialogFields()
-            }
+            {
+                OnError(err.value) {
+                    viewModel.updatePage()
+                }
             }
         } else {
             null
@@ -155,42 +145,6 @@ fun MyOrdersContent(
                     updateItem.value
                 )
             }
-        )
-
-        OrderOperationsDialogs(
-            orderId = itemIdDialog.value,
-            title = dialogTitle.value.text,
-            showDialog = openDialog.value,
-            viewModel = viewModel,
-            updateItem = {
-                viewModel.updateItem.value = itemIdDialog.value
-            },
-            onClose = {
-                viewModel.clearDialogFields()
-            }
-        )
-
-        OrderDetailsDialog(
-            isDialogOpen = showDetailsDialog.value,
-            order = data.itemSnapshotList.items.find { it.order.id == itemIdDialog.value }?.order ?: Order(),
-            onDismiss = {
-                viewModel.clearDialogFields()
-            }
-        )
-
-        OrderMessageDialog(
-            showMessageDialog.value,
-            data.itemSnapshotList.items.find { it.order.id == itemIdDialog.value }?.order ?: Order(),
-            type = typeGroup,
-            onDismiss = {
-                viewModel.clearDialogFields()
-            },
-            onSuccess = { dialogId->
-                //go to messenger
-                component.goToMessenger(dialogId)
-                viewModel.clearDialogFields()
-            },
-            baseViewModel = viewModel
         )
     }
 }

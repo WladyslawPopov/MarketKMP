@@ -74,7 +74,7 @@ import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dialogs.DateDialog
@@ -160,7 +160,7 @@ fun CreateOfferContent(
     val error: (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage.isNotBlank()) {
             {
-                onError(err.value) {
+                OnError(err.value) {
                     viewModel.refreshPage()
                 }
             }

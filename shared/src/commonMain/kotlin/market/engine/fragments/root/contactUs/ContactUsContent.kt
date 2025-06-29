@@ -41,7 +41,7 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.widgets.ilustrations.CaptchaImage
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.DynamicInputField
@@ -72,7 +72,7 @@ fun ContactUsContent(
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         {
-            onError(err.value) {
+            OnError(err.value) {
                 model.onError(ServerErrorException())
                 model.getFields()
             }

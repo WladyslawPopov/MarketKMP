@@ -25,7 +25,7 @@ import market.engine.core.data.states.ScrollDataState
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.dialogs.AccessDialog
@@ -88,7 +88,7 @@ fun BasketContent(
     val error : (@Composable () ->Unit)? = remember(isError.value) {
         if (isError.value.humanMessage.isNotBlank()) {
             {
-                onError(
+                OnError(
                     isError.value
                 ) {
                     viewModel.onError(ServerErrorException())

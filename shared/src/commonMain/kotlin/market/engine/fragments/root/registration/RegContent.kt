@@ -27,7 +27,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
@@ -52,7 +52,7 @@ fun RegistrationContent(
     }
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) {
+        { OnError(err.value) {
             model.getRegFields()
             model.onError(ServerErrorException())
         } }

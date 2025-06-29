@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.bars.HeaderOfferBar
+import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.TitleText
@@ -45,17 +47,20 @@ fun CabinetProposalItem(
     updateItem : Long? = null,
 ) {
     val offer = state.item
-    val events = state.events
+    val offerRepository = state.offerRepository
+    val events = offerRepository.events
 
-    val menuList = remember {
-        mutableStateOf<List<MenuItem>>(emptyList())
-    }
-
+    val menuList = offerRepository.operationsList.collectAsState()
     val openMenu = remember { mutableStateOf(false) }
+    val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        defOptions.value = offerRepository.getDefOperations()
+    }
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            events.onUpdateItem()
+            events.update()
         }
     }
 
@@ -66,7 +71,8 @@ fun CabinetProposalItem(
     Card(
         colors = colors.cardColors,
         shape = MaterialTheme.shapes.small,
-    ) {
+    )
+    {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -77,11 +83,11 @@ fun CabinetProposalItem(
             HeaderOfferBar(
                 offer = offer,
                 selectedState = state.selectedItem,
-                defOptions = state.defOptions
+                defOptions = defOptions.value
             )
             Row(
                 modifier = Modifier.clickable {
-                    events.onItemClick()
+                    events.openCabinetOffer()
                 }.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
                 verticalAlignment = Alignment.CenterVertically
@@ -116,10 +122,7 @@ fun CabinetProposalItem(
                                 )
                             },
                         ) {
-                            events.getMenuOperations {
-                                menuList.value = it
-                                openMenu.value = true
-                            }
+                            openMenu.value = true
                         }
 
                         PopUpMenu(
@@ -202,7 +205,7 @@ fun CabinetProposalItem(
                     UserRow(
                         offer.seller,
                         Modifier.clip(MaterialTheme.shapes.small).clickable {
-                            events.goToUser()
+                            events.goToUserPage()
                         }.padding(dimens.extraSmallPadding),
                     )
 
@@ -246,7 +249,7 @@ fun CabinetProposalItem(
                     textColor = colors.alwaysWhite,
                     modifier = Modifier.weight(1f)
                 ) {
-                    events.goToProposal(
+                    events.goToProposalPage(
                         if(offer.seller.id == UserData.login)
                          ProposalType.ACT_ON_PROPOSAL
                         else ProposalType.MAKE_PROPOSAL
@@ -269,9 +272,13 @@ fun CabinetProposalItem(
                     textColor = colors.alwaysWhite,
                     modifier = Modifier.weight(1f)
                 ) {
-                    events.sendMessageToUser()
+                    offerRepository.openMesDialog()
                 }
             }
         }
     }
+
+    OfferOperationsDialogs(
+        offerRepository
+    )
 }

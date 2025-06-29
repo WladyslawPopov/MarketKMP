@@ -13,7 +13,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getDeepLinkByType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 
@@ -36,7 +36,7 @@ fun NotificationsHistoryContent(
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
         {
-            onError(err.value)
+            OnError(err.value)
             {
                 viewModel.onError(ServerErrorException())
             }

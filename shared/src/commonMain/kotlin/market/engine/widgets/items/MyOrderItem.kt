@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,7 +30,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.MenuItem
 import market.engine.core.data.states.MyOrderItemState
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.convertDateWithMinutes
@@ -37,7 +37,7 @@ import market.engine.core.utils.parseToOfferItem
 import market.engine.widgets.items.offer_Items.OfferPartItem
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.widgets.dialogs.ReportDialog
+import market.engine.widgets.dialogs.OrderOperationsDialog
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.texts.DynamicLabel
 import org.jetbrains.compose.resources.painterResource
@@ -51,12 +51,14 @@ fun MyOrderItem(
     val typeDef = DealTypeGroup.BUY
     val maxNotExpandedItems = 2
     val order = data.order
-    val events = data.events
-    val typeGroup = data.typeGroup
+
+    val orderRepository = data.orderRepository
+    val events = orderRepository.events
+    val typeGroup = orderRepository.typeGroup
 
     LaunchedEffect(updateItem) {
         if (updateItem == order.id) {
-            events.onUpdateItem()
+            orderRepository.updateItem(order)
         }
     }
 
@@ -75,9 +77,7 @@ fun MyOrderItem(
             append(" #${order.id}")
         }
 
-    val menuList = remember {
-        mutableStateOf<List<MenuItem>>(emptyList())
-    }
+    val menuList = orderRepository.menuList.collectAsState()
 
     AnimatedVisibility(order.owner != 1L, enter = fadeIn(), exit = fadeOut()) {
         Column(
@@ -87,19 +87,21 @@ fun MyOrderItem(
                 ),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-        ) {
+        )
+        {
             //header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            )
+            {
                 Text(
                     idOrderText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.actionTextColor,
                     modifier = Modifier.clickable {
-                        events.copyOrderId()
+                        orderRepository.copyOrderId()
                     }.fillMaxWidth(0.5f)
                 )
 
@@ -118,10 +120,7 @@ fun MyOrderItem(
                             drawables.menuIcon,
                             colors.black,
                         ) {
-                            events.getOperations { menu ->
-                                menuList.value = menu
-                                showMenu.value = true
-                            }
+                            showMenu.value = true
                         }
 
                         PopUpMenu(
@@ -138,7 +137,8 @@ fun MyOrderItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
+            )
+            {
                 val textUser = buildAnnotatedString {
                     if (typeGroup == typeDef)
                         append(stringResource(strings.buyerParameterName))
@@ -231,7 +231,8 @@ fun MyOrderItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
-            ) {
+            )
+            {
                 Text(
                     stringResource(strings.offersParticipantsLabel),
                     style = MaterialTheme.typography.bodyMedium,
@@ -323,8 +324,6 @@ fun MyOrderItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (myFeedback != null) {
-                            val showReportDialog = remember { mutableStateOf(false) }
-
                             SimpleTextButton(
                                 myFeedbackLabel,
                                 trailingIcon = {
@@ -370,19 +369,8 @@ fun MyOrderItem(
                                     )
                                 },
                             ) {
-                                showReportDialog.value = true
+                                orderRepository.showReportDialog(myFeedbackLabel)
                             }
-
-                            ReportDialog(
-                                isDialogOpen = showReportDialog.value,
-                                order = order,
-                                mood = myFeedback.type ?: "",
-                                text = myFeedback.comment ?: "",
-                                type = myFeedbackLabel,
-                                onDismiss = {
-                                    showReportDialog.value = false
-                                }
-                            )
                         }
                     }
 
@@ -392,8 +380,6 @@ fun MyOrderItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (feedbackToMe != null) {
-                            val showReportDialog = remember { mutableStateOf(false) }
-
                             SimpleTextButton(
                                 toMeFeedbackLabel,
                                 trailingIcon = {
@@ -439,19 +425,8 @@ fun MyOrderItem(
                                     )
                                 },
                             ) {
-                                showReportDialog.value = true
+                                orderRepository.showReportDialog(toMeFeedbackLabel)
                             }
-
-                            ReportDialog(
-                                isDialogOpen = showReportDialog.value,
-                                order = order,
-                                mood = feedbackToMe.type ?: "",
-                                text = feedbackToMe.comment ?: "",
-                                type = toMeFeedbackLabel,
-                                onDismiss = {
-                                    showReportDialog.value = false
-                                }
-                            )
                         }
                     }
                 }
@@ -518,7 +493,7 @@ fun MyOrderItem(
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.actionTextColor,
                         modifier = Modifier.clickable {
-                            events.copyTrackId()
+                            orderRepository.copyTrackId()
                         }
                     )
                 }
@@ -547,7 +522,8 @@ fun MyOrderItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            )
+            {
                 val mes = if (typeGroup == typeDef) {
                     stringResource(strings.writeBuyerLabel)
                 } else {
@@ -574,7 +550,7 @@ fun MyOrderItem(
                         backgroundColor = colors.steelBlue,
                         textColor = colors.alwaysWhite
                     ) {
-                        events.sendMessage()
+                        orderRepository.sendMessage()
                     }
                 }
 
@@ -598,10 +574,14 @@ fun MyOrderItem(
                         ),
                         textColor = colors.alwaysWhite
                     ) {
-                        events.openOrderDetails()
+                        orderRepository.openOrderDetails()
                     }
                 }
             }
+
+            OrderOperationsDialog(
+                orderRepository
+            )
         }
     }
 }

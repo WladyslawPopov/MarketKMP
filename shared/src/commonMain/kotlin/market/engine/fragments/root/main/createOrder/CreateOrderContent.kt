@@ -34,7 +34,7 @@ import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.root.dynamicSettings.contents.DeliveryCardsContent
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.items.offer_Items.OrderOfferItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -74,7 +74,7 @@ fun CreateOrderContent(
     val error: (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage.isNotBlank()) {
             {
-                onError(err.value) {
+                OnError(err.value) {
                     viewModel.refreshPage()
                 }
             }

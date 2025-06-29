@@ -46,7 +46,7 @@ import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.ilustrations.CaptchaView
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.painterResource
@@ -68,7 +68,7 @@ fun LoginContent(
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         {
-            onError(err.value) {
+            OnError(err.value) {
                 model.onError(ServerErrorException())
             }
         }

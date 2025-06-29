@@ -38,7 +38,7 @@ import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.bars.appBars.CloseAppBar
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -88,7 +88,7 @@ fun ListingContent(
 
     val error: (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { onError(err.value) { viewModel.refresh() } }
+            { OnError(err.value) { viewModel.refresh() } }
         } else {
             null
         }

@@ -17,6 +17,11 @@ interface OfferRepositoryEvents {
     fun goToLogin()
     fun goToDialog(id: Long?)
     fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>)
+    fun goToUserPage()
+
+    fun openCabinetOffer()
+
+    fun isHideCabinetOffer() : Boolean
 
     fun scrollToBids()
     fun update()

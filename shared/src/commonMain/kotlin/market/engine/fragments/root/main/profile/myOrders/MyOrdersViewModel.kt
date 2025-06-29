@@ -1,12 +1,9 @@
 package market.engine.fragments.root.main.profile.myOrders
 
-import androidx.compose.ui.text.AnnotatedString
 import androidx.paging.map
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,10 +13,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.common.Platform
-import market.engine.common.clipBoardEvent
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.filtersObjects.DealFilters
@@ -31,9 +25,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.FilterListingBtnItem
-import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.ListingBaseState
 import market.engine.core.data.states.ListingOfferContentState
@@ -41,15 +33,10 @@ import market.engine.core.data.states.MyOrderItemState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.DealType
-import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.PlatformWindowType
-import market.engine.core.data.types.ToastType
-import market.engine.core.network.ServerErrorException
-import market.engine.core.network.UrlBuilder
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
-import market.engine.core.network.networkObjects.Payload
-import market.engine.core.utils.deserializePayload
+import market.engine.core.repositories.OrderRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.BaseViewModel
 import org.jetbrains.compose.resources.getString
@@ -93,12 +80,6 @@ class MyOrdersViewModel(
         ),
     ))
     private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
-    val showOperationsDialog = MutableStateFlow("")
-    val titleDialog = MutableStateFlow(AnnotatedString(""))
-    val dialogItemId = MutableStateFlow(1L)
-
-    val showMessageDialog = MutableStateFlow(false)
-    val showDetailsDialog = MutableStateFlow(false)
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         _listingData,
@@ -120,16 +101,14 @@ class MyOrdersViewModel(
                 }
             }.map { pagingData ->
                 pagingData.map { order ->
-                    val typeGroup = if (type in arrayOf(
-                            DealType.BUY_ARCHIVE,
-                            DealType.BUY_IN_WORK
-                        )
-                    ) DealTypeGroup.SELL else DealTypeGroup.BUY
-
                     MyOrderItemState(
                         order = order,
-                        typeGroup = typeGroup,
-                        events = MyOrderItemEventsImpl(this, order, component)
+                        orderRepository = OrderRepository(
+                            order,
+                            type,
+                            this,
+                            MyOrderItemEventsImpl(this, order, component)
+                        )
                     )
                 }
             }
@@ -142,7 +121,8 @@ class MyOrdersViewModel(
     val uiDataState: StateFlow<ListingOfferContentState> = combine(
         _activeWindowType,
         _listingData,
-    ) { activeType, listingData ->
+    )
+    { activeType, listingData ->
         val ld = listingData.data
         val filterString = getString(strings.filter)
         val sortString = getString(strings.sort)
@@ -251,158 +231,6 @@ class MyOrdersViewModel(
         }
     }
 
-    private suspend fun getItem(id : Long): Order? {
-        return try {
-            val ld = ListingData()
-            ld.data.filters = DealFilters.getByTypeFilter(type)
-
-            val method = if (type in arrayOf(
-                    DealType.BUY_ARCHIVE,
-                    DealType.BUY_IN_WORK
-                )
-            ) "purchases" else "sales"
-            ld.data.objServer = "orders"
-
-            ld.data.methodServer = "get_cabinet_listing_$method"
-
-            ld.data.filters.find { it.key == "id" }?.value = id.toString()
-            ld.data.filters.find { it.key == "id" }?.interpretation = ""
-
-            val url = UrlBuilder()
-                .addPathSegment(ld.data.objServer)
-                .addPathSegment(ld.data.methodServer)
-                .addFilters(ld.data, ld.searchData)
-                .build()
-
-            val res = withContext(Dispatchers.IO) {
-                apiService.getPage(url)
-            }
-           return withContext(Dispatchers.Main) {
-                ld.data.filters.find { it.key == "id" }?.value = ""
-                ld.data.filters.find { it.key == "id" }?.interpretation = null
-
-                if (res.success) {
-                    val serializer = Payload.serializer(Order.serializer())
-                    val payload = deserializePayload(res.payload, serializer)
-
-
-                    return@withContext payload.objects.firstOrNull()
-                }else{
-                    return@withContext null
-                }
-            }
-        } catch (exception: ServerErrorException) {
-            onError(exception)
-            null
-        } catch (exception: Exception) {
-            onError(
-                ServerErrorException(
-                    errorCode = exception.message.toString(),
-                    humanMessage = exception.message.toString()
-                )
-            )
-            null
-        }
-    }
-
-    fun updateItem(oldOrder: Order) {
-        viewModelScope.launch {
-            val buf = withContext(Dispatchers.IO) {
-                getItem(oldOrder.id)
-            }
-
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    oldOrder.owner = buf.owner
-                    oldOrder.trackId = buf.trackId
-                    oldOrder.marks = buf.marks
-                    oldOrder.feedbacks = buf.feedbacks
-                    oldOrder.comment = buf.comment
-                    oldOrder.paymentMethod = buf.paymentMethod
-                    oldOrder.deliveryMethod = buf.deliveryMethod
-                    oldOrder.deliveryAddress = buf.deliveryAddress
-                    oldOrder.dealType = buf.dealType
-                    oldOrder.lastUpdatedTs = buf.lastUpdatedTs
-                }else {
-                    oldOrder.owner = 1L
-                }
-                updateItem.value = null
-            }
-        }
-    }
-
-    fun getOperations(order: Order, onGetOperations: (List<MenuItem>) -> Unit) {
-        viewModelScope.launch {
-            getOrderOperations(order.id) { listOperations ->
-                onGetOperations(
-                    buildList {
-                        addAll(listOperations.map { operation ->
-                            MenuItem(
-                                id = operation.id ?: "",
-                                title = operation.name ?: "",
-                                onClick = {
-                                    operation.run {
-                                        when (id) {
-                                            "give_feedback_to_seller" -> {
-                                                titleDialog.value = AnnotatedString(name ?: "")
-                                                showOperationsDialog.value = "give_feedback_to_seller"
-                                                dialogItemId.value = order.id
-                                            }
-
-                                            "give_feedback_to_buyer" -> {
-                                                titleDialog.value = AnnotatedString(name ?: "")
-                                                showOperationsDialog.value = "give_feedback_to_buyer"
-                                                dialogItemId.value = order.id
-                                            }
-
-                                            "set_comment" -> {
-                                                titleDialog.value = AnnotatedString(name ?: "")
-                                                showOperationsDialog.value = "set_comment"
-                                                dialogItemId.value = order.id
-                                            }
-
-                                            "provide_track_id" -> {
-                                                titleDialog.value = AnnotatedString(name ?: "")
-                                                showOperationsDialog.value = "provide_track_id"
-                                                dialogItemId.value = order.id
-                                            }
-
-                                            else -> {
-                                                titleDialog.value = AnnotatedString(name ?: "")
-                                                postOperationFields(
-                                                    order.id,
-                                                    id ?: "",
-                                                    "orders",
-                                                    onSuccess = {
-                                                        val eventParameters = mapOf(
-                                                            "order_id" to order.id,
-                                                            "seller_id" to order.sellerData?.id,
-                                                            "buyer_id" to order.buyerData?.id
-                                                        )
-
-                                                        analyticsHelper.reportEvent(
-                                                            operation.id ?: "",
-                                                            eventParameters
-                                                        )
-
-                                                        updateItem.value = order.id
-                                                    },
-                                                    errorCallback = {
-
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        })
-                    }
-                )
-            }
-        }
-    }
-
     fun applyFilters(newFilters: List<Filter>) {
         _listingData.update { currentState ->
             currentState.copy(
@@ -456,13 +284,6 @@ class MyOrdersViewModel(
         }
         refresh()
     }
-    fun clearDialogFields(){
-        dialogItemId.value = 1
-        showOperationsDialog.value = ""
-        titleDialog.value = AnnotatedString("")
-        showMessageDialog.value = false
-        showDetailsDialog.value = false
-    }
 }
 
 data class MyOrderItemEventsImpl(
@@ -470,10 +291,6 @@ data class MyOrderItemEventsImpl(
     val order: Order,
     val component: MyOrdersComponent
 ) : OrderItemEvents {
-    override fun onUpdateItem() {
-        viewModel.updateItem(order)
-    }
-
     override fun onGoToUser(id: Long) {
         component.goToUser(id)
     }
@@ -482,49 +299,7 @@ data class MyOrderItemEventsImpl(
         component.goToOffer(offer)
     }
 
-    override fun sendMessage() {
-        viewModel.showMessageDialog.value = true
-        viewModel.dialogItemId.value = order.id
-    }
-
-    override fun openOrderDetails() {
-        viewModel.showDetailsDialog.value = true
-        viewModel.dialogItemId.value = order.id
-    }
-
-    override fun getOperations(onGetOperations: (List<MenuItem>) -> Unit) {
-        viewModel.getOperations(order) {
-            onGetOperations(it)
-        }
-    }
-
-    override fun copyTrackId() {
-        viewModel.viewModelScope.launch {
-            val idString = getString(strings.idCopied)
-            clipBoardEvent(order.trackId.toString())
-
-            viewModel.showToast(
-                ToastItem(
-                    isVisible = true,
-                    message = idString,
-                    type = ToastType.SUCCESS
-                )
-            )
-        }
-    }
-
-    override fun copyOrderId() {
-        viewModel.viewModelScope.launch {
-            val idString = getString(strings.idCopied)
-            clipBoardEvent(order.id.toString())
-
-            viewModel.showToast(
-                ToastItem(
-                    isVisible = true,
-                    message = idString,
-                    type = ToastType.SUCCESS
-                )
-            )
-        }
+    override fun goToDialog(dialogId: Long?) {
+        component.goToMessenger(dialogId)
     }
 }

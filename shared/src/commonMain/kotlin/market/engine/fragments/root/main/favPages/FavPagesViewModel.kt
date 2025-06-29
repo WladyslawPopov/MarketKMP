@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.favPages
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -10,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
@@ -27,9 +27,9 @@ import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.BaseViewModel
+import market.engine.widgets.dialogs.CustomDialogState
 import market.engine.widgets.tooltip.TooltipData
 import org.jetbrains.compose.resources.getString
-
 
 data class FavPagesState(
     val appState : SimpleAppBarData = SimpleAppBarData(),
@@ -37,7 +37,6 @@ data class FavPagesState(
     val initPosition: Int = 0,
     val isDragMode: Boolean = false
 )
-
 
 class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
 
@@ -51,17 +50,12 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
 
     private val _isDragMode = MutableStateFlow(false)
 
-    val showCreatedDialog = mutableStateOf("")
-
-    val method = mutableStateOf("offers_lists")
-
-    val titleDialog = MutableStateFlow(AnnotatedString(""))
-    val fieldsDialog = MutableStateFlow<List<Fields>>(emptyList())
-    val dialogItemId = MutableStateFlow(1L)
-
     private val _menuItems = MutableStateFlow(
         listOf<MenuItem>()
     )
+
+    private val _customDialogState = MutableStateFlow(CustomDialogState())
+    val customDialogState = _customDialogState.asStateFlow()
 
     val favPagesState : StateFlow<FavPagesState> = combine(
         _favoritesTabList,
@@ -268,21 +262,31 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
                     type,
                     "users"
                 ) { t, f ->
-                    titleDialog.value = AnnotatedString(t)
-                    fieldsDialog.value = f
-                    showCreatedDialog.value = type
-                    dialogItemId.value = UserData.login
-                    method.value = "users"
+                    _customDialogState.value = CustomDialogState(
+                        title = AnnotatedString(t),
+                        fields = f,
+                        onDismiss = {
+                            closeDialog()
+                        },
+                        onSuccessful = {
+                            postOperation(UserData.login, type,"users", f)
+                        }
+                    )
                 }
             }
 
             "copy_offers_list", "rename_offers_list" -> {
                 getOperationFields(id, type, "offers_lists") { t, f ->
-                    titleDialog.value = AnnotatedString(t)
-                    fieldsDialog.value = f
-                    showCreatedDialog.value = type
-                    dialogItemId.value = id
-                    method.value = "offers_lists"
+                    _customDialogState.value = CustomDialogState(
+                        title = AnnotatedString(t),
+                        fields = f,
+                        onDismiss = {
+                            closeDialog()
+                        },
+                        onSuccessful = {
+                            postOperation(id, type,"offers_lists", f)
+                        }
+                    )
                 }
             }
 
@@ -335,18 +339,18 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
         }
     }
 
-    fun postOperation(){
+    fun postOperation(id: Long, type: String, method: String, fieldsDialog: List<Fields>){
         val bodyPost = HashMap<String, JsonElement>()
-        fieldsDialog.value.forEach { field ->
+        fieldsDialog.forEach { field ->
             if (field.data != null) {
                 bodyPost[field.key ?: ""] = field.data!!
             }
         }
 
         postOperationFields(
-            dialogItemId.value,
-            showCreatedDialog.value,
-            method.value,
+            id,
+            type,
+            method,
             bodyPost,
             onSuccess = {
                 closeDialog()
@@ -357,7 +361,11 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
             },
             errorCallback = { f ->
                 if (f != null) {
-                    fieldsDialog.value = f
+                    _customDialogState.update {
+                        it.copy(
+                            fields = f
+                        )
+                    }
                 } else {
                     closeDialog()
                 }
@@ -366,9 +374,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
     }
 
     fun closeDialog() {
-        titleDialog.value = AnnotatedString("")
-        fieldsDialog.value = emptyList()
-        showCreatedDialog.value = ""
+        _customDialogState.value = CustomDialogState()
     }
 
     fun closeDragMode(){

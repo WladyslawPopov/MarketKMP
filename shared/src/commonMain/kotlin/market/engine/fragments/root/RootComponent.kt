@@ -11,12 +11,15 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.common.showReviewManager
 import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.items.DeepLink
 import market.engine.core.repositories.SettingsRepository
+import market.engine.fragments.base.BaseViewModel
 import market.engine.fragments.root.contactUs.ContactUsComponent
 import market.engine.fragments.root.contactUs.DefaultContactUsComponent
 import market.engine.fragments.root.dynamicSettings.DefaultDynamicSettingsComponent
@@ -61,6 +64,8 @@ class DefaultRootComponent(
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     private val settingsHelper : SettingsRepository = getKoin().get()
 
+    val viewModel = BaseViewModel()
+
     override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {
         childStack(
             source = navigation,
@@ -79,14 +84,22 @@ class DefaultRootComponent(
     override val model = _model
 
     override fun updateURL(url: DeepLink) {
-        deepLink = url
-        when{
-            childStack.active.instance is RootComponent.Child.MainChild -> {
-                (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(url)
-            }
-            else -> {
-                navigation.replaceAll(RootConfig.Main)
-                (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(url)
+        viewModel.viewModelScope.launch {
+            delay(300)
+            deepLink = url
+            when {
+                childStack.active.instance is RootComponent.Child.MainChild -> {
+                    (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(
+                        url
+                    )
+                }
+
+                else -> {
+                    navigation.replaceAll(RootConfig.Main)
+                    (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(
+                        url
+                    )
+                }
             }
         }
     }

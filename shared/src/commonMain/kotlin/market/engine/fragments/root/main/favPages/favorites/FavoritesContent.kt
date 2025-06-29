@@ -20,9 +20,8 @@ import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
@@ -49,10 +48,6 @@ fun FavoritesContent(
     val err = viewModel.errorMessage.collectAsState()
 
     val updateItem = viewModel.updateItem.collectAsState()
-    val dialogFields = viewModel.fieldsDialog.collectAsState()
-    val dialogTitle = viewModel.titleDialog.collectAsState()
-    val openDialog = viewModel.showOperationsDialog.collectAsState()
-    val itemIdDialog = viewModel.dialogItemId.collectAsState()
 
     val ld = listingData.data
 
@@ -89,7 +84,7 @@ fun FavoritesContent(
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { onError(err.value) { component.onRefresh() } }
+            { OnError(err.value) { component.onRefresh() } }
         } else {
             null
         }
@@ -158,24 +153,6 @@ fun FavoritesContent(
                 )
             },
             modifier = modifier
-        )
-
-        OfferOperationsDialogs(
-            offerId = itemIdDialog.value,
-            showDialog = openDialog.value,
-            viewModel = viewModel,
-            title = dialogTitle.value,
-            initFields = dialogFields.value,
-            updateItem = {
-                viewModel.updateItem.value = itemIdDialog.value
-            },
-            close = { fullRefresh ->
-                viewModel.clearDialogFields()
-                if (fullRefresh) {
-                    component.onRefresh()
-                    component.refreshTabs()
-                }
-            }
         )
     }
 }

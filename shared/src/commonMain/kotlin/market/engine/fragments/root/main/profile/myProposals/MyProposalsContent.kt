@@ -20,9 +20,8 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
-import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetProposalItem
@@ -44,11 +43,6 @@ fun MyProposalsContent(
 
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = viewModel.updateItem.collectAsState()
-
-    val dialogFields = viewModel.fieldsDialog.collectAsState()
-    val dialogTitle = viewModel.titleDialog.collectAsState()
-    val openDialog = viewModel.showOperationsDialog.collectAsState()
-    val itemIdDialog = viewModel.dialogItemId.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -83,7 +77,7 @@ fun MyProposalsContent(
     }
 
     val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { onError(err.value) { viewModel.updatePage() } }
+        { OnError(err.value) { viewModel.updatePage() } }
     }else{
         null
     }
@@ -137,26 +131,6 @@ fun MyProposalsContent(
                     state = offer,
                     updateItem = updateItem.value
                 )
-            }
-        )
-
-        OfferOperationsDialogs(
-            offerId = itemIdDialog.value,
-            showDialog = openDialog.value,
-            viewModel = viewModel,
-            title = dialogTitle.value,
-            initFields = dialogFields.value,
-            updateItem = {
-                viewModel.updateItem.value = itemIdDialog.value
-            },
-            onSuccess = {
-                component.goToDialog(it)
-            },
-            close = { fullRefresh ->
-                viewModel.clearDialogFields()
-                if (fullRefresh) {
-                    component.onRefresh()
-                }
             }
         )
     }

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 
@@ -21,6 +22,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 fun <T : Any>RadioOptionRow(
     filter: Pair<T, String>,
     selectedOption: T?,
+    moodColor: Color = colors.inactiveBottomNavIconColor,
     onOptionSelected: (Boolean, T) -> Unit
 ) {
     val (filterKey, filterText) = filter
@@ -40,15 +42,19 @@ fun <T : Any>RadioOptionRow(
                 onOptionSelected(isChecked, filterKey)
             },
             colors = RadioButtonDefaults.colors(
-                selectedColor = colors.inactiveBottomNavIconColor,
+                selectedColor = moodColor,
                 unselectedColor = colors.black
             )
         )
+
         Spacer(modifier = Modifier.width(dimens.smallPadding))
+
         Text(
             filterText,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            color = moodColor
         )
+
         Spacer(modifier = Modifier.width(dimens.smallPadding))
     }
 }

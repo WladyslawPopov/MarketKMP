@@ -124,31 +124,36 @@ fun formatParameterValue(value: Value?): String {
 }
 
 fun provideByType(notificationItem: NotificationsHistory, onProvide : (DeepLink) -> Unit) {
-    notificationItem.run {
-        val json = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-            encodeDefaults = true
-        }
-        val je = json.parseToJsonElement(data_)
+    try {
+        notificationItem.run {
+            val json = Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+                encodeDefaults = true
+            }
+            val je = json.parseToJsonElement(data_)
 
-        when (type) {
-            "message about offer" -> {
-                val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
-                if (dialogId != null) {
-                    val deepLink = DeepLink.GoToDialog(dialogId, null)
-                    onProvide(deepLink)
+            when (type) {
+                "message about offer" -> {
+                    val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
+                    if (dialogId != null) {
+                        val deepLink = DeepLink.GoToDialog(dialogId, null)
+                        onProvide(deepLink)
+                    }
+                }
+
+                "message about order" -> {
+                    val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
+                    if (dialogId != null) {
+                        val deepLink = DeepLink.GoToDialog(dialogId, null)
+                        onProvide(deepLink)
+                    }
                 }
             }
-
-            "message about order" -> {
-                val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
-                if (dialogId != null) {
-                    val deepLink = DeepLink.GoToDialog(dialogId, null)
-                    onProvide(deepLink)
-                }
-            }
         }
+    } catch (e: Exception) {
+        println("Error in provideByType: ${e.message}")
+        e.printStackTrace()
     }
 }
 
@@ -167,54 +172,65 @@ fun NotificationItem.getIconByType() : DrawableResource {
 }
 
 fun NotificationItem.getDeepLinkByType() : DeepLink? {
-    val db : MarketDB = getKoin().get()
+    try {
+        val db: MarketDB = getKoin().get()
 
-    val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        encodeDefaults = true
-    }
-    val je = json.parseToJsonElement(data)
+        val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            encodeDefaults = true
+        }
+        val je = json.parseToJsonElement(data)
 
-    return when(type) {
-        "message about offer" -> {
-            unreadIds.forEach {
-                val androidID = db.notificationsHistoryQueries.selectNotificationById(it).executeAsOneOrNull()?.isRead
-                if (androidID != null) {
-                    removeNotification(androidID.toString())
-                }else{
-                    removeNotification(it)
+        return when (type) {
+            "message about offer" -> {
+                unreadIds.forEach {
+                    val androidID = db.notificationsHistoryQueries.selectNotificationById(it)
+                        .executeAsOneOrNull()?.isRead
+                    if (androidID != null) {
+                        removeNotification(androidID.toString())
+                    } else {
+                        removeNotification(it)
+                    }
+                    db.notificationsHistoryQueries.deleteNotificationById(it)
                 }
-                db.notificationsHistoryQueries.deleteNotificationById(it)
+                val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
+                if (dialogId != null) {
+                    DeepLink.GoToDialog(dialogId, null)
+                } else {
+                    null
+                }
             }
-            val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
-            if (dialogId != null) {
-                DeepLink.GoToDialog(dialogId, null)
-            }else{
+
+            "message about order" -> {
+                unreadIds.forEach {
+                    val androidID = db.notificationsHistoryQueries.selectNotificationById(it)
+                        .executeAsOneOrNull()?.isRead
+                    if (androidID != null) {
+                        removeNotification(androidID.toString())
+                    } else {
+                        removeNotification(it)
+                    }
+                    db.notificationsHistoryQueries.deleteNotificationById(it)
+                }
+
+                val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
+                if (dialogId != null) {
+                    DeepLink.GoToDialog(dialogId, null)
+                } else {
+                    null
+                }
+            }
+
+            else -> {
                 null
             }
         }
-        "message about order" -> {
-            unreadIds.forEach {
-                val androidID = db.notificationsHistoryQueries.selectNotificationById(it).executeAsOneOrNull()?.isRead
-                if (androidID != null) {
-                    removeNotification(androidID.toString())
-                }else{
-                    removeNotification(it)
-                }
-                db.notificationsHistoryQueries.deleteNotificationById(it)
-            }
-
-            val dialogId = je.jsonObject["dialogId"]?.jsonPrimitive?.content?.toLongOrNull()
-            if (dialogId != null) {
-                DeepLink.GoToDialog(dialogId, null)
-            }else{
-                null
-            }
-        }
-        else -> {
-            null
-        }
+    } catch (e: Exception) {
+        // Log this exception
+        println("Error in getDeepLinkByType: ${e.message}")
+        e.printStackTrace()
+        return null
     }
 }
 
@@ -232,7 +248,11 @@ fun deleteReadNotifications() {
                 }
             }
         }
-    } catch (_ : Exception) {}
+    } catch (e: Exception) {
+        // Log.error("Failed to delete read notifications", e) // Using a hypothetical logger
+        println("Error in deleteReadNotifications: ${e.message}")
+        e.printStackTrace()
+    }
 }
 
 fun OfferItem.setNewParams(offer: Offer) {
@@ -256,6 +276,16 @@ fun OfferItem.setNewParams(offer: Offer) {
     session = offer.session
     watchersCount = offer.watchersCount
     myMaximalBid = offer.myMaximalBid
+    currentQuantity = offer.currentQuantity
+    quantity = offer.quantity
+    videoUrls = offer.videoUrls
+    isPrototype = offer.isPrototype
+    safeDeal = offer.safeDeal
+    myMaximalBid = offer.myMaximalBid
+    catPath = offer.catpath
+    publicUrl = offer.publicUrl
+    externalImages = offer.externalImages
+    isProposalEnabled = offer.isProposalEnabled
 }
 
 fun Offer.parseToOfferItem() : OfferItem {
@@ -273,7 +303,7 @@ fun Offer.parseToOfferItem() : OfferItem {
         title = title ?: "",
         images = buildList {
              when {
-                images?.isNotEmpty() == true -> addAll(images?.map { it.urls?.small?.content ?: "empty" }?.toList() ?: emptyList())
+                images?.isNotEmpty() == true -> addAll(images?.map { it.urls?.small?.content ?: "empty" } ?: emptyList())
                 externalImages?.isNotEmpty() == true -> addAll(externalImages)
                 externalUrl != null -> add(externalUrl)
                 image?.small?.content != null -> add(image.small.content)
@@ -311,6 +341,8 @@ fun Offer.parseToOfferItem() : OfferItem {
         relistingMode = relistingMode,
         session = session,
         state = state,
-        currentQuantity = currentQuantity
+        currentQuantity = currentQuantity,
+        isProposalEnabled = isProposalEnabled,
+        externalImages = externalImages,
     )
 }

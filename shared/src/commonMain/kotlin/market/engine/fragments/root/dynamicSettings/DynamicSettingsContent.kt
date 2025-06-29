@@ -37,7 +37,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.root.dynamicSettings.contents.AppSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.AutoFeedbackSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.BiddingStepSettingsContent
@@ -72,7 +72,7 @@ fun DynamicSettingsContent(
 
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
         {
-            onError(err.value) {
+            OnError(err.value) {
                 viewModel.onError(ServerErrorException())
                 component.updateModel()
             }

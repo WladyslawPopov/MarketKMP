@@ -34,8 +34,8 @@ fun HeaderOfferBar(
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
 
-    val menuList = remember {
-        mutableStateOf<List<MenuItem>>(defOptions)
+    val menuList = remember(defOptions) {
+        mutableStateOf(defOptions)
     }
 
     Row(

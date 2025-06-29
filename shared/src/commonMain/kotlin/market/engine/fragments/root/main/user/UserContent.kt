@@ -42,7 +42,7 @@ import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.tabs.TabRow
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.base.showNoItemLayout
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.rows.ColumnWithScrollBars
@@ -67,7 +67,7 @@ fun UserContent(
 
     val error : (@Composable () -> Unit)? = if (isError.value.humanMessage != "") {
         {
-            onError(isError.value) {
+            OnError(isError.value) {
                 userViewModel.onError(ServerErrorException())
                 component.updateUserInfo()
             }

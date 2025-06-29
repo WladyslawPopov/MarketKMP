@@ -28,7 +28,7 @@ data class CustomDialogState(
 @Composable
 fun CustomDialog(
     uiState: CustomDialogState,
-    containerColor: Color = colors.white,
+    containerColor: Color = colors.primaryColor,
     body: @Composable (uiState: CustomDialogState) -> Unit = {},
 ) {
     val showDialog = uiState.typeDialog

@@ -24,8 +24,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.Tab
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.fragments.base.onError
+import market.engine.fragments.base.OnError
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -51,6 +50,8 @@ fun FavPagesNavigation(
     val err = viewModel.errorMessage.collectAsState()
 
     val uiState = viewModel.favPagesState.collectAsState()
+    val customDialogState = viewModel.customDialogState.collectAsState()
+
     val favTabList = uiState.value.favTabList
     val isDragMode = uiState.value.isDragMode
     val initPosition = uiState.value.initPosition
@@ -59,7 +60,7 @@ fun FavPagesNavigation(
     val tooltipState = rememberTooltipState()
 
     val onTooltipClick = remember {
-        mutableStateOf<(() -> Unit)>(
+        mutableStateOf(
             {
                 viewModel.settings.setSettingValue(
                     "create_blank_offer_list_notify_badge",
@@ -70,10 +71,6 @@ fun FavPagesNavigation(
         )
     }
 
-    val dialogFields = viewModel.fieldsDialog.collectAsState()
-    val dialogTitle = viewModel.titleDialog.collectAsState()
-
-
     val lazyListState = rememberLazyListState(
         initialFirstVisibleItemIndex =
             (initPosition).coerceIn(0, (favTabList.size-1).coerceAtLeast(0))
@@ -82,7 +79,7 @@ fun FavPagesNavigation(
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
             {
-                onError(err.value) {
+                OnError(err.value) {
                     component.onRefresh()
                 }
             }
@@ -180,23 +177,11 @@ fun FavPagesNavigation(
                         }
                     }
 
-//                    CustomDialog(
-//                        showDialog = dialogFields.value.isNotEmpty(),
-//                        containerColor = colors.primaryColor,
-//                        title = dialogTitle.value,
-//                        body = {
-//                            SetUpDynamicFields(dialogFields.value)
-//                        },
-//                        onDismiss = {
-//                            viewModel.closeDialog()
-//                        },
-//                        onSuccessful = {
-//                            viewModel.postOperation()
-//                        }
-//                    )
+                    CustomDialog(
+                        uiState = customDialogState.value,
+                    )
                 }
             }
         )
     }
 }
-
