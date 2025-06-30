@@ -96,5 +96,8 @@ class DefaultMyProposalsComponent(
 
     override fun goToProposal(offerId: Long, proposalType: ProposalType) {
         navigateToProposal(offerId, proposalType)
+        lifecycle.doOnResume {
+            viewModel.updateItem.value = offerId
+        }
     }
 }

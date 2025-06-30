@@ -60,7 +60,7 @@ fun CabinetProposalItem(
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            events.update()
+            offerRepository.update()
         }
     }
 

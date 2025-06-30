@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -144,7 +144,7 @@ fun ListingContent(
 
                 ActiveWindowListingType.CATEGORY_FILTERS -> {
                     CloseAppBar {
-                        viewModel.openSearchCategory(false, false)
+                        viewModel.openSearchCategory(value = false, complete = false)
                     }
                 }
 
@@ -172,9 +172,7 @@ fun ListingContent(
                             )
 
                             Text(
-                                text = if (searchData.searchCategoryName.isNotEmpty())
-                                    searchData.searchCategoryName
-                                else catDef,
+                                text = searchData.searchCategoryName.ifEmpty { catDef },
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = colors.black,

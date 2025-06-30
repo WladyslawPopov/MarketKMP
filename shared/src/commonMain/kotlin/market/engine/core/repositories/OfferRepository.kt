@@ -37,7 +37,6 @@ import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
-import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.BaseViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
@@ -80,21 +79,12 @@ class OfferRepository(
     fun refreshOffer(){
         update()
         updateOperations()
-        events.update()
+        events.refreshPage()
     }
 
     fun update(){
-        viewModel.viewModelScope.launch {
-            val newOffer = withContext(Dispatchers.IO) {
-                viewModel.getOfferById(offer.id)
-            }
-
-            withContext(Dispatchers.Main) {
-                if (newOffer != null) {
-                    offer.setNewParams(newOffer)
-                }
-            }
-        }
+        updateOperations()
+        events.updateItem(item = offer)
     }
 
     fun updateOperations(){
@@ -290,8 +280,8 @@ class OfferRepository(
                                                                         method,
                                                                         body = body,
                                                                         onSuccess = {
-                                                                            refreshOffer()
                                                                             clearDialogFields()
+                                                                            refreshOffer()
                                                                         },
                                                                         errorCallback = { errFields ->
                                                                             if (errFields != null) {
@@ -330,6 +320,7 @@ class OfferRepository(
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
+                                                                                viewModel.updateItem.value = offer.id
                                                                                 refreshOffer()
                                                                                 clearDialogFields()
                                                                             },
@@ -352,6 +343,7 @@ class OfferRepository(
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
+                                                                                viewModel.updateItem.value = offer.id
                                                                                 refreshOffer()
                                                                                 clearDialogFields()
                                                                             },
@@ -394,11 +386,11 @@ class OfferRepository(
                                                     )
                                                     when (operation.id) {
                                                         "watch", "unwatch", "create_blank_offer_list" -> {
-                                                            updateOperations()
-                                                            update()
+                                                            viewModel.updateItem.value = offer.id
                                                         }
 
                                                         else -> {
+                                                            viewModel.updateItem.value = offer.id
                                                             refreshOffer()
                                                         }
                                                     }
@@ -462,6 +454,7 @@ class OfferRepository(
                                                 "offers",
                                                 body = body,
                                                 onSuccess = {
+                                                    viewModel.updateItem.value = offer.id
                                                     refreshOffer()
                                                 },
                                                 errorCallback = { errFields ->

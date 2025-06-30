@@ -1,5 +1,6 @@
 package market.engine.core.data.events
 
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.ProposalType
@@ -24,5 +25,6 @@ interface OfferRepositoryEvents {
     fun isHideCabinetOffer() : Boolean
 
     fun scrollToBids()
-    fun update()
+    fun refreshPage()
+    fun updateItem(item: OfferItem)
 }

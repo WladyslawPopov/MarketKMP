@@ -380,8 +380,9 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun scrollToBids() {}
+    override fun refreshPage() {}
 
-    override fun update() {
+    override fun updateItem(item: OfferItem) {
         viewModel.updateItem(offer)
     }
 }

@@ -25,6 +25,7 @@ import market.engine.core.data.items.Tab
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.OnError
+import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -52,7 +53,7 @@ fun FavPagesNavigation(
     val uiState = viewModel.favPagesState.collectAsState()
     val customDialogState = viewModel.customDialogState.collectAsState()
 
-    val favTabList = uiState.value.favTabList
+    val favTabList = remember { mutableStateOf(uiState.value.favTabList) }
     val isDragMode = uiState.value.isDragMode
     val initPosition = uiState.value.initPosition
     val appBarState = uiState.value.appState
@@ -73,7 +74,7 @@ fun FavPagesNavigation(
 
     val lazyListState = rememberLazyListState(
         initialFirstVisibleItemIndex =
-            (initPosition).coerceIn(0, (favTabList.size-1).coerceAtLeast(0))
+            (initPosition).coerceIn(0, (favTabList.value.size-1).coerceAtLeast(0))
     )
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
@@ -108,12 +109,15 @@ fun FavPagesNavigation(
                         data = appBarState
                     ){
                         ReorderTabRow(
-                            tabs = favTabList.map {
+                            tabs = favTabList.value.map {
                                 Tab(
                                     id = it.id,
                                     title = it.title ?: "",
                                     image = it.images.firstOrNull(),
                                     isPined = it.markedAsPrimary,
+                                    onClick = {
+
+                                    }
                                 )
                             }.toList(),
                             selectedTab = initPosition,
@@ -123,13 +127,17 @@ fun FavPagesNavigation(
                             isDragMode = isDragMode,
                             onTabsReordered = { list ->
                                 val newList = list.map { listItem ->
-                                    favTabList.find { it.title == listItem.title} ?: FavoriteListItem()
+                                    favTabList.value.find { it.title == listItem.title && it.id == listItem.id } ?: FavoriteListItem()
                                 }
-                                viewModel.updateFavTabList(newList)
+                                favTabList.value = newList
                             },
                             lazyListState = lazyListState,
                             getOperations = { id, callback ->
-                                viewModel.getOperationFavTab(id, callback)
+                                if (id > 1000) {
+                                    viewModel.getOperationFavTab(id, callback)
+                                }else{
+                                    viewModel.getDefOperationFavTab(callback)
+                                }
                             },
                             modifier = Modifier.fillMaxWidth().padding(end = dimens.smallPadding),
                         )
@@ -169,6 +177,7 @@ fun FavPagesNavigation(
                                     .blur(dimens.extraLargePadding)
                                     .pointerInput(Unit) {
                                         detectTapGestures {
+                                            viewModel.updateFavTabList(favTabList.value)
                                             viewModel.closeDragMode()
                                             component.fullRefresh()
                                         }
@@ -179,7 +188,13 @@ fun FavPagesNavigation(
 
                     CustomDialog(
                         uiState = customDialogState.value,
-                    )
+                    ){ state ->
+                        Column {
+                            if (state.fields.isNotEmpty()) {
+                                SetUpDynamicFields(state.fields)
+                            }
+                        }
+                    }
                 }
             }
         )

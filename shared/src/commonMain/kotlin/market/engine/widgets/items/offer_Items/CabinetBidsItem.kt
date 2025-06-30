@@ -62,7 +62,7 @@ fun CabinetBidsItem(
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            events.update()
+            offerRepository.update()
         }
     }
 
@@ -244,7 +244,9 @@ fun CabinetBidsItem(
                             textColor = colors.alwaysWhite,
                         ) {
                             //go to purchase
-                            events.goToUserPage()
+                            events.goToCreateOrder(
+                                Pair(1L,emptyList())
+                            )
                         }
                     }
 

@@ -363,9 +363,11 @@ data class OfferRepositoryEventsImpl(
         component.goToDialog(id)
     }
 
-    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {}
-    override fun goToUserPage() {
+    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
         component.goToPurchases()
+    }
+    override fun goToUserPage() {
+        component.goToUser(offer.seller.id)
     }
 
     override fun openCabinetOffer() {
@@ -377,8 +379,9 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun scrollToBids() {}
+    override fun refreshPage() {}
 
-    override fun update() {
+    override fun updateItem(item: OfferItem) {
         viewModel.updateItem(offer)
     }
 }

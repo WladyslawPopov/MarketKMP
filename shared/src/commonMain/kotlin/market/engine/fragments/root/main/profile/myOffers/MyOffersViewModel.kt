@@ -385,7 +385,9 @@ data class OfferRepositoryEventsImpl(
         }
     }
 
-    override fun update() {
+    override fun refreshPage() {}
+
+    override fun updateItem(item: OfferItem) {
         viewModel.updateItem(offer)
     }
 

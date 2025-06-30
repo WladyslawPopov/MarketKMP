@@ -597,7 +597,9 @@ data class OfferRepositoryEventsImpl(
         viewModel.scrollToBids()
     }
 
-    override fun update() {
+    override fun refreshPage() {
         viewModel.refreshPage()
     }
+
+    override fun updateItem(item: OfferItem) {}
 }

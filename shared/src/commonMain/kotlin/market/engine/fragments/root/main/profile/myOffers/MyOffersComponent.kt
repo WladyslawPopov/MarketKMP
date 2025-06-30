@@ -89,10 +89,16 @@ class DefaultMyOffersComponent(
 
     override fun goToProposals(offerId: Long, proposalType: ProposalType) {
         navigateToProposal(offerId, proposalType)
+        lifecycle.doOnResume {
+            viewModel.updateItem.value = offerId
+        }
     }
 
     override fun goToDynamicSettings(type: String, id : Long?) {
         navigateToDynamicSettings(type, id)
+        lifecycle.doOnResume {
+            viewModel.updateItem.value = id
+        }
     }
 
     override fun goToBack() {

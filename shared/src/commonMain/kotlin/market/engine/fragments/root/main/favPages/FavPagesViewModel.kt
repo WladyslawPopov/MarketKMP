@@ -62,7 +62,8 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
         _initPosition,
         _isDragMode,
         _menuItems
-    ) { favTabList, currentTab, isDragMode, menuItems ->
+    )
+    { favTabList, currentTab, isDragMode, menuItems ->
 
         val isVisibleMenu = if(favTabList.isNotEmpty() && favTabList.size > currentTab)
             favTabList[currentTab].id > 1000 else false
@@ -208,6 +209,23 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
         }
     }
 
+    fun getDefOperationFavTab(onSuccess: (List<MenuItem>) -> Unit){
+        viewModelScope.launch {
+            onSuccess(
+                listOf(
+                    MenuItem(
+                        icon = drawables.reorderIcon,
+                        id = "reorder",
+                        title = getString(strings.reorderTabLabel),
+                        onClick = {
+                            makeOperation("reorder", 1L)
+                        }
+                    )
+                )
+            )
+        }
+    }
+
     fun getOperationFavTab(id: Long, onSuccess: (List<MenuItem>) -> Unit){
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) { offersListOperations.getOperations(id) }
@@ -263,6 +281,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
                     "users"
                 ) { t, f ->
                     _customDialogState.value = CustomDialogState(
+                        typeDialog = type,
                         title = AnnotatedString(t),
                         fields = f,
                         onDismiss = {
@@ -278,6 +297,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
             "copy_offers_list", "rename_offers_list" -> {
                 getOperationFields(id, type, "offers_lists") { t, f ->
                     _customDialogState.value = CustomDialogState(
+                        typeDialog = type,
                         title = AnnotatedString(t),
                         fields = f,
                         onDismiss = {

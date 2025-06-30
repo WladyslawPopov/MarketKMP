@@ -77,6 +77,9 @@ class DefaultFavoritesComponent(
 
     override fun goToCreateOffer(createOfferType: CreateOfferType, id: Long) {
         navigateToCreateOffer(createOfferType, id)
+        lifecycle.doOnResume {
+            favViewModel.updateItem.value = id
+        }
     }
 
     override fun onRefresh() {

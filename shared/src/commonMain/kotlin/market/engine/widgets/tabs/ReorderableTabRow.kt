@@ -105,6 +105,7 @@ fun ReorderTabRow(
                         mutableStateOf(emptyList<MenuItem>())
                     }
 
+                    val isOpenMenu = remember { mutableStateOf(false) }
 
                     PageTab(
                         tab = item,
@@ -122,6 +123,7 @@ fun ReorderTabRow(
                                     if (!isDragMode) {
                                         getOperations(item.id) { menuItems ->
                                             menuList.value = menuItems
+                                            isOpenMenu.value = true
                                         }
                                     }
                                 }
@@ -175,10 +177,10 @@ fun ReorderTabRow(
                     }
 
                     PopUpMenu(
-                        openPopup = menuList.value.isNotEmpty(),
+                        openPopup = isOpenMenu.value,
                         menuList = menuList.value,
                         onClosed = {
-                            menuList.value = emptyList()
+                            isOpenMenu.value = false
                         }
                     )
                 }

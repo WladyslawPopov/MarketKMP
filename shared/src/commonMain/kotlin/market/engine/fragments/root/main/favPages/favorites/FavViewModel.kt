@@ -327,12 +327,7 @@ class FavViewModel(
                     oldItem.setNewParams(offer)
                 }
 
-                if (favType != FavScreenType.FAV_LIST) {
-                    val isHide = isHideItem(oldItem)
-                    if (isHide) {
-                        refresh()
-                    }
-                } else {
+                if (favType == FavScreenType.FAV_LIST) {
                     getList(idList ?: 1L) {
                         val isEmpty = oldItem.let { item ->
                             it.offers.contains(item.id)
@@ -511,8 +506,11 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun scrollToBids() {}
+    override fun refreshPage() {
 
-    override fun update() {
-        viewModel.updateItem(offer)
+    }
+
+    override fun updateItem(item: OfferItem) {
+        viewModel.updateItem(item)
     }
 }
