@@ -30,7 +30,7 @@ class DefaultLoginComponent(
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    val viewModel : LoginViewModel = LoginViewModel()
+    val viewModel : LoginViewModel = LoginViewModel(this)
 
     private val _model = MutableValue(
         LoginComponent.Model(

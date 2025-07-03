@@ -47,6 +47,7 @@ fun OutlinedTextInputField(
     singleLine: Boolean = true,
     isPassword: Boolean = false,
     isEmail: Boolean = false,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -143,6 +144,7 @@ fun OutlinedTextInputField(
                     Modifier.widthIn(max = 600.dp).fillMaxWidth(),
             maxLines = 4,
             singleLine = singleLine,
+            enabled = enabled
         )
     }
 }

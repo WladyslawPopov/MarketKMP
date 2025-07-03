@@ -28,7 +28,7 @@ import market.engine.widgets.dropdown_menu.PopUpMenu
 fun SimpleAppBar(
     modifier: Modifier = Modifier,
     data: SimpleAppBarData,
-    content : @Composable () -> Unit
+    content : @Composable () -> Unit = {}
 ) {
     val openMenu = remember { mutableStateOf(false) }
 

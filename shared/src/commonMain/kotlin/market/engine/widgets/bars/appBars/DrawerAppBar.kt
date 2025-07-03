@@ -30,7 +30,8 @@ fun DrawerAppBar(
             content()
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = data.color
+            containerColor = data.color,
+            scrolledContainerColor = data.color
         ),
         navigationIcon = {
             MenuHamburgerButton(

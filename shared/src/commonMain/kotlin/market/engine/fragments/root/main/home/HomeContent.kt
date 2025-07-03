@@ -101,31 +101,32 @@ fun HomeContent(
         toastItem = homeViewModel.toastItem,
         modifier = Modifier.fillMaxSize()
     ) {
-        ModalNavigationDrawer(
-            modifier = modifier,
-            drawerState = drawerState,
-            drawerContent = {
-                DrawerContent(
-                    drawerState = drawerState,
-                    goToLogin = {
-                        component.goToLogin()
-                    },
-                    list = state.drawerList
-                )
-            },
-            gesturesEnabled = drawerState.isOpen,
+        Column(
+            modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                SearchBar {
-                    component.goToNewSearch()
-                }
+            SearchBar {
+                component.goToNewSearch()
+            }
 
+            ModalNavigationDrawer(
+                modifier = modifier,
+                drawerState = drawerState,
+                drawerContent = {
+                    DrawerContent(
+                        drawerState = drawerState,
+                        goToLogin = {
+                            component.goToLogin()
+                        },
+                        list = state.drawerList
+                    )
+                },
+                gesturesEnabled = drawerState.isOpen,
+            ) {
                 LazyColumnWithScrollBars(
                     state = scrollState,
-                ) {
+                )
+                {
                     item {
                         CategoryList(
                             categories = state.categories

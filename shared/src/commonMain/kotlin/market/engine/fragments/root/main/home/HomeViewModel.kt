@@ -61,7 +61,7 @@ class HomeViewModel(val component: HomeComponent) : BaseViewModel() {
             promoOffers2 = promoOffers2,
             unreadNotificationsCount = getUnreadNotificationsCount(),
             appBarData = SimpleAppBarData(
-                color = colors.white,
+                color = colors.transparent,
                 listItems = listOf(
                     NavigationItem(
                         title = "",

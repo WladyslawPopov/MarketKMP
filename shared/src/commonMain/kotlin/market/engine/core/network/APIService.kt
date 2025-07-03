@@ -128,6 +128,12 @@ class APIService(private val client: HttpClient) {
             setBody(body)
         }.body()
 
+    suspend fun postAuthByCode(body: HashMap<String, String>): AppResponse =
+        client.post("auth_by_code") {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }.body()
+
     suspend fun getUsers(idUser: Long): AppResponse =
         client.get("users/$idUser").body()
 

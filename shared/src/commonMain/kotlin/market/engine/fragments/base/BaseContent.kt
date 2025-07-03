@@ -5,7 +5,9 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,7 +45,8 @@ fun BaseContent(
 
     Scaffold(
         topBar = topBar ?: {},
-        floatingActionButton = floatingActionButton
+        floatingActionButton = floatingActionButton,
+        contentWindowInsets = WindowInsets.ime
     ) { innerPadding ->
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize().padding(

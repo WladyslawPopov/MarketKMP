@@ -3,6 +3,9 @@ package market.engine.theme
 import org.jetbrains.compose.resources.StringResource
 
 interface Strings {
+    val leftTimeLabel: StringResource
+    val submitO2AuthLabel: StringResource
+    val codeLabel: StringResource
     val popularityParameterName: StringResource
     val continueLabel: StringResource
     val selectCategory: StringResource

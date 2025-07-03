@@ -19,6 +19,8 @@ data class UserPayload(
     @SerialName("captcha_key") val captchaKey: String? = null,
     @SerialName("captcha_image") val captchaImage: String? = null,
     @SerialName("additional_data") val additionalData: AdditionalData? = null,
+    @SerialName("obfuscated_identity") val obfuscatedIdentity: String? = null,
+    @SerialName("last_request_by_identity") val lastRequestByIdentity: Int? = null,
 )
 
 @Serializable
