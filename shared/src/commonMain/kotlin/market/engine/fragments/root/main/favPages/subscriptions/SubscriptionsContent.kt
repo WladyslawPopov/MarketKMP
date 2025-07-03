@@ -27,7 +27,7 @@ import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.SubscriptionItem
@@ -53,7 +53,7 @@ fun SubscriptionsContent(
     val noFound = remember(data.loadState.refresh) {
         if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
             @Composable {
-                showNoItemLayout(
+                NoItemsFoundLayout(
                     title = stringResource(strings.emptySubscriptionsLabel),
                     image = drawables.emptyFavoritesImage
                 ) {

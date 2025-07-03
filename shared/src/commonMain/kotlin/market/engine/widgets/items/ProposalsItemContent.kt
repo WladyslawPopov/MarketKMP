@@ -45,8 +45,8 @@ import market.engine.core.utils.checkValidation
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getRemainingMinutesTime
 import market.engine.fragments.root.main.proposalPage.ProposalViewModel
-import market.engine.theme.Colors
-import market.engine.theme.Strings
+import market.engine.core.theme.Colors
+import market.engine.core.theme.Strings
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.checkboxs.DynamicRadioButtons
 import market.engine.widgets.rows.UserRow

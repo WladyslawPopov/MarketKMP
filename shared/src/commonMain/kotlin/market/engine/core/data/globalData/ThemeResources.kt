@@ -1,9 +1,9 @@
 package market.engine.core.data.globalData
 
-import market.engine.theme.Colors
-import market.engine.theme.Dimens
-import market.engine.theme.Drawables
-import market.engine.theme.Strings
+import market.engine.core.theme.Colors
+import market.engine.core.theme.Dimens
+import market.engine.core.theme.Drawables
+import market.engine.core.theme.Strings
 
 object ThemeResources {
     lateinit var colors: Colors

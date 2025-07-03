@@ -14,7 +14,7 @@ import market.engine.core.utils.getDeepLinkByType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 
 @Composable
@@ -47,7 +47,7 @@ fun NotificationsHistoryContent(
 
     val noFound = if (responseGetPage.value?.isEmpty() == true){
             @Composable {
-                showNoItemLayout {
+                NoItemsFoundLayout {
                     refresh()
                 }
             }

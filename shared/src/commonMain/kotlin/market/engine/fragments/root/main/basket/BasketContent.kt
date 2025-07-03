@@ -26,7 +26,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.items.BasketItemContent
@@ -71,7 +71,7 @@ fun BasketContent(
     val noFound: (@Composable () ->Unit)? = remember(basketItemsState.value) {
         if (basketItemsState.value.isEmpty()) {
             {
-                showNoItemLayout(
+                NoItemsFoundLayout(
                     image = drawables.cartEmptyIcon,
                     title = stringResource(strings.cardIsEmptyLabel),
                     textButton = stringResource(strings.startShoppingLabel),

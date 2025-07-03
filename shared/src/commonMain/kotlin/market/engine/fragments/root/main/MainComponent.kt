@@ -642,95 +642,97 @@ class DefaultMainComponent(
 
     override fun handleDeepLink(deepLink: DeepLink) {
         model.value.viewModel.viewModelScope.launch {
-            delay(300)
-            withContext(Dispatchers.Main) {
-                when (deepLink) {
-                    is DeepLink.GoToUser -> {
-                        modelNavigation.value.homeNavigation.pushNew(
-                            HomeConfig.UserScreen(
-                                deepLink.userId,
-                                getCurrentDate(),
-                                false
-                            )
-                        )
-                    }
-
-                    is DeepLink.GoToListing -> {
-                        val categoryData = ListingData()
-                        categoryData.searchData.userSearch = true
-                        categoryData.searchData.userID = deepLink.ownerId
-                        categoryData.searchData.userLogin = ""
-
-                        modelNavigation.value.homeNavigation.pushNew(
-                            HomeConfig.ListingScreen(
-                                false,
-                                categoryData.data,
-                                categoryData.searchData,
-                                getCurrentDate()
-                            )
-                        )
-                    }
-
-                    is DeepLink.GoToOffer -> {
-                        modelNavigation.value.homeNavigation.pushNew(
-                            HomeConfig.OfferScreen(
-                                deepLink.offerId,
-                                getCurrentDate()
-                            )
-                        )
-                    }
-
-                    is DeepLink.GoToAuth -> {
-                        if (UserData.token == "")
-                            goToLogin(true)
-                    }
-
-                    is DeepLink.GoToRegistration -> {
-                        if (UserData.token == "")
-                            goToLogin(true)
-                    }
-
-                    is DeepLink.GoToDynamicSettings -> {
-                        goToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
-                    }
-
-                    is DeepLink.GoToVerification -> {
-                        goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
-                    }
-
-                    is DeepLink.GoToDialog -> {
-                        if (deepLink.dialogId != 1L) {
-                            when{
-                                childHomeStack.value.active.instance is ChildHome.MessagesChild -> {
-                                    modelNavigation.value.homeNavigation.replaceCurrent(
-                                        HomeConfig.MessagesScreen(
-                                            deepLink.dialogId, deepLink.mes, getCurrentDate()
-                                        )
-                                    )
-                                }
-                                else -> {
-                                    modelNavigation.value.homeNavigation.pushNew(
-                                        HomeConfig.MessagesScreen(
-                                            deepLink.dialogId, deepLink.mes, getCurrentDate()
-                                        )
-                                    )
-                                }
-                            }
-                        } else {
-                            if (deepLink.mes != null) {
-                                navigateToBottomItem(
-                                    MainConfig.Profile,
-                                    "conversations/${deepLink.mes}"
+            try {
+                delay(300)
+                withContext(Dispatchers.Main) {
+                    when (deepLink) {
+                        is DeepLink.GoToUser -> {
+                            modelNavigation.value.homeNavigation.pushNew(
+                                HomeConfig.UserScreen(
+                                    deepLink.userId,
+                                    getCurrentDate(),
+                                    false
                                 )
+                            )
+                        }
+
+                        is DeepLink.GoToListing -> {
+                            val categoryData = ListingData()
+                            categoryData.searchData.userSearch = true
+                            categoryData.searchData.userID = deepLink.ownerId
+                            categoryData.searchData.userLogin = ""
+
+                            modelNavigation.value.homeNavigation.pushNew(
+                                HomeConfig.ListingScreen(
+                                    false,
+                                    categoryData.data,
+                                    categoryData.searchData,
+                                    getCurrentDate()
+                                )
+                            )
+                        }
+
+                        is DeepLink.GoToOffer -> {
+                            modelNavigation.value.homeNavigation.pushNew(
+                                HomeConfig.OfferScreen(
+                                    deepLink.offerId,
+                                    getCurrentDate()
+                                )
+                            )
+                        }
+
+                        is DeepLink.GoToAuth -> {
+                            if (UserData.token == "")
+                                goToLogin(true)
+                        }
+
+                        is DeepLink.GoToRegistration -> {
+                            if (UserData.token == "")
+                                goToLogin(true)
+                        }
+
+                        is DeepLink.GoToDynamicSettings -> {
+                            goToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
+                        }
+
+                        is DeepLink.GoToVerification -> {
+                            goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
+                        }
+
+                        is DeepLink.GoToDialog -> {
+                            if (deepLink.dialogId != 1L) {
+                                when{
+                                    childHomeStack.value.active.instance is ChildHome.MessagesChild -> {
+                                        modelNavigation.value.homeNavigation.replaceCurrent(
+                                            HomeConfig.MessagesScreen(
+                                                deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                            )
+                                        )
+                                    }
+                                    else -> {
+                                        modelNavigation.value.homeNavigation.pushNew(
+                                            HomeConfig.MessagesScreen(
+                                                deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                            )
+                                        )
+                                    }
+                                }
                             } else {
-                                navigateToBottomItem(MainConfig.Profile, "conversations")
+                                if (deepLink.mes != null) {
+                                    navigateToBottomItem(
+                                        MainConfig.Profile,
+                                        "conversations/${deepLink.mes}"
+                                    )
+                                } else {
+                                    navigateToBottomItem(MainConfig.Profile, "conversations")
+                                }
                             }
                         }
-                    }
 
-                    is DeepLink.Unknown -> {}
+                        is DeepLink.Unknown -> {}
+                    }
                 }
-            }
+            }catch (_ : Exception){}
         }
     }
 

@@ -28,7 +28,7 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
@@ -124,7 +124,7 @@ fun RegistrationContent(
                     }
                 } else {
                     item {
-                        showNoItemLayout(
+                        NoItemsFoundLayout(
                             icon = drawables.mail,
                             title = stringResource(strings.registrationSuccessLabel),
                             textButton = stringResource(strings.goBackLabel)

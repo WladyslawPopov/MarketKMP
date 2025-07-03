@@ -34,7 +34,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.ilustrations.FullScreenImageViewer
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.items.SeparatorDialogItem
 import market.engine.widgets.rows.UserRow
@@ -102,13 +102,13 @@ fun DialogsContent(
         if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
             @Composable {
                 if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         viewModel.updatePage()
                     }
                 } else {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = drawables.dialogIcon
                     ) {

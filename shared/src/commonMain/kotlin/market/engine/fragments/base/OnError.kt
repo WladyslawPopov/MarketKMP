@@ -31,26 +31,26 @@ fun OnError(
     errorCode.value.let {
         when{
             (it.contains("Unable to resolve host") || it.contains("failed to connect to") || it.contains("Failed to connect")) -> {
-                showNoInternetLayout(onRefresh)
+                NoInternetContent(onRefresh)
             }
             it == "MISSING_OR_INVALID_TOKEN" -> {
                 userRepository.delete()
                 goToLogin(true)
             }
             it.contains(" timeout ") -> {
-                showNoInternetLayout(onRefresh)
+                NoInternetContent(onRefresh)
             }
             it == "[HttpClient] could not ensure Request was active: cancelled=true"->{
 
             }
             it == "NO_API_KEY" ->{
-                showErrLayout(it,onRefresh)
+                ErrorContent(it,onRefresh)
             }
             it == "BAD_API_KEY" ->{
-                showErrLayout(it,onRefresh)
+                ErrorContent(it,onRefresh)
             }
             it == "REQUEST_NOT_ALLOWED" ->{
-                showErrLayout(it,onRefresh)
+                ErrorContent(it,onRefresh)
             }
             it == "NEEDS_PASSWORD_RESET" ->{
                 goToDynamicSettings(humanMessage.value, null, null)

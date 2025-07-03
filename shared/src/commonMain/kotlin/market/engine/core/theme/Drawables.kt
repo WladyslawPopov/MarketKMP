@@ -1,4 +1,4 @@
-package market.engine.theme
+package market.engine.core.theme
 
 import org.jetbrains.compose.resources.DrawableResource
 

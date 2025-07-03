@@ -21,7 +21,7 @@ import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
@@ -63,13 +63,13 @@ fun FavoritesContent(
         if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
             @Composable {
                 if (ld.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         viewModel.clearAllFilters()
                     }
                 } else {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         title = stringResource(strings.emptyFavoritesLabel),
                         image = drawables.emptyFavoritesImage
                     ) {

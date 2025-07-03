@@ -39,7 +39,7 @@ import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.CloseAppBar
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.filterContents.FilterListingContent
@@ -100,13 +100,13 @@ fun ListingContent(
                 if (listingData.filters.any { it.interpretation != null && it.interpretation != "" } ||
                     searchData.userSearch || searchData.searchString.isNotEmpty()
                 ) {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         viewModel.clearListingData()
                     }
                 } else {
-                    showNoItemLayout {
+                    NoItemsFoundLayout {
                         viewModel.refresh()
                     }
                 }

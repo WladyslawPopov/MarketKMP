@@ -40,7 +40,7 @@ import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.filterContents.DialogsFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
@@ -83,14 +83,14 @@ fun ConversationsContent(
         if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
             @Composable {
                 if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         viewModel.clearAllFilters()
                         viewModel.updatePage()
                     }
                 } else {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = drawables.dialogIcon
                     ) {

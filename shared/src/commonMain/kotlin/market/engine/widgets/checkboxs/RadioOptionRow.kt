@@ -22,7 +22,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 fun <T : Any>RadioOptionRow(
     filter: Pair<T, String>,
     selectedOption: T?,
-    moodColor: Color = colors.inactiveBottomNavIconColor,
+    moodColor: Color = colors.grayText,
     onOptionSelected: (Boolean, T) -> Unit
 ) {
     val (filterKey, filterText) = filter

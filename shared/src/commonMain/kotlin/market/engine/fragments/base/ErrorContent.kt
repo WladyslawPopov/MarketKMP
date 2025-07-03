@@ -22,7 +22,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun showErrLayout(err: String, onRefresh: () -> Unit) {
+fun ErrorContent(err: String, onRefresh: () -> Unit) {
     Column(
         modifier = Modifier.background(color = colors.primaryColor).fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -22,7 +22,7 @@ import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.filterContents.OrderFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.MyOrderItem
@@ -64,14 +64,14 @@ fun MyOrdersContent(
         if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
             @Composable {
                 if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         viewModel.clearAllFilters()
                         viewModel.updatePage()
                     }
                 } else {
-                    showNoItemLayout(
+                    NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = if (typeGroup == DealTypeGroup.SELL) drawables.purchasesIcon else drawables.salesIcon
                     ) {

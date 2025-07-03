@@ -42,7 +42,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.bars.PagingCounterBar
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.items.FeedbackItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -126,14 +126,14 @@ fun FeedbacksContent(
             refresh is LoadStateNotLoading && data.itemCount < 1 -> {
                 noItem = {
                     if (listingData.filters.find { it.key == "evaluation" }?.value == "") {
-                        showNoItemLayout(
+                        NoItemsFoundLayout(
                             title = stringResource(strings.notFoundFeedbackLabel),
                             textButton = stringResource(strings.refreshButton)
                         ) {
                             refreshPage()
                         }
                     }else{
-                        showNoItemLayout(
+                        NoItemsFoundLayout(
                             textButton = stringResource(strings.resetLabel)
                         ) {
                             viewModel.currentFilter.value = filters[0]

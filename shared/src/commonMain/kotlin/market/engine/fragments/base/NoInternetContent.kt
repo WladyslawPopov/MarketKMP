@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,55 +14,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun showNoItemLayout(
-    icon: DrawableResource? = null,
-    image : DrawableResource = drawables.notFoundListingIcon,
-    title: String = stringResource(strings.notFoundListingTitle),
-    textButton: String = stringResource(strings.refreshButton),
-    modifier: Modifier = Modifier.background(color = colors.primaryColor).fillMaxSize().padding(dimens.smallPadding),
-    onRefresh: () -> Unit
-) {
+fun NoInternetContent(onRefresh: () -> Unit) {
     Column(
-        modifier = modifier,
+        modifier = Modifier.background(color = colors.primaryColor).fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(dimens.mediumSpacer)
     ) {
         Spacer(modifier = Modifier.height(dimens.largeSpacer))
 
-        when {
-            icon != null -> {
-                Icon(
-                    painterResource(icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(90.dp),
-                    tint = colors.textA0AE
-                )
-            }
-
-            else -> {
-                Image(
-                    painterResource(image),
-                    contentDescription = null,
-                    modifier = Modifier.size(200.dp),
-                )
-            }
-        }
+        Image(
+            painterResource(drawables.noInternetIcon),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(0.5f).align(Alignment.CenterHorizontally)
+        )
 
         Text(
-            text = title,
+            text = stringResource(strings.noInternetTitle),
             textAlign = TextAlign.Center,
-            color = colors.darkBodyTextColor,
-            style = MaterialTheme.typography.titleMedium,
+            color = colors.titleTextColor,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+
+        Text(
+            text = stringResource(strings.noInternetSubtitle),
+            textAlign = TextAlign.Center,
+            color = colors.steelBlue,
+            style = MaterialTheme.typography.bodyMedium
         )
 
         TextButton(
@@ -73,10 +56,11 @@ fun showNoItemLayout(
                 onRefresh()
             },
             colors = colors.themeButtonColors,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
             shape = MaterialTheme.shapes.small
         ) {
             Text(
-                text = textButton,
+                text = stringResource(strings.refreshButton),
                 textAlign = TextAlign.Center,
                 color = colors.black
             )

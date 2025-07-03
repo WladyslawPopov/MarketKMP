@@ -29,6 +29,10 @@ INSERT INTO NotificationsHistory (
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
+insertOrReplaceNotification:
+INSERT OR REPLACE INTO NotificationsHistory(id, owner, title, body, type, timestemp, data, isRead)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?);
+
 -- Delete a specific entry by ID
 deleteById:
 DELETE FROM NotificationsHistory WHERE(id = ? AND owner = ?);

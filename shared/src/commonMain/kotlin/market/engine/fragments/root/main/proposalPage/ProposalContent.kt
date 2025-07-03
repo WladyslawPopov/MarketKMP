@@ -39,7 +39,7 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.fragments.root.main.messenger.DialogsHeader
 import market.engine.widgets.items.ProposalsItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -123,7 +123,7 @@ fun ProposalContent(
 
     val noFound : (@Composable () -> Unit)? = if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL){
         {
-            showNoItemLayout(
+            NoItemsFoundLayout(
                 icon = drawables.proposalIcon,
                 title = stringResource(strings.notFoundProposalsLabel),
             ){

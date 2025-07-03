@@ -43,7 +43,7 @@ import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.tabs.TabRow
 import market.engine.fragments.base.OnError
-import market.engine.fragments.base.showNoItemLayout
+import market.engine.fragments.base.NoItemsFoundLayout
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.rows.ColumnWithScrollBars
 import market.engine.widgets.rows.UserRow
@@ -259,7 +259,7 @@ fun UserContent(
                 }
             }
         }else{
-            showNoItemLayout(
+            NoItemsFoundLayout(
                 title = stringResource(strings.userDeletedLabel)
             ){
                 component.updateUserInfo()
