@@ -105,9 +105,13 @@ class DefaultRootComponent(
     }
 
     override fun updateOrientation(orientation: Int) {
-        val activeChild = childStack.value.active.instance
-        if (activeChild is RootComponent.Child.MainChild) {
-            activeChild.component.updateOrientation(orientation)
+        try {
+            val activeChild = childStack.value.active.instance
+            if (activeChild is RootComponent.Child.MainChild) {
+                activeChild.component.updateOrientation(orientation)
+            }
+        } catch (e: Exception) {
+            println("Ignoring orientation update during navigation: ${e.message}")
         }
 
         println("upd orientation: $orientation")
