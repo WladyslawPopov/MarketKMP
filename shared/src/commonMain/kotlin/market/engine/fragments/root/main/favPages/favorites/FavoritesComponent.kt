@@ -63,7 +63,7 @@ class DefaultFavoritesComponent(
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
         goToOffer(offer.id)
         lifecycle.doOnResume {
-            favViewModel.updateItem.value = offer.id
+            favViewModel.setUpdateItem(offer.id)
         }
     }
 
@@ -78,7 +78,7 @@ class DefaultFavoritesComponent(
     override fun goToCreateOffer(createOfferType: CreateOfferType, id: Long) {
         navigateToCreateOffer(createOfferType, id)
         lifecycle.doOnResume {
-            favViewModel.updateItem.value = id
+            favViewModel.setUpdateItem(id)
         }
     }
 

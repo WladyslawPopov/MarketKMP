@@ -58,7 +58,7 @@ fun FeedbacksContent(
     val viewModel = model.feedbacksViewModel
     val listingData = viewModel.listingData.value.data
     val data = model.pagingDataFlow.collectAsLazyPagingItems()
-    val totalCount = viewModel.totalCount.collectAsState()
+//    val totalCount = viewModel.totalCount.collectAsState()
     var prevIndex by remember { mutableStateOf<Int?>(null) }
 
     val state = rememberLazyListState(
@@ -81,11 +81,11 @@ fun FeedbacksContent(
     var showUpButton by remember { mutableStateOf(false) }
     var showDownButton by remember { mutableStateOf(false) }
 
-    val currentIndex by remember {
-        derivedStateOf {
-            state.firstVisibleItemIndex + if(totalCount.value > 1) 2 else 1
-        }
-    }
+//    val currentIndex by remember {
+//        derivedStateOf {
+//            state.firstVisibleItemIndex + if(totalCount.value > 1) 2 else 1
+//        }
+//    }
 
     LaunchedEffect(data.loadState.refresh){
         if((data.loadState.refresh as? LoadStateError)?.error?.message != null){
@@ -113,7 +113,6 @@ fun FeedbacksContent(
 
         viewModel.refresh()
         data.refresh()
-        viewModel.updateItemTrigger.value++
     }
 
     data.loadState.apply {
@@ -146,10 +145,10 @@ fun FeedbacksContent(
     }
 
     LaunchedEffect(state.firstVisibleItemIndex){
-        if(viewModel.isVisibleUserPanel.value) {
-            val isAtTop = currentIndex < 6
-            onScrollDirectionChange(isAtTop)
-        }
+//        if(viewModel.isVisibleUserPanel.value) {
+//            val isAtTop = currentIndex < 6
+//            onScrollDirectionChange(isAtTop)
+//        }
         showUpButton = 2 < (state.firstVisibleItemIndex / PAGE_SIZE)
         showDownButton = prevIndex != null &&
                 state.firstVisibleItemIndex < (prevIndex ?: 0)
@@ -270,36 +269,36 @@ fun FeedbacksContent(
                     }
                 }
 
-                if (totalCount.value > 0) {
-                    PagingCounterBar(
-                        currentPage = currentIndex,
-                        totalPages = totalCount.value,
-                        modifier = Modifier.align(Alignment.BottomStart),
-                        showUpButton = showUpButton,
-                        showDownButton = showDownButton,
-                        onClick = {
-                            when {
-                                showUpButton -> {
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        prevIndex = currentIndex
-                                        state.scrollToItem(0)
-                                        showUpButton = false
-                                        showDownButton = true
-                                    }
-                                }
-
-                                showDownButton -> {
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        state.scrollToItem(prevIndex ?: 1)
-                                        prevIndex = null
-                                        showDownButton = false
-                                        showUpButton = true
-                                    }
-                                }
-                            }
-                        }
-                    )
-                }
+//                if (totalCount.value > 0) {
+//                    PagingCounterBar(
+//                        currentPage = currentIndex,
+//                        totalPages = totalCount.value,
+//                        modifier = Modifier.align(Alignment.BottomStart),
+//                        showUpButton = showUpButton,
+//                        showDownButton = showDownButton,
+//                        onClick = {
+//                            when {
+//                                showUpButton -> {
+//                                    CoroutineScope(Dispatchers.Main).launch {
+//                                        prevIndex = currentIndex
+//                                        state.scrollToItem(0)
+//                                        showUpButton = false
+//                                        showDownButton = true
+//                                    }
+//                                }
+//
+//                                showDownButton -> {
+//                                    CoroutineScope(Dispatchers.Main).launch {
+//                                        state.scrollToItem(prevIndex ?: 1)
+//                                        prevIndex = null
+//                                        showDownButton = false
+//                                        showUpButton = true
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    )
+//                }
             }
         }
     }

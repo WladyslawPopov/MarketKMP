@@ -161,32 +161,34 @@ fun FilterListingContent(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+        modifier = Modifier.background(colors.primaryColor).fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })
         }.padding(dimens.smallPadding),
         contentAlignment = Alignment.TopCenter
     ) {
-        FilterContentHeaderBar(
-            title = stringResource(strings.filter),
-            isShowClearBtn = isShowClear.value,
-            onClear = {
-                isShowClear.value = false
-                onClear()
-            },
-            onClosed = {
-                onClosed(listingData)
-            }
-        )
-
         LazyColumnWithScrollBars(
-            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
+            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp),
             verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = dimens.smallPadding,
             state = scrollState
-        ) {
+        )
+        {
+            item {
+                FilterContentHeaderBar(
+                    title = stringResource(strings.filter),
+                    isShowClearBtn = isShowClear.value,
+                    onClear = {
+                        isShowClear.value = false
+                        onClear()
+                    },
+                    onClosed = {
+                        onClosed(listingData)
+                    }
+                )
+            }
             //SaleType Filters
             item {
                 ExpandableSection(
@@ -272,7 +274,8 @@ fun FilterListingContent(
                 ) {
                     Text(
                         text = stringResource(strings.regionParameterName),
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.black
                     )
 
                     getDropdownMenu(
@@ -335,6 +338,7 @@ fun FilterListingContent(
                                     Text(
                                         text = title,
                                         style = MaterialTheme.typography.titleSmall,
+                                        color = colors.black
                                     )
 
                                     getDropdownMenu(
@@ -376,7 +380,8 @@ fun FilterListingContent(
                                 ) {
                                     Text(
                                         text = title,
-                                        style = MaterialTheme.typography.titleSmall
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = colors.black
                                     )
 
                                     getDropdownMenu(
@@ -418,7 +423,8 @@ fun FilterListingContent(
                                 ) {
                                     Text(
                                         text = title,
-                                        style = MaterialTheme.typography.titleSmall
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = colors.black
                                     )
 
                                     getDropdownMenu(

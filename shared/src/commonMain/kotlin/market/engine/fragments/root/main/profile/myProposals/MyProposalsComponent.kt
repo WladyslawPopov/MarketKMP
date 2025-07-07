@@ -70,7 +70,7 @@ class DefaultMyProposalsComponent(
         offerSelected(offer.id)
 
         lifecycle.doOnResume {
-            viewModel.updateItem.value = offer.id
+            viewModel.setUpdateItem(offer.id)
         }
     }
 
@@ -97,7 +97,7 @@ class DefaultMyProposalsComponent(
     override fun goToProposal(offerId: Long, proposalType: ProposalType) {
         navigateToProposal(offerId, proposalType)
         lifecycle.doOnResume {
-            viewModel.updateItem.value = offerId
+            viewModel.setUpdateItem(offerId)
         }
     }
 }

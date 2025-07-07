@@ -7,13 +7,12 @@ import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.items.Tab
 
 data class SearchUiState(
-    val openSearch: Boolean = false,
     val searchData: SD = SD(),
 
     val searchString : TextFieldValue = TextFieldValue(""),
 
     val selectedTabIndex: Int = 0,
-    val tabs: List<Tab> = listOf<Tab>(),
+    val tabs: List<Tab> = listOf(),
 
     val searchHistory: List<SearchHistoryItem> = emptyList(),
 

@@ -96,7 +96,7 @@ fun FavPagesNavigation(
         },
         error = error,
         noFound = null,
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         modifier = modifier.fillMaxSize()
     ) {
         TooltipWrapper(

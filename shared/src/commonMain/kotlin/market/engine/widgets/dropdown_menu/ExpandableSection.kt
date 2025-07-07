@@ -54,7 +54,11 @@ fun ExpandableSection(
             horizontalArrangement = Arrangement.SpaceBetween,
 
             ) {
-            Text(text = title, modifier = Modifier.padding(dimens.mediumPadding).weight(1f))
+            Text(
+                text = title,
+                modifier = Modifier.padding(dimens.mediumPadding).weight(1f),
+                color = colors.black
+            )
             SmallIconButton(
                 drawables.iconArrowDown,
                 colors.black,

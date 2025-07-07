@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.messenger
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -48,12 +47,14 @@ import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.PhotoTemp
-import market.engine.core.data.states.FilterBarUiState
-import market.engine.core.data.states.ListingBaseState
 import market.engine.core.data.states.MessengerBarState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.MessageType
+import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.ConversationsOperations
+import market.engine.core.network.functions.OfferOperations
+import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.functions.PrivateMessagesOperation
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.network.networkObjects.Dialog
@@ -66,11 +67,13 @@ import market.engine.core.utils.convertDateYear
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.parseDeepLink
 import market.engine.core.utils.printLogD
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.base.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.String
 import kotlin.collections.map
+import kotlin.getValue
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -79,11 +82,6 @@ data class DialogContentState(
     val responseGetOfferInfo: Offer? = null,
     val responseGetOrderInfo: Order? = null,
     val conversations: Conversations? = null,
-
-    val listingBaseState: ListingBaseState = ListingBaseState(),
-    val filterBarData: FilterBarUiState = FilterBarUiState(),
-    val listingData: ListingData = ListingData(),
-
     val mesHeader : MesHeaderItem? = null
 )
 
@@ -91,11 +89,9 @@ class DialogsViewModel(
     val dialogId: Long,
     val message: String?,
     val component: DialogsComponent,
-) : BaseViewModel() {
+) : CoreViewModel() {
     private val privateMessagesOperation: PrivateMessagesOperation = getKoin().get()
     private val pagingRepository: PagingRepository<Dialog> = PagingRepository()
-
-    val listingData = mutableStateOf(ListingData())
 
     private val _responseGetConversation = MutableStateFlow<Conversations?>(null)
 
@@ -119,33 +115,20 @@ class DialogsViewModel(
     private val _images = MutableStateFlow<List<String>>(emptyList())
     val images = _images.asStateFlow()
 
+    private val conversationsOperations : ConversationsOperations by lazy { getKoin().get() }
+    private val offerOperations : OfferOperations by lazy { getKoin().get() }
+    private val orderOperations : OrderOperations by lazy { getKoin().get() }
+
     private val _menuItems = MutableStateFlow(
         listOf<MenuItem>()
     )
 
     val messageBarEvents = MessageBarEventsImpl(this)
 
-    private val _listingData = MutableStateFlow(ListingData(
-        data = LD(
-            filters = listOf(
-                Filter(
-                    "dialog_id",
-                    dialogId.toString(),
-                    "",
-                    null
-                )
-            ),
-            sort = Sort(
-                "created_ts",
-                "desc",
-                "",
-                null,
-                null
-            ),
-            methodServer = "get_cabinet_listing",
-            objServer = "private_messages"
-        )
-    ))
+    val listingBaseViewModel = ListingBaseViewModel()
+
+    val listingData = listingBaseViewModel.listingData
+
 
     val messageBarState : StateFlow<MessengerBarState> = combine(
         _isDisabledSendMes,
@@ -170,8 +153,9 @@ class DialogsViewModel(
         _responseGetConversation,
         _responseGetOfferInfo,
         _responseGetOrderInfo,
-        _listingData
-    ){ menu, conversation, offerInfo, orderInfo, listingData ->
+        listingData
+    )
+    { menu, conversation, offerInfo, orderInfo, listingData ->
         val copyId = getString(strings.idCopied)
 
         val offer = offerInfo
@@ -343,9 +327,6 @@ class DialogsViewModel(
             ),
             responseGetOfferInfo = offerInfo,
             responseGetOrderInfo = orderInfo,
-            listingBaseState = ListingBaseState(
-                isReversingPaging = true
-            ),
             mesHeader = headerItem,
             conversations = conversation
         )
@@ -357,7 +338,7 @@ class DialogsViewModel(
 
     val pagingParamsFlow: Flow<Pair<Conversations?,ListingData>> = combine(
         _responseGetConversation,
-        _listingData,
+        listingData,
         updatePage
     ) { conversations, listingData, _ ->
         Pair(conversations, listingData)
@@ -373,7 +354,7 @@ class DialogsViewModel(
             apiService,
             Dialog.serializer(),
             onTotalCountReceived = {
-                totalCount.value = it
+                listingBaseViewModel.setTotalCount(it)
             }
         ).map { pagingData ->
             pagingData.map { dialog ->
@@ -443,7 +424,32 @@ class DialogsViewModel(
     ).cachedIn(viewModelScope)
 
     init {
+        listingBaseViewModel.setReversingPaging(true)
+        listingBaseViewModel.setListingData(
+            ListingData(
+                data = LD(
+                    filters = listOf(
+                        Filter(
+                            "dialog_id",
+                            dialogId.toString(),
+                            "",
+                            null
+                        )
+                    ),
+                    sort = Sort(
+                        "created_ts",
+                        "desc",
+                        "",
+                        null,
+                        null
+                    ),
+                    methodServer = "get_cabinet_listing",
+                    objServer = "private_messages"
+                )
+            )
+        )
         _messageTextState.value = message ?: ""
+
         getConversation(
             dialogId,
             onSuccess = { conversation ->
@@ -456,6 +462,60 @@ class DialogsViewModel(
             }
         )
         markReadConversation(dialogId)
+    }
+
+    fun markReadConversation(id : Long) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.Unconfined) {
+                    conversationsOperations.postMarkAsReadByInterlocutor(id)
+                }
+            } catch (e: ServerErrorException) {
+                onError(e)
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "", ""))
+            }
+        }
+    }
+
+    fun deleteConversation(id : Long, onSuccess : () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                conversationsOperations.postDeleteForInterlocutor(id)
+            }
+
+            withContext(Dispatchers.Main) {
+                if(res != null){
+                    onSuccess()
+                }else{
+                    showToast(errorToastItem.copy(message = getString(strings.operationFailed)))
+                }
+            }
+        }
+    }
+
+    fun getConversation(id : Long, onSuccess: (Conversations) -> Unit, error: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val res = withContext(Dispatchers.IO) {
+                    conversationsOperations.getConversation(id)
+                }
+                val buf = res.success
+                val e = res.error
+                withContext(Dispatchers.Main) {
+                    if (buf!= null) {
+                        onSuccess(res.success!!)
+                    }else{
+                        error()
+                        e?.let { throw it }
+                    }
+                }
+            }catch (e : ServerErrorException){
+                onError(e)
+            }catch (e : Exception){
+                onError(ServerErrorException(e.message ?: "", ""))
+            }
+        }
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -564,11 +624,6 @@ class DialogsViewModel(
                 }
             }
         }
-    }
-
-    fun updatePage(){
-        refresh()
-        updatePage.value++
     }
 
     fun deleteMessage(id: Long, onSuccess: () -> Unit) {

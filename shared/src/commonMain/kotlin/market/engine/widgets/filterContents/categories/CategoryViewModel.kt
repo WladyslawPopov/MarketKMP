@@ -1,16 +1,19 @@
 package market.engine.widgets.filterContents.categories
 
 import androidx.compose.runtime.mutableStateOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Category
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
 interface CategoryState {
@@ -21,7 +24,6 @@ interface CategoryState {
     val selectedId: StateFlow<Long>
     val categories: StateFlow<List<Category>>
     val isLoading: StateFlow<Boolean>
-    val defaultCategoryName: String
 }
 
 interface CategoryActions {
@@ -45,7 +47,7 @@ interface CategoryActions {
 class CategoryViewModel(
     val isFilters: Boolean = false,
     val isCreateOffer: Boolean = false,
-) : CategoryActions, CategoryState, BaseViewModel() {
+) : CategoryActions, CategoryState, CoreViewModel() {
 
     // State implementation
     private val _categoryId = MutableStateFlow(1L)
@@ -70,10 +72,7 @@ class CategoryViewModel(
     override val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     val filters = MutableStateFlow<List<Filter>>(emptyList())
-
-    override val defaultCategoryName: String
-        get() = catDef.value
-    
+    val catDef = mutableStateOf("")
     val catBtn = mutableStateOf("")
     val enabledBtn = mutableStateOf(true)
 
@@ -151,7 +150,7 @@ class CategoryViewModel(
 
     override fun resetToRoot() {
         if (_categoryId.value != 1L) {
-            setUpNewParams(Category(id = 1L, name = defaultCategoryName))
+            setUpNewParams(Category(id = 1L, name = catDef.value))
         }
         fetchCategories(
             SD(
@@ -224,7 +223,7 @@ class CategoryViewModel(
 
     private fun setUpNewParams(newCat: Category) {
         _categoryId.value = newCat.id
-        _categoryName.value = newCat.name ?: defaultCategoryName
+        _categoryName.value = newCat.name ?: catDef.value
         _parentId.value = newCat.parentId
         _isLeaf.value = newCat.isLeaf
         _selectedId.value = 1L
@@ -235,5 +234,21 @@ class CategoryViewModel(
         _categoryName.value = searchData.searchCategoryName
         _parentId.value = searchData.searchParentID
         _isLeaf.value = searchData.searchIsLeaf
+    }
+
+    fun onCatBack(
+        uploadId: Long,
+        onSuccess: (Category) -> Unit
+    ) {
+        viewModelScope.launch {
+            val response = withContext(Dispatchers.IO) {
+                categoryOperations.getCategoryInfo(
+                    uploadId
+                )
+            }
+            if (response.success != null){
+                onSuccess(response.success!!)
+            }
+        }
     }
 }

@@ -26,15 +26,19 @@ import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.OfferOperations
+import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.parseToOfferItem
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.dynamicSettings.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
+
 
 data class CreateOrderState(
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
@@ -45,10 +49,16 @@ data class CreateOrderState(
     val selectPaymentType: Int = 0
 )
 
-class CreateOrderViewModel(val basketItem:  Pair<Long, List<SelectedBasketItem>>, val component: CreateOrderComponent): BaseViewModel() {
+class CreateOrderViewModel(
+    val basketItem:  Pair<Long, List<SelectedBasketItem>>,
+    val component: CreateOrderComponent
+): CoreViewModel() {
 
     private var _responseGetOffers = MutableStateFlow<List<OfferItem>>(emptyList())
     private var _responseGetAdditionalData = MutableStateFlow<AdditionalDataForNewOrder?>(null)
+
+    val userOperations : UserOperations by lazy { getKoin().get() }
+    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     val deliveryCardsViewModel = DeliveryCardsViewModel()
 

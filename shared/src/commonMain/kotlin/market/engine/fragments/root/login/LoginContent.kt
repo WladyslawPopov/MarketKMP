@@ -136,7 +136,7 @@ fun LoginContent(
                 data = appBarData
             )
         },
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         error = error,
         isLoading = isLoading.value,
         onRefresh = {

@@ -26,8 +26,10 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import market.engine.common.Platform
+import market.engine.common.getFileUpload
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -41,12 +43,13 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.uuid.ExperimentalUuidApi
@@ -89,17 +92,18 @@ data class CreateOfferContentState(
     )
 )
 
-
 class CreateOfferViewModel(
     val catPath : List<Long>?,
     val offerId : Long?,
     val type : CreateOfferType,
     val externalImages : List<String>?,
     val component: CreateOfferComponent
-) : BaseViewModel() {
+) : CoreViewModel() {
+
     val categoryViewModel = CategoryViewModel(
         isCreateOffer = true
     )
+
     private val _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
@@ -109,7 +113,7 @@ class CreateOfferViewModel(
 
     private val _choiceCodeSaleType = MutableStateFlow<Int?>(null)
     val choiceCodeSaleType = _choiceCodeSaleType.asStateFlow()
-    private val _selectedDate = MutableStateFlow<Long?>(_responseGetPage.value?.fields?.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull)
+    private val _selectedDate = MutableStateFlow(_responseGetPage.value?.fields?.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull)
     val selectedDate = _selectedDate.asStateFlow()
     private val _newOfferId = MutableStateFlow<Long?>(null)
     val newOfferId = _newOfferId.asStateFlow()
@@ -364,7 +368,6 @@ class CreateOfferViewModel(
                                 val mergedFields = ArrayList(updatedFields + newFields)
                                 currentPayload.copy(fields = mergedFields)
                             }
-                            updateItemTrigger.value++
                         }
                     } catch (_: Exception) {
                         throw ServerErrorException(
@@ -535,14 +538,14 @@ class CreateOfferViewModel(
     }
 
     fun setSelectData(data: Long) {
-        _responseGetPage.update {
-            val date = it?.fields?.map {
+        _responseGetPage.update { page ->
+            val date = page?.fields?.map {
                 if(it.key == "future_time"){
                     it.copy(data = JsonPrimitive(data) )
                 } else it.copy()
-            } ?: it?.fields ?: emptyList()
+            } ?: page?.fields ?: emptyList()
 
-            it?.copy(
+            page?.copy(
                 fields = ArrayList(date)
             )
         }
@@ -551,14 +554,14 @@ class CreateOfferViewModel(
 
     fun setDescription(description: String) {
         val text = KsoupEntities.decodeHtml(description)
-        _responseGetPage.update {
-            val date = it?.fields?.map {
+        _responseGetPage.update { page ->
+            val date = page?.fields?.map {
                 if(it.key == "description"){
                     it.copy(data = JsonPrimitive(text) )
                 } else it.copy()
-            } ?: it?.fields ?: emptyList()
+            } ?: page?.fields ?: emptyList()
 
-            it?.copy(
+            page?.copy(
                 fields = ArrayList(date)
             )
         }
@@ -681,6 +684,47 @@ class CreateOfferViewModel(
 
             if (positionArray.isNotEmpty()) {
                 put("position_images", positionArray)
+            }
+        }
+    }
+
+    fun uploadPhotoTemp(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
+        viewModelScope.launch {
+            val res = uploadFile(item)
+
+            if (res.success != null) {
+                delay(1000)
+                withContext(Dispatchers.Main){
+                    onSuccess(res.success!!)
+                }
+            } else {
+                showToast(
+                    errorToastItem.copy(
+                        message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
+                    )
+                )
+            }
+        }
+    }
+
+    private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                getFileUpload(photoTemp)
+            }
+
+            return withContext(Dispatchers.Main) {
+                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
+                photoTemp.tempId = cleanedSuccess
+                ServerResponse(photoTemp)
+            }
+        } catch (e : ServerErrorException){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = e)
+            }
+        }catch (e : Exception){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
             }
         }
     }

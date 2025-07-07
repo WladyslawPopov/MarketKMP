@@ -23,7 +23,7 @@ import org.jetbrains.compose.resources.painterResource
 fun BadgedButton(
     item: NavigationItem,
     selected: Boolean = false,
-    tooltipState: TooltipState? = null
+    tooltipState: TooltipState? = null,
 ) {
     val modifier = if(tooltipState != null) {
         Modifier

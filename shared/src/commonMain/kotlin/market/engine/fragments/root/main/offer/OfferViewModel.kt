@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -31,14 +32,17 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.functions.OfferOperations
+import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.shared.MarketDB
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 import kotlin.toString
 
 data class OfferViewState(
@@ -69,7 +73,7 @@ class OfferViewModel(
     private val component: OfferComponent,
     val offerId : Long = 1,
     val isSnapshot : Boolean = false
-) : BaseViewModel()
+) : CoreViewModel()
 {
     private val _responseOffer: MutableStateFlow<Offer> = MutableStateFlow(Offer())
 
@@ -85,6 +89,9 @@ class OfferViewModel(
 
     private val _scrollPosition = MutableStateFlow(0)
     val scrollPosition: StateFlow<Int> = _scrollPosition.asStateFlow()
+
+    val userOperations : UserOperations by lazy { getKoin().get() }
+    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     private var timerJob: Job? = null
     private var timerBidsJob: Job? = null
@@ -225,8 +232,41 @@ class OfferViewModel(
 
     fun deleteNote(id: Long){
         viewModelScope.launch {
-            deleteNote(id) {
+            this@OfferViewModel.deleteNote(id) {
                 refreshPage()
+            }
+        }
+    }
+
+    fun deleteNote(offerId: Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                operationsMethods.postOperationFields(offerId, "delete_note", "offers")
+            }
+            withContext(Dispatchers.Main) {
+                if (res.success != null) {
+                    if (res.success?.operationResult?.result == "ok") {
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        analyticsHelper.reportEvent(
+                            "delete_note_success",
+                            eventParameters = mapOf(
+                                "lot_id" to offerId,
+                            )
+                        )
+                        delay(2000)
+                        onSuccess()
+                    }else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = res.success?.operationResult?.message ?: getString(strings.operationFailed)
+                            )
+                        )
+                    }
+                }
             }
         }
     }
@@ -458,6 +498,31 @@ class OfferViewModel(
         }
     }
 
+    fun addOfferToBasket(body : HashMap<String, JsonElement>, onSuccess: (String) -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                operationsMethods.postOperationFields(
+                    UserData.login,
+                    "add_item_to_cart",
+                    "users",
+                    body
+                )
+            }
+
+            val buffer = res.success
+            val error = res.error
+
+            if (buffer != null) {
+                updateUserInfo()
+                onSuccess(buffer.operationResult?.message ?: getString(strings.operationSuccess))
+            } else {
+                if (error != null) {
+                    onError(error)
+                }
+            }
+        }
+    }
+
     fun addToSubscriptions(offer: Offer){
         if (UserData.token != "") {
             addNewSubscribe(
@@ -476,6 +541,117 @@ class OfferViewModel(
             )
         } else {
             component.goToLogin()
+        }
+    }
+
+    fun addNewSubscribe(
+        listingData : LD,
+        searchData : SD,
+        onSuccess: () -> Unit,
+        errorCallback: (String) -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = operationsMethods.getOperationFields(
+                UserData.login,
+                "create_subscription",
+                "users"
+            )
+
+            val eventParameters : ArrayList<Pair<String, Any?>> = arrayListOf(
+                "buyer_id" to UserData.login.toString(),
+            )
+            analyticsHelper.reportEvent("click_subscribe_query", eventParameters.toMap())
+
+            val body = HashMap<String, JsonElement>()
+            response.success?.fields?.forEach { field ->
+                when(field.key) {
+                    "category_id" -> {
+                        if (searchData.searchCategoryID != 1L) {
+                            body["category_id"] = JsonPrimitive(searchData.searchCategoryID)
+                            eventParameters.add("category_id" to searchData.searchCategoryID.toString())
+                        }
+                    }
+                    "offer_scope" -> {
+                        body["offer_scope"] = JsonPrimitive(1)
+                    }
+                    "search_query" -> {
+                        if(searchData.searchString != "") {
+                            body["search_query"] = JsonPrimitive(searchData.searchString)
+                            eventParameters.add("search_query" to searchData.searchString)
+                        }
+                    }
+                    "seller" -> {
+                        if(searchData.userSearch) {
+                            body["seller"] = JsonPrimitive(searchData.userLogin)
+                            eventParameters.add("seller" to searchData.userLogin.toString())
+                        }
+                    }
+                    "saletype" -> {
+                        when (listingData.filters.find { it.key == "sale_type" }?.value) {
+                            "buynow" -> {
+                                body["saletype"] = JsonPrimitive(0)
+                            }
+                            "auction" -> {
+                                body["saletype"] = JsonPrimitive(1)
+                            }
+                        }
+                        eventParameters.add("saletype" to listingData.filters.find { it.key == "sale_type" }?.value.toString())
+                    }
+                    "region" -> {
+                        listingData.filters.find { it.key == "region" }?.value?.let {
+                            if (it != "") {
+                                body["region"] = JsonPrimitive(it)
+                                eventParameters.add("region" to it)
+                            }
+                        }
+                    }
+                    "price_from" -> {
+                        listingData.filters.find { it.key == "current_price" && it.operation == "gte" }?.value?.let {
+                            if (it != "") {
+                                body["price_from"] = JsonPrimitive(it)
+                                eventParameters.add("price_from" to it)
+                            }
+                        }
+                    }
+                    "price_to" -> {
+                        listingData.filters.find { it.key == "current_price" && it.operation == "lte" }?.value?.let {
+                            if (it != "") {
+                                body["price_to"] = JsonPrimitive(it)
+                                eventParameters.add("price_to" to it)
+                            }
+                        }
+                    }
+                    else ->{
+                        if (field.data != null){
+                            body[field.key ?: ""] = field.data!!
+                        }
+                    }
+                }
+            }
+
+            val res = operationsMethods.postOperationFields(
+                UserData.login,
+                "create_subscription",
+                "users",
+                body
+            )
+
+            val buf = res.success
+            val err = res.error
+
+            withContext(Dispatchers.Main) {
+                if (buf != null) {
+                    showToast(
+                        successToastItem.copy(
+                            message = res.success?.operationResult?.message ?: getString(strings.operationSuccess)
+                        )
+                    )
+                    delay(1000)
+                    onSuccess()
+                }else {
+                    errorCallback(err?.humanMessage ?: "")
+                }
+            }
         }
     }
 
@@ -548,6 +724,24 @@ class OfferViewModel(
                 }
             }
         } ?: ""
+    }
+
+    suspend fun checkStatusSeller(id: Long) : ArrayList<String> {
+        val lists = listOf("blacklist_sellers", "blacklist_buyers", "whitelist_buyers")
+        val check : ArrayList<String> = arrayListOf()
+        for (list in lists) {
+            val found = withContext(Dispatchers.IO) {
+                userOperations.getUsersOperationsGetUserList(
+                    UserData.login,
+                    hashMapOf("list_type" to JsonPrimitive(list))
+                ).success?.body?.data?.find { it.id == id }
+            }
+
+            if (found != null) {
+                check.add(list)
+            }
+        }
+        return check
     }
 }
 

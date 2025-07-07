@@ -1,5 +1,6 @@
 package market.engine.widgets.filterContents
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.filtersObjects.MsgFilters
+import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.widgets.buttons.AcceptedPageButton
@@ -69,7 +71,7 @@ fun DialogsFilterContent(
     val userIdTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_id" }?.value ?: "") }
     val idObjectTextState = remember { mutableStateOf(filters.find { it.key == "object_id"}?.value ?: "") }
     Box(
-        modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+        modifier = Modifier.background(colors.primaryColor).fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })

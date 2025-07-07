@@ -13,11 +13,15 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BaseViewModel
+import market.engine.core.network.functions.UserOperations
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 
-class VerificationViewModel : BaseViewModel() {
+class VerificationViewModel : CoreViewModel() {
     val action = mutableStateOf("")
+
+    val userOperations : UserOperations by lazy { getKoin().get() }
 
     fun init(settingsType: String, owner: Long?, code: String?) {
         when (settingsType) {

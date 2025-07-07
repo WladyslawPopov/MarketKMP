@@ -50,6 +50,7 @@ fun HomeContent(
 
     val isLoading = homeViewModel.isShowProgress.collectAsState()
     val error = homeViewModel.errorMessage.collectAsState()
+    val toastItem = homeViewModel.toastItem.collectAsState()
 
     val listTopCategory = remember(listTopCategory) { listTopCategory }
 
@@ -72,7 +73,7 @@ fun HomeContent(
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            homeViewModel.scrollState.value = ScrollDataState(index, offset)
+            homeViewModel.updateScroll(ScrollDataState(index, offset))
         }
     }
 
@@ -98,31 +99,31 @@ fun HomeContent(
         },
         error = errorContent,
         noFound = null,
-        toastItem = homeViewModel.toastItem,
+        toastItem = toastItem.value,
         modifier = Modifier.fillMaxSize()
     ) {
-        Column(
-            modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        ModalNavigationDrawer(
+            modifier = modifier,
+            drawerState = drawerState,
+            drawerContent = {
+                DrawerContent(
+                    drawerState = drawerState,
+                    goToLogin = {
+                        component.goToLogin()
+                    },
+                    list = state.drawerList
+                )
+            },
+            gesturesEnabled = drawerState.isOpen,
         ) {
-            SearchBar {
-                component.goToNewSearch()
-            }
-
-            ModalNavigationDrawer(
-                modifier = modifier,
-                drawerState = drawerState,
-                drawerContent = {
-                    DrawerContent(
-                        drawerState = drawerState,
-                        goToLogin = {
-                            component.goToLogin()
-                        },
-                        list = state.drawerList
-                    )
-                },
-                gesturesEnabled = drawerState.isOpen,
+            Column(
+                modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                SearchBar {
+                    component.goToNewSearch()
+                }
+
                 LazyColumnWithScrollBars(
                     state = scrollState,
                 )

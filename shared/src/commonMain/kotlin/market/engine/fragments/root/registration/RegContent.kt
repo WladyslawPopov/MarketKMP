@@ -73,7 +73,7 @@ fun RegistrationContent(
                 }
             )
         },
-        toastItem = model.toastItem,
+        toastItem = model.toastItem.value,
         error = error,
         isLoading = isLoading.value,
         onRefresh = { model.getRegFields() }

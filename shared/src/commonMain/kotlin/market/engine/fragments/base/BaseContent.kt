@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,7 +18,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,7 +30,7 @@ import market.engine.core.data.items.ToastItem
 @Composable
 fun BaseContent(
     modifier: Modifier = Modifier,
-    toastItem: MutableState<ToastItem>? = null,
+    toastItem: ToastItem? = null,
     isHideContent: Boolean = true,
     isLoading : Boolean = false,
     onRefresh: () -> Unit,
@@ -46,7 +45,7 @@ fun BaseContent(
     Scaffold(
         topBar = topBar ?: {},
         floatingActionButton = floatingActionButton,
-        contentWindowInsets = WindowInsets.ime
+        contentWindowInsets = WindowInsets.safeContent
     ) { innerPadding ->
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize().padding(
@@ -99,7 +98,7 @@ fun BaseContent(
 
                     if(toastItem != null) {
                         AnimatedVisibility(
-                            toastItem.value.isVisible,
+                            toastItem.isVisible,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .padding(bottom = dimens.mediumPadding)
@@ -108,8 +107,8 @@ fun BaseContent(
                             exit = fadeOut()
                         ) {
                             ToastTypeMessage(
-                                message = toastItem.value.message,
-                                toastType = toastItem.value.type,
+                                message = toastItem.message,
+                                toastType = toastItem.type,
                             )
                         }
                     }

@@ -40,13 +40,16 @@ fun SubscriptionsContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val subViewModel = modelState.value.subViewModel
-    val uiState = subViewModel.subContentState.collectAsState()
-    val listingData = uiState.value.listingData.data
-    val activeWindowType = uiState.value.listingBaseState.activeWindowType
     val data = subViewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = subViewModel.updateItem.collectAsState()
     val titleDialog = subViewModel.titleDialog.collectAsState()
     val deleteId = subViewModel.deleteId.collectAsState()
+    val listingBaseViewModel = subViewModel.listingBaseViewModel
+    val listingDataState = listingBaseViewModel.listingData.collectAsState()
+
+    val createSubBtn = subViewModel.filterListingBtnItem.collectAsState()
+
+    val listingData = listingDataState.value.data
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -85,50 +88,48 @@ fun SubscriptionsContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = subViewModel.toastItem,
+        toastItem = subViewModel.toastItem.value,
         modifier = modifier.fillMaxSize()
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SmallIconButton(
+                drawables.newLotIcon,
+                color = colors.positiveGreen,
+                modifier = Modifier.size(dimens.smallIconSize)
+            ) {
+                component.goToCreateNewSubscription()
+            }
+
+            if (listingData.sort != null){
+                ActiveFilterListingItem(createSubBtn.value.first())
+            }
+
+            SmallIconButton(
+                drawables.sortIcon,
+                color = colors.black
+            ){
+                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
+            }
+        }
+
         ListingBaseContent(
-            uiState = uiState.value.listingBaseState,
             data = data,
-            baseViewModel = subViewModel,
+            viewModel = listingBaseViewModel,
             noFound = noFound,
-            filtersContent = {
+            filtersContent = { activeWindowType ->
                 when (activeWindowType){
                     ActiveWindowListingType.SORTING -> {
                         SortingOrdersContent(
                             listingData.sort,
                         ){ newSort ->
-                            subViewModel.applySorting(newSort)
+                            listingBaseViewModel.applySorting(newSort)
                         }
                     }
                     else -> {}
-                }
-            },
-            additionalBar = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SmallIconButton(
-                        drawables.newLotIcon,
-                        color = colors.positiveGreen,
-                        modifier = Modifier.size(dimens.smallIconSize)
-                    ) {
-                        component.goToCreateNewSubscription()
-                    }
-
-                    if (listingData.sort != null){
-                        ActiveFilterListingItem(uiState.value.activeFilterListingBtnItem)
-                    }
-
-                    SmallIconButton(
-                        drawables.sortIcon,
-                        color = colors.black
-                    ){
-                        subViewModel.openSort()
-                    }
                 }
             },
             item = { subscription ->

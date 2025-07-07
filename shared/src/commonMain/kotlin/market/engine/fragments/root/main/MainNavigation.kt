@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -50,7 +51,7 @@ fun MainNavigation(
 
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
-    val showLogoutDialog = remember { viewModel.showLogoutDialog }
+    val showLogoutDialog = viewModel.showLogoutDialog.collectAsState()
 
     Scaffold(
         bottomBar = { if (model.value.showBottomBar.value){ getBottomNavBar(model.value.bottomList.value, currentScreen) }},
@@ -88,9 +89,9 @@ fun MainNavigation(
 
             LogoutDialog(
                 showLogoutDialog = showLogoutDialog.value,
-                onDismiss = { showLogoutDialog.value = false },
+                onDismiss = { viewModel.setLogoutDialog(false) },
                 goToLogin = {
-                    showLogoutDialog.value = false
+                    viewModel.setLogoutDialog(false)
                     goToLogin(true)
                 }
             )

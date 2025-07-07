@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,13 +17,14 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.rememberBottomSheetScaffoldState
-import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -90,7 +90,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateOfferContent(
     component: CreateOfferComponent
@@ -136,11 +136,13 @@ fun CreateOfferContent(
         initialFirstVisibleItemScrollOffset = viewModel.scrollState.value.offsetScrollItem
     )
 
+    val sheetState = rememberStandardBottomSheetState(
+        initialValue = if (categoryID.value == 1L)
+            SheetValue.Expanded else SheetValue.PartiallyExpanded
+    )
+
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(
-            initialValue = if (categoryID.value == 1L)
-                BottomSheetValue.Expanded else BottomSheetValue.Collapsed
-        )
+        bottomSheetState = sheetState
     )
 
     BackHandler(model.value.backHandler){
@@ -173,7 +175,7 @@ fun CreateOfferContent(
         if(isEditCategory) {
             scaffoldState.bottomSheetState.expand()
         } else {
-            scaffoldState.bottomSheetState.collapse()
+            scaffoldState.bottomSheetState.partialExpand()
         }
     }
 
@@ -189,7 +191,7 @@ fun CreateOfferContent(
         snapshotFlow{
             columnState.firstVisibleItemIndex to columnState.firstVisibleItemScrollOffset
         }.collectLatest { (index,offset) ->
-            viewModel.scrollState.value = ScrollDataState(index,offset)
+            viewModel.updateScroll(ScrollDataState(index,offset))
         }
     }
 
@@ -226,18 +228,18 @@ fun CreateOfferContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         modifier = Modifier.fillMaxSize()
     ) {
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
             modifier = Modifier.fillMaxSize(),
             sheetContentColor = colors.primaryColor,
-            sheetBackgroundColor = colors.primaryColor,
+            sheetContainerColor = colors.primaryColor,
             contentColor = colors.primaryColor,
-            backgroundColor = colors.primaryColor,
+            containerColor = colors.primaryColor,
             sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = false,
+            sheetSwipeEnabled = false,
             sheetContent = {
                 CategoryContent(
                     categoryState.categoryViewModel,
@@ -252,10 +254,11 @@ fun CreateOfferContent(
             },
         ) {
             AnimatedVisibility(
-                scaffoldState.bottomSheetState.isCollapsed && payloadState != null && newOfferId.value == null,
+                !scaffoldState.bottomSheetState.isVisible && payloadState != null && newOfferId.value == null,
                 enter = fadeIn(),
                 exit = fadeOut()
-            ) {
+            )
+            {
                 LazyColumnWithScrollBars(
                     modifierList = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
@@ -415,21 +418,19 @@ fun CreateOfferContent(
                         when (key) {
                             "params" -> {
                                 item {
-                                    if (viewModel.updateItemTrigger.value >= 0) {
-                                        val paramList =
-                                            payloadState?.fields?.filter {
-                                                it.key?.contains(
-                                                    "par_"
-                                                ) == true
-                                            }
-                                                ?: emptyList()
-                                        SeparatorLabel(stringResource(strings.parametersLabel))
+                                    val paramList =
+                                        payloadState?.fields?.filter {
+                                            it.key?.contains(
+                                                "par_"
+                                            ) == true
+                                        }
+                                            ?: emptyList()
+                                    SeparatorLabel(stringResource(strings.parametersLabel))
 
-                                        SetUpDynamicFields(
-                                            paramList,
-                                            modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f)
-                                        )
-                                    }
+                                    SetUpDynamicFields(
+                                        paramList,
+                                        modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f)
+                                    )
                                 }
                             }
                         }
@@ -667,7 +668,8 @@ fun CreateOfferContent(
                 }
             }
 
-            AnimatedVisibility(newOfferId.value != null){
+            AnimatedVisibility(newOfferId.value != null)
+            {
                 val title = payloadState?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
                 //success offer
                 SuccessContent(

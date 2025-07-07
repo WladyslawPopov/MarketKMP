@@ -113,7 +113,7 @@ class DefaultListingComponent(
         analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
 
         if(isOpenSearch)
-            listingViewModel.changeOpenSearch(isOpenSearch)
+            listingViewModel.listingBaseVM.changeOpenSearch(isOpenSearch)
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
@@ -160,7 +160,7 @@ class DefaultListingComponent(
         }
         selectOffer(offer.id)
         lifecycle.doOnResume {
-            listingViewModel.updateItem.value = offer.id
+//            listingViewModel.updateItem.value = offer.id
         }
     }
 

@@ -75,7 +75,7 @@ fun VerificationContent(
             viewModel.onError(ServerErrorException())
             viewModel.init(model.settingsType, model.owner, model.code)
         },
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         error = error
     ) {
         LazyColumnWithScrollBars(

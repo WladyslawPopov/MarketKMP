@@ -18,7 +18,6 @@ import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
 import market.engine.fragments.base.NoItemsFoundLayout
@@ -34,12 +33,15 @@ fun MyBidsContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
-    val uiState = viewModel.uiDataState.collectAsState()
-    val listingData = uiState.value.listingData.data
-    val activeWindowType = uiState.value.listingBaseState.activeWindowType
-    val listingBaseState = uiState.value.listingBaseState
-    val filterBarUiState = uiState.value.filterBarData
-    val categoriesData = uiState.value.filtersCategoryState
+    val listingBaseViewModel = viewModel.listingBaseViewModel
+
+    val listingDataState = listingBaseViewModel.listingData.collectAsState()
+
+    val activeWindowType = listingBaseViewModel.activeWindowType.collectAsState()
+
+    val listingData = listingDataState.value.data
+
+    val categoriesData = viewModel.categoryState
 
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = viewModel.updateItem.collectAsState()
@@ -48,8 +50,10 @@ fun MyBidsContent(
 
     val err = viewModel.errorMessage.collectAsState()
 
+    val toastItem = viewModel.toastItem.collectAsState()
+
     BackHandler(model.backHandler){
-        viewModel.onBackNavigation(activeWindowType)
+        viewModel.onBackNavigation()
     }
 
     val noFound = remember(data.loadState.refresh) {
@@ -59,7 +63,7 @@ fun MyBidsContent(
                     NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
-                        viewModel.clearAllFilters()
+                        listingBaseViewModel.clearAllFilters()
                         viewModel.updatePage()
                     }
                 } else {
@@ -92,26 +96,22 @@ fun MyBidsContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = toastItem.value,
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            uiState= listingBaseState,
             data = data,
-            baseViewModel = viewModel,
+            viewModel = listingBaseViewModel,
             noFound = noFound,
-            additionalBar = {
-                FiltersBar(filterBarUiState)
-            },
             filtersContent = {
-                when (activeWindowType) {
+                when (activeWindowType.value) {
                     ActiveWindowListingType.FILTERS -> {
                         OfferFilterContent(
                             listingData.filters,
                             categoriesData,
                             LotsType.FAVORITES,
                         ){ newFilters ->
-                            viewModel.applyFilters(newFilters)
+                            listingBaseViewModel.applyFilters(newFilters)
                         }
                     }
 
@@ -120,7 +120,7 @@ fun MyBidsContent(
                             listingData.sort,
                             isCabinet = true,
                         ){ newSort ->
-                            viewModel.applySorting(newSort)
+                            listingBaseViewModel.applySorting(newSort)
                         }
                     }
                     else -> {

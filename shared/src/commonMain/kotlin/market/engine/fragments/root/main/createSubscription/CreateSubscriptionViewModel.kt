@@ -30,7 +30,7 @@ import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
@@ -44,7 +44,7 @@ data class CreateSubDataState(
 class CreateSubscriptionViewModel(
     val editId: Long?,
     val component: CreateSubscriptionComponent
-) : BaseViewModel() {
+) : CoreViewModel() {
 
     private var _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _openCat = MutableStateFlow(false)
@@ -115,8 +115,8 @@ class CreateSubscriptionViewModel(
     }
 
     fun applyCategory(categoryName : String, categoryId : Long){
-        _responseGetPage.update {
-            val newFields = it?.fields?.map {
+        _responseGetPage.update { page ->
+            val newFields = page?.fields?.map {
                 if(it.key == "category_id")
                     it.copy(
                         shortDescription = categoryName,
@@ -125,27 +125,29 @@ class CreateSubscriptionViewModel(
                 else it.copy()
             } ?: emptyList()
 
-            it?.copy(
+            page?.copy(
                 fields = newFields
             )
         }
     }
 
     fun clearCategory(){
-        categoryViewModel.updateFromSearchData(SD())
-        _responseGetPage.update {
-            val newFields = it?.fields?.map {
-                if(it.key == "category_id")
-                    it.copy(
-                        shortDescription = catDef.value,
-                        data = null
-                    )
-                else it.copy()
-            } ?: emptyList()
+        viewModelScope.launch {
+            categoryViewModel.updateFromSearchData(SD())
+            _responseGetPage.update { page ->
+                val newFields = page?.fields?.map {
+                    if(it.key == "category_id")
+                        it.copy(
+                            shortDescription = getString(strings.categoryMain),
+                            data = null
+                        )
+                    else it.copy()
+                } ?: emptyList()
 
-            it?.copy(
-                fields = newFields
-            )
+                page?.copy(
+                    fields = newFields
+                )
+            }
         }
     }
 

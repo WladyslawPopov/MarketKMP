@@ -19,7 +19,7 @@ import market.engine.core.analytics.AnalyticsHelper
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.items.DeepLink
 import market.engine.core.repositories.SettingsRepository
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.contactUs.ContactUsComponent
 import market.engine.fragments.root.contactUs.DefaultContactUsComponent
 import market.engine.fragments.root.dynamicSettings.DefaultDynamicSettingsComponent
@@ -64,7 +64,7 @@ class DefaultRootComponent(
     private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     private val settingsHelper : SettingsRepository = getKoin().get()
 
-    val viewModel = BaseViewModel()
+    val viewModel = CoreViewModel()
 
     override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {
         childStack(

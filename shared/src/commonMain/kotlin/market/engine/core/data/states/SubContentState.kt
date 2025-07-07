@@ -4,7 +4,6 @@ import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.FilterListingBtnItem
 
 data class SubContentState(
-    val listingBaseState : ListingBaseState = ListingBaseState(),
     val appState : SimpleAppBarData = SimpleAppBarData(),
     val listingData : ListingData = ListingData(),
     val activeFilterListingBtnItem: FilterListingBtnItem = FilterListingBtnItem()

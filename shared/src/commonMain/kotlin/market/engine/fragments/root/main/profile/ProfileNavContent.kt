@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -23,7 +21,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.widgets.dialogs.LogoutDialog
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -35,8 +32,6 @@ fun ProfileNavContent(
     activeTitle: String? = null,
     goToSettings: ((String) -> Unit)? = null,
 ) {
-    val showLogoutDialog = remember { mutableStateOf(false) }
-
     LazyColumnWithScrollBars(
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -112,18 +107,6 @@ fun ProfileNavContent(
             }
         }
 
-        item {
-            if(showLogoutDialog.value) {
-                LogoutDialog(
-                    showLogoutDialog.value,
-                    onDismiss = {
-                        showLogoutDialog.value = false
-                    },
-                    goToLogin = {
-                        list.find { it.icon == drawables.logoutIcon }?.onClick?.invoke()
-                    }
-                )
-            }
-        }
+        item {  }
     }
 }

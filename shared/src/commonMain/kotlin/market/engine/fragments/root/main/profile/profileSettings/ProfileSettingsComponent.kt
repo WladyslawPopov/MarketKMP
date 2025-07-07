@@ -39,7 +39,7 @@ class DefaultProfileSettingsComponent(
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    private  val profileSettingsViewModel = ProfileSettingsViewModel()
+    private  val profileSettingsViewModel = ProfileSettingsViewModel(this)
 
     private val _model = MutableValue(
         ProfileSettingsComponent.Model(

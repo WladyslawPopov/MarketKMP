@@ -47,7 +47,7 @@ fun FiltersSearchBar(
                 else
                     colors.themeButtonColors,
                 onClick = {
-                    searchEvents.openSearchCategory(true, false)
+                    searchEvents.openSearchCategory(value = true, complete = false)
                 },
                 onCancelClick =
                     if(searchData.searchCategoryID != 1L){

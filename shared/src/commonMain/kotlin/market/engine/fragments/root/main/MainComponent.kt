@@ -32,7 +32,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToVerification
@@ -85,7 +85,7 @@ interface MainComponent {
         var showBottomBar : MutableState<Boolean>,
         var bottomList : MutableState<List<NavigationItem>>,
         var publicProfileNavigationItems : MutableState<List<NavigationItem>>,
-        val viewModel: BaseViewModel
+        val viewModel: CoreViewModel
     )
 
     fun updateNavigationList()
@@ -128,7 +128,7 @@ class DefaultMainComponent(
             showBottomBar = mutableStateOf(checkShowBar()),
             bottomList = mutableStateOf(emptyList()),
             publicProfileNavigationItems = mutableStateOf(emptyList()),
-            viewModel = BaseViewModel()
+            viewModel = CoreViewModel()
         )
     )
 
@@ -378,7 +378,7 @@ class DefaultMainComponent(
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        model.value.viewModel.showLogoutDialog.value = true
+                        model.value.viewModel.setLogoutDialog(true)
                     }
                 ),
             )

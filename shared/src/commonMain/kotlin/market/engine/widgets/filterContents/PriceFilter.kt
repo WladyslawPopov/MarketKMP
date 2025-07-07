@@ -42,7 +42,8 @@ fun PriceFilter(
         Text(
             text = price,
             style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(dimens.smallPadding)
+            modifier = Modifier.padding(dimens.smallPadding),
+            color = colors.black
         )
 
         Row(

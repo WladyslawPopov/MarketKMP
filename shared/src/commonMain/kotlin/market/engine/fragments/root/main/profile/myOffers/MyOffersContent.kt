@@ -19,7 +19,6 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
@@ -36,22 +35,23 @@ fun MyOffersContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
-    val uiState = viewModel.uiDataState.collectAsState()
-    val listingData = uiState.value.listingData.data
-    val activeWindowType = uiState.value.listingBaseState.activeWindowType
-    val listingBaseState = uiState.value.listingBaseState
-    val filterBarUiState = uiState.value.filterBarData
-    val categoriesData = uiState.value.filtersCategoryState
+    val listingBaseViewModel = viewModel.listingBaseViewModel
+    val categoryState = viewModel.categoryState
 
+    val listingDataState by listingBaseViewModel.listingData.collectAsState()
+    val activeWindowType by listingBaseViewModel.activeWindowType.collectAsState()
+
+    val listingData = listingDataState.data
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = viewModel.updateItem.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     val err = viewModel.errorMessage.collectAsState()
+    val toastItem = viewModel.toastItem.collectAsState()
 
     BackHandler(model.backHandler){
-        viewModel.onBackNavigation(activeWindowType)
+        viewModel.onBackNavigation()
     }
 
     val noFound = remember(data.loadState.refresh) {
@@ -61,7 +61,7 @@ fun MyOffersContent(
                     NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
-                        viewModel.clearAllFilters()
+                        listingBaseViewModel.clearAllFilters()
                         viewModel.updatePage()
                     }
                 } else {
@@ -94,7 +94,7 @@ fun MyOffersContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = toastItem.value,
         floatingActionButton = {
             floatingCreateOfferButton {
                 component.goToCreateOffer(CreateOfferType.CREATE, null, null)
@@ -103,22 +103,18 @@ fun MyOffersContent(
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            uiState = listingBaseState,
             data = data,
-            baseViewModel = viewModel,
+            viewModel = listingBaseViewModel,
             noFound = noFound,
-            additionalBar = {
-                FiltersBar(filterBarUiState)
-            },
             filtersContent = {
                 when (activeWindowType) {
                     ActiveWindowListingType.FILTERS -> {
                         OfferFilterContent(
                             listingData.filters,
-                            categoriesData,
+                            categoryState,
                             LotsType.FAVORITES,
                         ){ newFilters ->
-                            viewModel.applyFilters(newFilters)
+                            listingBaseViewModel.applyFilters(newFilters)
                         }
                     }
 
@@ -127,7 +123,7 @@ fun MyOffersContent(
                             listingData.sort,
                             isCabinet = true,
                         ){ newSort ->
-                            viewModel.applySorting(newSort)
+                            listingBaseViewModel.applySorting(newSort)
                         }
                     }
                     else -> {

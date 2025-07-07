@@ -167,7 +167,7 @@ fun OfferContent(
         snapshotFlow {
             stateColumn.firstVisibleItemIndex to stateColumn.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            viewModel.scrollState.value = ScrollDataState(index, offset)
+            viewModel.updateScroll(ScrollDataState(index, offset))
         }
     }
 
@@ -267,7 +267,7 @@ fun OfferContent(
         isLoading = isLoading.value || offer.id == 1L,
         error = error,
         noFound = null,
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         onRefresh = {
             viewModel.refreshPage()
         },
@@ -638,7 +638,7 @@ fun OfferContent(
                                                 )
                                                 .clip(MaterialTheme.shapes.small).fillMaxSize(),
                                             offer.sellerData,
-                                            updateTrigger = viewModel.updateItemTrigger.value,
+                                            updateTrigger = 1,
                                             goToUser = {
                                                 component.goToUser(
                                                     offer.sellerData?.id ?: 1L,

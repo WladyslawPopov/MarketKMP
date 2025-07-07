@@ -71,7 +71,7 @@ class DefaultMyOffersComponent(
         offerSelected(offer.id)
 
         lifecycle.doOnResume {
-            viewModel.updateItem.value = offer.id
+            viewModel.setUpdateItem(offer.id)
         }
     }
 
@@ -83,21 +83,21 @@ class DefaultMyOffersComponent(
         navigateToCreateOffer(type, offerId, catPath)
 
         lifecycle.doOnResume {
-            viewModel.updateItem.value = offerId
+            viewModel.setUpdateItem(offerId)
         }
     }
 
     override fun goToProposals(offerId: Long, proposalType: ProposalType) {
         navigateToProposal(offerId, proposalType)
         lifecycle.doOnResume {
-            viewModel.updateItem.value = offerId
+            viewModel.setUpdateItem(offerId)
         }
     }
 
     override fun goToDynamicSettings(type: String, id : Long?) {
         navigateToDynamicSettings(type, id)
         lifecycle.doOnResume {
-            viewModel.updateItem.value = id
+            viewModel.setUpdateItem(id)
         }
     }
 

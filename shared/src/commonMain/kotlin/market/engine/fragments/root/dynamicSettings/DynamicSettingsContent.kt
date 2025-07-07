@@ -114,7 +114,7 @@ fun DynamicSettingsContent(
             component.updateModel()
         },
         error = error,
-        toastItem = viewModel.toastItem
+        toastItem = viewModel.toastItem.value
     ) {
         LazyColumnWithScrollBars(
             modifierList = Modifier.pointerInput(Unit) {
@@ -234,11 +234,10 @@ fun DynamicSettingsContent(
                                     viewModel.postSubmit(settingsType, owner) {
                                         viewModel.init(settingsType, owner)
                                         focusManager.clearFocus()
-                                        viewModel.updateItemTrigger.value++
                                     }
                                 }
 
-                                BlocListContent(settingsType, viewModel, viewModel.updateItemTrigger.value)
+                                BlocListContent(settingsType, viewModel, 1)
                             }
                         }
 

@@ -133,7 +133,7 @@ fun UserContent(
        modifier = modifier.fillMaxSize(),
        isLoading = isLoading.value,
        error = error,
-       toastItem = userViewModel.toastItem,
+       toastItem = userViewModel.toastItem.value,
        onRefresh = {
            component.updateUserInfo()
        },
@@ -158,7 +158,7 @@ fun UserContent(
                                 .align(Alignment.CenterHorizontally)
                                 .padding(dimens.mediumPadding),
                             user = user.value,
-                            updateTrigger = userViewModel.updateItemTrigger.value,
+                            updateTrigger = 1,
                             goToUser = {
                                 isVisibleUserPanel.value = !isVisibleUserPanel.value
                             },

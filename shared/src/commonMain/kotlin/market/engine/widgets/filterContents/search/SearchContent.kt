@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -56,7 +56,7 @@ fun SearchContent(
                 scaffoldState.bottomSheetState.expand()
                 focusManager.clearFocus()
             } else {
-                scaffoldState.bottomSheetState.collapse()
+                scaffoldState.bottomSheetState.partialExpand()
             }
         }
     }
@@ -65,11 +65,11 @@ fun SearchContent(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
         sheetContentColor = colors.primaryColor,
-        sheetBackgroundColor = colors.primaryColor,
+        sheetContainerColor = colors.primaryColor,
         contentColor = colors.primaryColor,
-        backgroundColor = colors.primaryColor,
+        containerColor = colors.primaryColor,
         sheetPeekHeight = 0.dp,
-        sheetGesturesEnabled = false,
+        sheetSwipeEnabled = false,
         sheetContent = {
             CategoryContent(
                 viewModel = uiSearchUiState.categoryState.categoryViewModel,

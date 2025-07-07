@@ -130,7 +130,7 @@ fun ContactUsContent(
                 }
             )
         },
-        toastItem = model.toastItem,
+        toastItem = model.toastItem.value,
         error = error,
         isLoading = isLoading.value,
         onRefresh = { model.getFields() }

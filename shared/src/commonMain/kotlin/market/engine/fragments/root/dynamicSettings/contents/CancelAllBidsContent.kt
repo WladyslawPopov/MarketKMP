@@ -8,7 +8,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Parameters
 import market.engine.core.network.networkObjects.Validator
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.dynamicSettings.DynamicSettingsViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.textFields.DynamicInputField
 import market.engine.widgets.texts.HeaderAlertText
@@ -17,7 +17,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CancelAllBidsContent(
     offerId: Long,
-    viewModel: BaseViewModel,
+    viewModel: DynamicSettingsViewModel,
     onClose: () -> Unit
 ) {
     val commentLabel = stringResource(strings.cancelAllBidsCommentLabel)

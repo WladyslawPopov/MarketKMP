@@ -16,13 +16,13 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.dynamicSettings.DynamicSettingsViewModel
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun WatermarkAndBlockRatingContent(
     isWatermark : Boolean,
-    viewModel : BaseViewModel,
+    viewModel : DynamicSettingsViewModel,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),

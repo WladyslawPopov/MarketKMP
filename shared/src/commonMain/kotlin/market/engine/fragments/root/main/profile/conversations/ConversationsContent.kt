@@ -2,6 +2,7 @@ package market.engine.fragments.root.main.profile.conversations
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,8 +36,6 @@ import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.bars.DeletePanel
-import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
 import market.engine.fragments.root.main.profile.ProfileDrawer
@@ -56,11 +55,12 @@ fun ConversationsContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
-    val uiState = viewModel.uiDataState.collectAsState()
-    val listingData = uiState.value.listingData.data
-    val activeWindowType = uiState.value.listingBaseState.activeWindowType
-    val listingBaseState = uiState.value.listingBaseState
-    val filterBarUiState = uiState.value.filterBarData
+
+    val listingBaseViewModel = viewModel.listingBaseViewModel
+
+    val listingDataState = listingBaseViewModel.listingData.collectAsState()
+
+    val listingData = listingDataState.value.data
 
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = viewModel.updateItem.collectAsState()
@@ -69,7 +69,7 @@ fun ConversationsContent(
 
     val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
 
-    val selectedItems = remember { viewModel.selectItems }
+    val toastItem = viewModel.toastItem.collectAsState()
 
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = remember(err.value) {
@@ -79,6 +79,7 @@ fun ConversationsContent(
             null
         }
     }
+
     val noFound = remember(data.loadState.refresh) {
         if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
             @Composable {
@@ -86,7 +87,7 @@ fun ConversationsContent(
                     NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
-                        viewModel.clearAllFilters()
+                        listingBaseViewModel.clearAllFilters()
                         viewModel.updatePage()
                     }
                 } else {
@@ -142,67 +143,57 @@ fun ConversationsContent(
             error = error,
             noFound = null,
             isLoading = isLoading.value,
-            toastItem = viewModel.toastItem,
+            toastItem = toastItem.value,
             modifier = modifier.fillMaxSize()
         ) {
-            ListingBaseContent(
-                modifier = Modifier.fillMaxWidth(),
-                uiState = listingBaseState,
-                data = data,
-                baseViewModel = viewModel,
-                noFound = noFound,
-                additionalBar = {
-                    if(model.message != null){
-                        Row(
-                            modifier = Modifier.background(colors.white).fillMaxWidth()
-                                .padding(dimens.mediumPadding)
-                        ) {
-                            Text(
-                                stringResource(strings.selectDialogLabel),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = colors.black
-                            )
-                        }
+            Column {
+                if (model.message != null) {
+                    Row(
+                        modifier = Modifier.background(colors.white).fillMaxWidth()
+                            .padding(dimens.mediumPadding)
+                    ) {
+                        Text(
+                            stringResource(strings.selectDialogLabel),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.black
+                        )
                     }
-
-                    DeletePanel(
-                        selectedItems.size,
-                        onCancel = {
-                            viewModel.clearSelection()
-                        },
-                        onDelete = {
-                            viewModel.deleteSelectsItems()
-                        }
-                    )
-
-                    FiltersBar(filterBarUiState)
-                },
-                filtersContent = {
-                    when (activeWindowType) {
-                        ActiveWindowListingType.FILTERS ->{
-                            DialogsFilterContent(
-                                listingData.filters,
-                            ){
-                                viewModel.applyFilters(it)
-                            }
-                        }
-                        ActiveWindowListingType.SORTING ->{
-                            SortingOrdersContent(
-                                listingData.sort
-                            ){
-                                viewModel.applySorting(it)
-                            }
-                        }
-                        else -> {}
-                    }
-                },
-                item = { conversation ->
-                    ConversationItem(
-                        conversation,
-                        updateItem.value
-                    )
                 }
-            )
+
+                ListingBaseContent(
+                    modifier = Modifier.fillMaxWidth(),
+                    data = data,
+                    viewModel = listingBaseViewModel,
+                    noFound = noFound,
+                    filtersContent = { activeWindowType ->
+                        when (activeWindowType) {
+                            ActiveWindowListingType.FILTERS -> {
+                                DialogsFilterContent(
+                                    listingData.filters,
+                                ) {
+                                    listingBaseViewModel.applyFilters(it)
+                                }
+                            }
+
+                            ActiveWindowListingType.SORTING -> {
+                                SortingOrdersContent(
+                                    listingData.sort
+                                ) {
+                                    listingBaseViewModel.applySorting(it)
+                                }
+                            }
+
+                            else -> {}
+                        }
+                    },
+                    item = { conversation ->
+                        ConversationItem(
+                            conversation,
+                            updateItem.value
+                        )
+                    }
+                )
+            }
         }
     }
 

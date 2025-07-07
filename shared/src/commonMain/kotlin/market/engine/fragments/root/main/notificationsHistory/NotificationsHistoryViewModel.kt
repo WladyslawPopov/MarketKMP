@@ -9,9 +9,9 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NotificationItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deleteReadNotifications
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 
-class NotificationsHistoryViewModel : BaseViewModel() {
+class NotificationsHistoryViewModel : CoreViewModel() {
 
     private var _responseGetPage = MutableStateFlow<List<NotificationItem>?>(null)
     val responseGetPage : StateFlow<List<NotificationItem>?> = _responseGetPage.asStateFlow()
@@ -21,7 +21,7 @@ class NotificationsHistoryViewModel : BaseViewModel() {
             setLoading(true)
             try {
                 deleteReadNotifications()
-                var buf = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
+                val buf = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
 
                 _responseGetPage.value = buildList {
                     addAll(buf.groupBy { it.body to it.data_ }

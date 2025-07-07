@@ -11,49 +11,55 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.events.SubItemEvents
+import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.states.ListingBaseState
-import market.engine.core.data.states.SimpleAppBarData
-import market.engine.core.data.states.SubContentState
+import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.SubItemState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.functions.SubscriptionOperations
+import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.repositories.PagingRepository
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.base.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
-class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
+class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
 {
     private val subscriptionOperations: SubscriptionOperations = getKoin().get()
 
     private val pagingRepository: PagingRepository<Subscription> = PagingRepository()
 
-    private val _listingData = MutableStateFlow(ListingData())
+    private val _filterListingBtnItem = MutableStateFlow<List<FilterListingBtnItem>>(emptyList())
+    val filterListingBtnItem: StateFlow<List<FilterListingBtnItem>> = _filterListingBtnItem.asStateFlow()
 
-    private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
+    val listingBaseViewModel = ListingBaseViewModel()
+    val listingData = listingBaseViewModel.listingData
+    val activeWindowType = listingBaseViewModel.activeWindowType
 
     val deleteId = MutableStateFlow(1L)
     val titleDialog = MutableStateFlow(AnnotatedString(""))
 
+    val subOperations : SubscriptionOperations by lazy { getKoin().get() }
+
     val pagingParamsFlow: Flow<ListingData> = combine(
-        _listingData,
+        listingData,
         updatePage
     ) { listingData, _ ->
         listingData
@@ -67,9 +73,7 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
                 apiService,
                 Subscription.serializer()
             ){ tc ->
-                totalCount.update {
-                    tc
-                }
+                listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { subscription ->
                     SubItemState(
@@ -88,57 +92,71 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
             PagingData.empty()
         ).cachedIn(viewModelScope)
 
-    val subContentState: StateFlow<SubContentState> = combine(
-        _listingData,
-        _activeWindowType
-    ){ listingData, activeType ->
-        SubContentState(
-            listingBaseState = ListingBaseState(
-                columns = if (isBigScreen.value) 2 else 1,
-                activeWindowType = activeType
-            ),
-            appState = SimpleAppBarData(
-                onBackClick = {
+    init {
+        viewModelScope.launch {
+            listingBaseViewModel.setListingData(
+                ListingData(
+                    data = LD(
+                        methodServer = "get_cabinet_listing",
+                        objServer = "subscriptions",
+                    )
+                )
+            )
 
-                }
-            ),
-            listingData = listingData,
-            activeFilterListingBtnItem = FilterListingBtnItem(
-                text = listingData.data.sort?.interpretation ?: "",
+            _filterListingBtnItem.value = listOf(
+                FilterListingBtnItem(
+                text = listingData.value.data.sort?.interpretation ?: "",
                 removeFilter = {
-                    _listingData.update {
-                        it.copy(
-                            data = it.data.copy(
+                    listingBaseViewModel.setListingData(
+                        listingData.value.copy(
+                            data = listingData.value.data.copy(
                                 sort = null
                             )
                         )
-                    }
+                    )
                     refresh()
                 },
                 itemClick = {
-                    _activeWindowType.value = ActiveWindowListingType.SORTING
+                    listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
+                }
+            ))
+
+            listingBaseViewModel.setListItemsFilterBar(
+                buildList {
+                    val filterString = getString(strings.filter)
+                    val sortString = getString(strings.sort)
+                    val filters = listingData.value.data.filters.filter {
+                        it.value != "" &&
+                                it.interpretation?.isNotBlank() == true
+                    }
+
+                    add(
+                        NavigationItem(
+                            title = filterString,
+                            icon = drawables.filterIcon,
+                            tint = colors.black,
+                            hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
+                            badgeCount = if (filters.isNotEmpty()) filters.size else null,
+                            onClick = {
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
+                            }
+                        )
+                    )
+                    add(
+                        NavigationItem(
+                            title = sortString,
+                            icon = drawables.sortIcon,
+                            tint = colors.black,
+                            hasNews = listingData.value.data.sort != null,
+                            badgeCount = null,
+                            onClick = {
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
+                            }
+                        )
+                    )
                 }
             )
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        SubContentState()
-    )
-
-    init {
-        _listingData.update {
-            it.copy(
-                data = it.data.copy(
-                    methodServer = "get_cabinet_listing",
-                    objServer = "subscriptions",
-                )
-            )
         }
-    }
-
-    fun updatePage(){
-        updatePage.value++
     }
 
     fun getSubscription(subId : Long, onSuccess : (Subscription?) -> Unit ) {
@@ -168,7 +186,7 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
             val resError = buffer.error
             withContext(Dispatchers.Main) {
                 if (res != null) {
-                    updateItem.value = subId
+                    setUpdateItem(subId)
                 } else {
                     if (resError != null) {
                         onError(resError)
@@ -192,7 +210,7 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
 
             withContext(Dispatchers.Main) {
                 if (res != null) {
-                    updateItem.value = subId
+                    setUpdateItem(subId)
                 } else {
                     if (resError != null) {
                         onError(resError)
@@ -204,17 +222,13 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
 
     fun backClick(){
         when{
-            _activeWindowType.value != ActiveWindowListingType.LISTING ->{
-                _activeWindowType.value = ActiveWindowListingType.LISTING
+            activeWindowType.value != ActiveWindowListingType.LISTING ->{
+                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
             }
             else -> {
 
             }
         }
-    }
-
-    fun openSort(){
-        _activeWindowType.value = ActiveWindowListingType.SORTING
     }
 
     fun deleteSubscription(subId : Long) {
@@ -239,7 +253,7 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
                             message = ops
                         )
                     )
-                    updateItem.value = subId
+                    setUpdateItem(subId)
                 },
                 errorCallback = {
 
@@ -250,18 +264,6 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
         }
     }
 
-
-    fun applySorting(newSort: Sort?) {
-        _listingData.update { currentState ->
-            currentState.copy(
-                data = currentState.data.copy(
-                    sort = newSort
-                )
-            )
-        }
-        refresh()
-        _activeWindowType.value = ActiveWindowListingType.LISTING
-    }
 
     fun closeDialog(){
         deleteId.value = 1L
@@ -282,7 +284,20 @@ class SubViewModel(component: SubscriptionsComponent) : BaseViewModel()
                 } else {
                     sub.id = 1L
                 }
-                updateItem.value = null
+                setUpdateItem(null)
+            }
+        }
+    }
+
+    fun getSubOperations(subId : Long, onSuccess: (List<Operations>) -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) { subOperations.getOperationsSubscription(subId) }
+            withContext(Dispatchers.Main) {
+                val buf = res.success
+
+                if (buf != null) {
+                    onSuccess(buf)
+                }
             }
         }
     }
@@ -332,7 +347,7 @@ data class SubItemEventsImpl(
                                                     eventParameters
                                                 )
 
-                                                viewModel.updateItem.value = sub.id
+                                                viewModel.setUpdateItem(sub.id)
                                             },
                                             errorCallback = {
 

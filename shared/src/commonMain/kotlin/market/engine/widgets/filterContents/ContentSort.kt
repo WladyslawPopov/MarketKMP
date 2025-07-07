@@ -37,26 +37,27 @@ fun ContentSort(
     onClose: () -> Unit,
 ) {
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.background(colors.primaryColor).fillMaxSize()
             .padding(dimens.smallPadding),
         contentAlignment = Alignment.TopCenter
     ) {
-        FilterContentHeaderBar(
-            stringResource(strings.sort),
-            currentSort != null,
-            onClosed = onClose,
-            onClear = {
-                onClear()
-                onClose()
-            }
-        )
-
         LazyColumnWithScrollBars(
-            heightMod = Modifier.fillMaxWidth(if (isBigScreen.value) 0.7f else 1f).padding(top = 60.dp),
+            heightMod = Modifier.fillMaxWidth(if (isBigScreen.value) 0.7f else 1f),
             modifierList = Modifier,
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
         ) {
+            item {
+                FilterContentHeaderBar(
+                    stringResource(strings.sort),
+                    currentSort != null,
+                    onClosed = onClose,
+                    onClear = {
+                        onClear()
+                        onClose()
+                    }
+                )
+            }
             // For each section, display the heading and options under it
             sortSections.forEach { (sectionTitle, sortOptions) ->
                 item {

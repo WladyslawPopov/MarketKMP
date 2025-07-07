@@ -80,7 +80,7 @@ fun NotificationsHistoryContent(
         error = error,
         noFound = noFound,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         modifier = Modifier.fillMaxSize()
     ) {
         Box(

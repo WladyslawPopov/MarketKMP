@@ -26,7 +26,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import market.engine.widgets.tooltip.TooltipData
 import org.jetbrains.compose.resources.getString
@@ -38,7 +38,7 @@ data class FavPagesState(
     val isDragMode: Boolean = false
 )
 
-class FavPagesViewModel(val fullRefresh: () -> Unit) : BaseViewModel() {
+class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
 
     private val offersListOperations = OffersListOperations(apiService)
 

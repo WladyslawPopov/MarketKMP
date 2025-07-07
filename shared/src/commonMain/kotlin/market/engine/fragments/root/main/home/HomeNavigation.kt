@@ -180,7 +180,6 @@ fun createHomeChild(
         HomeScreen -> HomeChild(
             DefaultHomeComponent(
                 componentContext = componentContext,
-                navigation = homeNavigation,
                 navigateToListingSelected = { ld, isNewSearch ->
                     homeNavigation.pushNew(
                         ListingScreen(

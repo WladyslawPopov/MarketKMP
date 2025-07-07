@@ -61,11 +61,11 @@ class DefaultSubscriptionsComponent(
     override fun goToCreateNewSubscription(editId: Long?) {
         navigateToCreateNewSubscription(editId)
         lifecycle.doOnResume {
-            subViewModel.updateItem.value = editId
+            subViewModel.setUpdateItem(editId)
         }
     }
 
-    override fun goToListing(subscription: Subscription) {
+    override fun goToListing(item: Subscription) {
         subViewModel.viewModelScope.launch {
             val price = getString(strings.priceParameterName)
             val from = getString(strings.fromAboutParameterName)
@@ -76,40 +76,40 @@ class DefaultSubscriptionsComponent(
             val ld = ListingData()
             ld.data.filters = ListingFilters.getEmpty()
 
-            if (subscription.priceTo != null) {
+            if (item.priceTo != null) {
                 ld.data.filters.find {
                     it.key == "current_price" && it.operation == "lte"
                 }?.let {
-                    it.value = subscription.priceTo ?: ""
+                    it.value = item.priceTo ?: ""
                     it.interpretation =
-                        "$price $from - ${subscription.priceTo} $currency"
+                        "$price $from - ${item.priceTo} $currency"
                 }
             }
 
-            if (subscription.priceFrom != null) {
+            if (item.priceFrom != null) {
                 ld.data.filters.find {
                     it.key == "current_price" && it.operation == "gte"
                 }?.let {
-                    it.value = subscription.priceFrom ?: ""
+                    it.value = item.priceFrom ?: ""
                     it.interpretation =
-                        "$price $to - ${subscription.priceFrom} $currency"
+                        "$price $to - ${item.priceFrom} $currency"
                 }
             }
 
-            if (subscription.region != null) {
+            if (item.region != null) {
                 ld.data.filters.find {
                     it.key == "region"
                 }?.let {
-                    it.value = (subscription.region?.code ?: "").toString()
-                    it.interpretation = subscription.region?.name ?: ""
+                    it.value = (item.region?.code ?: "").toString()
+                    it.interpretation = item.region?.name ?: ""
                 }
             }
 
-            if (subscription.saleType != null) {
+            if (item.saleType != null) {
                 ld.data.filters.find {
                     it.key == "sale_type"
                 }?.let {
-                    when (subscription.saleType) {
+                    when (item.saleType) {
                         "buy_now" -> {
                             it.value = "buynow"
                             it.interpretation = ""
@@ -123,17 +123,17 @@ class DefaultSubscriptionsComponent(
                 }
             }
 
-            if (subscription.sellerData != null) {
+            if (item.sellerData != null) {
                 ld.searchData.userSearch = true
-                ld.searchData.userID = subscription.sellerData.id
-                ld.searchData.userLogin = subscription.sellerData.login
+                ld.searchData.userID = item.sellerData.id
+                ld.searchData.userLogin = item.sellerData.login
             }
 
-            ld.searchData.searchString = subscription.searchQuery ?: ""
+            ld.searchData.searchString = item.searchQuery ?: ""
             ld.searchData.searchCategoryID =
-                subscription.catpath?.keys?.firstOrNull() ?: 1L
+                item.catpath?.keys?.firstOrNull() ?: 1L
             ld.searchData.searchCategoryName =
-                subscription.catpath?.values?.firstOrNull() ?: defCat
+                item.catpath?.values?.firstOrNull() ?: defCat
 
             navigateToListing(ld)
         }

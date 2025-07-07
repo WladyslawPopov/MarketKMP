@@ -31,7 +31,6 @@ interface HomeComponent {
 
 class DefaultHomeComponent(
     componentContext: ComponentContext,
-    val navigation: StackNavigation<HomeConfig>,
     private val navigateToListingSelected: (ListingData, Boolean) -> Unit,
     val navigateToLoginSelected: () -> Unit,
     val navigateToOfferSelected: (id: Long) -> Unit,

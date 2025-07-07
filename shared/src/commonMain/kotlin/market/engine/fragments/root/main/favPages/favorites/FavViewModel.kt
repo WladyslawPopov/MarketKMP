@@ -7,45 +7,35 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import market.engine.common.Platform
 import market.engine.core.data.baseFilters.Filter
+import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.states.CategoryState
-import market.engine.core.data.states.FilterBarUiState
-import market.engine.core.data.states.ListingBaseState
-import market.engine.core.data.states.ListingOfferContentState
 import market.engine.core.data.states.SelectedOfferItemState
-import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
-import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Offer
@@ -53,37 +43,51 @@ import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.base.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 
 
 class FavViewModel(
     val favType : FavScreenType,
     val idList : Long?,
     component: FavoritesComponent
-) : BaseViewModel() {
+) : CoreViewModel() {
 
     private val offersListOperations = OffersListOperations(apiService)
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    private val _listingData = MutableStateFlow(ListingData())
+    val listingBaseViewModel = ListingBaseViewModel(
+        deleteSelectedItems = {
+            deleteSelectsItems()
+        }
+    )
 
-    private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
+    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
+    val listingData = listingBaseViewModel.listingData
+
+    val selectItems = listingBaseViewModel.selectItems
+
+    val activeType = listingBaseViewModel.activeWindowType
 
     val pagingParamsFlow: Flow<ListingData> = combine(
-        _listingData,
+        listingData,
         updatePage
     ) { listingData, _ ->
         listingData
     }
 
-    private val filtersCategoryModel = CategoryViewModel(
-        isFilters = true,
+    val filtersCategoryState = CategoryState(
+        activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
+        CategoryViewModel(
+            isFilters = true,
+        )
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -94,21 +98,19 @@ class FavViewModel(
                 apiService,
                 Offer.serializer()
             ){ tc ->
-                totalCount.update {
-                    tc
-                }
+                listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
                     val item = offer.parseToOfferItem()
                     CabinetOfferItemState(
                         item = item,
                         selectedItem = SelectedOfferItemState(
-                            selected = selectItems,
+                            selected = selectItems.value,
                             onSelectionChange = { id ->
-                                if (!selectItems.contains(id)) {
-                                    selectItems.add(id)
+                                if (!selectItems.value.contains(id)) {
+                                    listingBaseViewModel.addSelectItem(id)
                                 } else {
-                                    selectItems.remove(id)
+                                    listingBaseViewModel.removeSelectItem(id)
                                 }
                             }
                         ),
@@ -126,74 +128,57 @@ class FavViewModel(
             PagingData.empty()
         ).cachedIn(viewModelScope)
 
-    val favDataState: StateFlow<ListingOfferContentState> = combine(
-        _activeWindowType,
-        _listingData,
-    )
-    { activeType, listingData ->
-        val ld = listingData.data
-        val filterString = getString(strings.filter)
-        val sortString = getString(strings.sort)
-        val filters = ld.filters.filter { it.value != "" && it.interpretation?.isNotBlank() == true }
+    init {
+        viewModelScope.launch {
+            val ld = when (favType) {
+                FavScreenType.FAVORITES -> {
+                    LD(
+                        filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES),
+                        methodServer = "get_cabinet_listing_watched_by_me",
+                        objServer = "offers"
+                    )
+                }
 
-        filtersCategoryModel.updateFromSearchData(listingData.searchData)
-        filtersCategoryModel.initialize(listingData.data.filters)
+                FavScreenType.NOTES -> {
+                    LD(
+                        filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES),
+                        methodServer = "get_cabinet_listing_my_notes",
+                        objServer = "offers"
+                    )
+                }
 
-        ListingOfferContentState(
-            appBarData = SimpleAppBarData(
-                color = colors.primaryColor,
-                onBackClick = {
-                    onBackNavigation(activeType)
-                },
-                listItems = listOf(
-                    NavigationItem(
-                        title = "",
-                        icon = drawables.recycleIcon,
-                        tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
-                        onClick = { refresh() }
-                    ),
-                )
-            ),
-            filtersCategoryState = CategoryState(
-                openCategory = activeType == ActiveWindowListingType.CATEGORY,
-                categoryViewModel = filtersCategoryModel
-            ),
-            listingData = listingData,
-            filterBarData = FilterBarUiState(
-                listFiltersButtons = buildList {
-                    filters.forEach { filter ->
-                        filter.interpretation?.let { text ->
+                FavScreenType.FAV_LIST -> {
+                    LD(
+                        filters = buildList {
                             add(
-                                FilterListingBtnItem(
-                                    text = text,
-                                    itemClick = {
-                                        _activeWindowType.value = ActiveWindowListingType.FILTERS
-                                    },
-                                    removeFilter = {
-                                        removeFilter(filter)
-                                    }
-                                )
+                                Filter("list_id", "$idList", "", null)
                             )
-                        }
+                        },
+                        methodServer = "get_cabinet_listing_in_list",
+                        objServer = "offers"
+                    )
+                }
+
+                else -> {
+                    LD()
+                }
+            }
+
+            listingBaseViewModel.setListingData(
+                listingBaseViewModel.listingData.value.copy(
+                    data = ld
+                )
+            )
+
+            listingBaseViewModel.setListItemsFilterBar(
+                buildList {
+                    val filterString = getString(strings.filter)
+                    val sortString = getString(strings.sort)
+                    val filters = ld.filters.filter {
+                        it.value != "" &&
+                                it.interpretation?.isNotBlank() == true
                     }
-                    if (ld.sort != null) {
-                        add(
-                            FilterListingBtnItem(
-                                text = sortString,
-                                itemClick = {
-                                    _activeWindowType.value = ActiveWindowListingType.SORTING
-                                },
-                                removeFilter = {
-                                    removeSort()
-                                }
-                            )
-                        )
-                    }
-                },
-                listNavigation = buildList {
+
                     add(
                         NavigationItem(
                             title = filterString,
@@ -202,7 +187,7 @@ class FavViewModel(
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
                             onClick = {
-                                _activeWindowType.value = ActiveWindowListingType.FILTERS
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
                             }
                         )
                     )
@@ -214,83 +199,26 @@ class FavViewModel(
                             hasNews = ld.sort != null,
                             badgeCount = null,
                             onClick = {
-                                _activeWindowType.value = ActiveWindowListingType.SORTING
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
                             }
                         )
                     )
                 }
-            ),
-            listingBaseState = ListingBaseState(
-                listingData = listingData.data,
-                searchData = listingData.searchData,
-                activeWindowType = activeType,
-                columns = if(isBigScreen.value) 2 else 1,
-            ),
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = ListingOfferContentState()
-    )
-
-    init {
-        when(favType){
-            FavScreenType.FAVORITES -> {
-                _listingData.update {
-                    it.copy(
-                        data = it.data.copy(
-                            filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES),
-                            methodServer = "get_cabinet_listing_watched_by_me",
-                            objServer = "offers"
-                        )
-                    )
-                }
-            }
-            FavScreenType.NOTES ->{
-                _listingData.update {
-                    it.copy(
-                        data = it.data.copy(
-                            methodServer = "get_cabinet_listing_my_notes",
-                            objServer = "offers"
-                        )
-                    )
-                }
-            }
-            FavScreenType.FAV_LIST ->{
-                _listingData.update {
-                    it.copy(
-                        data = it.data.copy(
-                            filters = buildList {
-                                add(
-                                    Filter("list_id", "$idList", "", null)
-                                )
-                                addAll(it.data.filters)
-                            },
-                            methodServer = "get_cabinet_listing_in_list",
-                            objServer = "offers"
-                        )
-                    )
-                }
-            }
-            else -> {}
+            )
         }
     }
 
-    fun updatePage(){
-        updatePage.value++
-    }
-
-    fun onBackNavigation(activeType: ActiveWindowListingType){
-        when(activeType){
+    fun onBackNavigation(){
+        when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
-                if (filtersCategoryModel.categoryId.value != 1L){
-                    filtersCategoryModel.navigateBack()
+                if (filtersCategoryState.categoryViewModel.categoryId.value != 1L){
+                    filtersCategoryState.categoryViewModel.navigateBack()
                 }else{
-                    _activeWindowType.value = ActiveWindowListingType.LISTING
+                    listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
                 }
             }
             else -> {
-                _activeWindowType.value = ActiveWindowListingType.LISTING
+                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
             }
         }
     }
@@ -337,14 +265,25 @@ class FavViewModel(
                         }
                     }
                 }
-                updateItem.value = null
+                setUpdateItem(null)
             }
         }
     }
 
-    fun deleteSelectsItems(ids: List<Long>) {
+    suspend fun getOfferById(offerId: Long) : Offer? {
+        return try {
+            val response = offerOperations.getOffer(offerId)
+            response.success?.let {
+                return it
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun deleteSelectsItems() {
         viewModelScope.launch {
-            ids.forEach { item ->
+            selectItems.value.forEach { item ->
                 val body = HashMap<String, JsonElement>()
 
                 val type = when (favType) {
@@ -372,7 +311,7 @@ class FavViewModel(
                     "offers",
                     body,
                     onSuccess = {
-                        selectItems.clear()
+                        listingBaseViewModel.clearSelectedItems()
                         updatePage()
                     },
                     errorCallback = {
@@ -397,64 +336,6 @@ class FavViewModel(
                 offer.session == null
             }
         }
-    }
-
-    fun applyFilters(newFilters: List<Filter>) {
-        _listingData.update { currentState ->
-            currentState.copy(
-                data = currentState.data.copy(
-                    filters = newFilters
-                )
-            )
-        }
-        refresh()
-        _activeWindowType.value = ActiveWindowListingType.LISTING
-    }
-
-    fun applySorting(newSort: Sort?) {
-        _listingData.update { currentState ->
-            currentState.copy(
-                data = currentState.data.copy(
-                    sort = newSort
-                )
-            )
-        }
-        refresh()
-        _activeWindowType.value = ActiveWindowListingType.LISTING
-    }
-
-    fun removeFilter(filter: Filter){
-        _listingData.update { currentListingData ->
-            val currentData = currentListingData.data
-            val newFilters = currentData.filters.map { filterItem ->
-                if (filterItem.key == filter.key && filterItem.operation == filter.operation) {
-                    filterItem.copy(value = "", interpretation = null)
-                } else {
-                    filterItem
-                }
-            }
-            currentListingData.copy(
-                data = currentData.copy(filters = newFilters)
-            )
-        }
-        refresh()
-    }
-
-    fun removeSort(){
-        _listingData.update {
-            it.copy(data = it.data.copy(sort = null))
-        }
-        refresh()
-    }
-
-    fun clearAllFilters() {
-        OfferFilters.clearTypeFilter(LotsType.FAVORITES)
-        _listingData.update {
-            it.copy(
-                data = it.data.copy(filters = OfferFilters.getByTypeFilter(LotsType.FAVORITES))
-            )
-        }
-        refresh()
     }
 }
 
@@ -490,11 +371,11 @@ data class OfferRepositoryEventsImpl(
     override fun goToUserPage() {}
 
     override fun openCabinetOffer() {
-        if (viewModel.selectItems.isNotEmpty()) {
-            if (viewModel.selectItems.contains(offer.id)) {
-                viewModel.selectItems.remove(offer.id)
+        if (viewModel.selectItems.value.isNotEmpty()) {
+            if (viewModel.selectItems.value.contains(offer.id)) {
+                viewModel.listingBaseViewModel.removeSelectItem(offer.id)
             } else {
-                viewModel.selectItems.add(offer.id)
+                viewModel.listingBaseViewModel.addSelectItem(offer.id)
             }
         } else {
             component.goToOffer(offer)

@@ -3,25 +3,31 @@ package market.engine.fragments.root.main.messenger
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
@@ -41,6 +47,7 @@ import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialogsContent(
     component: DialogsComponent,
@@ -51,6 +58,8 @@ fun DialogsContent(
     val uiState = viewModel.dialogContentState.collectAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
 
+    val listingBaseViewModel = viewModel.listingBaseViewModel
+
     val messageBarData = viewModel.messageBarState.collectAsState()
 
     val images = viewModel.images.collectAsState()
@@ -59,7 +68,6 @@ fun DialogsContent(
 
     val listingData = viewModel.listingData.value.data
 
-    val listingBaseState = uiState.value.listingBaseState
     val headerItem = uiState.value.mesHeader
     val conversation = uiState.value.conversations
     val appBarData = uiState.value.appBarState
@@ -69,6 +77,8 @@ fun DialogsContent(
     val focusManager = LocalFocusManager.current
 
     val scaffoldState = rememberBottomSheetScaffoldState()
+
+    val toastItem = viewModel.toastItem.collectAsState()
 
     val pagerFullState = rememberPagerState(
         pageCount = { imageSize.value },
@@ -125,12 +135,12 @@ fun DialogsContent(
         if (images.value.isNotEmpty()) {
             scaffoldState.bottomSheetState.expand()
         } else {
-            scaffoldState.bottomSheetState.collapse()
+            scaffoldState.bottomSheetState.partialExpand()
         }
     }
 
-    LaunchedEffect(scaffoldState.bottomSheetState.isCollapsed) {
-        if (scaffoldState.bottomSheetState.isCollapsed) {
+    LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
+        if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded) {
             viewModel.closeImages()
         }
     }
@@ -161,18 +171,18 @@ fun DialogsContent(
         error = null,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = toastItem.value,
         modifier = modifier.fillMaxSize()
     ) {
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
             modifier = Modifier.fillMaxSize(),
             sheetContentColor = colors.transparent,
-            sheetBackgroundColor = colors.transparent,
-            contentColor = colors.transparent,
-            backgroundColor = colors.transparent,
+            sheetContainerColor = colors.primaryColor,
+            contentColor = colors.primaryColor,
+            containerColor = colors.transparent,
             sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = true,
+            sheetSwipeEnabled = true,
             sheetContent = {
                 FullScreenImageViewer(
                     pagerFullState = pagerFullState,
@@ -189,32 +199,27 @@ fun DialogsContent(
                         })
                     }
                     .fillMaxSize(),
-            ) {
+            )
+            {
+                AnimatedVisibility(
+                    headerItem != null,
+                    enter = expandIn(),
+                    exit = fadeOut()
+                ) {
+                    if (headerItem != null) {
+                        DialogsHeader(
+                            headerItem
+                        )
+                    }
+                }
+
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                    modifier = Modifier.weight(1f)
                 ) {
                     ListingBaseContent(
-                        uiState = listingBaseState,
                         data = data,
-                        baseViewModel = viewModel,
+                        viewModel = listingBaseViewModel,
                         noFound = noFound,
-                        additionalBar = {
-                            Column {
-                                AnimatedVisibility(
-                                    headerItem != null,
-                                    enter = expandIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    if (headerItem != null) {
-                                        DialogsHeader(
-                                            headerItem
-                                        )
-                                    }
-                                }
-                            }
-                        },
                         filtersContent = null,
                         item = { messageItem ->
                             when (messageItem) {
@@ -231,15 +236,22 @@ fun DialogsContent(
                                 }
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxSize()
+                        modifier = Modifier.fillMaxSize()
                     )
-                }
 
-                MessengerBar(
-                    data = messageBarData.value,
-                    events = viewModel.messageBarEvents
-                )
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .background(colors.primaryColor.copy(0.5f))
+                            .clip(MaterialTheme.shapes.medium)
+                            .zIndex(15f)
+                    ) {
+                        MessengerBar(
+                            data = messageBarData.value,
+                            events = viewModel.messageBarEvents
+                        )
+                    }
+                }
             }
         }
     }

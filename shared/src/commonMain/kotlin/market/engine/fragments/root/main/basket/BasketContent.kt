@@ -56,15 +56,13 @@ fun BasketContent(
 
     BackHandler(
         modelState.value.backHandler
-    ){
-
-    }
+    ){}
 
     LaunchedEffect(scrollState) {
         snapshotFlow {
             scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
         }.collect { (index, offset) ->
-            viewModel.scrollState.value = ScrollDataState(index, offset)
+            viewModel.updateScroll(ScrollDataState(index, offset))
         }
     }
 
@@ -130,7 +128,7 @@ fun BasketContent(
         error = error,
         noFound = noFound,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumnWithScrollBars(

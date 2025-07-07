@@ -15,10 +15,10 @@ import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-class RegViewModel : BaseViewModel() {
+class RegViewModel : CoreViewModel() {
     private val _responseGetRegFields = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseGetRegFields: StateFlow<DynamicPayload<OperationResult>?> = _responseGetRegFields.asStateFlow()
 

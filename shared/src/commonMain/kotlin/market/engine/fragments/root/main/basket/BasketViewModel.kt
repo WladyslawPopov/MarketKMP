@@ -33,15 +33,18 @@ import market.engine.core.data.states.SelectedBasketList
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
+import kotlin.getValue
 
 
-class BasketViewModel(component: BasketComponent): BaseViewModel() {
+class BasketViewModel(component: BasketComponent): CoreViewModel() {
 
     private var responseGetUserCart = MutableStateFlow<List<Pair<User?, List<OfferItem?>>>>(emptyList())
     private var selectedOffers = MutableStateFlow<List<SelectedBasketList>>(emptyList())
@@ -52,8 +55,10 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
     private val _menuItems = MutableStateFlow(
         listOf<MenuItem>()
     )
-    private val _subtitle = MutableStateFlow<String>("")
+    private val _subtitle = MutableStateFlow("")
     private val _deleteIds = MutableStateFlow(emptyList<Long>())
+
+    private val userOperations : UserOperations by lazy { getKoin().get() }
 
     val uiDataState: StateFlow<List<BasketGroupUiState>> = combine(
         responseGetUserCart,
@@ -409,6 +414,31 @@ class BasketViewModel(component: BasketComponent): BaseViewModel() {
             }
         }
     }
+
+    fun addOfferToBasket(body : HashMap<String, JsonElement>, onSuccess: (String) -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                operationsMethods.postOperationFields(
+                    UserData.login,
+                    "add_item_to_cart",
+                    "users",
+                    body
+                )
+            }
+
+            val buffer = res.success
+            val error = res.error
+
+            if (buffer != null) {
+                updateUserInfo()
+                onSuccess(buffer.operationResult?.message ?: getString(strings.operationSuccess))
+            } else {
+                if (error != null) {
+                    onError(error)
+                }
+            }
+        }
+    }
 }
 
 data class BasketEventsImpl(
@@ -438,7 +468,7 @@ data class BasketEventsImpl(
         val body = HashMap<String, JsonElement>()
         body["offer_id"] = JsonPrimitive(offerId)
         body["quantity"] = JsonPrimitive(newQuantity)
-        viewModel. addOfferToBasket(body) { onResult(newQuantity) }
+        viewModel.addOfferToBasket(body) { onResult(newQuantity) }
         viewModel.updateQuantityInState(offerId, newQuantity)
     }
     override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {

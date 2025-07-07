@@ -138,7 +138,7 @@ class OrderRepository(
                 }else {
                     oldOrder.owner = 1L
                 }
-                viewModel.updateItem.value = null
+                viewModel.setUpdateItem(null)
             }
         }
     }
@@ -216,7 +216,7 @@ class OrderRepository(
                                                         eventParameters
                                                     )
 
-                                                    viewModel.updateItem.value = order.id
+                                                    viewModel.setUpdateItem(order.id)
                                                 },
                                                 errorCallback = {
 

@@ -104,7 +104,7 @@ fun CreateOrderContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         modifier = Modifier.fillMaxSize()
 
     ) {

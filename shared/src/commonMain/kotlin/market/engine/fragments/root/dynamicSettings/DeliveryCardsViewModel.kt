@@ -21,18 +21,22 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.states.DeliveryCardsState
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 
-class DeliveryCardsViewModel: BaseViewModel() {
+class DeliveryCardsViewModel: CoreViewModel() {
     private val _deliveryCards = MutableStateFlow<List<DeliveryAddress>>(emptyList())
     private val _deliveryFields = MutableStateFlow<List<Fields>>(emptyList())
 
     private val _showFields = MutableStateFlow(false)
     private val _selectedCard = MutableStateFlow<Long?>(null)
     private val _selectedCountry = MutableStateFlow(0)
+
+    private val userOperations by lazy { getKoin().get<UserOperations>() }
 
     val deliveryCardsState : StateFlow<DeliveryCardsState> = combine(
         _deliveryCards,
@@ -293,6 +297,93 @@ class DeliveryCardsViewModel: BaseViewModel() {
                 _showFields.value = false
                 _selectedCard.value = null
                 refreshCards()
+            }
+        }
+    }
+
+    suspend fun getDeliveryFields(): List<Fields>? {
+        val res = withContext(Dispatchers.IO) {
+            operationsMethods.getOperationFields(
+                UserData.login,
+                "save_address_cards",
+                "users"
+            )
+        }
+        return withContext(Dispatchers.Main){
+            val payload = res.success
+            val err = res.error
+
+            if (payload != null) {
+                return@withContext payload.fields
+            } else {
+                if (err != null)
+                    onError(err)
+                return@withContext null
+            }
+        }
+    }
+
+    fun updateDeleteCard(card: DeliveryAddress, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val b = HashMap<String, JsonElement>()
+            b["id_as_ts"] = JsonPrimitive(card.id)
+
+            val res = withContext(Dispatchers.IO) {
+                operationsMethods.postOperationFields(
+                    UserData.login,
+                    "remove_address_card",
+                    "users",
+                    b
+                )
+            }
+            withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val err = res.error
+
+                if (buffer != null) {
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+                    onSuccess()
+                } else {
+                    err?.let { onError(it) }
+                }
+            }
+        }
+    }
+
+    fun updateDefaultCard(card: DeliveryAddress, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val b = HashMap<String, JsonElement>()
+            b["id_as_ts"] = JsonPrimitive(card.id)
+
+            val res = withContext(Dispatchers.IO) {
+                operationsMethods.postOperationFields(
+                    UserData.login,
+                    "set_default_address_card",
+                    "users",
+                    b
+                )
+            }
+
+            withContext(Dispatchers.Main) {
+                val buffer = res.success
+                val err = res.error
+
+                if (buffer != null) {
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+                    delay(2000)
+
+                    onSuccess()
+                } else {
+                    err?.let { onError(it) }
+                }
             }
         }
     }

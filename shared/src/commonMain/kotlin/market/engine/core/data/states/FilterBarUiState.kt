@@ -2,10 +2,18 @@ package market.engine.core.data.states
 
 import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.Tab
+
+data class SwipeTabsBarState(
+    val tabs : List<Tab> = emptyList(),
+    val currentTab : String = "",
+    val isTabsVisible : Boolean = true
+)
 
 data class FilterBarUiState(
     val listFiltersButtons: List<FilterListingBtnItem> = emptyList(),
     val listNavigation: List<NavigationItem> = emptyList(),
     val isShowFilters: Boolean = true,
     val isShowGrid: Boolean = false,
+    val swipeTabsBarState: SwipeTabsBarState? = null
 )

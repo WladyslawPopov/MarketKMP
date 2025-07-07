@@ -4,7 +4,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import market.engine.common.AnalyticsFactory
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToMain
 
@@ -28,8 +27,6 @@ class DefaultLoginComponent(
     private val navigateToForgotPassword: () -> Unit,
 ) : LoginComponent, ComponentContext by componentContext  {
 
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
     val viewModel : LoginViewModel = LoginViewModel(this)
 
     private val _model = MutableValue(
@@ -42,7 +39,7 @@ class DefaultLoginComponent(
     override val model = _model
 
     init {
-        analyticsHelper.reportEvent("view_login_screen", mapOf())
+        viewModel.analyticsHelper.reportEvent("view_login_screen", mapOf())
     }
 
     override fun goToRegistration() {

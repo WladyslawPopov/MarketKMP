@@ -21,7 +21,7 @@ import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.network.networkObjects.UserPayload
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
 data class LoginContentState(
@@ -140,7 +140,7 @@ data class Auth2ContentState(
     }
 }
 
-class LoginViewModel(val component: LoginComponent) : BaseViewModel() {
+class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
 
     private val emailTextValue = MutableStateFlow(TextFieldValue())
     private val passwordTextValue = MutableStateFlow(TextFieldValue())

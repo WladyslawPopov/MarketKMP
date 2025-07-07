@@ -44,7 +44,7 @@ class DefaultConversationsComponent(
             viewModel.markReadConversation(conversation.id)
         }
         lifecycle.doOnResume {
-            viewModel.updateItem.value = conversation.id
+            viewModel.setUpdateItem(conversation.id)
         }
         navigateToMessenger(conversation.id, model.value.message)
         model.value.message = null

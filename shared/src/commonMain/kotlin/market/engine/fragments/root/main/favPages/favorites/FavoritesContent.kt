@@ -16,8 +16,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.bars.DeletePanel
-import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.OnError
@@ -35,28 +33,22 @@ fun FavoritesContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val viewModel = model.favViewModel
-    val uiState = viewModel.favDataState.collectAsState()
-    val listingData = uiState.value.listingData
-    val categoriesData = uiState.value.filtersCategoryState
+    val listingBaseViewModel = viewModel.listingBaseViewModel
+    val categoryState = viewModel.filtersCategoryState
 
-    val activeWindowType = uiState.value.listingBaseState.activeWindowType
-
-    val listingBaseData = uiState.value.listingBaseState
-    val filterBarState = uiState.value.filterBarData
+    val listingDataState = listingBaseViewModel.listingData.collectAsState()
 
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val err = viewModel.errorMessage.collectAsState()
 
     val updateItem = viewModel.updateItem.collectAsState()
 
-    val ld = listingData.data
-
-    val selectedItems = remember { viewModel.selectItems }
+    val ld = listingDataState.value.data
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     BackHandler(model.backHandler){
-        viewModel.onBackNavigation(activeWindowType)
+        viewModel.onBackNavigation()
     }
 
     val noFound = remember(data.loadState.refresh) {
@@ -66,7 +58,7 @@ fun FavoritesContent(
                     NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
-                        viewModel.clearAllFilters()
+                        listingBaseViewModel.clearAllFilters()
                     }
                 } else {
                     NoItemsFoundLayout(
@@ -98,23 +90,22 @@ fun FavoritesContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = viewModel.toastItem.value,
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            uiState= listingBaseData,
             data = data,
-            baseViewModel = viewModel,
+            viewModel = listingBaseViewModel,
             noFound = noFound,
-            filtersContent = {
+            filtersContent = { activeWindowType ->
                 when (activeWindowType) {
                     ActiveWindowListingType.FILTERS -> {
                         OfferFilterContent(
                             ld.filters,
-                            categoriesData,
+                            categoryState,
                             LotsType.FAVORITES,
                         ){ newFilters ->
-                            viewModel.applyFilters(newFilters)
+                            listingBaseViewModel.applyFilters(newFilters)
                         }
                     }
 
@@ -123,7 +114,7 @@ fun FavoritesContent(
                             ld.sort,
                             isCabinet = true,
                         ){ newSort ->
-                            viewModel.applySorting(newSort)
+                            listingBaseViewModel.applySorting(newSort)
                         }
                     }
                     else -> {
@@ -131,28 +122,12 @@ fun FavoritesContent(
                     }
                 }
             },
-            additionalBar = {
-                DeletePanel(
-                    selectedItems.size,
-                    onCancel = {
-                        viewModel.selectItems.clear()
-                    },
-                    onDelete = {
-                        viewModel.deleteSelectsItems(selectedItems)
-                    }
-                )
-
-                FiltersBar(
-                    filterBarState
-                )
-            },
             item = { offer ->
                 CabinetOfferItem(
                     offer,
                     updateItem.value
                 )
             },
-            modifier = modifier
         )
     }
 }

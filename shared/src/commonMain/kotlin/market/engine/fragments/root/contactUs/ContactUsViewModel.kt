@@ -11,15 +11,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
+import market.engine.common.getFileUpload
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.PhotoTemp
+import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.OperationResult
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-class ContactUsViewModel : BaseViewModel() {
+class ContactUsViewModel : CoreViewModel() {
     private val _responseGetFields = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseGetFields: StateFlow<DynamicPayload<OperationResult>?> = _responseGetFields.asStateFlow()
 
@@ -106,6 +109,47 @@ class ContactUsViewModel : BaseViewModel() {
                 onError(exception)
             } catch (exception: Exception) {
                 onError(ServerErrorException(exception.message.toString(), ""))
+            }
+        }
+    }
+
+    fun uploadPhotoTemp(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
+        viewModelScope.launch {
+            val res = uploadFile(item)
+
+            if (res.success != null) {
+                delay(1000)
+                withContext(Dispatchers.Main){
+                    onSuccess(res.success!!)
+                }
+            } else {
+                showToast(
+                    errorToastItem.copy(
+                        message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
+                    )
+                )
+            }
+        }
+    }
+
+    private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                getFileUpload(photoTemp)
+            }
+
+            return withContext(Dispatchers.Main) {
+                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
+                photoTemp.tempId = cleanedSuccess
+                ServerResponse(photoTemp)
+            }
+        } catch (e : ServerErrorException){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = e)
+            }
+        }catch (e : Exception){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
             }
         }
     }

@@ -15,7 +15,7 @@ import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.texts.SeparatorLabel
 
 @Composable
-fun settingsContent(
+fun SettingsContent(
     separatorString: String,
     list: List<NavigationItem>,
 ) {

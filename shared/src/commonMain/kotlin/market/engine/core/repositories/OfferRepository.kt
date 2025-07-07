@@ -22,6 +22,7 @@ import market.engine.common.Platform
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
 import market.engine.common.openShare
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -35,18 +36,26 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.functions.OfferOperations
+import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.Choices
+import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
-import market.engine.fragments.base.BaseViewModel
+import market.engine.core.network.networkObjects.Operations
+import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
+import kotlin.collections.contains
 
 class OfferRepository(
     val offer: OfferItem = OfferItem(),
     val events: OfferRepositoryEvents,
-    val viewModel: BaseViewModel = BaseViewModel(),
+    val viewModel: CoreViewModel = CoreViewModel(),
 )
 {
+    val offerOperations : OfferOperations by lazy { getKoin().get() }
+
     private val _operationsList = MutableStateFlow<List<MenuItem>>(emptyList())
     val operationsList: StateFlow<List<MenuItem>> = _operationsList.asStateFlow()
 
@@ -90,7 +99,7 @@ class OfferRepository(
     fun updateOperations(){
         viewModel.viewModelScope.launch {
             val currency = getString(strings.currencyCode)
-            viewModel.getOfferOperations(
+            getOfferOperations(
                 offer.id
             ) { list ->
                 _operationsList.value = buildList {
@@ -158,7 +167,7 @@ class OfferRepository(
                                                 var fields = f
                                                 when (id) {
                                                     "edit_offer_in_list", "add_to_list", "remove_from_list" -> {
-                                                        viewModel.getOffersList { list ->
+                                                        getOffersList { list ->
                                                             when (id) {
                                                                 "add_to_list" -> {
                                                                     fields.firstOrNull()?.choices = buildList {
@@ -320,7 +329,7 @@ class OfferRepository(
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
-                                                                                viewModel.updateItem.value = offer.id
+                                                                                viewModel.setUpdateItem(offer.id)
                                                                                 refreshOffer()
                                                                                 clearDialogFields()
                                                                             },
@@ -343,7 +352,7 @@ class OfferRepository(
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
-                                                                                viewModel.updateItem.value = offer.id
+                                                                                viewModel.setUpdateItem(offer.id)
                                                                                 refreshOffer()
                                                                                 clearDialogFields()
                                                                             },
@@ -386,11 +395,11 @@ class OfferRepository(
                                                     )
                                                     when (operation.id) {
                                                         "watch", "unwatch", "create_blank_offer_list" -> {
-                                                            viewModel.updateItem.value = offer.id
+                                                            viewModel.setUpdateItem(offer.id)
                                                         }
 
                                                         else -> {
-                                                            viewModel.updateItem.value = offer.id
+                                                            viewModel.setUpdateItem(offer.id)
                                                             refreshOffer()
                                                         }
                                                     }
@@ -408,7 +417,7 @@ class OfferRepository(
                 offer.isProposalEnabled = isProposalsEnabled()
             }
 
-            viewModel.getOfferOperations(
+            getOfferOperations(
                 offer.id,
                 "promo"
             ) { listOperations ->
@@ -454,7 +463,7 @@ class OfferRepository(
                                                 "offers",
                                                 body = body,
                                                 onSuccess = {
-                                                    viewModel.updateItem.value = offer.id
+                                                    viewModel.setUpdateItem(offer.id)
                                                     refreshOffer()
                                                 },
                                                 errorCallback = { errFields ->
@@ -534,6 +543,25 @@ class OfferRepository(
         }
     }
 
+    fun getOffersList(onSuccess: (List<FavoriteListItem>) -> Unit) {
+        val offersListOperations = OffersListOperations(viewModel.apiService)
+        viewModel.viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) { offersListOperations.getOffersList() }
+
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                if (res != null) {
+                    val buf = arrayListOf<FavoriteListItem>()
+                    buf.addAll(res)
+                    onSuccess(res)
+                }else{
+                    if (data.error != null)
+                        viewModel.onError(data.error!!)
+                }
+            }
+        }
+    }
+
     fun openMesDialog() {
         viewModel.viewModelScope.launch {
             if (UserData.token != "") {
@@ -595,7 +623,7 @@ class OfferRepository(
                                     clearDialogFields()
                                 },
                                 onSuccessful = {
-                                    viewModel.writeToSeller(
+                                    writeToSeller(
                                         offer.id, messageText.value.text,
                                     ) {
                                         events.goToDialog(it)
@@ -608,6 +636,63 @@ class OfferRepository(
                 )
             } else {
                 events.goToLogin()
+            }
+        }
+    }
+
+    fun writeToSeller(offerId : Long, messageText : String, onSuccess: (Long?) -> Unit){
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
+            val res = viewModel.operationsMethods.postOperationAdditionalData(
+                offerId,
+                "write_to_seller",
+                "offers",
+                hashMapOf("message" to JsonPrimitive(messageText))
+            )
+            val buffer1 = res.success
+            val error = res.error
+            withContext(Dispatchers.Main) {
+                if (buffer1 != null) {
+                    if (buffer1.operationResult?.result == "ok") {
+                        onSuccess(buffer1.body?.toLongOrNull())
+                    } else {
+                        viewModel.showToast(
+                            errorToastItem.copy(
+                                message = error?.humanMessage ?: getString(strings.operationFailed)
+                            )
+                        )
+                        onSuccess(null)
+                    }
+                } else {
+                    error?.let { viewModel.onError(it) }
+                    onSuccess(null)
+                }
+            }
+        }
+    }
+
+
+    fun getOfferOperations(
+        offerId: Long,
+        tag : String = "default",
+        onSuccess: (List<Operations>) -> Unit
+    ) {
+        viewModel.viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                offerOperations.getOperationsOffer(offerId, tag)
+            }
+
+            withContext(Dispatchers.Main) {
+                val buf = res.success?.filter {
+                    it.id !in listOf(
+                        "add_description",
+                        "cloprec107",
+                        "make_discount"
+                    )
+                }
+
+                if (buf != null) {
+                    onSuccess(buf)
+                }
             }
         }
     }
@@ -732,7 +817,7 @@ class OfferRepository(
                         title = getString(strings.createNewOffersListLabel),
                         icon = drawables.addFolderIcon,
                         onClick = {
-                            viewModel.getFieldsCreateBlankOfferList { t, f ->
+                            getFieldsCreateBlankOfferList { t, f ->
                                 _customDialogState.value = CustomDialogState(
                                     title = AnnotatedString(t),
                                     fields = f,
@@ -776,6 +861,26 @@ class OfferRepository(
             }
         }
     }
+
+    fun getFieldsCreateBlankOfferList(onSuccess: (title: String, List<Fields>) -> Unit){
+        viewModel.viewModelScope.launch {
+            val data = withContext(Dispatchers.IO) {
+                viewModel.operationsMethods.getOperationFields(
+                    UserData.login,
+                    "create_blank_offer_list",
+                    "users"
+                )
+            }
+
+            withContext(Dispatchers.Main) {
+                val res = data.success
+                if (!res?.fields.isNullOrEmpty()){
+                    onSuccess(res.description?:"", res.fields)
+                }
+            }
+        }
+    }
+
 
     suspend fun getAppBarOfferList(): List<NavigationItem> {
         val operations = operationsList.value

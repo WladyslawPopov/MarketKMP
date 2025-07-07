@@ -1,67 +1,57 @@
 package market.engine.fragments.root.main.profile.conversations
 
-import androidx.compose.ui.text.AnnotatedString
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import market.engine.common.Platform
-import market.engine.core.data.baseFilters.Filter
+import kotlinx.coroutines.withContext
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.baseFilters.Sort
+import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.events.CabinetConversationsItemEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.CabinetConversationsItemState
-import market.engine.core.data.states.FilterBarUiState
-import market.engine.core.data.states.ListingBaseState
-import market.engine.core.data.states.ListingOfferContentState
 import market.engine.core.data.states.SelectedOfferItemState
-import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
-import market.engine.core.data.types.PlatformWindowType
+import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.networkObjects.Conversations
-import market.engine.core.network.networkObjects.Fields
 import market.engine.core.repositories.PagingRepository
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.base.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 
-class ConversationsViewModel(val component: ConversationsComponent): BaseViewModel() {
+class ConversationsViewModel(val component: ConversationsComponent): CoreViewModel() {
 
     private val pagingRepository: PagingRepository<Conversations> = PagingRepository()
 
-    private val _listingData = MutableStateFlow(ListingData(
-        data = LD().copy(
-            filters = MsgFilters.filters,
-            methodServer = "get_cabinet_listing",
-            objServer = "conversations"
-        ),
-    ))
+    private val conversationsOperations : ConversationsOperations by lazy { getKoin().get() }
 
-    private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
-    val showOperationsDialog = MutableStateFlow("")
-    val titleDialog = MutableStateFlow(AnnotatedString(""))
-    val fieldsDialog = MutableStateFlow< ArrayList<Fields>>(arrayListOf())
-    val dialogItemId = MutableStateFlow(1L)
+    val listingBaseViewModel = ListingBaseViewModel(
+        deleteSelectedItems = {
+            deleteSelectsItems()
+        }
+    )
+
+    val ld = listingBaseViewModel.listingData
+    val activeType = listingBaseViewModel.activeWindowType
 
     val pagingParamsFlow: Flow<ListingData> = combine(
-        _listingData,
+        ld,
         updatePage
     ) { listingData, _ ->
         listingData
@@ -75,11 +65,11 @@ class ConversationsViewModel(val component: ConversationsComponent): BaseViewMod
                 apiService,
                 Conversations.serializer()
             ){ tc ->
-                totalCount.update {
-                    tc
-                }
+                listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { conversation  ->
+                    val selectItems = listingBaseViewModel.selectItems
+
                     CabinetConversationsItemState(
                         conversation = conversation,
                         events = ConversationEventsImpl(
@@ -88,12 +78,12 @@ class ConversationsViewModel(val component: ConversationsComponent): BaseViewMod
                             component = component
                         ),
                         selectedItem = SelectedOfferItemState(
-                            selected = selectItems,
+                            selected = selectItems.value,
                             onSelectionChange = { id ->
-                                if (!selectItems.contains(id)) {
-                                    selectItems.add(id)
+                                if (!selectItems.value.contains(id)) {
+                                    listingBaseViewModel.addSelectItem(id)
                                 } else {
-                                    selectItems.remove(id)
+                                    listingBaseViewModel.removeSelectItem(id)
                                 }
                             }
                         )
@@ -106,66 +96,26 @@ class ConversationsViewModel(val component: ConversationsComponent): BaseViewMod
             PagingData.empty()
         ).cachedIn(viewModelScope)
 
-    val uiDataState: StateFlow<ListingOfferContentState> = combine(
-        _activeWindowType,
-        _listingData,
-    ) { activeType, listingData ->
-        val ld = listingData.data
-        val filterString = getString(strings.filter)
-        val sortString = getString(strings.sort)
-        val filters = ld.filters.filter { it.value != "" && it.interpretation?.isNotBlank() == true }
-
-        ListingOfferContentState(
-            appBarData = SimpleAppBarData(
-                color = colors.primaryColor,
-                onBackClick = {
-                    onBackNavigation(activeType)
-                },
-                listItems = listOf(
-                    NavigationItem(
-                        title = "",
-                        icon = drawables.recycleIcon,
-                        tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
-                        onClick = { refresh() }
-                    ),
+    init {
+        viewModelScope.launch {
+            listingBaseViewModel.setListingData(
+                listingBaseViewModel.listingData.value.copy(
+                    data = LD(
+                        filters = MsgFilters.filters,
+                        methodServer = "get_cabinet_listing",
+                        objServer = "conversations"
+                    )
                 )
-            ),
-            listingData = listingData,
-            filterBarData = FilterBarUiState(
-                listFiltersButtons = buildList {
-                    filters.forEach { filter ->
-                        filter.interpretation?.let { text ->
-                            add(
-                                FilterListingBtnItem(
-                                    text = text,
-                                    itemClick = {
-                                        _activeWindowType.value = ActiveWindowListingType.FILTERS
-                                    },
-                                    removeFilter = {
-                                        removeFilter(filter)
-                                    }
-                                )
-                            )
-                        }
+            )
+            listingBaseViewModel.setListItemsFilterBar(
+                buildList {
+                    val filterString = getString(strings.filter)
+                    val sortString = getString(strings.sort)
+                    val filters = ld.value.data.filters.filter {
+                        it.value != "" &&
+                                it.interpretation?.isNotBlank() == true
                     }
-                    if (ld.sort != null) {
-                        add(
-                            FilterListingBtnItem(
-                                text = sortString,
-                                itemClick = {
-                                    _activeWindowType.value = ActiveWindowListingType.SORTING
-                                },
-                                removeFilter = {
-                                    removeSort()
-                                }
-                            )
-                        )
-                    }
-                },
-                listNavigation = buildList {
+
                     add(
                         NavigationItem(
                             title = filterString,
@@ -174,7 +124,7 @@ class ConversationsViewModel(val component: ConversationsComponent): BaseViewMod
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
                             onClick = {
-                                _activeWindowType.value = ActiveWindowListingType.FILTERS
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
                             }
                         )
                     )
@@ -183,96 +133,16 @@ class ConversationsViewModel(val component: ConversationsComponent): BaseViewMod
                             title = sortString,
                             icon = drawables.sortIcon,
                             tint = colors.black,
-                            hasNews = ld.sort != null,
+                            hasNews = ld.value.data.sort != null,
                             badgeCount = null,
                             onClick = {
-                                _activeWindowType.value = ActiveWindowListingType.SORTING
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
                             }
                         )
                     )
                 }
-            ),
-            listingBaseState = ListingBaseState(
-                listingData = listingData.data,
-                searchData = listingData.searchData,
-                activeWindowType = activeType,
-                columns = if(isBigScreen.value) 2 else 1,
-            ),
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = ListingOfferContentState()
-    )
-
-    fun updatePage(){
-        updatePage.value++
-    }
-    fun onBackNavigation(activeType: ActiveWindowListingType){
-        if (activeType != ActiveWindowListingType.LISTING) {
-            _activeWindowType.value = ActiveWindowListingType.LISTING
-        }else{
-            component.onBack()
-        }
-    }
-
-    fun applyFilters(newFilters: List<Filter>) {
-        _listingData.update { currentState ->
-            currentState.copy(
-                data = currentState.data.copy(
-                    filters = newFilters
-                )
             )
         }
-        refresh()
-        _activeWindowType.value = ActiveWindowListingType.LISTING
-    }
-    fun applySorting(newSort: Sort?) {
-        _listingData.update { currentState ->
-            currentState.copy(
-                data = currentState.data.copy(
-                    sort = newSort
-                )
-            )
-        }
-        refresh()
-        _activeWindowType.value = ActiveWindowListingType.LISTING
-    }
-    fun removeFilter(filter: Filter){
-        _listingData.update { currentListingData ->
-            val currentData = currentListingData.data
-            val newFilters = currentData.filters.map { filterItem ->
-                if (filterItem.key == filter.key && filterItem.operation == filter.operation) {
-                    filterItem.copy(value = "", interpretation = null)
-                } else {
-                    filterItem
-                }
-            }
-            currentListingData.copy(
-                data = currentData.copy(filters = newFilters)
-            )
-        }
-        refresh()
-    }
-    fun removeSort(){
-        _listingData.update {
-            it.copy(data = it.data.copy(sort = null))
-        }
-        refresh()
-    }
-    fun clearAllFilters() {
-        MsgFilters.clearFilters()
-        _listingData.update {
-            it.copy(
-                data = it.data.copy(filters = MsgFilters.filters)
-            )
-        }
-        refresh()
-    }
-    fun clearDialogFields(){
-        dialogItemId.value = 1
-        fieldsDialog.value.clear()
-        showOperationsDialog.value = ""
     }
 
     fun updateItem(oldItem: Conversations) {
@@ -285,31 +155,81 @@ class ConversationsViewModel(val component: ConversationsComponent): BaseViewMod
                 oldItem.countUnreadMessages = res.countUnreadMessages
                 oldItem.aboutObjectIcon = res.aboutObjectIcon
 
-                updateItem.value = null
+                setUpdateItem(null)
             },
             error = {
-                updateItem.value = null
+                setUpdateItem(null)
             }
         )
     }
 
-
     fun deleteSelectsItems() {
+        val selectItems = listingBaseViewModel.selectItems
         viewModelScope.launch {
-            selectItems.forEach { item ->
+            selectItems.value.forEach { item ->
                 deleteConversation(item){
-                    selectItems.remove(item)
+                    listingBaseViewModel.removeSelectItem(item)
                 }
             }
-            if (selectItems.isEmpty()){
+            if (selectItems.value.isEmpty()){
                 updateUserInfo()
                 refresh()
             }
         }
     }
 
-    fun clearSelection() {
-        selectItems.clear()
+    fun markReadConversation(id : Long) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.Unconfined) {
+                    conversationsOperations.postMarkAsReadByInterlocutor(id)
+                }
+            } catch (e: ServerErrorException) {
+                onError(e)
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "", ""))
+            }
+        }
+    }
+
+    fun deleteConversation(id : Long, onSuccess : () -> Unit) {
+        viewModelScope.launch {
+            val res = withContext(Dispatchers.IO) {
+                conversationsOperations.postDeleteForInterlocutor(id)
+            }
+
+            withContext(Dispatchers.Main) {
+                if(res != null){
+                    onSuccess()
+                }else{
+                    showToast(errorToastItem.copy(message = getString(strings.operationFailed)))
+                }
+            }
+        }
+    }
+
+    fun getConversation(id : Long, onSuccess: (Conversations) -> Unit, error: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val res = withContext(Dispatchers.IO) {
+                    conversationsOperations.getConversation(id)
+                }
+                val buf = res.success
+                val e = res.error
+                withContext(Dispatchers.Main) {
+                    if (buf!= null) {
+                        onSuccess(res.success!!)
+                    }else{
+                        error()
+                        e?.let { throw it }
+                    }
+                }
+            }catch (e : ServerErrorException){
+                onError(e)
+            }catch (e : Exception){
+                onError(ServerErrorException(e.message ?: "", ""))
+            }
+        }
     }
 }
 
@@ -319,11 +239,13 @@ data class ConversationEventsImpl(
     val component: ConversationsComponent
 ) : CabinetConversationsItemEvents {
     override fun goToMessenger() {
-        if (viewModel.selectItems.isNotEmpty()) {
-            if (!viewModel.selectItems.contains(conversation.id)) {
-                viewModel.selectItems.add(conversation.id)
+        val selectedItems = viewModel.listingBaseViewModel.selectItems
+
+        if (selectedItems.value.isNotEmpty()) {
+            if (!selectedItems.value.contains(conversation.id)) {
+                viewModel.listingBaseViewModel.addSelectItem(conversation.id)
             } else {
-                viewModel.selectItems.remove(conversation.id)
+                viewModel.listingBaseViewModel.removeSelectItem(conversation.id)
             }
         } else {
             component.goToMessenger(conversation)

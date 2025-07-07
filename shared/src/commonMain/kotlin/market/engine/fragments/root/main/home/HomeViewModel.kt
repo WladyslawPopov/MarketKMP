@@ -32,17 +32,17 @@ import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.utils.parseToOfferItem
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
 
-class HomeViewModel(val component: HomeComponent) : BaseViewModel() {
+class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
 
     private val _responseOffersPromotedOnMainPage1 = MutableStateFlow<List<OfferItem>>(emptyList())
     private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<OfferItem>>(emptyList())
     private val _responseCategory = MutableStateFlow<List<TopCategory>>(emptyList())
 
-    private val listingData = ListingData()
+    private val ld = ListingData()
 
     val uiState: StateFlow<HomeUiState> = combine(
         _responseCategory,
@@ -222,15 +222,19 @@ class HomeViewModel(val component: HomeComponent) : BaseViewModel() {
         getOffersPromotedOnMainPage(1, 16)
 
     }
+
     fun setCategory(category: List<Category>) {
-        _responseCategory.value = category.map {
-            TopCategory(
-                id = it.id,
-                parentId = it.parentId,
-                name = it.name ?: catDef.value,
-                parentName = null,
-                icon = drawables.infoIcon
-            )
+        viewModelScope.launch {
+            val defCat = getString(strings.categoryMain)
+            _responseCategory.value = category.map {
+                TopCategory(
+                    id = it.id,
+                    parentId = it.parentId,
+                    name = it.name ?: defCat,
+                    parentName = null,
+                    icon = drawables.infoIcon
+                )
+            }
         }
     }
 
@@ -258,29 +262,34 @@ class HomeViewModel(val component: HomeComponent) : BaseViewModel() {
     }
 
     fun goToAllPromo() {
-        listingData.data.filters = ListingFilters.getEmpty()
+        ld.data.filters = ListingFilters.getEmpty()
         viewModelScope.launch {
             val allPromo = getString(strings.allPromoOffersBtn)
 
-            listingData.data.filters.find { filter ->
+            ld.data.filters.find { filter ->
                 filter.key == "promo_main_page"
             }?.value = "promo_main_page"
-            listingData.data.filters.find { filter ->
+            ld.data.filters.find { filter ->
                 filter.key == "promo_main_page"
             }?.interpretation = allPromo
 
-            listingData.searchData.clear(allPromo)
+            ld.searchData.clear(allPromo)
 
-            component.goToNewSearch(listingData, false)
+            component.goToNewSearch(ld, false)
         }
     }
 
     fun goToCategory(category: TopCategory) {
-        listingData.searchData.searchCategoryID = category.id
-        listingData.searchData.searchParentID = category.parentId
-        listingData.searchData.searchCategoryName = category.name
-        listingData.searchData.searchParentName = category.parentName
+        ld.searchData.searchCategoryID = category.id
+        ld.searchData.searchParentID = category.parentId
+        ld.searchData.searchCategoryName = category.name
+        ld.searchData.searchParentName = category.parentName
 
-        component.goToNewSearch(listingData, false)
+        component.goToNewSearch(ld, false)
+    }
+
+    fun getUnreadNotificationsCount() : Int? {
+        val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
+        return if (list.isEmpty()) null else list.filter { it.isRead < 1 || it.isRead > 1 }.size
     }
 }

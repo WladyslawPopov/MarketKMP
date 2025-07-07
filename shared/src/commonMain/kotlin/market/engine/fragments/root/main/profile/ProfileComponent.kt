@@ -13,14 +13,14 @@ import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.getCurrentDate
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 
 interface ProfileComponent {
     val model : Value<Model>
 
     data class Model(
-        val profileViewModel: BaseViewModel,
+        val profileViewModel: CoreViewModel,
         val backHandler: BackHandler
     )
 
@@ -37,7 +37,8 @@ class DefaultProfileComponent(
     private val navigateToSubscriptions : () -> Unit
 ) : ProfileComponent, ComponentContext by componentContext {
 
-    val viewModel by lazy {  BaseViewModel() }
+    val viewModel by lazy {  CoreViewModel() }
+
     private val _model = MutableValue(
         ProfileComponent.Model(
             profileViewModel = viewModel,

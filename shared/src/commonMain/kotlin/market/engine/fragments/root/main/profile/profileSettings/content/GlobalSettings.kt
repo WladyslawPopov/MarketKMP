@@ -45,7 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 
 
 @Composable
-fun globalSettings(
+fun GlobalSettings(
     component: ProfileSettingsComponent,
     viewModel: ProfileSettingsViewModel
 ) {
@@ -153,7 +153,7 @@ fun globalSettings(
             }
         }
 
-        settingRow(
+        SettingRow(
             stringResource(strings.loginParameterName),
             body = {
                 Text(
@@ -166,7 +166,7 @@ fun globalSettings(
             component.navigateToDynamicSettings("set_login")
         }
 
-        settingRow(
+        SettingRow(
             stringResource(strings.promptEmail),
             body = {
                 Text(
@@ -179,7 +179,7 @@ fun globalSettings(
             component.navigateToDynamicSettings("set_email")
         }
 
-        settingRow(
+        SettingRow(
             stringResource(strings.promptPassword),
             body = {
                 Text(
@@ -192,7 +192,7 @@ fun globalSettings(
             component.navigateToDynamicSettings("set_password")
         }
 
-        settingRow(
+        SettingRow(
             stringResource(strings.genderParameterName),
             body = {
                 getDropdownMenu(
@@ -211,7 +211,7 @@ fun globalSettings(
             viewModel.setGender(selectedGender.value)
         }
 
-        settingRow(
+        SettingRow(
             stringResource(strings.phoneParameterName),
             body = {
                 Text(
@@ -240,14 +240,14 @@ fun globalSettings(
             }
         )
 
-        settingRow(
+        SettingRow(
             stringResource(strings.pageAboutMeParameterName),
             body = {}
         ){
             component.navigateToDynamicSettings("set_about_me")
         }
 
-        settingRow(
+        SettingRow(
             stringResource(strings.deleteAccountLabel),
             body = {},
             action = {
@@ -265,7 +265,7 @@ fun globalSettings(
 }
 
 @Composable
-fun settingRow(
+fun SettingRow(
     label: String,
     body: @Composable () -> Unit,
     action: @Composable ((() -> Unit)?) -> Unit = { click->

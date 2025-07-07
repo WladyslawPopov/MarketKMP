@@ -5,6 +5,7 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -86,7 +87,8 @@ fun MessengerBar(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
+    )
+    {
         AnimatedVisibility(
             !isDisabledAddPhotos,
             enter = expandIn(),
@@ -113,7 +115,7 @@ fun MessengerBar(
             label = stringResource(strings.messageLabel),
             textState = mutableStateOf(messageTextState),
             modifier = Modifier.fillMaxWidth(0.85f)
-                .heightIn(max= 150.dp),
+                .heightIn(max = 150.dp),
             onTextChange = {
                 events.onTextChanged(it)
             },
@@ -126,7 +128,7 @@ fun MessengerBar(
             colors.black,
             enabled = messageTextState.trim().isNotEmpty(),
             modifierIconSize = Modifier.size(dimens.mediumIconSize),
-        ){
+        ) {
             events.sendMessage()
         }
     }

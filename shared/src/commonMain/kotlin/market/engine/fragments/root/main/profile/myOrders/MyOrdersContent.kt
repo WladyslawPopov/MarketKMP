@@ -19,7 +19,6 @@ import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
-import market.engine.widgets.bars.FiltersBar
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
 import market.engine.fragments.base.NoItemsFoundLayout
@@ -36,15 +35,14 @@ fun MyOrdersContent(
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
 
-    val uiState = viewModel.uiDataState.collectAsState()
-    val listingData = uiState.value.listingData.data
-    val activeWindowType = uiState.value.listingBaseState.activeWindowType
-    val listingBaseState = uiState.value.listingBaseState
-    val filterBarUiState = uiState.value.filterBarData
-
+    val listingBaseViewModel = viewModel.listingBaseViewModel
+    val listingDataState = listingBaseViewModel.listingData.collectAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val updateItem = viewModel.updateItem.collectAsState()
 
+    val listingData = listingDataState.value.data
+
+    val toastItem = viewModel.toastItem.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -67,7 +65,7 @@ fun MyOrdersContent(
                     NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
-                        viewModel.clearAllFilters()
+                        listingBaseViewModel.clearAllFilters()
                         viewModel.updatePage()
                     }
                 } else {
@@ -105,25 +103,21 @@ fun MyOrdersContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem,
+        toastItem = toastItem.value,
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            uiState = listingBaseState,
             data = data,
-            baseViewModel = viewModel,
+            viewModel = listingBaseViewModel,
             noFound = noFound,
-            additionalBar = {
-                FiltersBar(filterBarUiState)
-            },
-            filtersContent = {
+            filtersContent = { activeWindowType ->
                 when (activeWindowType) {
                     ActiveWindowListingType.FILTERS -> {
                         OrderFilterContent(
                             initialFilters = listingData.filters,
                             typeFilters = model.type,
                         ){ newFilters ->
-                            viewModel.applyFilters(newFilters)
+                            listingBaseViewModel.applyFilters(newFilters)
                         }
                     }
 
@@ -131,7 +125,7 @@ fun MyOrdersContent(
                         SortingOrdersContent(
                             listingData.sort,
                         ){ newSort ->
-                            viewModel.applySorting(newSort)
+                            listingBaseViewModel.applySorting(newSort)
                         }
                     }
                     else -> {

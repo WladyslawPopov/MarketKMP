@@ -1,5 +1,6 @@
 package market.engine.widgets.filterContents
 
+import androidx.compose.foundation.background
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -78,7 +79,7 @@ fun OrderFilterContent(
     val toThisDateTextState = remember { mutableStateOf(filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation ?: to) }
 
     Box(
-        modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+        modifier = Modifier.background(colors.primaryColor).fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })

@@ -15,14 +15,14 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.ListItem
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.root.dynamicSettings.DynamicSettingsViewModel
 import market.engine.widgets.items.BlocListItem
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BlocListContent(
     type : String,
-    viewModel: BaseViewModel,
+    viewModel: DynamicSettingsViewModel,
     updateItemTrigger : Int
 ) {
     val blocList = remember { mutableStateOf(emptyList<ListItem>()) }

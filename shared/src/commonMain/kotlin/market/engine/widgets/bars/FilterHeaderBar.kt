@@ -3,7 +3,6 @@ package market.engine.widgets.bars
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +30,7 @@ fun FilterContentHeaderBar(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
             SmallIconButton(
                 drawables.closeBtn,
@@ -42,7 +42,7 @@ fun FilterContentHeaderBar(
             Text(
                 title,
                 style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(dimens.smallPadding)
+                color = colors.black
             )
         }
 

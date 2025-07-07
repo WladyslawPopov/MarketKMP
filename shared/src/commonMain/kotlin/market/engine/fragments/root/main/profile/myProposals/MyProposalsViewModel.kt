@@ -7,73 +7,63 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import market.engine.common.Platform
-import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.states.CategoryState
-import market.engine.core.data.states.FilterBarUiState
-import market.engine.core.data.states.ListingBaseState
-import market.engine.core.data.states.ListingOfferContentState
-import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
-import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.base.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
-import kotlin.collections.map
+import org.koin.mp.KoinPlatform.getKoin
 
 class MyProposalsViewModel(
     val type: LotsType,
     val component: MyProposalsComponent
-) : BaseViewModel() {
+) : CoreViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    private val _listingData = MutableStateFlow(ListingData(
-        data = LD().copy(
-            filters = OfferFilters.getByTypeFilter(type),
-            methodServer = "get_cabinet_listing_my_price_proposals",
-            objServer = "offers"
-        ),
-    ))
+    private val offerOperations : OfferOperations by lazy { getKoin().get() }
 
-    private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
+    val listingBaseViewModel = ListingBaseViewModel()
+    val ld = listingBaseViewModel.listingData
+    val activeType = listingBaseViewModel.activeWindowType
+
+    val categoryState = CategoryState(
+        activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
+        CategoryViewModel(isFilters = true)
+    )
 
     val pagingParamsFlow: Flow<ListingData> = combine(
-        _listingData,
+        ld,
         updatePage
     ) { listingData, _ ->
         listingData
@@ -91,9 +81,7 @@ class MyProposalsViewModel(
                 apiService,
                 Offer.serializer()
             ){ tc ->
-                totalCount.update {
-                    tc
-                }
+                listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
                     val item = offer.parseToOfferItem()
@@ -113,73 +101,27 @@ class MyProposalsViewModel(
             PagingData.empty()
         ).cachedIn(viewModelScope)
 
-    val uiDataState: StateFlow<ListingOfferContentState> = combine(
-        _activeWindowType,
-        _listingData,
-    ) { activeType, listingData ->
-        val ld = listingData.data
-        val filterString = getString(strings.filter)
-        val sortString = getString(strings.sort)
-        val filters = ld.filters.filter { it.value != "" && it.interpretation?.isNotBlank() == true }
-
-        filtersCategoryModel.updateFromSearchData(listingData.searchData)
-        filtersCategoryModel.initialize(listingData.data.filters)
-
-        ListingOfferContentState(
-            appBarData = SimpleAppBarData(
-                color = colors.primaryColor,
-                onBackClick = {
-                    onBackNavigation(activeType)
-                },
-                listItems = listOf(
-                    NavigationItem(
-                        title = "",
-                        icon = drawables.recycleIcon,
-                        tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
-                        onClick = { refresh() }
-                    ),
+    init {
+        viewModelScope.launch {
+            listingBaseViewModel.setListingData(
+                listingBaseViewModel.listingData.value.copy(
+                    data = LD(
+                        filters = OfferFilters.getByTypeFilter(type),
+                        methodServer = "get_cabinet_listing_my_price_proposals",
+                        objServer = "offers"
+                    )
                 )
-            ),
-            filtersCategoryState = CategoryState(
-                openCategory = activeType == ActiveWindowListingType.CATEGORY,
-                categoryViewModel = filtersCategoryModel
-            ),
-            listingData = listingData,
-            filterBarData = FilterBarUiState(
-                listFiltersButtons = buildList {
-                    filters.forEach { filter ->
-                        filter.interpretation?.let { text ->
-                            add(
-                                FilterListingBtnItem(
-                                    text = text,
-                                    itemClick = {
-                                        _activeWindowType.value = ActiveWindowListingType.FILTERS
-                                    },
-                                    removeFilter = {
-                                        removeFilter(filter)
-                                    }
-                                )
-                            )
-                        }
+            )
+
+            listingBaseViewModel.setListItemsFilterBar(
+                buildList {
+                    val filterString = getString(strings.filter)
+                    val sortString = getString(strings.sort)
+                    val filters = ld.value.data.filters.filter {
+                        it.value != "" &&
+                                it.interpretation?.isNotBlank() == true
                     }
-                    if (ld.sort != null) {
-                        add(
-                            FilterListingBtnItem(
-                                text = sortString,
-                                itemClick = {
-                                    _activeWindowType.value = ActiveWindowListingType.SORTING
-                                },
-                                removeFilter = {
-                                    removeSort()
-                                }
-                            )
-                        )
-                    }
-                },
-                listNavigation = buildList {
+
                     add(
                         NavigationItem(
                             title = filterString,
@@ -188,7 +130,7 @@ class MyProposalsViewModel(
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
                             onClick = {
-                                _activeWindowType.value = ActiveWindowListingType.FILTERS
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
                             }
                         )
                     )
@@ -197,45 +139,33 @@ class MyProposalsViewModel(
                             title = sortString,
                             icon = drawables.sortIcon,
                             tint = colors.black,
-                            hasNews = ld.sort != null,
+                            hasNews = ld.value.data.sort != null,
                             badgeCount = null,
                             onClick = {
-                                _activeWindowType.value = ActiveWindowListingType.SORTING
+                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
                             }
                         )
                     )
                 }
-            ),
-            listingBaseState = ListingBaseState(
-                listingData = listingData.data,
-                searchData = listingData.searchData,
-                activeWindowType = activeType,
-                columns = if(isBigScreen.value) 2 else 1,
-            ),
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = ListingOfferContentState()
-    )
-
-    fun updatePage(){
-        updatePage.value++
+            )
+        }
     }
-    fun onBackNavigation(activeType: ActiveWindowListingType){
-        when(activeType){
+
+    fun onBackNavigation(){
+        when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
                 if (filtersCategoryModel.categoryId.value != 1L){
                     filtersCategoryModel.navigateBack()
                 }else{
-                    _activeWindowType.value = ActiveWindowListingType.LISTING
+                    listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
                 }
             }
             else -> {
-                _activeWindowType.value = ActiveWindowListingType.LISTING
+                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
             }
         }
     }
+
     fun updateItem(oldItem : OfferItem){
         viewModelScope.launch {
             val offer = withContext(Dispatchers.IO) {
@@ -252,10 +182,11 @@ class MyProposalsViewModel(
                 if (!isHideItem(oldItem)) {
                     updatePage()
                 }
-                updateItem.value = null
+                setUpdateItem(null)
             }
         }
     }
+
     fun isHideItem(offer: OfferItem): Boolean {
         return when (type) {
             LotsType.MY_LOT_ACTIVE -> {
@@ -282,58 +213,16 @@ class MyProposalsViewModel(
             }
         }
     }
-    fun applyFilters(newFilters: List<Filter>) {
-        _listingData.update { currentState ->
-            currentState.copy(
-                data = currentState.data.copy(
-                    filters = newFilters
-                )
-            )
-        }
-        refresh()
-        _activeWindowType.value = ActiveWindowListingType.LISTING
-    }
-    fun applySorting(newSort: Sort?) {
-        _listingData.update { currentState ->
-            currentState.copy(
-                data = currentState.data.copy(
-                    sort = newSort
-                )
-            )
-        }
-        refresh()
-        _activeWindowType.value = ActiveWindowListingType.LISTING
-    }
-    fun removeFilter(filter: Filter){
-        _listingData.update { currentListingData ->
-            val currentData = currentListingData.data
-            val newFilters = currentData.filters.map { filterItem ->
-                if (filterItem.key == filter.key && filterItem.operation == filter.operation) {
-                    filterItem.copy(value = "", interpretation = null)
-                } else {
-                    filterItem
-                }
+
+    suspend fun getOfferById(offerId: Long) : Offer? {
+        return try {
+            val response = offerOperations.getOffer(offerId)
+            response.success?.let {
+                return it
             }
-            currentListingData.copy(
-                data = currentData.copy(filters = newFilters)
-            )
+        } catch (_: Exception) {
+            null
         }
-        refresh()
-    }
-    fun removeSort(){
-        _listingData.update {
-            it.copy(data = it.data.copy(sort = null))
-        }
-        refresh()
-    }
-    fun clearAllFilters() {
-        OfferFilters.clearTypeFilter(type)
-        _listingData.update {
-            it.copy(
-                data = it.data.copy(filters = OfferFilters.getByTypeFilter(type))
-            )
-        }
-        refresh()
     }
 }
 

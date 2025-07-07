@@ -3,7 +3,6 @@ package market.engine.fragments.root.main.listing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,8 +33,6 @@ import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.ListingBaseContent
 import market.engine.widgets.filterContents.search.SearchContent
-import market.engine.widgets.bars.FiltersBar
-import market.engine.widgets.bars.SwipeTabsBar
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.OnError
@@ -62,25 +59,27 @@ fun ListingContent(
     val model = modelState.value
     val viewModel = model.listingViewModel
     val uiState = viewModel.listingDataState.collectAsState()
-    val searchDataState = viewModel.searchDataState.collectAsState()
-
-    val err = viewModel.errorMessage.collectAsState()
-
-    val updateItem = viewModel.updateItem.collectAsState()
     val errorString = viewModel.errorString.collectAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val toastItem = viewModel.toastItem.collectAsState()
+
+    val err = viewModel.errorMessage.collectAsState()
+    val listingBaseModel = viewModel.listingBaseVM
+    val updateItem = listingBaseModel.updateItem.collectAsState()
+    val searchDataState = listingBaseModel.searchDataState.collectAsState()
 
     val isLoadingListing: State<Boolean> =
         rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val listingData = uiState.value.listingData.data
-    val searchData = uiState.value.listingData.searchData
-    val activeWindowType = uiState.value.listingBaseState.activeWindowType
+    val activeWindowType = listingBaseModel.activeWindowType.collectAsState()
 
-    val listingBaseData = uiState.value.listingBaseState
-    val regions = uiState.value.regions
+    val regions = viewModel.regionOptions.collectAsState()
+    val categoryViewModel = viewModel.listingCategoryModel
+    val listingDataState = listingBaseModel.listingData.collectAsState()
+    val listingData = listingDataState.value.data
+    val searchData = listingDataState.value.searchData
 
-    val catDef = remember(viewModel.catDef.value) { viewModel.catDef.value }
+    val catDef = remember(listingBaseModel.catDef.value) { listingBaseModel.catDef.value }
 
     BackHandler(model.backHandler) {
         viewModel.backClick()
@@ -103,7 +102,7 @@ fun ListingContent(
                     NoItemsFoundLayout(
                         textButton = stringResource(strings.resetLabel)
                     ) {
-                        viewModel.clearListingData()
+                        listingBaseModel.clearListingData()
                     }
                 } else {
                     NoItemsFoundLayout {
@@ -118,40 +117,41 @@ fun ListingContent(
 
     BaseContent(
         topBar = {
-            when (activeWindowType) {
+            when (activeWindowType.value) {
                 ActiveWindowListingType.SEARCH -> {
-                    SimpleAppBar(
-                        modifier = Modifier,
-                        data = searchDataState.value.appBarData,
-                    ){
-                        SearchTextField(
-                            activeWindowType == ActiveWindowListingType.SEARCH,
-                            searchDataState.value.searchString,
-                            onValueChange = { newVal ->
-                                searchDataState.value.searchEvents.updateSearch(
-                                    newVal
-                                )
-                            },
-                            goToListing = {
-                                searchDataState.value.searchEvents.goToListing()
-                            },
-                            onClearSearch = {
-                                viewModel.clearSearch()
-                            }
-                        )
+                    searchDataState.value?.run {
+                        SimpleAppBar(
+                            modifier = Modifier,
+                            data = appBarData,
+                        ) {
+                            SearchTextField(
+                                activeWindowType.value == ActiveWindowListingType.SEARCH,
+                                searchString,
+                                onValueChange = { newVal ->
+                                    searchEvents.updateSearch(
+                                        newVal
+                                    )
+                                },
+                                goToListing = {
+                                    searchEvents.goToListing()
+                                },
+                                onClearSearch = {
+                                    listingBaseModel.clearSearch()
+                                }
+                            )
+                        }
                     }
                 }
-
                 ActiveWindowListingType.CATEGORY_FILTERS -> {
                     CloseAppBar {
-                        viewModel.openSearchCategory(value = false, complete = false)
+                        listingBaseModel.openSearchCategory(value = false, complete = false)
                     }
                 }
-
                 else -> {
                     SimpleAppBar(
                         data = uiState.value.appBarData
-                    ){
+                    )
+                    {
                         Row(
                             modifier = Modifier
                                 .background(colors.white, MaterialTheme.shapes.small)
@@ -163,7 +163,8 @@ fun ListingContent(
                                 .padding(dimens.smallPadding),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                        ) {
+                        )
+                        {
                             Icon(
                                 painterResource(drawables.listIcon),
                                 contentDescription = null,
@@ -195,26 +196,25 @@ fun ListingContent(
         onRefresh = viewModel::updatePage,
         error = error,
         noFound = null,
-        isLoading = isLoadingListing.value && activeWindowType != ActiveWindowListingType.SEARCH,
-        toastItem = viewModel.toastItem,
+        isLoading = isLoadingListing.value && activeWindowType.value != ActiveWindowListingType.SEARCH,
+        toastItem = toastItem.value,
         modifier = modifier.fillMaxSize()
     ) {
         ListingBaseContent(
-            uiState = listingBaseData,
-            baseViewModel = viewModel,
+            viewModel = listingBaseModel,
             data = data,
             noFound = noFound,
-            filtersContent = {
-                when (activeWindowType) {
+            filtersContent = { bottomSheetContentType ->
+                when (bottomSheetContentType) {
                     ActiveWindowListingType.FILTERS -> {
                         FilterListingContent(
                             initialFilters = listingData.filters,
-                            regionsOptions = regions,
+                            regionsOptions = regions.value,
                             onClosed = { newList ->
-                                viewModel.applyFilters(newList)
+                                listingBaseModel.applyFilters(newList)
                             },
                             onClear = {
-                                viewModel.clearAllFilters()
+                                listingBaseModel.clearAllFilters()
                             }
                         )
                     }
@@ -224,21 +224,23 @@ fun ListingContent(
                             listingData.sort,
                             isCabinet = false,
                             onClose = { newSort ->
-                               viewModel.applySorting(newSort)
+                                listingBaseModel.applySorting(newSort)
                             }
                         )
                     }
 
                     ActiveWindowListingType.SEARCH, ActiveWindowListingType.CATEGORY_FILTERS -> {
-                        SearchContent(
-                            searchDataState.value,
-                            component.searchPages
-                        )
+                        searchDataState.value?.let{
+                            SearchContent(
+                                it,
+                                component.searchPages
+                            )
+                        }
                     }
 
                     ActiveWindowListingType.CATEGORY -> {
                         CategoryContent(
-                            uiState.value.listingCategoryState.categoryViewModel,
+                            categoryViewModel,
                             onCompleted = {
                                 viewModel.changeOpenCategory(true)
                             },
@@ -251,20 +253,8 @@ fun ListingContent(
                     else -> {}
                 }
             },
-            additionalBar = { state ->
-                Column {
-                    SwipeTabsBar(
-                        uiState = uiState.value.swipeTabsBarState,
-                        scrollState = state,
-                    )
-
-                    FiltersBar(
-                        uiState.value.filterBarData
-                    )
-                }
-            },
             item = { offer ->
-                if (uiState.value.listingBaseState.columns == 1) {
+                if (listingBaseModel.listingType.value == 0) {
                     PublicOfferItem(
                         offer,
                         updateItem.value,

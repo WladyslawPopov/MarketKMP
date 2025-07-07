@@ -70,7 +70,7 @@ class DefaultMyBidsComponent(
         offerSelected(offer.id)
 
         lifecycle.doOnResume {
-            viewModel.updateItem.value = offer.id
+            viewModel.setUpdateItem(offer.id)
         }
     }
 

@@ -15,6 +15,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
@@ -22,10 +23,13 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.deserializePayload
-import market.engine.fragments.base.BaseViewModel
+import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 
-class ProposalViewModel: BaseViewModel() {
+class ProposalViewModel: CoreViewModel() {
+
+    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     private var _responseGetOffer = MutableStateFlow(Offer())
     val responseGetOffer : StateFlow<Offer> = _responseGetOffer.asStateFlow()
@@ -178,6 +182,17 @@ class ProposalViewModel: BaseViewModel() {
             }finally {
                 setLoading(false)
             }
+        }
+    }
+
+    suspend fun getOfferById(offerId: Long) : Offer? {
+        return try {
+            val response = offerOperations.getOffer(offerId)
+            response.success?.let {
+                return it
+            }
+        } catch (_: Exception) {
+            null
         }
     }
 }

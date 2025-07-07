@@ -94,6 +94,15 @@ fun <T : Any> BoxScope.PagingList(
             .fillMaxSize()
             .align(align)
     ){
+        if(isReversingPaging){
+            item {
+                Spacer(
+                    modifier = Modifier
+                    .height(dimens.extraLargePadding + dimens.mediumPadding)
+                )
+            }
+        }
+
         if (!promoList.isNullOrEmpty() && promoContent != null) {
             item {
                 LazyRowWithScrollBars(
@@ -192,7 +201,9 @@ fun <T : Any> BoxScope.PagingList(
     PagingCounterBar(
         currentPage = currentIndex,
         totalPages = totalCount,
-        modifier = Modifier.align(Alignment.BottomStart),
+        modifier = Modifier.align(Alignment.BottomStart).padding(
+            bottom = if(isReversingPaging) dimens.extraLargePadding else dimens.smallPadding
+        ),
         showUpButton = showUpButton,
         showDownButton = showDownButton,
         onClick = {
