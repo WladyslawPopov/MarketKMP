@@ -100,7 +100,6 @@ data class Auth2ContentState(
                         deserializePayload(res.payload, serializer)
 
                     withContext(Dispatchers.Main) {
-                        setLoading(false)
                         if (payload.result == "SUCCESS") {
                             userRepository.setToken(payload.user, payload.token ?: "")
                             updateUserInfo()
@@ -134,6 +133,8 @@ data class Auth2ContentState(
                 }
                 catch (e : Exception){
                     onError(ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString()))
+                }finally {
+                    setLoading(false)
                 }
             }
         }
@@ -249,13 +250,14 @@ class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
                     }
 
                     withContext(Dispatchers.Main) {
+                        setLoading(false)
+
                         try {
                             val serializer = UserPayload.serializer()
                             val payload: UserPayload =
                                 deserializePayload(response.payload, serializer)
                             when (payload.result) {
                                 "SUCCESS" -> {
-                                    setLoading(false)
                                     userRepository.setToken(payload.user, payload.token ?: "")
                                     updateUserInfo()
                                     showToast(
@@ -351,7 +353,7 @@ class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
                             humanMessage = exception.message.toString()
                         )
                     )
-                } finally {
+                }finally {
                     setLoading(false)
                 }
             }

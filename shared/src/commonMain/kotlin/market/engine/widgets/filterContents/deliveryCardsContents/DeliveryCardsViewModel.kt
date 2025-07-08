@@ -1,4 +1,4 @@
-package market.engine.fragments.root.dynamicSettings
+package market.engine.widgets.filterContents.deliveryCardsContents
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -17,7 +17,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
-import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.ThemeResources
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.states.DeliveryCardsState
 import market.engine.core.network.ServerErrorException
@@ -26,7 +26,7 @@ import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
-import org.koin.mp.KoinPlatform.getKoin
+import org.koin.mp.KoinPlatform
 
 class DeliveryCardsViewModel: CoreViewModel() {
     private val _deliveryCards = MutableStateFlow<List<DeliveryAddress>>(emptyList())
@@ -36,7 +36,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
     private val _selectedCard = MutableStateFlow<Long?>(null)
     private val _selectedCountry = MutableStateFlow(0)
 
-    private val userOperations by lazy { getKoin().get<UserOperations>() }
+    private val userOperations by lazy { KoinPlatform.getKoin().get<UserOperations>() }
 
     val deliveryCardsState : StateFlow<DeliveryCardsState> = combine(
         _deliveryCards,
@@ -44,7 +44,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
         _showFields,
         _selectedCard,
         _selectedCountry
-    ){cards, fields, showFields, selectedCard, selectedCountry ->
+    ) { cards, fields, showFields, selectedCard, selectedCountry ->
         DeliveryCardsState(
             deliveryCards = cards,
             deliveryFields = fields,
@@ -54,7 +54,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Lazily,
+        started = SharingStarted.Companion.Lazily,
         initialValue = DeliveryCardsState()
     )
 
@@ -113,7 +113,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
 
                         "country" -> {
                             field.data =
-                                JsonPrimitive(if (card.country == getString(strings.countryDefault)) 0 else 1)
+                                JsonPrimitive(if (card.country == getString(ThemeResources.strings.countryDefault)) 0 else 1)
                             _selectedCountry.value = field.data?.jsonPrimitive?.intOrNull ?: 0
                         }
                     }
@@ -213,7 +213,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
 
                         showToast(
                             successToastItem.copy(
-                                message = getString(strings.operationSuccess)
+                                message = getString(ThemeResources.strings.operationSuccess)
                             )
                         )
 
@@ -237,7 +237,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
 
                         showToast(
                             errorToastItem.copy(
-                                message = getString(strings.operationFailed)
+                                message = getString(ThemeResources.strings.operationFailed)
                             )
                         )
                     }
@@ -309,7 +309,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
                 "users"
             )
         }
-        return withContext(Dispatchers.Main){
+        return withContext(Dispatchers.Main) {
             val payload = res.success
             val err = res.error
 
@@ -343,7 +343,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
                 if (buffer != null) {
                     showToast(
                         successToastItem.copy(
-                            message = getString(strings.operationSuccess)
+                            message = getString(ThemeResources.strings.operationSuccess)
                         )
                     )
                     onSuccess()
@@ -375,7 +375,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
                 if (buffer != null) {
                     showToast(
                         successToastItem.copy(
-                            message = getString(strings.operationSuccess)
+                            message = getString(ThemeResources.strings.operationSuccess)
                         )
                     )
                     delay(2000)

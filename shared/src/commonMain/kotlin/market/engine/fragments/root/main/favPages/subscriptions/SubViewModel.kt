@@ -123,22 +123,15 @@ class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
 
             listingBaseViewModel.setListItemsFilterBar(
                 buildList {
-                    val filterString = getString(strings.filter)
+                    val createSbStr = getString(strings.createNewSubscriptionTitle)
                     val sortString = getString(strings.sort)
-                    val filters = listingData.value.data.filters.filter {
-                        it.value != "" &&
-                                it.interpretation?.isNotBlank() == true
-                    }
-
                     add(
                         NavigationItem(
-                            title = filterString,
-                            icon = drawables.filterIcon,
-                            tint = colors.black,
-                            hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
-                            badgeCount = if (filters.isNotEmpty()) filters.size else null,
+                            title = createSbStr,
+                            icon = drawables.plusIcon,
+                            tint = colors.positiveGreen,
                             onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
+                                component.goToCreateNewSubscription()
                             }
                         )
                     )

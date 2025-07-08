@@ -17,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import market.engine.common.AnalyticsFactory
 import market.engine.common.navigateToAppSettings
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -32,11 +31,8 @@ import org.koin.compose.koinInject
 
 
 @Composable
-fun AppSettingsContent() {
+fun AppSettingsContent(onChangeTheme: (Boolean) -> Unit) {
     val settings: SettingsRepository = koinInject()
-
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
     val isLightMode =
         remember { mutableStateOf(settings.themeMode.value != "night") }
 
@@ -90,14 +86,7 @@ fun AppSettingsContent() {
                     checked = isLightMode.value,
                     onCheckedChange = {
                         isLightMode.value = !isLightMode.value
-                        settings.updateThemeMode(if (isLightMode.value) "day" else "night")
-
-                        val eventParameters =
-                            mapOf("mode_theme" to if (isLightMode.value) "day" else "night")
-                        analyticsHelper.reportEvent(
-                            "change_theme",
-                            eventParameters
-                        )
+                       onChangeTheme(isLightMode.value)
                     },
                     colors = SwitchDefaults.colors(
                         checkedBorderColor = colors.transparent,

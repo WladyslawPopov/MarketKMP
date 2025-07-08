@@ -96,7 +96,6 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
 
         BasketUiState(
             appBarData = SimpleAppBarData(
-                color = colors.white,
                 listItems = listOf(
                     NavigationItem(
                         title = "",

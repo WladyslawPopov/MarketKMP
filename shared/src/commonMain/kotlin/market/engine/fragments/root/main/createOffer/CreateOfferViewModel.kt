@@ -191,7 +191,6 @@ class CreateOfferViewModel(
                 onBackClick = {
                     onBack()
                 },
-                color = colors.white,
                 listItems = listOf(
                     NavigationItem(
                         title = "",

@@ -35,7 +35,7 @@ import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.root.dynamicSettings.DeliveryCardsViewModel
+import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 

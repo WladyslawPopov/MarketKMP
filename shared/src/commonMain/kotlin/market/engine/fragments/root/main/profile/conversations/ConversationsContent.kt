@@ -128,9 +128,9 @@ fun ConversationsContent(
                                     viewModel.updatePage()
                                 }
                             ),
-                        ),
-                        color = colors.primaryColor,
-                    )
+                        )
+                    ),
+                    color = colors.transparent
                 ) {
                     TextAppBar(
                         stringResource(strings.messageTitle)

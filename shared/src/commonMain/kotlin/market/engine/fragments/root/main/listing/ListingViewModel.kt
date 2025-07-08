@@ -214,7 +214,6 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
 
             _listingDataState.value = ListingContentState(
                 appBarData = SimpleAppBarData(
-                    color = colors.primaryColor,
                     onBackClick = {
                         backClick()
                     },

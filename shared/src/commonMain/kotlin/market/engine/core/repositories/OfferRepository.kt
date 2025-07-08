@@ -1,5 +1,6 @@
 package market.engine.core.repositories
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -45,6 +46,7 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
 
@@ -79,6 +81,9 @@ class OfferRepository(
 
     private val _futureTimeInSeconds = MutableStateFlow("")
     val futureTimeInSeconds = _futureTimeInSeconds.asStateFlow()
+
+    private val _isMenuVisible = MutableStateFlow(false)
+    val isMenuVisible = _isMenuVisible.asStateFlow()
 
     
     init {
@@ -396,6 +401,7 @@ class OfferRepository(
                                                     when (operation.id) {
                                                         "watch", "unwatch", "create_blank_offer_list" -> {
                                                             viewModel.setUpdateItem(offer.id)
+                                                            updateOperations()
                                                         }
 
                                                         else -> {
@@ -697,6 +703,10 @@ class OfferRepository(
         }
     }
 
+    fun closeMenu(){
+        _isMenuVisible.value = false
+    }
+
     fun onAddBidClick(bid : Long){
         if (UserData.token != "") {
             _myMaximalBid.value = bid.toString()
@@ -788,7 +798,8 @@ class OfferRepository(
                             )
                         )
                     }
-                ))
+                )
+            )
 
             add(
                 MenuItem(
@@ -881,8 +892,8 @@ class OfferRepository(
         }
     }
 
-
-    suspend fun getAppBarOfferList(): List<NavigationItem> {
+    @Composable
+    fun getAppBarOfferList(): List<NavigationItem> {
         val operations = operationsList.value
         return listOf(
             NavigationItem(
@@ -897,7 +908,7 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = getString(strings.editLabel),
+                title = stringResource(strings.editLabel),
                 icon = drawables.editIcon,
                 tint = colors.black,
                 hasNews = false,
@@ -908,7 +919,7 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = getString(strings.myNotesTitle),
+                title = stringResource(strings.myNotesTitle),
                 icon = drawables.editNoteIcon,
                 tint = colors.black,
                 hasNews = false,
@@ -919,7 +930,7 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = getString(strings.favoritesTitle),
+                title = stringResource(strings.favoritesTitle),
                 icon = if (operations.find { it.id == "watch" } == null) drawables.favoritesIconSelected else drawables.favoritesIcon,
                 tint = colors.inactiveBottomNavIconColor,
                 hasNews = false,
@@ -930,22 +941,16 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = getString(strings.menuTitle),
+                title = stringResource(strings.menuTitle),
                 icon = drawables.menuIcon,
                 tint = colors.black,
                 hasNews = false,
                 badgeCount = null,
                 onClick = {
-                    viewModel.viewModelScope.launch {
-                        _menuList.value = getDefOperations()
-                    }
+                    _isMenuVisible.value = true
                 }
             )
         )
-    }
-
-    fun clearMenuList(){
-        _menuList.value = emptyList()
     }
 
     fun isProposalsEnabled() : Boolean {

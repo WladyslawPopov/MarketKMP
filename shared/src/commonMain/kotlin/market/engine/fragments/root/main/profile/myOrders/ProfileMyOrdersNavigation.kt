@@ -74,9 +74,9 @@ fun ProfileMyOrdersNavigation(
                                 component.onRefreshOffers()
                             }
                         ),
-                    ),
-                    color = colors.primaryColor,
-                )
+                    )
+                ),
+                color = colors.transparent
             ) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),

@@ -85,4 +85,3 @@ fun formatBiddingStepData(field: Fields): String {
 
     return steps.joinToString("\n")
 }
-

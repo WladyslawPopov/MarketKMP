@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.listTopCategory
@@ -81,7 +82,8 @@ fun HomeContent(
         topBar = {
             DrawerAppBar(
                 data = state.appBarData,
-                drawerState = drawerState
+                drawerState = drawerState,
+                color = colors.transparent
             ){
                 Image(
                     painter = painterResource(drawables.logo),

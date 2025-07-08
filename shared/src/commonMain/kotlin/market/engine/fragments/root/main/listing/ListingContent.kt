@@ -122,7 +122,7 @@ fun ListingContent(
                     searchDataState.value?.run {
                         SimpleAppBar(
                             modifier = Modifier,
-                            data = appBarData,
+                            data = appBarData
                         ) {
                             SearchTextField(
                                 activeWindowType.value == ActiveWindowListingType.SEARCH,
@@ -149,7 +149,8 @@ fun ListingContent(
                 }
                 else -> {
                     SimpleAppBar(
-                        data = uiState.value.appBarData
+                        data = uiState.value.appBarData,
+                        color = colors.transparent
                     )
                     {
                         Row(

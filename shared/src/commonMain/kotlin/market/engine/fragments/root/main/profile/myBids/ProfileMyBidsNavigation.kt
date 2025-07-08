@@ -70,9 +70,9 @@ fun ProfileMyBidsNavigation(
                                 component.onRefreshOffers()
                             }
                         ),
-                    ),
-                    color = colors.primaryColor,
-                )
+                    )
+                ),
+                color = colors.transparent
             ){
                 val active = stringResource(strings.activeTab)
                 val inactive = stringResource(strings.inactiveTab)

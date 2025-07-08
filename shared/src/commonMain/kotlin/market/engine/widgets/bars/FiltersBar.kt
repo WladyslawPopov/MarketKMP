@@ -1,5 +1,8 @@
 package market.engine.widgets.bars
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +17,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,9 +32,15 @@ import market.engine.widgets.rows.LazyRowWithScrollBars
 fun FiltersBar(
     uiFilterBarUiState: FilterBarUiState
 ) {
-    val swipeTabsBarState = uiFilterBarUiState.swipeTabsBarState
+    val swipeTabsBarState = remember(uiFilterBarUiState.swipeTabsBarState) { uiFilterBarUiState.swipeTabsBarState }
+    val listNavigation = remember(uiFilterBarUiState.listNavigation) {  uiFilterBarUiState.listNavigation }
 
-    if(uiFilterBarUiState.listNavigation.isNotEmpty() && uiFilterBarUiState.listFiltersButtons.isNotEmpty()) {
+    AnimatedVisibility(
+        listNavigation.isNotEmpty() && listNavigation.isNotEmpty(),
+        enter = fadeIn(),
+        exit = fadeOut()
+    )
+    {
         Column {
             if (swipeTabsBarState != null) {
                 LazyRow(
@@ -82,24 +92,22 @@ fun FiltersBar(
                     }
                 }
 
-                if (uiFilterBarUiState.isShowFilters) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(
-                            dimens.smallPadding,
-                            alignment = Alignment.End
-                        )
-                    ) {
-                        uiFilterBarUiState.listNavigation.forEach { item ->
-                            if (item.isVisible) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .background(colors.grayLayout, MaterialTheme.shapes.medium)
-                                        .padding(dimens.smallSpacer)
-                                ) {
-                                    BadgedButton(item)
-                                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.smallPadding,
+                        alignment = Alignment.End
+                    )
+                ) {
+                    listNavigation.forEach { item ->
+                        if (item.isVisible) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(colors.grayLayout, MaterialTheme.shapes.medium)
+                                    .padding(dimens.smallSpacer)
+                            ) {
+                                BadgedButton(item)
                             }
                         }
                     }

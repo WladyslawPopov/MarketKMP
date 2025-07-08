@@ -11,6 +11,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.widgets.badges.BadgedButton
@@ -22,6 +24,7 @@ fun DrawerAppBar(
     modifier: Modifier = Modifier,
     data: SimpleAppBarData,
     drawerState: DrawerState,
+    color: Color = colors.white,
     content: @Composable () -> Unit,
 ) {
     TopAppBar(
@@ -30,8 +33,8 @@ fun DrawerAppBar(
             content()
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = data.color,
-            scrolledContainerColor = data.color
+            containerColor = color,
+            scrolledContainerColor = color
         ),
         navigationIcon = {
             MenuHamburgerButton(

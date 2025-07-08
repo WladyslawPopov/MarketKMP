@@ -69,9 +69,9 @@ fun ProfileMyProposalsNavigation(
                                 component.onRefreshOffers()
                             }
                         ),
-                    ),
-                    color = colors.primaryColor,
-                )
+                    )
+                ),
+                color = colors.transparent
             ){
                 val allP = stringResource(strings.allProposalLabel)
                 val needP = stringResource(strings.needResponseProposalLabel)

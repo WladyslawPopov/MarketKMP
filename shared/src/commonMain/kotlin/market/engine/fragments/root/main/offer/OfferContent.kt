@@ -34,6 +34,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -61,7 +62,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.ScrollDataState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.network.networkObjects.Offer
@@ -132,12 +132,18 @@ fun OfferContent(
     val remainingTime = viewModel.remainingTime.collectAsState()
     val errorString = viewModel.errorString.collectAsState()
 
-    val menuList = offerRepository.value.menuList.collectAsState()
-
     val promoList = offerRepository.value.promoList.collectAsState()
     val operationsList = offerRepository.value.operationsList.collectAsState()
 
-    val listItems = remember { mutableStateOf<List<NavigationItem>>(emptyList())}
+    val listItems = offerRepository.value.getAppBarOfferList()
+
+    val isMenuVisible = offerRepository.value.isMenuVisible.collectAsState()
+
+    val menuItems by produceState(initialValue = emptyList(), isMenuVisible.value) {
+        if (isMenuVisible.value) {
+            value = offerRepository.value.getDefOperations()
+        }
+    }
 
     val offer = uiState.value.offer
     val offerState = uiState.value.offerState
@@ -179,20 +185,12 @@ fun OfferContent(
         }
     }
 
-    LaunchedEffect(operationsList.value){
-        snapshotFlow {
-            operationsList.value
-        }.collect {
-            listItems.value = offerRepository.value.getAppBarOfferList()
-        }
-    }
-
     val pagerState = rememberPagerState(
         pageCount = { images.size },
     )
 
     val pagerFullState = rememberPagerState(
-        pageCount = { images.size},
+        pageCount = { images.size },
     )
 
     LaunchedEffect(isImageViewerVisible.value) {
@@ -242,19 +240,24 @@ fun OfferContent(
         }
     }
 
+    val appbarData = remember(isMenuVisible.value, menuItems, listItems) {
+        SimpleAppBarData(
+            isMenuVisible = isMenuVisible.value,
+            onBackClick = {
+                component.onBackClick()
+            },
+            listItems = listItems,
+            menuItems = menuItems,
+            closeMenu = {
+                offerRepository.value.closeMenu()
+            }
+        )
+    }
+
     BaseContent(
         topBar = {
             SimpleAppBar(
-                data = SimpleAppBarData(
-                    onBackClick = {
-                        component.onBackClick()
-                    },
-                    listItems = listItems.value,
-                    menuItems = menuList.value,
-                    closeMenu = {
-                        offerRepository.value.clearMenuList()
-                    }
-                )
+                data = appbarData
             ) {
                 TextAppBar(
                     stringResource(
@@ -480,13 +483,14 @@ fun OfferContent(
 
                             item {
                                 //action seller mode and active promo options
-                                if (offerState != OfferStates.SNAPSHOT) {
+                                if (offerState != OfferStates.SNAPSHOT && UserData.token != "") {
                                     Column(
                                         modifier = Modifier.fillMaxWidth()
                                             .padding(dimens.smallPadding),
                                         horizontalAlignment = Alignment.Start,
                                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                    ) {
+                                    )
+                                    {
                                         SeparatorLabel(stringResource(strings.actionsOffersParameterName))
 
                                         Row(

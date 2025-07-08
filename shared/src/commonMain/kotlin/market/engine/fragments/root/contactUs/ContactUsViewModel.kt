@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.getFileUpload
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.DynamicPayload
@@ -22,9 +24,18 @@ import market.engine.core.network.networkObjects.OperationResult
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-class ContactUsViewModel : CoreViewModel() {
+class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
+
     private val _responseGetFields = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     val responseGetFields: StateFlow<DynamicPayload<OperationResult>?> = _responseGetFields.asStateFlow()
+
+    private val _dataImage = MutableStateFlow("")
+    val dataImage: StateFlow<String> = _dataImage.asStateFlow()
+
+    init {
+        getFields()
+        analyticsHelper.reportEvent("open_support_form", mapOf())
+    }
 
     fun getFields() {
         setLoading(true)
@@ -37,6 +48,18 @@ class ContactUsViewModel : CoreViewModel() {
                         try {
                             val serializer = DynamicPayload.serializer(OperationResult.serializer())
                             val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                            if (UserData.token != "") {
+                                payload.fields.find { it.key == "email" }?.data =
+                                    JsonPrimitive(UserData.userInfo?.email)
+                                payload.fields.find { it.key == "name" }?.data =
+                                    JsonPrimitive(UserData.userInfo?.login)
+                            }
+                            val selectedType = component.model.value.selectedType
+
+                            if (selectedType == "delete_account") {
+                                payload.fields.find { it.key == "variant" }?.data = JsonPrimitive(9)
+                            }
+
                             _responseGetFields.value = payload
                         }catch (e : Exception){
                             throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
@@ -113,14 +136,17 @@ class ContactUsViewModel : CoreViewModel() {
         }
     }
 
-    fun uploadPhotoTemp(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
+    fun uploadPhotoTemp(item : PhotoTemp) {
         viewModelScope.launch {
             val res = uploadFile(item)
 
             if (res.success != null) {
-                delay(1000)
                 withContext(Dispatchers.Main){
-                    onSuccess(res.success!!)
+                    val result = res.success!!
+                    responseGetFields.value?.fields?.find { it.widgetType == "attachment" }?.data =
+                        JsonPrimitive(result.tempId)
+
+                    _dataImage.value = item.file?.name ?: ""
                 }
             } else {
                 showToast(
@@ -130,6 +156,11 @@ class ContactUsViewModel : CoreViewModel() {
                 )
             }
         }
+    }
+
+    fun clearDataImage(){
+        _dataImage.value = ""
+        responseGetFields.value?.fields?.find { it.widgetType == "file" }?.data = null
     }
 
     private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
