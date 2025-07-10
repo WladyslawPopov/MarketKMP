@@ -12,8 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +46,7 @@ import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.textFields.DynamicInputField
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateSubscriptionContent(
     component : CreateSubscriptionComponent,
@@ -79,8 +81,7 @@ fun CreateSubscriptionContent(
 
     val scaffoldState = rememberBottomSheetScaffoldState()
 
-    val selectedCategory = categoryState.categoryViewModel.categoryName.collectAsState()
-    val selectedCategoryID = categoryState.categoryViewModel.categoryId.collectAsState()
+    val searchData = categoryState.categoryViewModel.searchData.collectAsState()
 
     LaunchedEffect(categoryState.openCategory){
         snapshotFlow {
@@ -89,7 +90,7 @@ fun CreateSubscriptionContent(
             if (it) {
                 scaffoldState.bottomSheetState.expand()
             }else{
-                scaffoldState.bottomSheetState.collapse()
+                scaffoldState.bottomSheetState.partialExpand()
             }
         }
     }
@@ -127,18 +128,18 @@ fun CreateSubscriptionContent(
             scaffoldState = scaffoldState,
             modifier = Modifier.fillMaxSize(),
             sheetContentColor = colors.primaryColor,
-            sheetBackgroundColor = colors.primaryColor,
+            sheetContainerColor = colors.primaryColor,
             contentColor = colors.primaryColor,
-            backgroundColor = colors.primaryColor,
+            containerColor = colors.primaryColor,
             sheetPeekHeight = 0.dp,
-            sheetGesturesEnabled = false,
+            sheetSwipeEnabled = false,
             sheetContent = {
                 CategoryContent(
                     viewModel= categoryState.categoryViewModel,
                     onCompleted = {
                         viewModel.applyCategory(
-                            categoryName = selectedCategory.value,
-                            categoryId = selectedCategoryID.value
+                            categoryName = searchData.value.searchCategoryName,
+                            categoryId = searchData.value.searchCategoryID
                         )
                         viewModel.closeCategory()
                     },
@@ -186,13 +187,13 @@ fun CreateSubscriptionContent(
                                                 modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.mediumPadding)
                                             ){
                                                 FilterButton(
-                                                    selectedCategory.value,
-                                                    color = if(selectedCategoryID.value == 1L)
+                                                    searchData.value.searchCategoryName,
+                                                    color = if(searchData.value.searchCategoryID == 1L)
                                                         colors.simpleButtonColors else colors.themeButtonColors,
                                                     onClick = {
                                                         viewModel.openCategory()
                                                     },
-                                                    onCancelClick =if(selectedCategoryID.value != 1L) {
+                                                    onCancelClick =if(searchData.value.searchCategoryID != 1L) {
                                                         {
                                                             viewModel.clearCategory()
                                                         }

@@ -106,7 +106,8 @@ fun CreateOfferContent(
 
     val newOfferId = viewModel.newOfferId.collectAsState()
 
-    val categoryID = uiState.value.categoryState.categoryViewModel.categoryId.collectAsState()
+    val categorySD = uiState.value.categoryState.categoryViewModel.searchData.collectAsState()
+    val categoryID = categorySD.value.searchCategoryID
 
     val isEditCategory = uiState.value.categoryState.openCategory
     val choiceCodeSaleType = viewModel.choiceCodeSaleType.collectAsState()
@@ -137,7 +138,7 @@ fun CreateOfferContent(
     )
 
     val sheetState = rememberStandardBottomSheetState(
-        initialValue = if (categoryID.value == 1L)
+        initialValue = if (categoryID == 1L)
             SheetValue.Expanded else SheetValue.PartiallyExpanded
     )
 

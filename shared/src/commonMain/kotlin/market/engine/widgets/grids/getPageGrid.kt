@@ -3,6 +3,7 @@ package market.engine.widgets.grids
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
 import kotlinx.coroutines.CoroutineScope
@@ -53,6 +55,8 @@ fun <T : Any> BoxScope.PagingList(
     searchData: SD? = null,
     promoList: List<OfferItem>? = null,
     isReversingPaging : Boolean = false,
+    contentPadding: PaddingValues = PaddingValues(dimens.zero),
+    filtersPadding: Dp = dimens.zero,
     promoContent: (@Composable (OfferItem) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
@@ -94,13 +98,11 @@ fun <T : Any> BoxScope.PagingList(
             .fillMaxSize()
             .align(align)
     ){
-        if(isReversingPaging){
-            item {
-                Spacer(
-                    modifier = Modifier
-                    .height(dimens.extraLargePadding + dimens.mediumPadding)
-                )
-            }
+        item {
+            Spacer(
+                modifier = Modifier
+                    .height(contentPadding.calculateTopPadding() + filtersPadding)
+            )
         }
 
         if (!promoList.isNullOrEmpty() && promoContent != null) {
@@ -201,9 +203,8 @@ fun <T : Any> BoxScope.PagingList(
     PagingCounterBar(
         currentPage = currentIndex,
         totalPages = totalCount,
-        modifier = Modifier.align(Alignment.BottomStart).padding(
-            bottom = if(isReversingPaging) dimens.extraLargePadding else dimens.smallPadding
-        ),
+        modifier = Modifier.align(Alignment.BottomStart)
+            .padding(bottom = contentPadding.calculateBottomPadding()),
         showUpButton = showUpButton,
         showDownButton = showDownButton,
         onClick = {

@@ -40,6 +40,7 @@ fun DynamicLabel(
         Text(
             annotatedString,
             style = style,
+            color = colors.black
         )
     }
 }

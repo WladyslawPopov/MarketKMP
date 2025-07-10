@@ -8,7 +8,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -18,7 +17,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
-import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -76,12 +74,6 @@ class FavViewModel(
 
     val activeType = listingBaseViewModel.activeWindowType
 
-    val pagingParamsFlow: Flow<ListingData> = combine(
-        listingData,
-        updatePage
-    ) { listingData, _ ->
-        listingData
-    }
 
     val filtersCategoryState = CategoryState(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
@@ -91,7 +83,7 @@ class FavViewModel(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<CabinetOfferItemState>> = pagingParamsFlow
+    val pagingDataFlow: Flow<PagingData<CabinetOfferItemState>> = listingBaseViewModel.pagingParamsFlow
         .flatMapLatest { listingParams ->
             pagingRepository.getListing(
                 listingParams,
@@ -211,7 +203,7 @@ class FavViewModel(
     fun onBackNavigation(){
         when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
-                if (filtersCategoryState.categoryViewModel.categoryId.value != 1L){
+                if (filtersCategoryState.categoryViewModel.searchData.value.searchCategoryID != 1L){
                     filtersCategoryState.categoryViewModel.navigateBack()
                 }else{
                     listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)

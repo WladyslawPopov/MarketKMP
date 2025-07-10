@@ -3,6 +3,7 @@ package market.engine.fragments.base
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -116,6 +117,13 @@ open class ListingBaseViewModel(
         viewModelScope.launch {
             catDef.value = getString(strings.categoryMain)
         }
+    }
+
+    val pagingParamsFlow: Flow<ListingData> = combine(
+        _listingData,
+        updatePage
+    ) { listingData, _ ->
+        listingData
     }
 
     val filterBarUiState : StateFlow<FilterBarUiState> = combine(
@@ -564,22 +572,17 @@ open class ListingBaseViewModel(
         searchCategoryModel.run {
             if (!value) {
                 if (complete) {
-                    if (listingData.value.searchData.searchCategoryID != categoryId.value) {
+                    if (listingData.value.searchData.searchCategoryID != searchData.value.searchCategoryID) {
                         _listingData.update {
                             it.copy(
-                                searchData = it.searchData.copy(
-                                    searchCategoryID = categoryId.value,
-                                    searchCategoryName = categoryName.value,
-                                    searchParentID = parentId.value,
-                                    searchIsLeaf = isLeaf.value,
-                                )
+                                searchData = searchData.value.copy()
                             )
                         }
                     }
                 }
                 setActiveWindowType(ActiveWindowListingType.SEARCH)
             } else {
-                if (listingData.value.searchData.searchCategoryID != categoryId.value || categories.value.isEmpty()) {
+                if (listingData.value.searchData.searchCategoryID != searchData.value.searchCategoryID || categories.value.isEmpty()) {
                     updateFromSearchData(listingData.value.searchData.copy())
                     initialize()
                 }

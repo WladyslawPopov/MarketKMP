@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -21,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -51,9 +53,12 @@ fun DrawerContent(
         drawerContainerColor = colors.primaryColor,
         drawerContentColor = colors.black,
         drawerTonalElevation = 0.dp,
-        modifier = if(!isBigScreen.value) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentWidth(),
+        modifier = if(!isBigScreen.value) Modifier.fillMaxWidth(0.8f).zIndex(100f) else Modifier.wrapContentWidth(),
     ) {
-        LazyColumnWithScrollBars {
+        LazyColumnWithScrollBars(
+            heightMod = Modifier.fillMaxSize().zIndex(100f),
+            modifierList = Modifier.fillMaxWidth().zIndex(100f)
+        ) {
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

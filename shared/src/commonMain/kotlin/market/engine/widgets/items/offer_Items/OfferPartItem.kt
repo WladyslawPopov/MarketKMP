@@ -1,7 +1,6 @@
 package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -37,18 +37,19 @@ fun OfferPartItem(
     modifier: Modifier = Modifier,
     goToOffer: (Long) -> Unit,
 ) {
-    Column(
+    Card(
         modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.Start
+        colors = colors.cardColors,
+        onClick = {
+            goToOffer(offer.id)
+        }
     ) {
         Row(
-            modifier = Modifier.clickable {
-                goToOffer(offer.id)
-            }.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
-        ) {
+        )
+        {
             Box(
                 modifier = Modifier
                     .padding(dimens.smallPadding)

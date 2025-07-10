@@ -1,26 +1,33 @@
 package market.engine.fragments.root.main
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.fragments.root.main.favPages.FavoritesNavigation
 import market.engine.fragments.root.main.profile.ProfileNavigation
-import market.engine.widgets.bars.getBottomNavBar
+import market.engine.widgets.bars.GetBottomNavBar
 import market.engine.widgets.bars.getRailNavBar
 import market.engine.widgets.dialogs.LogoutDialog
 
@@ -52,49 +59,69 @@ fun MainNavigation(
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
     val showLogoutDialog = viewModel.showLogoutDialog.collectAsState()
+    var bottomBarHeight by remember { mutableStateOf(dimens.zero) }
+    val density = LocalDensity.current
 
-    Scaffold(
-        bottomBar = { if (model.value.showBottomBar.value){ getBottomNavBar(model.value.bottomList.value, currentScreen) }},
-    ) { innerPadding ->
+    Scaffold { contentPadding ->
         Children(
             stack = childStack,
-            modifier = modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding()),
             animation = stackAnimation(fade())
         ) { child ->
-            Row {
-                if (!model.value.showBottomBar.value) {
-                    getRailNavBar(listItems = model.value.bottomList.value, currentScreen = currentScreen)
-                }
-                when (child.instance) {
-                    is ChildMain.HomeChildMain ->
-                        HomeNavigation(Modifier.weight(1f), component.childHomeStack)
-
-                    is ChildMain.CategoryChildMain ->
-                        SearchNavigation(Modifier.weight(1f), component.childSearchStack)
-
-                    is ChildMain.BasketChildMain ->
-                        BasketNavigation(Modifier.weight(1f), component.childBasketStack)
-
-                    is ChildMain.FavoritesChildMain ->
-                        FavoritesNavigation(Modifier.weight(1f), component.childFavoritesStack)
-
-                    is ChildMain.ProfileChildMain ->
-                        ProfileNavigation(
-                            Modifier.weight(1f),
-                            component.childProfileStack,
-                            model.value.publicProfileNavigationItems.value
+            Box(modifier = modifier) {
+                Row {
+                    if (!model.value.showBottomBar.value) {
+                        getRailNavBar(
+                            listItems = model.value.bottomList.value,
+                            currentScreen = currentScreen
                         )
+                    }
+                    when (child.instance) {
+                        is ChildMain.HomeChildMain ->
+                            HomeNavigation(
+                                Modifier.weight(1f),
+                                bottomBarHeight,
+                                component.childHomeStack
+                            )
+
+                        is ChildMain.CategoryChildMain ->
+                            SearchNavigation(Modifier.weight(1f), component.childSearchStack)
+
+                        is ChildMain.BasketChildMain ->
+                            BasketNavigation(Modifier.weight(1f), component.childBasketStack)
+
+                        is ChildMain.FavoritesChildMain ->
+                            FavoritesNavigation(Modifier.weight(1f), component.childFavoritesStack)
+
+                        is ChildMain.ProfileChildMain ->
+                            ProfileNavigation(
+                                Modifier.weight(1f),
+                                component.childProfileStack,
+                                model.value.publicProfileNavigationItems.value
+                            )
+                    }
+                }
+
+                LogoutDialog(
+                    showLogoutDialog = showLogoutDialog.value,
+                    onDismiss = { viewModel.setLogoutDialog(false) },
+                    goToLogin = {
+                        viewModel.setLogoutDialog(false)
+                        goToLogin(true)
+                    }
+                )
+
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .zIndex(300f)
+                        .onSizeChanged {
+                            bottomBarHeight = with(density) { it.height.toDp() }
+                        },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    GetBottomNavBar(model.value.bottomList.value, currentScreen)
                 }
             }
-
-            LogoutDialog(
-                showLogoutDialog = showLogoutDialog.value,
-                onDismiss = { viewModel.setLogoutDialog(false) },
-                goToLogin = {
-                    viewModel.setLogoutDialog(false)
-                    goToLogin(true)
-                }
-            )
         }
     }
 }

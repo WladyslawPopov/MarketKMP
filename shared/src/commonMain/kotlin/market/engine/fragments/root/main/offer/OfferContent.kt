@@ -158,6 +158,8 @@ fun OfferContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val valuesPickerState = rememberPickerState()
 
+    val toastItem = viewModel.toastItem.collectAsState()
+
     val focusManager = LocalFocusManager.current
 
     val stateColumn = rememberLazyListState(
@@ -270,7 +272,7 @@ fun OfferContent(
         isLoading = isLoading.value || offer.id == 1L,
         error = error,
         noFound = null,
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         onRefresh = {
             viewModel.refreshPage()
         },

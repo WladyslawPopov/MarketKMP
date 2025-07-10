@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +46,7 @@ import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferFilterContent(
     initialFilters: List<Filter>,
@@ -148,7 +151,13 @@ fun OfferFilterContent(
         if (openCategory.value) {
             scaffoldState.bottomSheetState.expand()
         } else {
-            scaffoldState.bottomSheetState.collapse()
+            scaffoldState.bottomSheetState.partialExpand()
+        }
+    }
+
+    LaunchedEffect(scaffoldState.bottomSheetState.currentValue){
+        if(scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded){
+            openCategory.value = false
         }
     }
 
@@ -156,11 +165,11 @@ fun OfferFilterContent(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
         sheetContentColor = colors.primaryColor,
-        sheetBackgroundColor = colors.primaryColor,
+        sheetContainerColor = colors.white,
         contentColor = colors.primaryColor,
-        backgroundColor = colors.primaryColor,
+        containerColor = colors.primaryColor,
         sheetPeekHeight = 0.dp,
-        sheetGesturesEnabled = false,
+        sheetSwipeEnabled = true,
         sheetContent = {
             CategoryContent(
                 viewModel = viewModel,
@@ -168,17 +177,17 @@ fun OfferFilterContent(
                     openCategory.value = false
                 },
                 onCompleted = {
-                    if (viewModel.categoryId.value != 1L) {
-                        listingData.find { it.key == "category" }?.value =
-                            viewModel.categoryId.value.toString()
+                    val sd = viewModel.searchData.value
+                    if (sd.searchCategoryID != 1L) {
+                        listingData.find { it.key == "category" }?.value = sd.searchCategoryID.toString()
                         listingData.find { it.key == "category" }?.interpretation =
-                            viewModel.categoryName.value
+                            sd.searchCategoryName
                         listingData.find { it.key == "category" }?.operation =
-                            viewModel.isLeaf.value.toString()
+                            sd.searchIsLeaf.toString()
                     }
 
-                    selectedCategory.value = viewModel.categoryName.value
-                    activeCategory.value = viewModel.categoryId.value
+                    selectedCategory.value = sd.searchCategoryName
+                    activeCategory.value = sd.searchCategoryID
                     trigger.value++
                     openCategory.value = false
                 }

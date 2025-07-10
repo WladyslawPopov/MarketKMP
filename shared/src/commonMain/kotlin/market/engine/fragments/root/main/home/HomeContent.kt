@@ -2,7 +2,9 @@ package market.engine.fragments.root.main.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DrawerValue
@@ -15,9 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.listTopCategory
@@ -39,6 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeContent(
     component: HomeComponent,
+    bottomPadding: Dp = dimens.bottomBar,
     modifier: Modifier = Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -63,7 +68,7 @@ fun HomeContent(
         }
     }
 
-    BackHandler(model.backHandler){}
+    BackHandler(model.backHandler) {}
 
     val scrollState = rememberLazyListState(
         initialFirstVisibleItemIndex = homeViewModel.scrollState.value.scrollItem,
@@ -78,95 +83,103 @@ fun HomeContent(
         }
     }
 
-    BaseContent(
-        topBar = {
-            DrawerAppBar(
-                data = state.appBarData,
+    ModalNavigationDrawer(
+        modifier = modifier,
+        drawerState = drawerState,
+        drawerContent = {
+            DrawerContent(
                 drawerState = drawerState,
-                color = colors.transparent
-            ){
-                Image(
-                    painter = painterResource(drawables.logo),
-                    contentDescription = stringResource(strings.homeTitle),
-                    modifier = Modifier.size(140.dp, 68.dp),
-                )
-            }
+                goToLogin = {
+                    component.goToLogin()
+                },
+                list = state.drawerList
+            )
         },
-        isLoading = isLoading.value,
-        onRefresh = { homeViewModel.updateModel() },
-        floatingActionButton = {
-            floatingCreateOfferButton {
-                component.goToCreateOffer()
-            }
-        },
-        error = errorContent,
-        noFound = null,
-        toastItem = toastItem.value,
-        modifier = Modifier.fillMaxSize()
+        gesturesEnabled = drawerState.isOpen,
     ) {
-        ModalNavigationDrawer(
-            modifier = modifier,
-            drawerState = drawerState,
-            drawerContent = {
-                DrawerContent(
-                    drawerState = drawerState,
-                    goToLogin = {
-                        component.goToLogin()
-                    },
-                    list = state.drawerList
-                )
+        BaseContent(
+            topBar = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    DrawerAppBar(
+                        data = state.appBarData,
+                        drawerState = drawerState,
+                        color = colors.white.copy(0.7f)
+                    ) {
+                        Image(
+                            painter = painterResource(drawables.logo),
+                            contentDescription = stringResource(strings.homeTitle),
+                            modifier = Modifier.size(140.dp, 68.dp),
+                        )
+                    }
+
+                    SearchBar {
+                        component.goToNewSearch()
+                    }
+                }
             },
-            gesturesEnabled = drawerState.isOpen,
-        ) {
-            Column(
-                modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                SearchBar {
-                    component.goToNewSearch()
+            isLoading = isLoading.value,
+            onRefresh = { homeViewModel.updateModel() },
+            floatingActionButton = {
+                floatingCreateOfferButton {
+                    component.goToCreateOffer()
+                }
+            },
+            error = errorContent,
+            bottomPadding = bottomPadding,
+            noFound = null,
+            toastItem = toastItem.value,
+            modifier = Modifier.fillMaxSize()
+        ) { appPadding ->
+            LazyColumnWithScrollBars(
+                state = scrollState,
+            )
+            {
+                item {
+                    Spacer(Modifier.height(appPadding))
                 }
 
-                LazyColumnWithScrollBars(
-                    state = scrollState,
-                )
-                {
-                    item {
-                        CategoryList(
-                            categories = state.categories
-                        ) { category ->
-                            homeViewModel.goToCategory(category)
+                item {
+                    CategoryList(
+                        categories = state.categories
+                    ) { category ->
+                        homeViewModel.goToCategory(category)
+                    }
+                }
+                item {
+                    GridPromoOffers(
+                        state.promoOffers1,
+                        onOfferClick = {
+                            component.goToOffer(it)
+                        },
+                        onAllClickButton = {
+                            homeViewModel.goToAllPromo()
                         }
+                    )
+                }
+                item {
+                    GridPopularCategory(listTopCategory) { topCategory ->
+                        homeViewModel.goToCategory(topCategory)
                     }
-                    item {
-                        GridPromoOffers(
-                            state.promoOffers1,
-                            onOfferClick = {
-                                component.goToOffer(it)
-                            },
-                            onAllClickButton = {
-                                homeViewModel.goToAllPromo()
-                            }
-                        )
-                    }
-                    item {
-                        GridPopularCategory(listTopCategory) { topCategory ->
-                            homeViewModel.goToCategory(topCategory)
+                }
+                item {
+                    GridPromoOffers(
+                        state.promoOffers2,
+                        onOfferClick = {
+                            component.goToOffer(it)
+                        },
+                        onAllClickButton = {
+                            homeViewModel.goToAllPromo()
                         }
-                    }
-                    item {
-                        GridPromoOffers(
-                            state.promoOffers2,
-                            onOfferClick = {
-                                component.goToOffer(it)
-                            },
-                            onAllClickButton = {
-                                homeViewModel.goToAllPromo()
-                            }
-                        )
-                    }
-                    item {
-                        FooterRow(state.listFooter)
-                    }
+                    )
+                }
+                item {
+                    FooterRow(state.listFooter)
+                }
+
+                item {
+                    Spacer(Modifier.height(bottomPadding))
                 }
             }
         }

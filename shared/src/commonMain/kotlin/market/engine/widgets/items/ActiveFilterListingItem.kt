@@ -24,14 +24,15 @@ fun ActiveFilterListingItem(
         label = {
             Text(
                 item.text,
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.black
             )
         },
         trailingIcon = {
             SmallIconButton(
                 drawables.cancelIcon,
                 color = colors.black,
-                modifierIconSize = Modifier.size(dimens.smallIconSize),
+                modifierIconSize = Modifier.size(dimens.extraSmallIconSize),
                 modifier = Modifier.size(dimens.smallIconSize)
             ) {
                 item.removeFilter()

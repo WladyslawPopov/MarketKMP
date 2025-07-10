@@ -154,7 +154,7 @@ class MyProposalsViewModel(
     fun onBackNavigation(){
         when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
-                if (filtersCategoryModel.categoryId.value != 1L){
+                if (filtersCategoryModel.searchData.value.searchCategoryID != 1L){
                     filtersCategoryModel.navigateBack()
                 }else{
                     listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)

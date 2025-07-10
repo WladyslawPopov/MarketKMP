@@ -250,7 +250,7 @@ fun MyOrderItem(
                             DynamicLabel(
                                 "${index + 1})",
                                 false,
-                                style = MaterialTheme.typography.titleSmall
+                                style = MaterialTheme.typography.titleSmall,
                             )
 
                             OfferPartItem(

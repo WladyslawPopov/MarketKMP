@@ -277,7 +277,7 @@ fun OfferItem.setNewParams(offer: Offer) {
     watchersCount = offer.watchersCount
     myMaximalBid = offer.myMaximalBid
     currentQuantity = offer.currentQuantity
-    quantity = offer.quantity
+    quantity = offer.originalQuantity
     videoUrls = offer.videoUrls
     isPrototype = offer.isPrototype
     safeDeal = offer.safeDeal
@@ -314,8 +314,8 @@ fun Offer.parseToOfferItem() : OfferItem {
         isWatchedByMe = isWatchedByMe,
         videoUrls = videoUrls,
         isPrototype = isPrototype,
-        quantity = quantity,
-        price = currentPricePerItem ?: "",
+        quantity = originalQuantity,
+        price = currentPricePerItem ?: pricePerItem ?: buyNowPrice ?: "",
         type = saleType ?: "",
         seller = sellerData ?: User(),
         buyer = buyerData,

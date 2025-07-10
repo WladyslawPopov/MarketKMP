@@ -143,7 +143,7 @@ fun PublicOfferItem(
                 }
 
                 if (!item.isPrototype) {
-                    var sessionEnd = stringResource(strings.offerSessionInactiveLabel)
+                    val sessionEnd = stringResource(strings.offerSessionInactiveLabel)
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -193,7 +193,7 @@ fun PublicOfferItem(
                                 )
 
                                 Text(
-                                    text = item.quantity.toString(),
+                                    text = item.currentQuantity.toString(),
                                     style = MaterialTheme.typography.labelSmall,
                                 )
 
@@ -201,7 +201,7 @@ fun PublicOfferItem(
                                 var color = colors.grayText
 
                                 if (!item.isPrototype) {
-                                    if (item.quantity < 2) {
+                                    if (item.currentQuantity < 2) {
                                         if (item.buyer?.login != "" && item.buyer?.login != null) {
                                             buyer = item.buyer?.login ?: ""
                                             color = colors.ratingBlue

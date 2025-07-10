@@ -37,4 +37,7 @@ interface Dimens {
     val mediumText : TextUnit
     val largeText : TextUnit
     val extraLargeText : TextUnit
+
+    val bottomBar : Dp
+    val appBar : Dp
 }

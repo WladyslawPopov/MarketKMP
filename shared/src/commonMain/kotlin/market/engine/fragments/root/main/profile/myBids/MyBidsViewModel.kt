@@ -153,7 +153,7 @@ class MyBidsViewModel(
     fun onBackNavigation(){
         when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
-                if (categoryState.categoryViewModel.categoryId.value != 1L){
+                if (categoryState.categoryViewModel.searchData.value.searchCategoryID != 1L){
                     categoryState.categoryViewModel.navigateBack()
                 }else{
                     _activeWindowType.value = ActiveWindowListingType.LISTING

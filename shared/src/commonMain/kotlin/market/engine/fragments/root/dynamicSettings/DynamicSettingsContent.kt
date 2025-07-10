@@ -142,7 +142,7 @@ fun DynamicSettingsContent(
                         }
 
                         "set_about_me" -> {
-                            pageState.value.fields.find { it.widgetType == "text_aria" }?.let {
+                            pageState.value.fields.find { it.widgetType == "text_area" }?.let {
                                 DescriptionTextField(it, richTextState)
                             }
 

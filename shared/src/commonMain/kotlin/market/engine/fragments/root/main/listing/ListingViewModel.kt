@@ -209,9 +209,6 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
             val subs = getString(strings.subscribersLabel)
             val searchTitle = getString(strings.searchTitle)
 
-            listingCategoryModel.updateFromSearchData(ld.searchData)
-            listingCategoryModel.initialize(ld.data.filters)
-
             _listingDataState.value = ListingContentState(
                 appBarData = SimpleAppBarData(
                     onBackClick = {
@@ -277,15 +274,10 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
             } else {
                 if (complete) {
                     listingCategoryModel.run {
-                        if (ld.value.searchData.searchCategoryID != categoryId.value) {
+                        if (ld.value.searchData.searchCategoryID != searchData.value.searchCategoryID) {
                             listingBaseVM.setListingData(
                                 ld.value.copy(
-                                    searchData = SD(
-                                        searchCategoryID = categoryId.value,
-                                        searchCategoryName = categoryName.value,
-                                        searchParentID = parentId.value,
-                                        searchIsLeaf = isLeaf.value,
-                                    )
+                                    searchData = searchData.value
                                 )
                             )
 
@@ -479,12 +471,12 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
     fun backClick() {
         when {
             activeType.value == ActiveWindowListingType.CATEGORY_FILTERS &&
-                    listingBaseVM.searchCategoryModel.categoryId.value != 1L -> {
+                    listingBaseVM.searchCategoryModel.searchData.value.searchCategoryID!= 1L -> {
                 listingBaseVM.searchCategoryModel.navigateBack()
             }
 
             activeType.value == ActiveWindowListingType.CATEGORY &&
-                    listingCategoryModel.categoryId.value != 1L -> {
+                    listingBaseVM.searchCategoryModel.searchData.value.searchCategoryID!= 1L -> {
                 listingCategoryModel.navigateBack()
             }
 

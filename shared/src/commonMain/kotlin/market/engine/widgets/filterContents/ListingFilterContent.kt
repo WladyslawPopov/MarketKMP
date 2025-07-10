@@ -45,6 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 fun FilterListingContent(
     initialFilters: List<Filter>,
     regionsOptions: List<Options>,
+    modifier: Modifier = Modifier,
     onClear: () -> Unit,
     onClosed: (newFilters : List<Filter>) -> Unit,
 ) {
@@ -161,18 +162,20 @@ fun FilterListingContent(
     }
 
     Box(
-        modifier = Modifier.background(colors.primaryColor).fillMaxSize().pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                focusManager.clearFocus()
-            })
-        }.padding(dimens.smallPadding),
+        modifier = modifier
+            .background(colors.primaryColor)
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
         contentAlignment = Alignment.TopCenter
     ) {
         LazyColumnWithScrollBars(
             modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp),
             verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = dimens.smallPadding,
             state = scrollState
         )
         {

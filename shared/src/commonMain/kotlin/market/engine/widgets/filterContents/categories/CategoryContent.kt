@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,18 +37,18 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CategoryContent(
     viewModel: CategoryViewModel,
+    modifier: Modifier = Modifier,
     onCompleted: () -> Unit,
     onClose: () -> Unit,
 ) {
-    val searchCategoryName = viewModel.categoryName.collectAsState()
-    val searchCategoryId = viewModel.categoryId.collectAsState()
+    val searchData = viewModel.searchData.collectAsState()
     val isLoading = viewModel.isLoading.collectAsState()
     val categories = viewModel.categories.collectAsState()
     val selectedId = viewModel.selectedId.collectAsState()
-    val isLeaf = viewModel.isLeaf.collectAsState()
+
 
     val onBack = remember {{
-        if (searchCategoryId.value != 1L) {
+        if (searchData.value.searchCategoryID != 1L) {
             viewModel.navigateBack()
         }else{
             onClose()
@@ -57,7 +58,7 @@ fun CategoryContent(
     val noFound : @Composable () -> Unit = remember(categories.value){{
         if (categories.value.isEmpty()) {
             NoItemsFoundLayout(
-                textButton = if(searchCategoryId.value != 1L) stringResource(strings.resetLabel)
+                textButton = if(searchData.value.searchCategoryID != 1L) stringResource(strings.resetLabel)
                 else stringResource(strings.refreshButton),
             ) {
                 viewModel.resetToRoot()
@@ -74,102 +75,105 @@ fun CategoryContent(
         isLoading = isLoading.value,
         modifier = Modifier.fillMaxSize(),
     ) {
-        LazyColumnWithScrollBars(
-            modifierList = Modifier
-                .fillMaxWidth(if(isBigScreen.value) 0.8f else 1f)
-                .padding(bottom = 60.dp)
-                .align(Alignment.TopCenter),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(dimens.smallPadding),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AnimatedVisibility(
-                        visible = searchCategoryId.value != 1L,
-                        enter = fadeIn(),
-                        exit = fadeOut()
+        Box(modifier) {
+            LazyColumnWithScrollBars(
+                modifierList = Modifier
+                    .fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
+                    .padding(bottom = 60.dp)
+                    .align(Alignment.TopCenter),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(dimens.smallPadding),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        NavigationArrowButton {
-                            if(!isLoading.value) {
-                                onBack()
+                        AnimatedVisibility(
+                            visible = searchData.value.searchCategoryID != 1L,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
+                            NavigationArrowButton {
+                                if (!isLoading.value) {
+                                    onBack()
+                                }
                             }
                         }
-                    }
 
-                    TextAppBar(
-                        buildString {
-                            if (searchCategoryId.value == 1L){
-                                append(viewModel.catDef.value)
-                            } else {
-                                append(searchCategoryName.value)
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-
-                    if (searchCategoryId.value != 1L) {
-                        ActionButton(
-                            stringResource(strings.clear),
-                            fontSize = dimens.mediumText,
-                        ){
-                            viewModel.resetToRoot()
-                        }
-                    }
-                }
-            }
-            item { noFound() }
-            items(categories.value) { category ->
-                val icon = getCategoryIcon(category.name)
-
-                val isSelected = remember(selectedId.value) {
-                    if (viewModel.categoryWithoutCounter)
-                        selectedId.value == category.id else category.isLeaf
-                }
-
-                val item = remember(category) {
-                    NavigationItem(
-                        title = category.name ?: viewModel.catDef.value,
-                        image = icon,
-                        badgeCount = if (!viewModel.categoryWithoutCounter)
-                            category.estimatedActiveOffersCount else null,
-                        onClick = {
-                            viewModel.selectCategory(category)
-                            if (category.isLeaf && !viewModel.categoryWithoutCounter) {
-                                onCompleted()
-                            }
-                        }
-                    )
-                }
-
-                getNavigationItem(
-                    item,
-                    label = {
-                        Text(
-                            category.name ?: "",
-                            color = colors.black,
-                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                            lineHeight = dimens.largeText
+                        TextAppBar(
+                            buildString {
+                                if (searchData.value.searchCategoryID == 1L) {
+                                    append(viewModel.catDef.value)
+                                } else {
+                                    append(searchData.value.searchCategoryName)
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
                         )
-                    },
-                    isSelected = isSelected,
-                    badgeColor = colors.steelBlue
-                ){
-                    item.onClick()
+
+                        if (searchData.value.searchCategoryID != 1L) {
+                            ActionButton(
+                                stringResource(strings.clear),
+                                fontSize = dimens.mediumText,
+                            ) {
+                                viewModel.resetToRoot()
+                            }
+                        }
+                    }
+                }
+                item { noFound() }
+                items(categories.value) { category ->
+                    val icon = getCategoryIcon(category.name)
+
+                    val isSelected = remember(selectedId.value) {
+                        if (viewModel.categoryWithoutCounter)
+                            selectedId.value == category.id else category.isLeaf
+                    }
+
+                    val item = remember(category) {
+                        NavigationItem(
+                            title = category.name ?: viewModel.catDef.value,
+                            image = icon,
+                            badgeCount = if (!viewModel.categoryWithoutCounter)
+                                category.estimatedActiveOffersCount else null,
+                            onClick = {
+                                viewModel.selectCategory(category)
+                                if (category.isLeaf && !viewModel.categoryWithoutCounter) {
+                                    onCompleted()
+                                }
+                            }
+                        )
+                    }
+
+                    getNavigationItem(
+                        item,
+                        label = {
+                            Text(
+                                category.name ?: "",
+                                color = colors.black,
+                                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                lineHeight = dimens.largeText
+                            )
+                        },
+                        isSelected = isSelected,
+                        badgeColor = colors.steelBlue
+                    ) {
+                        item.onClick()
+                    }
                 }
             }
-        }
 
-        AcceptedPageButton(
-            viewModel.catBtn.value,
-            Modifier.fillMaxWidth(if(isBigScreen.value) 0.8f else 1f).padding(dimens.smallPadding).align(Alignment.BottomCenter),
-            enabled = viewModel.enabledBtn.value || isLeaf.value
-        ) {
-            onCompleted()
+            AcceptedPageButton(
+                viewModel.catBtn.value,
+                Modifier.fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
+                    .padding(dimens.smallPadding).align(Alignment.BottomCenter),
+                enabled = viewModel.enabledBtn.value || searchData.value.searchIsLeaf
+            ) {
+                onCompleted()
+            }
         }
     }
 }

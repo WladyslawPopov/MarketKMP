@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.states.FilterBarUiState
@@ -50,7 +51,7 @@ fun FiltersBar(
                 ) {
                     items(swipeTabsBarState.tabs) { tab ->
                         FilterChip(
-                            modifier = Modifier.padding(dimens.smallPadding),
+                            modifier = Modifier.padding(dimens.extraSmallPadding),
                             selected = tab.title == swipeTabsBarState.currentTab,
                             onClick = {
                                 tab.onClick()
@@ -58,7 +59,8 @@ fun FiltersBar(
                             label = {
                                 Text(
                                     tab.title,
-                                    style = MaterialTheme.typography.bodySmall
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.black
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
@@ -84,6 +86,7 @@ fun FiltersBar(
                         .clip(MaterialTheme.shapes.small)
                         .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    contentPadding = 0.dp
                 ) {
                     items(uiFilterBarUiState.listFiltersButtons, key = { it.text }) { item ->
                         ActiveFilterListingItem(

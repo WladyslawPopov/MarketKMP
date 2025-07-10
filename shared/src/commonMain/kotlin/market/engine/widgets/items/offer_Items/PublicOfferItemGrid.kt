@@ -146,7 +146,7 @@ fun PublicOfferItemGrid(
                 }
 
                 if (!item.isPrototype) {
-                    var sessionEnd = stringResource(strings.offerSessionInactiveLabel)
+                    val sessionEnd = stringResource(strings.offerSessionInactiveLabel)
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

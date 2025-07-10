@@ -671,7 +671,7 @@ class OfferViewModel(
 
         val quantityInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity}"
 
-        val qFullInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity} ${getString(strings.fromParameterName)} ${offer.quantity}"
+        val qFullInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity} ${getString(strings.fromParameterName)} ${offer.originalQuantity}"
 
         return when {
             saleType == "buy_now" -> {

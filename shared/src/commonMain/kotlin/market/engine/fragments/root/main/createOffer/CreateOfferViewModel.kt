@@ -119,6 +119,8 @@ class CreateOfferViewModel(
     val newOfferId = _newOfferId.asStateFlow()
 
     private val deleteImages = MutableStateFlow<List<JsonPrimitive>>(emptyList())
+    
+    val searchData = categoryViewModel.searchData
 
     val createOfferContentState : StateFlow<CreateOfferContentState> = combine(
         _responsePostPage,
@@ -126,7 +128,8 @@ class CreateOfferViewModel(
         _responseImages,
         _responseCatHistory,
         _isEditCat,
-    ) { postPage, dynamicPayload, images, catHistory, openCategory ->
+    )
+    { postPage, dynamicPayload, images, catHistory, openCategory ->
         val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
 
         if (images.isEmpty()) {
@@ -169,7 +172,7 @@ class CreateOfferViewModel(
         dynamicPayload?.fields?.find { it.key == "category_id" }
             ?.let { field ->
                 field.data?.jsonPrimitive?.longOrNull?.let {
-                    if (categoryViewModel.categoryId.value == 1L) {
+                    if (categoryViewModel.searchData.value.searchCategoryID == 1L) {
                         categoryViewModel.updateFromSearchData(SD(
                             searchCategoryID = it,
                             searchCategoryName = "",
@@ -225,7 +228,7 @@ class CreateOfferViewModel(
         when(type){
             CreateOfferType.CREATE -> {
                 categoryViewModel.initialize()
-                _isEditCat.value = categoryViewModel.categoryId.value == 1L
+                _isEditCat.value = searchData.value.searchCategoryID == 1L
                 analyticsHelper.reportEvent("add_offer_start", mapOf())
             }
             CreateOfferType.EDIT -> {
@@ -254,23 +257,23 @@ class CreateOfferViewModel(
     fun refreshPage(){
         refresh()
 
-        if(categoryViewModel.categoryId.value != 1L) {
-            getCategoriesHistory(categoryViewModel.categoryId.value)
+        if(searchData.value.searchCategoryID != 1L) {
+            getCategoriesHistory(searchData.value.searchCategoryID)
 
             // update params after category change
             if (_isEditCat.value) {
-                updateParams(categoryViewModel.categoryId.value)
+                updateParams(searchData.value.searchCategoryID)
                 _isEditCat.value = false
             } else {
                 val url = when (type) {
-                    CreateOfferType.CREATE -> "categories/${categoryViewModel.categoryId.value}/operations/create_offer"
+                    CreateOfferType.CREATE -> "categories/${searchData.value.searchCategoryID}/operations/create_offer"
                     CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
                     CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
                     CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
                     CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
                 }
                 if (type != CreateOfferType.CREATE) {
-                    updateParams(categoryViewModel.categoryId.value)
+                    updateParams(searchData.value.searchCategoryID)
                 }
                 getPage(url)
             }
@@ -278,7 +281,7 @@ class CreateOfferViewModel(
     }
 
     fun onBack(){
-        if (!_isEditCat.value || categoryViewModel.categoryId.value == 1L) {
+        if (!_isEditCat.value || searchData.value.searchCategoryID == 1L) {
             component.onBackClicked()
         }else{
             categoryViewModel.navigateBack()
@@ -392,7 +395,7 @@ class CreateOfferViewModel(
         val body = createJsonBody()
         val url = when (type) {
             CreateOfferType.CREATE -> {
-                "categories/${categoryViewModel.categoryId.value}/operations/create_offer"
+                "categories/${searchData.value.searchCategoryID}/operations/create_offer"
             }
 
             CreateOfferType.EDIT -> {
@@ -444,7 +447,7 @@ class CreateOfferViewModel(
                                 "lot_id" to offerId,
                                 "lot_name" to title,
                                 "lot_city" to loc,
-                                "lot_category" to "${categoryViewModel.categoryId.value}",
+                                "lot_category" to "${searchData.value.searchCategoryID}",
                                 "seller_id" to UserData.userInfo?.id
                             )
 
@@ -588,7 +591,7 @@ class CreateOfferViewModel(
     @OptIn(ExperimentalSerializationApi::class)
     fun createJsonBody() : JsonObject {
         val fields = _responseGetPage.value?.fields?.filter { it.data != null }
-        val categoryID = categoryViewModel.categoryId.value
+        val categoryID = searchData.value.searchCategoryID
         val selectedDate = selectedDate.value
         val deleteImages = deleteImages.value
         val images = _responseImages.value

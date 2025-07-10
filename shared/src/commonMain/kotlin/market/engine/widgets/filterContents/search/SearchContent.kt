@@ -43,6 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SearchContent(
     uiSearchUiState: SearchUiState,
     searchPages : Value<ChildPages<*, SearchPagesComponents>>,
+    modifier: Modifier
 ) {
     val focusManager = LocalFocusManager.current
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -63,7 +64,7 @@ fun SearchContent(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         sheetContentColor = colors.primaryColor,
         sheetContainerColor = colors.primaryColor,
         contentColor = colors.primaryColor,

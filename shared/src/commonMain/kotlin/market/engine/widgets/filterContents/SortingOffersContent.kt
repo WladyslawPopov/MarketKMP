@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.strings
 import org.jetbrains.compose.resources.stringResource
@@ -13,6 +14,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SortingOffersContent(
     initSort: Sort?,
     isCabinet: Boolean,
+    modifier: Modifier = Modifier,
     onClose: (Sort?) -> Unit,
 ) {
     var sort by remember { mutableStateOf(initSort?.copy()) }

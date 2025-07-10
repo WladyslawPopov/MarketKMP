@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
@@ -20,6 +21,7 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
@@ -119,8 +121,9 @@ sealed class ChildHome {
 }
 
 @Composable
-fun HomeNavigation(
+fun HomeNavigation (
     modifier: Modifier = Modifier,
+    bottomPadding: Dp = dimens.bottomBar,
     childStack: Value<ChildStack<*, ChildHome>>
 ) {
     val stack by childStack.subscribeAsState()
@@ -133,13 +136,13 @@ fun HomeNavigation(
     ) { child ->
         when (val screen = child.instance) {
             is HomeChild ->{
-                HomeContent(screen.component, modifier)
+                HomeContent(screen.component, bottomPadding, modifier)
             }
             is OfferChild ->{
                 OfferContent(screen.component, modifier)
             }
             is ListingChild ->{
-                ListingContent(screen.component, modifier)
+                ListingContent(screen.component, modifier, bottomPadding)
             }
             is UserChild ->{
                 UserContent(screen.component, modifier)

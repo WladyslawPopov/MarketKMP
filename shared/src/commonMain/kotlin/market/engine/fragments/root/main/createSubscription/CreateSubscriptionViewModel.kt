@@ -153,7 +153,7 @@ class CreateSubscriptionViewModel(
 
     fun onBack(){
         if (createSubContentState.value.categoryState.openCategory) {
-            if (categoryViewModel.categoryId.value != 1L) {
+            if (categoryViewModel.searchData.value.searchCategoryID != 1L) {
                 categoryViewModel.navigateBack()
             } else {
                 closeCategory()

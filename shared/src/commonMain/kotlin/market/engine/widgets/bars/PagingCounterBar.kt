@@ -1,16 +1,13 @@
 package market.engine.widgets.bars
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -39,8 +36,6 @@ fun PagingCounterBar(
         modifier = modifier
     ){
         Card(
-            modifier = modifier
-                .animateContentSize(),
             onClick = {
                 onClick()
             }
@@ -49,28 +44,25 @@ fun PagingCounterBar(
                 modifier = Modifier.wrapContentWidth()
                     .background(colors.grayLayout)
                     .padding(dimens.smallPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+            )
+            {
                 Text(
                     text = "$currentPage",
-                    modifier = Modifier.padding(start = dimens.smallPadding),
                     style = MaterialTheme.typography.labelSmall
                 )
 
                 Text(
                     text = "/",
-                    modifier = Modifier.padding(start = dimens.smallPadding),
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.titleTextColor
                 )
 
                 Text(
                     text = "$totalPages",
-                    modifier = Modifier.padding(start = dimens.smallPadding),
                     style = MaterialTheme.typography.labelSmall
                 )
-
-                Spacer(modifier = Modifier.width(dimens.smallSpacer))
 
                 getFloatAnyButton(
                     showDownButton || showUpButton,
@@ -81,7 +73,5 @@ fun PagingCounterBar(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(dimens.mediumSpacer))
     }
 }

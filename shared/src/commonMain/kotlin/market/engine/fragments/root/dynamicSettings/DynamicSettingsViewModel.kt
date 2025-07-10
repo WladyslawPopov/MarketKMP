@@ -128,7 +128,7 @@ class DynamicSettingsViewModel(
                         "set_phone" ->{
                             operationsMethods.getOperationFields(
                                 owner ?: UserData.login,
-                                "verify_phone",
+                                "request_phone_verification",
                                 "users"
                             )
                         }
@@ -317,7 +317,7 @@ class DynamicSettingsViewModel(
                     "set_phone" ->{
                         operationsMethods.postOperationFields(
                             owner ?: UserData.login,
-                            "verify_phone",
+                            "request_phone_verification",
                             "users",
                             body
                         )

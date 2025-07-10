@@ -256,7 +256,7 @@ fun CabinetOfferItem(
                                     )
 
                                     Text(
-                                        text = item.quantity.toString(),
+                                        text = item.currentQuantity.toString(),
                                         style = MaterialTheme.typography.labelSmall,
                                     )
 
@@ -264,7 +264,7 @@ fun CabinetOfferItem(
                                     var color = colors.grayText
 
                                     if (!item.isPrototype) {
-                                        if (item.quantity < 2) {
+                                        if (item.currentQuantity < 2) {
                                             if (item.buyer?.login != "" && item.buyer?.login != null) {
                                                 buyer = item.buyer?.login ?: ""
                                                 color = colors.ratingBlue
