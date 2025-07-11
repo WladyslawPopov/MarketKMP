@@ -49,7 +49,7 @@ import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.ilustrations.CaptchaView
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField

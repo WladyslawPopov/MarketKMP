@@ -68,7 +68,7 @@ import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.parseDeepLink
 import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.ListingBaseViewModel
+import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.String

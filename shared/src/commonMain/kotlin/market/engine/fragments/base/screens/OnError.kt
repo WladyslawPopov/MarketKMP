@@ -1,4 +1,4 @@
-package market.engine.fragments.base
+package market.engine.fragments.base.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -44,13 +44,13 @@ fun OnError(
 
             }
             it == "NO_API_KEY" ->{
-                ErrorContent(it,onRefresh)
+                ErrorContent(it, onRefresh)
             }
             it == "BAD_API_KEY" ->{
-                ErrorContent(it,onRefresh)
+                ErrorContent(it, onRefresh)
             }
             it == "REQUEST_NOT_ALLOWED" ->{
-                ErrorContent(it,onRefresh)
+                ErrorContent(it, onRefresh)
             }
             it == "NEEDS_PASSWORD_RESET" ->{
                 goToDynamicSettings(humanMessage.value, null, null)

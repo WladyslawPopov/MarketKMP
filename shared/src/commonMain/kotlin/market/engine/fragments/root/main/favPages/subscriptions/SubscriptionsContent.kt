@@ -22,12 +22,12 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.ListingBaseContent
+import market.engine.fragments.base.listing.ListingBaseContent
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.OnError
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.SubscriptionItem

@@ -16,7 +16,7 @@ import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.main.profile.profileSettings.content.GlobalSettings
 import market.engine.fragments.root.main.profile.profileSettings.content.SettingsContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars

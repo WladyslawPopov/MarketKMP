@@ -5,6 +5,7 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,8 +18,8 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
+import market.engine.core.data.compositions.LocalBottomBarHeight
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.ToastItem
@@ -30,15 +31,15 @@ fun BaseContent(
     toastItem: ToastItem? = null,
     isHideContent: Boolean = true,
     isLoading : Boolean = false,
-    bottomPadding : Dp = dimens.bottomBar,
     onRefresh: () -> Unit,
     topBar: (@Composable () -> Unit)? = null,
     error: (@Composable () -> Unit)? = null,
     noFound: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit) = {},
-    content: @Composable BoxScope.(Dp) -> Unit,
+    content: @Composable BoxScope.(PaddingValues) -> Unit,
 ) {
     val pullToRefreshState: PullToRefreshState = rememberPullToRefreshState()
+    val bottomPadding = LocalBottomBarHeight.current
 
     DynamicOverlayLayout(
         modifier = modifier,
@@ -95,7 +96,7 @@ fun BaseContent(
                         }
 
                         else -> {
-                            content(topPadding)
+                            content(PaddingValues(top =  topPadding, bottom = bottomPadding))
                         }
                     }
                 }

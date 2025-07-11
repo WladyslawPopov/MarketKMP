@@ -1,4 +1,4 @@
-package market.engine.fragments.base
+package market.engine.fragments.base.listing
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -60,7 +60,6 @@ fun <T : Any>ListingBaseContent(
 
     var bottomSheetContentType by remember { mutableStateOf(activeType.value) }
 
-
     LaunchedEffect(scaffoldState.bottomSheetState) {
         snapshotFlow { scaffoldState.bottomSheetState.currentValue }
             .collect { sheetValue ->
@@ -78,8 +77,6 @@ fun <T : Any>ListingBaseContent(
             scaffoldState.bottomSheetState.partialExpand()
         }
     }
-
-
 
     BottomSheetScaffold(
         modifier = modifier,
@@ -127,5 +124,4 @@ fun <T : Any>ListingBaseContent(
             }
         }
     }
-
 }

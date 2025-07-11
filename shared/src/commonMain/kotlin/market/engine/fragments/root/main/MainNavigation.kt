@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +21,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import market.engine.core.data.compositions.LocalBottomBarHeight
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
@@ -63,63 +65,67 @@ fun MainNavigation(
     val density = LocalDensity.current
 
     Scaffold { contentPadding ->
-        Children(
-            stack = childStack,
-            animation = stackAnimation(fade())
-        ) { child ->
-            Box(modifier = modifier) {
-                Row {
-                    if (!model.value.showBottomBar.value) {
-                        getRailNavBar(
-                            listItems = model.value.bottomList.value,
-                            currentScreen = currentScreen
-                        )
-                    }
-                    when (child.instance) {
-                        is ChildMain.HomeChildMain ->
-                            HomeNavigation(
-                                Modifier.weight(1f),
-                                bottomBarHeight,
-                                component.childHomeStack
+        CompositionLocalProvider(LocalBottomBarHeight provides bottomBarHeight) {
+            Children(
+                stack = childStack,
+                animation = stackAnimation(fade())
+            ) { child ->
+                Box(modifier = modifier) {
+                    Row {
+                        if (!model.value.showBottomBar.value) {
+                            getRailNavBar(
+                                listItems = model.value.bottomList.value,
+                                currentScreen = currentScreen
                             )
+                        }
+                        when (child.instance) {
+                            is ChildMain.HomeChildMain ->
+                                HomeNavigation(
+                                    Modifier.weight(1f),
+                                    component.childHomeStack
+                                )
 
-                        is ChildMain.CategoryChildMain ->
-                            SearchNavigation(Modifier.weight(1f), component.childSearchStack)
+                            is ChildMain.CategoryChildMain ->
+                                SearchNavigation(Modifier.weight(1f), component.childSearchStack)
 
-                        is ChildMain.BasketChildMain ->
-                            BasketNavigation(Modifier.weight(1f), component.childBasketStack)
+                            is ChildMain.BasketChildMain ->
+                                BasketNavigation(Modifier.weight(1f), component.childBasketStack)
 
-                        is ChildMain.FavoritesChildMain ->
-                            FavoritesNavigation(Modifier.weight(1f), component.childFavoritesStack)
+                            is ChildMain.FavoritesChildMain ->
+                                FavoritesNavigation(
+                                    Modifier.weight(1f),
+                                    component.childFavoritesStack
+                                )
 
-                        is ChildMain.ProfileChildMain ->
-                            ProfileNavigation(
-                                Modifier.weight(1f),
-                                component.childProfileStack,
-                                model.value.publicProfileNavigationItems.value
-                            )
+                            is ChildMain.ProfileChildMain ->
+                                ProfileNavigation(
+                                    Modifier.weight(1f),
+                                    component.childProfileStack,
+                                    model.value.publicProfileNavigationItems.value
+                                )
+                        }
                     }
-                }
 
-                LogoutDialog(
-                    showLogoutDialog = showLogoutDialog.value,
-                    onDismiss = { viewModel.setLogoutDialog(false) },
-                    goToLogin = {
-                        viewModel.setLogoutDialog(false)
-                        goToLogin(true)
+                    LogoutDialog(
+                        showLogoutDialog = showLogoutDialog.value,
+                        onDismiss = { viewModel.setLogoutDialog(false) },
+                        goToLogin = {
+                            viewModel.setLogoutDialog(false)
+                            goToLogin(true)
+                        }
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .zIndex(300f)
+                            .onSizeChanged {
+                                bottomBarHeight = with(density) { it.height.toDp() }
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        GetBottomNavBar(model.value.bottomList.value, currentScreen)
                     }
-                )
-
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .zIndex(300f)
-                        .onSizeChanged {
-                            bottomBarHeight = with(density) { it.height.toDp() }
-                        },
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    GetBottomNavBar(model.value.bottomList.value, currentScreen)
                 }
             }
         }

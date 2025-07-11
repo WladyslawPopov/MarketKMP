@@ -13,8 +13,8 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getDeepLinkByType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.OnError
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 
 @Composable

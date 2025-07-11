@@ -24,7 +24,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.Tab
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
@@ -90,24 +90,16 @@ fun FavPagesNavigation(
     }
 
     BaseContent(
-        topBar = null,
-        onRefresh = {
-            component.onRefresh()
-        },
-        error = error,
-        noFound = null,
-        toastItem = viewModel.toastItem.value,
-        modifier = modifier.fillMaxSize()
-    ) {
-        TooltipWrapper(
-            modifier= Modifier,
-            tooltipState = tooltipState,
-            onClick = onTooltipClick,
-            content = { tooltipState ->
-                Column {
+        topBar = {
+            TooltipWrapper(
+                modifier= Modifier,
+                tooltipState = tooltipState,
+                onClick = onTooltipClick,
+                content = { tooltipState ->
+
                     SimpleAppBar(
                         data = appBarState
-                    ){
+                    ) {
                         ReorderTabRow(
                             tabs = favTabList.value.map {
                                 Tab(
@@ -127,7 +119,8 @@ fun FavPagesNavigation(
                             isDragMode = isDragMode,
                             onTabsReordered = { list ->
                                 val newList = list.map { listItem ->
-                                    favTabList.value.find { it.title == listItem.title && it.id == listItem.id } ?: FavoriteListItem()
+                                    favTabList.value.find { it.title == listItem.title && it.id == listItem.id }
+                                        ?: FavoriteListItem()
                                 }
                                 favTabList.value = newList
                             },
@@ -135,68 +128,75 @@ fun FavPagesNavigation(
                             getOperations = { id, callback ->
                                 if (id > 1000) {
                                     viewModel.getOperationFavTab(id, callback)
-                                }else{
+                                } else {
                                     viewModel.getDefOperationFavTab(callback)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth().padding(end = dimens.smallPadding),
                         )
                     }
-
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        ChildPages(
-                            modifier = Modifier.fillMaxSize(),
-                            pages = component.componentsPages,
-                            scrollAnimation = PagesScrollAnimation.Default,
-                            onPageSelected = {
-                                component.selectPage(it)
-                            }
-                        ) { _, page ->
-                            when (page) {
-                                is FavPagesComponents.SubscribedChild -> {
-                                    SubscriptionsContent(
-                                        page.component,
-                                        Modifier
-                                    )
-                                }
-
-                                is FavPagesComponents.FavoritesChild -> {
-                                    FavoritesContent(
-                                        page.component,
-                                        Modifier
-                                    )
-                                }
-                            }
-                        }
-
-                        if (isDragMode) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(colors.white.copy(alpha = 0.3f))
-                                    .blur(dimens.extraLargePadding)
-                                    .pointerInput(Unit) {
-                                        detectTapGestures {
-                                            viewModel.updateFavTabList(favTabList.value)
-                                            viewModel.closeDragMode()
-                                            component.fullRefresh()
-                                        }
-                                    }
-                            )
-                        }
+                }
+            )
+        },
+        onRefresh = {
+            component.onRefresh()
+        },
+        error = error,
+        noFound = null,
+        toastItem = viewModel.toastItem.value,
+        modifier = modifier.fillMaxSize()
+    ) { contentPaddings ->
+        Box(modifier = Modifier.padding(top = contentPaddings.calculateTopPadding()).fillMaxSize()) {
+            ChildPages(
+                modifier = Modifier.fillMaxSize(),
+                pages = component.componentsPages,
+                scrollAnimation = PagesScrollAnimation.Default,
+                onPageSelected = {
+                    component.selectPage(it)
+                }
+            ) { _, page ->
+                when (page) {
+                    is FavPagesComponents.SubscribedChild -> {
+                        SubscriptionsContent(
+                            page.component,
+                            Modifier
+                        )
                     }
 
-                    CustomDialog(
-                        uiState = customDialogState.value,
-                    ){ state ->
-                        Column {
-                            if (state.fields.isNotEmpty()) {
-                                SetUpDynamicFields(state.fields)
-                            }
-                        }
+                    is FavPagesComponents.FavoritesChild -> {
+                        FavoritesContent(
+                            page.component,
+                            Modifier
+                        )
                     }
                 }
             }
-        )
+
+            if (isDragMode) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colors.white.copy(alpha = 0.3f))
+                        .blur(dimens.extraLargePadding)
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                viewModel.updateFavTabList(favTabList.value)
+                                viewModel.closeDragMode()
+                                component.fullRefresh()
+                            }
+                        }
+                )
+            }
+        }
+
+        CustomDialog(
+            uiState = customDialogState.value,
+        ){ state ->
+            Column {
+                if (state.fields.isNotEmpty()) {
+                    SetUpDynamicFields(state.fields)
+                }
+            }
+        }
     }
 }

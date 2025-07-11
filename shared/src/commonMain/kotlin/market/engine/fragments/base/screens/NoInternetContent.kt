@@ -1,4 +1,4 @@
-package market.engine.fragments.base
+package market.engine.fragments.base.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,7 +22,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun ErrorContent(err: String, onRefresh: () -> Unit) {
+fun NoInternetContent(onRefresh: () -> Unit) {
     Column(
         modifier = Modifier.background(color = colors.primaryColor).fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -31,20 +31,21 @@ fun ErrorContent(err: String, onRefresh: () -> Unit) {
         Spacer(modifier = Modifier.height(dimens.largeSpacer))
 
         Image(
-            painterResource(drawables.oopsIcon),
+            painterResource(drawables.noInternetIcon),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(0.5f),
+            modifier = Modifier.fillMaxSize(0.5f).align(Alignment.CenterHorizontally)
         )
 
         Text(
-            text = stringResource(strings.oopsTitle),
+            text = stringResource(strings.noInternetTitle),
             textAlign = TextAlign.Center,
             color = colors.titleTextColor,
             style = MaterialTheme.typography.titleMedium
         )
 
+
         Text(
-            text = err,
+            text = stringResource(strings.noInternetSubtitle),
             textAlign = TextAlign.Center,
             color = colors.steelBlue,
             style = MaterialTheme.typography.bodyMedium
@@ -57,7 +58,7 @@ fun ErrorContent(err: String, onRefresh: () -> Unit) {
             colors = colors.themeButtonColors,
             modifier = Modifier.align(Alignment.CenterHorizontally),
             shape = MaterialTheme.shapes.small
-        ){
+        ) {
             Text(
                 text = stringResource(strings.refreshButton),
                 textAlign = TextAlign.Center,

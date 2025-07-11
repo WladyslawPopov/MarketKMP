@@ -26,7 +26,7 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.NavigationArrowButton
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.ilustrations.getCategoryIcon
 import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.buttons.ActionButton

@@ -37,10 +37,10 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.ListingBaseContent
+import market.engine.fragments.base.listing.ListingBaseContent
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.ilustrations.FullScreenImageViewer
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.items.SeparatorDialogItem
 import market.engine.widgets.rows.UserRow

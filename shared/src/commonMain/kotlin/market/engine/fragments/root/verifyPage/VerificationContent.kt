@@ -32,7 +32,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.texts.DynamicLabel

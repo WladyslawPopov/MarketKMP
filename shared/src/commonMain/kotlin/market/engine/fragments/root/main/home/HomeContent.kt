@@ -17,11 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.listTopCategory
@@ -34,7 +32,7 @@ import market.engine.widgets.grids.GridPromoOffers
 import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.painterResource
@@ -43,7 +41,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeContent(
     component: HomeComponent,
-    bottomPadding: Dp = dimens.bottomBar,
     modifier: Modifier = Modifier
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -127,17 +124,16 @@ fun HomeContent(
                 }
             },
             error = errorContent,
-            bottomPadding = bottomPadding,
             noFound = null,
             toastItem = toastItem.value,
             modifier = Modifier.fillMaxSize()
-        ) { appPadding ->
+        ) { contentPaddings ->
             LazyColumnWithScrollBars(
                 state = scrollState,
             )
             {
                 item {
-                    Spacer(Modifier.height(appPadding))
+                    Spacer(Modifier.height(contentPaddings.calculateTopPadding()))
                 }
 
                 item {
@@ -179,7 +175,7 @@ fun HomeContent(
                 }
 
                 item {
-                    Spacer(Modifier.height(bottomPadding))
+                    Spacer(Modifier.height(contentPaddings.calculateBottomPadding()))
                 }
             }
         }

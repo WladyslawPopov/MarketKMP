@@ -32,7 +32,7 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.dynamicSettings.contents.AppSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.AutoFeedbackSettingsContent
 import market.engine.fragments.root.dynamicSettings.contents.BiddingStepSettingsContent

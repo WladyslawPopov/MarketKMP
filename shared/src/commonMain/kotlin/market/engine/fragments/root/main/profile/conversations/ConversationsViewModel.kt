@@ -31,7 +31,7 @@ import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.ListingBaseViewModel
+import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 

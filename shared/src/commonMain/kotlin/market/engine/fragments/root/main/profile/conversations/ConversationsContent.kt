@@ -35,11 +35,11 @@ import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.ListingBaseContent
+import market.engine.fragments.base.listing.ListingBaseContent
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.main.profile.ProfileDrawer
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.filterContents.DialogsFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent

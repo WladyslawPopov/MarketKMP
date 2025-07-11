@@ -42,8 +42,8 @@ import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.widgets.tabs.TabRow
-import market.engine.fragments.base.OnError
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.rows.ColumnWithScrollBars
 import market.engine.widgets.rows.UserRow

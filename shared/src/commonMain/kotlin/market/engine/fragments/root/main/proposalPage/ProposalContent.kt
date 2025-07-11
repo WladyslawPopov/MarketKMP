@@ -38,8 +38,8 @@ import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.OnError
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.root.main.messenger.DialogsHeader
 import market.engine.widgets.items.ProposalsItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars

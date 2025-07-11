@@ -27,8 +27,8 @@ import market.engine.fragments.base.BaseContent
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
-import market.engine.fragments.base.OnError
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 

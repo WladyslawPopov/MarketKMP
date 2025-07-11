@@ -15,11 +15,11 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.base.ListingBaseContent
+import market.engine.fragments.base.listing.ListingBaseContent
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.OnError
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
@@ -92,11 +92,12 @@ fun FavoritesContent(
         isLoading = isLoading.value,
         toastItem = viewModel.toastItem.value,
         modifier = modifier.fillMaxSize()
-    ) {
+    ) { contentPaddings ->
         ListingBaseContent(
             data = data,
             viewModel = listingBaseViewModel,
             noFound = noFound,
+            contentPadding = contentPaddings,
             filtersContent = { activeWindowType ->
                 when (activeWindowType) {
                     ActiveWindowListingType.FILTERS -> {

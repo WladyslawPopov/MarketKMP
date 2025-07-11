@@ -7,52 +7,42 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.zIndex
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.states.ScrollDataState
 import market.engine.core.data.types.ActiveWindowListingType
-import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.ListingBaseContent
+import market.engine.fragments.base.listing.ListingBaseContent
 import market.engine.widgets.filterContents.search.SearchContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.OnError
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.base.screens.NoItemsFoundLayout
+import market.engine.fragments.base.listing.rememberListingState
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.appBars.CloseAppBar
@@ -71,8 +61,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ListingContent(
     component: ListingComponent,
-    modifier: Modifier = Modifier,
-    bottomPadding: Dp = dimens.bottomBar,
+    modifier: Modifier = Modifier
 ) {
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
@@ -101,50 +90,9 @@ fun ListingContent(
     val scrollStateData = viewModel.scrollState.collectAsState()
     val activeType = listingBaseModel.activeWindowType.collectAsState()
     val filterBarUiState = listingBaseModel.filterBarUiState.collectAsState()
-
-    val catDef = remember(listingBaseModel.catDef.value) { listingBaseModel.catDef.value }
-
-    val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = scrollStateData.value.scrollItem,
-        initialFirstVisibleItemScrollOffset = scrollStateData.value.offsetScrollItem
-    )
-
     val selectedItems = listingBaseModel.selectItems.collectAsState()
 
-
-    var previousIndex by remember { mutableStateOf(3) }
-
-    val currentPage by remember {
-        derivedStateOf {
-            (scrollState.firstVisibleItemIndex / PAGE_SIZE) + 1
-        }
-    }
-
-    val isTabsVisible = remember{ mutableStateOf(false) }
-
-    LaunchedEffect(scrollState) {
-        snapshotFlow {
-            scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
-        }.collect { (index, offset) ->
-
-            if (index < previousIndex) {
-                isTabsVisible.value = true
-            } else if (index > previousIndex) {
-                isTabsVisible.value = false
-            }
-
-            if (currentPage == 0) {
-                isTabsVisible.value = true
-            }
-
-            if (index > previousIndex || index < previousIndex)
-                previousIndex = index
-
-
-            viewModel.updateScroll(ScrollDataState(index, offset))
-        }
-    }
-
+    val catDef = remember(listingBaseModel.catDef.value) { listingBaseModel.catDef.value }
 
     BackHandler(model.backHandler) {
         viewModel.backClick()
@@ -180,16 +128,25 @@ fun ListingContent(
         }
     }
 
+    val listingState = rememberListingState(
+        onScroll = viewModel::updateScroll,
+        scrollStateData = scrollStateData.value
+    )
+
     BaseContent(
+        modifier = modifier.fillMaxSize(),
+        isLoading = isLoadingListing.value && activeWindowType.value != ActiveWindowListingType.SEARCH,
+        toastItem = toastItem.value,
+        onRefresh = viewModel::updatePage,
+        error = error,
+        noFound = noFound,
         topBar = {
             Column(
                 modifier = Modifier
                     .background(
-                        colors.primaryColor.copy(if(!isTabsVisible.value) 0.8f else 1f),
+                        colors.primaryColor.copy(if(!listingState.areBarsVisible.value) 0.8f else 1f),
                         MaterialTheme.shapes.small
-                    )
-                    .fillMaxWidth()
-                    .zIndex(15f),
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
             )
@@ -285,7 +242,7 @@ fun ListingContent(
                     activeType.value == ActiveWindowListingType.CATEGORY
                 ) {
                     AnimatedVisibility(
-                        visible = isTabsVisible.value,
+                        visible = listingState.areBarsVisible.value,
                         enter = fadeIn(),
                         exit = fadeOut()
                     )
@@ -296,19 +253,13 @@ fun ListingContent(
                     }
                 }
             }
-        },
-        onRefresh = viewModel::updatePage,
-        error = error,
-        noFound = null,
-        isLoading = isLoadingListing.value && activeWindowType.value != ActiveWindowListingType.SEARCH,
-        toastItem = toastItem.value,
-        modifier = modifier.fillMaxSize()
-    ) { appBarPadding ->
+        }
+    ) { contentPadding ->
         ListingBaseContent(
             viewModel = listingBaseModel,
-            contentPadding = PaddingValues(top = appBarPadding, bottom = bottomPadding),
+            contentPadding = contentPadding,
             data = data,
-            scrollState = scrollState,
+            scrollState = listingState.scrollState,
             noFound = noFound,
             filtersContent = { bottomSheetContentType ->
                 when (bottomSheetContentType) {

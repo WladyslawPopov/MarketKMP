@@ -1,4 +1,4 @@
-package market.engine.fragments.base
+package market.engine.fragments.base.listing
 
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -35,11 +35,11 @@ import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.states.SwipeTabsBarState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.ServerErrorException
+import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.shared.SearchHistory
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
-
 
 data class SearchEventsImpl(
     val viewModel : ListingBaseViewModel
@@ -72,7 +72,7 @@ data class SearchEventsImpl(
     override fun updateSearch(value: TextFieldValue) = viewModel.onUpdateSearchString(value)
 }
 
-open class ListingBaseViewModel(
+class ListingBaseViewModel(
     showSwipeTabs : Boolean = false,
     val listingComponent: ListingComponent? = null,
     val deleteSelectedItems: () -> Unit = {},

@@ -83,7 +83,7 @@ import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.OnError
+import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel

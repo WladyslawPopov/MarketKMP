@@ -47,7 +47,7 @@ import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.ListingBaseViewModel
+import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString

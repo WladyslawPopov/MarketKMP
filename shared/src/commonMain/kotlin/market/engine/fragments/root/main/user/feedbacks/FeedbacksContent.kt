@@ -14,8 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,9 +27,6 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import market.engine.core.data.constants.PAGE_SIZE
 import market.engine.core.data.filtersObjects.ReportFilters
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -41,8 +36,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.BaseContent
-import market.engine.widgets.bars.PagingCounterBar
-import market.engine.fragments.base.NoItemsFoundLayout
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.items.FeedbackItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars

@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
 import kotlinx.coroutines.CoroutineScope
@@ -56,7 +55,6 @@ fun <T : Any> BoxScope.PagingList(
     promoList: List<OfferItem>? = null,
     isReversingPaging : Boolean = false,
     contentPadding: PaddingValues = PaddingValues(dimens.zero),
-    filtersPadding: Dp = dimens.zero,
     promoContent: (@Composable (OfferItem) -> Unit)? = null,
     content: @Composable (T) -> Unit
 ) {
@@ -97,11 +95,12 @@ fun <T : Any> BoxScope.PagingList(
         modifierList = Modifier
             .fillMaxSize()
             .align(align)
-    ){
+    )
+    {
         item {
             Spacer(
                 modifier = Modifier
-                    .height(contentPadding.calculateTopPadding() + filtersPadding)
+                    .height(contentPadding.calculateTopPadding())
             )
         }
 
@@ -197,7 +196,9 @@ fun <T : Any> BoxScope.PagingList(
             }
         }
 
-        item {  }
+        item {
+            Spacer(modifier = Modifier.height(contentPadding.calculateBottomPadding()))
+        }
     }
 
     PagingCounterBar(
